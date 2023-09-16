@@ -103,7 +103,7 @@ import 'a.dart';
 class A {}
 ''');
 
-    configuration.withExportScope = true;
+    configuration.withMetadata = false;
     checkElementText(library, r'''
 library
   imports
@@ -111,29 +111,19 @@ library
   definingUnit
     classes
       class A @35
-        metadata
-          Annotation
-            atSign: @ @18
-            name: SimpleIdentifier
-              token: MyMacro @19
-              staticElement: package:test/a.dart::@class::MyMacro
-              staticType: null
-            arguments: ArgumentList
-              leftParenthesis: ( @26
-              rightParenthesis: ) @27
-            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+class MyClass {}
+---
+      definingUnit
+        classes
+          class MyClass @6
+            constructors
+              synthetic @-1
 ''');
   }
 
@@ -161,7 +151,7 @@ import 'a.dart';
 class A {}
 ''');
 
-    configuration.withExportScope = true;
+    configuration.withMetadata = false;
     checkElementText(library, r'''
 library
   imports
@@ -169,37 +159,19 @@ library
   definingUnit
     classes
       class A @41
-        metadata
-          Annotation
-            atSign: @ @18
-            name: PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: MyMacro @19
-                staticElement: package:test/a.dart::@class::MyMacro
-                staticType: null
-              period: . @26
-              identifier: SimpleIdentifier
-                token: named @27
-                staticElement: package:test/a.dart::@class::MyMacro::@constructor::named
-                staticType: null
-              staticElement: package:test/a.dart::@class::MyMacro::@constructor::named
-              staticType: null
-            arguments: ArgumentList
-              leftParenthesis: ( @32
-              rightParenthesis: ) @33
-            element: package:test/a.dart::@class::MyMacro::@constructor::named
         constructors
           synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+class MyClass {}
+---
+      definingUnit
+        classes
+          class MyClass @6
+            constructors
+              synthetic @-1
 ''');
   }
 
@@ -226,7 +198,7 @@ import 'a.dart' as prefix;
 class A {}
 ''');
 
-    configuration.withExportScope = true;
+    configuration.withMetadata = false;
     checkElementText(library, r'''
 library
   imports
@@ -234,37 +206,19 @@ library
   definingUnit
     classes
       class A @52
-        metadata
-          Annotation
-            atSign: @ @28
-            name: PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: prefix @29
-                staticElement: self::@prefix::prefix
-                staticType: null
-              period: . @35
-              identifier: SimpleIdentifier
-                token: MyMacro @36
-                staticElement: package:test/a.dart::@class::MyMacro
-                staticType: null
-              staticElement: package:test/a.dart::@class::MyMacro
-              staticType: null
-            arguments: ArgumentList
-              leftParenthesis: ( @43
-              rightParenthesis: ) @44
-            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+class MyClass {}
+---
+      definingUnit
+        classes
+          class MyClass @6
+            constructors
+              synthetic @-1
 ''');
   }
 
@@ -291,7 +245,7 @@ import 'a.dart' as prefix;
 class A {}
 ''');
 
-    configuration.withExportScope = true;
+    configuration.withMetadata = false;
     checkElementText(library, r'''
 library
   imports
@@ -299,42 +253,19 @@ library
   definingUnit
     classes
       class A @58
-        metadata
-          Annotation
-            atSign: @ @28
-            name: PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: prefix @29
-                staticElement: self::@prefix::prefix
-                staticType: null
-              period: . @35
-              identifier: SimpleIdentifier
-                token: MyMacro @36
-                staticElement: package:test/a.dart::@class::MyMacro
-                staticType: null
-              staticElement: package:test/a.dart::@class::MyMacro
-              staticType: null
-            period: . @43
-            constructorName: SimpleIdentifier
-              token: named @44
-              staticElement: package:test/a.dart::@class::MyMacro::@constructor::named
-              staticType: null
-            arguments: ArgumentList
-              leftParenthesis: ( @49
-              rightParenthesis: ) @50
-            element: package:test/a.dart::@class::MyMacro::@constructor::named
         constructors
           synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+class MyClass {}
+---
+      definingUnit
+        classes
+          class MyClass @6
+            constructors
+              synthetic @-1
 ''');
   }
 
@@ -1449,8 +1380,9 @@ class A {}
     }
 
     if (expected != null) {
-      final partUri = library.parts.single.uri as DirectiveUriWithUnit;
-      final x = partUri.unit.topLevelVariables.single;
+      final macroAugmentation = library.augmentations.first;
+      final macroUnit = macroAugmentation.definingCompilationUnit;
+      final x = macroUnit.topLevelVariables.single;
       expect(x.name, 'x');
       x as ConstTopLevelVariableElementImpl;
       final actual = (x.constantInitializer as SimpleStringLiteral).value;
@@ -1506,8 +1438,9 @@ $declarationCode
       library.definingCompilationUnit.getClass('A'),
     );
 
-    final partUri = library.parts.single.uri as DirectiveUriWithUnit;
-    final x = partUri.unit.topLevelVariables.single;
+    final macroAugmentation = library.augmentations.first;
+    final macroUnit = macroAugmentation.definingCompilationUnit;
+    final x = macroUnit.topLevelVariables.single;
     expect(x.name, 'x');
     x as ConstTopLevelVariableElementImpl;
     var x_literal = x.constantInitializer as SimpleStringLiteral;

@@ -140,6 +140,10 @@ class BundleWriter {
   }
 
   void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
+    _sink.writeOptionalObject(augmentation.macroGenerated, (macroGenerated) {
+      _sink.writeStringUtf8(macroGenerated.code);
+      _sink.writeUint8List(macroGenerated.informativeBytes);
+    });
     _writeUnitElement(augmentation.definingCompilationUnit);
     // The offset where resolution for the augmentation starts.
     // We need it to skip resolution information from the unit.

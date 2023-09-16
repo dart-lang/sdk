@@ -25,7 +25,6 @@ analyzer:
     implementation_imports: ignore
     non_constant_identifier_names: ignore
     overridden_fields: ignore
-    prefer_void_to_null: ignore
     todo: ignore
 
 linter:

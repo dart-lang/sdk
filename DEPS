@@ -99,7 +99,7 @@ vars = {
   "boringssl_gen_rev": "a468ba9fec3f59edf46a7db98caaca893e1e4d96",
   "boringssl_rev": "74646566e93de7551bfdfc5f49de7462f13d1d05",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "adfb08c95c626248b28cc60df3b085c12ad8758e",
+  "devtools_rev": "532dc39c7a2820a6dc759590e03a9c18fec915f8",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -192,7 +192,7 @@ vars = {
   "web_socket_channel_rev": "af945f1ad3ac4193ed70b4ebfbdcba3b9f0198bc",
   "webdev_rev": "501ccc287783db685240d0f47c1cc9df68a43ae4",
   "webdriver_rev": "21976d657e6505ad113f714bd104420aee23faac",
-  "webkit_inspection_protocol_rev": "39a3c297ff573635e7936b015ce4f3466e4739d6",
+  "webkit_inspection_protocol_rev": "82f0c1c46dfdba5edf7c5fa84456233121dd69e1",
   "yaml_rev": "ae001879aa377afee2e70cf11b8716d6cc3e2658",
   "yaml_edit_rev": "4a9734dda12f63ef9eee4121f87ff4401e25a607",
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -3951,6 +3952,8 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   final LibraryOrAugmentationElementImpl augmentationTarget;
 
+  MacroGenerationAugmentationLibrary? macroGenerated;
+
   LibraryAugmentationElementLinkedData? linkedData;
 
   LibraryAugmentationElementImpl({
@@ -4798,6 +4801,17 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitLocalVariableElement(this);
+}
+
+/// Additional information for a macro generated augmentation library.
+class MacroGenerationAugmentationLibrary {
+  final String code;
+  final Uint8List informativeBytes;
+
+  MacroGenerationAugmentationLibrary({
+    required this.code,
+    required this.informativeBytes,
+  });
 }
 
 mixin MacroTargetElement {
