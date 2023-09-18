@@ -1,7 +1,7 @@
 {
 "ignored_1":"Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file",
 "ignored_2":"for details. All rights reserved. Use of this source code is governed by a",
-"ignored_3":"BSD-style license that can be found in the LICENSE.md file.",
+"ignored_3":"BSD-style license that can be found in the LICENSE file.",
 
   "packages": "../../.dart_tool/package_config.json",
   "analyze": {
