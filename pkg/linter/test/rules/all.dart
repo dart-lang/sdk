@@ -38,6 +38,7 @@ import 'avoid_types_as_parameter_names_test.dart'
     as avoid_types_as_parameter_names;
 import 'avoid_types_on_closure_parameters_test.dart'
     as avoid_types_on_closure_parameters;
+import 'avoid_unnecessary_containers_test.dart' as avoid_unnecessary_containers;
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
@@ -264,6 +265,7 @@ void main() {
   avoid_slow_async_io.main();
   avoid_types_as_parameter_names.main();
   avoid_types_on_closure_parameters.main();
+  avoid_unnecessary_containers.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
   await_only_futures.main();
