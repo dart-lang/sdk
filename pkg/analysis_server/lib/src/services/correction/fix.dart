@@ -258,6 +258,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Add '@override' annotations everywhere in file",
   );
+  static const ADD_REDECLARE = FixKind(
+    'dart.fix.add.redeclare',
+    DartFixKindPriority.DEFAULT,
+    "Add '@redeclare' annotation",
+  );
+  static const ADD_REDECLARE_MULTI = FixKind(
+    'dart.fix.add.redeclare.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add '@redeclare' annotations everywhere in file",
+  );
   static const ADD_REOPEN = FixKind(
     'dart.fix.add.reopen',
     DartFixKindPriority.DEFAULT,

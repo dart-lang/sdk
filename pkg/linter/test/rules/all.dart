@@ -5,6 +5,7 @@
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'annotate_overrides_test.dart' as annotate_overrides;
+import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
@@ -38,6 +39,7 @@ import 'avoid_types_as_parameter_names_test.dart'
     as avoid_types_as_parameter_names;
 import 'avoid_types_on_closure_parameters_test.dart'
     as avoid_types_on_closure_parameters;
+import 'avoid_unnecessary_containers_test.dart' as avoid_unnecessary_containers;
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
@@ -161,6 +163,7 @@ import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
 import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
 import 'sized_box_shrink_expand_test.dart' as sized_box_shrink_expand;
 import 'slash_for_doc_comments_test.dart' as slash_for_doc_comments;
+import 'sort_child_properties_last_test.dart' as sort_child_properties_last;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
 import 'sort_unnamed_constructors_first_test.dart'
@@ -243,6 +246,7 @@ void main() {
   always_specify_types.main();
   always_use_package_imports.main();
   annotate_overrides.main();
+  annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
@@ -263,6 +267,7 @@ void main() {
   avoid_slow_async_io.main();
   avoid_types_as_parameter_names.main();
   avoid_types_on_closure_parameters.main();
+  avoid_unnecessary_containers.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
   await_only_futures.main();
@@ -355,6 +360,7 @@ void main() {
   sized_box_for_whitespace.main();
   sized_box_shrink_expand.main();
   slash_for_doc_comments.main();
+  sort_child_properties_last.main();
   sort_constructors_first.main();
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();

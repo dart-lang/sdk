@@ -10,6 +10,7 @@ import 'rules/always_require_non_null_named_parameters.dart';
 import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
 import 'rules/annotate_overrides.dart';
+import 'rules/annotate_redeclares.dart';
 import 'rules/avoid_annotating_with_dynamic.dart';
 import 'rules/avoid_as.dart';
 import 'rules/avoid_bool_literals_in_conditional_expressions.dart';
@@ -241,6 +242,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(AlwaysSpecifyTypes())
     ..register(AlwaysUsePackageImports())
     ..register(AnnotateOverrides())
+    ..register(AnnotateRedeclares())
     ..register(AvoidAnnotatingWithDynamic())
     ..register(AvoidAs())
     ..register(AvoidBoolLiteralsInConditionalExpressions())

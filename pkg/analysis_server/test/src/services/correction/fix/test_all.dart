@@ -36,6 +36,7 @@ import 'add_missing_switch_cases_test.dart' as add_missing_switch_cases;
 import 'add_ne_null_test.dart' as add_ne_null;
 import 'add_null_check_test.dart' as add_null_check;
 import 'add_override_test.dart' as add_override;
+import 'add_redeclare_test.dart' as add_redeclare;
 import 'add_reopen_test.dart' as add_reopen;
 import 'add_required_test.dart' as add_required;
 import 'add_return_null_test.dart' as add_return_null;
@@ -306,6 +307,7 @@ void main() {
     add_ne_null.main();
     add_null_check.main();
     add_override.main();
+    add_redeclare.main();
     add_reopen.main();
     add_required.main();
     add_return_null.main();

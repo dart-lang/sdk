@@ -485,12 +485,32 @@ export 'src/widgets/framework.dart';
         .writeAsStringSync(r'''
 import 'framework.dart';
 
+class Column implements Widget {
+  Column({
+    Key? key,
+    List<Widget> children = const <Widget>[],
+  });
+}
+
+class RawMaterialButton implements Widget {
+  RawMaterialButton({
+    Key? key,
+    Widget? child,
+    void Function()? onPressed,
+  });
+}
+
 class SizedBox implements Widget {
   SizedBox({
+    Key? key,
     double height = 0,
     double width = 0,
     Widget? child,
   });
+}
+
+class Text implements Widget {
+  Text(String data);
 }
 ''');
 

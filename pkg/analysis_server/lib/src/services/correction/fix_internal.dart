@@ -30,6 +30,7 @@ import 'package:analysis_server/src/services/correction/dart/add_missing_switch_
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
+import 'package:analysis_server/src/services/correction/dart/add_redeclare.dart';
 import 'package:analysis_server/src/services/correction/dart/add_reopen.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
@@ -441,6 +442,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.annotate_overrides: [
       AddOverride.new,
+    ],
+    LintNames.annotate_redeclares: [
+      AddRedeclare.new,
     ],
     LintNames.avoid_annotating_with_dynamic: [
       RemoveTypeAnnotation.other,

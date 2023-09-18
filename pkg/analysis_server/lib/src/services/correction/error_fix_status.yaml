@@ -1848,6 +1848,8 @@ LintCode.always_use_package_imports:
   status: hasFix
 LintCode.annotate_overrides:
   status: hasFix
+LintCode.annotate_redeclares:
+  status: hasFix
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
 LintCode.avoid_as:
