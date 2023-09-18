@@ -19,7 +19,7 @@
 /// with the same kind of root node.
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
-import 'package:kernel/text/ast_to_text.dart' show Precedence, Printer;
+import 'package:kernel/text/ast_to_text.dart' show Precedence;
 import 'package:kernel/type_environment.dart';
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
@@ -28,7 +28,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import '../builder/declaration_builders.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
-import '../source/source_constructor_builder.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
@@ -173,22 +172,6 @@ mixin InternalTreeNode implements TreeNode {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultTreeNode(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(TreeVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
   void transformChildren(Transformer v) {
     unsupported(
         "${runtimeType}.transformChildren on ${v.runtimeType}", -1, null);
@@ -207,24 +190,11 @@ mixin InternalTreeNode implements TreeNode {
 }
 
 /// Common base class for internal statements.
-abstract class InternalStatement extends Statement {
+abstract class InternalStatement extends AuxiliaryStatement {
   @override
   void replaceChild(TreeNode child, TreeNode replacement) {
     // Do nothing. The node should not be part of the resulting AST, anyway.
   }
-
-  @override
-  R accept<R>(StatementVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence) {
-      // Allow visitors needed for toString.
-      return visitor.defaultStatement(this);
-    }
-    return unsupported("${runtimeType}.accept", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) =>
-      unsupported("${runtimeType}.accept1", -1, null);
 
   @override
   void transformChildren(Transformer v) => unsupported(
@@ -352,27 +322,10 @@ class BreakStatementImpl extends BreakStatement {
 }
 
 /// Common base class for internal expressions.
-abstract class InternalExpression extends Expression {
+abstract class InternalExpression extends AuxiliaryExpression {
   @override
   void replaceChild(TreeNode child, TreeNode replacement) {
     // Do nothing. The node should not be part of the resulting AST, anyway.
-  }
-
-  @override
-  R accept<R>(ExpressionVisitor<R> visitor) {
-    if (visitor is Printer ||
-        visitor is Precedence /* || visitor is Transformer*/) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultExpression(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
   }
 
   @override
@@ -405,29 +358,10 @@ abstract class InternalExpression extends Expression {
 }
 
 /// Common base class for internal initializers.
-abstract class InternalInitializer extends Initializer {
+abstract class InternalInitializer extends AuxiliaryInitializer {
   @override
   void replaceChild(TreeNode child, TreeNode replacement) {
     // Do nothing. The node should not be part of the resulting AST, anyway.
-  }
-
-  @override
-  R accept<R>(InitializerVisitor<R> visitor) {
-    if (visitor is InferenceVisitorImpl) {
-      return acceptInference(visitor as InferenceVisitorImpl) as R;
-    }
-    if (visitor is Printer ||
-        visitor is ExtensionTypeInitializerToStatementConverter) {
-      return visitor.defaultInitializer(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(InitializerVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
   }
 
   @override
@@ -661,7 +595,7 @@ class DeferredCheck extends InternalExpression {
 
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
-abstract class ExpressionJudgment extends Expression {
+abstract class ExpressionJudgment extends AuxiliaryExpression {
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [Expression] this is.
   ExpressionInferenceResult acceptInference(
@@ -862,7 +796,7 @@ class IfNullExpression extends InternalExpression {
 
 /// Common base class for shadow objects representing initializers in kernel
 /// form.
-abstract class InitializerJudgment implements Initializer {
+abstract class InitializerJudgment implements AuxiliaryInitializer {
   /// Performs type inference for whatever concrete type of
   /// [InitializerJudgment] this is.
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor);

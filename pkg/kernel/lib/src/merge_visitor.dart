@@ -404,5 +404,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   @override
-  DartType? defaultDartType(DartType a, DartType b) => null;
+  DartType? visitAuxiliaryType(AuxiliaryType a, DartType b) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${a} (${a.runtimeType}).");
+  }
 }

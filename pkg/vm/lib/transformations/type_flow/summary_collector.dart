@@ -2575,9 +2575,11 @@ class RuntimeTypeTranslatorImpl
     return result;
   }
 
-  // TODO(johnniwinther): Remove this when removing DartTypeVisitor.defaultDartType.
   @override
-  TypeExpr defaultDartType(DartType node) => throw 'Should not be called.';
+  TypeExpr visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
 
   @override
   TypeExpr visitDynamicType(DynamicType type) => RuntimeType(type, null);
@@ -2855,4 +2857,10 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
   @override
   Type visitUnevaluatedConstant(UnevaluatedConstant constant) =>
       throw 'UnevaluatedConstant is not supported (should be constant evaluated).';
+
+  @override
+  Type visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    throw new UnsupportedError("Unsupported auxiliary constant "
+        "${constant} (${constant.runtimeType}).");
+  }
 }

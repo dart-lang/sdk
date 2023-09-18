@@ -252,8 +252,10 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       Set.unmodifiable(_visitedJsInteropTypes);
 
   @override
-  String defaultDartType(DartType node) =>
-      throw UnimplementedError('Unknown DartType: $node');
+  String visitAuxiliaryType(AuxiliaryType node) {
+    throw UnsupportedError(
+        'Unsupported auxiliary type $node (${node.runtimeType}).');
+  }
 
   @override
   String visitInvalidType(DartType node) =>
@@ -409,7 +411,8 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   }
 
   @override
-  String visitTypedefType(TypedefType node) => defaultDartType(node);
+  String visitTypedefType(TypedefType node) =>
+      throw UnimplementedError('Unknown DartType: $node');
 
   @override
   String visitNeverType(NeverType node) =>

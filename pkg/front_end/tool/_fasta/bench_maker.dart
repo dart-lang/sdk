@@ -220,11 +220,11 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void defaultDartType(DartType node, StringBuffer sb) {
+  void visitAuxiliaryType(AuxiliaryType node, StringBuffer sb) {
     if (node is UnknownType) {
       sb.write("?");
     } else {
-      throw "Unsupported: ${node.runtimeType}";
+      throw "Unsupported auxiliary type ${node} (${node.runtimeType}).";
     }
   }
 

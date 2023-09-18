@@ -662,23 +662,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     return new NamedExpression(node.name, clone(node.value));
   }
 
-  @override
-  TreeNode defaultExpression(Expression node) {
-    throw 'Unimplemented clone for Kernel expression: $node';
-  }
-
-  @override
-  TreeNode defaultInitializer(Initializer node) {
-    throw 'Unimplemented clone for Kernel initializer: $node';
-  }
-
-  @override
-  TreeNode defaultStatement(Statement node) {
-    throw 'Unimplemented clone for Kernel statement: $node';
-  }
-
-  @override
-  TreeNode defaultTreeNode(TreeNode node) {
+  TreeNode _unsupportedNode(TreeNode node) {
     throw 'Cloning Kernel non-members is not supported.  '
         'Tried cloning $node';
   }
@@ -695,7 +679,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitCombinator(Combinator node) {
-    return defaultTreeNode(node);
+    return _unsupportedNode(node);
   }
 
   @override
@@ -717,12 +701,12 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitLibraryDependency(LibraryDependency node) {
-    return defaultTreeNode(node);
+    return _unsupportedNode(node);
   }
 
   @override
   TreeNode visitLibraryPart(LibraryPart node) {
-    return defaultTreeNode(node);
+    return _unsupportedNode(node);
   }
 
   @override
@@ -737,7 +721,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitComponent(Component node) {
-    return defaultTreeNode(node);
+    return _unsupportedNode(node);
   }
 
   @override
@@ -754,7 +738,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitTypedef(Typedef node) {
-    return defaultTreeNode(node);
+    return _unsupportedNode(node);
   }
 
   @override
@@ -1031,6 +1015,24 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   TreeNode visitIfCaseStatement(IfCaseStatement node) {
     return new IfCaseStatement(clone(node.expression), clone(node.patternGuard),
         clone(node.then), cloneOptional(node.otherwise));
+  }
+
+  @override
+  TreeNode visitAuxiliaryExpression(AuxiliaryExpression node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary expression ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  TreeNode visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary statement ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  TreeNode visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary initializer ${node} (${node.runtimeType}).");
   }
 }
 

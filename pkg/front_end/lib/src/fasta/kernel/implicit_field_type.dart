@@ -21,7 +21,7 @@ import '../type_inference/type_inferrer.dart';
 import 'body_builder.dart';
 import 'body_builder_context.dart';
 
-abstract class InferredType extends DartType {
+abstract class InferredType extends AuxiliaryType {
   Uri? get fileUri;
   int? get charOffset;
 

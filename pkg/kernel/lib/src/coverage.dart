@@ -14,8 +14,6 @@ import 'package:kernel/ast.dart';
 class CoverageVisitor implements Visitor<void> {
   Set<Object> visited = {};
   @override
-  void defaultTreeNode(TreeNode node) {}
-  @override
   void visitLibrary(Library node) {
     visited.add(NodeKind.Library);
     node.visitChildren(this);
@@ -82,7 +80,11 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void defaultInitializer(Initializer node) {}
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary node $node (${node.runtimeType}).");
+  }
+
   @override
   void visitInvalidInitializer(InvalidInitializer node) {
     visited.add(InitializerKind.InvalidInitializer);
@@ -126,7 +128,11 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void defaultExpression(Expression node) {}
+  void visitAuxiliaryExpression(AuxiliaryExpression node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary node $node (${node.runtimeType}).");
+  }
+
   @override
   void visitInvalidExpression(InvalidExpression node) {
     visited.add(ExpressionKind.InvalidExpression);
@@ -554,7 +560,11 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void defaultStatement(Statement node) {}
+  void visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary node $node (${node.runtimeType}).");
+  }
+
   @override
   void visitExpressionStatement(ExpressionStatement node) {
     visited.add(StatementKind.ExpressionStatement);
@@ -856,7 +866,11 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void defaultDartType(DartType node) {}
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary node $node (${node.runtimeType}).");
+  }
+
   @override
   void visitInvalidType(InvalidType node) {
     visited.add(DartTypeKind.InvalidType);
@@ -945,6 +959,12 @@ class CoverageVisitor implements Visitor<void> {
   void visitSupertype(Supertype node) {
     visited.add(NodeKind.Supertype);
     node.visitChildren(this);
+  }
+
+  @override
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary node $node (${node.runtimeType}).");
   }
 
   @override
@@ -1070,6 +1090,12 @@ class CoverageVisitor implements Visitor<void> {
   void visitConstructorReference(Constructor node) {}
   @override
   void visitProcedureReference(Procedure node) {}
+  @override
+  void visitAuxiliaryConstantReference(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary node $node (${node.runtimeType}).");
+  }
+
   @override
   void visitNullConstantReference(NullConstant node) {
     visited.add(ConstantKind.NullConstant);

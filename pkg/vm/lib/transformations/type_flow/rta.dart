@@ -525,6 +525,12 @@ class _ConstantVisitor implements ConstantVisitor<void> {
   @override
   void visitUnevaluatedConstant(UnevaluatedConstant constant) =>
       throw 'UnevaluatedConstant is not supported (should be constant evaluated).';
+
+  @override
+  void visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    throw new UnsupportedError("Unsupported auxiliary constant "
+        "${constant} (${constant.runtimeType}).");
+  }
 }
 
 class _EntryPointsListenerImpl implements EntryPointsListener {

@@ -226,4 +226,10 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
       return UnevaluatedConstant(expression);
     }
   }
+
+  @override
+  Constant? visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
 }

@@ -355,4 +355,8 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   @override
   Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>
       _unexpectedConstant(node);
+
+  @override
+  Never visitAuxiliaryConstant(ir.AuxiliaryConstant node) =>
+      _unexpectedConstant(node);
 }

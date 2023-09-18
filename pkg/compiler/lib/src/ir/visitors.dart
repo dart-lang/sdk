@@ -216,8 +216,9 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType defaultDartType(ir.DartType node) {
-    throw UnsupportedError('Unsupported type $node (${node.runtimeType})');
+  DartType visitAuxiliaryType(ir.AuxiliaryType node) {
+    throw UnsupportedError(
+        'Unsupported auxiliary type $node (${node.runtimeType}).');
   }
 
   @override
@@ -368,5 +369,9 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitAuxiliaryConstant(ir.AuxiliaryConstant node) =>
       _unexpectedConstant(node);
 }

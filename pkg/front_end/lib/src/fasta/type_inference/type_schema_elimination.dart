@@ -54,12 +54,13 @@ class _TypeSchemaEliminationVisitor extends ReplacementVisitor {
   _TypeSchemaEliminationVisitor(this.topType, this.bottomType);
 
   @override
-  DartType? defaultDartType(DartType node, int variance) {
+  DartType? visitAuxiliaryType(AuxiliaryType node, int variance) {
     bool isLeastClosure = variance == Variance.covariant;
     if (node is UnknownType) {
       return isLeastClosure ? bottomType : topType;
     }
-    return null;
+    throw new UnsupportedError(
+        "Unsupported auxiliary type $node (${node.runtimeType}).");
   }
 
   /// Runs an instance of the visitor on the given [schema] and returns the

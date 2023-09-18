@@ -5,7 +5,13 @@
 library fasta.implicit_type_argument;
 
 import 'package:kernel/ast.dart'
-    show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
+    show
+        AuxiliaryType,
+        DartType,
+        DartTypeVisitor,
+        DartTypeVisitor1,
+        Nullability,
+        Visitor;
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
 
@@ -16,7 +22,7 @@ import '../problems.dart' show unhandled, unsupported;
 ///
 /// All of these types are replaced by the type inference. It is an internal
 /// error if one survives to the final output.
-class ImplicitTypeArgument extends DartType {
+class ImplicitTypeArgument extends AuxiliaryType {
   const ImplicitTypeArgument();
 
   @override

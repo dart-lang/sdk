@@ -37,9 +37,9 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
       : _variance = initialVariance;
 
   @override
-  bool defaultDartType(DartType node) {
+  bool visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "IncludesTypeParametersNonCovariantly.defaultDartType");
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override

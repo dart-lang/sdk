@@ -377,6 +377,12 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
     }
     return null;
   }
+
+  @override
+  Constant? visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        'Unsupported auxiliary constant $node (${node.runtimeType}).');
+  }
 }
 
 class ConstantsTransformer extends RemovingTransformer {
@@ -2854,9 +2860,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return _evaluateSubexpression(node);
   }
 
-  // TODO(johnniwinther): Remove this and handle each expression directly.
-  @override
-  Constant defaultExpression(Expression node) {
+  Constant _notAConstantExpression(Expression node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
     return createExpressionErrorConstant(node, messageNotAConstantExpression);
@@ -4417,7 +4421,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           templateConstEvalError
               .withArguments('Variable set of an unknown value.'));
     }
-    return defaultExpression(node);
+    return _notAConstantExpression(node);
   }
 
   /// Computes the constant for [expression] defined in the context of [member].
@@ -4923,7 +4927,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       if (value is AbortConstant) return value;
       return new _AbortDueToThrowConstant(node, value);
     }
-    return defaultExpression(node);
+    return _notAConstantExpression(node);
   }
 
   @override
@@ -5398,58 +5402,59 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitAwaitExpression(AwaitExpression node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitBlockExpression(BlockExpression node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
-  Constant visitDynamicSet(DynamicSet node) => defaultExpression(node);
+  Constant visitDynamicSet(DynamicSet node) => _notAConstantExpression(node);
 
   @override
   Constant visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
-  Constant visitInstanceSet(InstanceSet node) => defaultExpression(node);
+  Constant visitInstanceSet(InstanceSet node) => _notAConstantExpression(node);
 
   @override
-  Constant visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+  Constant visitLoadLibrary(LoadLibrary node) => _notAConstantExpression(node);
 
   @override
-  Constant visitRethrow(Rethrow node) => defaultExpression(node);
+  Constant visitRethrow(Rethrow node) => _notAConstantExpression(node);
 
   @override
-  Constant visitStaticSet(StaticSet node) => defaultExpression(node);
+  Constant visitStaticSet(StaticSet node) => _notAConstantExpression(node);
 
   @override
   Constant visitAbstractSuperMethodInvocation(
           AbstractSuperMethodInvocation node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitSuperMethodInvocation(SuperMethodInvocation node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitSuperPropertyGet(SuperPropertyGet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitSuperPropertySet(SuperPropertySet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
-  Constant visitThisExpression(ThisExpression node) => defaultExpression(node);
+  Constant visitThisExpression(ThisExpression node) =>
+      _notAConstantExpression(node);
 
   @override
   Constant visitSwitchExpression(SwitchExpression node) {
@@ -5461,6 +5466,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitPatternAssignment(PatternAssignment node) {
     return createExpressionErrorConstant(node,
         templateNotConstantExpression.withArguments('Pattern assignment'));
+  }
+
+  @override
+  Constant visitAuxiliaryExpression(AuxiliaryExpression node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary expression ${node} (${node.runtimeType}).");
   }
 }
 
@@ -5480,13 +5491,10 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
 
   @override
-  ExecutionStatus defaultStatement(Statement node) {
+  ExecutionStatus visitAssertBlock(AssertBlock node) {
     throw new UnsupportedError(
         'Statement constant evaluation does not support ${node.runtimeType}.');
   }
-
-  @override
-  ExecutionStatus visitAssertBlock(AssertBlock node) => defaultStatement(node);
 
   @override
   ExecutionStatus visitAssertStatement(AssertStatement node) {
@@ -5745,6 +5753,12 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
     return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
         node, templateConstEvalError.withArguments('Yield statement.')));
   }
+
+  @override
+  ExecutionStatus visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary statement ${node} (${node.runtimeType}).");
+  }
 }
 
 class ConstantCoverage {
@@ -5955,7 +5969,7 @@ class MutableListConstant extends ListConstant {
 
 /// An intermediate result that is used for invoking function nodes with their
 /// respective environment within the [ConstantEvaluator].
-class FunctionValue implements Constant {
+class FunctionValue implements AuxiliaryConstant {
   final FunctionNode function;
   final EvaluationEnvironment? environment;
 
@@ -6017,7 +6031,7 @@ class FunctionValue implements Constant {
   }
 }
 
-abstract class AbortConstant implements Constant {}
+abstract class AbortConstant implements AuxiliaryConstant {}
 
 class _AbortDueToErrorConstant extends AbortConstant {
   final TreeNode node;

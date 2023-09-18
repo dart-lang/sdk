@@ -8,7 +8,10 @@ class FindTypeVisitor implements DartTypeVisitor<bool> {
   const FindTypeVisitor();
 
   @override
-  bool defaultDartType(DartType node) => false;
+  bool visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        'Unsupported auxiliary type $node (${node.runtimeType}).');
+  }
 
   @override
   bool visitFunctionType(FunctionType node) {

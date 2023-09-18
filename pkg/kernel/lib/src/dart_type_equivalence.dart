@@ -27,8 +27,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   @override
-  bool defaultDartType(DartType node, DartType other) {
-    throw new UnsupportedError("${node.runtimeType}");
+  bool visitAuxiliaryType(AuxiliaryType node, DartType other) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override

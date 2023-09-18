@@ -3394,10 +3394,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression defaultDartType(DartType type) => _emitInvalidNode(type);
+  js_ast.Expression visitAuxiliaryType(AuxiliaryType type) {
+    assert(false, 'Unsupported auxiliary type $type (${type.runtimeType}).');
+    return _emitInvalidNode(type);
+  }
 
   @override
-  js_ast.Expression visitInvalidType(InvalidType type) => defaultDartType(type);
+  js_ast.Expression visitInvalidType(InvalidType type) =>
+      _emitInvalidNode(type);
 
   @override
   js_ast.Expression visitDynamicType(DynamicType type) =>
@@ -4535,10 +4539,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Statement defaultStatement(Statement node) =>
-      _emitInvalidNode(node).toStatement();
-
-  @override
   js_ast.Statement visitExpressionStatement(ExpressionStatement node) {
     var expr = node.expression;
     if (expr is StaticInvocation) {
@@ -5196,12 +5196,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression defaultExpression(Expression node) =>
-      _emitInvalidNode(node);
-
-  @override
   js_ast.Expression visitInvalidExpression(InvalidExpression node) =>
-      defaultExpression(node);
+      _emitInvalidNode(node);
 
   @override
   js_ast.Expression visitConstantExpression(ConstantExpression node) =>
@@ -7838,6 +7834,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // This node is internal to the front end and removed by the constant
     // evaluator.
     throw UnsupportedError('ProgramCompiler.visitSwitchExpression');
+  }
+
+  @override
+  js_ast.Expression visitAuxiliaryExpression(AuxiliaryExpression node) {
+    throw UnsupportedError(
+        'Unsupported auxiliary expression $node (${node.runtimeType}).');
+  }
+
+  @override
+  js_ast.Statement visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw UnsupportedError(
+        'Unsupported auxiliary statement $node (${node.runtimeType}).');
   }
 }
 

@@ -21,7 +21,8 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   const _InvalidTypeFinder();
 
   @override
-  bool defaultDartType(DartType node, Set<TypedefType> visitedTypedefs) {
+  bool visitAuxiliaryType(
+      AuxiliaryType node, Set<TypedefType> visitedTypedefs) {
     if (node is UnknownType) {
       return false;
     } else {

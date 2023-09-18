@@ -344,5 +344,9 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   }
 
   @override
-  DartType? defaultDartType(DartType node, int variance) => null;
+  DartType? visitAuxiliaryType(AuxiliaryType node, int variance) {
+    // TODO(johnniwinther): Use [DartTypeVisitor1AuxiliaryFunction] to handle
+    // [AuxiliaryType]s.
+    return null;
+  }
 }

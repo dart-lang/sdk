@@ -3763,8 +3763,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// the unknown type.
   DartType computeFutureValueTypeSchema(DartType type) {
     return type.accept1(new FutureValueTypeVisitor(unhandledTypeHandler:
-        (DartType node, CoreTypes coreTypes,
-            DartType Function(DartType node, CoreTypes coreTypes) recursor) {
+        (AuxiliaryType node,
+            CoreTypes coreTypes,
+            DartType Function(AuxiliaryType node, CoreTypes coreTypes)
+                recursor) {
       if (node is UnknownType) {
         // futureValueTypeSchema(_) = _.
         return node;

@@ -3078,7 +3078,7 @@ class Precedence implements ExpressionVisitor<int> {
   }
 
   @override
-  int defaultExpression(Expression node) => EXPRESSION;
+  int visitAuxiliaryExpression(AuxiliaryExpression node) => EXPRESSION;
 
   @override
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
