@@ -179,7 +179,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
     if (_factoryTearOff != null) {
       buildConstructorTearOffProcedure(
-          tearOff: _factoryTearOff!,
+          tearOff: _factoryTearOff,
           declarationConstructor: _procedure,
           implementationConstructor: _procedureInternal,
           libraryBuilder: libraryBuilder);
@@ -202,12 +202,12 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   VariableDeclaration? getTearOffParameter(int index) {
     if (_factoryTearOff != null) {
-      if (index < _factoryTearOff!.function.positionalParameters.length) {
-        return _factoryTearOff!.function.positionalParameters[index];
+      if (index < _factoryTearOff.function.positionalParameters.length) {
+        return _factoryTearOff.function.positionalParameters[index];
       } else {
-        index -= _factoryTearOff!.function.positionalParameters.length;
-        if (index < _factoryTearOff!.function.namedParameters.length) {
-          return _factoryTearOff!.function.namedParameters[index];
+        index -= _factoryTearOff.function.positionalParameters.length;
+        if (index < _factoryTearOff.function.namedParameters.length) {
+          return _factoryTearOff.function.namedParameters[index];
         }
       }
     }
@@ -259,7 +259,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     finishProcedurePatch(origin._procedure, _procedureInternal);
 
     if (_factoryTearOff != null) {
-      finishProcedurePatch(origin._factoryTearOff!, _factoryTearOff!);
+      finishProcedurePatch(origin._factoryTearOff!, _factoryTearOff);
     }
   }
 
@@ -409,9 +409,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
     if (_factoryTearOff != null) {
-      _factoryTearOff!.function.body =
-          createRedirectingFactoryErrorBody(message)
-            ..parent = _factoryTearOff!.function;
+      _factoryTearOff.function.body = createRedirectingFactoryErrorBody(message)
+        ..parent = _factoryTearOff.function;
     }
   }
 
@@ -446,7 +445,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (_factoryTearOff != null) {
       _tearOffTypeParameters =
           buildRedirectingFactoryTearOffProcedureParameters(
-              tearOff: _factoryTearOff!,
+              tearOff: _factoryTearOff,
               implementationConstructor: _procedureInternal,
               libraryBuilder: libraryBuilder);
     }
@@ -543,7 +542,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       typeArguments ??= [];
       if (_factoryTearOff != null) {
         delayedDefaultValueCloners.add(buildRedirectingFactoryTearOffBody(
-            _factoryTearOff!,
+            _factoryTearOff,
             target!,
             typeArguments,
             _tearOffTypeParameters!,

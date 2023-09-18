@@ -323,8 +323,8 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     }
     if (classBuilder.libraryBuilder is! SourceLibraryBuilder) {
       if (_canonicalMember != null) {
-        _member = _canonicalMember!.getMember(membersBuilder);
-        _covariance = _canonicalMember!.getCovariance(membersBuilder);
+        _member = _canonicalMember.getMember(membersBuilder);
+        _covariance = _canonicalMember.getCovariance(membersBuilder);
       } else {
         _member = declarations.first.getMember(membersBuilder);
         _covariance = declarations.first.getCovariance(membersBuilder);
@@ -336,7 +336,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       combinedMemberSignature = new CombinedClassMemberSignature.internal(
           membersBuilder,
           classBuilder as SourceClassBuilder,
-          declarations.indexOf(_canonicalMember!),
+          declarations.indexOf(_canonicalMember),
           declarations,
           forSetter: isSetter);
     } else {
