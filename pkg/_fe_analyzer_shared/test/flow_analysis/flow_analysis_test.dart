@@ -5592,6 +5592,8 @@ main() {
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5612,10 +5614,13 @@ main() {
         checkNotPromoted(x),
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int'), Type('int?')]));
-          expect((reasons[Type('int')] as DemoteViaExplicitWrite<Var>).node,
-              same(writeExpression));
-          expect((reasons[Type('int?')] as DemoteViaExplicitWrite<Var>).node,
-              same(writeExpression));
+          for (var type in [Type('int'), Type('int?')]) {
+            var nonPromotionReason =
+                reasons[type] as DemoteViaExplicitWrite<Var>;
+            expect(nonPromotionReason.node, same(writeExpression));
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.write);
+          }
         }),
       ]);
     });
@@ -5636,6 +5641,8 @@ main() {
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writePattern));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5659,6 +5666,8 @@ main() {
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5682,6 +5691,8 @@ main() {
           var nonPromotionReason =
               reasons[Type('int')] as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5716,8 +5727,10 @@ main() {
           ]),
           this_.property('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromoted;
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.property);
           }),
         ]);
       });
@@ -5731,8 +5744,10 @@ main() {
           ]),
           thisProperty('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromoted;
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.property);
           }),
         ]);
       });
@@ -5747,8 +5762,10 @@ main() {
           ]),
           x.property('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromoted;
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.property);
           }),
         ]);
       });
@@ -5765,8 +5782,9 @@ main() {
           ]),
           this_.whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('D')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+            var nonPromotionReason = reasons.values.single as ThisNotPromoted;
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.this_);
           }),
         ]);
       });
@@ -5781,8 +5799,9 @@ main() {
           ]),
           implicitThis_whyNotPromoted('C', (reasons) {
             expect(reasons.keys, unorderedEquals([Type('D')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+            var nonPromotionReason = reasons.values.single as ThisNotPromoted;
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.this_);
           }),
         ]);
       });
@@ -10951,7 +10970,8 @@ Matcher _matchVariableModel(
 
 class _MockNonPromotionReason extends NonPromotionReason {
   @override
-  String get documentationLink => fail('Unexpected call to documentationLink');
+  NonPromotionDocumentationLink get documentationLink =>
+      fail('Unexpected call to documentationLink');
 
   @override
   String get shortName => fail('Unexpected call to shortName');
