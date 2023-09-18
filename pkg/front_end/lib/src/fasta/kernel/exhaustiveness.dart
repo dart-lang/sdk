@@ -644,8 +644,9 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   const ExhaustiveDartTypeVisitor();
 
   @override
-  bool defaultDartType(DartType type, CoreTypes coreTypes) {
-    throw new UnsupportedError('Unsupported type $type');
+  bool visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type $node (${node.runtimeType}).");
   }
 
   @override

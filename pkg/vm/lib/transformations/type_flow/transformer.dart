@@ -2181,9 +2181,17 @@ class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
 
   @override
   visitTypedefTearOffConstant(TypedefTearOffConstant constant) =>
-      throw 'TypedefTearOffConstant is not supported (should be constant evaluated).';
+      throw 'TypedefTearOffConstant is not supported '
+          '(should be constant evaluated).';
 
   @override
   visitUnevaluatedConstant(UnevaluatedConstant constant) =>
-      throw 'UnevaluatedConstant is not supported (should be constant evaluated).';
+      throw 'UnevaluatedConstant is not supported '
+          '(should be constant evaluated).';
+
+  @override
+  visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    throw new UnsupportedError("Unsupported auxiliary constant "
+        "${constant} (${constant.runtimeType}).");
+  }
 }

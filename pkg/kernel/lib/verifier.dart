@@ -1801,7 +1801,7 @@ class KnownTypes implements DartTypeVisitor<bool> {
   const KnownTypes();
 
   @override
-  bool defaultDartType(DartType node) => false;
+  bool visitAuxiliaryType(AuxiliaryType node) => false;
 
   @override
   bool visitDynamicType(DynamicType node) => true;

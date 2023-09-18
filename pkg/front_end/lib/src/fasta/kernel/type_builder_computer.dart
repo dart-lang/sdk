@@ -56,11 +56,6 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Map<TypeParameter, TypeVariableBuilder> functionTypeParameters = {};
 
   @override
-  TypeBuilder defaultDartType(DartType node) {
-    throw "Unsupported";
-  }
-
-  @override
   TypeBuilder visitInvalidType(InvalidType node) {
     return new FixedTypeBuilderImpl(
         node, /* fileUri = */ null, /* charOffset = */ null);
@@ -220,5 +215,11 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         new NullabilityBuilder.fromNullability(node.nullability),
         missingUri,
         TreeNode.noOffset);
+  }
+
+  @override
+  TypeBuilder visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 }

@@ -8,8 +8,9 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   const TypeTextVisitor();
 
   @override
-  void defaultDartType(ir.DartType node, StringBuffer sb) {
-    throw UnsupportedError("Unhandled type $node (${node.runtimeType}).");
+  void visitAuxiliaryType(ir.AuxiliaryType node, StringBuffer sb) {
+    throw UnsupportedError(
+        "Unsupported auxiliary type $node (${node.runtimeType}).");
   }
 
   void writeType(ir.DartType type, StringBuffer sb) {

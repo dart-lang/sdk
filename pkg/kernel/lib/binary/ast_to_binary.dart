@@ -2929,33 +2929,27 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   // These are nodes that are never serialized directly.  Reaching one
   // during serialization is an error.
   @override
-  void defaultDartType(DartType node) {
+  void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        'serialization of generic DartType: ${node} (${node.runtimeType})');
+        'serialization of auxiliary DartType: ${node} (${node.runtimeType})');
   }
 
   @override
-  void defaultExpression(Expression node) {
+  void visitAuxiliaryExpression(AuxiliaryExpression node) {
     throw new UnsupportedError(
-        'serialization of generic Expression: ${node} (${node.runtimeType})');
+        'serialization of auxiliary Expression: ${node} (${node.runtimeType})');
   }
 
   @override
-  void defaultInitializer(Initializer node) {
-    throw new UnsupportedError(
-        'serialization of generic Initializer: ${node} (${node.runtimeType})');
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    throw new UnsupportedError('serialization of auxiliary Initializer: '
+        '${node} (${node.runtimeType})');
   }
 
   @override
-  void defaultStatement(Statement node) {
+  void visitAuxiliaryStatement(AuxiliaryStatement node) {
     throw new UnsupportedError(
-        'serialization of generic Statement: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    throw new UnsupportedError(
-        'serialization of generic TreeNode: ${node} (${node.runtimeType})');
+        'serialization of auxiliary Statement: ${node} (${node.runtimeType})');
   }
 
   @override
@@ -3202,6 +3196,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitUnevaluatedConstantReference(UnevaluatedConstant node) {
     throw new UnsupportedError(
         'serialization of UnevaluatedConstant references');
+  }
+
+  @override
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "serialization of auxiliary constant ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitAuxiliaryConstantReference(AuxiliaryConstant node) {
+    throw new UnsupportedError("serialization of auxiliary constant reference "
+        "${node} (${node.runtimeType}).");
   }
 }
 

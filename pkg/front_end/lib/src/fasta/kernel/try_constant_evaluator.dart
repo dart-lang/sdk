@@ -206,4 +206,10 @@ class UnevaluatedConstantFinder extends ComputeOnceConstantVisitor<bool> {
 
   @override
   bool visitTypedefTearOffConstant(TypedefTearOffConstant node) => false;
+
+  @override
+  bool visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
 }

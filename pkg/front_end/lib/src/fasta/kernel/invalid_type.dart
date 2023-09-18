@@ -1,6 +1,6 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
 
@@ -21,7 +21,8 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   const _InvalidTypeFinder();
 
   @override
-  bool defaultDartType(DartType node, Set<TypedefType> visitedTypedefs) {
+  bool visitAuxiliaryType(
+      AuxiliaryType node, Set<TypedefType> visitedTypedefs) {
     if (node is UnknownType) {
       return false;
     } else {

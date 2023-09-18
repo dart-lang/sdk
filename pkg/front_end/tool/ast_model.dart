@@ -43,19 +43,7 @@ const Set<String> _utilityClassesAsValues = const {
   'Version',
 };
 
-/// Names of subclasses of [Node] that do _not_ have `defaultX` methods.
-const Set<String> _classesWithoutDefaultMethods = const {
-  'Node',
-  'Member',
-  'BasicLiteral',
-  'Pattern',
-  'Constant',
-  'ConstantReference',
-  'MemberReference',
-};
-
-/// Names of subclasses of [Node] that do _not_ have `visitX` or `defaultX`
-/// methods.
+/// Names of subclasses of [Node] that do _not_ have a `visitX` method.
 const Set<String> _classesWithoutVisitMethods = const {
   'InvocationExpression',
   'InstanceInvocationExpression',
@@ -78,15 +66,8 @@ const Set<String> _interchangeableClasses = const {
   'Pattern',
 };
 
-/// Names of subclasses of [NamedNode] that do _not_ have a `defaultXReference`
-/// or method.
-const Set<String> _classesWithoutDefaultReference = const {
-  'Constant',
-  'Member',
-};
-
-/// Names of subclasses of [NamedNode] that do _not_ have `visitXReference`
-/// or `defaultXReference` methods.
+/// Names of subclasses of [NamedNode] that do _not_ have a `visitXReference`
+/// method.
 const Set<String> _classesWithoutVisitReference = const {
   'NamedNode',
   'Library',
@@ -263,8 +244,7 @@ enum AstClassKind {
   /// The root [Node] class.
   root,
 
-  /// An abstract node class that is a superclass of a public class. Most of
-  /// these have a corresponding `defaultX` visitor method.
+  /// An abstract node class that is a superclass of a public class.
   ///
   /// For instance [Statement] and [Expression].
   inner,
@@ -274,6 +254,13 @@ enum AstClassKind {
   ///
   /// For instance [Procedure] and [VariableGet].
   public,
+
+  /// An abstract node class that is a subclass of sealed class. These classes
+  /// are used to extend the AST and therefore have no known concrete
+  /// subclasses.
+  ///
+  /// For instance [AuxiliaryExpression] and [AuxiliaryType].
+  auxiliary,
 
   /// A concrete node class that serves only as an implementation of public
   /// node class.
@@ -339,7 +326,10 @@ class AstClass {
   AstClassKind get kind {
     if (_kind == null) {
       if (node.isAbstract) {
-        if (subclasses.isNotEmpty) {
+        if (node.name.startsWith("Auxiliary")) {
+          // TODO(johnniwinther): Is there a better way to determine this?
+          _kind = AstClassKind.auxiliary;
+        } else if (subclasses.isNotEmpty) {
           if (subclasses.every(
               (element) => element.kind == AstClassKind.implementation)) {
             _kind = AstClassKind.public;
@@ -360,26 +350,6 @@ class AstClass {
     return _kind!;
   }
 
-  /// Returns `true` if this class has a `defaultX` method.
-  ///
-  /// This is only valid for subclass of [Node].
-  bool get hasDefaultMethod {
-    switch (kind) {
-      case AstClassKind.root:
-      case AstClassKind.inner:
-        return !_classesWithoutDefaultMethods.contains(name) &&
-            !_classesWithoutVisitMethods.contains(name);
-      case AstClassKind.public:
-      case AstClassKind.named:
-      case AstClassKind.declarative:
-      case AstClassKind.implementation:
-      case AstClassKind.interface:
-      case AstClassKind.utilityAsStructure:
-      case AstClassKind.utilityAsValue:
-        return false;
-    }
-  }
-
   /// Returns `true` if this class has a `visitX` method.
   ///
   /// This is only valid for subclass of [Node].
@@ -388,6 +358,7 @@ class AstClass {
       case AstClassKind.public:
       case AstClassKind.named:
       case AstClassKind.declarative:
+      case AstClassKind.auxiliary:
         return !_classesWithoutVisitMethods.contains(name);
       case AstClassKind.root:
       case AstClassKind.inner:
@@ -399,27 +370,7 @@ class AstClass {
     }
   }
 
-  /// Returns `true` if this class has a `defaultXReference` method.
-  ///
-  /// This is only valid for subclass of [NamedNode] or [Constant].
-  bool get hasDefaultReferenceMethod {
-    switch (kind) {
-      case AstClassKind.root:
-      case AstClassKind.inner:
-        return !_classesWithoutDefaultReference.contains(name) &&
-            !_classesWithoutVisitReference.contains(name);
-      case AstClassKind.public:
-      case AstClassKind.named:
-      case AstClassKind.declarative:
-      case AstClassKind.implementation:
-      case AstClassKind.interface:
-      case AstClassKind.utilityAsStructure:
-      case AstClassKind.utilityAsValue:
-        return false;
-    }
-  }
-
-  /// Returns `true` if this class has a `defaultXReference` method.
+  /// Returns `true` if this class has a `visitXReference` method.
   ///
   /// This is only valid for subclass of [NamedNode] or [Constant].
   bool get hasVisitReferenceMethod {
@@ -427,6 +378,7 @@ class AstClass {
       case AstClassKind.public:
       case AstClassKind.named:
       case AstClassKind.declarative:
+      case AstClassKind.auxiliary:
         return !_classesWithoutVisitReference.contains(name);
       case AstClassKind.root:
       case AstClassKind.inner:

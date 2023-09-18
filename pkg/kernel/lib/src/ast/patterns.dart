@@ -4,7 +4,7 @@
 
 part of '../../ast.dart';
 
-abstract class Pattern extends TreeNode {
+sealed class Pattern extends TreeNode {
   /// Variable declarations induced by nested variable patterns.
   ///
   /// These variables are initialized to the values captured by the variable

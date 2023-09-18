@@ -145,7 +145,10 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType node) {}
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
 }
 
 DartType instantiateToBounds(DartType type, Class objectClass,
@@ -742,8 +745,8 @@ class VarianceCalculator
   VarianceCalculator(this.typeParameter);
 
   @override
-  int defaultDartType(
-      DartType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
+  int visitAuxiliaryType(AuxiliaryType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
     throw new StateError("Unhandled ${node.runtimeType} "
         "when computing variance of a type parameter.");
   }
@@ -927,7 +930,10 @@ class _HasGenericFunctionTypeAsTypeArgumentVisitor
   const _HasGenericFunctionTypeAsTypeArgumentVisitor();
 
   @override
-  bool defaultDartType(DartType node, bool isTypeArgument) => false;
+  bool visitAuxiliaryType(AuxiliaryType node, bool isTypeArgument) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
 
   @override
   bool visitFunctionType(FunctionType node, bool isTypeArgument) {

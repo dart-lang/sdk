@@ -1,6 +1,6 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import '../ast.dart';
 import '../core_types.dart';
@@ -27,8 +27,9 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   @override
-  bool defaultDartType(DartType node, DartType other) {
-    throw new UnsupportedError("${node.runtimeType}");
+  bool visitAuxiliaryType(AuxiliaryType node, DartType other) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override

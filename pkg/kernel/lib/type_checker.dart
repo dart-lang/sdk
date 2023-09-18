@@ -171,18 +171,21 @@ class TypeCheckingVisitor
   }
 
   @override
-  DartType defaultExpression(Expression node) {
-    throw 'Unexpected expression ${node.runtimeType}';
+  DartType visitAuxiliaryExpression(AuxiliaryExpression node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary expression ${node} (${node.runtimeType}).");
   }
 
   @override
-  TreeNode defaultStatement(Statement node) {
-    throw 'Unexpected statement ${node.runtimeType}';
+  TreeNode visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary statement ${node} (${node.runtimeType}).");
   }
 
   @override
-  TreeNode defaultInitializer(Initializer node) {
-    throw 'Unexpected initializer ${node.runtimeType}';
+  TreeNode visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary initializer ${node} (${node.runtimeType}).");
   }
 
   @override

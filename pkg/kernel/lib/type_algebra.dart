@@ -92,8 +92,7 @@ DartType? substituteDeep(
 /// It is an error to call this with a [type] that contains a [FunctionType]
 /// that declares one of the parameters in [variables].
 bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
-    {bool Function(DartType type, bool Function(DartType type) recursor)?
-        unhandledTypeHandler}) {
+    {DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler}) {
   if (variables.isEmpty) return false;
   return new _OccurrenceVisitor(variables,
           unhandledTypeHandler: unhandledTypeHandler)
@@ -320,8 +319,9 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
   void visit(DartType node) => node.accept(this);
 
   @override
-  bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}).");
+  bool visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override
@@ -699,8 +699,9 @@ abstract class _TypeSubstitutor implements DartTypeVisitor<DartType> {
 
   DartType visit(DartType node) => node.accept(this);
 
+  // TODO(johnniwinther): Throw on (unhandled) auxiliary type?
   @override
-  DartType defaultDartType(DartType node) => node;
+  DartType visitAuxiliaryType(AuxiliaryType node) => node;
   @override
   DartType visitInvalidType(InvalidType node) => node;
   @override
@@ -899,8 +900,7 @@ class _OccurrenceVisitor extends FindTypeVisitor {
   /// from within the handler on parts of the unknown type to recursively call
   /// the visitor.  If not set, an exception is thrown then an unhandled
   /// implementer of [DartType] is encountered.
-  final bool Function(DartType node, bool Function(DartType node) recursor)?
-      unhandledTypeHandler;
+  final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
   _OccurrenceVisitor(this.variables, {this.unhandledTypeHandler});
 
@@ -911,7 +911,7 @@ class _OccurrenceVisitor extends FindTypeVisitor {
   }
 
   @override
-  bool defaultDartType(DartType node) {
+  bool visitAuxiliaryType(AuxiliaryType node) {
     if (unhandledTypeHandler == null) {
       throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
     } else {
@@ -1028,9 +1028,9 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   const _PrimitiveTypeVerifier();
 
   @override
-  bool defaultDartType(DartType node) {
+  bool visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "Unsupported operation: _PrimitiveTypeVerifier(${node.runtimeType})");
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override
@@ -1108,9 +1108,9 @@ class _NullabilityConstructorUnwrapper
   const _NullabilityConstructorUnwrapper();
 
   @override
-  DartType defaultDartType(DartType node, CoreTypes coreTypes) {
-    throw new UnsupportedError("Unsupported operation: "
-        "_NullabilityConstructorUnwrapper(${node.runtimeType})");
+  DartType visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override
@@ -1258,8 +1258,7 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 class NullabilityAwareTypeVariableEliminator
     extends NullabilityAwareTypeVariableEliminatorBase {
   final Set<TypeParameter> eliminationTargets;
-  final bool Function(DartType type, bool Function(DartType type) recursor)?
-      unhandledTypeHandler;
+  final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
   NullabilityAwareTypeVariableEliminator(
       {required this.eliminationTargets,
@@ -1386,9 +1385,9 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
   const _NullabilityMarkerDetector(this.isNonNullableByDefault);
 
   @override
-  bool defaultDartType(DartType node) {
-    throw new UnsupportedError("Unsupported operation: "
-        "_NullabilityMarkerDetector(${node.runtimeType})");
+  bool visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override

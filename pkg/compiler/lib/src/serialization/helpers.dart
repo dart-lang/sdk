@@ -44,10 +44,10 @@ class DartTypeNodeWriter
   }
 
   @override
-  void defaultDartType(
-      ir.DartType node, List<ir.TypeParameter> functionTypeVariables) {
+  void visitAuxiliaryType(
+      ir.AuxiliaryType node, List<ir.TypeParameter> functionTypeVariables) {
     throw UnsupportedError(
-        "Unexpected ir.DartType $node (${node.runtimeType}).");
+        "Unsupported auxiliary type $node (${node.runtimeType}).");
   }
 
   @override

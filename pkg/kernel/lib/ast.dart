@@ -1967,7 +1967,7 @@ class ExtensionTypeMemberDescriptor {
 //                            MEMBERS
 // ------------------------------------------------------------------------
 
-abstract class Member extends NamedNode implements Annotatable, FileUriNode {
+sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   /// End offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
@@ -3255,7 +3255,7 @@ enum ProcedureKind {
 // ------------------------------------------------------------------------
 
 /// Part of an initializer list in a constructor.
-abstract class Initializer extends TreeNode {
+sealed class Initializer extends TreeNode {
   /// True if this is a synthetic constructor initializer.
   @informative
   bool isSynthetic = false;
@@ -3265,6 +3265,15 @@ abstract class Initializer extends TreeNode {
 
   @override
   R accept1<R, A>(InitializerVisitor1<R, A> v, A arg);
+}
+
+abstract class AuxiliaryInitializer extends Initializer {
+  @override
+  R accept<R>(InitializerVisitor<R> v) => v.visitAuxiliaryInitializer(this);
+
+  @override
+  R accept1<R, A>(InitializerVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryInitializer(this, arg);
 }
 
 /// An initializer with a compile-time error.
@@ -3878,7 +3887,7 @@ class RedirectingFactoryTarget {
 //                                EXPRESSIONS
 // ------------------------------------------------------------------------
 
-abstract class Expression extends TreeNode {
+sealed class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
   /// This calls `StaticTypeContext.getExpressionType` which calls
@@ -3975,6 +3984,17 @@ abstract class Expression extends TreeNode {
     printer.writeExpression(this);
     return printer.getText();
   }
+}
+
+/// Abstract subclass of [Expression] that can be used to add [Expression]
+/// subclasses from outside `package:kernel`.
+abstract class AuxiliaryExpression extends Expression {
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitAuxiliaryExpression(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryExpression(this, arg);
 }
 
 /// An expression containing compile-time errors.
@@ -8967,7 +8987,7 @@ class TypedefTearOff extends Expression {
 //                              STATEMENTS
 // ------------------------------------------------------------------------
 
-abstract class Statement extends TreeNode {
+sealed class Statement extends TreeNode {
   @override
   R accept<R>(StatementVisitor<R> v);
 
@@ -8980,6 +9000,15 @@ abstract class Statement extends TreeNode {
     printer.writeStatement(this);
     return printer.getText();
   }
+}
+
+abstract class AuxiliaryStatement extends Statement {
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitAuxiliaryStatement(this);
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryStatement(this, arg);
 }
 
 class ExpressionStatement extends Statement {
@@ -10858,7 +10887,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-abstract class DartType extends Node {
+sealed class DartType extends Node {
   const DartType();
 
   @override
@@ -10951,6 +10980,17 @@ abstract class DartType extends Node {
 
   @override
   void toTextInternal(AstPrinter printer);
+}
+
+abstract class AuxiliaryType extends DartType {
+  const AuxiliaryType();
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) => v.visitAuxiliaryType(this);
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryType(this, arg);
 }
 
 /// The type arising from invalid type annotations.
@@ -12853,7 +12893,7 @@ class Supertype extends Node {
 //                             CONSTANTS
 // ------------------------------------------------------------------------
 
-abstract class Constant extends Node {
+sealed class Constant extends Node {
   /// Calls the `visit*ConstantReference()` method on visitor [v] for all
   /// constants referenced in this constant.
   ///
@@ -12905,7 +12945,24 @@ abstract class Constant extends Node {
   DartType getType(StaticTypeContext context);
 }
 
-abstract class PrimitiveConstant<T> extends Constant {
+abstract class AuxiliaryConstant extends Constant {
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitAuxiliaryConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryConstant(this, arg);
+
+  @override
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitAuxiliaryConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryConstantReference(this, arg);
+}
+
+sealed class PrimitiveConstant<T> extends Constant {
   final T value;
 
   PrimitiveConstant(this.value);

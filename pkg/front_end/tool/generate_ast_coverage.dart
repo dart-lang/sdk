@@ -45,31 +45,43 @@ class CoverageVisitorStrategy extends Visitor0Strategy {
 
   @override
   void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
-    AstClass? superAstClass = astClass.superclass;
-    while (superAstClass != null && !superAstClass.isInterchangeable) {
-      superAstClass = superAstClass.superclass;
-    }
-    String innerName = superAstClass?.name ?? 'Node';
-    (nestedClassNames[innerName] ??= {}).add(astClass.name);
-    sb.writeln('''
+    if (astClass.kind == AstClassKind.auxiliary) {
+      sb.writeln('''
+        throw new UnsupportedError(
+            "Unsupported auxiliary node \$node (\${node.runtimeType}).");''');
+    } else {
+      AstClass? superAstClass = astClass.superclass;
+      while (superAstClass != null && !superAstClass.isInterchangeable) {
+        superAstClass = superAstClass.superclass;
+      }
+      String innerName = superAstClass?.name ?? 'Node';
+      (nestedClassNames[innerName] ??= {}).add(astClass.name);
+      sb.writeln('''
     visited.add(${innerName}Kind.${astClass.name});
     node.visitChildren(this);''');
+    }
   }
 
   @override
   void handleVisitReference(
       AstModel astModel, AstClass astClass, StringBuffer sb) {
-    AstClass? superAstClass = astClass.superclass;
-    while (superAstClass != null && !superAstClass.isInterchangeable) {
-      superAstClass = superAstClass.superclass;
-    }
-    if (superAstClass == astModel.constantClass) {
-      // Constants are only visited as references.
-      String innerName = superAstClass!.name;
-      (nestedClassNames[innerName] ??= {}).add(astClass.name);
+    if (astClass.kind == AstClassKind.auxiliary) {
       sb.writeln('''
+        throw new UnsupportedError(
+            "Unsupported auxiliary node \$node (\${node.runtimeType}).");''');
+    } else {
+      AstClass? superAstClass = astClass.superclass;
+      while (superAstClass != null && !superAstClass.isInterchangeable) {
+        superAstClass = superAstClass.superclass;
+      }
+      if (superAstClass == astModel.constantClass) {
+        // Constants are only visited as references.
+        String innerName = superAstClass!.name;
+        (nestedClassNames[innerName] ??= {}).add(astClass.name);
+        sb.writeln('''
         visited.add(${innerName}Kind.${astClass.name});
         node.visitChildren(this);''');
+      }
     }
   }
 

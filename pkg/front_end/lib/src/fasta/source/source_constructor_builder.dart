@@ -1326,7 +1326,7 @@ class ExtensionTypeInitializerToStatementConverter
       this.statements, this.thisVariable);
 
   @override
-  void defaultInitializer(Initializer node) {
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
     if (node is ExtensionTypeRedirectingInitializer) {
       statements.add(new ExpressionStatement(
           new VariableSet(

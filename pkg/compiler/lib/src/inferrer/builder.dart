@@ -2423,6 +2423,10 @@ class TypeInformationConstantVisitor
   @override
   Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>
       _unexpectedConstant(node);
+
+  @override
+  Never visitAuxiliaryConstant(ir.AuxiliaryConstant node) =>
+      _unexpectedConstant(node);
 }
 
 class Refinement {

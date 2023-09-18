@@ -266,8 +266,9 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   bool visitInvalidType(ir.InvalidType node) => false;
 
   @override
-  bool defaultDartType(ir.DartType node) {
-    throw UnsupportedError("FreeVariableVisitor.defaultTypeNode");
+  bool visitAuxiliaryType(ir.AuxiliaryType node) {
+    throw UnsupportedError(
+        'Unsupported auxiliary type $node (${node.runtimeType}).');
   }
 }
 

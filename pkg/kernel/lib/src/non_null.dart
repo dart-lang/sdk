@@ -1,6 +1,6 @@
 // Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import '../ast.dart';
 import '../type_algebra.dart';
@@ -28,9 +28,9 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   const _NonNullVisitor();
 
   @override
-  DartType? defaultDartType(DartType node) {
+  DartType? visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "Unexpected DartType ${node} (${node.runtimeType})");
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override

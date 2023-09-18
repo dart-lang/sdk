@@ -529,6 +529,12 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     sb.write('Unevaluated()');
   }
+
+  @override
+  bool visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
 }
 
 class DartTypeToTextVisitor implements DartTypeVisitor<void> {
@@ -557,8 +563,10 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType node) => throw new UnimplementedError(
-      'Unexpected type $node (${node.runtimeType})');
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
 
   @override
   void visitInvalidType(InvalidType node) {

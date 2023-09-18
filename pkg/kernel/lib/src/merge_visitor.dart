@@ -1,6 +1,6 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import '../ast.dart';
 import '../type_algebra.dart';
@@ -404,5 +404,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   @override
-  DartType? defaultDartType(DartType a, DartType b) => null;
+  DartType? visitAuxiliaryType(AuxiliaryType a, DartType b) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${a} (${a.runtimeType}).");
+  }
 }

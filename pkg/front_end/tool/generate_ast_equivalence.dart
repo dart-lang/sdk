@@ -111,13 +111,6 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   String fieldCheckName(AstField field) =>
       'check${field.astClass.name}_${field.name}';
 
-  @override
-  void handleDefaultVisit(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
-    sb.writeln('''
-    return false;''');
-  }
-
   /// Compute the expression code for shallow matching two values of type
   /// [fieldType].
   ///
@@ -400,13 +393,6 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
     sb.writeln('''
     return strategy.${classCheckName(astClass)}(
         this, node, $argumentName);''');
-  }
-
-  @override
-  void handleDefaultVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
-    sb.writeln('''
-    return false;''');
   }
 
   @override

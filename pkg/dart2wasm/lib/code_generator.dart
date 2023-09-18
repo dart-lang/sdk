@@ -156,11 +156,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return expectedType;
   }
 
-  @override
-  void defaultStatement(Statement node) {
-    unimplemented(node, node.runtimeType, const []);
-  }
-
   /// Generate code for the member.
   void generate() {
     // Build closure information.
@@ -675,12 +670,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.call(targetFunction);
       return targetFunction.type.outputs;
     }
-  }
-
-  // TODO(johnniwinther): Remove this.
-  @override
-  TreeNode defaultInitializer(Initializer node) {
-    throw 'Unexpected initializer ${node.runtimeType}';
   }
 
   @override
@@ -1418,7 +1407,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   @override
-  void visitYieldStatement(YieldStatement node) => defaultStatement(node);
+  void visitYieldStatement(YieldStatement node) {
+    unimplemented(node, node.runtimeType, const []);
+  }
 
   @override
   w.ValueType visitAwaitExpression(
@@ -3185,6 +3176,18 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     translator.constants.instantiateConstant(
         function, b, StringConstant(s), printFunction.type.inputs[0]);
     b.call(printFunction);
+  }
+
+  @override
+  void visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw UnsupportedError(
+        "Unsupported auxiliary statement ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary initializer ${node} (${node.runtimeType}).");
   }
 }
 

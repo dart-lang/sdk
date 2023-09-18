@@ -1,6 +1,6 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import '../ast.dart';
 import '../type_algebra.dart';
@@ -344,5 +344,9 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   }
 
   @override
-  DartType? defaultDartType(DartType node, int variance) => null;
+  DartType? visitAuxiliaryType(AuxiliaryType node, int variance) {
+    // TODO(johnniwinther): Use [DartTypeVisitor1AuxiliaryFunction] to handle
+    // [AuxiliaryType]s.
+    return null;
+  }
 }

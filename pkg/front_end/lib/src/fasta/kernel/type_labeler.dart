@@ -100,9 +100,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType type) {}
-
-  @override
   void visitTypedefType(TypedefType node) {
     Typedef typedefNode = node.typedefNode;
     result.add(nameForEntity(
@@ -525,6 +522,18 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   @override
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     unsupported('printing unevaluated constants', -1, null);
+  }
+
+  @override
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 }
 
