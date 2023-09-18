@@ -161,6 +161,7 @@ import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
 import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
 import 'sized_box_shrink_expand_test.dart' as sized_box_shrink_expand;
 import 'slash_for_doc_comments_test.dart' as slash_for_doc_comments;
+import 'sort_child_properties_last_test.dart' as sort_child_properties_last;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
 import 'sort_unnamed_constructors_first_test.dart'
@@ -355,6 +356,7 @@ void main() {
   sized_box_for_whitespace.main();
   sized_box_shrink_expand.main();
   slash_for_doc_comments.main();
+  sort_child_properties_last.main();
   sort_constructors_first.main();
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
