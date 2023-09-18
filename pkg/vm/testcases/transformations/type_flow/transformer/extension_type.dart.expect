@@ -12,10 +12,19 @@ class C4 extends core::Object {
     core::print([@vm.inferred-type.metadata=int] self::IC2|bar1());
   }
 }
+class Run<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Run<self::Run::T%>
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method execute([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int> (skip check)] covariant-by-class final core::List<self::Run::T%> list) → void {}
+}
 extension type IC2(core::int id) {
   method foo1 = self::IC2|foo1;
   static method bar1 = self::IC2|bar1;
   constructor • = self::IC2|constructor#;
+}
+extension type SomeExtensionType(core::int foo) {
+  constructor • = self::SomeExtensionType|constructor#;
 }
 [@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
   lowered final self::IC2 /* = core::int */ #this = id;
@@ -25,8 +34,18 @@ extension type IC2(core::int id) {
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#this).{core::num::+}(1){(core::num) → core::int};
 [@vm.unboxing-info.metadata=()->i]static inline-class-member method IC2|bar1() → self::IC2 /* = core::int */
   return [@vm.inferred-type.metadata=int] self::IC2|constructor#([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#C1).{core::num::+}(1){(core::num) → core::int});
+[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method SomeExtensionType|constructor#([@vm.inferred-arg-type.metadata=int] core::int foo) → self::SomeExtensionType /* = core::int */ {
+  lowered final self::SomeExtensionType /* = core::int */ #this = foo;
+  return #this;
+}
+static method testTypeCheckRemoval() → void {
+  final core::List<self::SomeExtensionType /* = core::int */> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::generate<self::SomeExtensionType /* = core::int */>(10, (final core::int a) → self::SomeExtensionType /* = core::int */ => self::SomeExtensionType|constructor#(a));
+  final self::Run<self::SomeExtensionType /* = core::int */> obj = new self::Run::•<self::SomeExtensionType /* = core::int */>();
+  [@vm.call-site-attributes.metadata=receiverType:#lib::Run<#lib::SomeExtensionType>] [@vm.direct-call.metadata=#lib::Run.execute] [@vm.inferred-type.metadata=!? (skip check)] obj.{self::Run::execute}(list){(core::List<self::SomeExtensionType /* = core::int */>) → void};
+}
 static method main() → dynamic {
   let final self::C4 #t1 = new self::C4::•() in let final self::IC2 /* = core::int */ #t2 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::IC2|constructor#(42) in [@vm.direct-call.metadata=#lib::C4.foo3] [@vm.inferred-type.metadata=!? (skip check)] #t1.{self::C4::foo3}(){(self::IC2 /* = core::int */) → dynamic};
+  self::testTypeCheckRemoval();
 }
 constants  {
   #C1 = 42

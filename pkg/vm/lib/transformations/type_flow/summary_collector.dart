@@ -2678,7 +2678,8 @@ class RuntimeTypeTranslatorImpl
   TypeExpr visitRecordType(RecordType type) => unknownType;
 
   @override
-  TypeExpr visitExtensionType(ExtensionType type) => unknownType;
+  TypeExpr visitExtensionType(ExtensionType type) =>
+      translate(type.typeErasure);
 
   @override
   TypeExpr visitIntersectionType(IntersectionType type) => unknownType;
