@@ -232,7 +232,7 @@ This is a patch release that:
 
 [#53352]: https://github.com/dart-lang/sdk/issues/53352
 
-## 3.1.0
+## 3.1.0 - 2023-08-16
 
 ### Libraries
 
