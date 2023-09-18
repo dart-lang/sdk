@@ -124,7 +124,6 @@ vars = {
   "benchmark_harness_rev": "7d0d28e7946702db34ae121543774f60bf8cf03c",
   "boolean_selector_rev": "f255921c7155da2167e8c96e04e527180787aafb",
   "browser_launcher_rev": "1f69393d63a2f8d36d00b86cdd20df70c347af82",
-  "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
   "cli_util_rev": "44118e35e55c75f84fbc5ead051424ee1e73e406",
   "clock_rev": "1e75f08d3428bcd6f4b7cf70e788f24fc9b661e1",
   "collection_rev": "91afde43f488eef618454b896301c6ff59af72e0",
@@ -364,8 +363,6 @@ deps = {
       "@" + Var("boolean_selector_rev"),
   Var("dart_root") + "/third_party/pkg/browser_launcher":
       Var("dart_git") + "browser_launcher.git" + "@" + Var("browser_launcher_rev"),
-  Var("dart_root") + "/third_party/pkg/characters":
-      Var("dart_git") + "characters.git" + "@" + Var("characters_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
       Var("dart_git") + "cli_util.git" + "@" + Var("cli_util_rev"),
   Var("dart_root") + "/third_party/pkg/clock":
