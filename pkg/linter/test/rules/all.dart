@@ -5,6 +5,7 @@
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'annotate_overrides_test.dart' as annotate_overrides;
+import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
@@ -245,6 +246,7 @@ void main() {
   always_specify_types.main();
   always_use_package_imports.main();
   annotate_overrides.main();
+  annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();

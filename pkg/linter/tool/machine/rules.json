@@ -629,6 +629,17 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "annotate_redeclares",
+    "description": "Annotate redeclared members.",
+    "group": "style",
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DO** annotate redeclared members.\n\nThis practice improves code readability and helps protect against\nunintentionally redeclaring members or being surprised when a member ceases to\nredeclare (due for example to a rename refactoring).\n\n**BAD:**\n```dart\nclass C {\n  void f() { }\n}\n\nextension type E(C c) implements C {\n  void f() {\n    ...\n  }\n}\n```\n\n**GOOD:**\n```dart\nimport 'package:meta/meta.dart';\n\nclass C {\n  void f() { }\n}\n\nextension type E(C c) implements C {\n  @redeclare\n  void f() {\n    ...\n  }\n}\n```\n",
+    "sinceDartSdk": "Unreleased"
+  },
+  {
     "name": "avoid_annotating_with_dynamic",
     "description": "Avoid annotating with dynamic when not required.",
     "group": "style",
