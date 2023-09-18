@@ -152,7 +152,7 @@ suggestions
 ''');
   }
 
-  Future<void> test_afterRightParent_beforeVariable_partial() async {
+  Future<void> test_afterRightParen_beforeVariable_partial() async {
     await computeSuggestions('''
 void f()a^ Foo foo;
 ''');
@@ -161,8 +161,6 @@ void f()a^ Foo foo;
 replacement
   left: 1
 suggestions
-  abstract
-    kind: keyword
   async
     kind: keyword
   async*
@@ -173,43 +171,19 @@ suggestions
 replacement
   left: 1
 suggestions
-  abstract
-    kind: keyword
   async
     kind: keyword
   async*
     kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
   const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  extension
     kind: keyword
   external
     kind: keyword
   final
     kind: keyword
-  interface
-    kind: keyword
   late
     kind: keyword
-  mixin
-    kind: keyword
-  sealed
-    kind: keyword
   sync*
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
     kind: keyword
 ''');
     }
