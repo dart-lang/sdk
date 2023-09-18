@@ -25,7 +25,7 @@ class VerifyingAnalysis extends AnalysisVisitor {
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
-      File file = new File(_allowedListPath!);
+      File file = new File(_allowedListPath);
       if (file.existsSync()) {
         try {
           _expectedJson = json.jsonDecode(file.readAsStringSync());
@@ -47,7 +47,7 @@ class VerifyingAnalysis extends AnalysisVisitor {
         actualJson[uri] = map;
       });
 
-      new File(_allowedListPath!).writeAsStringSync(
+      new File(_allowedListPath).writeAsStringSync(
           new json.JsonEncoder.withIndent('  ').convert(actualJson));
       return;
     }

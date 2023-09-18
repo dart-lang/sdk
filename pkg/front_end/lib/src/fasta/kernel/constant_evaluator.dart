@@ -1587,8 +1587,8 @@ class ConstantsTransformer extends RemovingTransformer {
       }
     }
     if (_exhaustivenessDataForTesting != null) {
-      _exhaustivenessDataForTesting!.objectFieldLookup ??= _exhaustivenessCache;
-      _exhaustivenessDataForTesting!.switchResults[replacement] =
+      _exhaustivenessDataForTesting.objectFieldLookup ??= _exhaustivenessCache;
+      _exhaustivenessDataForTesting.switchResults[replacement] =
           new ExhaustivenessResult(type, cases,
               patternGuards.map((c) => c.fileOffset).toList(), reportedErrors!);
     }
@@ -1826,10 +1826,9 @@ class ConstantsTransformer extends RemovingTransformer {
       // [PatternAssignment]s for effect.
       if (_exhaustivenessDataForTesting != null) {
         ExhaustivenessResult? result =
-            _exhaustivenessDataForTesting!.switchResults[expression];
+            _exhaustivenessDataForTesting.switchResults[expression];
         if (result != null) {
-          _exhaustivenessDataForTesting!.switchResults[expression.body] =
-              result;
+          _exhaustivenessDataForTesting.switchResults[expression.body] = result;
         }
       }
       return expression.body;
@@ -5849,7 +5848,7 @@ class EvaluationEnvironment {
   bool get isEmpty {
     // Since we look up variables in enclosing environment, the environment
     // is not empty if its parent is not empty.
-    if (_parent != null && !_parent!.isEmpty) return false;
+    if (_parent != null && !_parent.isEmpty) return false;
     return _typeVariables.isEmpty && _variables.isEmpty;
   }
 
@@ -5897,7 +5896,7 @@ class EvaluationEnvironment {
     final DartType substitutedType = substitute(type, _typeVariables);
     if (identical(substitutedType, type) && _parent != null) {
       // No distinct type created, substitute type in parent.
-      return _parent!.substituteType(type);
+      return _parent.substituteType(type);
     }
     return substitutedType;
   }

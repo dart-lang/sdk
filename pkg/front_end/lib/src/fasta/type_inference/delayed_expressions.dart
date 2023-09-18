@@ -439,7 +439,7 @@ class EffectExpression implements DelayedExpression {
       identical(this, expression) ||
       _effect.uses(expression) ||
       _result.uses(expression) ||
-      (_lateEffect != null && _lateEffect!.uses(expression));
+      (_lateEffect != null && _lateEffect.uses(expression));
 
   @override
   bool get isEffectOnly => _result.isEffectOnly;
@@ -452,9 +452,9 @@ class EffectExpression implements DelayedExpression {
     _result.createStatements(typeEnvironment, results, effects: effects);
     if (_lateEffect != null) {
       if (effects != null) {
-        _lateEffect!.createStatements(typeEnvironment, effects);
+        _lateEffect.createStatements(typeEnvironment, effects);
       } else {
-        _lateEffect!.createStatements(typeEnvironment, results);
+        _lateEffect.createStatements(typeEnvironment, results);
       }
     }
   }

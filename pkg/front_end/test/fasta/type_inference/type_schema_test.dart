@@ -119,7 +119,7 @@ class _OrdinaryVisitor<R> extends VisitorDefault<R?> with VisitorNullMixin<R> {
   @override
   R? defaultDartType(DartType node) {
     if (_defaultDartType != null) {
-      return _defaultDartType!(node);
+      return _defaultDartType(node);
     } else {
       return super.defaultDartType(node);
     }
@@ -140,9 +140,9 @@ class _TypeSchemaVisitor<R> extends VisitorDefault<R?>
   @override
   R? defaultDartType(DartType node) {
     if (node is UnknownType && _visitUnknownType != null) {
-      return _visitUnknownType!(node);
+      return _visitUnknownType(node);
     } else if (_defaultDartType != null) {
-      return _defaultDartType!(node);
+      return _defaultDartType(node);
     } else {
       return super.defaultDartType(node);
     }

@@ -102,7 +102,7 @@ class ForwardingNode {
     bool hasValidImplementation = false;
     if (_superClassMember != null) {
       superTarget =
-          _superClassMember!.getMember(_combinedMemberSignature.membersBuilder);
+          _superClassMember.getMember(_combinedMemberSignature.membersBuilder);
       if (superTarget is Procedure &&
           interfaceMember is Procedure &&
           (superTarget.function.positionalParameters.length <
@@ -148,7 +148,7 @@ class ForwardingNode {
         } else {
           // [superTarget] is a valid implementation for [interfaceMember] so
           // we need to add concrete forwarding stub of the variances differ.
-          needsSuperImpl = _superClassMember!
+          needsSuperImpl = _superClassMember
                   .getCovariance(_combinedMemberSignature.membersBuilder) !=
               _combinedMemberSignature.combinedMemberSignatureCovariance;
           hasValidImplementation = true;
@@ -202,9 +202,8 @@ class ForwardingNode {
         if (needsNoSuchMethodForwarder) {
           _createNoSuchMethodForwarder(
               classBuilder,
-              _noSuchMethodTarget!
-                      .getMember(_combinedMemberSignature.membersBuilder)
-                  as Procedure,
+              _noSuchMethodTarget.getMember(
+                  _combinedMemberSignature.membersBuilder) as Procedure,
               stub);
         } else if (needsSuperImpl ||
             (needMixinStub && _superClassMember == _mixedInMember)) {
@@ -228,9 +227,8 @@ class ForwardingNode {
         interfaceMember.stubTarget = null;
         _createNoSuchMethodForwarder(
             classBuilder,
-            _noSuchMethodTarget!
-                    .getMember(_combinedMemberSignature.membersBuilder)
-                as Procedure,
+            _noSuchMethodTarget.getMember(
+                _combinedMemberSignature.membersBuilder) as Procedure,
             interfaceMember);
       } else if (needsSuperImpl) {
         _createForwardingImplIfNeeded(interfaceMember.function!,
@@ -280,7 +278,7 @@ class ForwardingNode {
                   type.typeParameters,
                   function.typeParameters
                       .map((TypeParameter parameter) => new TypeParameterType
-                              .withDefaultNullabilityForLibrary(
+                          .withDefaultNullabilityForLibrary(
                           parameter, procedure.enclosingLibrary))
                       .toList())
               .substituteType(type.withoutTypeParameters) as FunctionType;

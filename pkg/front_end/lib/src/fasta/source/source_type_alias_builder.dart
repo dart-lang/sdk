@@ -145,7 +145,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         // bounds should have been assigned.
         libraryBuilder.registerPendingNullability(
             _typeVariables![i].fileUri!,
-            _typeVariables![i].charOffset,
+            _typeVariables[i].charOffset,
             asTypeArguments[i] as TypeParameterType);
       }
     }

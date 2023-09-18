@@ -332,7 +332,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(
         _packageUri == null ||
             !importUri.isScheme('package') ||
-            importUri.path.startsWith(_packageUri!.path),
+            importUri.path.startsWith(_packageUri.path),
         "Foreign package uri '$_packageUri' set on library with import uri "
         "'${importUri}'.");
     assert(
@@ -1753,7 +1753,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeBuilder>? arguments, int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
     if (_omittedTypeDeclarationBuilders != null) {
-      Builder? builder = _omittedTypeDeclarationBuilders![name];
+      Builder? builder = _omittedTypeDeclarationBuilders[name];
       if (builder is OmittedTypeDeclarationBuilder) {
         return new DependentTypeBuilder(builder.omittedTypeBuilder);
       }
