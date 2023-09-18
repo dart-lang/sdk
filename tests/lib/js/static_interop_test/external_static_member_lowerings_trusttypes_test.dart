@@ -11,7 +11,7 @@ import 'package:expect/minitest.dart';
 import 'package:js/js.dart' show trustTypes;
 
 @JS()
-external dynamic eval(String code);
+external void eval(String code);
 
 @JS('ExternalStatic')
 @staticInterop
