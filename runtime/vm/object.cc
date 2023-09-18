@@ -2289,6 +2289,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_number_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_number_type(type);
 
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
@@ -21811,6 +21813,10 @@ TypePtr Type::Int32x4() {
 
 TypePtr Type::Number() {
   return IsolateGroup::Current()->object_store()->number_type();
+}
+
+TypePtr Type::NullableNumber() {
+  return IsolateGroup::Current()->object_store()->nullable_number_type();
 }
 
 TypePtr Type::StringType() {
