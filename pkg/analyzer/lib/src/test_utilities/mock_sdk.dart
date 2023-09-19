@@ -1349,6 +1349,10 @@ class Point<T extends num> {}
   ],
 );
 
+final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
+  MockSdkLibraryUnit('_wasm/wasm.dart', ''),
+]);
+
 final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_CORE,
   _LIB_ASYNC,
@@ -1362,6 +1366,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_HTML_DART2JS,
   _LIB_INTERCEPTORS,
   _LIB_INTERNAL,
+  _LIB_WASM,
 ];
 
 /// Create a reduced approximation of Dart SDK in the [path].
