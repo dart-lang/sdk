@@ -12,14 +12,14 @@ internal/deferred_url_test: SkipByDesign # test specific for the dart2js runtime
 [ $compiler != dart2wasm ]
 wasm/*: SkipByDesign
 
+[ $compiler == ddc ]
+async_stacktrace_test: Skip # Issue 53555
+
 [ $runtime == jsshell ]
 deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
 
 [ $browser ]
 native/*: Skip
-
-[ $builder_tag == canary && $compiler == ddc ]
-async_stacktrace_test: Skip # Issue 50666
 
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip

@@ -12,7 +12,3 @@ inference_update_2/external_field_test: SkipByDesign # Non-JS-interop external m
 number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics.
 superinterface_variance/*: Skip # Issue dart-lang/language#113
 vm/*: SkipByDesign # VM only tests.; VM only tests.
-
-[ $builder_tag == canary && $compiler == ddc ]
-await/for_test: Skip # Issue 50666
-await/future_test: Skip # Issue 50666
