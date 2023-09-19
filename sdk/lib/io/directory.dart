@@ -253,7 +253,7 @@ abstract interface class Directory implements FileSystemEntity {
   /// identifies an existing empty directory then that directory is deleted
   /// before this directory is renamed.
   ///
-  /// If [newPath] identifies an existing file the operation
+  /// If [newPath] identifies an existing file or link the operation
   /// fails and a [FileSystemException] is thrown.
   Directory renameSync(String newPath);
 

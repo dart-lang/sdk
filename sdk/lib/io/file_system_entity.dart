@@ -274,21 +274,11 @@ abstract class FileSystemEntity {
   ///
   /// Returns a `Future<FileSystemEntity>` that completes with a
   /// [FileSystemEntity] instance for the renamed file system entity.
-  ///
-  /// If [newPath] identifies an existing entity of the same type,
-  /// that entity is removed first.
-  /// If [newPath] identifies an existing entity of a different type,
-  /// the operation fails and the future completes with an exception.
   Future<FileSystemEntity> rename(String newPath);
 
   /// Synchronously renames this file system entity.
   ///
   /// Returns a [FileSystemEntity] instance for the renamed entity.
-  ///
-  /// If [newPath] identifies an existing entity of the same type,
-  /// that entity is removed first.
-  /// If [newPath] identifies an existing entity of a different type,
-  /// the operation fails and an exception is thrown.
   FileSystemEntity renameSync(String newPath);
 
   /// Resolves the path of a file system object relative to the

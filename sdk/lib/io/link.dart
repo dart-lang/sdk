@@ -95,18 +95,18 @@ abstract interface class Link implements FileSystemEntity {
   /// Returns a `Future<Link>` that completes with a [Link]
   /// for the renamed link.
   ///
-  /// If [newPath] identifies an existing link, that link is
-  /// removed first. If [newPath] identifies an existing file or directory,
-  /// the operation fails and the future completes with an exception.
+  /// If [newPath] identifies an existing file or link, that entity is removed
+  /// first. If [newPath] identifies an existing directory then the future
+  /// completes with a [FileSystemException].
   Future<Link> rename(String newPath);
 
   /// Synchronously renames this link.
   ///
   /// Returns a [Link] instance for the renamed link.
   ///
-  /// If [newPath] identifies an existing link, that link is
-  /// removed first. If [newPath] identifies an existing file or directory
-  /// the operation fails and an exception is thrown.
+  /// If [newPath] identifies an existing file or link, that entity is removed
+  /// first. If [newPath] identifies an existing directory then
+  /// [FileSystemException] is thrown.
   Link renameSync(String newPath);
 
   /// A [Link] instance whose path is the absolute path to [this].
