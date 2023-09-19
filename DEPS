@@ -183,7 +183,7 @@ vars = {
   "test_descriptor_rev": "030193dfdfbf85930eae8536909c546151da9e9c",
   "test_process_rev": "2a6ee23fc2550fa466105819f5335fcfbab14035",
   "test_reflective_loader_rev": "45c57d62fb08471681cd0b0a1c3b131bf0122929",
-  "tools_rev": "1512f3d1efde11ace801618822f63934961cc80d", # https://github.com/dart-lang/tools/issues/164
+  "tools_rev": "70d778d58d0fb5a5f9d52d288709f790f6e70be6",
   "typed_data_rev": "80e8943524a627f7ff421ace824f38105983e89a",
   "usage_rev": "7b12d510b5abde8a216437b8430ccfd02273625c",
   "vector_math_rev": "d54af8a2b8b8d935a475a4da6ea5a1b343f29562",
