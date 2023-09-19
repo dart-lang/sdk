@@ -2007,6 +2007,15 @@ LeafRuntimeScope::~LeafRuntimeScope() {
   __ LeaveFrame();
 }
 
+void Assembler::MsanUnpoison(Register base, intptr_t length_in_bytes) {
+  if (base != CallingConventions::kArg1Reg) {
+    movq(CallingConventions::kArg1Reg, base);
+  }
+  LoadImmediate(CallingConventions::kArg2Reg, length_in_bytes);
+  CallCFunction(
+      compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+}
+
 #if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
