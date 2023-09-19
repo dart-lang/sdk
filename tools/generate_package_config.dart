@@ -46,6 +46,10 @@ void main(List<String> args) {
     platform('pkg/_fe_analyzer_shared/test/inheritance'),
   ];
 
+  var frontendServerPackageDirs = [
+    platform('pkg/frontend_server/test/fixtures'),
+  ];
+
   var pkgVmPackageDirs = [
     platform('pkg/vm/testcases'),
   ];
@@ -72,6 +76,7 @@ void main(List<String> args) {
     ...makePackageConfigs(packageDirs),
     ...makeCfePackageConfigs(cfePackageDirs),
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs),
+    ...makeFrontendServerPackageConfigs(frontendServerPackageDirs),
     ...makePkgVmPackageConfigs(pkgVmPackageDirs),
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
@@ -174,6 +179,11 @@ Iterable<Package> makeCfePackageConfigs(List<String> packageDirs) =>
 Iterable<Package> makeFeAnalyzerSharedPackageConfigs(
         List<String> packageDirs) =>
     makeSpecialPackageConfigs('_fe_analyzer_shared', packageDirs);
+
+/// Generates package configurations for the special pseudo-packages used by the
+/// frontend_server tests.
+Iterable<Package> makeFrontendServerPackageConfigs(List<String> packageDirs) =>
+    makeSpecialPackageConfigs('frontend_server', packageDirs);
 
 /// Generates package configurations for the special pseudo-packages used by the
 /// pkg/vm unit tests (`pkg/vm/test`).
