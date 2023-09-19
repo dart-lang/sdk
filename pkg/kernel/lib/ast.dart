@@ -2950,6 +2950,7 @@ class Procedure extends Member {
   static const int FlagIsAbstractFieldAccessor = 1 << 8;
   static const int FlagExtensionTypeMember = 1 << 9;
   static const int FlagHasWeakTearoffReferencePragma = 1 << 10;
+  static const int FlagIsLoweredLateField = 1 << 11;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3118,6 +3119,15 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagHasWeakTearoffReferencePragma)
         : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
+
+  /// If `true` this procedure was generated from a late field.
+  bool get isLoweredLateField => flags & FlagIsLoweredLateField != 0;
+
+  void set isLoweredLateField(bool value) {
+    flags = value
+        ? (flags | FlagIsLoweredLateField)
+        : (flags & ~FlagIsLoweredLateField);
   }
 
   @override

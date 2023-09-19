@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 107;
+  UInt32 formatVersion = 108;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -455,7 +455,8 @@ type Procedure extends Member {
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isExtensionMember, isNonNullableByDefault, isSynthetic,
               isInternalImplementation, isAbstractFieldAccessor,
-              isExtensionTypeMember, hasWeakTearoffReferencePragma);
+              isExtensionTypeMember, hasWeakTearoffReferencePragma,
+              IsLoweredLateField);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.

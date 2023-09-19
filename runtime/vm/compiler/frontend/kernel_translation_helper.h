@@ -597,6 +597,7 @@ class ProcedureHelper {
     kIsAbstractFieldAccessor = 1 << 8,
     kExtensionTypeMember = 1 << 9,
     kHasWeakTearoffReferencePragma = 1 << 10,
+    kIsLoweredLateField = 1 << 11,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
