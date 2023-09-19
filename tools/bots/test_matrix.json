@@ -554,6 +554,15 @@
         "timeout": 240
       }
     },
+    "dart2wasm-(linux|mac|win)-optimized-(d8|chrome)": {
+      "options": {
+        "dart2wasm-options": [
+          "-O"
+        ],
+        "host-checked": false,
+        "timeout": 240
+      }
+    },
     "dart2wasm-(linux|mac|win)-jscm-(d8|chrome)": {
       "options": {
         "dart2wasm-options": [

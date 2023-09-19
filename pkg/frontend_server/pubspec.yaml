@@ -23,5 +23,8 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  collection: any
+  const_finder_fixtures: any
+  const_finder_fixtures_package: any
   lints: any
   test: any
