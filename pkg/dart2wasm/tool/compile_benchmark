@@ -36,20 +36,10 @@ BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 DART2WASM="$SDK_DIR/sdk/bin/dart2wasm"
 BINARYEN="$BIN_DIR/wasm-opt"
 
-TEMPDIR="$(mktemp -d)"
-TEMPFILE="$(mktemp -p "$TEMPDIR" --suffix=.wasm)"
-
-COMPILE_FLAGS="--enable-experiment=records,patterns"
+COMPILE_FLAGS=""
 if [[ "$3" == "--omit-checks" ]]; then
   COMPILE_FLAGS+=" --omit-type-checks"
 fi
 
-"$DART2WASM" "$1" "$TEMPFILE" $COMPILE_FLAGS
-"$BINARYEN" -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$TEMPFILE" -o "$2"
-
-# Locate JS runtime and copy it to the same directory as "$2". We also rename it
-# using the basename of "$2".
-cp "${TEMPFILE%.*}.mjs" "$(dirname "$2")"/"$(basename ${2%.*}.mjs)"
-
-# Clean up temporary files.
-rm -r "$TEMPDIR"
+"$DART2WASM" "$1" "$2" $COMPILE_FLAGS
+"$BINARYEN" -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$2" -o "$2"
