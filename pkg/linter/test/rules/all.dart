@@ -50,6 +50,7 @@ import 'camel_case_types_test.dart' as camel_case_types;
 import 'cancel_subscriptions_test.dart' as cancel_subscriptions;
 import 'cast_nullable_to_non_nullable_test.dart'
     as cast_nullable_to_non_nullable;
+import 'close_sinks_test.dart' as close_sinks;
 import 'collection_methods_unrelated_type_test.dart'
     as collection_methods_unrelated_type;
 import 'comment_references_test.dart' as comment_references;
@@ -277,6 +278,7 @@ void main() {
   camel_case_types.main();
   cancel_subscriptions.main();
   cast_nullable_to_non_nullable.main();
+  close_sinks.main();
   collection_methods_unrelated_type.main();
   comment_references.main();
   conditional_uri_does_not_exist.main();

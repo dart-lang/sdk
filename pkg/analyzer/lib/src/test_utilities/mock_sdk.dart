@@ -1227,6 +1227,7 @@ abstract class File implements FileSystemEntity {
 
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
+  IOSink openWrite();
 }
 
 abstract class FileSystemEntity {
@@ -1251,6 +1252,10 @@ abstract class FileSystemEntity {
 
   Future<FileStat> stat();
   FileStat statSync();
+}
+
+class IOSink implements Sink<List<int>> {
+  Future<dynamic> close() {}
 }
 
 class ProcessStartMode {
@@ -1283,6 +1288,8 @@ abstract class Process {
 
 abstract class Socket {
   void destroy() {}
+
+  static Future<Socket> connect(dynamic host, int port) async => Socket();
 }
 ''',
     )
