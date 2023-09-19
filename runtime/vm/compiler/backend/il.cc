@@ -2901,7 +2901,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     StoreFieldInstr* initializing_store = nullptr;
     for (auto use : instance()->definition()->input_uses()) {
       if (auto store = use->instruction()->AsStoreField()) {
-        if (store->slot().IsIdentical(slot())) {
+        if ((use->use_index() == StoreFieldInstr::kInstancePos) &&
+            store->slot().IsIdentical(slot())) {
           if (initializing_store == nullptr) {
             initializing_store = store;
           } else {
