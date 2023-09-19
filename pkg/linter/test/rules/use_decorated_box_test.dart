@@ -88,6 +88,7 @@ Widget f() {
 
   test_containerWithKey() async {
     await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 Widget f() {
   return Container(key: Key('abc'));
@@ -97,6 +98,7 @@ Widget f() {
 
   test_containerWithKeyAndChild() async {
     await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 Widget f() {
   return Container(
@@ -109,6 +111,7 @@ Widget f() {
 
   test_containerWithKeyAndDecoration() async {
     await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 Widget f() {
   return Container(
@@ -121,6 +124,7 @@ Widget f() {
 
   test_containerWithKeyAndDecorationAndChild() async {
     await assertDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 Widget f() {
   return Container(
@@ -130,7 +134,7 @@ Widget f() {
   );
 }
 ''', [
-      lint(61, 9),
+      lint(103, 9),
     ]);
   }
 

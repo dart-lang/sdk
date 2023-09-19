@@ -22,17 +22,18 @@ class DiagnosticDescribeAllPropertiesTest extends LintRuleTest {
 
   test_field() async {
     await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   bool p = false;
 }
 ''', [
-      lint(83, 1),
+      lint(86, 1),
     ]);
   }
 
   test_field_collectionOfWidgets() async {
     await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   List<Widget> p = [];
@@ -42,7 +43,7 @@ class MyWidget with Diagnosticable {
 
   test_field_coveredByDebugField() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   String foo = '';
   String debugFoo = '';
@@ -57,7 +58,7 @@ class MyWidget with Diagnosticable {
 
   test_field_inDebugDescribeChildren() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget extends DiagnosticableTree {
   String p = '';
 
@@ -72,7 +73,7 @@ class MyWidget extends DiagnosticableTree {
 
   test_field_inDebugFillProperties() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   String p = '';
 
@@ -86,7 +87,7 @@ class MyWidget with Diagnosticable {
 
   test_field_private() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   // ignore: unused_field
   String _p = '';
@@ -96,17 +97,18 @@ class MyWidget with Diagnosticable {
 
   test_field_string() async {
     await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   String p = '';
 }
 ''', [
-      lint(85, 1),
+      lint(88, 1),
     ]);
   }
 
   test_field_widget() async {
     await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   Widget? p;
@@ -116,17 +118,18 @@ class MyWidget with Diagnosticable {
 
   test_getter_string() async {
     await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   String get p => '';
 }
 ''', [
-      lint(89, 1),
+      lint(92, 1),
     ]);
   }
 
   test_getter_widget() async {
     await assertNoDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 class MyWidget with Diagnosticable {
   Widget? get p => null;
@@ -136,7 +139,7 @@ class MyWidget with Diagnosticable {
 
   test_staticField_string() async {
     await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 class MyWidget with Diagnosticable {
   static String p = '';
 }
