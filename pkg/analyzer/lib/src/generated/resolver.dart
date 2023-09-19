@@ -5369,7 +5369,7 @@ class _WhyNotPromotedVisitor
         message: "'this' can't be promoted",
         offset: _errorEntity.offset,
         length: _errorEntity.length,
-        url: reason.documentationLink);
+        url: reason.documentationLink.url);
   }
 
   DiagnosticMessageImpl _contextMessageForProperty(
@@ -5382,7 +5382,7 @@ class _WhyNotPromotedVisitor
             "'$propertyName' refers to a property so it couldn't be promoted",
         offset: property.nonSynthetic.nameOffset,
         length: property.nameLength,
-        url: reason.documentationLink);
+        url: reason.documentationLink.url);
   }
 
   DiagnosticMessageImpl _contextMessageForWrite(
@@ -5393,6 +5393,6 @@ class _WhyNotPromotedVisitor
             "assignment",
         offset: node.offset,
         length: node.length,
-        url: reason.documentationLink);
+        url: reason.documentationLink.url);
   }
 }

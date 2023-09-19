@@ -40,7 +40,8 @@ class DemoteViaExplicitWrite<Variable extends Object>
   DemoteViaExplicitWrite(this.variable, this.node);
 
   @override
-  String get documentationLink => 'http://dart.dev/go/non-promo-write';
+  NonPromotionDocumentationLink get documentationLink =>
+      NonPromotionDocumentationLink.write;
 
   @override
   String get shortName => 'explicitWrite';
@@ -2789,6 +2790,80 @@ abstract class FlowModelHelper<Type extends Object> {
   TypeOperations<Type> get typeOperations;
 }
 
+/// Documentation links that might be presented to the user to accompany a "why
+/// not promoted" context message.
+enum NonPromotionDocumentationLink {
+  /// The expression in question is a reference to a private final field, but it
+  /// couldn't be promoted because there is another class in the same library
+  /// containing a concrete getter with the same name.
+  conflictingGetter('http://dart.dev/go/non-promo-conflicting-getter'),
+
+  /// The expression in question is a reference to a private final field, but it
+  /// couldn't be promoted because there is another class in the same library
+  /// containing a field with the same name that's not promotable (either
+  /// because it's not final or because it's external).
+  conflictingNonPromotableField(
+      'http://dart.dev/go/non-promo-conflicting-non-promotable-field'),
+
+  /// The expression in question is a reference to a private final field, but it
+  /// couldn't be promoted because there is a concrete class `C` in the library
+  /// whose interface contains a getter with the same name, but `C` does not
+  /// have an implementation of that getter (and hence it forwards to
+  /// `noSuchMethod`).
+  conflictingNoSuchMethodForwarder(
+      'http://dart.dev/go/non-promo-conflicting-noSuchMethod-forwarder'),
+
+  /// The expression in question is a reference to a private field, but it
+  /// couldn't be promoted because it's external.
+  externalField('http://dart.dev/go/non-promo-external-field'),
+
+  /// The expression in question is a reference to a private field, but it
+  /// couldn't be promoted because the Dart language version for this library is
+  /// prior to field promotion support.
+  fieldPromotionUnavailable(
+      'http://dart.dev/go/non-promo-field-promotion-unavailable'),
+
+  /// The expression in question is a property get, but it couldn't be promoted
+  /// because it doesn't refer to a field (it might refer to a getter or it
+  /// might be a tear-off of a method).
+  nonField('http://dart.dev/go/non-promo-non-field'),
+
+  /// The expression in question is a reference to a private field, but it
+  /// couldn't be promoted because it's not final.
+  nonFinalField('http://dart.dev/go/non-promo-non-final-field'),
+
+  /// The expression in question is a property get. It couldn't be promoted
+  /// because promotion of property gets is not supported.
+  ///
+  /// In Dart 3.2, this link will no longer be used, but it was used in Dart
+  /// versions 3.1 and earlier (so the documentation web site should continue to
+  /// support it until most users have upgraded to 3.2 or later).
+  ///
+  /// TODO(paulberry): once this link is no longer used, mark it `@deprecated`.
+  property('http://dart.dev/go/non-promo-property'),
+
+  /// The expression in question is a reference to a field, but it couldn't be
+  /// promoted because it's not private.
+  publicField('http://dart.dev/go/non-promo-public-field'),
+
+  /// The expression in question is `this`. It couldn't be promoted because
+  /// promotion of `this` is not yet supported.
+  this_('http://dart.dev/go/non-promo-this'),
+
+  /// The expression in question is a reference to a local variable. It couldn't
+  /// be promoted because the variable was written to between the type test and
+  /// the usage.
+  write('http://dart.dev/go/non-promo-write');
+
+  /// The link URL, as a text string.
+  final String url;
+
+  const NonPromotionDocumentationLink(this.url);
+
+  @override
+  String toString() => url;
+}
+
 /// Linked list node representing a set of reasons why a given expression was
 /// not promoted.
 ///
@@ -2824,7 +2899,7 @@ abstract class NonPromotionReason {
   /// Link to documentation describing this non-promotion reason; this should be
   /// presented to the user as a source of additional information about the
   /// error.
-  String get documentationLink;
+  NonPromotionDocumentationLink get documentationLink;
 
   /// Short text description of this non-promotion reason; intended for ID
   /// testing.
@@ -3462,7 +3537,8 @@ class PropertyNotPromoted<Type extends Object> extends NonPromotionReason {
   PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType);
 
   @override
-  String get documentationLink => 'http://dart.dev/go/non-promo-property';
+  NonPromotionDocumentationLink get documentationLink =>
+      NonPromotionDocumentationLink.property;
 
   @override
   String get shortName => 'propertyNotPromoted';
@@ -3842,7 +3918,8 @@ class SuperPropertyTarget extends PropertyTarget<Never> {
 /// promoted due to the fact that it's a reference to `this`.
 class ThisNotPromoted extends NonPromotionReason {
   @override
-  String get documentationLink => 'http://dart.dev/go/non-promo-this';
+  NonPromotionDocumentationLink get documentationLink =>
+      NonPromotionDocumentationLink.this_;
 
   @override
   String get shortName => 'thisNotPromoted';

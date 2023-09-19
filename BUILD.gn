@@ -135,11 +135,6 @@ group("dartanalyzer") {
   deps = [ "utils/dartanalyzer" ]
 }
 
-# TODO(nshahan): Delete after updating the Flutter engine build.
-group("dartdevc") {
-  deps = [ "utils/dartdevc:dartdevc_files_stamp" ]
-}
-
 group("ddc") {
   deps = [ "utils/ddc:dartdevc" ]
 }

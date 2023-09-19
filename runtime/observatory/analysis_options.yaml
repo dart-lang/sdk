@@ -3,6 +3,7 @@ analyzer:
     dead_code: info
     getter_not_subtype_setter_types: info
     missing_enum_constant_in_switch: info
+    nullable_argument_to_non_null_type: info
     unused_element: info
     unused_field: info
     unused_import: info

@@ -54,21 +54,17 @@ class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x
 class Date{}final num M = Dat!1''', <String>['1+Date']);
 
     // space, char, eol are important
-    buildTests(
-        'testCommentSnippets009',
-        '''
-class Maps{}class x extends!5 !2M!3 !4implements!6 !1\n{}''',
-        <String>[
-          '1+Map',
-          '2+Maps',
-          '3+Maps',
-          '4-Maps',
-          '4+implements',
-          '5-Maps',
-          '6-Map',
-          '6+implements'
-        ],
-        failingTests: '46');
+    buildTests('testCommentSnippets009', '''
+class Maps{}class x extends!5 !2M!3 !4implements!6 !1\n{}''', <String>[
+      '1+Map',
+      '2+Maps',
+      '3+Maps',
+      '4-Maps',
+      '4+implements',
+      '5-Maps',
+      '6-Map',
+      '6+implements'
+    ]);
 
     // space, char, eol are important
     buildTests('testCommentSnippets010', '''
@@ -1950,7 +1946,7 @@ class Fclass extends Bclass !6with !7 Eclass {}''',
           '7-Dclass',
           '7-Ctype',
         ],
-        failingTests: '2346');
+        failingTests: '4');
 
     // keywords
     buildTests(
@@ -2135,7 +2131,10 @@ class Q {
           '7+show',
           '8-null'
         ],
-        failingTests: '234567'); //TODO(jwren) 234 failing as correct selection
+        // Test 1 fails because we don't suggest other directives when at the
+        //  beginning of a directive. Some clients will replace the existing
+        //  keyword rather than insert a new one.
+        failingTests: '1234567'); //TODO(jwren) 234 failing as correct selection
     // offset assertions can't be passed into buildTests(..)
 
     // keywords

@@ -48,7 +48,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         templateJsInteropExtensionTypeNotInterop,
         templateJsInteropFunctionToJSRequiresStaticType,
-        templateJsInteropStrictModeViolation;
+        templateJsInteropStaticInteropExternalTypeViolation;
 
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -73,18 +73,12 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _classHasStaticInteropAnnotation = false;
+  final _checkDisallowedInterop = false;
   bool _inTearoff = false;
   bool _libraryHasDartJSInteropAnnotation = false;
   bool _libraryHasJSAnnotation = false;
   bool _libraryIsGlobalNamespace = false;
 
-  // TODO(joshualitt): Today strict mode is just for testing, but we should find
-  // a way to expose this to users who want strict mode guarantees.
-  bool _enforceStrictMode = false;
-
-  /// If [enableStrictMode] is true, then static interop methods must use JS
-  /// types.
-  final bool enableStrictMode;
   final ExportChecker exportChecker;
   final bool isDart2Wasm;
 
@@ -137,7 +131,7 @@ class JsInteropChecks extends RecursiveVisitor {
 
   JsInteropChecks(this._coreTypes, ClassHierarchy hierarchy, this._reporter,
       this._nativeClasses,
-      {this.isDart2Wasm = false, this.enableStrictMode = false})
+      {this.isDart2Wasm = false})
       : exportChecker = ExportChecker(_reporter, _coreTypes.objectClass),
         _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
@@ -293,11 +287,11 @@ class JsInteropChecks extends RecursiveVisitor {
     _libraryHasJSAnnotation =
         _libraryHasDartJSInteropAnnotation || hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = _isLibraryGlobalNamespace(node);
-    _enforceStrictMode = _shouldEnforceStrictMode(node);
 
-    if (_enforceStrictMode && !node.importUri.isScheme('dart')) {
-      _checkDisallowedLibrariesInStrictMode(node);
-    }
+    // TODO(srujzs): Should we still keep around this check? Currently, it's
+    // unused since we allow the old interop on dart2wasm, but we should
+    // disallow them eventually.
+    if (_checkDisallowedInterop) _checkDisallowedLibrariesForDart2Wasm(node);
 
     super.visitLibrary(node);
     exportChecker.visitLibrary(node);
@@ -354,18 +348,6 @@ class JsInteropChecks extends RecursiveVisitor {
         report(messageJsInteropInvalidStaticClassMemberName);
       }
 
-      // In strict mode, check all types are JS types.
-      if (enableStrictMode) {
-        final function = node.function;
-        _reportProcedureIfNotJSType(function.returnType, node);
-        for (final parameter in function.positionalParameters) {
-          _reportProcedureIfNotJSType(parameter.type, node);
-        }
-        for (final parameter in function.namedParameters) {
-          _reportProcedureIfNotJSType(parameter.type, node);
-        }
-      }
-
       if (_classHasStaticInteropAnnotation ||
           node.isExtensionTypeMember ||
           node.isExtensionMember ||
@@ -393,8 +375,16 @@ class JsInteropChecks extends RecursiveVisitor {
           if (annotatable == null ||
               ((hasDartJSInteropAnnotation(annotatable) ||
                   annotatable is ExtensionTypeDeclaration))) {
-            // Only restrict type parameters for dart:js_interop.
+            // Checks for dart:js_interop APIs only.
             _checkStaticInteropMemberUsesValidTypeParameters(node);
+            final function = node.function;
+            _reportProcedureIfNotAllowedType(function.returnType, node);
+            for (final parameter in function.positionalParameters) {
+              _reportProcedureIfNotAllowedType(parameter.type, node);
+            }
+            for (final parameter in function.namedParameters) {
+              _reportProcedureIfNotAllowedType(parameter.type, node);
+            }
           }
         }
       }
@@ -520,14 +510,7 @@ class JsInteropChecks extends RecursiveVisitor {
 
   // JS interop library checks
 
-  /// Determine if [node] enforces strict mode checking. This is currently only
-  /// enabled for testing.
-  bool _shouldEnforceStrictMode(Library node) {
-    return node.fileUri.toString().contains(RegExp(
-        r'(?<!generated_)tests/lib/js/static_interop_test/strict_mode_test.dart'));
-  }
-
-  void _checkDisallowedLibrariesInStrictMode(Library node) {
+  void _checkDisallowedLibrariesForDart2Wasm(Library node) {
     for (final dependency in node.dependencies) {
       final dependencyUriString = dependency.targetLibrary.importUri.toString();
       if (_disallowedLibrariesInStrictMode.contains(dependencyUriString)) {
@@ -725,9 +708,9 @@ class JsInteropChecks extends RecursiveVisitor {
           node.name.text.length,
           node.location?.file);
     } else {
-      _reportStaticInvocationIfNotJSType(functionType.returnType, node);
+      _reportStaticInvocationIfNotAllowedType(functionType.returnType, node);
       for (final parameter in functionType.positionalParameters) {
-        _reportStaticInvocationIfNotJSType(parameter, node);
+        _reportStaticInvocationIfNotAllowedType(parameter, node);
       }
     }
   }
@@ -936,8 +919,7 @@ class JsInteropChecks extends RecursiveVisitor {
     return false;
   }
 
-  void _reportIfNotJSType(
-      DartType type, TreeNode node, Name name, Uri? fileUri) {
+  bool _isAllowedExternalType(DartType type) {
     // TODO(joshualitt): We allow only JS types on external JS interop APIs with
     // two exceptions: `void` and `Null`. Both of these exceptions exist largely
     // to support passing Dart functions to JS as callbacks.  Furthermore, both
@@ -945,28 +927,54 @@ class JsInteropChecks extends RecursiveVisitor {
     // said, for completeness, we may restrict these two types someday, and
     // provide JS types equivalents, but likely only if we have implicit
     // conversions between Dart types and JS types.
-    if (_enforceStrictMode &&
-        !(type is VoidType ||
-            type is NullType ||
-            (type is InterfaceType &&
-                hasStaticInteropAnnotation(type.classNode)) ||
-            (type is ExtensionType &&
-                _extensionIndex
-                    .isInteropExtensionType(type.extensionTypeDeclaration)))) {
+
+    // Type parameter types are checked elsewhere.
+    if (type is VoidType || type is NullType || type is TypeParameterType) {
+      return true;
+    }
+    if (type is InterfaceType) {
+      final cls = type.classNode;
+      if (cls == _coreTypes.boolClass ||
+          cls == _coreTypes.numClass ||
+          cls == _coreTypes.doubleClass ||
+          cls == _coreTypes.intClass ||
+          cls == _coreTypes.stringClass) {
+        return true;
+      }
+      if (hasStaticInteropAnnotation(cls)) return true;
+    }
+    if (type is ExtensionType) {
+      if (_extensionIndex
+          .isInteropExtensionType(type.extensionTypeDeclaration)) {
+        return true;
+      }
+      // Extension types where the representation type is allowed are okay.
+      // TODO(srujzs): Once the CFE pre-computes the concrete type, don't
+      // recurse.
+      return _isAllowedExternalType(type.typeErasure);
+    }
+    return false;
+  }
+
+  void _reportIfNotAllowedExternalType(
+      DartType type, TreeNode node, Name name, Uri? fileUri) {
+    if (!_isAllowedExternalType(type)) {
       _reporter.report(
-          templateJsInteropStrictModeViolation.withArguments(type, true),
+          templateJsInteropStaticInteropExternalTypeViolation.withArguments(
+              type, true),
           node.fileOffset,
           name.text.length,
           fileUri);
     }
   }
 
-  void _reportProcedureIfNotJSType(DartType type, Procedure node) =>
-      _reportIfNotJSType(type, node, node.name, node.fileUri);
+  void _reportProcedureIfNotAllowedType(DartType type, Procedure node) =>
+      _reportIfNotAllowedExternalType(type, node, node.name, node.fileUri);
 
-  void _reportStaticInvocationIfNotJSType(
+  void _reportStaticInvocationIfNotAllowedType(
           DartType type, StaticInvocation node) =>
-      _reportIfNotJSType(type, node, node.name, node.location?.file);
+      _reportIfNotAllowedExternalType(
+          type, node, node.name, node.location?.file);
 }
 
 /// Visitor used to check that all usages of type parameter types of an external

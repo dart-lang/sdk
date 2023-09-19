@@ -4439,7 +4439,7 @@ class _WhyNotPromotedVisitor
     }
     int offset = node.fileOffset;
     return templateVariableCouldBeNullDueToWrite
-        .withArguments(reason.variable.name!, reason.documentationLink)
+        .withArguments(reason.variable.name!, reason.documentationLink.url)
         .withLocation(inferrer.helper.uri, offset, noLength);
   }
 
@@ -4451,7 +4451,7 @@ class _WhyNotPromotedVisitor
       propertyReference = member;
       propertyType = reason.staticType;
       return templateFieldNotPromoted
-          .withArguments(reason.propertyName, reason.documentationLink)
+          .withArguments(reason.propertyName, reason.documentationLink.url)
           .withLocation(member.fileUri, member.fileOffset, noLength);
     } else {
       assert(member == null,
@@ -4463,7 +4463,7 @@ class _WhyNotPromotedVisitor
   @override
   LocatedMessage visitThisNotPromoted(ThisNotPromoted reason) {
     return templateThisNotPromoted
-        .withArguments(reason.documentationLink)
+        .withArguments(reason.documentationLink.url)
         .withoutLocation();
   }
 }
