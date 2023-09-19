@@ -15,7 +15,7 @@ dependencies:
   collection: ^1.15.0
   dds_service_extensions: ^1.6.0
   dap: ^1.1.0
-  devtools_shared: ^4.0.0
+  devtools_shared: ^4.0.1
   http_multi_server: ^3.0.0
   json_rpc_2: ^3.0.0
   meta: ^1.1.8
