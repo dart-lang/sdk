@@ -3,8 +3,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Run dart2wasm on the Dart VM. This script assumes the Dart repo's
-# directory structure.
+# Run dart2wasm on the Dart VM. This script assumes the Dart repo's directory
+# structure.
+#
+# Last argument must be the output .wasm file.
 
 function follow_links() {
   file="$1"
@@ -65,9 +67,34 @@ SDK_ARG="--dart-sdk=$SDK_DIR"
 
 # Point to built platform dill.
 PLATFORM="$BIN_DIR/dart2wasm_platform.dill"
+
+# Run wasm-opt with `-O`.
+OPTIMIZED=0
+
+# `-O` also passes `--inlining-limit 10` unless it's also passed by the caller.
+INLINING_LIMIT_PASSED=0
+
+# Arguments except `-O`. These are passed to the Dart main for dart2wasm.
+ARGS=()
+for arg in "$@"; do
+  if [ "$arg" = "-O" ]; then
+    OPTIMIZED=1
+  elif [ "$arg" = "--inlining-limit" ]; then
+    INLINING_LIMIT_PASSED=1
+    ARGS+=("$arg")
+  else
+    ARGS+=("$arg")
+  fi
+done
+
+if [[ "$OPTIMIZED" == 1 ]] && [[ "$INLINING_LIMIT_PASSED" == 0 ]]; then
+    # Last argument needs to be the output file, so insert it at the beginning.
+    ARGS=("--inlining-limit" "10" "${ARGS[@]}")
+fi
+
 # Not the prettiest way to check for a target, and it doesn't support changing
 # the default, but it will do for experiments.
-for arg in "$@"; do
+for arg in "${ARGS[@]}"; do
   if [[ "$arg" == "--stringref" ]]; then
     PLATFORM="$BIN_DIR/dart2wasm_stringref_platform.dill"
   fi
@@ -98,4 +125,12 @@ fi
 
 DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
-exec "$DART_PRECOMPILED_RUNTIME" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "$@"
+set -e
+
+"$DART_PRECOMPILED_RUNTIME" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "$SDK_ARG" "$PLATFORM_ARG" "${ARGS[@]}"
+
+if [[ "$OPTIMIZED" == 1 ]]; then
+    # Keep optimization parameters after `-g` in sync with pkg/dart2wasm/tool/compile_benchmark.
+    # Last argument must be the .wasm file.
+    "$BIN_DIR"/wasm-opt -g -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "${ARGS[-1]}" -o "${ARGS[-1]}"
+fi

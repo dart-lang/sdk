@@ -42,4 +42,6 @@ if [[ "$3" == "--omit-checks" ]]; then
 fi
 
 "$DART2WASM" "$1" "$2" $COMPILE_FLAGS
+
+# Keep in sync with sdk/bin/dart2wasm.
 "$BINARYEN" -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$2" -o "$2"
