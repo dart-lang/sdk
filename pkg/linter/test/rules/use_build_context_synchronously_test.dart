@@ -1708,6 +1708,47 @@ Future<void> c() async {}
     ]);
   }
 
+  test_async_thenMountedCheck_thenSwitchWithReferenceToContext() async {
+    // Assignment statement-expression with mounted check, then use of
+    // BuildContext in if-then statement, is REPORTED.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  if (!context.mounted) return;
+  switch (1) {
+    case 1:
+      Navigator.of(context);
+      break;
+  }
+}
+
+Future<void> c() async {}
+''');
+  }
+
+  test_async_thenSwitchWithReferenceToContext() async {
+    // Assignment statement-expression with mounted check, then use of
+    // BuildContext in if-then statement, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  switch (1) {
+    case 1:
+      Navigator.of(context);
+      break;
+  }
+}
+
+Future<void> c() async {}
+''', [
+      lint(125, 21),
+    ]);
+  }
+
   test_await_afterReferenceToContext() async {
     // Use of BuildContext, then await, in statement block is OK.
     await assertNoDiagnostics(r'''
