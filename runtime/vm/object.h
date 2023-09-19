@@ -9349,6 +9349,9 @@ class Type : public AbstractType {
   // The 'num' type.
   static TypePtr Number();
 
+  // The 'num?' type.
+  static TypePtr NullableNumber();
+
   // The 'String' type.
   static TypePtr StringType();
 

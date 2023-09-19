@@ -3367,7 +3367,8 @@ static bool MayBeNumber(CompileType* type) {
   // Note that type 'Number' is a subtype of itself.
   return unwrapped_type.IsTopTypeForSubtyping() ||
          unwrapped_type.IsObjectType() || unwrapped_type.IsTypeParameter() ||
-         unwrapped_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
+         unwrapped_type.IsSubtypeOf(Type::Handle(Type::NullableNumber()),
+                                    Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has
