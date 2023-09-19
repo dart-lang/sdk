@@ -10271,8 +10271,8 @@ _Invalid reference to 'this' expression._
 
 The analyzer produces this diagnostic when `this` is used outside of an
 instance method or a generative constructor. The reserved word `this` is
-only defined in the context of an instance method or a generative
-constructor.
+only defined in the context of an instance method, a generative
+constructor, or the initializer of a late instance field declaration.
 
 #### Example
 

@@ -221,6 +221,13 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   }
 
   static bool _shouldUseParenthesis(Expression init, AstNode node) {
+    // If the node is already parenthesised (such as the expression in a
+    // SwitchExpression) no more are necessary.
+    if (node.beginToken.previous?.type == TokenType.OPEN_PAREN &&
+        node.endToken.next?.type == TokenType.CLOSE_PAREN) {
+      return false;
+    }
+
     // check precedence
     var initPrecedence = getExpressionPrecedence(init);
     if (initPrecedence < getExpressionParentPrecedence(node)) {

@@ -2574,6 +2574,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+
+#if defined(USING_MEMORY_SANITIZER)
+  UNIMPLEMENTED();
+#endif
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,

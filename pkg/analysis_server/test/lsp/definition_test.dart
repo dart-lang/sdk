@@ -4,11 +4,13 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -38,27 +40,30 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     /// ...
     /// ...
     /// ...
-    [[foo]]() {}
+    [!foo!]() {}
     ''';
 
     final referencedFileUri =
         toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
+    final mainCode = TestCode.parse(mainContents);
+    final referencedCode = TestCode.parse(referencedContents);
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
-    await openFile(referencedFileUri, withoutMarkers(referencedContents));
-    final res = await getDefinitionAsLocation(
-        mainFileUri, positionFromMarker(mainContents));
+    await openFile(mainFileUri, mainCode.code);
+    await openFile(referencedFileUri, referencedCode.code);
+    final res =
+        await getDefinitionAsLocation(mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
     var loc = res.single;
-    expect(loc.range, equals(rangeFromMarkers(referencedContents)));
+    expect(loc.range, equals(referencedCode.range.range));
     expect(loc.uri, equals(referencedFileUri));
   }
 
   Future<void> test_atDeclaration_class() async {
     final contents = '''
-class [[^A]] {}
+class [!^A!] {}
     ''';
 
     await testContents(contents);
@@ -67,7 +72,7 @@ class [[^A]] {}
   Future<void> test_atDeclaration_constructorNamed() async {
     final contents = '''
 class A {
-  A.[[^named]]() {}
+  A.[!^named!]() {}
 }
     ''';
 
@@ -76,7 +81,7 @@ class A {
 
   Future<void> test_atDeclaration_constructorNamed_typeName() async {
     final contents = '''
-class [[A]] {
+class [!A!] {
   ^A.named() {}
 }
     ''';
@@ -87,7 +92,7 @@ class [[A]] {
   Future<void> test_atDeclaration_defaultConstructor() async {
     final contents = '''
 class A {
-  [[^A]]() {}
+  [!^A!]() {}
 }
     ''';
 
@@ -96,7 +101,7 @@ class A {
 
   Future<void> test_atDeclaration_function() async {
     final contents = '''
-void [[^f]]() {}
+void [!^f!]() {}
     ''';
 
     await testContents(contents);
@@ -105,7 +110,7 @@ void [[^f]]() {}
   Future<void> test_atDeclaration_method() async {
     final contents = '''
 class A {
-  void [[^f]]() {}
+  void [!^f!]() {}
 }
     ''';
 
@@ -123,11 +128,12 @@ class A {
     /// References [String].
     void f() {}
     ''';
+    final code = TestCode.parse(contents);
 
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getDefinitionAsLocation(
-        mainFileUri, positionFromMarker(contents));
+    await openFile(mainFileUri, code.code);
+    final res =
+        await getDefinitionAsLocation(mainFileUri, code.position.position);
 
     expect(res, hasLength(0));
   }
@@ -136,7 +142,7 @@ class A {
     final contents = '''
       /// [A.o^ne].
       enum A {
-        [[one]],
+        [!one!],
       }
     ''';
 
@@ -147,7 +153,7 @@ class A {
     final contents = '''
       /// [myFi^eld]
       extension on String {
-        String get [[myField]] => '';
+        String get [!myField!] => '';
       }
     ''';
 
@@ -158,7 +164,7 @@ class A {
     final contents = '''
       /// [StringExtension.myFi^eld]
       extension StringExtension on String {
-        String get [[myField]] => '';
+        String get [!myField!] => '';
       }
     ''';
 
@@ -169,7 +175,7 @@ class A {
     final contents = '''
       /// [A.myFi^eld].
       class A {
-        final String [[myField]] = '';
+        final String [!myField!] = '';
       }
     ''';
 
@@ -179,7 +185,7 @@ class A {
   Future<void> test_comment_instanceMember_qualified_inherited() async {
     final contents = '''
       class A {
-        final String [[myField]] = '';
+        final String [!myField!] = '';
       }
       /// [B.myFi^eld].
       class B extends A {}
@@ -192,7 +198,7 @@ class A {
     final contents = '''
       /// [A.nam^ed].
       class A {
-        A.[[named]]();
+        A.[!named!]();
       }
     ''';
 
@@ -203,7 +209,7 @@ class A {
     final contents = '''
       /// [A.myStaticFi^eld].
       class A {
-        static final String [[myStaticField]] = '';
+        static final String [!myStaticField!] = '';
       }
     ''';
 
@@ -217,7 +223,7 @@ f() {
 }
 
 class A {
-  [[A]]();
+  [!A!]();
 }
 ''';
 
@@ -231,7 +237,7 @@ f() {
 }
 
 class A {
-  A.[[named]]();
+  A.[!named!]();
 }
 ''';
 
@@ -244,7 +250,7 @@ f() {
   final a = A^.named();
 }
 
-class [[A]] {
+class [!A!] {
   A.named();
 }
 ''';
@@ -255,7 +261,7 @@ class [[A]] {
   Future<void> test_fieldFormalParam() async {
     final contents = '''
 class A {
-  final String [[a]];
+  final String [!a!];
   A(this.^a});
 }
 ''';
@@ -293,7 +299,7 @@ class A {
 
   Future<void> test_function() async {
     final contents = '''
-[[foo]]() {
+[!foo!]() {
   fo^o();
 }
 ''';
@@ -303,7 +309,7 @@ class A {
 
   Future<void> test_functionInPattern() async {
     final contents = '''
-bool [[greater]](int x, int y) => x > y;
+bool [!greater!](int x, int y) => x > y;
 
 foo(int m) {
   switch (pair) {
@@ -323,7 +329,7 @@ foo(int m) {
     import 'referenced.dart';
 
     void f() {
-      Icons.[[ad^d]]();
+      Icons.[!ad^d!]();
     }
     ''';
 
@@ -333,7 +339,7 @@ foo(int m) {
     class Icons {
       /// `targetRange` should not include the dartDoc but should include the full
       /// function body. `targetSelectionRange` will be just the name.
-      [[String add = "Test"]];
+      [!String add = "Test"!];
     }
 
     void otherUnrelatedFunction() {}
@@ -342,20 +348,23 @@ foo(int m) {
     final referencedFileUri =
         toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
+    final mainCode = TestCode.parse(mainContents);
+    final referencedCode = TestCode.parse(referencedContents);
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
-    await openFile(referencedFileUri, withoutMarkers(referencedContents));
+    await openFile(mainFileUri, mainCode.code);
+    await openFile(referencedFileUri, referencedCode.code);
     final res = await getDefinitionAsLocationLinks(
-        mainFileUri, positionFromMarker(mainContents));
+        mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
     var loc = res.single;
-    expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
+    expect(loc.originSelectionRange, equals(mainCode.range.range));
     expect(loc.targetUri, equals(referencedFileUri));
-    expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
+    expect(loc.targetRange, equals(referencedCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(referencedContents, 'add')),
+      equals(rangeOfString(referencedCode.code, 'add')),
     );
   }
 
@@ -366,7 +375,7 @@ foo(int m) {
     import 'referenced.dart';
 
     void f() {
-      [[fo^o]]();
+      [!fo^o!]();
     }
     ''';
 
@@ -375,9 +384,9 @@ foo(int m) {
 
     /// `targetRange` should not include the dartDoc but should include the full
     /// function body. `targetSelectionRange` will be just the name.
-    [[void foo() {
+    [!void foo() {
       // Contents of function
-    }]]
+    }!]
 
     void otherUnrelatedFunction() {}
     ''';
@@ -385,20 +394,23 @@ foo(int m) {
     final referencedFileUri =
         toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
+    final mainCode = TestCode.parse(mainContents);
+    final referencedCode = TestCode.parse(referencedContents);
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
-    await openFile(referencedFileUri, withoutMarkers(referencedContents));
+    await openFile(mainFileUri, mainCode.code);
+    await openFile(referencedFileUri, referencedCode.code);
     final res = await getDefinitionAsLocationLinks(
-        mainFileUri, positionFromMarker(mainContents));
+        mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
     var loc = res.single;
-    expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
+    expect(loc.originSelectionRange, equals(mainCode.range.range));
     expect(loc.targetUri, equals(referencedFileUri));
-    expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
+    expect(loc.targetRange, equals(referencedCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(referencedContents, 'foo')),
+      equals(rangeOfString(referencedCode.code, 'foo')),
     );
   }
 
@@ -417,7 +429,7 @@ foo(int m) {
     import 'lib.dart';
 
     void f() {
-      Icons.[[ad^d]]();
+      Icons.[!ad^d!]();
     }
     ''';
 
@@ -433,7 +445,7 @@ foo(int m) {
     class Icons {
       /// `targetRange` should not include the dartDoc but should include the full
       /// function body. `targetSelectionRange` will be just the name.
-      [[String add = "Test"]];
+      [!String add = "Test"!];
     }
 
     void otherUnrelatedFunction() {}
@@ -442,21 +454,25 @@ foo(int m) {
     final libFileUri = toUri(join(projectFolderPath, 'lib', 'lib.dart'));
     final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
 
+    final mainCode = TestCode.parse(mainContents);
+    final libCode = TestCode.parse(libContents);
+    final partCode = TestCode.parse(partContents);
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
-    await openFile(libFileUri, withoutMarkers(libContents));
-    await openFile(partFileUri, withoutMarkers(partContents));
+    await openFile(mainFileUri, mainCode.code);
+    await openFile(libFileUri, libCode.code);
+    await openFile(partFileUri, partCode.code);
     final res = await getDefinitionAsLocationLinks(
-        mainFileUri, positionFromMarker(mainContents));
+        mainFileUri, mainCode.position.position);
 
     expect(res, hasLength(1));
     var loc = res.single;
-    expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
+    expect(loc.originSelectionRange, equals(mainCode.range.range));
     expect(loc.targetUri, equals(partFileUri));
-    expect(loc.targetRange, equals(rangeFromMarkers(partContents)));
+    expect(loc.targetRange, equals(partCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(partContents, 'add')),
+      equals(rangeOfString(partCode.code, 'add')),
     );
   }
 
@@ -471,11 +487,14 @@ part of 'main.dart';
 
     final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
 
+    final mainCode = TestCode.parse(mainContents);
+    final partCode = TestCode.parse(partContents);
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
-    await openFile(partFileUri, withoutMarkers(partContents));
-    final res = await getDefinitionAsLocation(
-        mainFileUri, positionFromMarker(mainContents));
+    await openFile(mainFileUri, mainCode.code);
+    await openFile(partFileUri, partCode.code);
+    final res =
+        await getDefinitionAsLocation(mainFileUri, mainCode.position.position);
 
     expect(res.single.uri, equals(partFileUri));
   }
@@ -491,18 +510,21 @@ part of 'ma^in.dart';
 
     final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
 
+    final mainCode = TestCode.parse(mainContents);
+    final partCode = TestCode.parse(partContents);
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
-    await openFile(partFileUri, withoutMarkers(partContents));
-    final res = await getDefinitionAsLocation(
-        partFileUri, positionFromMarker(partContents));
+    await openFile(mainFileUri, mainCode.code);
+    await openFile(partFileUri, partCode.code);
+    final res =
+        await getDefinitionAsLocation(partFileUri, partCode.position.position);
 
     expect(res.single.uri, equals(mainFileUri));
   }
 
   Future<void> test_sameLine() async {
     final contents = '''
-int plusOne(int [[value]]) => 1 + val^ue;
+int plusOne(int [!value!]) => 1 + val^ue;
 ''';
 
     await testContents(contents);
@@ -511,7 +533,7 @@ int plusOne(int [[value]]) => 1 + val^ue;
   Future<void> test_superFormalParam() async {
     final contents = '''
 class A {
-  A({required int [[a]]});
+  A({required int [!a!]});
 }
 class B extends A {
   B({required super.^a}) : assert(a > 0);
@@ -527,7 +549,7 @@ f() {
   final a = A^;
 }
 
-class [[A]] {}
+class [!A!] {}
 ''';
 
     await testContents(contents);
@@ -539,7 +561,7 @@ f() {
   final a = A^<String>();
 }
 
-class [[A]]<T> {}
+class [!A!]<T> {}
 ''';
 
     await testContents(contents);
@@ -547,12 +569,13 @@ class [[A]]<T> {}
 
   Future<void> test_unopenFile() async {
     final contents = '''
-[[foo]]() {
+[!foo!]() {
   fo^o();
 }
 ''';
+    final code = TestCode.parse(contents);
 
-    newFile(mainFilePath, withoutMarkers(contents));
+    newFile(mainFilePath, code.code);
     await testContents(contents, inOpenFile: false);
   }
 
@@ -560,7 +583,7 @@ class [[A]]<T> {}
     final contents = '''
 foo() {
   var m = <String,int>{};
-  const [[str]] = 'h';
+  const [!str!] = 'h';
   if (m case {'d':3, s^tr:4, ... }){}
 }
 ''';
@@ -572,25 +595,26 @@ foo() {
     final contents = '''
     va^r a = MyClass();
 
-    class [[MyClass]] {}
+    class [!MyClass!] {}
     ''';
 
     await testContents(contents);
   }
 
   /// Expects definitions at the location of `^` in [contents] will navigate to
-  /// the range in `[[` brackets `]]` in `[contents].
+  /// the range in `[!` brackets `!]` in `[contents].
   Future<void> testContents(String contents, {bool inOpenFile = true}) async {
+    final code = TestCode.parse(contents);
     await initialize();
     if (inOpenFile) {
-      await openFile(mainFileUri, withoutMarkers(contents));
+      await openFile(mainFileUri, code.code);
     }
-    final res = await getDefinitionAsLocation(
-        mainFileUri, positionFromMarker(contents));
+    final res =
+        await getDefinitionAsLocation(mainFileUri, code.position.position);
 
     expect(res, hasLength(1));
     var loc = res.single;
-    expect(loc.range, equals(rangeFromMarkers(contents)));
+    expect(loc.range, equals(code.range.range));
     expect(loc.uri, equals(mainFileUri));
   }
 }

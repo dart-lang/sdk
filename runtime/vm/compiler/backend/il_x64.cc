@@ -8,7 +8,9 @@
 
 #include "vm/compiler/backend/il.h"
 
+#include "platform/assert.h"
 #include "platform/memory_sanitizer.h"
+#include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
@@ -17,6 +19,7 @@
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
@@ -1294,18 +1297,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ PushRegisters(kVolatileRegisterSet);
 
     // Outgoing arguments passed on the stack to the foreign function.
-    __ movq(CallingConventions::kArg1Reg, temp);
-    __ LoadImmediate(CallingConventions::kArg2Reg, stack_space);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(temp, stack_space);
 
     // Incoming Dart arguments to this trampoline are potentially used as local
     // handles.
-    __ movq(CallingConventions::kArg1Reg, is_leaf_ ? FPREG : saved_fp);
-    __ LoadImmediate(CallingConventions::kArg2Reg,
-                     (kParamEndSlotFromFp + InputCount()) * kWordSize);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(is_leaf_ ? FPREG : saved_fp,
+                    (kParamEndSlotFromFp + InputCount()) * kWordSize);
 
     // Outgoing arguments passed by register to the foreign function.
     __ LoadImmediate(CallingConventions::kArg1Reg, InputCount());
@@ -2209,6 +2206,34 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+
+#if defined(USING_MEMORY_SANITIZER)
+  RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
+                                   CallingConventions::kVolatileXmmRegisters);
+  __ PushRegisters(kVolatileRegisterSet);
+  const Register base = CallingConventions::kArg1Reg;
+  __ leaq(base, element_address);
+  intptr_t length_in_bytes;
+  if (IsTypedDataBaseClassId(class_id_)) {
+    length_in_bytes = compiler::TypedDataElementSizeInBytes(class_id_);
+  } else {
+    switch (class_id_) {
+      case kArrayCid:
+        length_in_bytes = compiler::target::kWordSize;
+        break;
+      case kOneByteStringCid:
+        length_in_bytes = 1;
+        break;
+      case kTwoByteStringCid:
+        length_in_bytes = 2;
+        break;
+      default:
+        FATAL("Unknown cid: %" Pd, class_id_);
+    }
+  }
+  __ MsanUnpoison(base, length_in_bytes);
+  __ PopRegisters(kVolatileRegisterSet);
+#endif
 }
 
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
