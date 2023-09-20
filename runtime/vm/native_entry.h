@@ -128,8 +128,7 @@ class NativeEntry : public AllStatic {
   static void AutoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,
                                                      Dart_NativeFunction func);
 
-  static bool ReturnValueIsError(NativeArguments* arguments);
-  static void PropagateErrors(NativeArguments* arguments);
+  static void MaybePropagateError(NativeArguments* arguments);
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
