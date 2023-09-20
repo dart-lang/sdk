@@ -1364,11 +1364,13 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
+library augment 'test.dart';
+
 class MyClass {}
 ---
       definingUnit
         classes
-          class MyClass @6
+          class MyClass @36
             constructors
               synthetic @-1
 ''');
@@ -1412,11 +1414,13 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
+library augment 'test.dart';
+
 class MyClass {}
 ---
       definingUnit
         classes
-          class MyClass @6
+          class MyClass @36
             constructors
               synthetic @-1
 ''');
@@ -1459,11 +1463,13 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
+library augment 'test.dart';
+
 class MyClass {}
 ---
       definingUnit
         classes
-          class MyClass @6
+          class MyClass @36
             constructors
               synthetic @-1
 ''');
@@ -1506,13 +1512,83 @@ library
     package:test/test.macro.dart
       macroGeneratedCode
 ---
+library augment 'test.dart';
+
 class MyClass {}
 ---
       definingUnit
         classes
-          class MyClass @6
+          class MyClass @36
             constructors
               synthetic @-1
+''');
+  }
+
+  test_imports_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  FutureOr<void> buildTypesForClass(clazz, ClassTypeBuilder builder) async {
+    final identifier = await builder.resolveIdentifier(
+      Uri.parse('dart:math'),
+      'Random',
+    );
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromParts([
+        'class MyClass {\n  void foo(',
+        identifier,
+        ' _) {}\n}',
+      ]),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+  augmentationImports
+    package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'dart:math' as prefix0;
+
+class MyClass {
+  void foo(prefix0.Random _) {}
+}
+---
+      imports
+        dart:math as prefix0 @52
+      definingUnit
+        classes
+          class MyClass @68
+            methods
+              foo @85
+                parameters
+                  requiredPositional _ @104
+                    type: Random
+                returnType: void
 ''');
   }
 }

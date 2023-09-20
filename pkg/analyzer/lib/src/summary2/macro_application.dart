@@ -91,6 +91,8 @@ class LibraryMacroApplier {
     required this.libraryBuilder,
   });
 
+  bool get hasTargets => _targets.isNotEmpty;
+
   Linker get _linker => libraryBuilder.linker;
 
   /// Fill [_targets]s with macro applications.
@@ -347,6 +349,17 @@ class LibraryMacroApplier {
   }
 
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
+    if (identifier is IdentifierImplFromElement) {
+      // TODO(scheglov) other elements
+      final element = identifier.element as ClassElementImpl;
+      return macro.ResolvedIdentifier(
+        // TODO(scheglov) other kinds
+        kind: macro.IdentifierKind.topLevelMember,
+        name: element.name,
+        uri: element.source.uri,
+        staticScope: null,
+      );
+    }
     throw UnimplementedError();
   }
 
