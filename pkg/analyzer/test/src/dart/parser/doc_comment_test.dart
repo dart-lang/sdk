@@ -33,15 +33,16 @@ Comment
     /// Text.
     /// {@animation 600 400 http://google.com arg=}
   docDirectives
-    DocDirective
-      offset: [26, 70]
-      type: [DocDirectiveType.animation]
-      positionalArguments
-        600
-        400
-        http://google.com
-      namedArguments
-        arg=
+    SimpleDocDirective
+      tag
+        offset: [26, 70]
+        type: [DocDirectiveType.animation]
+        positionalArguments
+          600
+          400
+          http://google.com
+        namedArguments
+          arg=
 ''');
   }
 
@@ -64,15 +65,16 @@ Comment
     /// Text.
     /// {@animation 600 400 http://google.com arg=value
   docDirectives
-    DocDirective
-      offset: [26, 74]
-      type: [DocDirectiveType.animation]
-      positionalArguments
-        600
-        400
-        http://google.com
-      namedArguments
-        arg=value
+    SimpleDocDirective
+      tag
+        offset: [26, 74]
+        type: [DocDirectiveType.animation]
+        positionalArguments
+          600
+          400
+          http://google.com
+        namedArguments
+          arg=value
 ''');
   }
 
@@ -95,15 +97,16 @@ Comment
     /// Text.
     /// {@animation 600 400 http://google.com arg=
   docDirectives
-    DocDirective
-      offset: [26, 69]
-      type: [DocDirectiveType.animation]
-      positionalArguments
-        600
-        400
-        http://google.com
-      namedArguments
-        arg=
+    SimpleDocDirective
+      tag
+        offset: [26, 69]
+        type: [DocDirectiveType.animation]
+        positionalArguments
+          600
+          400
+          http://google.com
+        namedArguments
+          arg=
 ''');
   }
 
@@ -688,6 +691,34 @@ Comment
         uri: SimpleStringLiteral
           literal: 'dart:html'
         semicolon: ;
+''');
+  }
+
+  test_endTemplate_missingOpeningTag() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@endtemplate}
+/// More text.
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG, 26, 15),
+    ]);
+
+    final node = parseResult.findNode.comment('endtemplate');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@endtemplate}
+    /// More text.
+  docDirectives
+    SimpleDocDirective
+      tag
+        offset: [26, 41]
+        type: [DocDirectiveType.endTemplate]
 ''');
   }
 
@@ -1377,6 +1408,291 @@ Comment
 ''');
   }
 
+  test_template() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@template name}
+/// More text.
+/// {@endtemplate}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('template name');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@template name}
+    /// More text.
+    /// {@endtemplate}
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 43]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name
+      closingTag
+        offset: [62, 77]
+        type: [DocDirectiveType.endTemplate]
+''');
+  }
+
+  test_template_containingInnerTags() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@template name}
+/// More text.
+/// {@example path}
+/// {@endtemplate}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('template name');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@template name}
+    /// More text.
+    /// {@example path}
+    /// {@endtemplate}
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 43]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name
+      closingTag
+        offset: [82, 97]
+        type: [DocDirectiveType.endTemplate]
+    SimpleDocDirective
+      tag
+        offset: [62, 78]
+        type: [DocDirectiveType.example]
+        positionalArguments
+          path
+''');
+  }
+
+  test_template_containingInnerTemplate() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@template name}
+/// More text.
+/// {@template name2}
+/// Text three.
+/// {@endtemplate}
+/// Text four.
+/// {@endtemplate}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('template name2');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@template name}
+    /// More text.
+    /// {@template name2}
+    /// Text three.
+    /// {@endtemplate}
+    /// Text four.
+    /// {@endtemplate}
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 43]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name
+      closingTag
+        offset: [134, 149]
+        type: [DocDirectiveType.endTemplate]
+    BlockDocDirective
+      openingTag
+        offset: [62, 80]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name2
+      closingTag
+        offset: [100, 115]
+        type: [DocDirectiveType.endTemplate]
+''');
+  }
+
+  test_template_missingClosingTag() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@template name}
+/// More text.
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 26, 17),
+    ]);
+
+    final node = parseResult.findNode.comment('template name');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@template name}
+    /// More text.
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 43]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name
+''');
+  }
+
+  test_template_missingClosingTag_multiple() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@template name}
+/// More text.
+/// {@template name2}
+/// More text.
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 26, 17),
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 62, 18),
+    ]);
+
+    final node = parseResult.findNode.comment('template name2');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@template name}
+    /// More text.
+    /// {@template name2}
+    /// More text.
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 43]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name
+    BlockDocDirective
+      openingTag
+        offset: [62, 80]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name2
+''');
+  }
+
+  test_template_missingClosingTag_withInnerTag() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@template name}
+/// More text.
+/// {@animation 600 400 http://google.com}
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 26, 17),
+    ]);
+
+    final node = parseResult.findNode.comment('template name');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@template name}
+    /// More text.
+    /// {@animation 600 400 http://google.com}
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 43]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name
+    SimpleDocDirective
+      tag
+        offset: [62, 101]
+        type: [DocDirectiveType.animation]
+        positionalArguments
+          600
+          400
+          http://google.com
+''');
+  }
+
+  test_template_outOfOrderClosingTag() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@template name}
+/// More text.
+/// {@inject-html}
+/// HTML.
+/// {@endtemplate}
+/// {@end-inject-html}
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 62, 15),
+      error(WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG, 110, 19),
+    ]);
+
+    final node = parseResult.findNode.comment('template name');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@template name}
+    /// More text.
+    /// {@inject-html}
+    /// HTML.
+    /// {@endtemplate}
+    /// {@end-inject-html}
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 43]
+        type: [DocDirectiveType.template]
+        positionalArguments
+          name
+      closingTag
+        offset: [91, 106]
+        type: [DocDirectiveType.endTemplate]
+    BlockDocDirective
+      openingTag
+        offset: [62, 77]
+        type: [DocDirectiveType.injectHtml]
+    SimpleDocDirective
+      tag
+        offset: [110, 129]
+        type: [DocDirectiveType.endInjectHtml]
+''');
+  }
+
   test_youTubeDirective() {
     final parseResult = parseStringWithErrors(r'''
 int x = 0;
@@ -1394,13 +1710,14 @@ Comment
     /// Text.
     /// {@youtube 600 400 http://google.com}
   docDirectives
-    DocDirective
-      offset: [26, 63]
-      type: [DocDirectiveType.youtube]
-      positionalArguments
-        600
-        400
-        http://google.com
+    SimpleDocDirective
+      tag
+        offset: [26, 63]
+        type: [DocDirectiveType.youtube]
+        positionalArguments
+          600
+          400
+          http://google.com
 ''');
   }
 
@@ -1419,13 +1736,14 @@ Comment
   tokens
     /// {@youtube 600 400 http://google.com
   docDirectives
-    DocDirective
-      offset: [4, 40]
-      type: [DocDirectiveType.youtube]
-      positionalArguments
-        600
-        400
-        http://google.com
+    SimpleDocDirective
+      tag
+        offset: [4, 40]
+        type: [DocDirectiveType.youtube]
+        positionalArguments
+          600
+          400
+          http://google.com
 ''');
   }
 
@@ -1442,12 +1760,13 @@ Comment
   tokens
     /// {@youtube 600 400}
   docDirectives
-    DocDirective
-      offset: [4, 23]
-      type: [DocDirectiveType.youtube]
-      positionalArguments
-        600
-        400
+    SimpleDocDirective
+      tag
+        offset: [4, 23]
+        type: [DocDirectiveType.youtube]
+        positionalArguments
+          600
+          400
 ''');
   }
 
@@ -1464,11 +1783,12 @@ Comment
   tokens
     /// {@youtube 600}
   docDirectives
-    DocDirective
-      offset: [4, 19]
-      type: [DocDirectiveType.youtube]
-      positionalArguments
-        600
+    SimpleDocDirective
+      tag
+        offset: [4, 19]
+        type: [DocDirectiveType.youtube]
+        positionalArguments
+          600
 ''');
   }
 
@@ -1485,9 +1805,10 @@ Comment
   tokens
     /// {@youtube }
   docDirectives
-    DocDirective
-      offset: [4, 16]
-      type: [DocDirectiveType.youtube]
+    SimpleDocDirective
+      tag
+        offset: [4, 16]
+        type: [DocDirectiveType.youtube]
 ''');
   }
 }

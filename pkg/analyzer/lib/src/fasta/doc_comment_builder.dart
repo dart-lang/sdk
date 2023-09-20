@@ -97,7 +97,7 @@ int _readWhitespace(String content, [int index = 0]) {
 
 /// A class which temporarily stores data for a [CommentType.DOCUMENTATION]-type
 /// [Comment], which is ultimately built with [build].
-class DocCommentBuilder {
+final class DocCommentBuilder {
   final Parser _parser;
   final ErrorReporter? _errorReporter;
   final Uri _uri;
@@ -110,6 +110,8 @@ class DocCommentBuilder {
   bool _hasNodoc = false;
   final Token _startToken;
   final _CharacterSequence _characterSequence;
+
+  final _blockDocDirectiveBuilderStack = <_BlockDocDirectiveBuilder>[];
 
   DocCommentBuilder(
     this._parser,
@@ -144,6 +146,71 @@ class DocCommentBuilder {
     );
   }
 
+  /// Parses a closing tag for a block doc directive, matching it with it's
+  /// opening tag on [_blockDirectiveTagStack], if one can be found.
+  ///
+  /// The algorithm is as follows:
+  ///
+  /// * Beginning at the top of the stack, and working towards the bottom,
+  ///   identify the first opening tag that matches this closing tag.
+  /// * If no matching opening tag is found, report the closing tag as dangling,
+  ///   and add it to [_docDirectives]; do not remove any tags from the stack.
+  /// * Otherwise, add a [BlockDocDirective] to [_docDirectives] with the
+  ///   matched opening tag and the closing tag. Also, take each unmatched
+  ///   opening tag above the matched opening tag, which are each missing a
+  ///   closing tag, reporting each as such, and add each to [_docDirectives].
+  void _endBlockDocDirectiveTag(
+      _DirectiveParser parser, DocDirectiveType type) {
+    var closingTag = parser.directive(type);
+    for (var i = _blockDocDirectiveBuilderStack.length - 1; i >= 0; i--) {
+      var builder = _blockDocDirectiveBuilderStack[i];
+      if (builder.matches(closingTag)) {
+        builder.closingTag = closingTag;
+        // Add all inner doc directives.
+        _blockDocDirectiveBuilderStack.removeAt(i);
+        // First add this block directive to it's parent on the stack, then add
+        // the directives which it contained, as their offsets are greater than
+        // this one's.
+        var higherDirective = _blockDocDirectiveBuilderStack[i - 1];
+        higherDirective.push(builder.build());
+        for (var docDirective in builder.innerDocDirectives) {
+          higherDirective.push(docDirective);
+        }
+
+        // Remove each opening tag with no associated closing tag from the
+        // stack.
+        while (_blockDocDirectiveBuilderStack.length > i) {
+          var builder = _blockDocDirectiveBuilderStack.removeAt(i);
+          // It would not be useful to create a synthetic closing tag; just use
+          // `null`.
+          var openingTag = builder.openingTag;
+          if (openingTag != null) {
+            _errorReporter?.reportErrorForOffset(
+              WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+              openingTag.offset,
+              openingTag.end - openingTag.offset,
+              [openingTag.type.opposingName!],
+            );
+          }
+          higherDirective.push(builder.build());
+          for (var docDirective in builder.innerDocDirectives) {
+            higherDirective.push(docDirective);
+          }
+        }
+        return;
+      }
+    }
+
+    // No matching opening tag was found.
+    _errorReporter?.reportErrorForOffset(
+      WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
+      closingTag.offset,
+      closingTag.end - closingTag.offset,
+      [closingTag.type.name],
+    );
+    _pushDocDirective(SimpleDocDirective(closingTag));
+  }
+
   /// Determines if [content] can represent a fenced codeblock delimiter
   /// (opening or closing) (starts with optional whitespace, then at least three
   /// backticks).
@@ -164,6 +231,12 @@ class DocCommentBuilder {
     }
   }
 
+  void _parseBlockDocDirectiveTag(
+      _DirectiveParser parser, DocDirectiveType type) {
+    var opening = parser.directive(type);
+    _blockDocDirectiveBuilderStack.add(_BlockDocDirectiveBuilder(opening));
+  }
+
   /// Parses a documentation comment.
   ///
   /// All parsed data is added to the fields on this builder.
@@ -172,6 +245,7 @@ class DocCommentBuilder {
     // indented code block.
     var isPreviousLineEmpty = true;
     var lineInfo = _characterSequence.next();
+    _blockDocDirectiveBuilderStack.add(_BlockDocDirectiveBuilder.placeholder());
     while (lineInfo != null) {
       var (:offset, :content) = lineInfo;
       var whitespaceEndIndex = _readWhitespace(content);
@@ -185,7 +259,7 @@ class DocCommentBuilder {
 
       if (_parseFencedCodeBlock(content: content)) {
         isPreviousLineEmpty = false;
-      } else if (_parseDocDirective(
+      } else if (_parseDocDirectiveTag(
         index: whitespaceEndIndex,
         content: content,
       )) {
@@ -200,6 +274,30 @@ class DocCommentBuilder {
       }
       lineInfo = _characterSequence.next();
     }
+
+    // Resolve any unclosed block directives.
+    while (_blockDocDirectiveBuilderStack.length > 1) {
+      var builder = _blockDocDirectiveBuilderStack.removeLast();
+      // It would not be useful to create a synthetic closing tag; just use
+      // `null`.
+      var openingTag = builder.openingTag;
+      if (openingTag != null) {
+        _errorReporter?.reportErrorForOffset(
+          WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
+          openingTag.offset,
+          openingTag.end - openingTag.offset,
+          [openingTag.type.opposingName!],
+        );
+      }
+      _pushBlockDocDirectiveAndInnerDirectives(builder);
+    }
+
+    // Move all directives from the top block doc directive builder to the
+    // comment.
+    assert(_blockDocDirectiveBuilderStack.length == 1);
+    var blockDocDirectiveBuilder = _blockDocDirectiveBuilderStack.first;
+    assert(blockDocDirectiveBuilder.openingTag == null);
+    _docDirectives.addAll(blockDocDirectiveBuilder.innerDocDirectives);
   }
 
   /// Parses the comment references in [content] which starts at [offset].
@@ -249,7 +347,7 @@ class DocCommentBuilder {
     }
   }
 
-  bool _parseDocDirective({required int index, required String content}) {
+  bool _parseDocDirectiveTag({required int index, required String content}) {
     const openingLength = '{@'.length;
     if (!content.startsWith('{@', index)) return false;
 
@@ -284,25 +382,37 @@ class DocCommentBuilder {
 
     switch (name) {
       case 'animation':
-        _docDirectives.add(parser.directive(DocDirectiveType.animation));
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.animation));
         return true;
       case 'canonicalFor':
-        _docDirectives.add(parser.directive(DocDirectiveType.canonicalFor));
+        _pushDocDirective(
+            parser.simpleDirective(DocDirectiveType.canonicalFor));
         return true;
       case 'category':
-        _docDirectives.add(parser.directive(DocDirectiveType.category));
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.category));
+        return true;
+      case 'end-inject-html':
+        _endBlockDocDirectiveTag(parser, DocDirectiveType.endInjectHtml);
+        return true;
+      case 'endtemplate':
+        _endBlockDocDirectiveTag(parser, DocDirectiveType.endTemplate);
         return true;
       case 'example':
-        _docDirectives.add(parser.directive(DocDirectiveType.example));
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.example));
+        return true;
+      case 'inject-html':
+        _parseBlockDocDirectiveTag(parser, DocDirectiveType.injectHtml);
         return true;
       case 'subCategory':
-        _docDirectives.add(parser.directive(DocDirectiveType.subCategory));
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.subCategory));
+        return true;
+      case 'template':
+        _parseBlockDocDirectiveTag(parser, DocDirectiveType.template);
         return true;
       case 'youtube':
-        _docDirectives.add(parser.directive(DocDirectiveType.youtube));
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    // TODO(srawlins): Handle block doc directives: inject-html, template.
     // TODO(srawlins): Handle unknown (misspelled?) directive.
     return false;
   }
@@ -638,6 +748,18 @@ class DocCommentBuilder {
       );
     }
   }
+
+  void _pushBlockDocDirectiveAndInnerDirectives(
+      _BlockDocDirectiveBuilder builder) {
+    _pushDocDirective(builder.build());
+    for (var docDirective in builder.innerDocDirectives) {
+      _pushDocDirective(docDirective);
+    }
+  }
+
+  /// Push [docDirective] onto the current block doc directive.
+  void _pushDocDirective(DocDirective docDirective) =>
+      _blockDocDirectiveBuilderStack.last.push(docDirective);
 }
 
 class DocImportStringScanner extends StringScanner {
@@ -695,6 +817,54 @@ class DocImportStringScanner extends StringScanner {
     var delta = offset - offsetInDocImport;
     return offsetInUnit + delta;
   }
+}
+
+/// A builder for a [BlockDocDirective], which keeps track of various
+/// information until the closing tag is found, or the directive is closed as
+/// part of recovery.
+///
+/// Instances are also used as a nesting level, so that [SimpleDocDirective]s
+/// and [BlockDocDirective]s are all listed in their correct order. At the top
+/// level of the nesting is [_BlockDocDirectiveBuilder.placeholder], a synthetic
+/// builder with a `null` [openingTag].
+final class _BlockDocDirectiveBuilder {
+  /// The opening tag.
+  ///
+  /// This is non-null for every builder except for
+  /// [_BlockDocDirectiveBuilder.placeholder].
+  final DocDirectiveTag? openingTag;
+
+  /// The closing tag, which is non-`null` for well-formed block doc directives.
+  DocDirectiveTag? closingTag;
+
+  /// The inner doc directives which are all declared between this block doc
+  /// directive's opening and closing tags, in the order they appear in the
+  /// comment.
+  final innerDocDirectives = <DocDirective>[];
+
+  _BlockDocDirectiveBuilder(this.openingTag);
+
+  factory _BlockDocDirectiveBuilder.placeholder() =>
+      _BlockDocDirectiveBuilder(null);
+
+  BlockDocDirective build() {
+    final openingTag = this.openingTag;
+    if (openingTag == null) {
+      throw StateError(
+          'Attempting to build a block doc directive with no opening tag.');
+    }
+    return BlockDocDirective(openingTag, closingTag);
+  }
+
+  /// Whether this doc directive's opening tag is the opposing tag for [tag].
+  bool matches(DocDirectiveTag tag) {
+    final openingTag = this.openingTag;
+    return openingTag == null
+        ? false
+        : openingTag.type.opposingName == tag.type.name;
+  }
+
+  void push(DocDirective docDirective) => innerDocDirectives.add(docDirective);
 }
 
 /// An abstraction of the character sequences in either a single-line doc
@@ -863,13 +1033,14 @@ final class _DirectiveParser {
         _length = content.length,
         _errorReporter = errorReporter;
 
-  DocDirective directive(DocDirectiveType type) {
+  /// Parses a non-block (single line) doc directive.
+  DocDirectiveTag directive(DocDirectiveType type) {
     if (index == _length) {
       _end = _offset + index;
     }
     var (positionalArguments, namedArguments) = _parseArguments();
     _readClosingCurlyBrace();
-    return DocDirective(
+    return DocDirectiveTag(
       offset: _offset,
       end: _end!,
       nameOffset: nameOffset,
@@ -879,6 +1050,9 @@ final class _DirectiveParser {
       namedArguments: namedArguments,
     );
   }
+
+  SimpleDocDirective simpleDirective(DocDirectiveType type) =>
+      SimpleDocDirective(directive(type));
 
   /// Parses and returns a positional or named doc directive argument.
   DocDirectiveArgument _parseArgument() {

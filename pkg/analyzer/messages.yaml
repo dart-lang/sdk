@@ -22145,6 +22145,13 @@ WarningCode:
     problemMessage: "Doc directive is missing a closing curly brace ('}')."
     correctionMessage: "Try closing the directive with a curly brace."
     hasPublishedDocs: false
+  DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+    problemMessage: "Doc directive is missing a closing tag."
+    correctionMessage: "Try closing the directive with the appropriate closing tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
   DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
     sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
     problemMessage: "The '{0}' directive is missing a '{1}' argument."
@@ -22154,6 +22161,13 @@ WarningCode:
       Parameters:
       0: the name of the doc directive
       1: the name of the missing argument
+  DOC_DIRECTIVE_MISSING_OPENING_TAG:
+    problemMessage: "Doc directive is missing an opening tag."
+    correctionMessage: "Try opening the directive with the appropriate opening tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
   DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
     sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
     problemMessage: "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument."

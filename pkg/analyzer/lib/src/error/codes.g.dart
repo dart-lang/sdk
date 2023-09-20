@@ -6082,6 +6082,15 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+    "Doc directive is missing a closing tag.",
+    correctionMessage:
+        "Try closing the directive with the appropriate closing tag, '{0}'.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the doc directive
   ///  1: the name of the missing argument
   static const WarningCode DOC_DIRECTIVE_MISSING_ONE_ARGUMENT = WarningCode(
@@ -6089,6 +6098,15 @@ class WarningCode extends AnalyzerErrorCode {
     "The '{0}' directive is missing a '{1}' argument.",
     correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_OPENING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_OPENING_TAG',
+    "Doc directive is missing an opening tag.",
+    correctionMessage:
+        "Try opening the directive with the appropriate opening tag, '{0}'.",
   );
 
   ///  Parameters:
