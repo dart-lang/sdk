@@ -3228,13 +3228,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that if the visiting library is not system, then any given library
   /// should not be SDK internal library. The [importElement] is the
-  /// [LibraryImportElement] retrieved from the node, if the element in the node was
-  /// `null`, then this method is not called
-  ///
-  /// See [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY].
+  /// [LibraryImportElement] retrieved from the node, if the element in the node
+  /// was `null`, then this method is not called.
   void _checkForImportInternalLibrary(
       ImportDirective directive, LibraryImportElement importElement) {
-    if (_isInSystemLibrary) {
+    if (_isInSystemLibrary || _isWasm(importElement)) {
       return;
     }
 
@@ -5695,6 +5693,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     if (parent is SuperConstructorInvocation) {
       return identical(parent.constructorName, identifier);
+    }
+    return false;
+  }
+
+  /// Return `true` if the [importElement] is the internal library `dart:_wasm`
+  /// and the current library is either `package:js/js.dart` or is in
+  /// `package:ui`.
+  bool _isWasm(LibraryImportElement importElement) {
+    var importedUri = importElement.importedLibrary?.source.uri.toString();
+    if (importedUri != 'dart:_wasm') {
+      return false;
+    }
+    var importingUri = _currentLibrary.source.uri.toString();
+    if (importingUri == 'package:js/js.dart') {
+      return true;
+    } else if (importingUri.startsWith('package:ui/')) {
+      return true;
     }
     return false;
   }

@@ -99,7 +99,7 @@ vars = {
   "boringssl_gen_rev": "a468ba9fec3f59edf46a7db98caaca893e1e4d96",
   "boringssl_rev": "74646566e93de7551bfdfc5f49de7462f13d1d05",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "532dc39c7a2820a6dc759590e03a9c18fec915f8",
+  "devtools_rev": "2a1d1975d7ad8773a3e2590d10636432775f23a1",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -183,7 +183,7 @@ vars = {
   "test_descriptor_rev": "030193dfdfbf85930eae8536909c546151da9e9c",
   "test_process_rev": "2a6ee23fc2550fa466105819f5335fcfbab14035",
   "test_reflective_loader_rev": "45c57d62fb08471681cd0b0a1c3b131bf0122929",
-  "tools_rev": "1512f3d1efde11ace801618822f63934961cc80d", # https://github.com/dart-lang/tools/issues/164
+  "tools_rev": "70d778d58d0fb5a5f9d52d288709f790f6e70be6",
   "typed_data_rev": "80e8943524a627f7ff421ace824f38105983e89a",
   "usage_rev": "7b12d510b5abde8a216437b8430ccfd02273625c",
   "vector_math_rev": "d54af8a2b8b8d935a475a4da6ea5a1b343f29562",

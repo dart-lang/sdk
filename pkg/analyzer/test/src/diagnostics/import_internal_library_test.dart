@@ -28,4 +28,39 @@ import 'dart:_internal';
       error(WarningCode.UNUSED_IMPORT, 7, 16),
     ]);
   }
+
+  test_wasm_fromJs() async {
+    var filePath = _inPackage('js');
+    newFile(filePath, '''
+import 'dart:_wasm';
+''');
+    await resolveFile2(filePath);
+    assertErrorsInResolvedUnit(result, [
+      error(WarningCode.UNUSED_IMPORT, 7, 12),
+    ]);
+  }
+
+  test_wasm_fromUi() async {
+    var filePath = _inPackage('ui');
+    newFile(filePath, '''
+import 'dart:_wasm';
+''');
+    await resolveFile2(filePath);
+    assertErrorsInResolvedUnit(result, [
+      error(WarningCode.UNUSED_IMPORT, 7, 12),
+    ]);
+  }
+
+  String _inPackage(String packageName) {
+    var packageRoot = '$workspaceRootPath/$packageName';
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: packageName,
+      rootPath: packageRoot,
+      languageVersion: testPackageLanguageVersion,
+    );
+    var path = '$packageRoot/.dart_tool/package_config.json';
+    writePackageConfig(path, builder);
+    return convertPath('$packageRoot/lib/$packageName.dart');
+  }
 }
