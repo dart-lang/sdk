@@ -373,7 +373,11 @@
     "group": "errors",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "needsEvaluation",
     "details": "**DON'T** use wildcard parameters or variables.\n\nWildcard parameters and local variables\n(e.g. underscore-only names like `_`, `__`, `___`, etc.) will\nbecome non-binding in a future version of the Dart language.\nAny existing code that uses wildcard parameters or variables will\nbreak. In anticipation of this change, and to make adoption easier,\nthis lint disallows wildcard and variable parameter uses.\n\n\n**BAD:**\n```dart\nvar _ = 1;\nprint(_); // LINT\n```\n\n```dart\nvoid f(int __) {\n  print(__); // LINT multiple underscores too\n}\n```\n\n**GOOD:**\n```dart\nfor (var _ in [1, 2, 3]) count++;\n```\n\n```dart\nvar [a, _, b, _] = [1, 2, 3, 4];\n```\n",
     "sinceDartSdk": "3.1.0"
@@ -540,7 +544,11 @@
     "group": "pub",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "noFix",
     "details": "**DO** Use secure urls in `pubspec.yaml`.\n\nUse `https` instead of `http` or `git:`.\n\n**BAD:**\n```yaml\nrepository: http://github.com/dart-lang/example\n```\n\n```yaml\ngit:\n  url: git://github.com/dart-lang/example/example.git\n```\n\n**GOOD:**\n```yaml\nrepository: https://github.com/dart-lang/example\n```\n\n",
     "sinceDartSdk": "2.16.0"
@@ -1785,10 +1793,7 @@
     "group": "style",
     "state": "removed",
     "incompatible": [],
-    "sets": [
-      "recommended",
-      "flutter"
-    ],
+    "sets": [],
     "fixStatus": "noFix",
     "details": "**DO** use `=` to separate a named parameter from its default value.\n\n**BAD:**\n```dart\nm({a: 1})\n```\n\n**GOOD:**\n```dart\nm({a = 1})\n```\n",
     "sinceDartSdk": "2.0.0"
@@ -2302,7 +2307,11 @@
     "group": "style",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "hasFix",
     "details": "If you meant to test if the object has type `Foo`, instead write `Foo _`.\n\n**BAD:**\n```dart\nvoid f(Object? x) {\n  if (x case num) {\n    print('int or double');\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid f(Object? x) {\n  if (x case num _) {\n    print('int or double');\n  }\n}\n```\n\nIf you do mean to test that the matched value (which you expect to have the\ntype `Type`) is equal to the type literal `Foo`, then this lint can be\nsilenced using `const (Foo)`.\n\n**BAD:**\n```dart\nvoid f(Object? x) {\n  if (x case int) {\n    print('int');\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid f(Object? x) {\n  if (x case const (int)) {\n    print('int');\n  }\n}\n```\n",
     "sinceDartSdk": "3.0.0"
@@ -2609,7 +2618,10 @@
     "group": "style",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "hasFix",
     "details": "Unnecessary `toList()` in spreads.\n\n**BAD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)).toList(),\n]\n```\n\n**GOOD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)),\n]\n```\n\n",
     "sinceDartSdk": "2.18.0"
@@ -2797,7 +2809,10 @@
     "group": "style",
     "state": "experimental",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "hasFix",
     "details": "\"Forwarding constructor\"s, that do nothing except forward parameters to their \nsuperclass constructors should take advantage of super-initializer parameters \nrather than repeating the names of parameters when passing them to the \nsuperclass constructors.  This makes the code more concise and easier to read\nand maintain.\n\n**DO** use super-initializer parameters where possible.\n\n**BAD:**\n```dart\nclass A {\n  A({int? x, int? y});\n}\nclass B extends A {\n  B({int? x, int? y}) : super(x: x, y: y);\n}\n```\n\n**GOOD:**\n```dart\nclass A {\n  A({int? x, int? y});\n}\nclass B extends A {\n  B({super.x, super.y});\n}\n```\n",
     "sinceDartSdk": "2.17.0"
