@@ -548,7 +548,7 @@ Value* AssertBooleanInstr::RedefinedValue() const {
   return value();
 }
 
-Value* CheckBoundBase::RedefinedValue() const {
+Value* CheckBoundBaseInstr::RedefinedValue() const {
   return index();
 }
 
@@ -6483,7 +6483,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Definition* CheckBoundBase::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckBoundBaseInstr::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant() ? index()->definition() : this;
 }
 

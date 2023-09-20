@@ -3180,8 +3180,8 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   LocationSummary* locs = instruction()->locs();
-  __ PushRegisterPair(locs->in(CheckBoundBase::kIndexPos).reg(),
-                      locs->in(CheckBoundBase::kLengthPos).reg());
+  __ PushRegisterPair(locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
+                      locs->in(CheckBoundBaseInstr::kLengthPos).reg());
 }
 
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,

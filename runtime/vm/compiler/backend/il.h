@@ -47,7 +47,7 @@ class BlockEntryWithInitialDefs;
 class BoxIntegerInstr;
 class CallTargets;
 class CatchBlockEntryInstr;
-class CheckBoundBase;
+class CheckBoundBaseInstr;
 class ComparisonInstr;
 class Definition;
 class Environment;
@@ -553,6 +553,7 @@ struct InstrAttrs {
   M(BinaryIntegerOp, _)                                                        \
   M(BlockEntry, _)                                                             \
   M(BoxInteger, _)                                                             \
+  M(CheckBoundBase, _)                                                         \
   M(Comparison, _)                                                             \
   M(InstanceCallBase, _)                                                       \
   M(ShiftIntegerOp, _)                                                         \
@@ -1143,7 +1144,6 @@ class Instruction : public ZoneAllocated {
   DECLARE_INSTRUCTION_TYPE_CHECK(Definition, Definition)
   DECLARE_INSTRUCTION_TYPE_CHECK(BlockEntryWithInitialDefs,
                                  BlockEntryWithInitialDefs)
-  DECLARE_INSTRUCTION_TYPE_CHECK(CheckBoundBase, CheckBoundBase)
   FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
@@ -10112,9 +10112,9 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
 
 // Base class for speculative [CheckArrayBoundInstr] and
 // non-speculative [GenericCheckBoundInstr] bounds checking.
-class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
+class CheckBoundBaseInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
-  CheckBoundBase(Value* length, Value* index, intptr_t deopt_id)
+  CheckBoundBaseInstr(Value* length, Value* index, intptr_t deopt_id)
       : TemplateDefinition(deopt_id) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
@@ -10125,8 +10125,8 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-  virtual CheckBoundBase* AsCheckBoundBase() { return this; }
-  virtual const CheckBoundBase* AsCheckBoundBase() const { return this; }
+  DECLARE_ABSTRACT_INSTRUCTION(CheckBoundBase);
+
   virtual Value* RedefinedValue() const;
 
   // Returns true if the bounds check can be eliminated without
@@ -10136,10 +10136,10 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };
 
-  DECLARE_EMPTY_SERIALIZATION(CheckBoundBase, TemplateDefinition)
+  DECLARE_EMPTY_SERIALIZATION(CheckBoundBaseInstr, TemplateDefinition)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(CheckBoundBase);
+  DISALLOW_COPY_AND_ASSIGN(CheckBoundBaseInstr);
 };
 
 // Performs an array bounds check, where
@@ -10147,10 +10147,10 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
 // returns the "safe" index when
 //   0 <= index < length
 // or otherwise deoptimizes (viz. speculative).
-class CheckArrayBoundInstr : public CheckBoundBase {
+class CheckArrayBoundInstr : public CheckBoundBaseInstr {
  public:
   CheckArrayBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : CheckBoundBase(length, index, deopt_id), generalized_(false) {}
+      : CheckBoundBaseInstr(length, index, deopt_id), generalized_(false) {}
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
@@ -10171,7 +10171,7 @@ class CheckArrayBoundInstr : public CheckBoundBase {
 #define FIELD_LIST(F) F(bool, generalized_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CheckArrayBoundInstr,
-                                          CheckBoundBase,
+                                          CheckBoundBaseInstr,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
@@ -10184,7 +10184,7 @@ class CheckArrayBoundInstr : public CheckBoundBase {
 // returns the "safe" index when
 //   0 <= index < length
 // or otherwise throws an out-of-bounds exception (viz. non-speculative).
-class GenericCheckBoundInstr : public CheckBoundBase {
+class GenericCheckBoundInstr : public CheckBoundBaseInstr {
  public:
   // We prefer to have unboxed inputs on 64-bit where values can fit into a
   // register.
@@ -10193,7 +10193,7 @@ class GenericCheckBoundInstr : public CheckBoundBase {
   }
 
   GenericCheckBoundInstr(Value* length, Value* index, intptr_t deopt_id)
-      : CheckBoundBase(length, index, deopt_id) {}
+      : CheckBoundBaseInstr(length, index, deopt_id) {}
 
   virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
@@ -10230,7 +10230,7 @@ class GenericCheckBoundInstr : public CheckBoundBase {
     return SlowPathSharingSupported(is_optimizing);
   }
 
-  DECLARE_EMPTY_SERIALIZATION(GenericCheckBoundInstr, CheckBoundBase)
+  DECLARE_EMPTY_SERIALIZATION(GenericCheckBoundInstr, CheckBoundBaseInstr)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);

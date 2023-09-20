@@ -410,6 +410,7 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
     return cursor;                                                             \
   }
     FOR_EACH_INSTRUCTION(EMIT_CASE)
+    FOR_EACH_ABSTRACT_INSTRUCTION(EMIT_CASE)
 #undef EMIT_CASE
     default:
       UNREACHABLE();
@@ -451,6 +452,7 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   case kMatchAndMoveOptional##Instruction:                                     \
     return "kMatchAndMoveOptional" #Instruction;
     FOR_EACH_INSTRUCTION(EMIT_CASE)
+    FOR_EACH_ABSTRACT_INSTRUCTION(EMIT_CASE)
 #undef EMIT_CASE
     default:
       UNREACHABLE();

@@ -222,17 +222,17 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
 }
 
 void RangeAnalysis::ConstrainValueAfterCheckBound(Value* use,
-                                                  CheckBoundBase* check,
+                                                  CheckBoundBaseInstr* check,
                                                   Definition* defn) {
   const intptr_t use_index = use->use_index();
 
   Range* constraint_range = nullptr;
-  if (use_index == CheckBoundBase::kIndexPos) {
+  if (use_index == CheckBoundBaseInstr::kIndexPos) {
     Definition* length = check->length()->definition();
     constraint_range = new (Z) Range(RangeBoundary::FromConstant(0),
                                      RangeBoundary::FromDefinition(length, -1));
   } else {
-    ASSERT(use_index == CheckBoundBase::kLengthPos);
+    ASSERT(use_index == CheckBoundBaseInstr::kLengthPos);
     Definition* index = check->index()->definition();
     constraint_range = new (Z)
         Range(RangeBoundary::FromDefinition(index, 1), RangeBoundary::MaxSmi());
@@ -1349,7 +1349,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
         !CompilerState::Current().is_aot() &&
         !function.ProhibitsBoundsCheckGeneralization();
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
-    for (CheckBoundBase* check : bounds_checks_) {
+    for (CheckBoundBaseInstr* check : bounds_checks_) {
       if (check->IsRedundant(/*use_loops=*/true)) {
         check->ReplaceUsesWith(check->index()->definition());
         check->RemoveFromGraph();
@@ -3181,7 +3181,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   return false;
 }
 
-bool CheckBoundBase::IsRedundant(bool use_loops) {
+bool CheckBoundBaseInstr::IsRedundant(bool use_loops) {
   // First, try to prove redundancy with the results of range analysis.
   if (IsRedundantBasedOnRangeInformation(index(), length())) {
     return true;
