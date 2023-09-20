@@ -16,6 +16,11 @@ extension IterableExtension<E> on Iterable<E> {
 }
 
 extension ListExtension<E> on List<E> {
+  Iterable<E> get withoutLast {
+    final length = this.length;
+    return length > 0 ? take(length - 1) : Iterable.empty();
+  }
+
   void addIfNotNull(E? element) {
     if (element != null) {
       add(element);

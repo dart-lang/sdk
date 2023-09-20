@@ -35,7 +35,7 @@ void buildTests({required String packagePath}) {
     if (file_paths.isDart(pathContext, file.path)) {
       test(file.path, () {
         final content = file.readAsStringSync();
-        if (content.contains('utf8.encode')) {
+        if (content.contains('utf8.encode(')) {
           fail('Should not use `utf8.encode` before SDK 3.1');
         }
       });

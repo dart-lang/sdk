@@ -20,7 +20,6 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -489,79 +488,28 @@ class LibraryBuilder {
       return;
     }
 
-    final libraryFileName = uri.pathSegments.lastOrNull;
-    if (libraryFileName == null) {
-      return;
-    }
+    final macroState = kind.addOrUpdateMacro(augmentationCode);
+    if (macroState == null) return;
 
-    if (!libraryFileName.endsWith('.dart')) {
-      return;
-    }
-
-    final augmentationFileName =
-        '${libraryFileName.substring(0, '.dart'.length - 1)}.macro.dart';
-    final augmentationUri = uri.resolve(augmentationFileName);
-    final augmentationUriStr = '$augmentationUri';
-    final augmentationSource = _sourceFactory.forUri2(augmentationUri)!;
-
-    final parseResult = parseString(
-      content: augmentationCode,
-      featureSet: element.featureSet,
-      throwIfDiagnostics: false,
-    );
-    final unitNode = parseResult.unit as ast.CompilationUnitImpl;
-
-    final unitElement = CompilationUnitElementImpl(
-      source: augmentationSource,
-      librarySource: augmentationSource,
-      lineInfo: parseResult.lineInfo,
-    );
-    unitElement.uri = augmentationUriStr;
-
-    final augmentationReference =
-        reference.getChild('@augmentation').getChild(augmentationUriStr);
-    _bindReference(augmentationReference, unitElement);
-
-    final augmentation = LibraryAugmentationElementImpl(
-      augmentationTarget: element,
-      nameOffset: -1,
-    );
-    augmentation.definingCompilationUnit = unitElement;
-
-    augmentation.macroGenerated = MacroGenerationAugmentationLibrary(
-      code: augmentationCode,
-      informativeBytes: writeUnitInformative(unitNode),
-    );
-
-    final directiveUri = DirectiveUriWithAugmentationImpl(
-      relativeUriString: augmentationUriStr,
-      relativeUri: augmentationUri,
-      source: augmentationSource,
-      augmentation: augmentation,
-    );
-
+    final macroImport = _buildAugmentationImport(element, macroState);
+    macroImport.isSynthetic = true;
     element.augmentationImports = [
       ...element.augmentationImports,
-      AugmentationImportElementImpl(
-        importKeywordOffset: -1,
-        uri: directiveUri,
-      ),
-    ];
+      macroImport,
+    ].toFixedList();
 
+    final macroLinkingUnit = units.last;
     ElementBuilder(
       libraryBuilder: this,
-      container: augmentation,
-      unitReference: augmentationReference,
-      unitElement: unitElement,
-    ).buildDeclarationElements(unitNode);
+      container: macroLinkingUnit.container,
+      unitReference: macroLinkingUnit.reference,
+      unitElement: macroLinkingUnit.element,
+    ).buildDeclarationElements(macroLinkingUnit.node);
 
-    units.add(
-      LinkingUnit(
-        reference: augmentationReference,
-        node: unitNode,
-        element: unitElement,
-        container: element,
-      ),
+    macroImport.importedAugmentation!.macroGenerated =
+        MacroGenerationAugmentationLibrary(
+      code: macroState.importedFile.content,
+      informativeBytes: macroState.importedFile.unlinked2.informativeBytes,
     );
   }
 

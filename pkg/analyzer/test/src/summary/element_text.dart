@@ -658,6 +658,15 @@ class _ElementWriter {
   }
 
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
+    if (e is LibraryAugmentationElementImpl) {
+      if (e.macroGenerated case final macroGenerated?) {
+        _sink.writelnWithIndent('macroGeneratedCode');
+        _sink.writeln('---');
+        _sink.write(macroGenerated.code);
+        _sink.writeln('---');
+      }
+    }
+
     _writeDocumentation(e);
     _writeMetadata(e);
     _writeSinceSdkVersion(e);
@@ -670,15 +679,6 @@ class _ElementWriter {
     }
 
     _writeElements('exports', e.libraryExports, _writeExportElement);
-
-    if (e is LibraryAugmentationElementImpl) {
-      if (e.macroGenerated case final macroGenerated?) {
-        _sink.writelnWithIndent('macroGeneratedCode');
-        _sink.writeln('---');
-        _sink.writeln(macroGenerated.code);
-        _sink.writeln('---');
-      }
-    }
 
     _sink.writelnWithIndent('definingUnit');
     _sink.withIndent(() {
