@@ -367,6 +367,56 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_LibrariesAlreadyCompiled) {
+  // WARNING: This MUST be big enough for the serialized JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "helper0() {}\n"
+      "class Unused {\n"
+      "  helper1() { helper0(); }\n"
+      "}\n"
+      "main() {\n"
+      "  helper0();\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  Zone* zone = thread->zone();
+  ZoneCStringSet* libraries_already_compiled = new (zone) ZoneCStringSet(zone);
+  libraries_already_compiled->Insert(RESOLVED_USER_TEST_URI);
+  SourceReport report(SourceReport::kCoverage, GrowableObjectArray::Handle(),
+                      libraries_already_compiled, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // UnusedClass is not compiled.
+      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":55,\"compiled\":false},"
+
+      // helper0 is compiled.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
+
+      // One range with two hits (main).
+      "{\"scriptIndex\":0,\"startPos\":57,\"endPos\":79,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[57,68],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
 ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 1024;

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.12
+# Dart VM Service Protocol 4.13
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.12_ of the Dart VM Service Protocol. This
+This document describes of _version 4.13_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1214,7 +1214,8 @@ SourceReport|Sentinel getSourceReport(string isolateId,
                                       int endTokenPos [optional],
                                       bool forceCompile [optional],
                                       bool reportLines [optional],
-                                      string[] libraryFilters [optional])
+                                      string[] libraryFilters [optional],
+                                      string[] librariesAlreadyCompiled [optional])
 ```
 
 The _getSourceReport_ RPC is used to generate a set of reports tied to
@@ -1260,6 +1261,14 @@ The _libraryFilters_ parameter is intended to be used when gathering coverage
 for the whole isolate. If it is provided, the _SourceReport_ will only contain
 results from scripts with URIs that start with one of the filter strings. For
 example, pass `["package:foo/"]` to only include scripts from the foo package.
+
+The _librariesAlreadyCompiled_ parameter overrides the _forceCompilation_
+parameter on a per-library basis, setting it to _false_ for any libary in this
+list. This is useful for cases where multiple _getSourceReport_ RPCs are sent
+with _forceCompilation_ enabled, to avoid recompiling the same libraries
+repeatedly. To use this parameter, enable _forceCompilation_, cache the results
+of each _getSourceReport_ RPC, and pass all the libraries mentioned in the
+_SourceReport_ to subsequent RPCs in the _librariesAlreadyCompiled_.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -4728,5 +4737,6 @@ version | comments
 4.10 | Deprecated `isSyntheticAsyncContinuation` on `Breakpoint`.
 4.11 | Added `isGetter` and `isSetter` properties to `@Function` and `Function`.
 4.12 | Added `@TypeParameters` and changed `TypeParameters` to extend `Object`.
+4.13 | Added `librariesAlreadyCompiled` to `getSourceReport`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

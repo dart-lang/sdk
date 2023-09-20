@@ -3620,12 +3620,12 @@ static void GetInstancesAsList(Thread* thread, JSONStream* js) {
   instances.PrintJSON(js, /*ref=*/true);
 }
 
-static intptr_t ParseJSONArray(Thread* thread,
-                               const char* str,
-                               const GrowableObjectArray& elements) {
+template <typename Adder>
+static intptr_t ParseJSONCollection(Thread* thread,
+                                    const char* str,
+                                    const Adder& add) {
   ASSERT(str != nullptr);
   ASSERT(thread != nullptr);
-  Zone* zone = thread->zone();
   intptr_t n = strlen(str);
   if (n < 2) {
     return -1;
@@ -3640,14 +3640,36 @@ static intptr_t ParseJSONArray(Thread* thread,
       // Empty element
       break;
     }
-    String& element = String::Handle(
-        zone, String::FromUTF8(reinterpret_cast<const uint8_t*>(&str[start]),
-                               end - start + 1));
-    elements.Add(element);
+    add(&str[start], end - start + 1);
     start = end + 3;
   }
   return 0;
 }
+
+static intptr_t ParseJSONArray(Thread* thread,
+                               const char* str,
+                               const GrowableObjectArray& elements) {
+  Zone* zone = thread->zone();
+  return ParseJSONCollection(
+      thread, str, [zone, &elements](const char* start, intptr_t length) {
+        String& element = String::Handle(
+            zone,
+            String::FromUTF8(reinterpret_cast<const uint8_t*>(start), length));
+        elements.Add(element);
+      });
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static intptr_t ParseJSONSet(Thread* thread,
+                             const char* str,
+                             ZoneCStringSet* elements) {
+  Zone* zone = thread->zone();
+  return ParseJSONCollection(
+      thread, str, [zone, elements](const char* start, intptr_t length) {
+        elements->Insert(zone->MakeCopyOfStringN(start, length));
+      });
+}
+#endif
 
 static const MethodParameter* const get_ports_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
@@ -3778,7 +3800,22 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
     }
   }
 
-  SourceReport report(report_set, library_filters, compile_mode, report_lines);
+  const char* libraries_already_compiled_param =
+      js->LookupParam("librariesAlreadyCompiled");
+  Zone* zone = thread->zone();
+  ZoneCStringSet* libraries_already_compiled = nullptr;
+  if (libraries_already_compiled_param != nullptr) {
+    libraries_already_compiled = new (zone) ZoneCStringSet(zone);
+    intptr_t libraries_already_compiled_length = ParseJSONSet(
+        thread, libraries_already_compiled_param, libraries_already_compiled);
+    if (libraries_already_compiled_length < 0) {
+      PrintInvalidParamError(js, "libraries_already_compiled");
+      return;
+    }
+  }
+
+  SourceReport report(report_set, library_filters, libraries_already_compiled,
+                      compile_mode, report_lines);
   report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
                    TokenPosition::Deserialize(end_pos));
 #endif  // !DART_PRECOMPILED_RUNTIME

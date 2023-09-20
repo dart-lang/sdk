@@ -30,6 +30,7 @@ SourceReport::SourceReport(intptr_t report_set,
       compile_mode_(compile_mode),
       report_lines_(report_lines),
       library_filters_(GrowableObjectArray::Handle()),
+      libraries_already_compiled_(nullptr),
       thread_(nullptr),
       script_(nullptr),
       start_pos_(TokenPosition::kMinSource),
@@ -38,12 +39,14 @@ SourceReport::SourceReport(intptr_t report_set,
 
 SourceReport::SourceReport(intptr_t report_set,
                            const GrowableObjectArray& library_filters,
+                           ZoneCStringSet* libraries_already_compiled,
                            CompileMode compile_mode,
                            bool report_lines)
     : report_set_(report_set),
       compile_mode_(compile_mode),
       report_lines_(report_lines),
       library_filters_(library_filters),
+      libraries_already_compiled_(libraries_already_compiled),
       thread_(nullptr),
       script_(nullptr),
       start_pos_(TokenPosition::kMinSource),
@@ -199,6 +202,13 @@ bool SourceReport::ShouldSkipField(const Field& field) {
     }
   }
   return false;
+}
+
+bool SourceReport::IsLibraryAlreadyCompiled(const Library& lib) {
+  if (libraries_already_compiled_ == nullptr) return false;
+  const char* url = String::ToCString(thread(), lib.url());
+  if (url == nullptr) return false;
+  return libraries_already_compiled_->Lookup(url) != nullptr;
 }
 
 bool SourceReport::ShouldFiltersIncludeUrl(const String& url) {
@@ -543,7 +553,9 @@ void SourceReport::PrintScriptTable(JSONArray* scripts) {
   }
 }
 
-void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
+void SourceReport::VisitFunction(JSONArray* jsarr,
+                                 const Function& func,
+                                 CompileMode compile_mode) {
   if (ShouldSkipFunction(func)) {
     return;
   }
@@ -559,7 +571,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   if (code.IsNull()) {
-    if (func.HasCode() || (compile_mode_ == kForceCompile)) {
+    if (func.HasCode() || (compile_mode == kForceCompile)) {
       const Error& err =
           Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
       if (!err.IsNull()) {
@@ -612,10 +624,12 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
 }
 
-void SourceReport::VisitField(JSONArray* jsarr, const Field& field) {
+void SourceReport::VisitField(JSONArray* jsarr,
+                              const Field& field,
+                              CompileMode compile_mode) {
   if (ShouldSkipField(field) || !field.HasInitializerFunction()) return;
   const Function& func = Function::Handle(field.InitializerFunction());
-  VisitFunction(jsarr, func);
+  VisitFunction(jsarr, func, compile_mode);
 }
 
 void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
@@ -626,10 +640,14 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Field& field = Field::Handle(zone());
   Script& script = Script::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+  CompileMode compile_mode = compile_mode_;
+  if (compile_mode == kForceCompile && IsLibraryAlreadyCompiled(lib)) {
+    compile_mode = kNoCompile;
+  }
   while (it.HasNext()) {
     cls = it.GetNextClass();
     if (!cls.is_finalized()) {
-      if (compile_mode_ == kForceCompile) {
+      if (compile_mode == kForceCompile) {
         Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
@@ -674,20 +692,20 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           continue;
         }
       }
-      VisitFunction(jsarr, func);
+      VisitFunction(jsarr, func, compile_mode);
     }
 
     fields = cls.fields();
     for (intptr_t i = 0; i < fields.Length(); i++) {
       field ^= fields.At(i);
-      VisitField(jsarr, field);
+      VisitField(jsarr, field, compile_mode);
     }
   }
 }
 
 void SourceReport::VisitClosures(JSONArray* jsarr) {
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& func) {
-    VisitFunction(jsarr, func);
+    VisitFunction(jsarr, func, compile_mode_);
     return true;  // Continue iteration.
   });
 }

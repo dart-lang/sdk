@@ -1,3 +1,7 @@
+## 12.0.0
+- Update to version `4.13` of the spec.
+- Add optional `librariesAlreadyCompiled` parameter to `getSourceReport` RPC.
+
 ## 11.10.0
 - Add `wsUri` property to `VmService`. If set, this property can be used to associate
   a `VmService` instance to its targeted VM service based on its URI.

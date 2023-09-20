@@ -5,6 +5,7 @@ always_require_non_null_named_parameters: 2.0.0
 always_specify_types: 2.0.0
 always_use_package_imports: 2.10.0
 annotate_overrides: 2.0.0
+annotate_redeclares: 3.2.0
 avoid_annotating_with_dynamic: 2.0.0
 avoid_as: 2.0.0
 avoid_bool_literals_in_conditional_expressions: 2.0.0
