@@ -2044,17 +2044,7 @@ class FlowModel<Type extends Object> {
         );
 
   @visibleForTesting
-  FlowModel.withInfo(this.reachable, this.promotionInfo) {
-    // ignore:unnecessary_null_comparison
-    assert(reachable != null);
-    assert(() {
-      for (PromotionModel<Type> value in promotionInfo.values) {
-        // ignore:unnecessary_null_comparison
-        assert(value != null);
-      }
-      return true;
-    }());
-  }
+  FlowModel.withInfo(this.reachable, this.promotionInfo);
 
   /// Computes the effect of executing a try/finally's `try` and `finally`
   /// blocks in sequence.  `this` is the flow analysis state from the end of the
@@ -2237,7 +2227,7 @@ class FlowModel<Type extends Object> {
   /// and only remove promotions if it can be shown that they aren't restored
   /// later in the loop body.  If we switch to a fixed point analysis, we should
   /// be able to remove this method.
-  FlowModel<Type> conservativeJoin(
+  FlowModel<Type> conservativeJoin(FlowModelHelper<Type> helper,
       Iterable<int> writtenVariables, Iterable<int> capturedVariables) {
     FlowModel<Type>? newModel;
 
@@ -2272,11 +2262,12 @@ class FlowModel<Type extends Object> {
   ///
   /// A local variable is [initialized] if its declaration has an initializer.
   /// A function parameter is always initialized, so [initialized] is `true`.
-  FlowModel<Type> declare(int variableKey, bool initialized) {
+  FlowModel<Type> declare(
+      FlowModelHelper<Type> helper, int variableKey, bool initialized) {
     PromotionModel<Type> newInfoForVar = new PromotionModel.fresh(
         assigned: initialized, ssaNode: new SsaNode<Type>(null));
 
-    return _updatePromotionInfo(variableKey, newInfoForVar);
+    return updatePromotionInfo(helper, variableKey, newInfoForVar);
   }
 
   /// Gets the info for the given [promotionKey], creating it if it doesn't
@@ -2286,7 +2277,7 @@ class FlowModel<Type extends Object> {
   /// allows the caller to ensure that when the promotion key represents a
   /// promotable property, the SSA node will match the [_PropertySsaNode] found
   /// in the target's [SsaNode._promotableProperties] map.
-  PromotionModel<Type> infoFor(int promotionKey,
+  PromotionModel<Type> infoFor(FlowModelHelper<Type> helper, int promotionKey,
           {required SsaNode<Type> ssaNode}) =>
       promotionInfo[promotionKey] ?? new PromotionModel.fresh(ssaNode: ssaNode);
 
@@ -2297,7 +2288,7 @@ class FlowModel<Type extends Object> {
   /// regardless of the type of loop.
   @visibleForTesting
   FlowModel<Type> inheritTested(
-      TypeOperations<Type> typeOperations, FlowModel<Type> other) {
+      FlowModelHelper<Type> helper, FlowModel<Type> other) {
     Map<int, PromotionModel<Type>> newPromotionInfo =
         <int, PromotionModel<Type>>{};
     Map<int, PromotionModel<Type>> otherPromotionInfo = other.promotionInfo;
@@ -2309,8 +2300,8 @@ class FlowModel<Type extends Object> {
           otherPromotionInfo[promotionKey];
       PromotionModel<Type> newPromotionModel = otherPromotionModel == null
           ? promotionModel
-          : PromotionModel.inheritTested(
-              typeOperations, promotionModel, otherPromotionModel.tested);
+          : PromotionModel.inheritTested(helper.typeOperations, promotionModel,
+              otherPromotionModel.tested);
       newPromotionInfo[promotionKey] = newPromotionModel;
       if (!identical(newPromotionModel, promotionModel)) changed = true;
     }
@@ -2457,7 +2448,7 @@ class FlowModel<Type extends Object> {
   ExpressionInfo<Type> tryMarkNonNullable(
       FlowModelHelper<Type> helper, _Reference<Type> reference) {
     PromotionModel<Type> info =
-        infoFor(reference.promotionKey, ssaNode: reference.ssaNode);
+        infoFor(helper, reference.promotionKey, ssaNode: reference.ssaNode);
     if (info.writeCaptured) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
@@ -2489,7 +2480,7 @@ class FlowModel<Type extends Object> {
   FlowModel<Type> tryPromoteForTypeCast(
       FlowModelHelper<Type> helper, _Reference<Type> reference, Type type) {
     PromotionModel<Type> info =
-        infoFor(reference.promotionKey, ssaNode: reference.ssaNode);
+        infoFor(helper, reference.promotionKey, ssaNode: reference.ssaNode);
     if (info.writeCaptured) {
       return this;
     }
@@ -2518,7 +2509,7 @@ class FlowModel<Type extends Object> {
   ExpressionInfo<Type> tryPromoteForTypeCheck(
       FlowModelHelper<Type> helper, _Reference<Type> reference, Type type) {
     PromotionModel<Type> info =
-        infoFor(reference.promotionKey, ssaNode: reference.ssaNode);
+        infoFor(helper, reference.promotionKey, ssaNode: reference.ssaNode);
     if (info.writeCaptured) {
       return new ExpressionInfo<Type>.trivial(
           after: this, type: helper.boolType);
@@ -2570,6 +2561,14 @@ class FlowModel<Type extends Object> {
     return new FlowModel<Type>.withInfo(reachable, promotionInfo);
   }
 
+  /// Returns a new [FlowModel] where the information for [reference] is
+  /// replaced with [model].
+  @visibleForTesting
+  FlowModel<Type> updatePromotionInfo(FlowModelHelper<Type> helper,
+      int promotionKey, PromotionModel<Type> model) {
+    return _clone()..promotionInfo[promotionKey] = model;
+  }
+
   /// Updates the state to indicate that an assignment was made to [variable],
   /// whose key is [variableKey].  The variable is marked as definitely
   /// assigned, and any previous type promotion is removed.
@@ -2594,7 +2593,7 @@ class FlowModel<Type extends Object> {
           promoteToTypeOfInterest: promoteToTypeOfInterest,
           unpromotedType: unpromotedType);
       if (!identical(newInfoForVar, infoForVar)) {
-        newModel = _updatePromotionInfo(variableKey, newInfoForVar);
+        newModel = updatePromotionInfo(helper, variableKey, newInfoForVar);
       }
     }
 
@@ -2639,7 +2638,8 @@ class FlowModel<Type extends Object> {
     return identical(newTested, info.tested) &&
             identical(newPromotedTypes, info.promotedTypes)
         ? this
-        : _updatePromotionInfo(
+        : updatePromotionInfo(
+            helper,
             reference.promotionKey,
             new PromotionModel<Type>(
                 promotedTypes: newPromotedTypes,
@@ -2648,13 +2648,6 @@ class FlowModel<Type extends Object> {
                 unassigned: info.unassigned,
                 ssaNode: info.ssaNode,
                 nonPromotionHistory: info.nonPromotionHistory));
-  }
-
-  /// Returns a new [FlowModel] where the information for [reference] is
-  /// replaced with [model].
-  FlowModel<Type> _updatePromotionInfo(
-      int promotionKey, PromotionModel<Type> model) {
-    return _clone()..promotionInfo[promotionKey] = model;
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
@@ -4267,7 +4260,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // appear on the other side).  So to avoid reporting redundant errors, we
     // pretend that the variable is definitely assigned, even if it isn't.
     info = info._setAssigned();
-    _current = _current._updatePromotionInfo(mergedKey, info);
+    _current = _current.updatePromotionInfo(this, mergedKey, info);
   }
 
   @override
@@ -4396,7 +4389,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void copyPromotionData(
       {required int sourceKey, required int destinationKey}) {
-    _current = _current._updatePromotionInfo(
+    _current = _current.updatePromotionInfo(
+        this,
         destinationKey,
         _current.promotionInfo[sourceKey] ??
             new PromotionModel.fresh(ssaNode: new SsaNode(null)));
@@ -4410,7 +4404,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     assert(_debugDeclaredVariables.add(variable) || skipDuplicateCheck,
         'Variable $variable already declared');
     _current = _current.declare(
-        promotionKeyStore.keyForVariable(variable), initialized);
+        this, promotionKeyStore.keyForVariable(variable), initialized);
   }
 
   @override
@@ -4424,7 +4418,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // Choose a fresh promotion key to represent the temporary variable that
     // stores the matched value, and mark it as initialized.
     int promotionKey = promotionKeyStore.makeTemporaryKey();
-    _current = _current.declare(promotionKey, true);
+    _current = _current.declare(this, promotionKey, true);
     _initialize(promotionKey, matchedType, context._matchedValueInfo,
         isFinal: isFinal,
         isLate: isLate,
@@ -4440,7 +4434,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _BranchTargetContext<Type> context =
         new _BranchTargetContext<Type>(_current.reachable);
     _stack.add(context);
-    _current = _current.conservativeJoin(info.written, info.captured).split();
+    _current =
+        _current.conservativeJoin(this, info.written, info.captured).split();
     _statementToContext[doStatement] = context;
   }
 
@@ -4549,7 +4544,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void for_conditionBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(info.written, info.captured).split();
+    _current =
+        _current.conservativeJoin(this, info.written, info.captured).split();
   }
 
   @override
@@ -4560,7 +4556,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     FlowModel<Type> falseCondition = context._conditionInfo.ifFalse;
 
     _current = _join(falseCondition, breakState)
-        .inheritTested(operations, _current)
+        .inheritTested(this, _current)
         .unsplit();
   }
 
@@ -4573,7 +4569,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void forEach_bodyBegin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(info.written, info.captured).split();
+    _current =
+        _current.conservativeJoin(this, info.written, info.captured).split();
     _SimpleStatementContext<Type> context =
         new _SimpleStatementContext<Type>(_current.reachable.parent!, _current);
     _stack.add(context);
@@ -5263,8 +5260,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _stack.last as _SwitchStatementContext<Type>;
     if (hasLabels) {
       AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
-      _current =
-          switchContext._previous.conservativeJoin(info.written, info.captured);
+      _current = switchContext._previous
+          .conservativeJoin(this, info.written, info.captured);
     } else {
       _current = alternativesContext._combinedModel ?? switchContext._unmatched;
     }
@@ -5313,7 +5310,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(body);
     FlowModel<Type> beforeCatch =
-        beforeBody.conservativeJoin(info.written, info.captured);
+        beforeBody.conservativeJoin(this, info.written, info.captured);
 
     context._beforeCatch = beforeCatch;
     context._afterBodyAndCatches = afterBody;
@@ -5327,12 +5324,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (exceptionVariable != null) {
       int exceptionVariableKey =
           promotionKeyStore.keyForVariable(exceptionVariable);
-      _current = _current.declare(exceptionVariableKey, true);
+      _current = _current.declare(this, exceptionVariableKey, true);
     }
     if (stackTraceVariable != null) {
       int stackTraceVariableKey =
           promotionKeyStore.keyForVariable(stackTraceVariable);
-      _current = _current.declare(stackTraceVariableKey, true);
+      _current = _current.declare(this, stackTraceVariableKey, true);
     }
   }
 
@@ -5368,7 +5365,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryFinallyContext<Type> context = _stack.last as _TryFinallyContext<Type>;
     context._afterBodyAndCatches = _current;
     _current = _join(_current,
-        context._previous.conservativeJoin(info.written, info.captured));
+        context._previous.conservativeJoin(this, info.written, info.captured));
     context._beforeFinally = _current;
   }
 
@@ -5379,7 +5376,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     PromotionModel<Type>? promotionModel = _current.promotionInfo[variableKey];
     if (promotionModel == null) {
       promotionModel = new PromotionModel.fresh(ssaNode: new SsaNode(null));
-      _current = _current._updatePromotionInfo(variableKey, promotionModel);
+      _current =
+          _current.updatePromotionInfo(this, variableKey, promotionModel);
     }
     _Reference<Type> expressionInfo =
         _variableReference(variableKey, unpromotedType).addPreviousInfo(
@@ -5404,7 +5402,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void whileStatement_conditionBegin(Node node) {
     _current = _current.split();
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(info.written, info.captured);
+    _current = _current.conservativeJoin(this, info.written, info.captured);
   }
 
   @override
@@ -5412,7 +5410,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _WhileContext<Type> context = _stack.removeLast() as _WhileContext<Type>;
     _current = _join(context._conditionInfo.ifFalse, context._breakModel)
         .unsplit()
-        .inheritTested(operations, _current);
+        .inheritTested(this, _current);
   }
 
   @override
@@ -5529,9 +5527,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   void _functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(const [], info.written);
+    _current = _current.conservativeJoin(this, const [], info.written);
     _stack.add(new _FunctionExpressionContext(_current));
-    _current = _current.conservativeJoin(_assignedVariables.anywhere.written,
+    _current = _current.conservativeJoin(
+        this,
+        _assignedVariables.anywhere.written,
         _assignedVariables.anywhere.captured);
   }
 
@@ -5574,7 +5574,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       List<List<Type>>? allPreviouslyPromotedTypes;
       while (ssaNode != null) {
         PromotionModel<Type> previousPromotionInfo =
-            _current.infoFor(ssaNode.promotionKey, ssaNode: ssaNode);
+            _current.infoFor(this, ssaNode.promotionKey, ssaNode: ssaNode);
         List<Type>? promotedTypes = previousPromotionInfo.promotedTypes;
         if (promotedTypes != null) {
           (allPreviouslyPromotedTypes ??= []).add(promotedTypes);
@@ -5778,7 +5778,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   TrivialVariableReference<Type> _makeTemporaryReference(
       SsaNode<Type> ssaNode, Type type) {
     int promotionKey = promotionKeyStore.makeTemporaryKey();
-    _current = _current._updatePromotionInfo(
+    _current = _current.updatePromotionInfo(
+        this,
         promotionKey,
         new PromotionModel(
             promotedTypes: null,
