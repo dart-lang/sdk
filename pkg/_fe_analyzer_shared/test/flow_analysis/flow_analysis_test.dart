@@ -4768,7 +4768,7 @@ main() {
       var m2 = FlowModel.withInfo(Reachability.initial, {
         x: model([stringType])
       });
-      expect(m1.inheritTested(h.typeOperations, m2).promotionInfo[x]!.tested,
+      expect(m1.inheritTested(h, m2).promotionInfo[x]!.tested,
           _matchOfInterestSet(['int', 'String']));
     });
 
@@ -4777,7 +4777,7 @@ main() {
         x: model([intType])
       });
       var m2 = FlowModel.withInfo(Reachability.initial, emptyMap);
-      expect(m1.inheritTested(h.typeOperations, m2), same(m1));
+      expect(m1.inheritTested(h, m2), same(m1));
     });
 
     test('returns identical model when no changes', () {
@@ -4787,7 +4787,7 @@ main() {
       var m2 = FlowModel.withInfo(Reachability.initial, {
         x: model([intType])
       });
-      expect(m1.inheritTested(h.typeOperations, m2), same(m1));
+      expect(m1.inheritTested(h, m2), same(m1));
     });
   });
 
@@ -10986,7 +10986,7 @@ class _MockNonPromotionReason extends NonPromotionReason {
 extension on FlowModel<Type> {
   FlowModel<Type> _conservativeJoin(FlowAnalysisTestHarness h,
           Iterable<Var> writtenVariables, Iterable<Var> capturedVariables) =>
-      conservativeJoin([
+      conservativeJoin(h, [
         for (Var v in writtenVariables) h.promotionKeyStore.keyForVariable(v)
       ], [
         for (Var v in capturedVariables) h.promotionKeyStore.keyForVariable(v)
@@ -10994,10 +10994,11 @@ extension on FlowModel<Type> {
 
   FlowModel<Type> _declare(
           FlowAnalysisTestHarness h, Var variable, bool initialized) =>
-      this.declare(h.promotionKeyStore.keyForVariable(variable), initialized);
+      this.declare(
+          h, h.promotionKeyStore.keyForVariable(variable), initialized);
 
   PromotionModel<Type> _infoFor(FlowAnalysisTestHarness h, Var variable) =>
-      infoFor(h.promotionKeyStore.keyForVariable(variable),
+      infoFor(h, h.promotionKeyStore.keyForVariable(variable),
           ssaNode: new SsaNode(null));
 
   ExpressionInfo<Type> _tryMarkNonNullable(
