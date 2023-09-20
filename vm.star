@@ -12,8 +12,8 @@ load(
     "android_deps",
     "arm64",
     "flutter_pool",
-    "focal",
     "fuchsia_deps",
+    "jammy",
     "mac",
     "no_android",
     "slow_shards",
@@ -427,7 +427,7 @@ _nightly_builder(
     "vm-gcc-linux",
     category = "vm|misc|g",
     channels = ["try"],
-    dimensions = focal,
+    dimensions = jammy,
     execution_timeout = 5 * time.hour,
     goma = False,
     properties = {
@@ -479,12 +479,12 @@ _extra_builder(
 _extra_builder(
     "vm-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
-    dimensions = focal,
+    dimensions = jammy,
 )
 _extra_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
-    dimensions = focal,
+    dimensions = jammy,
 )
 
 # vm|legacy|jit

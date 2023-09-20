@@ -31,6 +31,7 @@ _SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 _ARM64 = {"cpu": "arm64"}
 _MAC = {"os": "Mac"}
 _FOCAL = {"os": "Ubuntu-20"}
+_JAMMY = {"os": "Ubuntu-22"}
 _WINDOWS10 = {"os": "Windows-10"}
 _WINDOWS11 = {"os": "Windows-11"}
 
@@ -79,6 +80,7 @@ arm64 = _ARM64
 experimental = _EXPERIMENTAL
 flutter_pool = _FLUTTER_POOL
 focal = _FOCAL
+jammy = _JAMMY
 linux = _FOCAL
 mac = _MAC
 windows = _WINDOWS10
