@@ -167,7 +167,7 @@ vars = {
   "path_rev": "96d9183ad4f9e48109fa8d4b8269cf75f13922dd",
   "pool_rev": "a5bee3540a2b5b3a3c34038667e7cd7bb514dc62",
   "protobuf_rev": "c16bc891978a1764f0d6d8eca54f420242c78a6a",
-  "pub_rev": "be6868ba132c782d9835b1638a634ecb73428579", # disable rev_sdk_deps.dart
+  "pub_rev": "1e38c837e4eee40c6d5c5b088e8ed1b512e02980", # disable rev_sdk_deps.dart
   "pub_semver_rev": "f0be74a446f971db478e68b59ea62e393d6df3bd",
   "shelf_rev": "e2a02b77f5f7dd2db57e6c6ea1990b1fa2239096",
   "source_map_stack_trace_rev": "196d7bfa58ef307687907c323ab8e5fb1f382afa",
@@ -178,6 +178,7 @@ vars = {
   "stream_channel_rev": "0ce7ab69c3a2ab83cdeb9dc60e1bacbb83abc165",
   "string_scanner_rev": "da9142cf9809e7e1364144b8193ec60d87f0a4b8",
   "sync_http_rev": "8233f74cd8a87707c13beceb59b56bca41b52966",
+  "tar_rev": "3c68cba8e51c569428222b9185469249206172c6", # external package, review all rolls. disable rev_sdk_deps.dart,
   "term_glyph_rev": "1b28285a7e818b8e87c4d2119d968c5b36d73c7a",
   "test_rev": "64494959ecdb2e777711487a1fb86555c0c20570",
   "test_descriptor_rev": "030193dfdfbf85930eae8536909c546151da9e9c",
@@ -463,6 +464,9 @@ deps = {
       "@" + Var("string_scanner_rev"),
   Var("dart_root") + "/third_party/pkg/sync_http":
       Var("dart_git") + "sync_http.git" + "@" + Var("sync_http_rev"),
+Var("dart_root") + "/third_party/pkg/tar":
+      Var("dart_git") + "external/github.com/simolus3/tar.git" +
+      "@" + Var("tar_rev"),
   Var("dart_root") + "/third_party/pkg/term_glyph":
       Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_rev"),
   Var("dart_root") + "/third_party/pkg/test":
