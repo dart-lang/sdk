@@ -1147,7 +1147,7 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 Heap::Space Heap::SpaceForExternal(intptr_t size) const {
   // If 'size' would be a significant fraction of new space, then use old.
   const int kExtNewRatio = 16;
-  if (size > (CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
+  if (size > (new_space_.ThresholdInWords() * kWordSize) / kExtNewRatio) {
     return Heap::kOld;
   } else {
     return Heap::kNew;
