@@ -386,7 +386,7 @@ deps = {
       Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_rev"),
-  Var("dart_root") + "/third_party/pkg/flute": {
+  Var("dart_root") + "/third_party/flute": {
     "url": Var("dart_git") + "flute.git" + "@" + Var("flute_rev"),
     "condition": "checkout_flute",
   },
