@@ -102,17 +102,19 @@ extension ObjectToJSBoxedDartObject on Object {
 extension JSPromiseToFuture on JSPromise {
   @patch
   Future<JSAny?> get toDart {
-    final completer = Completer<JSAny>();
-    final success = (JSAny r) {
+    final completer = Completer<JSAny?>();
+    final success = (JSAny? r) {
       return completer.complete(r);
     }.toJS;
-    final error = (JSAny e) {
+    final error = (JSAny? e) {
       // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
       // all backends and if it is feasible, or feasible for some limited use
       // cases, then we should pass [e] directly to `completeError`.
       // TODO(joshualitt): Use helpers to avoid conflating `null` and `JSNull` /
       // `JSUndefined`.
       if (e == null) {
+        // Note that we pass false as a default. It's not currently possible to
+        // be able to differentiate between null and undefined.
         return completer.completeError(js_util.NullRejectionException(false));
       }
       return completer.completeError(e);
