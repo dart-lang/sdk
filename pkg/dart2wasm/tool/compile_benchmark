@@ -44,4 +44,4 @@ fi
 "$DART2WASM" "$1" "$2" $COMPILE_FLAGS
 
 # Keep in sync with sdk/bin/dart2wasm.
-"$BINARYEN" -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$2" -o "$2"
+"$BINARYEN" -all --closed-world -tnh --type-unfinalizing -O3 --type-ssa --gufa -O3 --type-merging -O1 --type-finalizing "$2" -o "$2"

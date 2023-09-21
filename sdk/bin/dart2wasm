@@ -132,5 +132,5 @@ set -e
 if [[ "$OPTIMIZED" == 1 ]]; then
     # Keep optimization parameters after `-g` in sync with pkg/dart2wasm/tool/compile_benchmark.
     # Last argument must be the .wasm file.
-    "$BIN_DIR"/wasm-opt -g -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "${ARGS[-1]}" -o "${ARGS[-1]}"
+    "$BIN_DIR"/wasm-opt -g -all --closed-world -tnh --type-unfinalizing -O3 --type-ssa --gufa -O3 --type-merging -O1 --type-finalizing "${ARGS[-1]}" -o "${ARGS[-1]}"
 fi
