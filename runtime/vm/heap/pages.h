@@ -204,13 +204,13 @@ class PageSpace {
   void UpdateMaxCapacityLocked();
   void UpdateMaxUsed();
 
-  intptr_t ExternalInWords() const { return usage_.external_in_words; }
+  int64_t ExternalInWords() const { return usage_.external_in_words; }
   SpaceUsage GetCurrentUsage() const {
     MutexLocker ml(&pages_lock_);
     return usage_;
   }
-  intptr_t ImageInWords() const {
-    intptr_t size = 0;
+  int64_t ImageInWords() const {
+    int64_t size = 0;
     MutexLocker ml(&pages_lock_);
     for (Page* page = image_pages_; page != nullptr; page = page->next()) {
       size += page->memory_->size();

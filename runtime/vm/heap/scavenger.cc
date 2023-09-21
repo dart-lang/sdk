@@ -731,8 +731,8 @@ class ParallelScavengerTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(ParallelScavengerTask);
 };
 
-SemiSpace::SemiSpace(intptr_t gc_threshold_in_words)
-    : gc_threshold_in_words_(gc_threshold_in_words) {}
+SemiSpace::SemiSpace(intptr_t max_capacity_in_words)
+    : max_capacity_in_words_(max_capacity_in_words), head_(nullptr) {}
 
 SemiSpace::~SemiSpace() {
   Page* page = head_;
@@ -744,7 +744,7 @@ SemiSpace::~SemiSpace() {
 }
 
 Page* SemiSpace::TryAllocatePageLocked(bool link) {
-  if (capacity_in_words_ >= gc_threshold_in_words_) {
+  if (capacity_in_words_ >= max_capacity_in_words_) {
     return nullptr;  // Full.
   }
   Page* page = Page::Allocate(kPageSize, Page::kNew);
@@ -1034,16 +1034,15 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   // new remembered set.
   blocks_ = heap_->isolate_group()->store_buffer()->TakeBlocks();
 
-  UpdateMaxHeapCapacity();
-
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   SemiSpace* from;
   {
     MutexLocker ml(&space_lock_);
     from = to_;
-    to_ = new SemiSpace(NewSizeInWords(from->gc_threshold_in_words(), reason));
+    to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words(), reason));
   }
+  UpdateMaxHeapCapacity();
 
   return from;
 }
@@ -1107,7 +1106,7 @@ void Scavenger::Epilogue(SemiSpace* from) {
   // Even if the scavenge speed is very high, make sure we start considering
   // idle scavenges before new space is full to avoid requiring a scavenge in
   // the middle of a frame.
-  intptr_t upper_bound = 8 * ThresholdInWords() / 10;
+  intptr_t upper_bound = 8 * CapacityInWords() / 10;
   if (idle_scavenge_threshold_in_words_ > upper_bound) {
     idle_scavenge_threshold_in_words_ = upper_bound;
   }
@@ -1354,7 +1353,7 @@ void Scavenger::UpdateMaxHeapCapacity() {
   auto isolate_group = heap_->isolate_group();
   ASSERT(isolate_group != nullptr);
   isolate_group->GetHeapNewCapacityMaxMetric()->SetValue(
-      to_->capacity_in_words() * kWordSize);
+      to_->max_capacity_in_words() * kWordSize);
 }
 
 void Scavenger::UpdateMaxHeapUsage() {
@@ -1695,7 +1694,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
         heap_->stats_.state_ = Heap::kSecondScavenge;
       }
     }
-    if ((ThresholdInWords() - UsedInWords()) < KBInWords) {
+    if ((CapacityInWords() - UsedInWords()) < KBInWords) {
       // Don't scavenge again until the next old-space GC has occurred. Prevents
       // performing one scavenge per allocation as the heap limit is approached.
       heap_->assume_scavenge_will_fail_ = true;
