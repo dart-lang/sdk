@@ -635,8 +635,17 @@
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": [
-          "--optimization-counter-threshold=5",
-          "--random-seed=__RANDOM__"
+          "--optimization_counter_threshold=5",
+          "--random_seed=__RANDOM__"
+        ]
+      }
+    },
+    "vm-aot-optimization-level-(linux|mac|win)-(debug|product|release)-(x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "optimization_level",
+        "vm-options": [
+          "--optimization_level=3",
+          "--random_seed=__RANDOM__"
         ]
       }
     },
@@ -2252,6 +2261,40 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-eager-optimization-linux-release-${arch}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
+          ],
+          "fileset": "vm",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-optimization-level-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the VM builders with a more aggressive optimization."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-optimization-level-linux-release-${arch}",
             "corelib",
             "ffi",
             "language",
