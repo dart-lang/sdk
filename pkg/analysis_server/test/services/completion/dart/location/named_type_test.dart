@@ -131,6 +131,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  final
+    kind: keyword
   super
     kind: keyword
   this
@@ -161,6 +163,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  final
     kind: keyword
   void
     kind: keyword

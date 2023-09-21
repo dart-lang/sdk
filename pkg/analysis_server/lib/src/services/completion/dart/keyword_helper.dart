@@ -375,6 +375,23 @@ class KeywordHelper {
     }
   }
 
+  /// Add the keywords that are appropriate when the selection is at the start
+  /// of a formal parameter in the given [parameterList].
+  void addFormalParameterKeywords(FormalParameterList parameterList) {
+    addKeyword(Keyword.COVARIANT);
+    addKeyword(Keyword.FINAL);
+    if (parameterList.inNamedGroup(offset)) {
+      addKeyword(Keyword.REQUIRED);
+    }
+    var parent = parameterList.parent;
+    if (parent is ConstructorDeclaration) {
+      if (featureSet.isEnabled(Feature.super_parameters)) {
+        addKeyword(Keyword.SUPER);
+      }
+      addKeyword(Keyword.THIS);
+    }
+  }
+
   /// Add the keywords that are appropriate when the selection is before the `{`
   /// or `=>` in a function body. The [body] is used to determine which keywords
   /// are appropriate.
@@ -582,6 +599,19 @@ extension on CollectionElement? {
     return finalElement is IfElement &&
         finalElement.elseKeyword == null &&
         !finalElement.thenElement.isSynthetic;
+  }
+}
+
+extension on FormalParameterList {
+  bool inNamedGroup(int offset) {
+    final leftDelimiter = this.leftDelimiter;
+    if (leftDelimiter == null ||
+        leftDelimiter.type != TokenType.OPEN_CURLY_BRACKET) {
+      return false;
+    }
+    var left = leftDelimiter.end;
+    var right = rightDelimiter?.offset ?? rightParenthesis.offset;
+    return left <= offset && offset <= right;
   }
 }
 

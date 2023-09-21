@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
@@ -98,87 +97,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
           _addSuggestion(Keyword.ASYNC);
           _addSuggestion2(ASYNC_STAR);
           _addSuggestion2(SYNC_STAR);
-        }
-      }
-    }
-  }
-
-  @override
-  void visitFormalParameterList(FormalParameterList node) {
-    var constructorDeclaration =
-        node.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructorDeclaration != null) {
-      if (request.featureSet.isEnabled(Feature.super_parameters)) {
-        _addSuggestion(Keyword.SUPER);
-      }
-      _addSuggestion(Keyword.THIS);
-    }
-    final entity = this.entity;
-    if (entity is Token) {
-      FormalParameter? lastParameter() {
-        var parameters = node.parameters;
-        if (parameters.isNotEmpty) {
-          return parameters.last.notDefault;
-        }
-        return null;
-      }
-
-      bool hasCovariant() {
-        var last = lastParameter();
-        return last != null &&
-            (last.covariantKeyword != null || last.name?.lexeme == 'covariant');
-      }
-
-      bool hasRequired() {
-        var last = lastParameter();
-        return last != null &&
-            (last.requiredKeyword != null || last.name?.lexeme == 'required');
-      }
-
-      var tokenType = entity.type;
-      if (tokenType == TokenType.CLOSE_PAREN) {
-        _addSuggestion(Keyword.DYNAMIC);
-        _addSuggestion(Keyword.VOID);
-        if (!hasCovariant()) {
-          _addSuggestion(Keyword.COVARIANT);
-        }
-      } else if (tokenType == TokenType.CLOSE_CURLY_BRACKET) {
-        _addSuggestion(Keyword.DYNAMIC);
-        _addSuggestion(Keyword.VOID);
-        if (!hasCovariant()) {
-          _addSuggestion(Keyword.COVARIANT);
-          if (request.featureSet.isEnabled(Feature.non_nullable) &&
-              !hasRequired()) {
-            _addSuggestion(Keyword.REQUIRED);
-          }
-        }
-      } else if (tokenType == TokenType.CLOSE_SQUARE_BRACKET) {
-        _addSuggestion(Keyword.DYNAMIC);
-        _addSuggestion(Keyword.VOID);
-        if (!hasCovariant()) {
-          _addSuggestion(Keyword.COVARIANT);
-        }
-      }
-    } else if (entity is FormalParameter) {
-      var beginToken = entity.beginToken;
-      var offset = request.target.offset;
-      if (offset <= beginToken.end) {
-        _addSuggestion(Keyword.COVARIANT);
-        _addSuggestion(Keyword.DYNAMIC);
-        _addSuggestion(Keyword.VOID);
-        if (entity.isNamed &&
-            !entity.isRequired &&
-            request.featureSet.isEnabled(Feature.non_nullable)) {
-          _addSuggestion(Keyword.REQUIRED);
-        }
-      } else if (entity is FunctionTypedFormalParameter) {
-        _addSuggestion(Keyword.COVARIANT);
-        _addSuggestion(Keyword.DYNAMIC);
-        _addSuggestion(Keyword.VOID);
-        if (entity.isNamed &&
-            !entity.isRequired &&
-            request.featureSet.isEnabled(Feature.non_nullable)) {
-          _addSuggestion(Keyword.REQUIRED);
         }
       }
     }
