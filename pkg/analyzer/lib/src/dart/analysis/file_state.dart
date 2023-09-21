@@ -403,6 +403,8 @@ class FileState {
 
   FileKind? _kind;
 
+  bool isMacroAugmentation = false;
+
   /// Files that reference this file.
   final Set<FileState> referencingFiles = {};
 
@@ -508,6 +510,7 @@ class FileState {
     if (_fsState._macroFileContent case final macroFileContent?) {
       _fsState._macroFileContent = null;
       rawFileState = macroFileContent;
+      isMacroAugmentation = true;
     } else {
       rawFileState = _fsState.fileContentStrategy.get(path);
     }
@@ -1772,17 +1775,25 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     }).toFixedList();
   }
 
-  AugmentationImportWithFile? addOrUpdateMacro(String code) {
+  AugmentationImportWithFile? addOrUpdateMacro(
+    String code, {
+    required bool addLibraryAugmentDirective,
+  }) {
     final pathContext = file._fsState.pathContext;
     final libraryFileName = pathContext.basename(file.path);
     final macroFileName =
         pathContext.setExtension(libraryFileName, '.macro.dart');
 
-    final augmentationContent = '''
+    final String augmentationContent;
+    if (addLibraryAugmentDirective) {
+      augmentationContent = '''
 library augment '$libraryFileName';
 
 $code
 ''';
+    } else {
+      augmentationContent = code;
+    }
 
     final contentBytes = utf8.encoder.convert(augmentationContent);
     final hashBytes = md5.convert(contentBytes).bytes;
@@ -1887,6 +1898,7 @@ $code
       _augmentationImports = augmentationImports.withoutLast.toFixedList();
       // Discard the file.
       final macroFile = macroImport.importedFile;
+      macroFile.kind.dispose();
       file._fsState._pathToFile.remove(macroFile.path);
       file._fsState._uriToFile.remove(macroFile.uri);
     }

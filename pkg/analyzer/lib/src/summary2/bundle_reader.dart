@@ -68,6 +68,9 @@ class BundleReader {
         uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
         classMembersLengths: _reader.readUInt30List(),
+        macroGeneratedCode: _reader.readOptionalObject((reader) {
+          return _reader.readStringUtf8();
+        }),
       );
     });
 
@@ -77,6 +80,7 @@ class BundleReader {
       libraryMap[uri] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
+        uri: uri,
         unitsInformativeBytes: _unitsInformativeBytes,
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
@@ -84,6 +88,7 @@ class BundleReader {
         offset: libraryHeader.offset,
         classMembersLengths: libraryHeader.classMembersLengths,
         infoDeclarationStore: _infoDeclarationStore,
+        macroGeneratedCode: libraryHeader.macroGeneratedCode,
       );
     }
   }
@@ -527,12 +532,14 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 class LibraryReader {
   final LinkedElementFactory _elementFactory;
   final SummaryDataReader _reader;
+  final Uri uri;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
   final int _baseResolutionOffset;
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
   final InfoDeclarationStore _deserializedDataStore;
+  final String? macroGeneratedCode;
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -540,6 +547,7 @@ class LibraryReader {
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
+    required this.uri,
     required Map<Uri, Uint8List> unitsInformativeBytes,
     required int baseResolutionOffset,
     required _ReferenceReader referenceReader,
@@ -547,6 +555,7 @@ class LibraryReader {
     required int offset,
     required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
+    required this.macroGeneratedCode,
   })  : _elementFactory = elementFactory,
         _reader = reader,
         _unitsInformativeBytes = unitsInformativeBytes,
@@ -634,7 +643,7 @@ class LibraryReader {
     required Source unitSource,
   }) {
     final macroGenerated = _reader.readOptionalObject((reader) {
-      return MacroGenerationAugmentationLibrary(
+      return MacroGeneratedAugmentationLibrary(
         code: _reader.readStringUtf8(),
         informativeBytes: _reader.readUint8List(),
       );
@@ -2335,10 +2344,14 @@ class _LibraryHeader {
   /// we need to know how much data to skip for each class.
   final Uint32List classMembersLengths;
 
+  /// The only (if any) macro generated augmentation code.
+  final String? macroGeneratedCode;
+
   _LibraryHeader({
     required this.uri,
     required this.offset,
     required this.classMembersLengths,
+    required this.macroGeneratedCode,
   });
 }
 

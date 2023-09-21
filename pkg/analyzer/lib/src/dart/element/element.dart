@@ -3947,7 +3947,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   final LibraryOrAugmentationElementImpl augmentationTarget;
 
-  MacroGenerationAugmentationLibrary? macroGenerated;
+  MacroGeneratedAugmentationLibrary? macroGenerated;
 
   LibraryAugmentationElementLinkedData? linkedData;
 
@@ -4799,11 +4799,11 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 }
 
 /// Additional information for a macro generated augmentation library.
-class MacroGenerationAugmentationLibrary {
+class MacroGeneratedAugmentationLibrary {
   final String code;
   final Uint8List informativeBytes;
 
-  MacroGenerationAugmentationLibrary({
+  MacroGeneratedAugmentationLibrary({
     required this.code,
     required this.informativeBytes,
   });
