@@ -6793,8 +6793,12 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // additionally verify here that there is an actual overlap. Instead, only
     // do that when we need to calculate the end address of the regions in
     // the loop case.
-    __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards,
-                compiler::Assembler::kNearJump);
+#if defined(USING_MEMORY_SANITIZER)
+    const auto jump_distance = compiler::Assembler::kFarJump;
+#else
+    const auto jump_distance = compiler::Assembler::kNearJump;
+#endif
+    __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards, jump_distance);
     __ Comment("Copying backwards");
     if (constant_length) {
       EmitUnrolledCopy(compiler, dest_reg, src_reg, num_elements,
@@ -6803,7 +6807,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitLoopCopy(compiler, dest_reg, src_reg, length_reg, &done,
                    &copy_forwards);
     }
-    __ Jump(&done, compiler::Assembler::kNearJump);
+    __ Jump(&done, jump_distance);
     __ Comment("Copying forwards");
   }
   __ Bind(&copy_forwards);
@@ -6891,6 +6895,14 @@ void MemoryCopyInstr::EmitUnrolledCopy(FlowGraphCompiler* compiler,
         UNREACHABLE();
     }
   }
+
+#if defined(USING_MEMORY_SANITIZER) && defined(TARGET_ARCH_X64)
+  RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
+                                   CallingConventions::kVolatileXmmRegisters);
+  __ PushRegisters(kVolatileRegisterSet);
+  __ MsanUnpoison(dest_reg, num_bytes);
+  __ PopRegisters(kVolatileRegisterSet);
+#endif
 }
 #endif
 

@@ -1207,6 +1207,7 @@ class Assembler : public AssemblerBase {
   }
 
   void MsanUnpoison(Register base, intptr_t length_in_bytes);
+  void MsanUnpoison(Register base, Register length_in_bytes);
 
 #if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);

@@ -2016,6 +2016,17 @@ void Assembler::MsanUnpoison(Register base, intptr_t length_in_bytes) {
       compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
 }
 
+void Assembler::MsanUnpoison(Register base, Register length_in_bytes) {
+  if (base != CallingConventions::kArg1Reg) {
+    movq(CallingConventions::kArg1Reg, base);
+  }
+  if (length_in_bytes != CallingConventions::kArg2Reg) {
+    movq(CallingConventions::kArg2Reg, length_in_bytes);
+  }
+  CallCFunction(
+      compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+}
+
 #if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);

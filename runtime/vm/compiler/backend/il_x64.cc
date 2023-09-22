@@ -226,8 +226,12 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
     const ScaleFactor scale = ToScaleFactor(mov_size, /*index_unboxed=*/true);
     __ leaq(TMP, compiler::Address(src_reg, length_reg, scale, -mov_size));
     __ CompareRegisters(dest_reg, TMP);
-    __ BranchIf(UNSIGNED_GREATER, copy_forwards,
-                compiler::Assembler::kNearJump);
+#if defined(USING_MEMORY_SANITIZER)
+    const auto jump_distance = compiler::Assembler::kFarJump;
+#else
+    const auto jump_distance = compiler::Assembler::kNearJump;
+#endif
+    __ BranchIf(UNSIGNED_GREATER, copy_forwards, jump_distance);
     // The backwards move must be performed, so move TMP -> src_reg and do the
     // same adjustment for dest_reg.
     __ movq(src_reg, TMP);
@@ -235,6 +239,10 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
             compiler::Address(dest_reg, length_reg, scale, -mov_size));
     __ std();
   }
+#if defined(USING_MEMORY_SANITIZER)
+  // The `rep` instruction sets `length_reg` to 0.
+  __ movq(TMP, length_reg);
+#endif
   switch (mov_size) {
     case 1:
       __ rep_movsb();
@@ -254,6 +262,15 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   if (reversed) {
     __ cld();
   }
+
+#if defined(USING_MEMORY_SANITIZER)
+  RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
+                                   CallingConventions::kVolatileXmmRegisters);
+  __ PushRegisters(kVolatileRegisterSet);
+  __ MulImmediate(TMP, mov_size);
+  __ MsanUnpoison(dest_reg, TMP);
+  __ PopRegisters(kVolatileRegisterSet);
+#endif
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
