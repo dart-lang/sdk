@@ -828,24 +828,11 @@ class _Uri {
   }
 }
 
-bool _hasErrorStackProperty = JS('bool', 'new Error().stack != void 0');
-
 @patch
 class StackTrace {
   @patch
   @pragma('dart2js:noInline')
-  static StackTrace get current {
-    if (_hasErrorStackProperty) {
-      return getTraceFromException(JS('', 'new Error()'));
-    }
-    // Fallback if new Error().stack does not exist.
-    // Currently only required for IE 11.
-    try {
-      throw '';
-    } catch (_, stackTrace) {
-      return stackTrace;
-    }
-  }
+  static StackTrace get current => getTraceFromException(JS('', 'new Error()'));
 }
 
 /// Used by Fasta to report a runtime error when a final field with an
