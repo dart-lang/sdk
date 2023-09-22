@@ -81,11 +81,24 @@ class _DebuggingSession {
 
     final fullSdk = dartDir.endsWith('bin');
 
-    final ddsSnapshot = [
+    final dartAotPath = [
+      dartDir,
+      fullSdk ? 'dartaotruntime' : 'dart_precompiled_runtime_product',
+    ].join('/');
+    String snapshotName = [
       dartDir,
       fullSdk ? 'snapshots' : 'gen',
-      'dds.dart.snapshot',
+      'dds_aot.dart.snapshot',
     ].join('/');
+    String execName = dartAotPath;
+    if (!File(snapshotName).existsSync()) {
+      snapshotName = [
+        dartDir,
+        fullSdk ? 'snapshots' : 'gen',
+        'dds.dart.snapshot',
+      ].join('/');
+      execName = dartPath.toString();
+    }
 
     final devToolsBinaries = [
       dartDir,
@@ -95,9 +108,9 @@ class _DebuggingSession {
 
     const enableLogging = false;
     _process = await Process.start(
-      dartPath.toString(),
+      execName,
       [
-        ddsSnapshot,
+        snapshotName,
         server!.serverAddress!.toString(),
         host,
         port,
