@@ -1,3 +1,13 @@
+## 3.1.3
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which would cause the compiler to crash when using
+  `@staticInterop` `@anonymous` factory constructors with type parameters (see
+  issue [#53579] for more details).
+
+[#53579]: https://github.com/dart-lang/sdk/issues/53579
+
 ## 3.1.2 - 2023-09-13
 
 This is a patch release that:
