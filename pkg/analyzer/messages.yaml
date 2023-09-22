@@ -9171,7 +9171,7 @@ CompileTimeErrorCode:
       entry even though it's a set literal:
 
       ```dart
-      const collection = <String>{[!'a' : 'b'!]};
+      var collection = <String>{[!'a' : 'b'!]};
       ```
 
       #### Common fixes
@@ -9181,7 +9181,7 @@ CompileTimeErrorCode:
       another type argument:
 
       ```dart
-      const collection = <String, String>{'a' : 'b'};
+      var collection = <String, String>{'a' : 'b'};
       ```
 
       In other cases, you might need to change the explicit type from `Set` to
@@ -9192,7 +9192,7 @@ CompileTimeErrorCode:
       included in the set:
 
       ```dart
-      const collection = <String>{'a', 'b'};
+      var collection = <String>{'a', 'b'};
       ```
   MAP_KEY_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."

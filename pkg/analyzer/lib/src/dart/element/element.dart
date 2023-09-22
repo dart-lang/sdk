@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
@@ -1282,11 +1283,11 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// initializers.
   Expression? constantInitializer;
 
-  EvaluationResultImpl? _evaluationResult;
+  Constant? _evaluationResult;
 
-  EvaluationResultImpl? get evaluationResult => _evaluationResult;
+  Constant? get evaluationResult => _evaluationResult;
 
-  set evaluationResult(EvaluationResultImpl? evaluationResult) {
+  set evaluationResult(Constant? evaluationResult) {
     _evaluationResult = evaluationResult;
   }
 
@@ -1315,7 +1316,11 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-    return evaluationResult?.value;
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
   }
 }
 
@@ -1378,7 +1383,7 @@ class DefaultSuperFormalParameterElementImpl
   }
 
   @override
-  EvaluationResultImpl? get evaluationResult {
+  Constant? get evaluationResult {
     if (constantInitializer != null) {
       return super.evaluationResult;
     }
@@ -1663,15 +1668,41 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The result of evaluating this annotation as a compile-time constant
   /// expression, or `null` if the compilation unit containing the variable has
   /// not been resolved.
-  EvaluationResultImpl? evaluationResult;
+  Constant? evaluationResult;
+
+  /// Any additional errors, other than [evaluationResult] being an
+  /// [InvalidConstant], that came from evaluating the constant expression,
+  /// or `null` if the compilation unit containing the variable has
+  /// not been resolved.
+  ///
+  /// TODO(kallentu): Remove this field once we fix up g3's dependency on
+  /// annotations having a valid result as well as unresolved errors.
+  List<AnalysisError>? additionalErrors;
 
   /// Initialize a newly created annotation. The given [compilationUnit] is the
   /// compilation unit in which the annotation appears.
   ElementAnnotationImpl(this.compilationUnit);
 
   @override
-  List<AnalysisError> get constantEvaluationErrors =>
-      evaluationResult?.errors ?? const <AnalysisError>[];
+  List<AnalysisError> get constantEvaluationErrors {
+    final evaluationResult = this.evaluationResult;
+    final additionalErrors = this.additionalErrors;
+    if (evaluationResult is InvalidConstant) {
+      // When we have an [InvalidConstant], we don't report the additional
+      // errors because this result contains the most relevant error.
+      return [
+        AnalysisError.tmp(
+          source: source,
+          offset: evaluationResult.offset,
+          length: evaluationResult.length,
+          errorCode: evaluationResult.errorCode,
+          arguments: evaluationResult.arguments,
+          contextMessages: evaluationResult.contextMessages,
+        )
+      ];
+    }
+    return additionalErrors ?? const <AnalysisError>[];
+  }
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
@@ -1824,7 +1855,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-    return evaluationResult?.value;
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
   }
 
   @override
@@ -6876,11 +6911,11 @@ abstract class VariableElementImpl extends ElementImpl
   /// compile-time constant expression, or `null` if this variable is not a
   /// 'const' variable, if it does not have an initializer, or if the
   /// compilation unit containing the variable has not been resolved.
-  EvaluationResultImpl? get evaluationResult => null;
+  Constant? get evaluationResult => null;
 
   /// Set the result of evaluating this variable's initializer as a compile-time
   /// constant expression to the given [result].
-  set evaluationResult(EvaluationResultImpl? result) {
+  set evaluationResult(Constant? result) {
     throw StateError("Invalid attempt to set a compile-time constant result");
   }
 

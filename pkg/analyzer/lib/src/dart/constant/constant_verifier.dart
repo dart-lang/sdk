@@ -130,23 +130,21 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstantPattern(ConstantPattern node) {
-    super.visitConstantPattern(node);
-
     var expression = node.expression.unParenthesized;
     if (expression.typeOrThrow is InvalidType) {
       return;
     }
 
-    DartObjectImpl? value = _validate(
+    var value = _evaluateAndReportError(
       expression,
       CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
     );
-    if (value != null) {
+    if (value is DartObjectImpl) {
       if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
         _constantPatternValues?[node] = value;
         if (value.hasPrimitiveEquality(_currentLibrary.featureSet)) {
-          final constantType = value.type;
-          final matchedValueType = node.matchedValueType;
+          var constantType = value.type;
+          var matchedValueType = node.matchedValueType;
           if (matchedValueType != null) {
             if (!_canBeEqual(constantType, matchedValueType)) {
               _errorReporter.reportErrorForNode(
@@ -154,10 +152,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                 node,
                 [matchedValueType, constantType],
               );
+              return;
             }
           }
         }
       }
+      super.visitConstantPattern(node);
     }
   }
 
@@ -210,8 +210,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     var element = node.declaredElement as ConstFieldElementImpl;
     var result = element.evaluationResult;
-    if (result != null) {
-      _reportErrors(result.errors, null);
+    if (result is InvalidConstant) {
+      _reportError(result, null);
     }
   }
 
@@ -320,11 +320,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       element.accept(this);
       if (element is MapPatternEntry) {
         var key = element.key;
-        var keyValue = _validate(
+        var keyValue = _evaluateAndReportError(
           key,
           CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY,
         );
-        if (keyValue != null) {
+        if (keyValue is DartObjectImpl) {
           _mapPatternKeyValues?[key] = keyValue;
           var existingKey = uniqueKeys[keyValue];
           if (existingKey != null) {
@@ -357,7 +357,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void visitRelationalPattern(RelationalPattern node) {
     super.visitRelationalPattern(node);
 
-    _validate(
+    _evaluateAndReportError(
       node.operand,
       CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
     );
@@ -483,11 +483,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         assert(!node.isConst);
         return;
       }
-      if (node.isConst) {
-        _reportErrors(result.errors,
-            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
-      } else {
-        _reportErrors(result.errors, null);
+      if (result is InvalidConstant) {
+        if (node.isConst) {
+          _reportError(result,
+              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+        } else {
+          _reportError(result, null);
+        }
       }
     }
   }
@@ -571,104 +573,137 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Report any errors in the given list. Except for special cases, use the
-  /// given error code rather than the one reported in the error.
+  /// Evaluates [expression] and reports any evaluation error.
   ///
-  /// @param errors the errors that need to be reported
-  /// @param errorCode the error code to be used
-  void _reportErrors(List<AnalysisError> errors, ErrorCode? errorCode) {
-    int length = errors.length;
-    for (int i = 0; i < length; i++) {
-      AnalysisError data = errors[i];
-      ErrorCode dataErrorCode = data.errorCode;
-      if (identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
-          identical(
-              dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING) ||
-          identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) ||
-          identical(
-              dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT) ||
-          identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) ||
-          identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
-          identical(
-              dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_STRING) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
-          identical(dataErrorCode, CompileTimeErrorCode.CONST_TYPE_PARAMETER) ||
-          identical(
-              dataErrorCode, CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF) ||
-          identical(
-              dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH) ||
-          identical(dataErrorCode, CompileTimeErrorCode.NON_BOOL_CONDITION) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY) ||
-          identical(
-              dataErrorCode,
-              CompileTimeErrorCode
-                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
-          identical(dataErrorCode,
-              CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY)) {
-        _errorReporter.reportError(data);
-      } else if (errorCode != null) {
-        _errorReporter.reportError(
-          AnalysisError.tmp(
-            source: data.source,
-            offset: data.offset,
-            length: data.length,
-            errorCode: errorCode,
-          ),
-        );
-      }
+  /// Returns the compile time constant of [expression], or an [InvalidConstant]
+  /// if an error was found during evaluation. If an [InvalidConstant] was
+  /// found, the error will be reported and [errorCode] will be the default
+  /// error code to be reported.
+  Constant _evaluateAndReportError(Expression expression, ErrorCode errorCode) {
+    var errorListener = RecordingErrorListener();
+    var subErrorReporter = ErrorReporter(
+      errorListener,
+      _errorReporter.source,
+      isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
+    );
+    var constantVisitor =
+        ConstantVisitor(_evaluationEngine, _currentLibrary, subErrorReporter);
+    var result = constantVisitor.evaluateConstant(expression);
+    if (result is InvalidConstant) {
+      _reportError(result, errorCode);
+    }
+    return result;
+  }
+
+  /// Reports an error to the [_errorReporter].
+  ///
+  /// If the [error] isn't found in the list, use the given [defaultErrorCode]
+  /// instead.
+  void _reportError(InvalidConstant error, ErrorCode? defaultErrorCode) {
+    if (error.avoidReporting) {
+      return;
+    }
+
+    // TODO(kallentu): Create a set of errors so this method is readable. But
+    // also maybe turn this into a deny list instead of an allow list.
+    //
+    // These error codes are more specific than the [defaultErrorCode] so they
+    // will overwrite and replace the default when we report the error.
+    ErrorCode errorCode = error.errorCode;
+    if (identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT) ||
+        identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS) ||
+        identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) ||
+        identical(
+            errorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_STRING) ||
+        identical(
+            errorCode, CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
+        identical(errorCode,
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
+        identical(errorCode,
+            CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_TYPE_PARAMETER) ||
+        identical(errorCode,
+            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF) ||
+        identical(errorCode,
+            CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET) ||
+        identical(errorCode, CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP) ||
+        identical(errorCode, CompileTimeErrorCode.EXPRESSION_IN_MAP) ||
+        identical(errorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH) ||
+        identical(errorCode, CompileTimeErrorCode.NON_BOOL_CONDITION) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY) ||
+        identical(errorCode,
+            CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY) ||
+        identical(errorCode,
+            CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY) ||
+        identical(errorCode,
+            CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+        identical(errorCode,
+            CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+        identical(errorCode,
+            CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY) ||
+        identical(errorCode,
+            CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION) ||
+        identical(
+            errorCode,
+            CompileTimeErrorCode
+                .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION)) {
+      _errorReporter.reportError(
+        AnalysisError.tmp(
+          source: _errorReporter.source,
+          offset: error.offset,
+          length: error.length,
+          errorCode: error.errorCode,
+          arguments: error.arguments,
+          contextMessages: error.contextMessages,
+        ),
+      );
+    } else if (defaultErrorCode != null) {
+      _errorReporter.reportError(
+        AnalysisError.tmp(
+          source: _errorReporter.source,
+          offset: error.offset,
+          length: error.length,
+          errorCode: defaultErrorCode,
+        ),
+      );
     }
   }
 
@@ -701,28 +736,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     return _currentLibrary.typeSystem.runtimeTypeMatch(obj, type);
   }
 
-  /// Validate that the given expression is a compile time constant. Return the
-  /// value of the compile time constant, or `null` if the expression is not a
-  /// compile time constant.
-  ///
-  /// @param expression the expression to be validated
-  /// @param errorCode the error code to be used if the expression is not a
-  ///        compile time constant
-  /// @return the value of the compile time constant
-  DartObjectImpl? _validate(Expression expression, ErrorCode errorCode) {
-    RecordingErrorListener errorListener = RecordingErrorListener();
-    ErrorReporter subErrorReporter = ErrorReporter(
-      errorListener,
-      _errorReporter.source,
-      isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
-    );
-    var result = expression.accept(
-        ConstantVisitor(_evaluationEngine, _currentLibrary, subErrorReporter));
-    _reportErrors(errorListener.errors, errorCode);
-    // TODO(kallentu): Evaluate whether we want to change the return type.
-    return result is DartObjectImpl ? result : null;
-  }
-
   /// Validate that if the passed arguments are constant expressions.
   ///
   /// @param argumentList the argument list to evaluate
@@ -730,7 +743,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     for (Expression argument in argumentList.arguments) {
       Expression realArgument =
           argument is NamedExpression ? argument.expression : argument;
-      _validate(
+      _evaluateAndReportError(
           realArgument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
     }
   }
@@ -767,7 +780,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     for (FormalParameter parameter in parameters.parameters) {
       if (parameter is DefaultFormalParameter) {
         var defaultValue = parameter.defaultValue;
-        DartObjectImpl? result;
+        Constant? result;
         if (defaultValue == null) {
           result = DartObjectImpl(
             _typeSystem,
@@ -777,12 +790,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         } else if (defaultValue.typeOrThrow is InvalidType) {
           // We have already reported an error.
         } else {
-          result = _validate(
+          result = _evaluateAndReportError(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
         }
         VariableElementImpl element =
             parameter.declaredElement as VariableElementImpl;
-        element.evaluationResult = EvaluationResultImpl(result);
+        element.evaluationResult = result;
       }
     }
   }
@@ -958,11 +971,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (switchMember is SwitchCase) {
         Expression expression = switchMember.expression;
 
-        var expressionValue = _validate(
+        var expressionValue = _evaluateAndReportError(
           expression,
           CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
         );
-        if (expressionValue == null) {
+        if (expressionValue is! DartObjectImpl) {
           continue;
         }
         firstValue ??= expressionValue;
@@ -1004,11 +1017,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
     void validateExpression(Expression expression) {
-      var expressionValue = _validate(
+      var expressionValue = _evaluateAndReportError(
         expression,
         CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
       );
-      if (expressionValue == null) {
+      if (expressionValue is! DartObjectImpl) {
         return;
       }
 
@@ -1074,8 +1087,8 @@ class _ConstLiteralVerifier {
 
   bool verify(CollectionElement element) {
     if (element is Expression) {
-      var value = verifier._validate(element, errorCode);
-      if (value == null) return false;
+      var value = verifier._evaluateAndReportError(element, errorCode);
+      if (value is! DartObjectImpl) return false;
 
       final listElementType = this.listElementType;
       if (listElementType != null) {
@@ -1093,8 +1106,12 @@ class _ConstLiteralVerifier {
           CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, element);
       return false;
     } else if (element is IfElement) {
-      var conditionValue = verifier._validate(element.expression, errorCode);
-      var conditionBool = conditionValue?.toBoolValue();
+      var conditionValue =
+          verifier._evaluateAndReportError(element.expression, errorCode);
+      if (conditionValue is! DartObjectImpl) {
+        return false;
+      }
+      var conditionBool = conditionValue.toBoolValue();
 
       // The errors have already been reported.
       if (conditionBool == null) return false;
@@ -1119,8 +1136,9 @@ class _ConstLiteralVerifier {
     } else if (element is MapLiteralEntry) {
       return _validateMapLiteralEntry(element);
     } else if (element is SpreadElement) {
-      var value = verifier._validate(element.expression, errorCode);
-      if (value == null) return false;
+      var value =
+          verifier._evaluateAndReportError(element.expression, errorCode);
+      if (value is! DartObjectImpl) return false;
 
       if (listElementType != null || setConfig != null) {
         return _validateListOrSetSpread(element, value);
@@ -1245,16 +1263,16 @@ class _ConstLiteralVerifier {
     var keyExpression = entry.key;
     var valueExpression = entry.value;
 
-    var keyValue = verifier._validate(
+    var keyValue = verifier._evaluateAndReportError(
       keyExpression,
       CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
     );
-    var valueValue = verifier._validate(
+    var valueValue = verifier._evaluateAndReportError(
       valueExpression,
       CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
     );
 
-    if (keyValue != null) {
+    if (keyValue is DartObjectImpl) {
       var keyType = keyValue.type;
 
       if (!verifier._runtimeTypeMatch(keyValue, config.keyType)) {
@@ -1282,7 +1300,7 @@ class _ConstLiteralVerifier {
       }
     }
 
-    if (valueValue != null) {
+    if (valueValue is DartObjectImpl) {
       if (!verifier._runtimeTypeMatch(valueValue, config.valueType)) {
         verifier._errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
