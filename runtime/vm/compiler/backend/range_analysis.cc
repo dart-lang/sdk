@@ -2575,7 +2575,7 @@ void Definition::InferRange(RangeAnalysis* analysis, Range* range) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   } else {
     // Only Smi and Mint supported.
-    UNREACHABLE();
+    FATAL("Unsupported type in: %s", ToCString());
   }
 }
 
@@ -3131,17 +3131,19 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   }
 
   // Range of the index is unknown can't decide if the check is redundant.
-  Range* index_range = index->definition()->range();
+  Definition* index_defn = index->definition();
+  Range* index_range = index_defn->range();
   if (index_range == nullptr) {
-    if (!(index->BindsToConstant() &&
-          compiler::target::IsSmi(index->BoundConstant()))) {
+    if (!index->BindsToSmiConstant()) {
       return false;
     }
+    // index_defn itself is not necessarily the constant.
+    index_defn = index_defn->OriginalDefinition();
     Range range;
-    index->definition()->InferRange(nullptr, &range);
+    index_defn->InferRange(nullptr, &range);
     ASSERT(!Range::IsUnknown(&range));
-    index->definition()->set_range(range);
-    index_range = index->definition()->range();
+    index_defn->set_range(range);
+    index_range = index_defn->range();
   }
 
   // Range of the index is not positive. Check can't be redundant.
@@ -3149,7 +3151,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
     return false;
   }
 
-  RangeBoundary max = RangeBoundary::FromDefinition(index->definition());
+  RangeBoundary max = RangeBoundary::FromDefinition(index_defn);
   RangeBoundary max_upper = max.UpperBound();
   RangeBoundary array_length =
       RangeBoundary::FromDefinition(length->definition());
