@@ -585,7 +585,6 @@ class ProtocolConverter {
     }
 
     final scriptRef = location.script;
-    final tokenPos = location.tokenPos;
     final scriptRefUri = scriptRef?.uri;
     final uri = scriptRefUri != null ? Uri.parse(scriptRefUri) : null;
     final uriIsDart = uri?.isScheme('dart') ?? false;
@@ -605,19 +604,17 @@ class ProtocolConverter {
 
     // First try to use line/col from location to avoid fetching scripts.
     // LSP doesn't support nullable lines so we use 0 as where we can't map.
-    var line = location.line ?? 0;
-    var col = location.column ?? 0;
-    if (line == 0 || col == 0) {
-      if (scriptRef != null && tokenPos != null) {
-        try {
-          final script = await thread.getScript(scriptRef);
-          line = script.getLineNumberFromTokenPos(tokenPos) ?? 0;
-          col = script.getColumnNumberFromTokenPos(tokenPos) ?? 0;
-        } catch (e) {
-          _adapter.logger?.call('Failed to map frame location to line/col: $e');
-        }
-      }
+    var lineCol = await _getLineCol(thread, location);
+
+    // If the location has tokenPos -1, try reading it from the function.
+    // TODO(dantup): Remove this if/when this SDK issue is fixed:
+    //  https://github.com/dart-lang/sdk/issues/53559
+    if (lineCol == null && location.tokenPos == -1) {
+      lineCol = await _getLineCol(thread, frame.function?.location);
     }
+
+    // LSP uses 0 for unknown lines.
+    var (line, col) = lineCol ?? (0, 0);
 
     // If a source would be considered not-debuggable (for example it's in the
     // SDK and debugSdkLibraries=false) then we should also mark it as
@@ -746,5 +743,40 @@ class ProtocolConverter {
     }
 
     return getterNames;
+  }
+
+  /// Gets the line/column for [location] in [thread].
+  Future<(int line, int col)?> _getLineCol(
+    ThreadInfo thread,
+    vm.SourceLocation? location,
+  ) async {
+    if (location == null) {
+      return null;
+    }
+
+    var line = location.line;
+    var col = location.column;
+
+    if (line != null && col != null) {
+      return (line, col);
+    }
+
+    final scriptRef = location.script;
+    final tokenPos = location.tokenPos;
+    if (scriptRef != null && tokenPos != null && tokenPos != -1) {
+      try {
+        final script = await thread.getScript(scriptRef);
+        line = script.getLineNumberFromTokenPos(tokenPos);
+        col = script.getColumnNumberFromTokenPos(tokenPos);
+
+        if (line != null && col != null) {
+          return (line, col);
+        }
+      } catch (e) {
+        _adapter.logger?.call('Failed to map frame location to line/col: $e');
+      }
+    }
+
+    return null;
   }
 }
