@@ -200,7 +200,7 @@ double Evaluator::EvaluateDoubleOp(const double left,
     case Token::kMUL:
       return left * right;
     case Token::kDIV:
-      return left / right;
+      return Utils::DivideAllowZero(left, right);
     default:
       UNREACHABLE();
   }

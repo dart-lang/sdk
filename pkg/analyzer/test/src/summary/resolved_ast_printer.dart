@@ -274,7 +274,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _sink.writelnWithIndent('docDirectives');
         _sink.withIndent(() {
           for (var docDirective in node.docDirectives) {
-            _writeDocDirective(docDirective);
+            switch (docDirective) {
+              case SimpleDocDirective():
+                _sink.writelnWithIndent('SimpleDocDirective');
+                _sink.withIndent(() {
+                  _sink.writelnWithIndent('tag');
+                  _writeDocDirectiveTag(docDirective.tag);
+                });
+              case BlockDocDirective(:var openingTag, :var closingTag):
+                _sink.writelnWithIndent('BlockDocDirective');
+                _sink.withIndent(() {
+                  _sink.writelnWithIndent('openingTag');
+                  _writeDocDirectiveTag(openingTag);
+                  if (closingTag != null) {
+                    _sink.writelnWithIndent('closingTag');
+                    _writeDocDirectiveTag(closingTag);
+                  }
+                });
+            }
           }
         });
       }
@@ -1707,8 +1724,7 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  void _writeDocDirective(DocDirective docDirective) {
-    _sink.writelnWithIndent('DocDirective');
+  void _writeDocDirectiveTag(DocDirectiveTag docDirective) {
     _sink.withIndent(() {
       _sink.writelnWithIndent(
           'offset: [${docDirective.offset}, ${docDirective.end}]');

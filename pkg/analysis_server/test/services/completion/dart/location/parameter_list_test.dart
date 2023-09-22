@@ -8,21 +8,41 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ParameterListTest1);
-    defineReflectiveTests(ParameterListTest2);
+    defineReflectiveTests(ParameterListInConstructorTest1);
+    defineReflectiveTests(ParameterListInConstructorTest2);
+    defineReflectiveTests(ParameterListInFunctionTest1);
+    defineReflectiveTests(ParameterListInFunctionTest2);
+    defineReflectiveTests(ParameterListInMethodTest1);
+    defineReflectiveTests(ParameterListInMethodTest2);
   });
+}
+
+@reflectiveTest
+class ParameterListInConstructorTest1 extends AbstractCompletionDriverTest
+    with ParameterListInConstructorTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class ParameterListInConstructorTest2 extends AbstractCompletionDriverTest
+    with ParameterListInConstructorTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin ParameterListInConstructorTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterLeftParen_beforeFunctionType() async {
     await computeSuggestions('''
-class A { A(^ Function(){}) {}}
+class A { A(^ Function() f) {}}
 ''');
     assertResponse(r'''
 suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  final
     kind: keyword
   super
     kind: keyword
@@ -42,6 +62,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  final
     kind: keyword
   super
     kind: keyword
@@ -64,6 +86,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  final
     kind: keyword
   this
     kind: keyword
@@ -93,6 +117,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  final
+    kind: keyword
   super
     kind: keyword
   this
@@ -102,6 +128,20 @@ suggestions
 ''');
     }
   }
+}
+
+@reflectiveTest
+class ParameterListInFunctionTest1 extends AbstractCompletionDriverTest
+    with ParameterListInFunctionTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class ParameterListInFunctionTest2 extends AbstractCompletionDriverTest
+    with ParameterListInFunctionTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin ParameterListInFunctionTestCases on AbstractCompletionDriverTest {
@@ -117,10 +157,26 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  final
+    kind: keyword
   void
     kind: keyword
 ''');
   }
+}
+
+@reflectiveTest
+class ParameterListInMethodTest1 extends AbstractCompletionDriverTest
+    with ParameterListInMethodTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class ParameterListInMethodTest2 extends AbstractCompletionDriverTest
+    with ParameterListInMethodTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin ParameterListInMethodTestCases on AbstractCompletionDriverTest {
@@ -234,6 +290,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  final
+    kind: keyword
   void
     kind: keyword
 ''');
@@ -248,6 +306,8 @@ suggestions
   covariant
     kind: keyword
   dynamic
+    kind: keyword
+  final
     kind: keyword
   void
     kind: keyword
@@ -273,29 +333,11 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  final
+    kind: keyword
   void
     kind: keyword
 ''');
     }
   }
-}
-
-@reflectiveTest
-class ParameterListTest1 extends AbstractCompletionDriverTest
-    with
-        ParameterListInConstructorTestCases,
-        ParameterListInFunctionTestCases,
-        ParameterListInMethodTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ParameterListTest2 extends AbstractCompletionDriverTest
-    with
-        ParameterListInConstructorTestCases,
-        ParameterListInFunctionTestCases,
-        ParameterListInMethodTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }

@@ -38,8 +38,6 @@ const a = const A();
                   "The error is in the field initializer of 'A', and occurs here."),
         ],
       ),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 29,
-          9),
     ]);
   }
 
@@ -63,6 +61,19 @@ class RequiresNonEmptyList {
                   "The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here."),
         ],
       ),
+    ]);
+  }
+
+  test_nonStaticField_inGenericClass() async {
+    await assertErrorsInCode('''
+class C<T> {
+  const C();
+  T? get t => null;
+}
+
+const x = const C().t;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS, 59, 11),
     ]);
   }
 }

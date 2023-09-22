@@ -212,9 +212,17 @@ extension JSPromiseToFuture on JSPromise {
   external Future<JSAny?> get toDart;
 }
 
-// TODO(joshualitt): On Wasm backends List / Array conversion methods will
-// copy, and on JS backends they will not. We should find a path towards
-// consistent semantics.
+// **WARNING**:
+// Currently, the `toJS` getters on `dart:typed_data` types have inconsistent
+// semantics today between dart2wasm and the JS compilers. dart2wasm copies the
+// contents over, while the JS compilers passes the typed arrays by reference as
+// they are JS typed arrays under the hood. Do not rely on modifications to the
+// Dart type to affect the JS type.
+//
+// All the `toDart` getters on the JS typed arrays will introduce a wrapper
+// around the JS typed array, however. So modifying the Dart type will modify
+// the JS type and vice versa in that case.
+
 /// [JSArrayBuffer] <-> [ByteBuffer]
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   external ByteBuffer get toDart;
@@ -317,6 +325,8 @@ extension Float64ListToJSFloat64Array on Float64List {
 /// [JSArray] <-> [List]
 extension JSArrayToList on JSArray {
   /// Returns a list wrapper of the JS array.
+  ///
+  /// Modifying the JS array will modify the returned list and vice versa.
   external List<JSAny?> get toDart;
 }
 

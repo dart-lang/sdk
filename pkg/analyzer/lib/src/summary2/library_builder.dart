@@ -488,7 +488,10 @@ class LibraryBuilder {
       return;
     }
 
-    final macroState = kind.addOrUpdateMacro(augmentationCode);
+    final macroState = kind.addOrUpdateMacro(
+      augmentationCode,
+      addLibraryAugmentDirective: true,
+    );
     if (macroState == null) return;
 
     final macroImport = _buildAugmentationImport(element, macroState);
@@ -507,7 +510,7 @@ class LibraryBuilder {
     ).buildDeclarationElements(macroLinkingUnit.node);
 
     macroImport.importedAugmentation!.macroGenerated =
-        MacroGenerationAugmentationLibrary(
+        MacroGeneratedAugmentationLibrary(
       code: macroState.importedFile.content,
       informativeBytes: macroState.importedFile.unlinked2.informativeBytes,
     );

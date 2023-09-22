@@ -388,13 +388,23 @@ class _DebuggingSession {
   ) async {
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
-    final ddsSnapshot = fullSdk
-        ? sdk.ddsSnapshot
-        : absolute(sdkDir, 'gen', 'dds.dart.snapshot');
     final devToolsBinaries =
         fullSdk ? sdk.devToolsBinaries : absolute(sdkDir, 'devtools');
-    if (!Sdk.checkArtifactExists(ddsSnapshot)) {
-      return false;
+    String snapshotName = fullSdk
+        ? sdk.ddsAotSnapshot
+        : absolute(sdkDir, 'gen', 'dds_aot.dart.snapshot');
+    String execName = sdk.dartAotRuntime;
+    if (!Sdk.checkArtifactExists(snapshotName)) {
+      // An AOT snapshot of dds is not available, we could
+      // be running on the ia32 platform so check for a regular
+      // kernel file being present.
+      snapshotName = fullSdk
+          ? sdk.ddsSnapshot
+          : absolute(sdkDir, 'gen', 'dds.dart.snapshot');
+      if (!Sdk.checkArtifactExists(snapshotName)) {
+        return false;
+      }
+      execName = sdk.dart;
     }
     ServiceProtocolInfo serviceInfo = await Service.getInfo();
     // Wait for VM service to publish its connection info.
@@ -403,10 +413,10 @@ class _DebuggingSession {
       serviceInfo = await Service.getInfo();
     }
     final process = await Process.start(
-      sdk.dart,
+      execName,
       [
         if (debugDds) '--enable-vm-service=0',
-        ddsSnapshot,
+        snapshotName,
         serviceInfo.serverUri.toString(),
         host,
         port,

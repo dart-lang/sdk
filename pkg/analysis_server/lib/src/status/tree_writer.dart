@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -67,13 +68,15 @@ mixin TreeWriter {
         var buffer = StringBuffer();
         buffer.write(_toString(value.element));
         var result = value.evaluationResult;
-        if (result == null) {
-          buffer.write(': no result');
-        } else {
-          buffer.write(': value = ');
-          buffer.write(result.value);
-          buffer.write('; errors = ');
-          buffer.write(result.errors);
+        switch (result) {
+          case null:
+            buffer.write(': no result');
+          case DartObjectImpl():
+            buffer.write(': value = ');
+            buffer.write(result);
+          case InvalidConstant():
+            buffer.write('; errors = ');
+            buffer.writeAll(value.constantEvaluationErrors, ', ');
         }
         return buffer.toString();
       } else {

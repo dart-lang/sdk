@@ -11586,7 +11586,7 @@ The following code produces this diagnostic because the literal has a map
 entry even though it's a set literal:
 
 {% prettify dart tag=pre+code %}
-const collection = <String>{[!'a' : 'b'!]};
+var collection = <String>{[!'a' : 'b'!]};
 {% endprettify %}
 
 #### Common fixes
@@ -11596,7 +11596,7 @@ that it is a map. In the previous example, you could do this by adding
 another type argument:
 
 {% prettify dart tag=pre+code %}
-const collection = <String, String>{'a' : 'b'};
+var collection = <String, String>{'a' : 'b'};
 {% endprettify %}
 
 In other cases, you might need to change the explicit type from `Set` to
@@ -11607,7 +11607,7 @@ possibly by replacing the colon with a comma if both values should be
 included in the set:
 
 {% prettify dart tag=pre+code %}
-const collection = <String>{'a', 'b'};
+var collection = <String>{'a', 'b'};
 {% endprettify %}
 
 ### map_key_type_not_assignable

@@ -740,7 +740,7 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = ${new FunctionType(returnType, required, [], JS('', '{}'), JS('', '{}'))};
+ result = ${new FunctionType(JS<Type>('!', '#', returnType), required, [], JS('', '{}'), JS('', '{}'))};
  map.set($returnType, result);
  return result;
 })()''');
@@ -1430,12 +1430,22 @@ bool isSubtypeOf(@notNull t1, @notNull t2) {
   bool result = JS('', '#.get(#)', map, t2);
   if (JS('!', '# !== void 0', result)) return result;
   // Reset count before performing subtype check.
+  var currentTypeVariableCount = _typeVariableCount;
   _typeVariableCount = 0;
   var validSubtype = _isSubtype(t1, t2, true);
+  // Restoring the existing value defensively. In theory a isSubtypeOf should
+  // never trigger another subtype check but implicit downcasts from
+  // dynamic do happen in the SDK code occasionally on accident.
+  _typeVariableCount = currentTypeVariableCount;
   if (!validSubtype && !compileTimeFlag('soundNullSafety')) {
     // Reset count before performing subtype check.
+    currentTypeVariableCount = _typeVariableCount;
     _typeVariableCount = 0;
     validSubtype = _isSubtype(t1, t2, false);
+    // Restoring the existing value defensively. In theory a isSubtypeOf should
+    // never trigger another subtype check but implicit downcasts from
+    // dynamic do happen in the SDK code occasionally on accident.
+    _typeVariableCount = currentTypeVariableCount;
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
       // File and line number that caused the subtype check?

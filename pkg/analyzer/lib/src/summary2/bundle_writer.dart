@@ -84,6 +84,9 @@ class BundleWriter {
       _sink._writeStringReference(library.uriStr);
       _sink.writeUInt30(library.offset);
       _sink.writeUint30List(library.classMembersOffsets);
+      _sink.writeOptionalObject(library.macroGenerated, (it) {
+        _sink.writeStringUtf8(it.code);
+      });
     });
 
     var referencesOffset = _sink.offset;
@@ -130,11 +133,15 @@ class BundleWriter {
 
     _writePropertyAccessorAugmentations();
 
+    final lastAugmentation = libraryElement.augmentations.lastOrNull;
+    final macroGenerated = lastAugmentation?.macroGenerated;
+
     _libraries.add(
       _Library(
         uriStr: '${libraryElement.source.uri}',
         offset: libraryOffset,
         classMembersOffsets: _classMembersLengths,
+        macroGenerated: macroGenerated,
       ),
     );
   }
@@ -1129,10 +1136,14 @@ class _Library {
   final int offset;
   final List<int> classMembersOffsets;
 
+  /// The only (if any) macro generated augmentation.
+  final MacroGeneratedAugmentationLibrary? macroGenerated;
+
   _Library({
     required this.uriStr,
     required this.offset,
     required this.classMembersOffsets,
+    required this.macroGenerated,
   });
 }
 

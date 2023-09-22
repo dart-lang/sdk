@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
 /// A completion pass that will create candidate suggestions based on the
@@ -335,6 +336,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (defaultValue is Expression && defaultValue.coversOffset(offset)) {
       collector.completionLocation = 'DefaultFormalParameter_defaultValue';
       _forExpression(defaultValue);
+    } else {
+      node.parameter.accept(this);
     }
   }
 
@@ -537,8 +540,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var parent = node.parent;
       if (parent is FunctionExpression) {
         visitFunctionExpression(parent);
+        return;
       }
     }
+    var parameters = node.parameters;
+    var precedingParameter = parameters.elementBefore(offset);
+    if (precedingParameter != null && precedingParameter.isIncomplete) {
+      precedingParameter.accept(this);
+      return;
+    }
+
+    keywordHelper.addFormalParameterKeywords(node);
+    _forTypeAnnotation();
   }
 
   @override
@@ -634,6 +647,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (node.typedefKeyword.coversOffset(offset)) {
       keywordHelper.addKeyword(Keyword.TYPEDEF);
+    }
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    var returnType = node.returnType;
+    if (returnType != null && offset <= returnType.end) {
+      keywordHelper.addFormalParameterKeywords(node.parentFormalParameterList);
+      _forTypeAnnotation();
+    } else if (returnType == null && offset < node.name.offset) {
+      _forTypeAnnotation();
     }
   }
 
@@ -1036,9 +1060,29 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    var name = node.name;
+    if (name != null && node.isSingleIdentifier) {
+      if (name.isKeyword) {
+        if (name.keyword == Keyword.REQUIRED && node.covariantKeyword == null) {
+          keywordHelper.addKeyword(Keyword.COVARIANT);
+        }
+        _forTypeAnnotation();
+        return;
+      } else if (name.isSynthetic) {
+        keywordHelper
+            .addFormalParameterKeywords(node.parentFormalParameterList);
+        _forTypeAnnotation();
+      } else {
+        keywordHelper
+            .addFormalParameterKeywords(node.parentFormalParameterList);
+        _forTypeAnnotation();
+      }
+    }
     var type = node.type;
     if (type != null) {
       if (type.beginToken.coversOffset(offset)) {
+        keywordHelper
+            .addFormalParameterKeywords(node.parentFormalParameterList);
         _forTypeAnnotation();
       } else if (type is GenericFunctionType &&
           offset < type.functionKeyword.offset &&
@@ -1640,7 +1684,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 }
 
 extension on AstNode {
-  /// Return `true` if all of the tokens in this node are synthetic.
+  /// Whether all of the tokens in this node are synthetic.
   bool get isFullySynthetic {
     var current = beginToken;
     var stop = endToken.next!;
@@ -1745,7 +1789,7 @@ extension on AstNode {
 }
 
 extension on ClassDeclaration {
-  /// Return `true` if this class declaration doesn't have a body.
+  /// Whether this class declaration doesn't have a body.
   bool get hasNoBody {
     return leftBracket.isSynthetic && rightBracket.isSynthetic;
   }
@@ -1810,7 +1854,7 @@ extension on CompilationUnit {
 }
 
 extension on ExpressionStatement {
-  /// Return `true` if this statement consists of a single identifier.
+  /// Whether this statement consists of a single identifier.
   bool get isSingleIdentifier {
     var first = beginToken;
     var last = endToken;
@@ -1821,14 +1865,14 @@ extension on ExpressionStatement {
 }
 
 extension on ExtensionTypeDeclaration {
-  /// Return `true` if this class declaration doesn't have a body.
+  /// Whether this class declaration doesn't have a body.
   bool get hasNoBody {
     return leftBracket.isSynthetic && rightBracket.isSynthetic;
   }
 }
 
 extension on FieldDeclaration {
-  /// Return `true` if this field declaration consists of a single identifier.
+  /// Whether this field declaration consists of a single identifier.
   bool get isSingleIdentifier {
     var first = beginToken;
     var last = endToken;
@@ -1838,8 +1882,35 @@ extension on FieldDeclaration {
   }
 }
 
+extension on FormalParameter {
+  /// Whether this formal parameter declaration is incomplete.
+  bool get isIncomplete {
+    final name = this.name;
+    if (name == null || name.isKeyword) {
+      return true;
+    }
+    var self = this;
+    if (self is DefaultFormalParameter && self.separator != null) {
+      var defaultValue = self.defaultValue;
+      if (defaultValue == null || defaultValue.isSynthetic) {
+        // The `defaultValue` won't be `null` if the separator is non-`null`,
+        // but the condition is necessary because the type system can't express
+        // that constraint.
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Whether this formal parameter declaration consists of a single identifier.
+  bool get isSingleIdentifier {
+    final beginToken = this.beginToken;
+    return beginToken == endToken && beginToken.isKeywordOrIdentifier;
+  }
+}
+
 extension on GuardedPattern {
-  /// Return `true` if this pattern has, or might have, a `when` keyword.
+  /// Whether this pattern has, or might have, a `when` keyword.
   bool get hasWhen {
     if (whenClause != null) {
       return true;
@@ -1883,7 +1954,7 @@ extension on SyntacticEntity? {
 }
 
 extension on TopLevelVariableDeclaration {
-  /// Return `true` if this top level variable declaration consists of a single
+  /// Whether this top level variable declaration consists of a single
   /// identifier.
   bool get isSingleIdentifier {
     var first = beginToken;
@@ -1896,7 +1967,7 @@ extension on TopLevelVariableDeclaration {
 }
 
 extension on TypeAnnotation? {
-  /// Return `true` if this type annotation consists of a single identifier.
+  /// Whether this type annotation consists of a single identifier.
   bool get isSingleIdentifier {
     var self = this;
     return self is NamedType &&

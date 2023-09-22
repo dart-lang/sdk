@@ -4760,13 +4760,20 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
 
       IsolateGroup::ForEach([&vm_children,
                              &vm_size](IsolateGroup* isolate_group) {
-        // Note: new_space()->CapacityInWords() includes memory that hasn't been
-        // allocated from the OS yet.
         int64_t capacity =
-            (isolate_group->heap()->new_space()->UsedInWords() +
+            (isolate_group->heap()->new_space()->CapacityInWords() +
              isolate_group->heap()->old_space()->CapacityInWords()) *
             kWordSize;
-        int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+        // The more precise UsedInWords for new-space iterates pages and
+        // potentially accesses Thread::top_/end_, which is not thread-safe
+        // here. CapacityInWords is similar enough for purposes of service stats
+        // for new-space, differing only up to the as-yet-unused portion of
+        // active TLABs, unlike old-space where it can differ greatly in a
+        // highly fragmented heap.
+        int64_t used = (isolate_group->heap()->new_space()->CapacityInWords() +
+                        isolate_group->heap()->old_space()->UsedInWords()) *
+                       kWordSize;
+
         int64_t free = capacity - used;
 
         JSONObject group(&vm_children);

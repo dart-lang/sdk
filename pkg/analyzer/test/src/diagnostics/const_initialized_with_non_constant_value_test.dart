@@ -84,20 +84,6 @@ const x = const A();
 ''');
   }
 
-  test_nonStaticField_inGenericClass() async {
-    await assertErrorsInCode('''
-class C<T> {
-  const C();
-  T? get t => null;
-}
-
-const x = const C().t;
-''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 59,
-          11),
-    ]);
-  }
-
   test_propertyExtraction_targetNotConst() async {
     await assertErrorsInCode(r'''
 class A {
