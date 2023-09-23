@@ -143,6 +143,32 @@ main() {
       expectStandardSimpleTestResults(outputEvents);
     });
 
+    test('has locations for all function stack frames', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleTestProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        args: ['--chain-stack-traces'], // to suppress warnings in the output
+      );
+
+      // Check the top few frames all have locations.
+      final stack = await client.getValidStack(
+        stop.threadId!,
+        startFrame: 0,
+        numFrames: 5,
+      );
+      for (final frame in stack.stackFrames) {
+        // Skip labels frames (eg. "<async gap>").
+        if (frame.presentationHint == "label") continue;
+
+        expect(frame.line, isPositive);
+        expect(frame.column, isPositive);
+      }
+    });
+
     test('can cleanly terminate from a breakpoint', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleTestProgram);

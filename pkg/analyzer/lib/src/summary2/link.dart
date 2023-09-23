@@ -132,8 +132,10 @@ class Linker {
 
     await performance.runAsync(
       'executeMacroDeclarationsPhase',
-      (_) async {
-        await _executeMacroDeclarationsPhase();
+      (performance) async {
+        await _executeMacroDeclarationsPhase(
+          performance: performance,
+        );
       },
     );
 
@@ -257,9 +259,13 @@ class Linker {
     }
   }
 
-  Future<void> _executeMacroDeclarationsPhase() async {
+  Future<void> _executeMacroDeclarationsPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
     for (final library in builders.values) {
-      await library.executeMacroDeclarationsPhase();
+      await library.executeMacroDeclarationsPhase(
+        performance: performance,
+      );
     }
   }
 

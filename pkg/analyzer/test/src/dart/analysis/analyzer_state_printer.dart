@@ -280,6 +280,13 @@ class AnalyzerStatePrinter {
   void _writeFiles(FileSystemTestData testData) {
     fileSystemState.pullReferencedFiles();
 
+    if (configuration.discardPartialMacroAugmentationFiles) {
+      final pattern = RegExp(r'^.*\.macro\d+\.dart$');
+      testData.files.removeWhere((file, value) {
+        return pattern.hasMatch(file.path);
+      });
+    }
+
     // Discover libraries for parts.
     // This is required for consistency checking.
     for (final fileData in testData.files.values.toList()) {
@@ -668,9 +675,11 @@ class AnalyzerStatePrinter {
 }
 
 class AnalyzerStatePrinterConfiguration {
-  bool omitSdkFiles = true;
+  bool discardPartialMacroAugmentationFiles = true;
 
   Set<File> filesToPrintContent = {};
+
+  bool omitSdkFiles = true;
 }
 
 /// Encoder of object identifies into short identifiers.

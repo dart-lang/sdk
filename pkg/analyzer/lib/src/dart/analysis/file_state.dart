@@ -174,6 +174,15 @@ class AugmentationKnownFileKind extends AugmentationFileKind {
   @override
   void dispose() {
     super.dispose();
+
+    // We dispose partial macro augmentations when we are about to add the
+    // merged macro augmentation with all execution results. These macro
+    // augmentations never add new dependencies, other than already present
+    // via the augmented library. So, there is no reason to invalidate.
+    if (file.isMacroAugmentation) {
+      return;
+    }
+
     invalidateLibraryCycle();
   }
 
@@ -1677,11 +1686,10 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   List<PartState>? _parts;
 
-  /// The synthetic augmentation import added to [augmentationImports] for
-  /// the macro application result of this library. It is filled only if the
-  /// library uses any macros, during linking or after loading the summary
-  /// bundle.
-  AugmentationImportWithFile? _macroImport;
+  /// The synthetic augmentation imports added to [augmentationImports] for
+  /// the macro application results of this library. It is filled only if the
+  /// library uses any macros.
+  List<AugmentationImportWithFile> _macroImports = const [];
 
   LibraryCycle? _libraryCycle;
 
@@ -1775,14 +1783,25 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     }).toFixedList();
   }
 
-  AugmentationImportWithFile? addOrUpdateMacro(
+  /// [addLibraryAugmentDirective] is set to `false` when we are reading
+  /// a summary bundle, because it already has full macro augmentation code.
+  ///
+  /// [partialIndex] is provided while we run phases of macros, and accumulate
+  /// results in separate augmentation libraries with names `foo.macroX.dart`.
+  /// For the merged augmentation we pass `null` here, so a single
+  /// `foo.macro.dart` is created.
+  AugmentationImportWithFile? addMacroAugmentation(
     String code, {
     required bool addLibraryAugmentDirective,
+    required int? partialIndex,
   }) {
     final pathContext = file._fsState.pathContext;
     final libraryFileName = pathContext.basename(file.path);
-    final macroFileName =
-        pathContext.setExtension(libraryFileName, '.macro.dart');
+
+    final String macroFileName = pathContext.setExtension(
+      libraryFileName,
+      '.macro${partialIndex != null ? '$partialIndex' : ''}.dart',
+    );
 
     final String augmentationContent;
     if (addLibraryAugmentDirective) {
@@ -1808,7 +1827,9 @@ $code
     final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
 
     final macroFileResolution = file._fsState.getFileForUri(macroUri);
-    if (macroFileResolution is! UriResolutionFile) return null;
+    if (macroFileResolution is! UriResolutionFile) {
+      return null;
+    }
     final macroFile = macroFileResolution.file;
 
     final import = AugmentationImportWithFile(
@@ -1824,15 +1845,10 @@ $code
         file: macroFile,
       ),
     );
-    _macroImport = import;
+    _macroImports = [..._macroImports, import].toFixedList();
 
-    final lastImport = augmentationImports.lastOrNull;
-    if (lastImport != null && lastImport.unlinked.uri == macroFileName) {
-      augmentationImports[augmentationImports.length - 1] = import;
-      // TODO(scheglov) refresh file
-    } else {
-      _augmentationImports = [...augmentationImports, import].toFixedList();
-    }
+    // We cannot add, because the list is not growable.
+    _augmentationImports = [...augmentationImports, import].toFixedList();
 
     return import;
   }
@@ -1861,6 +1877,22 @@ $code
     super.dispose();
   }
 
+  /// When the library cycle that contains this library is invalidated, the
+  /// macros might potentially generate different code, or no code at all. So,
+  /// we discard the existing macro augmentation library, it will be rebuilt
+  /// during linking.
+  void disposeMacroAugmentations() {
+    for (final macroImport in _macroImports) {
+      _augmentationImports = augmentationImports.withoutLast.toFixedList();
+      // Discard the file.
+      final macroFile = macroImport.importedFile;
+      macroFile.kind.dispose();
+      file._fsState._pathToFile.remove(macroFile.path);
+      file._fsState._uriToFile.remove(macroFile.uri);
+    }
+    _macroImports = const [];
+  }
+
   bool hasPart(PartFileKind partKind) {
     for (final partDirective in parts) {
       if (partDirective is PartWithFile) {
@@ -1874,7 +1906,7 @@ $code
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
-    _disposeMacroAugmentation();
+    disposeMacroAugmentations();
   }
 
   @override
@@ -1886,22 +1918,6 @@ $code
   @override
   String toString() {
     return 'LibraryFileKind($file)';
-  }
-
-  /// When the library cycle that contains this library is invalidated, the
-  /// macros might potentially generate different code, or no code at all. So,
-  /// we discard the existing macro augmentation library, it will be rebuilt
-  /// during linking.
-  void _disposeMacroAugmentation() {
-    if (_macroImport case final macroImport?) {
-      _macroImport = null;
-      _augmentationImports = augmentationImports.withoutLast.toFixedList();
-      // Discard the file.
-      final macroFile = macroImport.importedFile;
-      macroFile.kind.dispose();
-      file._fsState._pathToFile.remove(macroFile.path);
-      file._fsState._uriToFile.remove(macroFile.uri);
-    }
   }
 }
 

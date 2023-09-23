@@ -306,9 +306,10 @@ class LibraryContext {
       if (macroGeneratedCode != null) {
         for (final libraryKind in cycle.libraries) {
           if (libraryKind.file.uri == libraryReader.uri) {
-            libraryKind.addOrUpdateMacro(
+            libraryKind.addMacroAugmentation(
               macroGeneratedCode,
               addLibraryAugmentDirective: false,
+              partialIndex: null,
             );
           }
         }
