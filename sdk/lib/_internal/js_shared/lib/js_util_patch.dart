@@ -5,7 +5,11 @@
 import 'dart:_foreign_helper' show JS;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper'
-    show convertDartClosureToJS, assertInterop, assertInteropArgs;
+    show
+        assertInterop,
+        assertInteropArgs,
+        convertDartClosureToJS,
+        createObjectLiteral;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
 import 'dart:typed_data';
@@ -67,7 +71,7 @@ dynamic jsify(Object? object) {
 Object get globalThis => JS('', 'globalThis');
 
 @patch
-T newObject<T>() => JS('PlainJavaScriptObject', '{}');
+T newObject<T>() => createObjectLiteral<T>();
 
 @patch
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);

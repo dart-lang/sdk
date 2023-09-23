@@ -309,7 +309,7 @@ void syncTests() {
   expect(nullAny, null);
   expect(nullAny.isUndefinedOrNull, true);
   expect(nullAny.isDefinedAndNotNull, false);
-  expect(typeofEquals(nullAny, 'object'), true);
+  expect(nullAny.typeofEquals('object'), true);
   if (isJSBackend) {
     expect(undefinedAny.isNull, false);
     expect(undefinedAny.isUndefined, true);
@@ -317,15 +317,15 @@ void syncTests() {
   expect(undefinedAny.isUndefinedOrNull, true);
   expect(undefinedAny.isDefinedAndNotNull, false);
   if (isJSBackend) {
-    expect(typeofEquals(undefinedAny, 'undefined'), true);
+    expect(undefinedAny.typeofEquals('undefined'), true);
     expect(definedNonNullAny.isNull, false);
     expect(definedNonNullAny.isUndefined, false);
   } else {
-    expect(typeofEquals(undefinedAny, 'object'), true);
+    expect(undefinedAny.typeofEquals('object'), true);
   }
   expect(definedNonNullAny.isUndefinedOrNull, false);
   expect(definedNonNullAny.isDefinedAndNotNull, true);
-  expect(typeofEquals(definedNonNullAny, 'object'), true);
+  expect(definedNonNullAny.typeofEquals('object'), true);
 }
 
 @JS()
@@ -436,8 +436,7 @@ Future<void> asyncTests() async {
     } catch (e) {
       expect(e is JSObject, true);
       final jsError = e as JSObject;
-      expect(jsError.instanceof(globalContext['Error'] as JSFunction).toDart,
-          true);
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction), true);
       expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
       StackTrace.fromString((jsError['stack'] as JSString).toDart);
     }
@@ -462,8 +461,7 @@ Future<void> asyncTests() async {
     } catch (e) {
       expect(e is JSObject, true);
       final jsError = e as JSObject;
-      expect(jsError.instanceof(globalContext['Error'] as JSFunction).toDart,
-          true);
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction), true);
       expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
       StackTrace.fromString((jsError['stack'] as JSString).toDart);
     }

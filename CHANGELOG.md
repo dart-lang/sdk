@@ -167,6 +167,14 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   conflates the two values and treats them both as Dart null. Therefore, these
   two helper methods should not be used on dart2wasm and will throw to avoid
   potentially erroneous code.
+- **Breaking Change on `dart:js_interop` `typeofEquals` and `instanceof`**:
+  Both APIs now return a `bool` instead of a `JSBoolean`. `typeofEquals` also
+  now takes in a `String` instead of a `JSString`.
+- **Breaking Change on `dart:js_interop` `JSAny` and `JSObject`**:
+  These types can only be implemented, and no longer extended, by user
+  `@staticInterop` types.
+- **Breaking Change on `dart:js_interop` `JSArray.withLength`**:
+  This API now takes in an `int` instead of `JSNumber`.
 
 ### Tools
 

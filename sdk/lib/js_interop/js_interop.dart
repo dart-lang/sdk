@@ -178,7 +178,7 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
 
   bool get isUndefinedOrNull => this == null;
   bool get isDefinedAndNotNull => !isUndefinedOrNull;
-  external JSBoolean typeofEquals(JSString typeString);
+  external bool typeofEquals(String typeString);
 
   /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
   /// and converts it to a Dart based object. Only JS primitives, arrays, or
@@ -195,7 +195,14 @@ extension NullableObjectUtilExtension on Object? {
 
 /// Utility extensions for [JSObject].
 extension JSObjectUtilExtension on JSObject {
-  external JSBoolean instanceof(JSFunction constructor);
+  external bool instanceof(JSFunction constructor);
+
+  /// Like [instanceof], but only takes a [String] for the constructor name,
+  /// which is then looked up in the [globalContext].
+  bool instanceOfString(String constructorName) {
+    final constructor = globalContext[constructorName] as JSFunction?;
+    return constructor != null && instanceof(constructor);
+  }
 }
 
 /// The type of `JSUndefined` when returned from functions. Unlike pure JS,

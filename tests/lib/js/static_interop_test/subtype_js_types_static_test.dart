@@ -10,6 +10,10 @@ import 'dart:js_interop';
 @JS()
 @staticInterop
 class ExtendsJSAny extends JSAny {}
+//    ^
+// [web] The superclass, 'JSAny', has no unnamed constructor that takes no arguments.
+//                         ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS
 
 @JS()
 @staticInterop
@@ -18,6 +22,10 @@ class ImplementsJSAny implements JSAny {}
 @JS()
 @staticInterop
 class ExtendsJSObject extends JSObject {}
+//    ^
+// [web] The superclass, 'JSObject', has no unnamed constructor that takes no arguments.
+//                            ^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS
 
 @JS()
 @staticInterop
