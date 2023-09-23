@@ -162,6 +162,11 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   of allowed types. Namely, this include the primitive types like `String`, JS
   types from `dart:js_interop`, and other static interop types (either through
   `@staticInterop` or extension types).
+- **Breaking Change on `dart:js_interop` `isNull` and `isUndefined`**:
+  `null` and `undefined` can only be discerned in the JS backends. dart2wasm
+  conflates the two values and treats them both as Dart null. Therefore, these
+  two helper methods should not be used on dart2wasm and will throw to avoid
+  potentially erroneous code.
 
 ### Tools
 

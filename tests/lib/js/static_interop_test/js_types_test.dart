@@ -5,11 +5,14 @@
 // Check that JS types work.
 
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:js_util';
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
+
+const isJSBackend = const bool.fromEnvironment('dart.library.html');
 
 @JS()
 external void eval(String code);
@@ -297,21 +300,30 @@ void syncTests() {
   expect(bigInt.toStringExternal(), '9876543210000000000000123456789');
 
   // null and undefined can flow into `JSAny?`.
-  // TODO(joshualitt): Fix tests when `JSNull` and `JSUndefined` are no longer
-  // conflated.
-  expect(nullAny.isNull, true);
-  //expect(nullAny.isUndefined, false);
-  expect(nullAny.isUndefined, true);
+  // TODO(srujzs): Remove the `isJSBackend` checks when `JSNull` and
+  // `JSUndefined` can be distinguished on dart2wasm.
+  if (isJSBackend) {
+    expect(nullAny.isNull, true);
+    expect(nullAny.isUndefined, false);
+  }
+  expect(nullAny, null);
+  expect(nullAny.isUndefinedOrNull, true);
   expect(nullAny.isDefinedAndNotNull, false);
   expect(typeofEquals(nullAny, 'object'), true);
-  //expect(undefinedAny.isNull, false);
-  expect(undefinedAny.isNull, true);
-  expect(undefinedAny.isUndefined, true);
+  if (isJSBackend) {
+    expect(undefinedAny.isNull, false);
+    expect(undefinedAny.isUndefined, true);
+  }
+  expect(undefinedAny.isUndefinedOrNull, true);
   expect(undefinedAny.isDefinedAndNotNull, false);
-  //expect(typeofEquals(undefinedAny, 'undefined'), true);
-  //expect(typeofEquals(undefinedAny, 'object'), true);
-  expect(definedNonNullAny.isNull, false);
-  expect(definedNonNullAny.isUndefined, false);
+  if (isJSBackend) {
+    expect(typeofEquals(undefinedAny, 'undefined'), true);
+    expect(definedNonNullAny.isNull, false);
+    expect(definedNonNullAny.isUndefined, false);
+  } else {
+    expect(typeofEquals(undefinedAny, 'object'), true);
+  }
+  expect(definedNonNullAny.isUndefinedOrNull, false);
   expect(definedNonNullAny.isDefinedAndNotNull, true);
   expect(typeofEquals(definedNonNullAny, 'object'), true);
 }
@@ -408,6 +420,54 @@ Future<void> asyncTests() async {
 
   await testRejectionWithNullOrUndefined(true);
   await testRejectionWithNullOrUndefined(false);
+
+  // [Future<JSAny?>] -> [JSPromise].
+  // Test resolution.
+  {
+    final f = Future<JSAny?>(() => 'resolved'.toJS).toJS.toDart;
+    expect(((await f) as JSString).toDart, 'resolved');
+  }
+
+  // Test rejection.
+  {
+    try {
+      await Future<JSAny?>(() => throw Exception()).toJS.toDart;
+      fail('Expected future to throw.');
+    } catch (e) {
+      expect(e is JSObject, true);
+      final jsError = e as JSObject;
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction).toDart,
+          true);
+      expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
+      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+    }
+  }
+
+  // [Future<void>] -> [JSPromise].
+  // Test resolution.
+  {
+    var compute = false;
+    final f = Future<void>(() {
+      compute = true;
+    }).toJS.toDart;
+    await f;
+    expect(compute, true);
+  }
+
+  // Test rejection.
+  {
+    try {
+      await Future<void>(() => throw Exception()).toJS.toDart as Future<void>;
+      fail('Expected future to throw.');
+    } catch (e) {
+      expect(e is JSObject, true);
+      final jsError = e as JSObject;
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction).toDart,
+          true);
+      expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
+      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+    }
+  }
 }
 
 void main() async {

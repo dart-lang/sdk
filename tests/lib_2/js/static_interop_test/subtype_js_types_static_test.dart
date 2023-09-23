@@ -259,7 +259,10 @@ class ImplementsJSString implements JSString {}
 @staticInterop
 class ExtendsJSPromise extends JSPromise {}
 //    ^
+// [web] The superclass, 'JSPromise', has no unnamed constructor that takes no arguments.
 // [web] `@staticInterop` class 'ExtendsJSPromise' cannot have 'JSPromise' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes.
+//                             ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS
 
 @JS()
 @staticInterop

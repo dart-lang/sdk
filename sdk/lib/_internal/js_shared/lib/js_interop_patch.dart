@@ -15,18 +15,15 @@ import 'dart:typed_data';
 JSObject get globalContext => staticInteropGlobalContext as JSObject;
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.
-/// TODO(joshualitt): Remove conflation of null and undefined after migration.
 @patch
 extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isUndefined =>
-      this == null || js_util.typeofEquals(this, 'undefined');
+  bool get isUndefined => js_util.typeofEquals(this, 'undefined');
 
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isNull =>
-      this == null || foreign_helper.JS('bool', '# === null', this);
+  bool get isNull => foreign_helper.JS('bool', '# === null', this);
 
   @patch
   @pragma('dart2js:prefer-inline')
