@@ -997,3 +997,6 @@ external Object jsObjectSetPrototypeOf(@notNull Object obj, Object? prototype);
 /// inline the call so this will be an extra level of indirection. DDC manually
 /// inlines this method in the compiler instead.
 external Object get staticInteropGlobalContext;
+
+/// Return a fresh object literal.
+T createObjectLiteral<T>() => JS('PlainJavaScriptObject', '{}');

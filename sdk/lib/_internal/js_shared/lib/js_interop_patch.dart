@@ -19,7 +19,7 @@ JSObject get globalContext => staticInteropGlobalContext as JSObject;
 extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isUndefined => js_util.typeofEquals(this, 'undefined');
+  bool get isUndefined => typeofEquals('undefined');
 
   @patch
   @pragma('dart2js:prefer-inline')
@@ -27,7 +27,7 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean typeofEquals(JSString typeString) =>
+  bool typeofEquals(String typeString) =>
       foreign_helper.JS('bool', 'typeof # === #', this, typeString);
 
   @patch
@@ -48,7 +48,7 @@ extension NullableObjectUtilExtension on Object? {
 extension JSObjectUtilExtension on JSObject {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean instanceof(JSFunction constructor) =>
+  bool instanceof(JSFunction constructor) =>
       foreign_helper.JS('bool', '# instanceof #', this, constructor);
 }
 

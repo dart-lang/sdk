@@ -41,9 +41,10 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
           "this API should not be used when compiling to Wasm.");
 
   @patch
-  JSBoolean typeofEquals(JSString type) =>
-      _box<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, t) => typeof o === t', this?.toExternRef, type.toExternRef));
+  bool typeofEquals(String type) =>
+      _box<JSBoolean>(js_helper.JS<WasmExternRef?>('(o, t) => typeof o === t',
+              this?.toExternRef, type.toJS.toExternRef))
+          .toDart;
 
   @patch
   Object? dartify() => js_util.dartify(this);
@@ -60,9 +61,10 @@ extension NullableObjectUtilExtension on Object? {
 @patch
 extension JSObjectUtilExtension on JSObject {
   @patch
-  JSBoolean instanceof(JSFunction constructor) =>
+  bool instanceof(JSFunction constructor) =>
       _box<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, c) => o instanceof c', toExternRef, constructor.toExternRef));
+              '(o, c) => o instanceof c', toExternRef, constructor.toExternRef))
+          .toDart;
 }
 
 /// [JSExportedDartFunction] <-> [Function]

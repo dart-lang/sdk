@@ -77,11 +77,17 @@ part 'js_typed_array.dart';
 ///    JS and Wasm backends until we have a better story here.
 @JS()
 @staticInterop
-class JSAny {}
+class JSAny {
+  // Unnamed factory constructor so users can only implement JSAny.
+  external factory JSAny._();
+}
 
 @JS()
 @staticInterop
-class JSObject implements JSAny {}
+class JSObject implements JSAny {
+  /// Returns a new object literal.
+  factory JSObject() => js.JSValue(js.newObjectRaw()) as JSObject;
+}
 
 @JS()
 @staticInterop
@@ -101,8 +107,7 @@ class JSPromise implements JSObject {
 @staticInterop
 class JSArray implements JSObject {
   external factory JSArray();
-  // TODO(srujzs): Should we make this an `int`?
-  external factory JSArray.withLength(JSNumber length);
+  external factory JSArray.withLength(int length);
 }
 
 @JS()
