@@ -147,19 +147,36 @@ typedef JSBigInt = js_types.JSBigInt;
 /// lowering.
 external JSObject get globalContext;
 
-/// `JSUndefined` and `JSNull` are actual reified types on some backends, but
-/// not others. Instead, users should use nullable types for any type that could
-/// contain `JSUndefined` or `JSNull`. However, instead of trying to determine
-/// the nullability of a JS type in Dart, i.e. using `?`, `!`, `!= null` or `==
-/// null`, users should use the provided helpers below to determine if it is
-/// safe to downcast a potentially `JSNullable` or `JSUndefineable` object to a
-/// defined and non-null JS type.
-// TODO(joshualitt): Investigate whether or not it will be possible to reify
-// `JSUndefined` and `JSNull` on all backends.
+/// JS `undefined` and JS `null` are internalized differently based on the
+/// backends. In the JS backends, Dart `null` can actually be JS `undefined` or
+/// JS `null`. In dart2wasm, that's not the case: there's only one Wasm value
+/// `null` can be. Therefore, when we get back JS `null` or JS `undefined`, we
+/// internalize both as Dart `null` in dart2wasm, and when we pass Dart `null`
+/// to an interop API, we pass JS `null`. In the JS backends, Dart `null`
+/// retains its original value when passed back to an interop API. Be wary of
+/// writing code where this distinction between `null` and `undefined` matters.
+// TODO(srujzs): Investigate what it takes to allow users to distinguish between
+// the two "nullish" values. An annotation-based model where users annotate
+// interop APIs to internalize `undefined` differently seems promising, but does
+// not handle some cases like converting a `JSArray` with `undefined`s in it to
+// `List<JSAny?>`. In this case, the implementation of the list wrapper needs to
+// make the decision, not the user.
 extension NullableUndefineableJSAnyExtension on JSAny? {
+  /// Determine if this value corresponds to JS `undefined`.
+  ///
+  /// **WARNING**: Currently, there isn't a way to distinguish between JS
+  /// `undefined` and JS `null` in dart2wasm. As such, this should only be used
+  /// for code that compiles to JS and will throw on dart2wasm.
   external bool get isUndefined;
+
+  /// Determine if this value corresponds to JS `null`.
+  ///
+  /// **WARNING**: Currently, there isn't a way to distinguish between JS
+  /// `undefined` and JS `null` in dart2wasm. As such, this should only be used
+  /// for code that compiles to JS and will throw on dart2wasm.
   external bool get isNull;
-  bool get isUndefinedOrNull => isUndefined || isNull;
+
+  bool get isUndefinedOrNull => this == null;
   bool get isDefinedAndNotNull => !isUndefinedOrNull;
   external JSBoolean typeofEquals(JSString typeString);
 
