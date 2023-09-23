@@ -5,6 +5,7 @@
 // Check that JS types work.
 
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:js_util';
 import 'dart:typed_data';
 
@@ -408,6 +409,54 @@ Future<void> asyncTests() async {
 
   await testRejectionWithNullOrUndefined(true);
   await testRejectionWithNullOrUndefined(false);
+
+  // [Future<JSAny?>] -> [JSPromise].
+  // Test resolution.
+  {
+    final f = Future<JSAny?>(() => 'resolved'.toJS).toJS.toDart;
+    expect(((await f) as JSString).toDart, 'resolved');
+  }
+
+  // Test rejection.
+  {
+    try {
+      await Future<JSAny?>(() => throw Exception()).toJS.toDart;
+      fail('Expected future to throw.');
+    } catch (e) {
+      expect(e is JSObject, true);
+      final jsError = e as JSObject;
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction).toDart,
+          true);
+      expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
+      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+    }
+  }
+
+  // [Future<void>] -> [JSPromise].
+  // Test resolution.
+  {
+    var compute = false;
+    final f = Future<void>(() {
+      compute = true;
+    }).toJS.toDart;
+    await f;
+    expect(compute, true);
+  }
+
+  // Test rejection.
+  {
+    try {
+      await Future<void>(() => throw Exception()).toJS.toDart as Future<void>;
+      fail('Expected future to throw.');
+    } catch (e) {
+      expect(e is JSObject, true);
+      final jsError = e as JSObject;
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction).toDart,
+          true);
+      expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
+      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+    }
+  }
 }
 
 void main() async {

@@ -20,6 +20,7 @@
 library dart.js_interop;
 
 import 'dart:_js_types' as js_types;
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 /// Allow use of `@staticInterop` classes with JS types as well as export
@@ -198,6 +199,20 @@ extension FunctionToJSExportedDartFunction on Function {
   external JSExportedDartFunction get toJS;
 }
 
+/// Utility extensions for [JSFunction].
+extension JSFunctionUtilExtension on JSFunction {
+  // Take at most 4 args for consistency with other APIs and relative brevity.
+  // If more are needed, you can declare your own external member. We rename
+  // this function since declaring a `call` member makes a class callable in
+  // Dart. This is convenient, but unlike Dart functions, JS functions
+  // explicitly take a `this` argument (which users can provide `null` for in
+  // the case where the function doesn't need it), which may lead to confusion.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
+  @JS('call')
+  external JSAny? callAsFunction(
+      [JSAny? thisArg, JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+}
+
 /// [JSBoxedDartObject] <-> [Object]
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   external Object get toDart;
@@ -210,6 +225,53 @@ extension ObjectToJSBoxedDartObject on Object {
 /// [JSPromise] -> [Future<JSAny?>].
 extension JSPromiseToFuture on JSPromise {
   external Future<JSAny?> get toDart;
+}
+
+extension FutureOfJSAnyToJSPromise on Future<JSAny?> {
+  JSPromise get toJS {
+    return JSPromise((JSFunction resolve, JSFunction reject) {
+      this.then((JSAny? value) {
+        resolve.callAsFunction(resolve, value);
+        return value;
+      }, onError: (Object error, StackTrace stackTrace) {
+        // TODO(srujzs): Can we do something better here? This is pretty much
+        // useless to the user unless they call a Dart callback that consumes
+        // this value and unboxes.
+        final errorConstructor = globalContext['Error'] as JSFunction;
+        final wrapper = errorConstructor.callAsConstructor<JSObject>(
+            "Dart exception thrown from converted Future. Use the properties "
+                    "'error' to fetch the boxed error and 'stack' to recover "
+                    "the stack trace."
+                .toJS);
+        wrapper['error'] = error.toJSBox;
+        wrapper['stack'] = stackTrace.toString().toJS;
+        reject.callAsFunction(reject, wrapper);
+        return wrapper;
+      });
+    }.toJS);
+  }
+}
+
+extension FutureOfVoidToJSPromise on Future<void> {
+  JSPromise get toJS {
+    return JSPromise((JSFunction resolve, JSFunction reject) {
+      this.then((_) => resolve.callAsFunction(resolve),
+          onError: (Object error, StackTrace stackTrace) {
+        // TODO(srujzs): Can we do something better here? This is pretty much
+        // useless to the user unless they call a Dart callback that consumes
+        // this value and unboxes.
+        final errorConstructor = globalContext['Error'] as JSFunction;
+        final wrapper = errorConstructor.callAsConstructor<JSObject>(
+            "Dart exception thrown from converted Future. Use the properties "
+                    "'error' to fetch the boxed error and 'stack' to recover "
+                    "the stack trace."
+                .toJS);
+        wrapper['error'] = error.toJSBox;
+        wrapper['stack'] = stackTrace.toString().toJS;
+        reject.callAsFunction(reject, wrapper);
+      });
+    }.toJS);
+  }
 }
 
 // **WARNING**:

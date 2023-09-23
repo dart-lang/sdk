@@ -132,6 +132,8 @@ class JSBigInt implements JSAny {}
 /// in JS trampolines.
 typedef JSVoid = void;
 
-@JS()
+@JS('Promise')
 @staticInterop
-class JSPromise implements JSObject {}
+class JSPromise implements JSObject {
+  external factory JSPromise(JSFunction executor);
+}

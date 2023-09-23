@@ -91,9 +91,11 @@ class JSFunction implements JSObject {}
 @staticInterop
 class JSExportedDartFunction implements JSFunction {}
 
-@JS()
+@JS('Promise')
 @staticInterop
-class JSPromise implements JSObject {}
+class JSPromise implements JSObject {
+  external factory JSPromise(JSFunction executor);
+}
 
 @JS('Array')
 @staticInterop
