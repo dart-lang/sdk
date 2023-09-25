@@ -14,9 +14,13 @@ import 'dart:io';
 final repoRoot = dirname(dirname(fromUri(Platform.script)));
 
 void main(List<String> args) {
+  final fluteExists =
+      Directory(join(repoRoot, platform('third_party/flute'))).existsSync();
+
   var packageDirs = [
     ...listSubdirectories(platform('pkg')),
     ...listSubdirectories(platform('third_party/pkg')),
+    if (fluteExists) ...listSubdirectories(platform('third_party/flute')),
     platform('pkg/vm_service/test/test_package'),
     platform(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
