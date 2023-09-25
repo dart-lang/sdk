@@ -501,8 +501,7 @@ class _TestServerPlugin extends MockServerPlugin {
     required String path,
   })? analyzeFileHandler;
 
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   @override
   Future<void> afterNewContextCollection({

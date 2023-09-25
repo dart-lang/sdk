@@ -281,8 +281,7 @@ class Request extends ApiNode {
 
 /// Base class for all possible types.
 abstract class TypeDecl extends ApiNode {
-  TypeDecl(dom.Element? html, bool? experimental, bool? deprecated)
-      : super(html, experimental, deprecated);
+  TypeDecl(super.html, super.experimental, super.deprecated);
 
   T accept<T>(ApiVisitor<T> visitor);
 }

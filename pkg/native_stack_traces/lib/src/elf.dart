@@ -694,7 +694,7 @@ class Note extends Section {
   final String name;
   final Uint8List description;
 
-  Note._(entry, this.type, this.name, this.description) : super._(entry);
+  Note._(super.headerEntry, this.type, this.name, this.description) : super._();
 
   static Note fromReader(Reader originalReader, SectionHeaderEntry entry) {
     final reader = originalReader.shrink(entry.offset, entry.size);
@@ -735,7 +735,7 @@ class Note extends Section {
 class StringTable extends Section implements DwarfContainerStringTable {
   final Map<int, String> _entries;
 
-  StringTable._(entry, this._entries) : super._(entry);
+  StringTable._(super.headerEntry, this._entries) : super._();
 
   static StringTable fromReader(Reader reader, SectionHeaderEntry entry) {
     final sectionReader = reader.shrink(entry.offset, entry.size);
@@ -920,9 +920,9 @@ class SymbolTable extends Section {
   final List<Symbol> _entries;
   final Map<String, Symbol> _nameCache;
 
-  SymbolTable._(SectionHeaderEntry entry, this._entries)
+  SymbolTable._(super.headerEntry, this._entries)
       : _nameCache = {},
-        super._(entry);
+        super._();
 
   static SymbolTable fromReader(Reader reader, SectionHeaderEntry entry) {
     final sectionReader = reader.shrink(entry.offset, entry.size);
@@ -987,8 +987,7 @@ class DynamicTable extends Section {
   final Map<int, int> _entries;
   final int _wordSize;
 
-  DynamicTable._(SectionHeaderEntry entry, this._entries, this._wordSize)
-      : super._(entry);
+  DynamicTable._(super.headerEntry, this._entries, this._wordSize) : super._();
 
   static DynamicTable fromReader(Reader reader, SectionHeaderEntry entry) {
     final sectionReader = reader.shrink(entry.offset, entry.size);

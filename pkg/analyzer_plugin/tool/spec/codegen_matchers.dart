@@ -24,9 +24,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /// created.
   String? context;
 
-  CodegenMatchersVisitor(Api api)
-      : toHtmlVisitor = ToHtmlVisitor(api),
-        super(api) {
+  CodegenMatchersVisitor(super.api) : toHtmlVisitor = ToHtmlVisitor(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';

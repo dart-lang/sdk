@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/plugin/occurrences_mixin.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -92,8 +91,7 @@ class _TestOccurrencesContributor implements OccurrencesContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   @override
   List<OccurrencesContributor> getOccurrencesContributors(String path) {

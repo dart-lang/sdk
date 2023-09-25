@@ -70,8 +70,7 @@ abstract class DapProgressReporter {
 ///
 /// https://github.com/microsoft/vscode/issues/101405
 class _CustomDapProgressReporter extends DapProgressReporter {
-  _CustomDapProgressReporter(DartDebugAdapter adapter, String idPrefix)
-      : super(adapter, idPrefix);
+  _CustomDapProgressReporter(super.adapter, super.idPrefix);
 
   @override
   void sendStart(ProgressStartEventBody body) {
@@ -91,8 +90,7 @@ class _CustomDapProgressReporter extends DapProgressReporter {
 
 /// Sends progress notifications using standard events.
 class _StandardDapProgressReporter extends DapProgressReporter {
-  _StandardDapProgressReporter(DartDebugAdapter adapter, String idPrefix)
-      : super(adapter, idPrefix);
+  _StandardDapProgressReporter(super.adapter, super.idPrefix);
 
   @override
   void sendStart(ProgressStartEventBody body) {
@@ -112,8 +110,7 @@ class _StandardDapProgressReporter extends DapProgressReporter {
 
 /// A [DapProgressReporter] that does not send any events.
 class _NoopDapProgressReporter extends DapProgressReporter {
-  _NoopDapProgressReporter(DartDebugAdapter adapter, String idPrefix)
-      : super(adapter, idPrefix);
+  _NoopDapProgressReporter(super.adapter, super.idPrefix);
 
   @override
   void sendStart(ProgressStartEventBody body) {}

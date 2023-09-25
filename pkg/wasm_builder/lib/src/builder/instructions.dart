@@ -46,8 +46,7 @@ abstract class Label {
 }
 
 class Expression extends Label {
-  Expression(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
-      : super._(inputs, outputs) {
+  Expression(super.inputs, super.outputs) : super._() {
     ordinal = null;
     depth = 0;
     baseStackHeight = 0;
@@ -60,16 +59,14 @@ class Expression extends Label {
 }
 
 class Block extends Label {
-  Block(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
-      : super._(inputs, outputs);
+  Block(super.inputs, super.outputs) : super._();
 
   @override
   List<ir.ValueType> get targetTypes => outputs;
 }
 
 class Loop extends Label {
-  Loop(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
-      : super._(inputs, outputs);
+  Loop(super.inputs, super.outputs) : super._();
 
   @override
   List<ir.ValueType> get targetTypes => inputs;
@@ -78,8 +75,7 @@ class Loop extends Label {
 class If extends Label {
   bool hasElse = false;
 
-  If(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
-      : super._(inputs, outputs);
+  If(super.inputs, super.outputs) : super._();
 
   @override
   List<ir.ValueType> get targetTypes => outputs;
@@ -88,8 +84,7 @@ class If extends Label {
 class Try extends Label {
   bool hasCatch = false;
 
-  Try(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
-      : super._(inputs, outputs);
+  Try(super.inputs, super.outputs) : super._();
 
   @override
   List<ir.ValueType> get targetTypes => outputs;

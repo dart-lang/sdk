@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/plugin/folding_mixin.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -74,8 +73,7 @@ class _TestFoldingContributor implements FoldingContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   @override
   List<FoldingContributor> getFoldingContributors(String path) {

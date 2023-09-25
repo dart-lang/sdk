@@ -301,10 +301,9 @@ class HttpTimelineLoggingState extends _State {
   @override
   String get type => 'HttpTimelineLoggingState';
 
-  HttpTimelineLoggingState({required bool enabled}) : super(enabled: enabled);
+  HttpTimelineLoggingState({required super.enabled});
 
-  HttpTimelineLoggingState._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json);
+  HttpTimelineLoggingState._fromJson(super.json) : super._fromJson();
 }
 
 /// A collection of HTTP request data collected by the profiler.
@@ -405,34 +404,25 @@ class HttpProfileRequest extends HttpProfileRequestRef {
   static HttpProfileRequest? parse(Map<String, dynamic>? json) =>
       json == null ? null : HttpProfileRequest._fromJson(json);
 
-  HttpProfileRequest._fromJson(Map<String, dynamic> json)
+  HttpProfileRequest._fromJson(super.json)
       : requestBody =
             Uint8List.fromList(json['requestBody']?.cast<int>() ?? <int>[]),
         responseBody =
             Uint8List.fromList(json['responseBody']?.cast<int>() ?? <int>[]),
-        super._fromJson(json);
+        super._fromJson();
 
   HttpProfileRequest({
-    required String id,
-    required String isolateId,
-    required String method,
-    required Uri uri,
-    required int startTime,
+    required super.id,
+    required super.isolateId,
+    required super.method,
+    required super.uri,
+    required super.startTime,
     required this.requestBody,
     required this.responseBody,
-    int? endTime,
-    HttpProfileRequestData? request,
-    HttpProfileResponseData? response,
-  }) : super(
-          id: id,
-          isolateId: isolateId,
-          method: method,
-          uri: uri,
-          startTime: startTime,
-          endTime: endTime,
-          request: request,
-          response: response,
-        );
+    super.endTime,
+    super.request,
+    super.response,
+  });
 
   /// The body sent as part of this request.
   ///
@@ -735,10 +725,9 @@ class SocketProfilingState extends _State {
   static SocketProfilingState? parse(Map<String, dynamic>? json) =>
       json == null ? null : SocketProfilingState._fromJson(json);
 
-  SocketProfilingState({required bool enabled}) : super(enabled: enabled);
+  SocketProfilingState({required super.enabled});
 
-  SocketProfilingState._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json);
+  SocketProfilingState._fromJson(super.json) : super._fromJson();
 }
 
 /// A [SpawnedProcessRef] contains identifying information about a spawned

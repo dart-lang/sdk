@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/plugin/outline_mixin.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -74,8 +73,7 @@ class _TestOutlineContributor implements OutlineContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with OutlineMixin {
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   @override
   List<OutlineContributor> getOutlineContributors(String path) {
