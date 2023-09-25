@@ -74,7 +74,9 @@ class TestPipeline : public ValueObject {
  public:
   explicit TestPipeline(const Function& function,
                         CompilerPass::PipelineMode mode,
-                        bool is_optimizing = true)
+                        bool is_optimizing = true,
+                        bool enable_suppression = false,
+                        intptr_t retry_limit = -1)
       : function_(function),
         thread_(Thread::Current()),
         compiler_state_(thread_,
@@ -82,7 +84,7 @@ class TestPipeline : public ValueObject {
                         is_optimizing,
                         CompilerState::ShouldTrace(function)),
         speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
-            new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
+            new SpeculativeInliningPolicy(enable_suppression, retry_limit))),
         mode_(mode) {}
   ~TestPipeline() { delete pass_state_; }
 

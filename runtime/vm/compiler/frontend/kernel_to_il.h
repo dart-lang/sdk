@@ -146,6 +146,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 
+  Fragment BuildByteArrayBaseLoad(const Function& function, intptr_t view_cid);
+  Fragment BuildByteArrayBaseStore(const Function& function, intptr_t view_cid);
+
   Fragment BuildTypedDataMemMove(const Function& function, intptr_t cid);
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
