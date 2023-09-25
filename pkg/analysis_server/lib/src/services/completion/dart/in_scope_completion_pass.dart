@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
@@ -88,6 +89,37 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     _visitParentIfAtOrBeforeNode(node);
+  }
+
+  @override
+  void visitArgumentList(ArgumentList node) {
+    if (offset >= node.leftParenthesis.end &&
+        offset <= node.rightParenthesis.offset) {
+      var (:before, after: _) = node.argumentsBeforeAndAfterOffset(offset);
+      if (before != null) {
+        _handledPossibleClosure(before);
+        _forExpression(before);
+        return;
+      }
+      // collector.completionLocation = 'ArgumentList_${context}_named';
+      var parent = node.parent;
+      var element = switch (parent) {
+        InstanceCreationExpression invocation =>
+          invocation.constructorName.staticElement,
+        MethodInvocation invocation => invocation.methodName.staticElement,
+        FunctionExpressionInvocation invocation => invocation.staticElement,
+        _ => null,
+      };
+      if (element is ExecutableElement) {
+        // Only suggest expression keywords if at least one of the parameters is
+        // a positional parameter.
+        if (element.parameters.any((element) => element.isPositional)) {
+          _forExpression(parent);
+        }
+      } else if (parent is Expression) {
+        _forExpression(parent);
+      }
+    }
   }
 
   @override
@@ -1626,6 +1658,34 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
+  /// Return `true` if the given [expression] is the result of recovery and
+  /// suggestions have already been produced.
+  ///
+  /// The parser recovers from a parenthesized list in an argument list by
+  /// creating either a `ParenthesizedExpression` or a `RecordLiteral`
+  bool _handledPossibleClosure(Expression? expression) {
+    var nextToken = expression?.endToken.nextNonSynthetic;
+    if (nextToken == null || offset > nextToken.offset) {
+      return false;
+    }
+    switch (expression) {
+      case ParenthesizedExpression(:var expression):
+        if (expression is SimpleIdentifier) {
+          keywordHelper.addFunctionBodyModifiers(null);
+          return true;
+        }
+      case RecordLiteral record:
+        for (var field in record.fields) {
+          if (field is! SimpleIdentifier) {
+            return false;
+          }
+        }
+        keywordHelper.addFunctionBodyModifiers(null);
+        return true;
+    }
+    return false;
+  }
+
   /// Return `true` if the given [declaration] is the result of recovery and
   /// suggestions have already been produced.
   ///
@@ -1819,6 +1879,22 @@ extension on ClassMember {
   }
 }
 
+extension on ArgumentList {
+  /// Return a record whose fields are the arguments in this argument list
+  /// that are lexically immediately before and after the given [offset].
+  ({Expression? before, Expression? after}) argumentsBeforeAndAfterOffset(
+      int offset) {
+    Expression? previous;
+    for (var argument in arguments) {
+      if (offset < argument.offset) {
+        return (before: previous, after: argument);
+      }
+      previous = argument;
+    }
+    return (before: previous, after: null);
+  }
+}
+
 extension on CompilationUnit {
   /// Return a record whose fields are the members in this compilation unit
   /// that are lexically immediately before and after the given [member].
@@ -1838,8 +1914,8 @@ extension on CompilationUnit {
     return (before: before, after: after);
   }
 
-  /// Return a record whose fields are the members in the compilation [unit]
-  /// that are lexically immediately before and after the given [member].
+  /// Return a record whose fields are the members in this compilation unit
+  /// that are lexically immediately before and after the given [offset].
   ({AstNode? before, AstNode? after}) membersBeforeAndAfterOffset(int offset) {
     var members = sortedDirectivesAndDeclarations;
     AstNode? previous;
@@ -1950,6 +2026,18 @@ extension on SyntacticEntity? {
   bool coversOffset(int offset) {
     final self = this;
     return self != null && self.offset <= offset && self.end >= offset;
+  }
+}
+
+extension on Token {
+  Token? get nextNonSynthetic {
+    var candidate = next;
+    while (candidate != null &&
+        candidate.isSynthetic &&
+        candidate.next != candidate) {
+      candidate = candidate.next;
+    }
+    return candidate;
   }
 }
 
