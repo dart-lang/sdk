@@ -2327,11 +2327,15 @@ class BinaryBuilder {
   }
 
   Expression _readLoadLibrary() {
-    return new LoadLibrary(readLibraryDependencyReference());
+    int offset = readOffset();
+    return new LoadLibrary(readLibraryDependencyReference())
+      ..fileOffset = offset;
   }
 
   Expression _readCheckLibraryIsLoaded() {
-    return new CheckLibraryIsLoaded(readLibraryDependencyReference());
+    int offset = readOffset();
+    return new CheckLibraryIsLoaded(readLibraryDependencyReference())
+      ..fileOffset = offset;
   }
 
   Expression _readInvalidExpression() {
@@ -2773,7 +2777,8 @@ class BinaryBuilder {
   }
 
   Expression _readTypeLiteral() {
-    return new TypeLiteral(readDartType());
+    int offset = readOffset();
+    return new TypeLiteral(readDartType())..fileOffset = offset;
   }
 
   Expression _readThisLiteral() {
@@ -3508,6 +3513,8 @@ class BinaryBuilder {
   Statement _readLabeledStatement() {
     LabeledStatement label = new LabeledStatement(null);
     labelStack.add(label);
+    int offset = readOffset();
+    label.fileOffset = offset;
     label.body = readStatement()..parent = label;
     labelStack.removeLast();
     return label;
@@ -3640,6 +3647,8 @@ class BinaryBuilder {
   }
 
   void _readSwitchCaseInto(SwitchCase caseNode) {
+    int offset = readOffset();
+    caseNode.fileOffset = offset;
     int length = readUInt30();
     for (int i = 0; i < length; ++i) {
       caseNode.expressionOffsets.add(readOffset());

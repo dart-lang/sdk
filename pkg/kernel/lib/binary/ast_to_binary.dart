@@ -2055,6 +2055,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypeLiteral(TypeLiteral node) {
     writeByte(Tag.TypeLiteral);
+    writeOffset(node.fileOffset);
     writeNode(node.type);
   }
 
@@ -2165,12 +2166,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLoadLibrary(LoadLibrary node) {
     writeByte(Tag.LoadLibrary);
+    writeOffset(node.fileOffset);
     writeLibraryDependencyReference(node.import);
   }
 
   @override
   void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     writeByte(Tag.CheckLibraryIsLoaded);
+    writeOffset(node.fileOffset);
     writeLibraryDependencyReference(node.import);
   }
 
@@ -2229,6 +2232,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     LabelIndexer labelIndexer = _labelIndexer ??= new LabelIndexer();
     labelIndexer.enter(node);
     writeByte(Tag.LabeledStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     labelIndexer.exit();
   }
@@ -2317,6 +2321,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitSwitchCase(SwitchCase node) {
     // Note: there is no tag on SwitchCase.
+    writeOffset(node.fileOffset);
     int length = node.expressions.length;
     writeUInt30(length);
     for (int i = 0; i < length; ++i) {

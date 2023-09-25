@@ -3951,7 +3951,8 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildTypeLiteral(TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+  TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
 
   const AbstractType& type = T.BuildType();  // read type.
   Fragment instructions;
@@ -4424,6 +4425,9 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
     TokenPosition* position,
     const String& selector) {
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
   const intptr_t dependency_index = ReadUInt();
   const Library& current_library = Library::Handle(
       Z, Class::Handle(Z, parsed_function()->function().Owner()).library());
@@ -4436,8 +4440,7 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
   ASSERT(!function.IsNull());
   Fragment instructions;
   instructions += Constant(prefix);
-  instructions +=
-      StaticCall(TokenPosition::kNoSource, function, 1, ICData::kStatic);
+  instructions += StaticCall(pos, function, 1, ICData::kStatic);
   return instructions;
 }
 
@@ -4614,6 +4617,9 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
 
 Fragment StreamingFlowGraphBuilder::BuildLabeledStatement(
     TokenPosition* position) {
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
   // There can be several cases:
   //
   //   * the body contains a break
@@ -4864,6 +4870,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchCase(SwitchHelper* helper,
   //
   // Also collect switch expressions into helper.
 
+  ReadPosition();                                 // read file offset.
   const int expression_count = ReadListLength();  // read number of expressions.
   for (intptr_t j = 0; j < expression_count; ++j) {
     const TokenPosition pos = ReadPosition();  // read jth position.

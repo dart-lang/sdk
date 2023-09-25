@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 109;
+  UInt32 formatVersion = 110;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1049,6 +1049,7 @@ type SymbolLiteral extends Expression {
 
 type TypeLiteral extends Expression {
   Byte tag = 45;
+  FileOffset fileOffset;
   DartType type;
 }
 
@@ -1167,11 +1168,13 @@ type Instantiation extends Expression {
 
 type LoadLibrary extends Expression {
   Byte tag = 14;
+  FileOffset fileOffset;
   LibraryDependencyReference deferredImport;
 }
 
 type CheckLibraryIsLoaded extends Expression {
   Byte tag = 13;
+  FileOffset fileOffset;
   LibraryDependencyReference deferredImport;
 }
 
@@ -1328,6 +1331,7 @@ type AssertStatement extends Statement {
 
 type LabeledStatement extends Statement {
   Byte tag = 65;
+  FileOffset fileOffset;
   Statement body;
 }
 
@@ -1396,6 +1400,7 @@ type SwitchStatement extends Statement {
 
 type SwitchCase {
   // Note: there is no tag on SwitchCase
+  FileOffset fileOffset;
   List<Pair<FileOffset, Expression>> expressions;
   Byte isDefault; // 1 if default, 0 is not default.
   Statement body;
