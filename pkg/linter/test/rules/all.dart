@@ -45,6 +45,8 @@ import 'avoid_unnecessary_containers_test.dart' as avoid_unnecessary_containers;
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
+import 'avoid_web_libraries_in_flutter_test.dart'
+    as avoid_web_libraries_in_flutter;
 import 'await_only_futures_test.dart' as await_only_futures;
 import 'camel_case_extensions_test.dart' as camel_case_extensions;
 import 'camel_case_types_test.dart' as camel_case_types;
@@ -275,6 +277,7 @@ void main() {
   avoid_unnecessary_containers.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
+  avoid_web_libraries_in_flutter.main();
   await_only_futures.main();
   camel_case_extensions.main();
   camel_case_types.main();
