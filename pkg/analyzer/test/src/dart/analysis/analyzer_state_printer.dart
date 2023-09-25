@@ -98,6 +98,18 @@ class AnalyzerStatePrinter {
     }
   }
 
+  void _verifyKnownFiles() {
+    final uriFiles = fileSystemState.test.uriToFile.values.toSet();
+    final pathFiles = fileSystemState.test.uriToFile.values.toSet();
+
+    expect(pathFiles.difference(uriFiles), isEmpty);
+    expect(uriFiles.difference(pathFiles), isEmpty);
+
+    final knownFilesNotInUriFiles = fileSystemState.knownFiles.toSet();
+    knownFilesNotInUriFiles.removeAll(uriFiles);
+    expect(knownFilesNotInUriFiles, isEmpty);
+  }
+
   void _withIndent(void Function() f) {
     var indent = _indent;
     _indent = '$_indent  ';
@@ -286,6 +298,8 @@ class AnalyzerStatePrinter {
         return pattern.hasMatch(file.path);
       });
     }
+
+    _verifyKnownFiles();
 
     // Discover libraries for parts.
     // This is required for consistency checking.

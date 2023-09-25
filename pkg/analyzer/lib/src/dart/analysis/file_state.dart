@@ -1130,7 +1130,7 @@ class FileSystemState {
   final Set<String> knownFilePaths = <String>{};
 
   /// All known files.
-  final List<FileState> knownFiles = [];
+  final Set<FileState> knownFiles = {};
 
   /// Mapping from a path to the flag whether there is a URI for the path.
   final Map<String, bool> _hasUriForPath = {};
@@ -1209,6 +1209,7 @@ class FileSystemState {
     }
 
     _uriToFile.remove(file.uri);
+    knownFiles.remove(file);
 
     // The removed file does not reference other files anymore.
     file._kind?.dispose();
@@ -1277,6 +1278,7 @@ class FileSystemState {
     }
     _pathToFile.clear();
     _uriToFile.clear();
+    knownFiles.clear();
     return result;
   }
 
@@ -1493,6 +1495,8 @@ class FileSystemStateTestView {
   final FileSystemState state;
 
   FileSystemStateTestView(this.state);
+
+  Map<Uri, FileState> get uriToFile => state._uriToFile;
 }
 
 class FileSystemTestData {
@@ -1889,6 +1893,7 @@ $code
       macroFile.kind.dispose();
       file._fsState._pathToFile.remove(macroFile.path);
       file._fsState._uriToFile.remove(macroFile.uri);
+      file._fsState.knownFiles.remove(macroFile);
     }
     _macroImports = const [];
   }
