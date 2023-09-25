@@ -142,8 +142,8 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "1a2def95a3c04dafd27b85d17e6e828bd4afa1a3", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "0e1a6d94a6cb5dd487a19ebb68980e34ac6154ba",
-  "ecosystem_rev": "dcf5c4f74107e0c24c81688a62c1af5283b413a4",
+  "dartdoc_rev": "a3cfdc40a94d169bd7b559dc6f83ceb7f79de4e2",
+  "ecosystem_rev": "3da2dd3b91cea23b3bfd9ab6f16988f2ddcc2483",
   "ffi_rev": "d36e05af55293bcc511d6b3a99ea4b8cb69f6323",
   "file_rev": "a18ad1ce88eaeb5a11a13ef8fc25d1e78b546c59",
   "fixnum_rev": "87ed0658f32f992dc7360b77513eadfa7056aa9d",
@@ -163,7 +163,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "37ef637c35896e289fdd37c0ea4680df4ab9f543",
   "mockito_rev": "097e5635a6c1859e03e9c606c2ab4cfa74618bcc",
-  "native_rev": "a5d88093017f5cecf30978a823fe6a8a2ebb8ca5",
+  "native_rev": "be4aaf7b849a64d67756c95b6270b9bfe47f3c7d",
   "package_config_rev": "ae7ad83de97aba507fd05e97cc372bc6695c1759",
   "path_rev": "96d9183ad4f9e48109fa8d4b8269cf75f13922dd",
   "pool_rev": "a5bee3540a2b5b3a3c34038667e7cd7bb514dc62",
