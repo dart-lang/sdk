@@ -3188,6 +3188,9 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   }
 }
 
+// Emits the specialized code for a typed getter, using the compile-time type
+// information to determine whether the receiver payload must be retrieved
+// first or not.
 static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                     Definition* call,
                                     Definition* receiver,
@@ -3244,19 +3247,9 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   return true;
 }
 
-static StoreIndexedInstr* NewStore(FlowGraph* flow_graph,
-                                   Instruction* call,
-                                   Definition* array,
-                                   Definition* index,
-                                   Definition* stored_value,
-                                   intptr_t view_cid) {
-  return new (Z) StoreIndexedInstr(
-      new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
-      kNoStoreBarrier, /*index_unboxed=*/false,
-      /*index_scale=*/1, view_cid, kUnalignedAccess, call->deopt_id(),
-      call->source());
-}
-
+// Emits the specialized code for a typed setter, using the compile-time type
+// information to determine whether the receiver payload must be retrieved
+// first or not.
 static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                      const Function& target,
                                      Instruction* call,
@@ -3449,8 +3442,11 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // Fill out the generated template with stores.
   {
     // Store on either external or internal.
-    StoreIndexedInstr* store =
-        NewStore(flow_graph, call, array, index, stored_value, view_cid);
+    StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
+        new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
+        kNoStoreBarrier, /*index_unboxed=*/false,
+        /*index_scale=*/1, view_cid, kUnalignedAccess, call->deopt_id(),
+        call->source());
     flow_graph->AppendTo(
         cursor, store,
         call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
@@ -4002,6 +3998,73 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kUint64ArrayGetIndexed:
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt8:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt8ArrayCid, graph_entry, entry,
+                                     last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint8:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint8ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt16:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt16ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint16:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint16ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt32:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt32ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint32:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint32ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt64:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt64ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint64:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint64ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat32:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat32ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat64:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat64ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat32x4ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat64x2ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt32x4:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt32x4ArrayCid, graph_entry,
+                                     entry, last, result);
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
                                result);
@@ -4082,73 +4145,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                               value_check, exactness, graph_entry, entry, last,
                               result);
     }
-    case MethodRecognizer::kByteArrayBaseGetInt8:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt8ArrayCid, graph_entry, entry,
-                                     last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint8:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint8ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt16:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt16ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint16:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint16ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt32:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint32:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt64:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint64:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat32:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat64:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32x4ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat64x2ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32x4ArrayCid, graph_entry,
-                                     entry, last, result);
     case MethodRecognizer::kByteArrayBaseSetInt8:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataInt8ArrayCid,

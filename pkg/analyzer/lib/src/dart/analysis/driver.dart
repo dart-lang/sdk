@@ -2697,7 +2697,7 @@ class _FilesReferencingNameTask {
     // Prepare files to check.
     if (filesToCheck == null) {
       fileStamp = driver._fsState.fileStamp;
-      filesToCheck = driver._fsState.knownFiles;
+      filesToCheck = driver._fsState.knownFiles.toList();
       filesToCheckIndex = 0;
     }
 
