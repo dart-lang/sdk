@@ -920,32 +920,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = function.recognized_kind();
 
   switch (kind) {
-    case MethodRecognizer::kByteArrayBaseGetInt8:
-    case MethodRecognizer::kByteArrayBaseGetUint8:
-    case MethodRecognizer::kByteArrayBaseGetInt16:
-    case MethodRecognizer::kByteArrayBaseGetUint16:
-    case MethodRecognizer::kByteArrayBaseGetInt32:
-    case MethodRecognizer::kByteArrayBaseGetUint32:
-    case MethodRecognizer::kByteArrayBaseGetInt64:
-    case MethodRecognizer::kByteArrayBaseGetUint64:
-    case MethodRecognizer::kByteArrayBaseGetFloat32:
-    case MethodRecognizer::kByteArrayBaseGetFloat64:
-    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
-    case MethodRecognizer::kByteArrayBaseGetInt32x4:
-    case MethodRecognizer::kByteArrayBaseSetInt8:
-    case MethodRecognizer::kByteArrayBaseSetUint8:
-    case MethodRecognizer::kByteArrayBaseSetInt16:
-    case MethodRecognizer::kByteArrayBaseSetUint16:
-    case MethodRecognizer::kByteArrayBaseSetInt32:
-    case MethodRecognizer::kByteArrayBaseSetUint32:
-    case MethodRecognizer::kByteArrayBaseSetInt64:
-    case MethodRecognizer::kByteArrayBaseSetUint64:
-    case MethodRecognizer::kByteArrayBaseSetFloat32:
-    case MethodRecognizer::kByteArrayBaseSetFloat64:
-    case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-    case MethodRecognizer::kByteArrayBaseSetFloat64x2:
-    case MethodRecognizer::kByteArrayBaseSetInt32x4:
     case MethodRecognizer::kRecord_fieldAt:
     case MethodRecognizer::kRecord_fieldNames:
     case MethodRecognizer::kRecord_numFields:
@@ -1124,27 +1098,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
   const MethodRecognizer::Kind kind = function.recognized_kind();
   switch (kind) {
-#define BYTE_ARRAY_BASE_OPS(Type)                                              \
-  case MethodRecognizer::kByteArrayBaseGet##Type:                              \
-    body += BuildByteArrayBaseLoad(function, kTypedData##Type##ArrayCid);      \
-    break;                                                                     \
-  case MethodRecognizer::kByteArrayBaseSet##Type:                              \
-    body += BuildByteArrayBaseStore(function, kTypedData##Type##ArrayCid);     \
-    break;
-    BYTE_ARRAY_BASE_OPS(Int8)
-    BYTE_ARRAY_BASE_OPS(Uint8)
-    BYTE_ARRAY_BASE_OPS(Int16)
-    BYTE_ARRAY_BASE_OPS(Uint16)
-    BYTE_ARRAY_BASE_OPS(Int32)
-    BYTE_ARRAY_BASE_OPS(Uint32)
-    BYTE_ARRAY_BASE_OPS(Int64)
-    BYTE_ARRAY_BASE_OPS(Uint64)
-    BYTE_ARRAY_BASE_OPS(Float32)
-    BYTE_ARRAY_BASE_OPS(Float64)
-    BYTE_ARRAY_BASE_OPS(Float32x4)
-    BYTE_ARRAY_BASE_OPS(Float64x2)
-    BYTE_ARRAY_BASE_OPS(Int32x4)
-#undef BYTE_ARRAY_BASE_OPS
     case MethodRecognizer::kRecord_fieldAt:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1797,56 +1750,6 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += AddIntptrIntegers();
   body += StoreNativeField(Slot::PointerBase_data());
 
-  return body;
-}
-
-Fragment FlowGraphBuilder::BuildByteArrayBaseLoad(const Function& function,
-                                                  intptr_t view_cid) {
-  ASSERT_EQUAL(parsed_function_->function().NumParameters(), 2);
-  // Guaranteed to be non-null since it's only called internally from other
-  // instance methods.
-  LocalVariable* arg_receiver = parsed_function_->RawParameterVariable(0);
-  // Guaranteed to be a non-null Smi due to bounds checks prior to call.
-  LocalVariable* arg_index = parsed_function_->RawParameterVariable(1);
-
-  Fragment body;
-  body += LoadLocal(arg_receiver);
-  body += LoadUntagged(compiler::target::PointerBase::data_offset());
-  body += LoadLocal(arg_index);
-  body += LoadIndexed(view_cid, /*index_scale=*/1,
-                      /*index_unboxed=*/false, kUnalignedAccess);
-  body += Box(LoadIndexedInstr::RepresentationOfArrayElement(view_cid));
-  return body;
-}
-
-Fragment FlowGraphBuilder::BuildByteArrayBaseStore(const Function& function,
-                                                   intptr_t view_cid) {
-  ASSERT_EQUAL(parsed_function_->function().NumParameters(), 3);
-  // Guaranteed to be non-null since it's only called internally from other
-  // instance methods.
-  LocalVariable* arg_receiver = parsed_function_->RawParameterVariable(0);
-  // Guaranteed to be a non-null Smi due to bounds checks prior to call.
-  LocalVariable* arg_index = parsed_function_->RawParameterVariable(1);
-  LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
-
-  Fragment body;
-  // We check the argument for null before untagging the receiver to avoid
-  // the untagged payload address being on the stack during deoptimization,
-  // so this value needs to be dropped after the StoreIndexed instruction.
-  body += LoadLocal(arg_value);
-  body += CheckNullOptimized(Symbols::Value(), CheckNullInstr::kArgumentError);
-  LocalVariable* checked_value = MakeTemporary("value");
-
-  body += LoadLocal(arg_receiver);
-  body += LoadUntagged(compiler::target::PointerBase::data_offset());
-  body += LoadLocal(arg_index);
-  body += LoadLocal(checked_value);
-  body +=
-      UnboxTruncate(StoreIndexedInstr::RepresentationOfArrayElement(view_cid));
-  body += StoreIndexedTypedData(view_cid, /*index_scale=*/1,
-                                /*index_unboxed=*/false, kUnalignedAccess);
-  body += DropTemporary(&checked_value);
-  body += NullConstant();
   return body;
 }
 

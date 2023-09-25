@@ -1140,8 +1140,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
             ToFpuRegisterSource(source_loc, Location::kQuadStackSlot));
         break;
       default:
-        FATAL("Unexpected representation: %s",
-              Location::RepresentationToCString(rep));
+        UNREACHABLE();
         break;
     }
   }

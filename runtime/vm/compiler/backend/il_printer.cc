@@ -167,10 +167,6 @@ class IlTestPrinter : public AllStatic {
       AttributesSerializer serializer(writer);
       instr->Accept(&serializer);
     }
-    if (auto* const call = instr->AsStaticCall()) {
-      writer->PrintProperty("f",
-                            call->function().QualifiedUserVisibleNameCString());
-    }
     if (instr->SuccessorCount() > 0) {
       writer->OpenArray("s");
       for (auto succ : instr->successors()) {

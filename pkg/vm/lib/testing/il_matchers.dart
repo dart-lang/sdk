@@ -53,72 +53,30 @@ class FlowGraph {
     return env;
   }
 
-  void _formatInternal(StringBuffer buffer, Map<String, dynamic> instr) {
-    buffer.write(instr['o']);
-    if (instr['f'] != null) {
-      buffer
-        ..write('<')
-        ..write(instr['f'])
-        ..write('>');
-    }
-    final attrs = descriptors[instr['o']]
-        ?.attributeIndex
-        .entries
-        .map((e) => '${e.key}: ${instr['d'][e.value]}')
-        .join(',');
-    if (attrs != null) {
-      buffer
-        ..write('[')
-        ..write(attrs)
-        ..write(']');
-    }
-    final condition = instr['cc'];
-    if (condition != null) {
-      buffer.write(' if ');
-      _formatInternal(buffer, condition);
-      buffer.write(' then ');
-    } else {
-      final inputs = instr['i']?.map((v) => 'v$v').join(', ') ?? '';
-      buffer
-        ..write('(')
-        ..write(inputs)
-        ..write(')');
-    }
-    if (instr['s'] != null) {
-      buffer
-        ..write(' goto ')
-        ..write(instr['s']);
-    }
-  }
-
-  void formatInstruction(StringBuffer buffer, Map<String, dynamic> instr) {
-    final v = instr['v'] ?? -1;
-    final prefix = v != -1 ? 'v$v <- ' : '';
-    buffer..write(prefix);
-    _formatInternal(buffer, instr);
-  }
-
-  void _formatBlock(StringBuffer buffer, Map<String, dynamic> block) {
-    buffer
-      ..write(blockName(block))
-      ..write('[')
-      ..write(block['o'])
-      ..writeln(']');
-    for (var instr in [...?block['d'], ...?block['is']]) {
-      buffer.write('  ');
-      formatInstruction(buffer, instr);
-      buffer.writeln();
-    }
-  }
-
-  String blockName(Map<String, dynamic> block) => 'B${block['b']}';
-
   void dump() {
-    final buffer = StringBuffer();
-    for (var block in blocks) {
-      _formatBlock(buffer, block);
+    String formatOne(Map<String, dynamic> instr) {
+      final inputs = instr['i']?.map((v) => 'v$v').join(', ') ?? '';
+      final successors = instr['s'] != null ? ' goto ${instr['s']}' : '';
+      final attrs = descriptors[instr['o']]
+          ?.attributeIndex
+          .entries
+          .map((e) => '${e.key}: ${instr['d'][e.value]}')
+          .join(',');
+      final condition = instr['cc'] != null ? formatOne(instr['cc']) : '';
+      final attrsWrapped = attrs != null ? '[$attrs]' : '';
+      final inputsWrapped =
+          condition != '' ? ' if $condition then ' : '($inputs)';
+      return '${instr['o']}$attrsWrapped$inputsWrapped$successors';
     }
-    print(buffer);
+
+    for (var block in blocks) {
+      print('B${block['b']}[${block['o']}]');
+      for (var instr in [...?block['d'], ...?block['is']]) {
+        final v = instr['v'] ?? -1;
+        final prefix = v != -1 ? 'v$v <- ' : '';
+        print('  ${prefix}${formatOne(instr)}');
+      }
+    }
   }
 }
 
