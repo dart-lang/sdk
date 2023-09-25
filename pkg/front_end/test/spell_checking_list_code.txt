@@ -67,6 +67,7 @@ apparently
 applicable
 approximation
 architectures
+area
 arg
 args
 arise
@@ -118,6 +119,7 @@ balance
 bang
 bar
 basically
+basis
 batch
 baz
 bazel
@@ -209,6 +211,7 @@ ce
 ceil
 cfe
 ch
+chaining
 channel
 char
 charcode
@@ -268,6 +271,7 @@ complement
 complementary
 completers
 completes
+complexity
 complicated
 complicating
 component's
@@ -287,6 +291,7 @@ condensed
 config
 configs
 configured
+confusing
 connecting
 connectivity
 consecutive
@@ -447,6 +452,7 @@ doc
 docs
 doesn\'t
 dom
+dominator
 dont
 doubles
 downcasts
@@ -608,6 +614,7 @@ forcing
 foreign
 formed
 former
+forming
 fortunately
 fourth
 framework
@@ -628,6 +635,7 @@ futured
 futureor
 fvar
 g
+garbage
 gardening
 garner
 gathers
@@ -740,6 +748,7 @@ inc
 incomparable
 inconsistency
 increased
+increasing
 incremented
 incrementing
 independently
@@ -1237,6 +1246,7 @@ realign
 realise
 reapplies
 reapply
+reapplying
 reasonably
 reassigned
 reassigns
@@ -1253,6 +1263,7 @@ recalls
 received
 receivers
 recheck
+reclaimed
 recognizing
 recompile
 recompiled
@@ -1318,6 +1329,7 @@ replaces
 replicated
 repo
 repositories
+reproduces
 repurposed
 repurposing
 requesting
@@ -1337,8 +1349,10 @@ ret
 retrieval
 reusage
 reversible
+rewinding
 rewinds
 rework
+rewound
 rewrites
 rewrote
 rf
@@ -1441,6 +1455,7 @@ silenced
 simplifier
 simplify
 singleton
+singly
 sinker
 site
 six
@@ -1553,6 +1568,7 @@ subtracted
 subtracting
 subtraction
 subtracts
+successive
 suffixed
 suffixing
 sugared

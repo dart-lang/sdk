@@ -3154,7 +3154,7 @@ class List<E> extends Iterable<E> {
   E operator [](int index) => null;
 }
 
-class _GrowableList<E> {
+class _GrowableList<E> implements List<E> {
   factory _GrowableList(int length) => null;
   factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
@@ -3167,6 +3167,10 @@ class _GrowableList<E> {
   factory _GrowableList._literal6(E e0, E e1, E e2, E e3, E e4, E e5) => null;
   factory _GrowableList._literal7(E e0, E e1, E e2, E e3, E e4, E e5, E e6) => null;
   factory _GrowableList._literal8(E e0, E e1, E e2, E e3, E e4, E e5, E e6, E e7) => null;
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
+  Iterator<E> get iterator => null;
+  E operator [](int index) => null;
 }
 
 class _List<E> {
