@@ -430,6 +430,7 @@ class MacroApplications {
           return getClassDeclaration(typeDeclarationBuilder);
         case TypeAliasBuilder():
         case TypeVariableBuilder():
+        case StructuralVariableBuilder():
         case ExtensionBuilder():
         case ExtensionTypeDeclarationBuilder():
         case InvalidTypeDeclarationBuilder():

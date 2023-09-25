@@ -23,8 +23,12 @@ class BuilderMixinInferrer extends MixinInferrer {
   final ClassBuilder cls;
 
   BuilderMixinInferrer(
-      this.cls, CoreTypes coreTypes, TypeBuilderConstraintGatherer gatherer)
-      : super(coreTypes, gatherer);
+      this.cls,
+      CoreTypes coreTypes,
+      TypeBuilderConstraintGatherer gatherer,
+      Map<TypeParameter, StructuralParameterType>
+          inferableParameterByDeclaredParameter)
+      : super(coreTypes, gatherer, inferableParameterByDeclaredParameter);
 
   @override
   Supertype? asInstantiationOf(Supertype type, Class superclass) {
@@ -47,7 +51,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   final ClassHierarchyBuilder hierarchy;
 
   TypeBuilderConstraintGatherer(
-      this.hierarchy, Iterable<TypeParameter> typeParameters,
+      this.hierarchy, Iterable<StructuralParameter> typeParameters,
       {required bool isNonNullableByDefault})
       : super.subclassing(typeParameters,
             isNonNullableByDefault: isNonNullableByDefault);

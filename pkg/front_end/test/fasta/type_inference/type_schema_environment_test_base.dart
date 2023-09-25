@@ -143,8 +143,8 @@ abstract class TypeSchemaEnvironmentTestBase {
       String? returnContextType,
       String? inferredTypesFromDownwardPhase,
       required String expectedTypes}) {
-    typeParserEnvironment.withTypeParameters(typeParametersToInfer,
-        (List<TypeParameter> typeParameterNodesToInfer) {
+    typeParserEnvironment.withStructuralParameters(typeParametersToInfer,
+        (List<StructuralParameter> typeParameterNodesToInfer) {
       FunctionType functionTypeNode = parseType(functionType) as FunctionType;
       DartType? returnContextTypeNode =
           returnContextType == null ? null : parseType(returnContextType);
@@ -199,13 +199,13 @@ abstract class TypeSchemaEnvironmentTestBase {
       required String expected}) {
     assert(inferredTypeFromDownwardPhase == null || !downwardsInferPhase);
 
-    typeParserEnvironment.withTypeParameters(typeParameter,
-        (List<TypeParameter> typeParameterNodes) {
+    typeParserEnvironment.withStructuralParameters(typeParameter,
+        (List<StructuralParameter> typeParameterNodes) {
       assert(typeParameterNodes.length == 1);
 
       TypeConstraint typeConstraint = parseConstraint(constraints);
       DartType expectedTypeNode = parseType(expected);
-      TypeParameter typeParameterNode = typeParameterNodes.single;
+      StructuralParameter typeParameterNode = typeParameterNodes.single;
       List<DartType>? inferredTypeNodes = inferredTypeFromDownwardPhase == null
           ? null
           : <DartType>[parseType(inferredTypeFromDownwardPhase)];

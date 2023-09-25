@@ -723,6 +723,12 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   }
 
   @override
+  bool visitStructuralParameterType(
+      StructuralParameterType type, CoreTypes coreTypes) {
+    return type.bound.accept1(this, coreTypes);
+  }
+
+  @override
   bool visitTypedefType(TypedefType type, CoreTypes coreTypes) {
     return type.unalias.accept1(this, coreTypes);
   }

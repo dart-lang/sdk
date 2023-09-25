@@ -133,7 +133,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     TypeBuilder returnType = node.returnType.accept(this);
     // We could compute the type variables here. However, the current
     // implementation of [visitTypeParameterType] is sufficient.
-    List<TypeVariableBuilder>? typeVariables = null;
+    List<StructuralVariableBuilder>? typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
     List<ParameterBuilder> formals = new List<ParameterBuilder>.filled(
@@ -172,6 +172,16 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     TypeParameter parameter = node.parameter;
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
         new TypeVariableBuilder.fromKernel(parameter),
+        new NullabilityBuilder.fromNullability(node.nullability),
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
+        type: node);
+  }
+
+  @override
+  TypeBuilder visitStructuralParameterType(StructuralParameterType node) {
+    StructuralParameter parameter = node.parameter;
+    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+        new StructuralVariableBuilder.fromKernel(parameter),
         new NullabilityBuilder.fromNullability(node.nullability),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
         type: node);

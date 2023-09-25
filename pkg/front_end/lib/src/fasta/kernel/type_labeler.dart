@@ -166,6 +166,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    result.add(node.parameter.name ?? "T#${identityHashCode(node.parameter)}");
+    addNullability(node.declaredNullability);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     return node.left.accept(this);
   }
@@ -177,7 +183,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     if (node.typeParameters.isNotEmpty) {
       result.add("<");
       bool first = true;
-      for (TypeParameter param in node.typeParameters) {
+      for (StructuralParameter param in node.typeParameters) {
         if (!first) result.add(", ");
         result.add(param.name ?? '');
         if (isObject(param.bound) && param.defaultType is DynamicType) {

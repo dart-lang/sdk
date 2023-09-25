@@ -2,8 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-enhanced_enums/declared_hashcode: TypeCheckError
 const_functions/const_functions_const_factory: VerificationError
+enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.

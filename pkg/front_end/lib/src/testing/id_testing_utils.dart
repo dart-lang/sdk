@@ -631,7 +631,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
             sb.write(' ');
           }
         }
-        TypeParameter typeParameter = node.typeParameters[i];
+        StructuralParameter typeParameter = node.typeParameters[i];
         sb.write(typeParameter.name);
         DartType bound = typeParameter.bound;
         if (!(bound is InterfaceType && bound.classNode.name == 'Object')) {
@@ -704,6 +704,12 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType node) {
+    sb.write(node.parameter.name);
+    sb.write(nullabilityToText(node.nullability, typeRepresentation));
+  }
+
+  @override
+  void visitStructuralParameterType(StructuralParameterType node) {
     sb.write(node.parameter.name);
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
   }

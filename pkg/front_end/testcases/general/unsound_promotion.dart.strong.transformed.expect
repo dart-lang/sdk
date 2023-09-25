@@ -2,6 +2,10 @@ library /*isLegacy*/;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/general/unsound_promotion.dart:5:1: Error: Library doesn't support null safety.
+// // @dart=2.9
+// ^^^^^^^^^^^^
+//
 // pkg/front_end/testcases/general/unsound_promotion.dart:23:16: Error: Inferred type argument 'S' doesn't conform to the bound 'A' of the type variable 'T' on 'g'.
 //  - 'A' is from 'pkg/front_end/testcases/general/unsound_promotion.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
@@ -51,7 +55,7 @@ class C extends self::B implements self::A {
 }
 static field core::List<self::A*>* list;
 static method g<T extends self::A*>(self::g::T* t) → core::List<self::g::T*>* {
-  self::list = <self::g::T*>[];
+  self::list = core::_GrowableList::•<self::g::T*>(0);
   core::print(self::list.{core::Object::runtimeType}{core::Type*});
   return self::list as{TypeError,ForLegacy} core::List<self::g::T*>*;
 }

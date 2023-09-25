@@ -22,7 +22,7 @@ class FindTypeVisitor implements DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (namedParameterType.type.accept(this)) return true;
     }
-    for (TypeParameter parameter in node.typeParameters) {
+    for (StructuralParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
       if (parameter.defaultType.accept(this)) return true;
     }
@@ -47,6 +47,11 @@ class FindTypeVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) => false;
+
+  @override
+  bool visitStructuralParameterType(StructuralParameterType) {
+    return false;
+  }
 
   @override
   bool visitIntersectionType(IntersectionType node) {

@@ -14,11 +14,14 @@ import '../js_ast/js_ast.dart' show js;
 import 'kernel_helpers.dart';
 
 /// Returns all non-locally defined type parameters referred to by [t].
-Set<TypeParameter> freeTypeParameters(DartType t) {
+Set< /* TypeParameter | StructuralParameter */ Object> freeTypeParameters(
+    DartType t) {
   assert(isKnownDartTypeImplementor(t));
-  var result = <TypeParameter>{};
+  var result = < /* TypeParameter | StructuralParameter */ Object>{};
   void find(DartType t) {
     if (t is TypeParameterType) {
+      result.add(t.parameter);
+    } else if (t is StructuralParameterType) {
       result.add(t.parameter);
     } else if (t is InterfaceType) {
       t.typeArguments.forEach(find);
@@ -90,6 +93,9 @@ String _typeString(DartType type, {bool flat = false}) {
     return '${paramList}To$nullability$rType';
   }
   if (type is TypeParameterType) return '${type.parameter.name}$nullability';
+  if (type is StructuralParameterType) {
+    return '${type.parameter.name}$nullability';
+  }
   if (type is DynamicType) return 'dynamic';
   if (type is VoidType) return 'void';
   if (type is NeverType) return 'Never$nullability';
@@ -113,7 +119,8 @@ class TypeTable {
   /// cache/generator variables discharged at the binding site for the
   /// type variable since the type definition depends on the type
   /// parameter.
-  final _scopeDependencies = <TypeParameter, List<DartType>>{};
+  final _scopeDependencies =
+      < /* TypeParameter | StructuralParameter */ Object, List<DartType>>{};
 
   /// Contains types with any free type parameters and maps them to a unique
   /// JS identifier.
@@ -183,7 +190,11 @@ class TypeTable {
   /// If [formals] is present, only emit the definitions which depend on the
   /// formals.
   List<js_ast.Statement> dischargeFreeTypes(
-      [Iterable<TypeParameter>? formals]) {
+      [Iterable< /* TypeParameter | StructuralTypeParameter */ Object>?
+          formals]) {
+    assert(formals == null ||
+        formals.every((parameter) =>
+            parameter is TypeParameter || parameter is StructuralParameter));
     var decls = <js_ast.Statement>[];
     var types = formals == null
         ? typeContainer.keys.where((p) => freeTypeParameters(p).isNotEmpty)
@@ -223,7 +234,9 @@ class TypeTable {
     // readability to little or no benefit.  It would be good to do this
     // when we know that we can hoist it to an outer scope, but for
     // now we just disable it.
-    if (freeVariables.any((i) => i.declaration is GenericFunction)) {
+    if (freeVariables.any((i) =>
+        i is TypeParameter && i.declaration is GenericFunction ||
+        i is StructuralParameter)) {
       return true;
     }
 

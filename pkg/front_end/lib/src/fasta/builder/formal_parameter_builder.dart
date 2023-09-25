@@ -72,7 +72,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   final int modifiers;
 
   @override
-  final TypeBuilder type;
+  TypeBuilder type;
 
   @override
   final String name;

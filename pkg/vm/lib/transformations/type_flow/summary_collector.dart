@@ -2672,6 +2672,11 @@ class RuntimeTypeTranslatorImpl
   }
 
   @override
+  TypeExpr visitStructuralParameterType(StructuralParameterType type) {
+    return unknownType;
+  }
+
+  @override
   TypeExpr visitFunctionType(FunctionType type) => unknownType;
 
   @override

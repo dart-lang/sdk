@@ -300,9 +300,20 @@ String qualifiedTypeParameterNameToString(TypeParameter node,
   }
 }
 
+String qualifiedStructuralParameterNameToString(StructuralParameter node,
+    {bool includeLibraryName = false}) {
+  return structuralParameterNameToString(node);
+}
+
 String typeParameterNameToString(TypeParameter node) {
   return node.name ??
       "null-named TypeParameter ${node.runtimeType} ${node.hashCode}";
+}
+
+String structuralParameterNameToString(StructuralParameter node) {
+  return node.name ??
+      "null-named StructuralParameter "
+          "${node.runtimeType} ${node.hashCode}";
 }
 
 String? getEscapedCharacter(int codeUnit) {

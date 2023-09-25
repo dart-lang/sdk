@@ -250,6 +250,9 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
 final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
     TypeVariableBuilder.noNameSentinel, null, -1, null,
     kind: TypeVariableKind.function);
+final StructuralVariableBuilder dummyStructuralVariableBuilder =
+    new StructuralVariableBuilder(
+        StructuralVariableBuilder.noNameSentinel, null, -1, null);
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);

@@ -12,7 +12,8 @@ import 'package:dart2wasm/translator.dart';
 import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/type_algebra.dart' show substitute, Substitution;
+import 'package:kernel/type_algebra.dart'
+    show FunctionTypeInstantiator, substitute;
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -599,10 +600,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
     FunctionType tearOffFunctionType =
         translator.getTearOffType(tearOffProcedure);
-    FunctionType instantiatedFunctionType = Substitution.fromPairs(
-                tearOffFunctionType.typeParameters, constant.types)
-            .substituteType(tearOffFunctionType.withoutTypeParameters)
-        as FunctionType;
+    FunctionType instantiatedFunctionType =
+        FunctionTypeInstantiator.instantiate(
+            tearOffFunctionType, constant.types);
     Constant functionTypeConstant =
         TypeLiteralConstant(instantiatedFunctionType);
     ensureConstant(functionTypeConstant);
@@ -812,21 +812,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     } else if (type is ExtensionType) {
       return ensureConstant(TypeLiteralConstant(type.typeErasure));
     } else if (type is TypeParameterType) {
-      if (types.isFunctionTypeParameter(type)) {
-        // The indexing scheme used by function type parameters ensures that
-        // function type parameter types that are identical as constants (have
-        // the same nullability and refer to the same type parameter) have the
-        // same representation and thus can be canonicalized like other
-        // constants.
-        return createConstant(constant, info.nonNullableType, (function, b) {
-          int index = types.getFunctionTypeParameterIndex(type.parameter);
-          b.i32_const(info.classId);
-          b.i32_const(initialIdentityHash);
-          b.i32_const(types.encodedNullability(type));
-          b.i64_const(index);
-          b.struct_new(info.struct);
-        });
-      }
       int environmentIndex =
           types.interfaceTypeEnvironment.lookup(type.parameter);
       return createConstant(constant, info.nonNullableType, (function, b) {
@@ -834,6 +819,20 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         b.i32_const(initialIdentityHash);
         b.i32_const(types.encodedNullability(type));
         b.i64_const(environmentIndex);
+        b.struct_new(info.struct);
+      });
+    } else if (type is StructuralParameterType) {
+      // The indexing scheme used by function type parameters ensures that
+      // function type parameter types that are identical as constants (have
+      // the same nullability and refer to the same type parameter) have the
+      // same representation and thus can be canonicalized like other
+      // constants.
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        int index = types.getFunctionTypeParameterIndex(type.parameter);
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        b.i32_const(types.encodedNullability(type));
+        b.i64_const(index);
         b.struct_new(info.struct);
       });
     } else if (type is RecordType) {

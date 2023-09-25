@@ -6254,20 +6254,9 @@ bool isInstantiated(DartType type) {
 }
 
 class HasUninstantiatedVisitor extends FindTypeVisitor {
-  final _availableVariables = new Set<TypeParameter>();
-
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return !_availableVariables.contains(node.parameter);
-  }
-
-  @override
-  bool visitFunctionType(FunctionType node) {
-    final List<TypeParameter> parameters = node.typeParameters;
-    _availableVariables.addAll(parameters);
-    bool result = super.visitFunctionType(node);
-    _availableVariables.removeAll(parameters);
-    return result;
+    return true;
   }
 }
 

@@ -6,15 +6,15 @@ import 'package:expect/expect.dart';
 import 'package:kernel/kernel.dart';
 
 FunctionType createVoidToR() {
-  TypeParameter R = TypeParameter("R", const DynamicType());
-  return new FunctionType(
-      [], new TypeParameterType(R, Nullability.legacy), Nullability.legacy,
+  StructuralParameter R = StructuralParameter("R", const DynamicType());
+  return new FunctionType([],
+      new StructuralParameterType(R, Nullability.legacy), Nullability.legacy,
       typeParameters: [R]);
 }
 
 FunctionType createTTo_VoidToR() {
-  TypeParameter T = new TypeParameter("T", const DynamicType());
-  return new FunctionType([new TypeParameterType(T, Nullability.legacy)],
+  StructuralParameter T = new StructuralParameter("T", const DynamicType());
+  return new FunctionType([new StructuralParameterType(T, Nullability.legacy)],
       createVoidToR(), Nullability.legacy,
       typeParameters: [T]);
 }
@@ -37,11 +37,11 @@ void test1() {
 }
 
 FunctionType createVoidTo_VoidToR() {
-  TypeParameter R = new TypeParameter("R", const DynamicType());
+  StructuralParameter R = new StructuralParameter("R", const DynamicType());
   return new FunctionType(
       [],
-      new FunctionType(
-          [], new TypeParameterType(R, Nullability.legacy), Nullability.legacy),
+      new FunctionType([], new StructuralParameterType(R, Nullability.legacy),
+          Nullability.legacy),
       Nullability.legacy,
       typeParameters: [R]);
 }

@@ -1,4 +1,4 @@
-# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# Copyrighi (c) 2017, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -81,6 +81,7 @@ inference/downwards_inference_on_list_literals_infer_if_value_types_match_contex
 inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
 
 # UNSORTED ONES:
+constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
@@ -156,7 +157,6 @@ general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/await_in_non_async: RuntimeError
 general/bounded_implicit_instantiation: TypeCheckError
-general/bounds_instances: TypeCheckError
 general/bug30695: TypeCheckError
 general/call: RuntimeError
 general/cascade: RuntimeError
@@ -203,14 +203,12 @@ general/redirecting_factory: RuntimeError
 general/spread_collection: RuntimeError
 general/supertype_conflict: TypeCheckError
 general/type_variable_as_super: RuntimeError
-general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
-inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
+generic_metadata/from_dill/main: Crash
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_async_await: RuntimeError
 inference/downwards_inference_for_each: RuntimeError
-inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError

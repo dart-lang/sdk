@@ -5117,10 +5117,11 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
+
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
-        typeVariables);
+        libraryBuilder.convertNominalToStructuralTypeVariables(typeVariables));
     exitLocalScope();
     push(type);
   }
@@ -5433,7 +5434,7 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(question != null),
-        typeVariables);
+        libraryBuilder.convertNominalToStructuralTypeVariables(typeVariables));
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -6140,7 +6141,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     List<Object> types = forest.argumentsTypeArguments(arguments);
-    List<TypeParameter> typeParameters = function.typeParameters;
+    List<StructuralParameter> typeParameters = function.typeParameters;
     if (typeParameters.length != types.length && types.length != 0) {
       // A wrong (non-zero) amount of type arguments given. That's an error.
       // TODO(jensj): Position should be on type arguments instead.
@@ -6428,6 +6429,7 @@ class BodyBuilder extends StackListenerImpl
             // TODO(johnniwinther): Handle this case.
             case TypeAliasBuilder():
             case TypeVariableBuilder():
+            case StructuralVariableBuilder():
             case ExtensionBuilder():
             case BuiltinTypeDeclarationBuilder():
             // TODO(johnniwinther): How should we handle this case?
@@ -6468,6 +6470,7 @@ class BodyBuilder extends StackListenerImpl
             // TODO(johnniwinther): Handle this case.
             case TypeAliasBuilder():
             case TypeVariableBuilder():
+            case StructuralVariableBuilder():
             case ExtensionBuilder():
             case InvalidTypeDeclarationBuilder():
             case BuiltinTypeDeclarationBuilder():
@@ -6551,6 +6554,7 @@ class BodyBuilder extends StackListenerImpl
         // TODO(johnniwinther): Handle this case.
         case TypeAliasBuilder():
         case TypeVariableBuilder():
+        case StructuralVariableBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
         case BuiltinTypeDeclarationBuilder():
@@ -6641,6 +6645,7 @@ class BodyBuilder extends StackListenerImpl
                 nameToken.lexeme.length));
       case TypeAliasBuilder():
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
       // TODO(johnniwinther): How should we handle this case?
@@ -8654,7 +8659,7 @@ class BodyBuilder extends StackListenerImpl
         peek() as List<TypeVariableBuilder>;
 
     List<TypeBuilder> unboundTypes = [];
-    List<TypeVariableBuilder> unboundTypeVariables = [];
+    List<StructuralVariableBuilder> unboundTypeVariables = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
@@ -9033,7 +9038,8 @@ class BodyBuilder extends StackListenerImpl
           :TypeDeclarationBuilder? declaration,
           :List<TypeBuilder>? arguments
         ):
-        if (declaration!.isTypeVariable) {
+        if (declaration!.isTypeVariable &&
+            builder.declaration is TypeVariableBuilder) {
           TypeVariableBuilder typeParameterBuilder =
               declaration as TypeVariableBuilder;
           TypeParameter typeParameter = typeParameterBuilder.parameter;
@@ -9063,12 +9069,12 @@ class BodyBuilder extends StackListenerImpl
           }
         }
       case FunctionTypeBuilder(
-          :List<TypeVariableBuilder>? typeVariables,
+          :List<StructuralVariableBuilder>? typeVariables,
           :List<ParameterBuilder>? formals,
           :TypeBuilder returnType
         ):
         if (typeVariables != null) {
-          for (TypeVariableBuilder typeVariable in typeVariables) {
+          for (StructuralVariableBuilder typeVariable in typeVariables) {
             _validateTypeVariableUseInternal(typeVariable.bound,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
             _validateTypeVariableUseInternal(typeVariable.defaultType,
@@ -9898,9 +9904,27 @@ class FormalParameters {
 
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      [List<TypeVariableBuilder>? typeParameters]) {
-    return new FunctionTypeBuilderImpl(returnType, typeParameters, parameters,
-        nullabilityBuilder, uri, charOffset);
+      [(
+        List<StructuralVariableBuilder>,
+        Map<TypeVariableBuilder, TypeBuilder>
+      )? freshStructuralParameters]) {
+    if (freshStructuralParameters != null) {
+      var (
+        List<StructuralVariableBuilder> structuralParameters,
+        Map<TypeVariableBuilder, TypeBuilder> nominalToStructuralSubstitutionMap
+      ) = freshStructuralParameters;
+      if (parameters != null) {
+        for (FormalParameterBuilder formal in parameters!) {
+          formal.type = formal.type.subst(nominalToStructuralSubstitutionMap);
+        }
+      }
+      returnType = returnType.subst(nominalToStructuralSubstitutionMap);
+      return new FunctionTypeBuilderImpl(returnType, structuralParameters,
+          parameters, nullabilityBuilder, uri, charOffset);
+    } else {
+      return new FunctionTypeBuilderImpl(
+          returnType, null, parameters, nullabilityBuilder, uri, charOffset);
+    }
   }
 
   Scope computeFormalParameterScope(

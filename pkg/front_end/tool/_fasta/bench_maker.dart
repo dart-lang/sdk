@@ -38,6 +38,9 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   final Map<TreeNode, String> nodeNames = <TreeNode, String>{};
 
+  final Map<StructuralParameter, String> structuralParameterNames =
+      <StructuralParameter, String>{};
+
   final Set<String> usedNames = new Set<String>();
 
   final Iterator<String> names = nameGenerator().iterator..moveNext();
@@ -104,6 +107,23 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
   }
 
+  void writeStructuralParameter(
+      StructuralParameter parameter, StringBuffer sb) {
+    sb.write(computeStructuralParameterName(parameter));
+    DartType bound = parameter.bound;
+    DartType defaultType = parameter.defaultType;
+    bool hasExplicitBound = true;
+    if (bound is InterfaceType && defaultType is DynamicType) {
+      if (bound.classNode.supertype == null) {
+        hasExplicitBound = false;
+      }
+    }
+    if (hasExplicitBound) {
+      sb.write(" extends ");
+      bound.accept1(this, sb);
+    }
+  }
+
   void writeTypeParameters(
       List<TypeParameter> typeParameters, StringBuffer sb) {
     if (typeParameters.isNotEmpty) {
@@ -112,6 +132,20 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       for (TypeParameter p in typeParameters) {
         if (!first) sb.write(", ");
         writeTypeParameter(p, sb);
+        first = false;
+      }
+      sb.write(">");
+    }
+  }
+
+  void writeStructuralParameters(
+      List<StructuralParameter> typeParameters, StringBuffer sb) {
+    if (typeParameters.isNotEmpty) {
+      sb.write("<");
+      bool first = true;
+      for (StructuralParameter p in typeParameters) {
+        if (!first) sb.write(", ");
+        writeStructuralParameter(p, sb);
         first = false;
       }
       sb.write(">");
@@ -202,6 +236,16 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     return nodeNames[node] = name;
   }
 
+  String computeStructuralParameterName(StructuralParameter node) {
+    String? name = structuralParameterNames[node];
+    if (name != null) return name;
+    while (!usedNames.add(name = names.current)) {
+      names.moveNext();
+    }
+    names.moveNext();
+    return structuralParameterNames[node] = name;
+  }
+
   void writeNullability(Nullability nullability, StringBuffer sb) {
     switch (nullability) {
       case Nullability.nullable:
@@ -287,7 +331,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitFunctionType(FunctionType node, StringBuffer sb) {
-    writeTypeParameters(node.typeParameters, sb);
+    writeStructuralParameters(node.typeParameters, sb);
     sb.write("(");
     bool first = true;
     for (int i = 0; i < node.requiredParameterCount; i++) {
@@ -361,6 +405,12 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     String name = computeName(node.parameter);
     usedTypeParameters.add(node.parameter);
     sb.write(name);
+  }
+
+  @override
+  void visitStructuralParameterType(
+      StructuralParameterType node, StringBuffer sb) {
+    throw "not implemented";
   }
 
   @override

@@ -74,7 +74,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   bool visitFunctionType(FunctionType node, Set<TypedefType> visitedTypedefs) {
     if (node.returnType.accept1(this, visitedTypedefs)) return true;
-    for (TypeParameter typeParameter in node.typeParameters) {
+    for (StructuralParameter typeParameter in node.typeParameters) {
       if (typeParameter.bound.accept1(this, visitedTypedefs)) return true;
       // TODO(cstefantsova): Check defaultTypes as well if they cause cascading
       // errors.
@@ -103,6 +103,15 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   bool visitTypeParameterType(
       TypeParameterType node, Set<TypedefType> visitedTypedefs) {
+    // node.parameter.bound is not checked because such a bound doesn't
+    // automatically means that the potential errors related to the occurrences
+    // of the type-parameter type itself are reported.
+    return false;
+  }
+
+  @override
+  bool visitStructuralParameterType(
+      StructuralParameterType node, Set<TypedefType> visitedTypedefs) {
     // node.parameter.bound is not checked because such a bound doesn't
     // automatically means that the potential errors related to the occurrences
     // of the type-parameter type itself are reported.

@@ -20,6 +20,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   final Map<SwitchCase, SwitchCase> switchCases = <SwitchCase, SwitchCase>{};
   final Map<TypeParameter, DartType> typeSubstitution;
   final Map<TypeParameter, TypeParameter> typeParams;
+  final Map<StructuralParameter, StructuralParameter> functionTypeTypeParams;
   bool cloneAnnotations;
 
   /// Creates an instance of the cloning visitor for Kernel ASTs.
@@ -30,9 +31,12 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   CloneVisitorNotMembers(
       {Map<TypeParameter, DartType>? typeSubstitution,
       Map<TypeParameter, TypeParameter>? typeParams,
+      Map<StructuralParameter, StructuralParameter>? functionTypeTypeParams,
       this.cloneAnnotations = true})
       : this.typeSubstitution = ensureMutable(typeSubstitution),
-        this.typeParams = typeParams ?? <TypeParameter, TypeParameter>{};
+        this.typeParams = typeParams ?? <TypeParameter, TypeParameter>{},
+        this.functionTypeTypeParams = functionTypeTypeParams ??
+            <StructuralParameter, StructuralParameter>{};
 
   static Map<TypeParameter, DartType> ensureMutable(
       Map<TypeParameter, DartType>? map) {

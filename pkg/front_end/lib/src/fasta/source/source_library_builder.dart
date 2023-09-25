@@ -25,7 +25,7 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName,
         hasGenericFunctionTypeAsTypeArgument;
-import 'package:kernel/type_algebra.dart' show Substitution, substitute;
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
@@ -184,6 +184,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final List<TypeVariableBuilder> unboundTypeVariables =
       <TypeVariableBuilder>[];
+
+  final List<StructuralVariableBuilder> unboundStructuralVariables =
+      <StructuralVariableBuilder>[];
 
   final List<PendingBoundsCheck> _pendingBoundsChecks = [];
   final List<GenericFunctionTypeCheck> _pendingGenericFunctionTypeChecks = [];
@@ -1363,6 +1366,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
       nativeMethods.addAll(part.nativeMethods);
       unboundTypeVariables.addAll(part.unboundTypeVariables);
+      unboundStructuralVariables.addAll(part.unboundStructuralVariables);
       // Check that the targets are different. This is not normally a problem
       // but is for patch files.
       if (library != part.library && part.library.problemsAsJson != null) {
@@ -1472,6 +1476,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             // TODO(johnniwinther): How should we handle this case?
             case OmittedTypeDeclarationBuilder():
             case TypeVariableBuilder():
+            case StructuralVariableBuilder():
               unhandled(
                   'member', 'exportScope', builder.charOffset, builder.fileUri);
           }
@@ -2084,10 +2089,42 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             // TODO(johnniwinther): Should an error be reported here?
             case TypeAliasBuilder():
             case TypeVariableBuilder():
+            case StructuralVariableBuilder():
             case InvalidTypeDeclarationBuilder():
             case BuiltinTypeDeclarationBuilder():
             // TODO(johnniwinther): How should we handle this case?
             case OmittedTypeDeclarationBuilder():
+          }
+        }
+      }
+    }
+    return typeVariablesByName;
+  }
+
+  Map<String, StructuralVariableBuilder>? checkStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables, Builder? owner) {
+    if (typeVariables == null || typeVariables.isEmpty) return null;
+    Map<String, StructuralVariableBuilder> typeVariablesByName =
+        <String, StructuralVariableBuilder>{};
+    for (StructuralVariableBuilder tv in typeVariables) {
+      StructuralVariableBuilder? existing = typeVariablesByName[tv.name];
+      if (existing != null) {
+        addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
+            tv.name.length, fileUri,
+            context: [
+              templateTypeVariableDuplicatedNameCause
+                  .withArguments(tv.name)
+                  .withLocation(
+                      fileUri, existing.charOffset, existing.name.length)
+            ]);
+      } else {
+        typeVariablesByName[tv.name] = tv;
+        if (owner is ClassBuilder) {
+          // Only classes and type variables can't have the same name. See
+          // [#29555](https://github.com/dart-lang/sdk/issues/29555).
+          if (tv.name == owner.name) {
+            addProblem(messageTypeVariableSameNameAsEnclosing, tv.charOffset,
+                tv.name.length, fileUri);
           }
         }
       }
@@ -2576,6 +2613,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             if (declaration is TypeVariableBuilder) {
               return typeVariableNames!.contains(declaration.name);
             }
+            if (declaration is StructuralVariableBuilder) {
+              return typeVariableNames!.contains(declaration.name);
+            }
 
             if (arguments != null && typeVariables != null) {
               for (TypeBuilder argument in arguments) {
@@ -2586,7 +2626,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             }
           case FunctionTypeBuilder(
               :List<ParameterBuilder>? formals,
-              :List<TypeVariableBuilder>? typeVariables
+              :List<StructuralVariableBuilder>? typeVariables
             ):
             if (formals != null) {
               for (ParameterBuilder formal in formals) {
@@ -2596,7 +2636,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               }
             }
             if (typeVariables != null) {
-              for (TypeVariableBuilder variable in typeVariables) {
+              for (StructuralVariableBuilder variable in typeVariables) {
                 if (usesTypeVariables(variable.bound)) {
                   return true;
                 }
@@ -3486,16 +3526,31 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   FunctionTypeBuilder addFunctionType(
       TypeBuilder returnType,
-      List<TypeVariableBuilder>? typeVariables,
+      (
+        List<StructuralVariableBuilder>,
+        Map<TypeVariableBuilder, TypeBuilder>
+      )? freshStructuralParameters,
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
       int charOffset) {
+    List<StructuralVariableBuilder>? structuralParameters;
+    if (freshStructuralParameters != null) {
+      Map<TypeVariableBuilder, TypeBuilder> nominalToStructuralSubstitutionMap;
+      (structuralParameters, nominalToStructuralSubstitutionMap) =
+          freshStructuralParameters;
+      if (formals != null) {
+        for (FormalParameterBuilder formal in formals) {
+          formal.type = formal.type.subst(nominalToStructuralSubstitutionMap);
+        }
+      }
+      returnType = returnType.subst(nominalToStructuralSubstitutionMap);
+    }
     FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(returnType,
-        typeVariables, formals, nullabilityBuilder, fileUri, charOffset);
-    checkTypeVariables(typeVariables, null);
-    if (typeVariables != null) {
-      for (TypeVariableBuilder builder in typeVariables) {
+        structuralParameters, formals, nullabilityBuilder, fileUri, charOffset);
+    checkStructuralVariables(structuralParameters, null);
+    if (structuralParameters != null) {
+      for (StructuralVariableBuilder builder in structuralParameters) {
         if (builder.metadata != null) {
           if (!libraryFeatures.genericMetadata.isEnabled) {
             addProblem(messageAnnotationOnFunctionTypeTypeVariable,
@@ -3507,7 +3562,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
-        .resolveNamedTypes(typeVariables, this);
+        .resolveNamedTypesWithStructuralVariables(structuralParameters, this);
     return builder;
   }
 
@@ -3546,6 +3601,55 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     unboundTypeVariables.add(builder);
     return builder;
+  }
+
+  /// Converts [TypeVariableBuilder]s into [StructuralVariableBuilder]s
+  ///
+  /// The function returns a pair of the list of the converted parameters and a
+  /// map from the old parameters into the new parameters.
+  (List<StructuralVariableBuilder>, Map<TypeVariableBuilder, TypeBuilder>)?
+      convertNominalToStructuralTypeVariables(
+          List<TypeVariableBuilder>? nominalTypeVariables) {
+    if (nominalTypeVariables == null) return null;
+    Set<DartType> potentiallyUnsetNullabilities = {};
+    List<StructuralVariableBuilder> structuralVariables = [];
+    Map<TypeVariableBuilder, TypeBuilder> nominalToStructuralSubstitutionMap =
+        {};
+    for (TypeVariableBuilder nominalTypeVariable in nominalTypeVariables) {
+      StructuralVariableBuilder structuralVariable =
+          new StructuralVariableBuilder.fromTypeVariableBuilder(
+              nominalTypeVariable);
+      structuralVariables.add(structuralVariable);
+      nominalToStructuralSubstitutionMap[nominalTypeVariable] =
+          new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+              structuralVariable, const NullabilityBuilder.omitted(),
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Unexpected);
+    }
+    for (int i = 0; i < nominalTypeVariables.length; i++) {
+      if (unboundTypeVariables.remove(nominalTypeVariables[i])) {
+        unboundStructuralVariables.add(structuralVariables[i]);
+      } else {
+        // The nominal parameter was 'finish'ed, and we need to 'finish' the
+        // corresponding structural parameter.
+        structuralVariables[i].bound = structuralVariables[i]
+            .bound
+            ?.subst(nominalToStructuralSubstitutionMap);
+        structuralVariables[i].defaultType = structuralVariables[i]
+            .defaultType
+            ?.subst(nominalToStructuralSubstitutionMap);
+        structuralVariables[i].parameter.bound =
+            StructuralParameter.unsetBoundSentinel;
+        structuralVariables[i].parameter.defaultType =
+            StructuralParameter.unsetDefaultTypeSentinel;
+        structuralVariables[i].finish(
+            this, loader.target.objectClassBuilder, loader.target.dynamicType);
+        potentiallyUnsetNullabilities
+            .add(structuralVariables[i].parameter.bound);
+      }
+    }
+    processPendingNullabilities(typeFilter: potentiallyUnsetNullabilities);
+    return (structuralVariables, nominalToStructuralSubstitutionMap);
   }
 
   BodyBuilderContext get bodyBuilderContext =>
@@ -3960,21 +4064,48 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return copy;
   }
 
+  List<StructuralVariableBuilder> copyStructuralVariables(
+      List<StructuralVariableBuilder> original,
+      TypeParameterScopeBuilder declaration,
+      {required TypeVariableKind kind}) {
+    List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
+    List<StructuralVariableBuilder> copy = <StructuralVariableBuilder>[];
+    for (StructuralVariableBuilder variable in original) {
+      StructuralVariableBuilder newVariable = new StructuralVariableBuilder(
+          variable.name, this, variable.charOffset, variable.fileUri,
+          bound: variable.bound?.clone(newTypes, this, declaration),
+          variableVariance:
+              variable.parameter.isLegacyCovariant ? null : variable.variance);
+      copy.add(newVariable);
+      unboundStructuralVariables.add(newVariable);
+    }
+    for (NamedTypeBuilder newType in newTypes) {
+      declaration.registerUnresolvedNamedType(newType);
+    }
+    return copy;
+  }
+
   /// Adds all [unboundTypeVariables] to [typeVariableBuilders], mapping them
   /// to this library.
   ///
   /// This is used to compute the bounds of type variable while taking the
   /// bound dependencies, which might span multiple libraries, into account.
   void collectUnboundTypeVariables(
-      Map<TypeVariableBuilder, SourceLibraryBuilder> typeVariableBuilders) {
+      Map<TypeVariableBuilder, SourceLibraryBuilder> typeVariableBuilders,
+      Map<StructuralVariableBuilder, SourceLibraryBuilder>
+          functionTypeTypeVariableBuilders) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectUnboundTypeVariables(typeVariableBuilders);
+        patchLibrary.collectUnboundTypeVariables(
+            typeVariableBuilders, functionTypeTypeVariableBuilders);
       }
     }
     for (TypeVariableBuilder builder in unboundTypeVariables) {
       typeVariableBuilders[builder] = this;
+    }
+    for (StructuralVariableBuilder builder in unboundStructuralVariables) {
+      functionTypeTypeVariableBuilders[builder] = this;
     }
     unboundTypeVariables.clear();
   }
@@ -3986,7 +4117,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// The function takes into account that some of the types in the input list
   /// may be bounds to some of the type parameters of other types from the input
   /// list.
-  void processPendingNullabilities() {
+  void processPendingNullabilities({Set<DartType>? typeFilter}) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
@@ -4004,9 +4135,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // We cannot set the declared nullability on the pending types to `null` so
     // we create a map of the pending type parameter type nullabilities.
-    Map<TypeParameterType, Nullability?> nullabilityMap =
-        new LinkedHashMap.identity();
-    Nullability? getDeclaredNullability(TypeParameterType type) {
+    Map< /* TypeParameterType | StructuralParameterType */ DartType,
+        Nullability?> nullabilityMap = new LinkedHashMap.identity();
+    Nullability? getDeclaredNullability(
+        /* TypeParameterType | StructuralParameterType */ DartType type) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
       if (nullabilityMap.containsKey(type)) {
         return nullabilityMap[type];
       }
@@ -4014,52 +4147,114 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     void setDeclaredNullability(
-        TypeParameterType type, Nullability nullability) {
+        /* TypeParameterType | StructuralParameterType */ DartType type,
+        Nullability nullability) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
       if (nullabilityMap.containsKey(type)) {
         nullabilityMap[type] = nullability;
       }
-      type.declaredNullability = nullability;
+      if (type is TypeParameterType) {
+        type.declaredNullability = nullability;
+      } else {
+        type as StructuralParameterType;
+        type.declaredNullability = nullability;
+      }
+    }
+
+    DartType getBound(
+        /* TypeParameterType | StructuralParameterType */ DartType type) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
+      if (type is TypeParameterType) {
+        return type.parameter.bound;
+      } else {
+        type as StructuralParameterType;
+        return type.parameter.bound;
+      }
+    }
+
+    void setBoundAndDefaultType(
+        /* TypeParameterType | StructuralParameterType */ type,
+        DartType bound,
+        DartType defaultType) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
+      if (type is TypeParameterType) {
+        type.parameter.bound = bound;
+        type.parameter.defaultType = defaultType;
+      } else {
+        type as StructuralParameterType;
+        type.parameter.bound = bound;
+        type.parameter.defaultType = defaultType;
+      }
+    }
+
+    String getName(
+        /* TypeParameterType | StructuralParameterType */ DartType type) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
+      if (type is TypeParameterType) {
+        return type.parameter.name!;
+      } else {
+        type as StructuralParameterType;
+        return type.parameter.name!;
+      }
+    }
+
+    Nullability computeNullabilityFromBound(
+        /* TypeParameterType | StructuralParameterType */ DartType type) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
+      if (type is TypeParameterType) {
+        return TypeParameterType.computeNullabilityFromBound(type.parameter);
+      } else {
+        type as StructuralParameterType;
+        return StructuralParameterType.computeNullabilityFromBound(
+            type.parameter);
+      }
     }
 
     Nullability marker = Nullability.nullable;
-    List<TypeParameterType?> stack =
-        new List<TypeParameterType?>.filled(_pendingNullabilities.length, null);
+    List< /* TypeParameterType | StructuralParameterType */ DartType?> stack =
+        new List<DartType?>.filled(_pendingNullabilities.length, null);
     int stackTop = 0;
     for (PendingNullability pendingNullability in _pendingNullabilities) {
+      if (typeFilter != null && !typeFilter.contains(pendingNullability.type)) {
+        continue;
+      }
       nullabilityMap[pendingNullability.type] = null;
     }
     for (PendingNullability pendingNullability in _pendingNullabilities) {
-      TypeParameterType type = pendingNullability.type;
+      if (typeFilter != null && !typeFilter.contains(pendingNullability.type)) {
+        continue;
+      }
+      DartType type = pendingNullability.type;
       if (getDeclaredNullability(type) != null) {
         // Nullability for [type] was already computed on one of the branches
         // of the depth-first search.  Continue to the next one.
         continue;
       }
-      DartType peeledBound = _peelOffFutureOr(type.parameter.bound);
+      DartType peeledBound = _peelOffFutureOr(getBound(type));
       if (peeledBound is TypeParameterType) {
-        TypeParameterType current = type;
-        TypeParameterType? next = peeledBound;
-        bool isDirectDependency = identical(type.parameter.bound, peeledBound);
+        DartType current = type;
+        DartType? next = peeledBound;
+        bool isDirectDependency = identical(getBound(type), peeledBound);
         while (next != null && getDeclaredNullability(next) == null) {
           stack[stackTop++] = current;
           setDeclaredNullability(current, marker);
 
           current = next;
-          peeledBound = _peelOffFutureOr(current.parameter.bound);
-          isDirectDependency = isDirectDependency &&
-              identical(current.parameter.bound, peeledBound);
+          peeledBound = _peelOffFutureOr(getBound(current));
+          isDirectDependency =
+              isDirectDependency && identical(getBound(current), peeledBound);
           if (peeledBound is TypeParameterType) {
             next = peeledBound;
             if (getDeclaredNullability(next) == marker) {
               setDeclaredNullability(next, Nullability.undetermined);
               if (isDirectDependency) {
-                current.parameter.bound = const InvalidType();
-                current.parameter.defaultType = const InvalidType();
+                setBoundAndDefaultType(
+                    current, const InvalidType(), const InvalidType());
                 addProblem(
                     templateCycleInTypeVariables.withArguments(
-                        next.parameter.name!, current.parameter.name!),
+                        getName(next), getName(current)),
                     pendingNullability.charOffset,
-                    next.parameter.name!.length,
+                    getName(next).length,
                     pendingNullability.fileUri);
               }
               next = null;
@@ -4068,17 +4263,52 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             next = null;
           }
         }
-        setDeclaredNullability(current,
-            TypeParameterType.computeNullabilityFromBound(current.parameter));
+        setDeclaredNullability(current, computeNullabilityFromBound(current));
         while (stackTop != 0) {
           --stackTop;
           current = stack[stackTop]!;
-          setDeclaredNullability(current,
-              TypeParameterType.computeNullabilityFromBound(current.parameter));
+          setDeclaredNullability(current, computeNullabilityFromBound(current));
+        }
+      } else if (peeledBound is StructuralParameterType) {
+        DartType current = type;
+        DartType? next = peeledBound;
+        bool isDirectDependency = identical(getBound(type), peeledBound);
+        while (next != null && getDeclaredNullability(next) == null) {
+          stack[stackTop++] = current;
+          setDeclaredNullability(current, marker);
+
+          current = next;
+          peeledBound = _peelOffFutureOr(getBound(current));
+          isDirectDependency =
+              isDirectDependency && identical(getBound(current), peeledBound);
+          if (peeledBound is StructuralParameterType) {
+            next = peeledBound;
+            if (getDeclaredNullability(next) == marker) {
+              setDeclaredNullability(next, Nullability.undetermined);
+              if (isDirectDependency) {
+                setBoundAndDefaultType(
+                    current, const InvalidType(), const InvalidType());
+                addProblem(
+                    templateCycleInTypeVariables.withArguments(
+                        getName(next), getName(current)),
+                    pendingNullability.charOffset,
+                    getName(next).length,
+                    pendingNullability.fileUri);
+              }
+              next = null;
+            }
+          } else {
+            next = null;
+          }
+        }
+        setDeclaredNullability(current, computeNullabilityFromBound(current));
+        while (stackTop != 0) {
+          --stackTop;
+          current = stack[stackTop]!;
+          setDeclaredNullability(current, computeNullabilityFromBound(current));
         }
       } else {
-        setDeclaredNullability(type,
-            TypeParameterType.computeNullabilityFromBound(type.parameter));
+        setDeclaredNullability(type, computeNullabilityFromBound(type));
       }
     }
     _pendingNullabilities.clear();
@@ -4128,9 +4358,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (libraryFeatures.genericMetadata.isEnabled) return false;
 
     bool hasReportedErrors = false;
-    hasReportedErrors =
-        _reportGenericFunctionTypeAsBoundIfNeeded(typeVariable) ||
-            hasReportedErrors;
+    hasReportedErrors = _reportGenericFunctionTypeAsBoundIfNeeded(
+            typeVariable.bound,
+            typeVariableName: typeVariable.name,
+            fileUri: typeVariable.fileUri,
+            charOffset: typeVariable.charOffset) ||
+        hasReportedErrors;
     hasReportedErrors = _recursivelyReportGenericFunctionTypesAsBoundsForType(
             typeVariable.bound) ||
         hasReportedErrors;
@@ -4158,24 +4391,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           genericFunctionTypeBuilder.typeVariables != null,
           "Function 'findUnaliasedGenericFunctionTypes' "
           "returned a function type without type variables.");
-      for (TypeVariableBuilder typeVariable
+      for (StructuralVariableBuilder typeVariable
           in genericFunctionTypeBuilder.typeVariables!) {
-        hasReportedErrors =
-            _reportGenericFunctionTypeAsBoundIfNeeded(typeVariable) ||
-                hasReportedErrors;
+        hasReportedErrors = _reportGenericFunctionTypeAsBoundIfNeeded(
+                typeVariable.bound,
+                typeVariableName: typeVariable.name,
+                fileUri: typeVariable.fileUri,
+                charOffset: typeVariable.charOffset) ||
+            hasReportedErrors;
       }
     }
     return hasReportedErrors;
   }
 
-  /// Reports an error if [typeVariable.bound] is a generic function type
+  /// Reports an error if [bound] is a generic function type
   ///
   /// Returns `true` if any errors were reported.
-  bool _reportGenericFunctionTypeAsBoundIfNeeded(
-      TypeVariableBuilder typeVariable) {
+  bool _reportGenericFunctionTypeAsBoundIfNeeded(TypeBuilder? bound,
+      {required String typeVariableName,
+      Uri? fileUri,
+      required int charOffset}) {
     if (libraryFeatures.genericMetadata.isEnabled) return false;
 
-    TypeBuilder? bound = typeVariable.bound;
     bool isUnaliasedGenericFunctionType = bound is FunctionTypeBuilder &&
         bound.typeVariables != null &&
         bound.typeVariables!.isNotEmpty;
@@ -4194,8 +4431,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
-      addProblem(messageGenericFunctionTypeInBound, typeVariable.charOffset,
-          typeVariable.name.length, typeVariable.fileUri);
+      addProblem(messageGenericFunctionTypeInBound, charOffset,
+          typeVariableName.length, fileUri);
       return true;
     }
     return false;
@@ -4234,7 +4471,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
         if (!haveErroneousBounds) {
           List<NamedTypeBuilder> unboundTypes = [];
-          List<TypeVariableBuilder> unboundTypeVariables = [];
+          List<StructuralVariableBuilder> unboundTypeVariables = [];
           List<TypeBuilder> calculatedBounds = calculateBounds(variables,
               dynamicType, isNonNullableByDefault ? bottomType : nullType,
               unboundTypes: unboundTypes,
@@ -4243,7 +4480,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             currentTypeParameterScopeBuilder
                 .registerUnresolvedNamedType(unboundType);
           }
-          this.unboundTypeVariables.addAll(unboundTypeVariables);
+          this.unboundStructuralVariables.addAll(unboundTypeVariables);
           for (int i = 0; i < variables.length; ++i) {
             variables[i].defaultType = calculatedBounds[i];
           }
@@ -4602,7 +4839,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
       // Don't show the hint about an attempted super-bounded type if the issue
       // with the argument is that it's generic.
-      reportTypeArgumentIssue(message, fileUri, offset,
+      reportTypeArgumentIssueForStructuralParameter(message, fileUri, offset,
           typeParameter: typeParameter,
           superBoundedAttempt:
               issue.isGenericTypeAsArgumentIssue ? null : issue.enclosingType,
@@ -4620,7 +4857,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // limitation of Kernel.
     if (typeParameter != null &&
         typeParameter.fileOffset != -1 &&
-        typeParameter.location != null) {
+        typeParameter.location?.file != null) {
+      // It looks like when parameters come from patch files, they don't
+      // have a reportable location.
+      (context ??= <LocatedMessage>[]).add(
+          messageIncorrectTypeArgumentVariable.withLocation(
+              typeParameter.location!.file,
+              typeParameter.fileOffset,
+              noLength));
+    }
+    if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
+      (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
+          .withArguments(superBoundedAttempt, superBoundedAttemptInverted,
+              isNonNullableByDefault)
+          .withLocation(fileUri, fileOffset, noLength));
+    }
+    addProblem(message, fileOffset, noLength, fileUri, context: context);
+  }
+
+  void reportTypeArgumentIssueForStructuralParameter(
+      Message message, Uri fileUri, int fileOffset,
+      {TypeParameter? typeParameter,
+      DartType? superBoundedAttempt,
+      DartType? superBoundedAttemptInverted}) {
+    List<LocatedMessage>? context;
+    // Skip reporting location for function-type type parameters as it's a
+    // limitation of Kernel.
+    if (typeParameter != null && typeParameter.location != null) {
       // It looks like when parameters come from patch files, they don't
       // have a reportable location.
       (context ??= <LocatedMessage>[]).add(
@@ -4838,25 +5101,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<TypeParameter> methodParameters = method.function.typeParameters;
     // The error is to be reported elsewhere.
     if (methodParameters.length != arguments.types.length) return;
-    List<TypeParameter> instantiatedMethodParameters =
-        new List<TypeParameter>.generate(methodParameters.length, (int i) {
-      TypeParameter instantiatedMethodParameter =
-          new TypeParameter(methodParameters[i].name);
-      substitutionMap[methodParameters[i]] =
-          new TypeParameterType.forAlphaRenaming(
-              methodParameters[i], instantiatedMethodParameter);
-      return instantiatedMethodParameter;
-    }, growable: false);
-    for (int i = 0; i < instantiatedMethodParameters.length; ++i) {
-      instantiatedMethodParameters[i].bound =
-          substitute(methodParameters[i].bound, substitutionMap);
+    List<TypeParameter> methodTypeParametersOfInstantiated =
+        getFreshTypeParameters(methodParameters).freshTypeParameters;
+    for (TypeParameter typeParameter in methodTypeParametersOfInstantiated) {
+      typeParameter.bound = substitute(typeParameter.bound, substitutionMap);
+      typeParameter.defaultType =
+          substitute(typeParameter.defaultType, substitutionMap);
     }
 
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType.nonNullable()
         : const NullType();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        instantiatedMethodParameters,
+        methodTypeParametersOfInstantiated,
         arguments.types,
         typeEnvironment,
         isNonNullableByDefault
@@ -4880,14 +5137,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int offset) {
     if (arguments.types.isEmpty) return;
 
-    List<TypeParameter> functionTypeParameters = functionType.typeParameters;
     // The error is to be reported elsewhere.
-    if (functionTypeParameters.length != arguments.types.length) return;
+    if (functionType.typeParameters.length != arguments.types.length) return;
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType.nonNullable()
         : const NullType();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        functionTypeParameters,
+        getFreshTypeParametersFromStructuralParameters(
+                functionType.typeParameters)
+            .freshTypeParameters,
         arguments.types,
         typeEnvironment,
         isNonNullableByDefault
@@ -4913,14 +5171,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {required bool inferred}) {
     if (typeArguments.isEmpty) return;
 
-    List<TypeParameter> functionTypeParameters = functionType.typeParameters;
     // The error is to be reported elsewhere.
-    if (functionTypeParameters.length != typeArguments.length) return;
+    if (functionType.typeParameters.length != typeArguments.length) {
+      return;
+    }
     final DartType bottomType = isNonNullableByDefault
         ? const NeverType.nonNullable()
         : const NullType();
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
-        functionTypeParameters,
+        getFreshTypeParametersFromStructuralParameters(
+                functionType.typeParameters)
+            .freshTypeParameters,
         typeArguments,
         typeEnvironment,
         isNonNullableByDefault
@@ -5049,6 +5310,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void registerPendingNullability(
       Uri fileUri, int charOffset, TypeParameterType type) {
+    _pendingNullabilities
+        .add(new PendingNullability(fileUri, charOffset, type));
+  }
+
+  void registerPendingFunctionTypeNullability(
+      Uri fileUri, int charOffset, StructuralParameterType type) {
     _pendingNullabilities
         .add(new PendingNullability(fileUri, charOffset, type));
   }
@@ -5604,6 +5871,65 @@ class TypeParameterScopeBuilder {
     unresolvedNamedTypes.clear();
   }
 
+  /// Resolves type variables in [unresolvedNamedTypes] and propagate other
+  /// types to [parent].
+  void resolveNamedTypesWithStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables,
+      SourceLibraryBuilder library) {
+    Map<String, StructuralVariableBuilder>? map;
+    if (typeVariables != null) {
+      map = <String, StructuralVariableBuilder>{};
+      for (StructuralVariableBuilder builder in typeVariables) {
+        map[builder.name] = builder;
+      }
+    }
+    Scope? scope;
+    for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
+      Object? nameOrQualified = namedTypeBuilder.name;
+      String? name = nameOrQualified is QualifiedName
+          ? nameOrQualified.qualifier as String
+          : nameOrQualified as String?;
+      Builder? declaration;
+      if (name != null) {
+        if (members != null) {
+          declaration = members![name];
+        }
+        if (declaration == null && map != null) {
+          declaration = map[name];
+        }
+      }
+      if (declaration == null) {
+        // Since name didn't resolve in this scope, propagate it to the
+        // parent declaration.
+        parent!.registerUnresolvedNamedType(namedTypeBuilder);
+      } else if (nameOrQualified is QualifiedName) {
+        // Attempt to use a member or type variable as a prefix.
+        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
+            flattenName(nameOrQualified.qualifier, namedTypeBuilder.charOffset!,
+                namedTypeBuilder.fileUri!),
+            nameOrQualified.name);
+        library.addProblem(
+            message,
+            namedTypeBuilder.charOffset!,
+            nameOrQualified.endCharOffset - namedTypeBuilder.charOffset!,
+            namedTypeBuilder.fileUri!);
+        namedTypeBuilder.bind(
+            library,
+            namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
+                message.withLocation(
+                    namedTypeBuilder.fileUri!,
+                    namedTypeBuilder.charOffset!,
+                    nameOrQualified.endCharOffset -
+                        namedTypeBuilder.charOffset!)));
+      } else {
+        scope ??= toScope(null).withStructuralVariables(typeVariables);
+        namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,
+            namedTypeBuilder.fileUri!, library);
+      }
+    }
+    unresolvedNamedTypes.clear();
+  }
+
   Scope toScope(Scope? parent,
       {Map<String, Builder>? omittedTypeDeclarationBuilders}) {
     if (omittedTypeDeclarationBuilders != null &&
@@ -5768,9 +6094,10 @@ class ImplicitLanguageVersion implements LanguageVersion {
 class PendingNullability {
   final Uri fileUri;
   final int charOffset;
-  final TypeParameterType type;
+  final /* TypeParameterType | StructuralParameterType */ DartType type;
 
-  PendingNullability(this.fileUri, this.charOffset, this.type);
+  PendingNullability(this.fileUri, this.charOffset, this.type)
+      : assert(type is TypeParameterType || type is StructuralParameterType);
 
   @override
   String toString() {

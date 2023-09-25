@@ -970,6 +970,7 @@ class KernelTarget extends TargetImplementation {
         }
       case TypeAliasBuilder():
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
       case InvalidTypeDeclarationBuilder():

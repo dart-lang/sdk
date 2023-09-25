@@ -202,6 +202,8 @@ class NameSystem {
   final Namer<Library> libraries = new NormalNamer<Library>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
+  final Namer<StructuralParameter> structuralParameters =
+      new NormalNamer<StructuralParameter>('#T');
   final Namer<TreeNode> labels = new NormalNamer<TreeNode>('#L');
   final Namer<Constant> constants = new ConstantNamer('#C');
   final Disambiguator<Reference, CanonicalName> prefixes =
@@ -212,6 +214,8 @@ class NameSystem {
   String nameExtension(Extension node) => extensions.getName(node);
   String nameLibrary(Library node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
+  String nameStructuralParameter(StructuralParameter node) =>
+      structuralParameters.getName(node);
   String nameSwitchCase(SwitchCase node) => labels.getName(node);
   String nameLabeledStatement(LabeledStatement node) => labels.getName(node);
   String nameConstant(Constant node) => constants.getName(node);
@@ -396,27 +400,41 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     return getVariableName(node);
   }
 
-  String getTypeParameterName(TypeParameter node) {
-    return node.name ?? syntheticNames.nameTypeParameter(node);
+  String getTypeParameterName(
+      /* TypeParameter | StructuralParameter */ Object node) {
+    assert(node is TypeParameter || node is StructuralParameter);
+    if (node is TypeParameter) {
+      return node.name ?? syntheticNames.nameTypeParameter(node);
+    } else {
+      node as StructuralParameter;
+      return node.name ?? syntheticNames.nameStructuralParameter(node);
+    }
   }
 
-  String getTypeParameterReference(TypeParameter node) {
+  String getTypeParameterReference(
+      /* TypeParameter | StructuralParameter */ Object node) {
+    assert(node is TypeParameter || node is StructuralParameter);
     String name = getTypeParameterName(node);
-    GenericDeclaration? declaration = node.declaration;
-    switch (declaration) {
-      case Class():
-        String className = getClassReference(declaration);
-        return '$className::$name';
-      case Procedure():
-        String member = getMemberReference(declaration);
-        return '$member::$name';
-      case Typedef():
-      case Extension():
-      case ExtensionTypeDeclaration():
-      case LocalFunction():
-      // TODO(johnniwinther): Support these cases correctly.
-      case null:
-        return name; // Bound inside a function type.
+    if (node is TypeParameter) {
+      GenericDeclaration? declaration = node.declaration;
+      switch (declaration) {
+        case Class():
+          String className = getClassReference(declaration);
+          return '$className::$name';
+        case Procedure():
+          String member = getMemberReference(declaration);
+          return '$member::$name';
+        case Typedef():
+        case Extension():
+        case ExtensionTypeDeclaration():
+        case LocalFunction():
+        // TODO(johnniwinther): Support these cases correctly.
+        case null:
+          return name; // Bound inside a function type.
+      }
+    } else {
+      node as StructuralParameter;
+      return name;
     }
   }
 
@@ -854,7 +872,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (state == WORD) {
       ensureSpace();
     }
-    writeTypeParameterList(node.typeParameters);
+    writeStructuralParameterList(node.typeParameters);
     writeSymbol('(');
     List<DartType> positional = node.positionalParameters;
 
@@ -906,6 +924,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void writeTypeParameterList(List<TypeParameter> typeParameters) {
+    if (typeParameters.isEmpty) return;
+    writeSymbol('<');
+    writeList(typeParameters, writeNode);
+    writeSymbol('>');
+    state = WORD; // Ensure space if not followed by another symbol.
+  }
+
+  void writeStructuralParameterList(List<StructuralParameter> typeParameters) {
     if (typeParameters.isEmpty) return;
     writeSymbol('<');
     writeList(typeParameters, writeNode);
@@ -1056,7 +1082,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  void writeTypeParameterReference(TypeParameter node) {
+  void writeTypeParameterReference(
+      /* TypeParameter | StructuralParameter */ Object node) {
+    assert(node is TypeParameter || node is StructuralParameter);
     writeWord(getTypeParameterReference(node));
   }
 
@@ -2734,6 +2762,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    writeTypeParameterReference(node.parameter);
+    writeNullability(node.declaredNullability);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     writeType(node.left);
     writeSpaced('&');
@@ -2752,6 +2786,25 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void visitTypeParameter(TypeParameter node) {
     writeModifier(node.isCovariantByClass, 'covariant-by-class');
     writeAnnotationList(node.annotations, separateLines: false);
+    if (node.variance != Variance.covariant) {
+      writeWord(const <String>[
+        "unrelated",
+        "covariant",
+        "contravariant",
+        "invariant"
+      ][node.variance]);
+    }
+    writeWord(getTypeParameterName(node));
+    writeSpaced('extends');
+    writeType(node.bound);
+    if (node.defaultType != node.bound) {
+      writeSpaced('=');
+      writeType(node.defaultType);
+    }
+  }
+
+  @override
+  void visitStructuralParameter(StructuralParameter node) {
     if (node.variance != Variance.covariant) {
       writeWord(const <String>[
         "unrelated",

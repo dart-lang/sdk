@@ -30,8 +30,13 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
 
   @override
   JSType typeFor(DartType type) {
-    while (type is TypeParameterType) {
-      type = type.parameter.bound;
+    while (type is TypeParameterType || type is StructuralParameterType) {
+      if (type is TypeParameterType) {
+        type = type.parameter.bound;
+      } else {
+        type as StructuralParameterType;
+        type = type.parameter.bound;
+      }
     }
     assert(isKnownDartTypeImplementor(type));
 

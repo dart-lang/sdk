@@ -212,6 +212,11 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitStructuralParameterType(ir.StructuralParameterType node) {
+    return true;
+  }
+
+  @override
   bool visitIntersectionType(ir.IntersectionType node) {
     return true;
   }

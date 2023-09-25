@@ -47,6 +47,12 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
+  void visitStructuralParameterType(
+      ir.StructuralParameterType node, StringBuffer sb) {
+    sb.write(node.parameter.name);
+  }
+
+  @override
   void visitIntersectionType(ir.IntersectionType node, StringBuffer sb) {
     sb.write(node.left.parameter.name);
   }
@@ -58,7 +64,7 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
     if (node.typeParameters.isNotEmpty) {
       sb.write('<');
       String comma = '';
-      for (ir.TypeParameter typeParameter in node.typeParameters) {
+      for (ir.StructuralParameter typeParameter in node.typeParameters) {
         sb.write(comma);
         sb.write(typeParameter.name);
         if (typeParameter is! ir.DynamicType) {

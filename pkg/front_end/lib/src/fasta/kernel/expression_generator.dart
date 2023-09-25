@@ -3156,6 +3156,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 ExtensionTypeDeclarationBuilder() => true,
                 TypeAliasBuilder() => false,
                 TypeVariableBuilder() => false,
+                StructuralVariableBuilder() => false,
                 InvalidTypeDeclarationBuilder() => false,
                 BuiltinTypeDeclarationBuilder() => false,
                 // TODO(johnniwinther): How should we handle this case?

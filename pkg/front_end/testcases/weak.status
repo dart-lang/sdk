@@ -55,6 +55,7 @@ class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers 
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
 
 # UNSORTED ONES:
+constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
 macros/scope_access: SemiFuzzCrash
 
 const_functions/const_functions_list: SemiFuzzCrash
@@ -177,7 +178,6 @@ general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/await_in_non_async: RuntimeError # Expected.
 general/bounded_implicit_instantiation: TypeCheckError
-general/bounds_instances: TypeCheckError
 general/bug30695: TypeCheckError
 general/call: RuntimeError
 general/cascade: RuntimeError
@@ -226,14 +226,12 @@ general/redirecting_factory: RuntimeError
 general/spread_collection: RuntimeError
 general/supertype_conflict: TypeCheckError
 general/type_variable_as_super: RuntimeError
-general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
-inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
+generic_metadata/from_dill/main: Crash
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError

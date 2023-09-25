@@ -532,6 +532,7 @@ comma
 command
 commas
 comment
+commented
 comments
 common
 commonly
@@ -1241,6 +1242,7 @@ finding
 finds
 fine
 finish
+finish'ed
 finished
 finishes
 finishing
@@ -2033,6 +2035,7 @@ no
 nobody
 node
 nodes
+nominal
 non
 none
 nonfunction

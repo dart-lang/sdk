@@ -5,8 +5,7 @@
 part of 'declaration_builders.dart';
 
 enum TypeVariableKind {
-  /// A type variable declared on a function, method, local function or
-  /// function type.
+  /// A type variable declared on a function, method, or local function.
   function,
 
   /// A type variable declared on a class, mixin or enum.
@@ -243,26 +242,55 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl
   }
 }
 
-List<TypeVariableBuilder> sortTypeVariablesTopologically(
-    Iterable<TypeVariableBuilder> typeVariables) {
-  Set<TypeVariableBuilder> unhandled = new Set<TypeVariableBuilder>.identity()
-    ..addAll(typeVariables);
-  List<TypeVariableBuilder> result = <TypeVariableBuilder>[];
+List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+    sortAllTypeVariablesTopologically(
+        Iterable< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+                Object>
+            typeVariables) {
+  assert(typeVariables.every((typeVariable) =>
+      typeVariable is TypeVariableBuilder ||
+      typeVariable is StructuralVariableBuilder));
+
+  Set< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+      unhandled = new Set<Object>.identity()..addAll(typeVariables);
+  List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+      result = <Object>[];
   while (unhandled.isNotEmpty) {
-    TypeVariableBuilder rootVariable = unhandled.first;
+    Object rootVariable = unhandled.first;
     unhandled.remove(rootVariable);
-    if (rootVariable.bound != null) {
-      _sortTypeVariablesTopologicallyFromRoot(
-          rootVariable.bound!, unhandled, result);
+
+    TypeBuilder? rootVariableBound;
+    if (rootVariable is TypeVariableBuilder) {
+      rootVariableBound = rootVariable.bound;
+    } else {
+      rootVariable as StructuralVariableBuilder;
+      rootVariableBound = rootVariable.bound;
+    }
+
+    if (rootVariableBound != null) {
+      _sortAllTypeVariablesTopologicallyFromRoot(
+          rootVariableBound, unhandled, result);
     }
     result.add(rootVariable);
   }
   return result;
 }
 
-void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
-    Set<TypeVariableBuilder> unhandled, List<TypeVariableBuilder> result) {
-  List<TypeVariableBuilder>? foundTypeVariables;
+void _sortAllTypeVariablesTopologicallyFromRoot(
+    TypeBuilder root,
+    Set< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+        unhandled,
+    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+        result) {
+  assert(unhandled.every((typeVariable) =>
+      typeVariable is TypeVariableBuilder ||
+      typeVariable is StructuralVariableBuilder));
+  assert(result.every((typeVariable) =>
+      typeVariable is TypeVariableBuilder ||
+      typeVariable is StructuralVariableBuilder));
+
+  List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>?
+      foundTypeVariables;
   List<TypeBuilder>? internalDependents;
 
   switch (root) {
@@ -275,6 +303,8 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
           internalDependents = <TypeBuilder>[declaration.type];
         case TypeVariableBuilder():
           foundTypeVariables = <TypeVariableBuilder>[declaration];
+        case StructuralVariableBuilder():
+          foundTypeVariables = <StructuralVariableBuilder>[declaration];
         case ExtensionTypeDeclarationBuilder():
         // TODO(johnniwinther):: Handle this case.
         case ExtensionBuilder():
@@ -285,7 +315,7 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
         case null:
       }
     case FunctionTypeBuilder(
-        :List<TypeVariableBuilder>? typeVariables,
+        :List<StructuralVariableBuilder>? typeVariables,
         :List<ParameterBuilder>? formals,
         :TypeBuilder returnType
       ):
@@ -321,12 +351,21 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
   }
 
   if (foundTypeVariables != null && foundTypeVariables.isNotEmpty) {
-    for (TypeVariableBuilder variable in foundTypeVariables) {
+    for (Object variable in foundTypeVariables) {
       if (unhandled.contains(variable)) {
         unhandled.remove(variable);
-        if (variable.bound != null) {
-          _sortTypeVariablesTopologicallyFromRoot(
-              variable.bound!, unhandled, result);
+
+        TypeBuilder? variableBound;
+        if (variable is TypeVariableBuilder) {
+          variableBound = variable.bound;
+        } else {
+          variable as StructuralVariableBuilder;
+          variableBound = variable.bound;
+        }
+
+        if (variableBound != null) {
+          _sortAllTypeVariablesTopologicallyFromRoot(
+              variableBound, unhandled, result);
         }
         result.add(variable);
       }
@@ -334,7 +373,244 @@ void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
   }
   if (internalDependents != null && internalDependents.isNotEmpty) {
     for (TypeBuilder type in internalDependents) {
-      _sortTypeVariablesTopologicallyFromRoot(type, unhandled, result);
+      _sortAllTypeVariablesTopologicallyFromRoot(type, unhandled, result);
     }
+  }
+}
+
+class StructuralVariableBuilder extends TypeDeclarationBuilderImpl
+    implements TypeDeclarationBuilder {
+  /// Sentinel value used to indicate that the variable has no name. This is
+  /// used for error recovery.
+  static const String noNameSentinel = 'no name sentinel';
+
+  TypeBuilder? bound;
+
+  TypeBuilder? defaultType;
+
+  final StructuralParameter actualParameter;
+
+  StructuralVariableBuilder? actualOrigin;
+
+  @override
+  final Uri? fileUri;
+
+  StructuralVariableBuilder(
+      String name, Builder? compilationUnit, int charOffset, this.fileUri,
+      {this.bound, int? variableVariance, List<MetadataBuilder>? metadata})
+      : actualParameter =
+            new StructuralParameter(name == noNameSentinel ? null : name, null)
+              ..fileOffset = charOffset
+              ..variance = variableVariance,
+        super(metadata, 0, name, compilationUnit, charOffset);
+
+  StructuralVariableBuilder.fromKernel(StructuralParameter parameter)
+      : actualParameter = parameter,
+        // TODO(johnniwinther): Do we need to support synthesized type
+        //  parameters from kernel?
+        fileUri = null,
+        super(null, 0, parameter.name ?? '', null, parameter.fileOffset);
+
+  StructuralVariableBuilder.fromTypeVariableBuilder(
+      TypeVariableBuilder typeVariableBuilder)
+      : bound = typeVariableBuilder.bound,
+        defaultType = typeVariableBuilder.defaultType,
+        actualParameter = new StructuralParameter(
+            typeVariableBuilder.actualParameter.name,
+            typeVariableBuilder.actualParameter.bound ==
+                    TypeParameter.unsetBoundSentinel
+                ? StructuralParameter.unsetBoundSentinel
+                : typeVariableBuilder.actualParameter.bound,
+            typeVariableBuilder.actualParameter.defaultType ==
+                    TypeParameter.unsetDefaultTypeSentinel
+                ? StructuralParameter.unsetDefaultTypeSentinel
+                : typeVariableBuilder.actualParameter.defaultType)
+          ..fileOffset = typeVariableBuilder.charOffset
+          ..variance = typeVariableBuilder.parameter.isLegacyCovariant
+              ? null
+              : typeVariableBuilder.parameter.variance,
+        fileUri = typeVariableBuilder.fileUri,
+        super(
+            null,
+            0,
+            typeVariableBuilder.name,
+            typeVariableBuilder.parent as LibraryBuilder,
+            typeVariableBuilder.charOffset);
+
+  @override
+  bool get isTypeVariable => true;
+
+  @override
+  String get debugName => "FunctionTypeTypeVariableBuilder";
+
+  @override
+  StringBuffer printOn(StringBuffer buffer) {
+    buffer.write(name);
+    if (bound != null) {
+      buffer.write(" extends ");
+      bound!.printOn(buffer);
+    }
+    return buffer;
+  }
+
+  @override
+  String toString() => "${printOn(new StringBuffer())}";
+
+  @override
+  StructuralVariableBuilder get origin => actualOrigin ?? this;
+
+  /// The [StructuralParameter] built by this builder.
+  StructuralParameter get parameter => origin.actualParameter;
+
+  int get variance => parameter.variance;
+
+  void set variance(int value) {
+    parameter.variance = value;
+  }
+
+  @override
+  DartType buildAliasedType(
+      LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      ClassHierarchyBase? hierarchy,
+      {required bool hasExplicitTypeArguments}) {
+    if (arguments != null) {
+      library.addProblem(
+          templateTypeArgumentsOnTypeVariable.withArguments(name),
+          charOffset,
+          name.length,
+          fileUri);
+    }
+    // If the bound is not set yet, the actual value is not important yet as it
+    // will be set later.
+    bool needsPostUpdate = nullabilityBuilder.isOmitted &&
+            identical(
+                parameter.bound, StructuralParameter.unsetBoundSentinel) ||
+        library is SourceLibraryBuilder &&
+            library.hasPendingNullability(parameter.bound);
+    Nullability nullability;
+    if (nullabilityBuilder.isOmitted) {
+      if (needsPostUpdate) {
+        nullability = Nullability.legacy;
+      } else {
+        nullability = library.isNonNullableByDefault
+            ? StructuralParameterType.computeNullabilityFromBound(parameter)
+            : Nullability.legacy;
+      }
+    } else {
+      nullability = nullabilityBuilder.build(library);
+    }
+    StructuralParameterType type = buildAliasedTypeWithBuiltArguments(
+        library, nullability, null, typeUse, fileUri, charOffset,
+        hasExplicitTypeArguments: hasExplicitTypeArguments);
+    if (needsPostUpdate) {
+      if (library is SourceLibraryBuilder) {
+        library.registerPendingFunctionTypeNullability(
+            this.fileUri!, this.charOffset, type);
+      } else {
+        library.addProblem(
+            templateInternalProblemUnfinishedTypeVariable.withArguments(
+                name, library.importUri),
+            this.charOffset,
+            name.length,
+            this.fileUri);
+      }
+    }
+    return type;
+  }
+
+  @override
+  StructuralParameterType buildAliasedTypeWithBuiltArguments(
+      LibraryBuilder library,
+      Nullability nullability,
+      List<DartType>? arguments,
+      TypeUse typeUse,
+      Uri fileUri,
+      int charOffset,
+      {required bool hasExplicitTypeArguments}) {
+    if (arguments != null) {
+      int charOffset = -1; // TODO(ahe): Provide these.
+      Uri? fileUri = null; // TODO(ahe): Provide these.
+      library.addProblem(
+          templateTypeArgumentsOnTypeVariable.withArguments(name),
+          charOffset,
+          name.length,
+          fileUri);
+    }
+    return new StructuralParameterType(parameter, nullability);
+  }
+
+  void finish(
+      LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
+    if (isPatch) return;
+    DartType objectType = object.buildAliasedType(
+        library,
+        library.nullableBuilder,
+        /* arguments = */ null,
+        TypeUse.typeParameterBound,
+        fileUri ?? missingUri,
+        charOffset,
+        /* hierarchy = */ null,
+        hasExplicitTypeArguments: false);
+    if (identical(parameter.bound, StructuralParameter.unsetBoundSentinel)) {
+      parameter.bound =
+          bound?.build(library, TypeUse.typeParameterBound) ?? objectType;
+    }
+    // If defaultType is not set, initialize it to dynamic, unless the bound is
+    // explicitly specified as Object, in which case defaultType should also be
+    // Object. This makes sure instantiation of generic function types with an
+    // explicit Object bound results in Object as the instantiated type.
+    if (identical(
+        parameter.defaultType, StructuralParameter.unsetDefaultTypeSentinel)) {
+      parameter.defaultType = defaultType?.build(
+              library, TypeUse.typeParameterDefaultType) ??
+          (bound != null && parameter.bound == objectType
+              ? objectType
+              : dynamicType.build(library, TypeUse.typeParameterDefaultType));
+    }
+  }
+
+  @override
+  void applyPatch(covariant StructuralVariableBuilder patch) {
+    patch.actualOrigin = this;
+  }
+
+  StructuralVariableBuilder clone(
+      List<NamedTypeBuilder> newTypes,
+      SourceLibraryBuilder contextLibrary,
+      TypeParameterScopeBuilder contextDeclaration) {
+    // TODO(cstefantsova): Figure out if using [charOffset] here is a good
+    // idea.  An alternative is to use the offset of the node the cloned type
+    // variable is declared on.
+    return new StructuralVariableBuilder(name, parent!, charOffset, fileUri,
+        bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
+        variableVariance: variance);
+  }
+
+  void buildOutlineExpressions(
+      SourceLibraryBuilder libraryBuilder,
+      BodyBuilderContext bodyBuilderContext,
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      Scope scope) {}
+
+  @override
+  bool operator ==(Object other) {
+    return other is StructuralVariableBuilder && parameter == other.parameter;
+  }
+
+  @override
+  int get hashCode => parameter.hashCode;
+
+  static List<TypeParameter>? typeParametersFromBuilders(
+      List<TypeVariableBuilder>? builders) {
+    if (builders == null) return null;
+    return new List<TypeParameter>.generate(
+        builders.length, (int i) => builders[i].parameter,
+        growable: true);
   }
 }

@@ -33,6 +33,7 @@ Uri computePackageConfig(Uri repoDir) =>
 const Map<String, String?> _declarativeClassesNames = const {
   'VariableDeclaration': 'name',
   'TypeParameter': 'name',
+  'StructuralParameter': 'name',
   'LabeledStatement': null,
   'SwitchCase': null,
 };
@@ -123,6 +124,9 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypeParameter': {
     '_variance': FieldRule(name: 'variance'),
   },
+  'StructuralParameter': {
+    '_variance': FieldRule(name: 'variance'),
+  },
   'FunctionNode': {
     '_body': FieldRule(name: 'body'),
     'typeParameters': FieldRule(isDeclaration: true),
@@ -179,6 +183,9 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'typeParameters': FieldRule(isDeclaration: true),
   },
   'TypeParameterType': {
+    'parameter': FieldRule(isDeclaration: false),
+  },
+  'StructuralParameterType': {
     'parameter': FieldRule(isDeclaration: false),
   },
   'VariableDeclaration': {

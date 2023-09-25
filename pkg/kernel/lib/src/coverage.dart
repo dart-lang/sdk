@@ -944,6 +944,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    visited.add(DartTypeKind.StructuralParameterType);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRecordType(RecordType node) {
     visited.add(DartTypeKind.RecordType);
     node.visitChildren(this);
@@ -952,6 +958,12 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitNamedType(NamedType node) {
     visited.add(NodeKind.NamedType);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitStructuralParameter(StructuralParameter node) {
+    visited.add(NodeKind.StructuralParameter);
     node.visitChildren(this);
   }
 
@@ -1227,6 +1239,7 @@ enum NodeKind {
   NamedType,
   PatternGuard,
   PatternSwitchCase,
+  StructuralParameter,
   Supertype,
   SwitchCase,
   SwitchExpressionCase,
@@ -1377,6 +1390,7 @@ enum DartTypeKind {
   NeverType,
   NullType,
   RecordType,
+  StructuralParameterType,
   TypeParameterType,
   TypedefType,
   VoidType,

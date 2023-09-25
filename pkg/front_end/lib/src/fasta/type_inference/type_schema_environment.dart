@@ -8,13 +8,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart'
-    show
-        FreshTypeParameters,
-        NullabilityAwareFreeTypeVariableEliminator,
-        Substitution,
-        getFreshTypeParameters,
-        substitute;
+import 'package:kernel/type_algebra.dart';
 
 import 'package:kernel/type_environment.dart';
 
@@ -32,25 +26,6 @@ import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
-
-// TODO(paulberry): try to push this functionality into kernel.
-FunctionType substituteTypeParams(
-    FunctionType type,
-    Map<TypeParameter, DartType> substitutionMap,
-    List<TypeParameter> newTypeParameters) {
-  Substitution substitution = Substitution.fromMap(substitutionMap);
-  return new FunctionType(
-      type.positionalParameters.map(substitution.substituteType).toList(),
-      substitution.substituteType(type.returnType),
-      type.nullability,
-      namedParameters: type.namedParameters
-          .map((named) => new NamedType(
-              named.name, substitution.substituteType(named.type),
-              isRequired: named.isRequired))
-          .toList(),
-      typeParameters: newTypeParameters,
-      requiredParameterCount: type.requiredParameterCount);
-}
 
 /// Given a [FunctionType], gets the type of the named parameter with the given
 /// [name], or `dynamic` if there is no parameter with the given name.
@@ -125,7 +100,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// set of inferred types that may contain references to the "unknown type".
   List<DartType> choosePreliminaryTypes(
           TypeConstraintGatherer gatherer,
-          List<TypeParameter> typeParametersToInfer,
+          List<StructuralParameter> typeParametersToInfer,
           List<DartType>? previouslyInferredTypes,
           {required bool isNonNullableByDefault}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
@@ -229,7 +204,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return operandType;
   }
 
-  bool hasOmittedBound(TypeParameter parameter) {
+  bool hasOmittedBound(StructuralParameter parameter) {
     // If the bound was omitted by the programmer, the Kernel representation for
     // the parameter will look similar to the following:
     //
@@ -258,8 +233,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// If [preliminary] is `false`, then we are in the final pass of inference,
   /// and must not conclude `?` for any type formal.
   List<DartType> inferTypeFromConstraints(
-      Map<TypeParameter, TypeConstraint> constraints,
-      List<TypeParameter> typeParametersToInfer,
+      Map<StructuralParameter, TypeConstraint> constraints,
+      List<StructuralParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
       {required bool isNonNullableByDefault,
       bool preliminary = false}) {
@@ -268,14 +243,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             new List.filled(typeParametersToInfer.length, const UnknownType());
 
     for (int i = 0; i < typeParametersToInfer.length; i++) {
-      TypeParameter typeParam = typeParametersToInfer[i];
+      StructuralParameter typeParam = typeParametersToInfer[i];
 
       DartType typeParamBound = typeParam.bound;
       DartType? extendsConstraint;
       if (!hasOmittedBound(typeParam)) {
-        extendsConstraint =
-            Substitution.fromPairs(typeParametersToInfer, inferredTypes)
-                .substituteType(typeParamBound);
+        extendsConstraint = new FunctionTypeInstantiator.fromIterables(
+                typeParametersToInfer, inferredTypes)
+            .visit(typeParamBound);
       }
 
       TypeConstraint constraint = constraints[typeParam]!;
@@ -295,13 +270,12 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     if (!preliminary) {
       assert(typeParametersToInfer.length == inferredTypes.length);
-      FreshTypeParameters freshTypeParameters =
-          getFreshTypeParameters(typeParametersToInfer);
+      FreshTypeParametersFromStructuralParameters freshTypeParameters =
+          getFreshTypeParametersFromStructuralParameters(typeParametersToInfer);
       List<TypeParameter> helperTypeParameters =
           freshTypeParameters.freshTypeParameters;
 
-      Map<TypeParameter, DartType> inferredSubstitution =
-          <TypeParameter, DartType>{};
+      Map<TypeParameter, DartType> inferredSubstitution = {};
       for (int i = 0; i < helperTypeParameters.length; ++i) {
         if (inferredTypes[i] is UnknownType) {
           inferredSubstitution[helperTypeParameters[i]] =
@@ -396,9 +370,12 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// Prepares to infer type arguments for a generic type, function, method, or
   /// list/map literal, initializing a [TypeConstraintGatherer] using the
   /// downward context type.
-  TypeConstraintGatherer setupGenericTypeInference(DartType? declaredReturnType,
-      List<TypeParameter> typeParametersToInfer, DartType? returnContextType,
-      {required bool isNonNullableByDefault, bool isConst = false}) {
+  TypeConstraintGatherer setupGenericTypeInference(
+      DartType? declaredReturnType,
+      List<StructuralParameter> typeParametersToInfer,
+      DartType? returnContextType,
+      {required bool isNonNullableByDefault,
+      bool isConst = false}) {
     assert(typeParametersToInfer.isNotEmpty);
 
     // Create a TypeConstraintGatherer that will allow certain type parameters
@@ -494,7 +471,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// does not  contain references to the "unknown type".
   List<DartType> chooseFinalTypes(
           TypeConstraintGatherer gatherer,
-          List<TypeParameter> typeParametersToInfer,
+          List<StructuralParameter> typeParametersToInfer,
           List<DartType>? previouslyInferredTypes,
           {required bool isNonNullableByDefault}) =>
       _chooseTypes(gatherer, typeParametersToInfer, previouslyInferredTypes,
@@ -504,7 +481,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// that have been recorded so far.
   List<DartType> _chooseTypes(
       TypeConstraintGatherer gatherer,
-      List<TypeParameter> typeParametersToInfer,
+      List<StructuralParameter> typeParametersToInfer,
       List<DartType>? previouslyInferredTypes,
       {required bool isNonNullableByDefault,
       required bool preliminary}) {

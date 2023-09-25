@@ -2122,14 +2122,15 @@ class OutlineBuilder extends StackListenerImpl {
           }
           if (substitution != null) {
             List<NamedTypeBuilder> unboundTypes = [];
-            List<TypeVariableBuilder> unboundTypeVariables = [];
+            List<StructuralVariableBuilder> unboundTypeVariables = [];
             thisType = substitute(thisType, substitution,
                 unboundTypes: unboundTypes,
                 unboundTypeVariables: unboundTypeVariables);
             for (NamedTypeBuilder unboundType in unboundTypes) {
               declaration.registerUnresolvedNamedType(unboundType);
             }
-            libraryBuilder.unboundTypeVariables.addAll(unboundTypeVariables);
+            libraryBuilder.unboundStructuralVariables
+                .addAll(unboundTypeVariables);
           }
           synthesizedFormals.add(new FormalParameterBuilder(
               /* metadata = */
@@ -2945,7 +2946,7 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as List<TypeVariableBuilder>?;
     push(libraryBuilder.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
-        typeVariables,
+        libraryBuilder.convertNominalToStructuralTypeVariables(typeVariables),
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
         uri,
@@ -2966,7 +2967,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
     push(libraryBuilder.addFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
-        typeVariables,
+        libraryBuilder.convertNominalToStructuralTypeVariables(typeVariables),
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
         uri,

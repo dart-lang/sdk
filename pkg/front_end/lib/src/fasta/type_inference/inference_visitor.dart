@@ -567,12 +567,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType expressionType = expressionResult.inferredType as FunctionType;
 
     assert(expressionType.typeParameters.length == node.typeArguments.length);
-    Substitution substitution = Substitution.fromPairs(
-        expressionType.typeParameters, node.typeArguments);
-    FunctionType resultType = substitution
-        .substituteType(expressionType.withoutTypeParameters) as FunctionType;
-    FreshTypeParameters freshTypeParameters =
-        getFreshTypeParameters(node.typeParameters);
+    FunctionType resultType = FunctionTypeInstantiator.instantiate(
+        expressionType, node.typeArguments);
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(node.typeParameters);
     resultType = freshTypeParameters.substitute(resultType) as FunctionType;
     resultType = new FunctionType(resultType.positionalParameters,
         resultType.returnType, resultType.declaredNullability,
@@ -721,9 +719,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               node.fileOffset,
               noLength);
         } else {
-          resultType = Substitution.fromPairs(
-                  operandType.typeParameters, node.typeArguments)
-              .substituteType(operandType.withoutTypeParameters);
+          resultType = FunctionTypeInstantiator.instantiate(
+              operandType, node.typeArguments);
         }
       } else {
         if (operandType.typeParameters.isEmpty) {
@@ -1302,10 +1299,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
         new List.of(constructor.enclosingClass.typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        new List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(typedef.typeParameters);
+    List<StructuralParameter> typedefTypeParametersCopy =
+        freshTypeParameters.freshTypeParameters;
+    List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
     TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
@@ -1358,10 +1356,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
         new List.of(function.typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        new List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(typedef.typeParameters);
+    List<StructuralParameter> typedefTypeParametersCopy =
+        freshTypeParameters.freshTypeParameters;
+    List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
     TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
@@ -2599,13 +2598,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes =
         new Map<Expression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(
+            listClass.typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    listType = freshTypeParameters.substitute(listType) as InterfaceType;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          listType, listClass.typeParameters, typeContext,
+          listType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, listClass.typeParameters, null,
+          gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
     } else {
@@ -2623,7 +2628,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, listClass.typeParameters, inferredTypes!,
+          gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -4596,13 +4601,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes =
         new Map<Expression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(mapClass.typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    mapType = freshTypeParameters.substitute(mapType) as InterfaceType;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          mapType, mapClass.typeParameters, typeContext,
+          mapType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, mapClass.typeParameters, null,
+          gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
@@ -4656,6 +4666,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         List<DartType> formalTypesForSet = <DartType>[];
         InterfaceType setType = coreTypes.thisInterfaceType(
             coreTypes.setClass, libraryBuilder.nonNullable);
+        FreshStructuralParametersFromTypeParameters freshTypeParameters =
+            getFreshStructuralParametersFromTypeParameters(
+                coreTypes.setClass.typeParameters);
+        List<StructuralParameter> typeParametersToInfer =
+            freshTypeParameters.freshTypeParameters;
+        setType = freshTypeParameters.substitute(setType) as InterfaceType;
         for (int i = 0; i < node.entries.length; ++i) {
           setElements.add(convertToElement(
             node.entries[i],
@@ -4671,16 +4687,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // needs to be a set.
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
-                setType, coreTypes.setClass.typeParameters, typeContext,
+                setType, typeParametersToInfer, typeContext,
                 isNonNullableByDefault: isNonNullableByDefault,
                 isConst: node.isConst);
-        List<DartType> inferredTypesForSet =
-            typeSchemaEnvironment.choosePreliminaryTypes(
-                gatherer, coreTypes.setClass.typeParameters, null,
+        List<DartType> inferredTypesForSet = typeSchemaEnvironment
+            .choosePreliminaryTypes(gatherer, typeParametersToInfer, null,
                 isNonNullableByDefault: isNonNullableByDefault);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet);
         inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, coreTypes.setClass.typeParameters, inferredTypesForSet,
+            gatherer, typeParametersToInfer, inferredTypesForSet,
             isNonNullableByDefault: isNonNullableByDefault);
         DartType inferredTypeArgument = inferredTypesForSet[0];
         instrumentation?.record(
@@ -4720,7 +4735,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       gatherer!.constrainArguments(formalTypes, actualTypes);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, mapClass.typeParameters, inferredTypes!,
+          gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -7899,13 +7914,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes =
         new Map<Expression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(setClass.typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    setType = freshTypeParameters.substitute(setType) as InterfaceType;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          setType, setClass.typeParameters, typeContext,
+          setType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, setClass.typeParameters, null,
+          gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
     } else {
@@ -7924,7 +7944,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, setClass.typeParameters, inferredTypes!,
+          gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -8075,14 +8095,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
     ensureMemberType(node.target);
-    Substitution substitution = Substitution.fromSupertype(
-        hierarchyBuilder.getClassAsInstanceOf(
-            thisType!.classNode, node.target.enclosingClass)!);
-    FunctionType functionType = replaceReturnType(
-        substitution.substituteType(node.target.function
-            .computeThisFunctionType(libraryBuilder.nonNullable)
-            .withoutTypeParameters) as FunctionType,
-        thisType!);
+
+    Supertype asSuperClass = hierarchyBuilder.getClassAsInstanceOf(
+        thisType!.classNode, node.target.enclosingClass)!;
+
+    FunctionType targetType = node.target.function
+        .computeThisFunctionType(libraryBuilder.nonNullable);
+
+    FunctionType instantiatedTargetType = FunctionTypeInstantiator.instantiate(
+        targetType, asSuperClass.typeArguments);
+
+    FunctionType functionType =
+        replaceReturnType(instantiatedTargetType, thisType!);
+
     InvocationInferenceResult inferenceResult = inferInvocation(
         this,
         const UnknownType(),
@@ -10961,11 +10986,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required List<TypeParameter> typeParameters,
       required DartType declaredType,
       required DartType contextType}) {
-    TypeConstraintGatherer gatherer = typeSchemaEnvironment
-        .setupGenericTypeInference(declaredType, typeParameters, contextType,
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    declaredType = freshTypeParameters.substitute(declaredType);
+    TypeConstraintGatherer gatherer =
+        typeSchemaEnvironment.setupGenericTypeInference(
+            declaredType, typeParametersToInfer, contextType,
             isNonNullableByDefault: isNonNullableByDefault);
     return typeSchemaEnvironment.chooseFinalTypes(
-        gatherer, typeParameters, null,
+        gatherer, typeParametersToInfer, null,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 

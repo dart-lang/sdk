@@ -1191,8 +1191,7 @@ class CaptureFinder extends RecursiveVisitor {
 
   @override
   void visitTypeParameterType(TypeParameterType node) {
-    if (node.parameter.declaration != null &&
-        node.parameter.declaration == member.enclosingClass) {
+    if (node.parameter.declaration == member.enclosingClass) {
       _visitThis();
     } else if (node.parameter.declaration is GenericFunction) {
       _visitVariableUse(node.parameter);
