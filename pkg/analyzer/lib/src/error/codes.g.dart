@@ -6056,6 +6056,15 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the doc directive argument
+  ///  1: the expected format
+  static const WarningCode DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT = WarningCode(
+    'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+    "The '{0}' argument must be formatted as {1}.",
+    correctionMessage: "Try formatting '{0}' as {1}.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the doc directive
   ///  1: the actual number of arguments
   ///  2: the expected number of arguments

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.g.dart';
@@ -13,10 +15,6 @@ class DocCommentVerifier {
   DocCommentVerifier(this._errorReporter);
 
   void docDirective(DocDirective docDirective) {
-    // TODO(srawlins): Validate format of each parameter. For example, an
-    // animation directive's width must be an int, a youtube directive's URL
-    // must be a valid YouTube URL, etc.
-
     switch (docDirective) {
       case SimpleDocDirective():
         docDirectiveTag(docDirective.tag);
@@ -29,6 +27,30 @@ class DocCommentVerifier {
   }
 
   void docDirectiveTag(DocDirectiveTag tag) {
+    validateArgumentCount(tag);
+    validateArgumentFormat(tag);
+  }
+
+  /// Verifies doc imports, written as `@docImport`.
+  void docImport(DocImport docImport) {
+    var deferredKeyword = docImport.import.deferredKeyword;
+    if (deferredKeyword != null) {
+      _errorReporter.reportErrorForToken(
+        WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
+        deferredKeyword,
+      );
+    }
+    var configurations = docImport.import.configurations;
+    if (configurations.isNotEmpty) {
+      _errorReporter.reportErrorForOffset(
+        WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
+        configurations.first.offset,
+        configurations.last.end - configurations.first.offset,
+      );
+    }
+  }
+
+  void validateArgumentCount(DocDirectiveTag tag) {
     var positionalArgumentCount = tag.positionalArguments.length;
     var required = tag.type.positionalParameters;
     var requiredCount = tag.type.positionalParameters.length;
@@ -40,12 +62,12 @@ class DocCommentVerifier {
           WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
           tag.offset,
           tag.end - tag.offset,
-          [tag.type.name, required.last],
+          [tag.type.name, required.last.name],
         );
       } else if (gap == 2) {
         var missingArguments = [
-          required[required.length - 2],
-          required.last,
+          required[required.length - 2].name,
+          required.last.name,
         ];
         _errorReporter.reportErrorForOffset(
           WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
@@ -55,9 +77,9 @@ class DocCommentVerifier {
         );
       } else if (gap == 3) {
         var missingArguments = [
-          required[required.length - 3],
-          required[required.length - 2],
-          required.last,
+          required[required.length - 3].name,
+          required[required.length - 2].name,
+          required.last.name,
         ];
         _errorReporter.reportErrorForOffset(
           WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
@@ -86,7 +108,7 @@ class DocCommentVerifier {
     }
 
     for (var namedArgument in tag.namedArguments) {
-      if (!tag.type.namedParameters.contains(namedArgument.name)) {
+      if (!tag.type.namedParameters.containsNamed(namedArgument.name)) {
         _errorReporter.reportErrorForOffset(
           WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT,
           namedArgument.offset,
@@ -97,22 +119,45 @@ class DocCommentVerifier {
     }
   }
 
-  /// Verifies doc imports, written as `@docImport`.
-  void docImport(DocImport docImport) {
-    var deferredKeyword = docImport.import.deferredKeyword;
-    if (deferredKeyword != null) {
-      _errorReporter.reportErrorForToken(
-        WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
-        deferredKeyword,
-      );
-    }
-    var configurations = docImport.import.configurations;
-    if (configurations.isNotEmpty) {
-      _errorReporter.reportErrorForOffset(
-        WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
-        configurations.first.offset,
-        configurations.last.end - configurations.first.offset,
-      );
+  void validateArgumentFormat(DocDirectiveTag tag) {
+    var required = tag.type.positionalParameters;
+    var positionalArgumentCount =
+        math.min(tag.positionalArguments.length, required.length);
+    for (var i = 0; i < positionalArgumentCount; i++) {
+      var parameter = required[i];
+      var argument = tag.positionalArguments[i];
+
+      void reportWrongFormat() {
+        _errorReporter.reportErrorForOffset(
+          WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,
+          argument.offset,
+          argument.end - argument.offset,
+          [parameter.name, parameter.expectedFormat.displayString],
+        );
+      }
+
+      switch (parameter.expectedFormat) {
+        case DocDirectiveParameterFormat.any:
+          continue;
+        case DocDirectiveParameterFormat.integer:
+          if (int.tryParse(argument.value) == null) {
+            reportWrongFormat();
+          }
+        case DocDirectiveParameterFormat.uri:
+          if (Uri.tryParse(argument.value) == null) {
+            reportWrongFormat();
+          }
+        case DocDirectiveParameterFormat.youtubeUrl:
+          if (Uri.tryParse(argument.value) == null ||
+              !argument.value
+                  .startsWith(DocDirectiveParameterFormat.youtubeUrlPrefix)) {
+            reportWrongFormat();
+          }
+      }
     }
   }
+}
+
+extension on List<DocDirectiveParameter> {
+  bool containsNamed(String name) => any((p) => p.name == name);
 }
