@@ -49,7 +49,7 @@ declare_args() {
 # ........dds.dart.snapshot
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot
-# ........gen_kernel_aot.dart.snapshot (if not on ia32)
+# ........gen_kernel.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
 # ........kernel_worker.dart.snapshot
 # ......resources/
@@ -358,7 +358,7 @@ copy("copy_vm_platform_strong_product") {
 copy("copy_gen_kernel_snapshot") {
   visibility = [ ":group_dart2native" ]
   deps = [ "../utils/gen_kernel" ]
-  sources = [ "$root_gen_dir/gen_kernel_aot.dart.snapshot" ]
+  sources = [ "$root_gen_dir/gen_kernel.dart.snapshot" ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
 }

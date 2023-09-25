@@ -13,7 +13,7 @@ final String executableSuffix = Platform.isWindows ? '.exe' : '';
 final String dartaotruntime =
     path.join(binDir.path, 'dartaotruntime$executableSuffix');
 final String genKernel =
-    path.join(binDir.path, 'snapshots', 'gen_kernel_aot.dart.snapshot');
+    path.join(binDir.path, 'snapshots', 'gen_kernel.dart.snapshot');
 final String genSnapshot =
     path.join(binDir.path, 'utils', 'gen_snapshot$executableSuffix');
 final String productPlatformDill = path.join(
@@ -63,7 +63,7 @@ Future<void> generateNative({
 
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
     final kernelResult = await generateAotKernel(
-      dartaotruntime,
+      Platform.executable,
       genKernel,
       productPlatformDill,
       sourcePath,

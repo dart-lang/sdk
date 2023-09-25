@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../build/dart/dart_action.gni")
-import("../runtime/runtime_args.gni")
 import("../sdk_args.gni")
 
 _dart_root = get_path_info("..", "abspath")
