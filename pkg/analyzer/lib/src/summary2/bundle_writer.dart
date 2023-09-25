@@ -166,7 +166,7 @@ class BundleWriter {
   void _writeClassElement(ClassElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     ClassElementFlags.write(_sink, element);
 
     _sink.writeList<MacroApplicationError>(
@@ -216,7 +216,7 @@ class BundleWriter {
 
   void _writeConstructorElement(ConstructorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -270,7 +270,7 @@ class BundleWriter {
 
   void _writeEnumElement(EnumElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     EnumElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -324,8 +324,8 @@ class BundleWriter {
   void _writeExtensionElement(ExtensionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeOptionalStringReference(element.name);
-    _sink._writeStringReference(element.reference!.name);
+    _writeReference(element);
+    _sink.writeBool(element.name != null);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -346,8 +346,7 @@ class BundleWriter {
 
   void _writeExtensionTypeElement(ExtensionTypeElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     ExtensionTypeElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -375,7 +374,7 @@ class BundleWriter {
 
   void _writeFieldElement(FieldElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -392,7 +391,7 @@ class BundleWriter {
 
   void _writeFunctionElement(FunctionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -461,7 +460,7 @@ class BundleWriter {
 
   void _writeMethodElement(MethodElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -478,7 +477,7 @@ class BundleWriter {
   void _writeMixinElement(MixinElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -572,7 +571,7 @@ class BundleWriter {
 
   void _writePropertyAccessorElement(PropertyAccessorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.displayName);
+    _writeReference(element);
     PropertyAccessorElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -585,9 +584,16 @@ class BundleWriter {
     }
   }
 
+  /// Write the reference of a non-local element.
+  void _writeReference(ElementImpl element) {
+    final reference = element.reference;
+    final index = _references._indexOfReference(reference);
+    _sink.writeUInt30(index);
+  }
+
   void _writeTopLevelVariableElement(TopLevelVariableElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     _sink.writeBool(element.isConst);
     TopLevelVariableElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -599,7 +605,7 @@ class BundleWriter {
   void _writeTypeAliasElement(TypeAliasElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     _sink.writeBool(element.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, element);
 

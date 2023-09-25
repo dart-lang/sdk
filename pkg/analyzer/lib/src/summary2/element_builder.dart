@@ -1599,54 +1599,75 @@ class _EnclosingContext {
 
   Reference addClass(String name, ClassElementImpl element) {
     _classes.add(element);
-    return _bindReference('@class', name, element);
+    final containerName =
+        element.isAugmentation ? '@classAugmentation' : '@class';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addConstructor(ConstructorElementImpl element) {
     _constructors.add(element);
 
+    final containerName =
+        element.isAugmentation ? '@constructorAugmentation' : '@constructor';
     final referenceName = element.name.ifNotEmptyOrElse('new');
-    return _bindReference('@constructor', referenceName, element);
+    return _bindReference(containerName, referenceName, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {
     _enums.add(element);
-    return _bindReference('@enum', name, element);
+    final containerName =
+        element.isAugmentation ? '@enumAugmentation' : '@enum';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addExtension(String name, ExtensionElementImpl element) {
     _extensions.add(element);
-    return _bindReference('@extension', name, element);
+    final containerName =
+        element.isAugmentation ? '@extensionAugmentation' : '@extension';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addExtensionType(String name, ExtensionTypeElementImpl element) {
     _extensionTypes.add(element);
-    return _bindReference('@extensionType', name, element);
+    final containerName = element.isAugmentation
+        ? '@extensionTypeAugmentation'
+        : '@extensionType';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {
     _fields.add(element);
-    return _bindReference('@field', name, element);
+    final containerName =
+        element.isAugmentation ? '@fieldAugmentation' : '@field';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addFunction(String name, FunctionElementImpl element) {
     _functions.add(element);
-    return _bindReference('@function', name, element);
+    final containerName =
+        element.isAugmentation ? '@functionAugmentation' : '@function';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addGetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@getter', name, element);
+    final containerName =
+        element.isAugmentation ? '@getterAugmentation' : '@getter';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addMethod(String name, MethodElementImpl element) {
     _methods.add(element);
-    return _bindReference('@method', name, element);
+    final containerName =
+        element.isAugmentation ? '@methodAugmentation' : '@method';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addMixin(String name, MixinElementImpl element) {
     _mixins.add(element);
-    return _bindReference('@mixin', name, element);
+    final containerName =
+        element.isAugmentation ? '@mixinAugmentation' : '@mixin';
+    return _bindReference(containerName, name, element);
   }
 
   void addNonSyntheticField(FieldElementImpl element) {
@@ -1683,13 +1704,17 @@ class _EnclosingContext {
 
   Reference addSetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@setter', name, element);
+    final containerName =
+        element.isAugmentation ? '@setterAugmentation' : '@setter';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
     _topLevelVariables.add(element);
-    return _bindReference('@variable', name, element);
+    final containerName =
+        element.isAugmentation ? '@variableAugmentation' : '@variable';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addTypeAlias(String name, TypeAliasElementImpl element) {
@@ -1700,10 +1725,6 @@ class _EnclosingContext {
   void addTypeParameter(String name, TypeParameterElementImpl element) {
     _typeParameters.add(element);
     this.element.encloseElement(element);
-  }
-
-  Reference getMethod(String name) {
-    return reference.getChild('@method').getChild(name);
   }
 
   Reference _bindReference(
