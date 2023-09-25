@@ -317,12 +317,18 @@ _nightly_builder(
 # vm|misc
 _nightly_builder(
     "vm-eager-optimization-linux-release-ia32",
-    category = "vm|misc|o32",
+    category = "vm|misc|j",
     channels = ["try"],
 )
-_low_priority_builder(
+_nightly_builder(
     "vm-eager-optimization-linux-release-x64",
-    category = "vm|misc|o64",
+    category = "vm|misc|j",
+    channels = ["try"],
+)
+_nightly_builder(
+    "vm-aot-optimization-level-linux-release-x64",
+    category = "vm|misc|a",
+    channels = ["try"],
 )
 
 def dart_vm_sanitizer_builder(name, **kwargs):
