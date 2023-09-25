@@ -137,18 +137,21 @@ toolchain("fuchsia") {
     exename = "{{target_output_name}}{{output_extension}}"
     outfile = "{{root_out_dir}}/$exename"
     rspfile = "$outfile.rsp"
+    symfile = "$outfile.sym"
+    symbolizer_script = rebase_path("//runtime/tools/dart_profiler_symbols.py")
 
     # Note that the unstripped_outfile is in the exe.stripped folder.
     # We should probably clean this up, but changing this and dart.cmx
     # to point ./dart instead of ./exe.stripped/dart makes the build
     # fail because ./dart does not end up in the manifest file.
     unstripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
-    command = "$compiler_prefix $ld $target_triple_flags $sysroot_flags $lto_flags {{ldflags}} -o $unstripped_outfile -Wl,--build-id -Wl,--start-group @$rspfile {{solibs}} -Wl,--end-group {{libs}} && ${strip} -o $outfile $unstripped_outfile"
+    command = "$compiler_prefix $ld $target_triple_flags $sysroot_flags $lto_flags {{ldflags}} -o $unstripped_outfile -Wl,--build-id -Wl,--start-group @$rspfile {{solibs}} -Wl,--end-group {{libs}} && ${strip} -o $outfile $unstripped_outfile && $symbolizer_script --nm $nm --output $symfile --binary $unstripped_outfile"
     description = "LINK $outfile"
     rspfile_content = "{{inputs}}"
     outputs = [
       unstripped_outfile,
       outfile,
+      symfile,
     ]
   }
 

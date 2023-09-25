@@ -49,6 +49,7 @@ template("mac_toolchain") {
     cxx = invoker.cxx
     ar = invoker.ar
     ld = invoker.ld
+    nm = invoker.nm
 
     # Make these apply to all tools below.
     lib_switch = "-l"
@@ -175,12 +176,20 @@ template("mac_toolchain") {
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"
+      symfile = "$outfile.sym"
 
       if (defined(invoker.strip)) {
         stripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
       }
 
       command = "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}"
+
+      symbolizer_script =
+          rebase_path("//runtime/tools/dart_profiler_symbols.py")
+      symbolize_command =
+          "$symbolizer_script --nm $nm --output $symfile --binary $outfile"
+      command += " && $symbolize_command"
+
       if (defined(invoker.strip)) {
         strip = invoker.strip
         strip_command = "${strip} -x -o $stripped_outfile $outfile"
@@ -189,7 +198,10 @@ template("mac_toolchain") {
 
       description = "LINK $outfile"
       rspfile_content = "{{inputs_newline}}"
-      outputs = [ outfile ]
+      outputs = [
+        outfile,
+        symfile,
+      ]
       if (defined(invoker.strip)) {
         outputs += [ stripped_outfile ]
       }
@@ -229,6 +241,7 @@ mac_toolchain("clang_x64") {
   ar = "${prefix}/llvm-ar"
   ld = cxx
   strip = "${prefix}/llvm-strip"
+  nm = "${prefix}/llvm-nm"
   is_clang = true
   if (mac_enable_relative_sdk_path) {
     mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)
@@ -245,6 +258,7 @@ mac_toolchain("clang_arm64") {
   ar = "${prefix}/llvm-ar"
   ld = cxx
   strip = "${prefix}/llvm-strip"
+  nm = "${prefix}/llvm-nm"
   is_clang = true
   if (mac_enable_relative_sdk_path) {
     mac_sdk_path = rebase_path(mac_sdk_path, root_build_dir)

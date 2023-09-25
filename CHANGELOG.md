@@ -6,7 +6,13 @@ This is a patch release that:
   `@staticInterop` `@anonymous` factory constructors with type parameters (see
   issue [#53579] for more details).
 
+- The standalone Dart VM now exports symbols only for the Dart_* embedding API
+  functions, avoiding conflicts with other DSOs loaded into the same process,
+  such as shared libraries loaded through `dart:ffi`, that may have different
+  versions of the same symbols (issue [#53267]).
+
 [#53579]: https://github.com/dart-lang/sdk/issues/53579
+[#53267]: https://github.com/dart-lang/sdk/issues/53267
 
 ## 3.1.2 - 2023-09-13
 
