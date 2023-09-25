@@ -48,6 +48,7 @@ class NodeCreator {
   List<ExtensionTypeDeclaration> _neededExtensionTypeDeclarations = [];
   List<Typedef> _neededTypedefs = [];
   List<TypeParameter> _neededTypeParameters = [];
+  List<StructuralParameter> _neededStructuralParameters = [];
   List<Constructor> _neededConstructors = [];
   List<Procedure> _neededRedirectingFactories = [];
   List<Procedure> _neededProcedures = [];
@@ -307,6 +308,7 @@ class NodeCreator {
         case NodeKind.NamedType:
         case NodeKind.SwitchCase:
         case NodeKind.TypeParameter:
+        case NodeKind.StructuralParameter:
         case NodeKind.MapPatternEntry:
         case NodeKind.MapPatternRestEntry:
         case NodeKind.PatternGuard:
@@ -451,6 +453,24 @@ class NodeCreator {
     // TODO(johnniwinther): Add the type parameter to a context; class, method
     // or function type.
     return typeParameter;
+  }
+
+  /// Returns a [StructuralParameter] node that fits the requirements.
+  ///
+  /// If no such [StructuralParameter] exists in
+  /// [_neededStructuralParameters], a new [StructuralParameter] is
+  /// created and added to [_neededStructuralParameters].
+  // TODO(johnniwinther): Add requirements when/where needed.
+  StructuralParameter _needStructuralParameter() {
+    for (StructuralParameter typeParameter in _neededStructuralParameters) {
+      return typeParameter;
+    }
+    StructuralParameter functionTypeTypeParameter =
+        StructuralParameter('foo', DynamicType(), DynamicType());
+    _neededStructuralParameters.add(functionTypeTypeParameter);
+    // TODO(johnniwinther): Add the type parameter to a context, that is,
+    // function type.
+    return functionTypeTypeParameter;
   }
 
   /// Returns a [Procedure] node that fits the requirements.
@@ -1383,6 +1403,11 @@ class NodeCreator {
           () =>
               TypeParameterType(_needTypeParameter(), Nullability.nonNullable),
         ]);
+      case DartTypeKind.StructuralParameterType:
+        return _createOneOf(_pendingDartTypes, kind, index, [
+          () => StructuralParameterType(
+              _needStructuralParameter(), Nullability.nonNullable),
+        ]);
       case DartTypeKind.IntersectionType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           () => IntersectionType(
@@ -1747,6 +1772,8 @@ class NodeCreator {
       case NodeKind.TypeParameter:
         return TypeParameter('foo', _createDartType(), _createDartType())
           ..fileOffset = _needFileOffset();
+      case NodeKind.StructuralParameter:
+        return StructuralParameter('foo', _createDartType(), _createDartType());
       case NodeKind.Typedef:
         return Typedef('foo', _createDartType(), fileUri: _uri)
           ..fileOffset = _needFileOffset();

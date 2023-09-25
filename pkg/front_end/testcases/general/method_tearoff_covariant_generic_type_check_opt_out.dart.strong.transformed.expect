@@ -36,7 +36,7 @@ static method expectThrows(() →* void f) → dynamic {
 }
 static method main() → dynamic {
   self::A<core::num*>* a = new self::A::•<core::int*>();
-  <Y extends core::num*>(Y*) →* void f = a.{self::A::f}{<covariant-by-class Y extends core::num*>(Y*) →* void};
+  <Y extends core::num*>(Y*) →* void f = a.{self::A::f}{<Y extends core::num*>(Y*) →* void};
   self::expectThrows(() → Null {
     f<core::double*>(3.14){(core::double*) →* void};
   });

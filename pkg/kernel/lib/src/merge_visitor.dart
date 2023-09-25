@@ -37,41 +37,43 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     assert(a.positionalParameters.length == b.positionalParameters.length);
     assert(a.namedParameters.length == b.namedParameters.length);
 
-    List<TypeParameter> newTypeParameters =
-        new List<TypeParameter>.generate(a.typeParameters.length, (int i) {
-      TypeParameter aTypeParameter = a.typeParameters[i];
-      TypeParameter bTypeParameter = b.typeParameters[i];
-      return new TypeParameter(aTypeParameter.name ?? bTypeParameter.name);
+    List<StructuralParameter> newTypeParameters =
+        new List<StructuralParameter>.generate(a.typeParameters.length,
+            (int i) {
+      StructuralParameter aTypeParameter = a.typeParameters[i];
+      StructuralParameter bTypeParameter = b.typeParameters[i];
+      return new StructuralParameter(
+          aTypeParameter.name ?? bTypeParameter.name);
     }, growable: false);
 
-    Substitution? aSubstitution;
-    Substitution? bSubstitution;
+    FunctionTypeInstantiator? aInstantiator;
+    FunctionTypeInstantiator? bInstantiator;
 
     DartType? mergeTypes(DartType a, DartType b) {
-      if (aSubstitution != null) {
-        a = aSubstitution.substituteType(a);
-        b = bSubstitution!.substituteType(b);
+      if (aInstantiator != null) {
+        a = aInstantiator.visit(a);
+        b = bInstantiator!.visit(b);
       }
       return a.accept1(this, b);
     }
 
     if (newTypeParameters.isNotEmpty) {
-      List<TypeParameterType> aTypeParameterTypes =
-          new List<TypeParameterType>.generate(newTypeParameters.length,
+      List<StructuralParameterType> aTypeParameterTypes =
+          new List<StructuralParameterType>.generate(newTypeParameters.length,
               (int i) {
-        return new TypeParameterType.forAlphaRenaming(
+        return new StructuralParameterType.forAlphaRenaming(
             a.typeParameters[i], newTypeParameters[i]);
       }, growable: false);
-      aSubstitution =
-          Substitution.fromPairs(a.typeParameters, aTypeParameterTypes);
-      List<TypeParameterType> bTypeParameterTypes =
-          new List<TypeParameterType>.generate(newTypeParameters.length,
+      aInstantiator =
+          FunctionTypeInstantiator.fromInstantiation(a, aTypeParameterTypes);
+      List<StructuralParameterType> bTypeParameterTypes =
+          new List<StructuralParameterType>.generate(newTypeParameters.length,
               (int i) {
-        return new TypeParameterType.forAlphaRenaming(
+        return new StructuralParameterType.forAlphaRenaming(
             b.typeParameters[i], newTypeParameters[i]);
       }, growable: false);
-      bSubstitution =
-          Substitution.fromPairs(b.typeParameters, bTypeParameterTypes);
+      bInstantiator =
+          FunctionTypeInstantiator.fromInstantiation(b, bTypeParameterTypes);
 
       for (int i = 0; i < newTypeParameters.length; i++) {
         DartType? newBound =
@@ -345,6 +347,29 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       TypeParameterType a, TypeParameterType b, Nullability nullability) {
     assert(a.parameter == b.parameter);
     return new TypeParameterType(a.parameter, nullability);
+  }
+
+  @override
+  DartType? visitStructuralParameterType(
+      StructuralParameterType a, DartType b) {
+    if (b is StructuralParameterType && a.parameter == b.parameter) {
+      Nullability? nullability =
+          mergeNullability(a.declaredNullability, b.declaredNullability);
+      if (nullability == null) {
+        return null;
+      }
+      return mergeStructuralParameterTypes(a, b, nullability);
+    }
+    if (b is InvalidType) {
+      return b;
+    }
+    return null;
+  }
+
+  DartType mergeStructuralParameterTypes(StructuralParameterType a,
+      StructuralParameterType b, Nullability nullability) {
+    assert(a.parameter == b.parameter);
+    return new StructuralParameterType(a.parameter, nullability);
   }
 
   @override

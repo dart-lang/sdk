@@ -51,7 +51,7 @@ class C extends self::B implements self::A {
 }
 static field core::List<self::A*>* list;
 static method g<T extends self::A*>(self::g::T* t) → core::List<self::g::T*>* {
-  self::list = <self::g::T*>[];
+  self::list = core::_GrowableList::•<self::g::T*>(0);
   core::print(self::list.{core::Object::runtimeType}{core::Type*});
   return self::list as{TypeError,ForLegacy} core::List<self::g::T*>*;
 }

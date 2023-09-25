@@ -761,6 +761,7 @@ abstract class DartTypeVisitor<R> {
   R visitFutureOrType(FutureOrType node);
   R visitFunctionType(FunctionType node);
   R visitTypeParameterType(TypeParameterType node);
+  R visitStructuralParameterType(StructuralParameterType node);
   R visitTypedefType(TypedefType node);
   R visitNeverType(NeverType node);
   R visitNullType(NullType node);
@@ -791,6 +792,9 @@ mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
   @override
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   @override
+  R visitStructuralParameterType(StructuralParameterType node) =>
+      defaultDartType(node);
+  @override
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   @override
   R visitNeverType(NeverType node) => defaultDartType(node);
@@ -818,6 +822,7 @@ abstract class DartTypeVisitor1<R, A> {
   R visitFutureOrType(FutureOrType node, A arg);
   R visitFunctionType(FunctionType node, A arg);
   R visitTypeParameterType(TypeParameterType node, A arg);
+  R visitStructuralParameterType(StructuralParameterType node, A arg);
   R visitTypedefType(TypedefType node, A arg);
   R visitNeverType(NeverType node, A arg);
   R visitNullType(NullType node, A arg);
@@ -847,6 +852,9 @@ mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
   R visitFunctionType(FunctionType node, A arg) => defaultDartType(node, arg);
   @override
   R visitTypeParameterType(TypeParameterType node, A arg) =>
+      defaultDartType(node, arg);
+  @override
+  R visitStructuralParameterType(StructuralParameterType node, A arg) =>
       defaultDartType(node, arg);
   @override
   R visitTypedefType(TypedefType node, A arg) => defaultDartType(node, arg);
@@ -1480,6 +1488,7 @@ abstract class Visitor<R>
   R visitName(Name node);
   R visitSupertype(Supertype node);
   R visitNamedType(NamedType node);
+  R visitStructuralParameter(StructuralParameter node);
 }
 
 mixin VisitorDefaultMixin<R> implements Visitor<R> {
@@ -1492,6 +1501,8 @@ mixin VisitorDefaultMixin<R> implements Visitor<R> {
   R visitSupertype(Supertype node) => defaultNode(node);
   @override
   R visitNamedType(NamedType node) => defaultNode(node);
+  @override
+  R visitStructuralParameter(StructuralParameter node) => defaultNode(node);
 }
 
 /// Base class for implementing [Visitor] that implements visit methods mixing
@@ -1534,6 +1545,7 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   R visitName(Name node, A arg);
   R visitSupertype(Supertype node, A arg);
   R visitNamedType(NamedType node, A arg);
+  R visitStructuralParameter(StructuralParameter node, A arg);
 }
 
 mixin Visitor1DefaultMixin<R, A> implements Visitor1<R, A> {
@@ -1548,6 +1560,10 @@ mixin Visitor1DefaultMixin<R, A> implements Visitor1<R, A> {
 
   @override
   R visitNamedType(NamedType node, A arg) => defaultNode(node, arg);
+
+  @override
+  R visitStructuralParameter(StructuralParameter node, A arg) =>
+      defaultNode(node, arg);
 }
 
 /// Base class for implementing [Visitor1] that implements visit methods mixing

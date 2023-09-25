@@ -9,3 +9,4 @@ List<A> list;
 List<T> g<T extends A>(T t) {}
 List<S> f<S>(S s) {}
 main() {}
+expectThrows(f()) {}

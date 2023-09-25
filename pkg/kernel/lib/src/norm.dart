@@ -103,6 +103,19 @@ class _Norm extends ReplacementVisitor {
   }
 
   @override
+  DartType? visitStructuralParameterType(
+      StructuralParameterType node, int variance) {
+    DartType bound = node.parameter.bound;
+    if (normalizesToNever(bound)) {
+      DartType result = NeverType.fromNullability(node.nullability);
+      return result.accept1(this, variance) ?? result;
+    }
+    assert(!coreTypes.isBottom(bound));
+    // If the bound isn't Never, the type is already normalized.
+    return null;
+  }
+
+  @override
   DartType? visitIntersectionType(IntersectionType node, int variance) {
     DartType right = node.right;
     right = right.accept1(this, variance) ?? right;

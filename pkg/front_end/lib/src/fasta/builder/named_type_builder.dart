@@ -296,7 +296,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       library.addProblem(message, typeNameOffset, typeNameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, typeNameOffset, typeNameLength));
-    } else if (_declaration!.isTypeVariable) {
+    } else if (_declaration is TypeVariableBuilder) {
       TypeVariableBuilder typeParameterBuilder =
           _declaration as TypeVariableBuilder;
       if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
@@ -414,7 +414,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? unalias(
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables}) {
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
     if (declaration is TypeAliasBuilder) {
       return (declaration as TypeAliasBuilder).unalias(arguments,
@@ -538,6 +538,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             severity: Severity.error);
         return null;
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionTypeDeclarationBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
@@ -569,6 +570,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             severity: Severity.error);
         return null;
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():

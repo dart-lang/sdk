@@ -9,7 +9,7 @@ import '../class_hierarchy.dart' show ClassHierarchyBase;
 import '../core_types.dart' show CoreTypes;
 
 import '../type_algebra.dart'
-    show Substitution, combineNullabilitiesForSubstitution;
+    show FunctionTypeInstantiator, combineNullabilitiesForSubstitution;
 
 import '../type_environment.dart' show IsSubtypeOf, SubtypeCheckMode;
 
@@ -114,6 +114,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -137,6 +139,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -161,6 +165,34 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
+      } else if (s is IntersectionType) {
+        return relation.isIntersectionRelated(s, t, this);
+      } else if (s is TypedefType) {
+        return relation.isTypedefRelated(s, t, this);
+      } else if (s is FutureOrType) {
+        return relation.isFutureOrRelated(s, t, this);
+      } else if (s is RecordType) {
+        return relation.isRecordRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
+      }
+    } else if (t is StructuralParameterType) {
+      const IsStructuralParameterSubtypeOf relation =
+          const IsStructuralParameterSubtypeOf();
+      if (s is DynamicType) {
+        return relation.isDynamicRelated(s, t, this);
+      } else if (s is VoidType) {
+        return relation.isVoidRelated(s, t, this);
+      } else if (s is InterfaceType) {
+        return relation.isInterfaceRelated(s, t, this);
+      } else if (s is FunctionType) {
+        return relation.isFunctionRelated(s, t, this);
+      } else if (s is TypeParameterType) {
+        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -184,6 +216,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -207,6 +241,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -230,6 +266,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -253,6 +291,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -276,6 +316,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -297,11 +339,12 @@ class Types with StandardBounds {
         return relation.isInterfaceRelated(s, t, this);
       } else if (s is FunctionType) {
         return relation.isFunctionRelated(s, t, this);
-      } else if (s is TypeParameterType) {
-        return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
-      } else if (s is IntersectionType) {
+      } else if (s is TypeParameterType) {
+        return relation.isTypeParameterRelated(s, t, this);
       } else if (s is TypedefType) {
         return relation.isTypedefRelated(s, t, this);
       } else if (s is FutureOrType) {
@@ -324,6 +367,8 @@ class Types with StandardBounds {
         return relation.isFunctionRelated(s, t, this);
       } else if (s is TypeParameterType) {
         return relation.isTypeParameterRelated(s, t, this);
+      } else if (s is StructuralParameterType) {
+        return relation.isStructuralParameterRelated(s, t, this);
       } else if (s is IntersectionType) {
         return relation.isIntersectionRelated(s, t, this);
       } else if (s is TypedefType) {
@@ -431,6 +476,9 @@ abstract class TypeRelation<T extends DartType> {
 
   IsSubtypeOf isTypeParameterRelated(TypeParameterType s, T t, Types types);
 
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, T t, Types types);
+
   IsSubtypeOf isTypedefRelated(TypedefType s, T t, Types types);
 
   IsSubtypeOf isRecordRelated(RecordType s, T t, Types types);
@@ -467,6 +515,14 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, InterfaceType t, Types types) {
+    return types
+        .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
+  }
+
+  @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, InterfaceType t, Types types) {
     return types
         .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
@@ -548,8 +604,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
 
   @override
   IsSubtypeOf isFunctionRelated(FunctionType s, FunctionType t, Types types) {
-    List<TypeParameter> sTypeVariables = s.typeParameters;
-    List<TypeParameter> tTypeVariables = t.typeParameters;
+    List<StructuralParameter> sTypeVariables = s.typeParameters;
+    List<StructuralParameter> tTypeVariables = t.typeParameters;
     if (sTypeVariables.length != tTypeVariables.length) {
       return const IsSubtypeOf.never();
     }
@@ -563,31 +619,32 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
       // alpha-renaming them.
       List<DartType> typeVariableSubstitution = <DartType>[];
       for (int i = 0; i < sTypeVariables.length; i++) {
-        TypeParameter sTypeVariable = sTypeVariables[i];
-        TypeParameter tTypeVariable = tTypeVariables[i];
+        StructuralParameter sTypeVariable = sTypeVariables[i];
+        StructuralParameter tTypeVariable = tTypeVariables[i];
         result = result.and(types.performNullabilityAwareMutualSubtypesCheck(
             sTypeVariable.bound, tTypeVariable.bound));
-        typeVariableSubstitution.add(new TypeParameterType.forAlphaRenaming(
-            sTypeVariable, tTypeVariable));
+        typeVariableSubstitution.add(
+            new StructuralParameterType.forAlphaRenaming(
+                sTypeVariable, tTypeVariable));
       }
-      Substitution substitution =
-          Substitution.fromPairs(sTypeVariables, typeVariableSubstitution);
+      FunctionTypeInstantiator instantiator =
+          FunctionTypeInstantiator.fromIterables(
+              sTypeVariables, typeVariableSubstitution);
       // If the bounds aren't the same, we need to try again after computing the
       // substitution of type variables.
       if (!result.isSubtypeWhenIgnoringNullabilities()) {
         result = const IsSubtypeOf.always();
         for (int i = 0; i < sTypeVariables.length; i++) {
-          TypeParameter sTypeVariable = sTypeVariables[i];
-          TypeParameter tTypeVariable = tTypeVariables[i];
+          StructuralParameter sTypeVariable = sTypeVariables[i];
+          StructuralParameter tTypeVariable = tTypeVariables[i];
           result = result.and(types.performNullabilityAwareMutualSubtypesCheck(
-              substitution.substituteType(sTypeVariable.bound),
-              tTypeVariable.bound));
+              instantiator.visit(sTypeVariable.bound), tTypeVariable.bound));
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
             return const IsSubtypeOf.never();
           }
         }
       }
-      s = substitution.substituteType(s.withoutTypeParameters) as FunctionType;
+      s = instantiator.visit(s.withoutTypeParameters) as FunctionType;
     }
     result = result.and(
         types.performNullabilityAwareSubtypeCheck(s.returnType, t.returnType));
@@ -706,6 +763,15 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
   }
 
   @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, FunctionType t, Types types) {
+    // Rule 13.
+    return types
+        .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
+  }
+
+  @override
   IsSubtypeOf isTypedefRelated(TypedefType s, FunctionType t, Types types) {
     // Rule 5.
     return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
@@ -761,6 +827,15 @@ class IsRecordSubtypeOf extends TypeRelation<RecordType> {
   @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, RecordType t, Types types) {
+    // Rule 13.
+    return types
+        .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
+  }
+
+  @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, RecordType t, Types types) {
     // Rule 13.
     return types
         .performNullabilityAwareSubtypeCheck(s.parameter.bound, t)
@@ -835,6 +910,12 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   }
 
   @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, TypeParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
   IsSubtypeOf isIntersectionRelated(
       IntersectionType intersection, TypeParameterType t, Types types) {
     // Nullable types aren't promoted to intersection types.
@@ -906,6 +987,87 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   }
 }
 
+class IsStructuralParameterSubtypeOf
+    extends TypeRelation<StructuralParameterType> {
+  const IsStructuralParameterSubtypeOf();
+
+  @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, StructuralParameterType t, Types types) {
+    IsSubtypeOf result = const IsSubtypeOf.always();
+    if (s.parameter != t.parameter) {
+      result = types.performNullabilityAwareSubtypeCheck(s.bound, t);
+    }
+    if (s.nullability == Nullability.undetermined &&
+        t.nullability == Nullability.undetermined) {
+      // The two nullabilities are undetermined, but are connected via
+      // additional constraint, namely that they will be equal at run time.
+      return result;
+    }
+    return result.and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
+  }
+
+  @override
+  IsSubtypeOf isTypeParameterRelated(
+      TypeParameterType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isIntersectionRelated(
+      IntersectionType intersection, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isInterfaceRelated(
+      InterfaceType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isDynamicRelated(
+      DynamicType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isFunctionRelated(
+      FunctionType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isFutureOrRelated(
+      FutureOrType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isTypedefRelated(
+      TypedefType s, StructuralParameterType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
+  }
+
+  @override
+  IsSubtypeOf isVoidRelated(
+      VoidType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isRecordRelated(
+      RecordType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+
+  @override
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, StructuralParameterType t, Types types) {
+    return const IsSubtypeOf.never();
+  }
+}
+
 class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   const IsTypedefSubtypeOf();
 
@@ -938,6 +1100,12 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, TypedefType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
+  }
+
+  @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, TypedefType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 
@@ -1071,6 +1239,29 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
   }
 
   @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, FutureOrType t, Types types) {
+    // TODO(cstefantsova): Revise the original optimization.
+    return types
+        // Rule 11.
+        .performNullabilityAwareSubtypeCheck(
+            s, t.typeArgument.withDeclaredNullability(t.nullability))
+        // Rule 13.
+        .orSubtypeCheckFor(
+            s.parameter.bound.withDeclaredNullability(
+                combineNullabilitiesForSubstitution(
+                    s.parameter.bound.nullability, s.nullability)),
+            t,
+            types)
+        // Rule 10.
+        .orSubtypeCheckFor(
+            s,
+            new InterfaceType(types.hierarchy.coreTypes.futureClass,
+                t.nullability, [t.typeArgument]),
+            types);
+  }
+
+  @override
   IsSubtypeOf isFunctionRelated(FunctionType s, FutureOrType t, Types types) {
     // Rule 11.
     return types.performNullabilityAwareSubtypeCheck(
@@ -1123,6 +1314,15 @@ class IsIntersectionSubtypeOf extends TypeRelation<IntersectionType> {
     // Rule 9.
     return const IsTypeParameterSubtypeOf()
         .isTypeParameterRelated(s, intersection.left, types)
+        .andSubtypeCheckFor(s, intersection.right, types);
+  }
+
+  @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, IntersectionType intersection, Types types) {
+    // Rule 9.
+    return const IsTypeParameterSubtypeOf()
+        .isStructuralParameterRelated(s, intersection.left, types)
         .andSubtypeCheckFor(s, intersection.right, types);
   }
 
@@ -1220,6 +1420,15 @@ class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
   }
 
   @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, NullType t, Types types) {
+    // We don't need to combine the check of the bound against [t] with the
+    // check of the nullability of [s] against the nullability of [t] because
+    // [t] is always nullable.
+    return types.performNullabilityAwareSubtypeCheck(s.bound, t);
+  }
+
+  @override
   IsSubtypeOf isTypedefRelated(TypedefType s, NullType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
   }
@@ -1272,6 +1481,14 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
   @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, NeverType t, Types types) {
+    return types
+        .performNullabilityAwareSubtypeCheck(s.bound, t)
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
+  }
+
+  @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, NeverType t, Types types) {
     return types
         .performNullabilityAwareSubtypeCheck(s.bound, t)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
@@ -1332,6 +1549,12 @@ class IsExtensionTypeSubtypeOf implements TypeRelation<ExtensionType> {
   @override
   IsSubtypeOf isTypeParameterRelated(
       TypeParameterType s, ExtensionType t, Types types) {
+    return types.performNullabilityAwareSubtypeCheck(s.bound, t);
+  }
+
+  @override
+  IsSubtypeOf isStructuralParameterRelated(
+      StructuralParameterType s, ExtensionType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s.bound, t);
   }
 

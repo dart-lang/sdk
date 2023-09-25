@@ -131,7 +131,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       }
       return bound;
     }, growable: false);
-    for (int i = 0; i < bounds.length; ++i) {}
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedef.typeParameters, clientLibrary.library);
     TypedefType result =
@@ -304,6 +303,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       // TODO(johnniwinther): Handle this case.
       case TypeAliasBuilder():
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():

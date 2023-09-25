@@ -32,5 +32,16 @@ main() {
   List<A> aList;
   aList = list;
   Object o = aList;
-  aList = o;
+  expectThrows(() => aList = o);
+}
+
+expectThrows(f()) {
+  bool hasThrown = true;
+  try {
+    f();
+    hasThrown = false;
+  } catch(e) {}
+  if (!hasThrown) {
+    throw "Expected the function to throw";
+  }
 }

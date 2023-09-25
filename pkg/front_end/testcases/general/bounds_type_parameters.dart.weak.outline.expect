@@ -362,121 +362,6 @@ library;
 // class H<X extends (Class<X>, int)> {}
 //         ^
 //
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:22:20: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
-//  - 'Object' is from 'dart:core'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         T7 extends F<Object>, // Error
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends Class<X>> = X;
-//           ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:23:20: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         T8 extends F<int>, // Error
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends Class<X>> = X;
-//           ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:30:20: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
-//  - 'Object' is from 'dart:core'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         S7 extends G<Object>, // Error
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:31:20: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         S8 extends G<int>, // Error
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:38:21: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
-//  - 'Object' is from 'dart:core'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         U7 extends (F<Object>, int), // Error
-//                     ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends Class<X>> = X;
-//           ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:39:21: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         U8 extends (F<int>, int), // Error
-//                     ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
-// typedef F<X extends Class<X>> = X;
-//           ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:46:22: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
-//  - 'Object' is from 'dart:core'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         V7 extends ({G<Object> a, int b}), // Error
-//                      ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:47:22: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         V8 extends ({G<int> a, int b}), // Error
-//                      ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
-// class G<X extends Class<X>> {}
-//         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:52:20: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         W5 extends H<(ConcreteClass, int)>, // Ok
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
-// class H<X extends (Class<X>, int)> {}
-//         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:53:20: Error: Type argument '(Class<ConcreteClass>, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         W6 extends H<(Class<ConcreteClass>, int)>, // Ok
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
-// class H<X extends (Class<X>, int)> {}
-//         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:54:20: Error: Type argument '(Object, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
-//  - 'Object' is from 'dart:core'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         W7 extends H<(Object, int)>, // Error
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
-// class H<X extends (Class<X>, int)> {}
-//         ^
-//
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:55:20: Error: Type argument '(int, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
-//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//         W8 extends H<(int, int)> // Error
-//                    ^
-// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
-// class H<X extends (Class<X>, int)> {}
-//         ^
-//
 // pkg/front_end/testcases/general/bounds_type_parameters.dart:66:16: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
 //  - 'Object' is from 'dart:core'.
 //  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
@@ -588,6 +473,121 @@ library;
 // Try changing type arguments so that they conform to the bounds.
 //     W8 extends H<(int, int)> // Error
 //                ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
+// class H<X extends (Class<X>, int)> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:22:20: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         T7 extends F<Object>, // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:23:20: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         T8 extends F<int>, // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:30:20: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         S7 extends G<Object>, // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:31:20: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         S8 extends G<int>, // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:38:21: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         U7 extends (F<Object>, int), // Error
+//                     ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:39:21: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'F'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         U8 extends (F<int>, int), // Error
+//                     ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef F<X extends Class<X>> = X;
+//           ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:46:22: Error: Type argument 'Object' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         V7 extends ({G<Object> a, int b}), // Error
+//                      ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:47:22: Error: Type argument 'int' doesn't conform to the bound 'Class<X>' of the type variable 'X' on 'G'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         V8 extends ({G<int> a, int b}), // Error
+//                      ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:11:9: Context: This is the type variable whose bound isn't conformed to.
+// class G<X extends Class<X>> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:52:20: Error: Type argument '(ConcreteClass, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         W5 extends H<(ConcreteClass, int)>, // Ok
+//                    ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
+// class H<X extends (Class<X>, int)> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:53:20: Error: Type argument '(Class<ConcreteClass>, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+//  - 'ConcreteClass' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         W6 extends H<(Class<ConcreteClass>, int)>, // Ok
+//                    ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
+// class H<X extends (Class<X>, int)> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:54:20: Error: Type argument '(Object, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         W7 extends H<(Object, int)>, // Error
+//                    ^
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
+// class H<X extends (Class<X>, int)> {}
+//         ^
+//
+// pkg/front_end/testcases/general/bounds_type_parameters.dart:55:20: Error: Type argument '(int, int)' doesn't conform to the bound '(Class<X>, int)' of the type variable 'X' on 'H'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/bounds_type_parameters.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//         W8 extends H<(int, int)> // Error
+//                    ^
 // pkg/front_end/testcases/general/bounds_type_parameters.dart:13:9: Context: This is the type variable whose bound isn't conformed to.
 // class H<X extends (Class<X>, int)> {}
 //         ^

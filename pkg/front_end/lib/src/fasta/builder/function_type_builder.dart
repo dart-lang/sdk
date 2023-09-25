@@ -5,7 +5,7 @@
 library fasta.function_type_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, FunctionType, NamedType, Supertype, TypeParameter;
+    show DartType, FunctionType, StructuralParameter, NamedType, Supertype;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
@@ -23,7 +23,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   @override
   final TypeBuilder returnType;
   @override
-  final List<TypeVariableBuilder>? typeVariables;
+  final List<StructuralVariableBuilder>? typeVariables;
   @override
   final List<ParameterBuilder>? formals;
   @override
@@ -35,7 +35,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   factory FunctionTypeBuilderImpl(
       TypeBuilder returnType,
-      List<TypeVariableBuilder>? typeVariables,
+      List<StructuralVariableBuilder>? typeVariables,
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,
@@ -53,7 +53,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       }
     }
     if (isExplicit && typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in typeVariables) {
+      for (StructuralVariableBuilder typeVariable in typeVariables) {
         if (!(typeVariable.bound?.isExplicit ?? true)) {
           isExplicit = false;
           break;
@@ -84,7 +84,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     if (typeVariables != null) {
       buffer.write("<");
       bool isFirst = true;
-      for (TypeVariableBuilder t in typeVariables!) {
+      for (StructuralVariableBuilder t in typeVariables!) {
         if (!isFirst) {
           buffer.write(", ");
         } else {
@@ -146,10 +146,10 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         namedParameters.sort();
       }
     }
-    List<TypeParameter>? typeParameters;
+    List<StructuralParameter>? typeParameters;
     if (typeVariables != null) {
-      typeParameters = <TypeParameter>[];
-      for (TypeVariableBuilder t in typeVariables!) {
+      typeParameters = <StructuralParameter>[];
+      for (StructuralVariableBuilder t in typeVariables!) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
         t.bound?.build(library, TypeUse.typeParameterBound);
@@ -158,7 +158,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     return new FunctionType(positionalParameters, builtReturnType,
         nullabilityBuilder.build(library),
         namedParameters: namedParameters ?? const <NamedType>[],
-        typeParameters: typeParameters ?? const <TypeParameter>[],
+        typeParameters: typeParameters ?? const <StructuralParameter>[],
         requiredParameterCount: requiredParameterCount);
   }
 
@@ -179,9 +179,9 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    List<TypeVariableBuilder>? clonedTypeVariables;
+    List<StructuralVariableBuilder>? clonedTypeVariables;
     if (typeVariables != null) {
-      clonedTypeVariables = contextLibrary.copyTypeVariables(
+      clonedTypeVariables = contextLibrary.copyStructuralVariables(
           typeVariables!, contextDeclaration,
           kind: TypeVariableKind.function);
     }
@@ -217,7 +217,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
   _ExplicitFunctionTypeBuilder(
       TypeBuilder returnType,
-      List<TypeVariableBuilder>? typeVariables,
+      List<StructuralVariableBuilder>? typeVariables,
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,
@@ -246,7 +246,7 @@ class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredFunctionTypeBuilder(
       TypeBuilder returnType,
-      List<TypeVariableBuilder>? typeVariables,
+      List<StructuralVariableBuilder>? typeVariables,
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,

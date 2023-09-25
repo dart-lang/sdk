@@ -23,7 +23,8 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart'
+    show FunctionTypeInstantiator, Substitution;
 import 'package:kernel/type_environment.dart';
 
 import 'abi.dart' show wordSize;
@@ -373,10 +374,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               allocatorAllocateMethod.name,
               Arguments([sizeInBytes], types: node.arguments.types),
               interfaceTarget: allocatorAllocateMethod,
-              functionType: Substitution.fromPairs(
-                      allocateFunctionType.typeParameters, node.arguments.types)
-                  .substituteType(allocateFunctionType
-                      .withoutTypeParameters) as FunctionType);
+              functionType: FunctionTypeInstantiator.instantiate(
+                  allocateFunctionType, node.arguments.types));
         }
       }
     } on FfiStaticTypeError {
@@ -444,10 +443,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         libraryLookupMethod.name,
         lookupArgs,
         interfaceTarget: libraryLookupMethod,
-        functionType: Substitution.fromPairs(
-                    lookupFunctionType.typeParameters, lookupTypeArgs)
-                .substituteType(lookupFunctionType.withoutTypeParameters)
-            as FunctionType);
+        functionType: FunctionTypeInstantiator.instantiate(
+            lookupFunctionType, lookupTypeArgs));
 
     final isLeaf = getIsLeafBoolean(node) ?? false;
 

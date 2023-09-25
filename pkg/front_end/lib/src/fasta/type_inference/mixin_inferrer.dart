@@ -16,7 +16,11 @@ abstract class MixinInferrer {
   final CoreTypes coreTypes;
   final TypeConstraintGatherer gatherer;
 
-  MixinInferrer(this.coreTypes, this.gatherer);
+  final Map<TypeParameter, StructuralParameterType>
+      inferableParameterByDeclaredParameter;
+
+  MixinInferrer(this.coreTypes, this.gatherer,
+      this.inferableParameterByDeclaredParameter);
 
   Supertype? asInstantiationOf(Supertype type, Class superclass);
 
@@ -117,19 +121,33 @@ abstract class MixinInferrer {
     // Note that we have no anonymous mixin applications, they have all
     // been named.  Note also that mixin composition has been translated
     // so that we only have mixin applications of the form `S with M`.
+    Substitution inferableParameterSubstitution =
+        Substitution.fromMap(inferableParameterByDeclaredParameter);
     Supertype baseType = classNode.supertype!;
+    baseType = new Supertype(
+        baseType.classNode,
+        baseType.typeArguments
+            .map<DartType>(inferableParameterSubstitution.substituteType)
+            .toList());
     Class mixinClass = mixedInType.classNode;
     Supertype mixinSupertype = mixinClass.supertype!;
+    mixinSupertype = new Supertype(
+        mixinSupertype.classNode,
+        mixinSupertype.typeArguments
+            .map<DartType>(inferableParameterSubstitution.substituteType)
+            .toList());
     // Generate constraints based on the mixin's supertype.
     generateConstraints(mixinClass, baseType, mixinSupertype);
     // Solve them to get a map from type parameters to upper and lower
     // bounds.
-    Map<TypeParameter, TypeConstraint> result = gatherer.computeConstraints(
-        isNonNullableByDefault:
-            classNode.enclosingLibrary.isNonNullableByDefault);
+    Map<StructuralParameter, TypeConstraint> result =
+        gatherer.computeConstraints(
+            isNonNullableByDefault:
+                classNode.enclosingLibrary.isNonNullableByDefault);
     // Generate new type parameters with the solution as bounds.
     List<TypeParameter> parameters = mixinClass.typeParameters.map((p) {
-      TypeConstraint? constraint = result[p];
+      TypeConstraint? constraint =
+          result[inferableParameterByDeclaredParameter[p]!.parameter];
       // Because we solved for equality, a valid solution has a parameter
       // either unconstrained or else with identical upper and lower bounds.
       if (constraint != null && constraint.upper != constraint.lower) {

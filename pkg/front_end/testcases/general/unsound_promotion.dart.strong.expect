@@ -72,5 +72,17 @@ static method main() → dynamic {
   core::List<self::A*>* aList;
   aList = self::list;
   core::Object* o = aList;
-  aList = o as{TypeError,ForLegacy} core::List<self::A*>*;
+  self::expectThrows(() → core::Object* => aList = o as{TypeError,ForLegacy} core::List<self::A*>*);
+}
+static method expectThrows(() →* dynamic f) → dynamic {
+  core::bool* hasThrown = true;
+  try {
+    f(){() →* dynamic};
+    hasThrown = false;
+  }
+  on dynamic catch(final dynamic e) {
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw";
+  }
 }

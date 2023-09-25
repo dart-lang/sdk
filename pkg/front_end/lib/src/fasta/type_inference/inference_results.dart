@@ -248,7 +248,7 @@ abstract class InitializerInferenceResult {
           .fromSuccessfulInferenceResult(invocationInferenceResult);
     } else {
       return new WrapInProblemInitializerInferenceResult
-              .fromWrapInProblemInferenceResult(
+          .fromWrapInProblemInferenceResult(
           invocationInferenceResult as WrapInProblemInferenceResult);
     }
   }
@@ -318,6 +318,13 @@ class PropertyGetInferenceResult {
   final Member? member;
 
   PropertyGetInferenceResult(this.expressionInferenceResult, this.member);
+
+  @override
+  String toString() {
+    return "PropertyGetInferenceResult("
+        "expressionInferenceResult=${expressionInferenceResult}, "
+        "member=${member})";
+  }
 }
 
 /// The result of an expression inference.

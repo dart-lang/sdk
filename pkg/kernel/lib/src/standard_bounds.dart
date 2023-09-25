@@ -1130,28 +1130,27 @@ mixin StandardBounds {
 
     int m = f.typeParameters.length;
     bool boundsMatch = false;
-    Substitution substitution = Substitution.empty;
     if (g.typeParameters.length == m) {
       boundsMatch = true;
       if (m != 0) {
-        Map<TypeParameter, DartType> substitutionMap =
-            <TypeParameter, DartType>{};
-        for (int i = 0; i < m; ++i) {
-          substitutionMap[g.typeParameters[i]] =
-              new TypeParameterType.forAlphaRenaming(
-                  g.typeParameters[i], f.typeParameters[i]);
-        }
-        substitution = Substitution.fromMap(substitutionMap);
+        List<DartType> fParametersAsArguments = new List<DartType>.generate(
+            m,
+            (i) => new StructuralParameterType.forAlphaRenaming(
+                g.typeParameters[i], f.typeParameters[i]));
+        FunctionTypeInstantiator instantiator =
+            FunctionTypeInstantiator.fromInstantiation(
+                g, fParametersAsArguments);
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(cstefantsova): Figure out if a procedure for syntactic
           // equality should be used instead.
           if (!areMutualSubtypes(
               f.typeParameters[i].bound,
-              substitution.substituteType(g.typeParameters[i].bound),
+              instantiator.visit(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
         }
+        g = instantiator.visit(g.withoutTypeParameters) as FunctionType;
       }
     }
     if (!boundsMatch) return fallbackResult;
@@ -1160,22 +1159,20 @@ mixin StandardBounds {
     int minPos =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
 
-    List<TypeParameter> typeParameters = f.typeParameters;
+    List<StructuralParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
         new List<DartType>.filled(maxPos, dummyDartType);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getNullabilityAwareStandardUpperBound(
-          f.positionalParameters[i],
-          substitution.substituteType(g.positionalParameters[i]),
+          f.positionalParameters[i], g.positionalParameters[i],
           isNonNullableByDefault: isNonNullableByDefault);
     }
     for (int i = minPos; i < f.positionalParameters.length; ++i) {
       positionalParameters[i] = f.positionalParameters[i];
     }
     for (int i = minPos; i < g.positionalParameters.length; ++i) {
-      positionalParameters[i] =
-          substitution.substituteType(g.positionalParameters[i]);
+      positionalParameters[i] = g.positionalParameters[i];
     }
 
     List<NamedType> namedParameters = <NamedType>[];
@@ -1195,15 +1192,12 @@ mixin StandardBounds {
         } else if (order > 0) {
           named = !named2.isRequired
               ? named2
-              : new NamedType(
-                  named2.name, substitution.substituteType(named2.type),
-                  isRequired: false);
+              : new NamedType(named2.name, named2.type, isRequired: false);
           ++j;
         } else {
           named = new NamedType(
               named1.name,
-              _getNullabilityAwareStandardUpperBound(
-                  named1.type, substitution.substituteType(named2.type),
+              _getNullabilityAwareStandardUpperBound(named1.type, named2.type,
                   isNonNullableByDefault: isNonNullableByDefault),
               isRequired: named1.isRequired && named2.isRequired);
           ++i;
@@ -1220,15 +1214,14 @@ mixin StandardBounds {
       }
       while (j < g.namedParameters.length) {
         NamedType named2 = g.namedParameters[j];
-        namedParameters.add(new NamedType(
-            named2.name, substitution.substituteType(named2.type),
-            isRequired: false));
+        namedParameters
+            .add(new NamedType(named2.name, named2.type, isRequired: false));
         ++j;
       }
     }
 
     DartType returnType = _getNullabilityAwareStandardLowerBound(
-        f.returnType, substitution.substituteType(g.returnType),
+        f.returnType, g.returnType,
         isNonNullableByDefault: isNonNullableByDefault);
 
     return new FunctionType(positionalParameters, returnType,
@@ -1389,24 +1382,22 @@ mixin StandardBounds {
 
     int m = f.typeParameters.length;
     bool boundsMatch = false;
-    Substitution substitution = Substitution.empty;
+    FunctionTypeInstantiator? instantiator;
     if (g.typeParameters.length == m) {
       boundsMatch = true;
       if (m != 0) {
-        Map<TypeParameter, DartType> substitutionMap =
-            <TypeParameter, DartType>{};
-        for (int i = 0; i < m; ++i) {
-          substitutionMap[g.typeParameters[i]] =
-              new TypeParameterType.forAlphaRenaming(
-                  g.typeParameters[i], f.typeParameters[i]);
-        }
-        substitution = Substitution.fromMap(substitutionMap);
+        List<DartType> fTypeParametersAsTypes = new List<DartType>.generate(
+            m,
+            (i) => new StructuralParameterType.forAlphaRenaming(
+                g.typeParameters[i], f.typeParameters[i]));
+        instantiator = FunctionTypeInstantiator.fromIterables(
+            g.typeParameters, fTypeParametersAsTypes);
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(cstefantsova): Figure out if a procedure for syntactic
           // equality should be used instead.
           if (!areMutualSubtypes(
               f.typeParameters[i].bound,
-              substitution.substituteType(g.typeParameters[i].bound),
+              instantiator.visit(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -1417,14 +1408,16 @@ mixin StandardBounds {
     int minPos =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
 
-    List<TypeParameter> typeParameters = f.typeParameters;
+    List<StructuralParameter> typeParameters = f.typeParameters;
 
     List<DartType> positionalParameters =
         new List<DartType>.filled(minPos, dummyDartType);
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getNullabilityAwareStandardLowerBound(
           f.positionalParameters[i],
-          substitution.substituteType(g.positionalParameters[i]),
+          instantiator != null
+              ? instantiator.visit(g.positionalParameters[i])
+              : g.positionalParameters[i],
           isNonNullableByDefault: isNonNullableByDefault);
     }
 
@@ -1446,7 +1439,10 @@ mixin StandardBounds {
           namedParameters.add(new NamedType(
               named1.name,
               _getNullabilityAwareStandardLowerBound(
-                  named1.type, substitution.substituteType(named2.type),
+                  named1.type,
+                  instantiator != null
+                      ? instantiator.visit(named2.type)
+                      : named2.type,
                   isNonNullableByDefault: isNonNullableByDefault),
               isRequired: named1.isRequired || named2.isRequired));
           ++i;
@@ -1455,8 +1451,8 @@ mixin StandardBounds {
       }
     }
 
-    DartType returnType = _getNullabilityAwareStandardUpperBound(
-        f.returnType, substitution.substituteType(g.returnType),
+    DartType returnType = _getNullabilityAwareStandardUpperBound(f.returnType,
+        instantiator != null ? instantiator.visit(g.returnType) : g.returnType,
         isNonNullableByDefault: isNonNullableByDefault);
 
     return new FunctionType(positionalParameters, returnType,
@@ -1543,7 +1539,7 @@ mixin StandardBounds {
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <TypeParameter>{type1.parameter},
+            eliminationTargets: <StructuralParameter>{},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,
@@ -1576,7 +1572,7 @@ mixin StandardBounds {
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <TypeParameter>{type1.left.parameter},
+            eliminationTargets: <StructuralParameter>{},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,

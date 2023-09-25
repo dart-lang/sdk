@@ -131,7 +131,8 @@ class BinaryBuilder {
   int labelStackBase = 0;
   int switchCaseStackBase = 0;
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
-  final List<TypeParameter> typeParameterStack = <TypeParameter>[];
+  final List< /* TypeParameter | StructuralParameter */ Object>
+      typeParameterStack = <Object>[];
   final String? filename;
   final List<int> _bytes;
   int _byteOffset = 0;
@@ -2057,7 +2058,8 @@ class BinaryBuilder {
       int oldSwitchCaseStackBase, int variableStackHeight) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
-    final List<TypeParameter> typeParameters = typeParameterStack.toList();
+    final List<TypeParameter> typeParameters =
+        typeParameterStack.cast<TypeParameter>().toList();
     final List<VariableDeclaration> variables = variableStack.toList();
     final Library currentLibrary = _currentLibrary!;
     result.lazyBuilder = () {
@@ -3884,7 +3886,8 @@ class BinaryBuilder {
   DartType _readFunctionType() {
     int typeParameterStackHeight = typeParameterStack.length;
     int nullabilityIndex = readByte();
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    List<StructuralParameter> typeParameters =
+        readAndPushStructuralParameterList();
     int requiredParameterCount = readUInt30();
     int totalParameterCount = readUInt30();
     List<DartType> positional = readDartTypeList();
@@ -3923,8 +3926,15 @@ class BinaryBuilder {
   DartType _readTypeParameterType() {
     int declaredNullabilityIndex = readByte();
     int index = readUInt30();
-    return new TypeParameterType(typeParameterStack[index],
-        Nullability.values[declaredNullabilityIndex]);
+    Object typeParameter = typeParameterStack[index];
+    if (typeParameter is TypeParameter) {
+      return new TypeParameterType(
+          typeParameter, Nullability.values[declaredNullabilityIndex]);
+    } else {
+      typeParameter as StructuralParameter;
+      return new StructuralParameterType(
+          typeParameter, Nullability.values[declaredNullabilityIndex]);
+    }
   }
 
   DartType _readIntersectionType() {
@@ -3968,9 +3978,55 @@ class BinaryBuilder {
     return list;
   }
 
+  List<StructuralParameter> readAndPushStructuralParameterList(
+      [List<StructuralParameter>? list]) {
+    int length = readUInt30();
+    if (length == 0) {
+      if (list != null) return list;
+      if (useGrowableLists) {
+        return <StructuralParameter>[];
+      } else {
+        return emptyListOfStructuralParameter;
+      }
+    }
+    if (list == null) {
+      list = new List<StructuralParameter>.generate(
+          length, (_) => new StructuralParameter(null, null),
+          growable: useGrowableLists);
+    } else if (list.length != length) {
+      for (int i = 0; i < length; ++i) {
+        list.add(new StructuralParameter(null, null));
+      }
+    }
+    typeParameterStack.addAll(list);
+    for (int i = 0; i < list.length; ++i) {
+      readStructuralParameter(list[i]);
+    }
+    return list;
+  }
+
   void readTypeParameter(TypeParameter node) {
     node.flags = readByte();
     node.annotations = readAnnotationList(node);
+    int variance = readByte();
+    if (variance == TypeParameter.legacyCovariantSerializationMarker) {
+      node.variance = null;
+    } else {
+      node.variance = variance;
+    }
+    node.name = readStringOrNullIfEmpty();
+    node.bound = readDartType();
+    node.defaultType = readDartType();
+  }
+
+  void readStructuralParameter(StructuralParameter node) {
+    node.flags = readByte();
+    // For now, [StructuralParameter] objects are encoded as
+    // [TypeParameter] objects, to preserve compatibility with the binary format
+    // consumers.
+    // TODO(cstefantsova): Eventually remove the annotations from the binary
+    // encoding of [StructuralParameter] objects.
+    readAnnotationList();
     int variance = readByte();
     if (variance == TypeParameter.legacyCovariantSerializationMarker) {
       node.variance = null;

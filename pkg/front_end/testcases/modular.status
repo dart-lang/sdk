@@ -23,7 +23,6 @@ extension_types/type_variable_in_static_context: ExpectationFileMismatchSerializ
 extensions/extension_setter_error: TypeCheckError
 general/abstract_members: TypeCheckError
 general/bounded_implicit_instantiation: TypeCheckError
-general/bounds_instances: TypeCheckError
 general/bug30695: TypeCheckError
 general/covariant_field: TypeCheckError
 general/crashes/crash_02/main: Crash
@@ -48,10 +47,8 @@ general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
 general/supertype_conflict: TypeCheckError
-general/unsound_promotion: TypeCheckError
-inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
+generic_metadata/from_dill/main: Crash
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
-inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError

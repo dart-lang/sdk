@@ -279,10 +279,8 @@ class TypeCheckingVisitor
   }
 
   DartType handleCall(Arguments arguments, DartType functionType,
-      {Substitution receiver = Substitution.empty,
-      List<TypeParameter>? typeParameters}) {
+      {Substitution receiver = Substitution.empty}) {
     if (functionType is FunctionType) {
-      typeParameters ??= functionType.typeParameters;
       if (arguments.positional.length < functionType.requiredParameterCount) {
         fail(arguments, 'Too few positional arguments');
         return NeverType.fromNullability(currentLibrary!.nonNullable);
@@ -293,17 +291,23 @@ class TypeCheckingVisitor
         return NeverType.fromNullability(currentLibrary!.nonNullable);
       }
       List<DartType> typeArguments = arguments.types;
-      if (typeArguments.length != typeParameters.length) {
+      if (typeArguments.length != functionType.typeParameters.length) {
         fail(arguments, 'Wrong number of type arguments');
         return NeverType.fromNullability(currentLibrary!.nonNullable);
       }
-      Substitution substitution = _instantiateFunction(
-          typeParameters, typeArguments, arguments,
-          receiverSubstitution: receiver);
+
+      functionType = FunctionTypeInstantiator.instantiate(
+          receiver.substituteType(functionType) as FunctionType,
+          arguments.types);
+
+      for (int i = 0; i < functionType.typeParameters.length; ++i) {
+        DartType argument = arguments.types[i];
+        DartType bound = functionType.typeParameters[i].bound;
+        checkAssignable(arguments, argument, bound);
+      }
+
       for (int i = 0; i < arguments.positional.length; ++i) {
-        DartType expectedType = substitution.substituteType(
-            functionType.positionalParameters[i],
-            contravariant: true);
+        DartType expectedType = functionType.positionalParameters[i];
         arguments.positional[i] =
             checkAndDowncastExpression(arguments.positional[i], expectedType);
       }
@@ -312,9 +316,7 @@ class TypeCheckingVisitor
         bool found = false;
         for (int j = 0; j < functionType.namedParameters.length; ++j) {
           if (argument.name == functionType.namedParameters[j].name) {
-            DartType expectedType = substitution.substituteType(
-                functionType.namedParameters[j].type,
-                contravariant: true);
+            DartType expectedType = functionType.namedParameters[j].type;
             argument.value =
                 checkAndDowncastExpression(argument.value, expectedType);
             found = true;
@@ -326,7 +328,7 @@ class TypeCheckingVisitor
           return NeverType.fromNullability(currentLibrary!.nonNullable);
         }
       }
-      return substitution.substituteType(functionType.returnType);
+      return functionType.returnType;
     } else {
       // Note: attempting to resolve .call() on [functionType] could lead to an
       // infinite regress, so just assume `dynamic`.
@@ -378,20 +380,21 @@ class TypeCheckingVisitor
     }
   }
 
-  Substitution _instantiateFunction(List<TypeParameter> typeParameters,
-      List<DartType> typeArguments, TreeNode where,
-      {Substitution? receiverSubstitution}) {
-    Substitution instantiation =
-        Substitution.fromPairs(typeParameters, typeArguments);
-    Substitution substitution = receiverSubstitution == null
-        ? instantiation
-        : Substitution.combine(receiverSubstitution, instantiation);
-    for (int i = 0; i < typeParameters.length; ++i) {
-      DartType argument = typeArguments[i];
-      DartType bound = substitution.substituteType(typeParameters[i].bound);
+  FunctionType _instantiateAndCheck(FunctionType methodType,
+      List<DartType> methodTypeArguments, TreeNode where) {
+    assert(methodType.typeParameters.length == methodTypeArguments.length);
+    if (methodType.typeParameters.isEmpty) return methodType;
+
+    FunctionTypeInstantiator instantiator =
+        FunctionTypeInstantiator.fromInstantiation(
+            methodType, methodTypeArguments);
+    for (int i = 0; i < methodTypeArguments.length; ++i) {
+      DartType argument = methodTypeArguments[i];
+      DartType bound = instantiator.visit(methodType.typeParameters[i].bound);
       checkAssignable(where, argument, bound);
     }
-    return substitution;
+    return FunctionTypeInstantiator.instantiate(
+        methodType, methodTypeArguments);
   }
 
   @override
@@ -428,8 +431,7 @@ class TypeCheckingVisitor
     handleCall(
         arguments,
         target.function
-            .computeThisFunctionType(class_.enclosingLibrary.nonNullable),
-        typeParameters: class_.typeParameters);
+            .computeThisFunctionType(class_.enclosingLibrary.nonNullable));
     return new InterfaceType(
         target.enclosingClass, currentLibrary!.nonNullable, arguments.types);
   }
@@ -492,9 +494,7 @@ class TypeCheckingVisitor
       fail(node, 'Wrong number of type arguments');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
-    return _instantiateFunction(
-            functionType.typeParameters, node.typeArguments, node)
-        .substituteType(functionType.withoutTypeParameters);
+    return _instantiateAndCheck(functionType, node.typeArguments, node);
   }
 
   @override
@@ -522,11 +522,11 @@ class TypeCheckingVisitor
       fail(node, 'Wrong number of type arguments');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
-    FreshTypeParameters freshTypeParameters =
-        getFreshTypeParameters(node.typeParameters);
-    FunctionType result = freshTypeParameters.substitute(_instantiateFunction(
-            functionType.typeParameters, node.typeArguments, node)
-        .substituteType(functionType.withoutTypeParameters)) as FunctionType;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(node.typeParameters);
+    FunctionType result = freshTypeParameters.substitute(
+            _instantiateAndCheck(functionType, node.typeArguments, node))
+        as FunctionType;
     return new FunctionType(result.positionalParameters, result.returnType,
         result.declaredNullability,
         namedParameters: result.namedParameters,
@@ -611,12 +611,9 @@ class TypeCheckingVisitor
       fail(access, 'Wrong number of type arguments');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
     }
-    Substitution instantiation =
-        Substitution.fromPairs(function.typeParameters, arguments.types);
+    function = FunctionTypeInstantiator.instantiate(function, arguments.types);
     for (int i = 0; i < arguments.positional.length; ++i) {
-      DartType expectedType = instantiation.substituteType(
-          function.positionalParameters[i],
-          contravariant: true);
+      DartType expectedType = function.positionalParameters[i];
       arguments.positional[i] =
           checkAndDowncastExpression(arguments.positional[i], expectedType);
     }
@@ -624,8 +621,7 @@ class TypeCheckingVisitor
       NamedExpression argument = arguments.named[i];
       DartType? parameterType = function.getNamedParameter(argument.name);
       if (parameterType != null) {
-        DartType expectedType =
-            instantiation.substituteType(parameterType, contravariant: true);
+        DartType expectedType = parameterType;
         argument.value =
             checkAndDowncastExpression(argument.value, expectedType);
       } else {
@@ -633,7 +629,7 @@ class TypeCheckingVisitor
         return NeverType.fromNullability(currentLibrary!.nonNullable);
       }
     }
-    return instantiation.substituteType(function.returnType);
+    return function.returnType;
   }
 
   @override
@@ -1070,14 +1066,12 @@ class TypeCheckingVisitor
 
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
-    handleCall(node.arguments, node.target.getterType,
-        typeParameters: const <TypeParameter>[]);
+    handleCall(node.arguments, node.target.getterType);
   }
 
   @override
   void visitSuperInitializer(SuperInitializer node) {
     handleCall(node.arguments, node.target.getterType,
-        typeParameters: const <TypeParameter>[],
         receiver: getSuperReceiverType(node.target));
   }
 

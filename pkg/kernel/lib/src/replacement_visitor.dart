@@ -16,9 +16,9 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   DartType? visitFunctionType(FunctionType node, int variance) {
     Nullability? newNullability = visitNullability(node);
 
-    List<TypeParameter>? newTypeParameters;
+    List<StructuralParameter>? newTypeParameters;
     for (int i = 0; i < node.typeParameters.length; i++) {
-      TypeParameter typeParameter = node.typeParameters[i];
+      StructuralParameter typeParameter = node.typeParameters[i];
       // TODO(johnniwinther): Bounds should not be null, even in case of
       // cyclic typedefs. Currently
       //   instantiate_to_bound/non_simple_class_parametrized_typedef_cycle
@@ -29,34 +29,33 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
           .accept1(this, Variance.combine(variance, Variance.invariant));
       if (newBound != null || newDefaultType != null) {
         newTypeParameters ??= node.typeParameters.toList(growable: false);
-        newTypeParameters[i] = new TypeParameter(
+        newTypeParameters[i] = new StructuralParameter(
             typeParameter.name,
             newBound ?? typeParameter.bound,
             newDefaultType ?? typeParameter.defaultType);
       }
     }
 
-    Substitution? substitution;
+    FunctionTypeInstantiator? instantiator;
     if (newTypeParameters != null) {
-      List<TypeParameterType> typeParameterTypes =
-          new List<TypeParameterType>.generate(newTypeParameters.length,
-              (int i) {
-        return new TypeParameterType.forAlphaRenaming(
+      List<DartType> typeParameterTypes =
+          new List<DartType>.generate(newTypeParameters.length, (int i) {
+        return new StructuralParameterType.forAlphaRenaming(
             node.typeParameters[i], newTypeParameters![i]);
       }, growable: false);
-      substitution =
-          Substitution.fromPairs(node.typeParameters, typeParameterTypes);
+      instantiator =
+          FunctionTypeInstantiator.fromInstantiation(node, typeParameterTypes);
       for (int i = 0; i < newTypeParameters.length; i++) {
         newTypeParameters[i].bound =
-            substitution.substituteType(newTypeParameters[i].bound);
+            instantiator.visit(newTypeParameters[i].bound);
       }
     }
 
     DartType? visitType(DartType? type, int variance) {
       if (type == null) return null;
       DartType? result = type.accept1(this, variance);
-      if (substitution != null) {
-        result = substitution.substituteType(result ?? type);
+      if (instantiator != null) {
+        result = instantiator.visit(result ?? type);
       }
       return result;
     }
@@ -128,7 +127,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   DartType? createFunctionType(
       FunctionType node,
       Nullability? newNullability,
-      List<TypeParameter>? newTypeParameters,
+      List<StructuralParameter>? newTypeParameters,
       DartType? newReturnType,
       List<DartType>? newPositionalParameters,
       List<NamedType>? newNamedParameters) {
@@ -257,6 +256,13 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   }
 
   @override
+  DartType? visitStructuralParameterType(
+      StructuralParameterType node, int variance) {
+    Nullability? newNullability = visitNullability(node);
+    return createStructuralParameterType(node, newNullability);
+  }
+
+  @override
   DartType? visitIntersectionType(IntersectionType node, int variance) {
     DartType? newLeft = node.left.accept1(this, variance);
     DartType? newRight = node.right.accept1(this, variance);
@@ -271,6 +277,16 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       return null;
     } else {
       return new TypeParameterType(node.parameter, newNullability);
+    }
+  }
+
+  DartType? createStructuralParameterType(
+      StructuralParameterType node, Nullability? newNullability) {
+    if (newNullability == null) {
+      // No nullability needed to be substituted.
+      return null;
+    } else {
+      return new StructuralParameterType(node.parameter, newNullability);
     }
   }
 

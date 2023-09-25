@@ -58,7 +58,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables});
+      List<StructuralVariableBuilder>? unboundTypeVariables});
 
   /// Helper method for computing [unalias].
   ///
@@ -85,7 +85,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
       List<TypeBuilder>? typeArguments,
       Set<TypeAliasBuilder> currentTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables);
+      List<StructuralVariableBuilder>? unboundTypeVariables);
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -225,7 +225,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables}) {
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
     Set<TypeAliasBuilder> currentTypeAliasBuilders;
     if (usedTypeAliasBuilders != null && usedTypeAliasBuilders.isEmpty) {
       currentTypeAliasBuilders = usedTypeAliasBuilders;
@@ -251,7 +251,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       List<TypeBuilder>? typeArguments,
       Set<TypeAliasBuilder> currentBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables) {
+      List<StructuralVariableBuilder>? unboundTypeVariables) {
     if (!currentBuilders.add(this)) {
       // Cyclic type alias.
       libraryBuilder.addProblem(templateCyclicTypedef.withArguments(this.name),

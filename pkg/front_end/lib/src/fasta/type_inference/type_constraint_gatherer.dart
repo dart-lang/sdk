@@ -21,18 +21,19 @@ import 'type_schema_environment.dart';
 abstract class TypeConstraintGatherer {
   final List<_ProtoConstraint> _protoConstraints = [];
 
-  final List<TypeParameter> _parametersToConstrain;
+  final List<StructuralParameter> _parametersToConstrain;
 
   final bool isNonNullableByDefault;
 
   /// Creates a [TypeConstraintGatherer] which is prepared to gather type
   /// constraints for the given [typeParameters].
-  TypeConstraintGatherer.subclassing(Iterable<TypeParameter> typeParameters,
+  TypeConstraintGatherer.subclassing(
+      Iterable<StructuralParameter> typeParameters,
       {required this.isNonNullableByDefault})
       : _parametersToConstrain = typeParameters.toList();
 
-  factory TypeConstraintGatherer(
-      TypeSchemaEnvironment environment, Iterable<TypeParameter> typeParameters,
+  factory TypeConstraintGatherer(TypeSchemaEnvironment environment,
+      Iterable<StructuralParameter> typeParameters,
       {required bool isNonNullableByDefault}) {
     return new TypeSchemaConstraintGatherer(environment, typeParameters,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -73,11 +74,10 @@ abstract class TypeConstraintGatherer {
   InterfaceType futureType(DartType type, Nullability nullability);
 
   /// Returns the set of type constraints that was gathered.
-  Map<TypeParameter, TypeConstraint> computeConstraints(
+  Map<StructuralParameter, TypeConstraint> computeConstraints(
       {required bool isNonNullableByDefault}) {
-    Map<TypeParameter, TypeConstraint> result =
-        <TypeParameter, TypeConstraint>{};
-    for (TypeParameter parameter in _parametersToConstrain) {
+    Map<StructuralParameter, TypeConstraint> result = {};
+    for (StructuralParameter parameter in _parametersToConstrain) {
       result[parameter] = new TypeConstraint();
     }
     for (_ProtoConstraint protoConstraint in _protoConstraints) {
@@ -161,12 +161,12 @@ abstract class TypeConstraintGatherer {
   }
 
   /// Add constraint: [lower] <: [parameter] <: TOP.
-  void _constrainParameterLower(TypeParameter parameter, DartType lower) {
+  void _constrainParameterLower(StructuralParameter parameter, DartType lower) {
     _protoConstraints.add(new _ProtoConstraint.lower(parameter, lower));
   }
 
   /// Add constraint: BOTTOM <: [parameter] <: [upper].
-  void _constrainParameterUpper(TypeParameter parameter, DartType upper) {
+  void _constrainParameterUpper(StructuralParameter parameter, DartType upper) {
     _protoConstraints.add(new _ProtoConstraint.upper(parameter, upper));
   }
 
@@ -200,20 +200,17 @@ abstract class TypeConstraintGatherer {
       return false;
     }
     if (subtype.typeParameters.isNotEmpty) {
-      Map<TypeParameter, DartType> subtypeSubstitution =
-          <TypeParameter, DartType>{};
-      Map<TypeParameter, DartType> supertypeSubstitution =
-          <TypeParameter, DartType>{};
-      List<TypeParameter> freshTypeVariables = <TypeParameter>[];
+      List<StructuralParameter> freshTypeVariables = [];
+      List<DartType> freshTypeVariablesAsTypes = [];
       if (!_matchTypeFormals(subtype.typeParameters, supertype.typeParameters,
-          subtypeSubstitution, supertypeSubstitution, freshTypeVariables)) {
+          freshTypeVariables, freshTypeVariablesAsTypes)) {
         return false;
       }
 
-      subtype = substituteTypeParams(
-          subtype, subtypeSubstitution, freshTypeVariables);
-      supertype = substituteTypeParams(
-          supertype, supertypeSubstitution, freshTypeVariables);
+      subtype = FunctionTypeInstantiator.instantiate(
+          subtype, freshTypeVariablesAsTypes);
+      supertype = FunctionTypeInstantiator.instantiate(
+          supertype, freshTypeVariablesAsTypes);
     }
 
     // Test the return types.
@@ -331,7 +328,7 @@ abstract class TypeConstraintGatherer {
     // Y  <=>  !X || Y.
     assert(
         !constrainSupertype ||
-            !containsTypeVariable(p, _parametersToConstrain.toSet(),
+            !containsStructuralTypeVariable(p, _parametersToConstrain.toSet(),
                 unhandledTypeHandler: (DartType type, ignored) =>
                     type is UnknownType
                         ? false
@@ -364,7 +361,7 @@ abstract class TypeConstraintGatherer {
     // Y  <=>  !X || Y.
     assert(
         constrainSupertype ||
-            !containsTypeVariable(q, _parametersToConstrain.toSet(),
+            !containsStructuralTypeVariable(q, _parametersToConstrain.toSet(),
                 unhandledTypeHandler: (DartType type, ignored) =>
                     type is UnknownType
                         ? false
@@ -384,8 +381,11 @@ abstract class TypeConstraintGatherer {
     // If P is a type variable X in L, then the match holds:
     //
     // Under constraint _ <: X <: Q.
-    if (p is TypeParameterType &&
-        isTypeParameterTypeWithoutNullabilityMarker(p,
+    // TODO(cstefantsova): Don't forget to remove the commented out code below.
+    // [TypeParameter] objects are never the target of inference, and the
+    // condition will always fail for them.
+    if (p is StructuralParameterType &&
+        isStructuralParameterTypeWithoutNullabilityMarker(p,
             isNonNullableByDefault: isNonNullableByDefault) &&
         _parametersToConstrain.contains(p.parameter)) {
       _constrainParameterUpper(p.parameter, q);
@@ -395,8 +395,11 @@ abstract class TypeConstraintGatherer {
     // If Q is a type variable X in L, then the match holds:
     //
     // Under constraint P <: X <: _.
-    if (q is TypeParameterType &&
-        isTypeParameterTypeWithoutNullabilityMarker(q,
+    // TODO(cstefantsova): Don't forget to remove the commented out code below.
+    // [TypeParameter] objects are never the target of inference, and the
+    // condition will always fail for them.
+    if (q is StructuralParameterType &&
+        isStructuralParameterTypeWithoutNullabilityMarker(q,
             isNonNullableByDefault: isNonNullableByDefault) &&
         _parametersToConstrain.contains(q.parameter)) {
       _constrainParameterLower(q.parameter, p);
@@ -618,6 +621,13 @@ abstract class TypeConstraintGatherer {
         return true;
       }
       _protoConstraints.length = baseConstraintCount;
+    } else if (p is StructuralParameterType) {
+      final int baseConstraintCount = _protoConstraints.length;
+      if (_isNullabilityAwareSubtypeMatch(p.bound, q,
+          constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
     }
 
     // If P is C<M0, ..., Mk> and Q is C<N0, ..., Nk>, then the match holds
@@ -807,36 +817,30 @@ abstract class TypeConstraintGatherer {
                 constrainSupertype: !constrainSupertype);
       }
       if (isMatch) {
-        FreshTypeParameters freshTypeParameters = getFreshTypeParameters(
-            constrainSupertype ? p.typeParameters : q.typeParameters);
-        Substitution substitutionForBound = freshTypeParameters.substitution;
-        FunctionType constrainedType = constrainSupertype ? q : p;
-        Map<TypeParameter, DartType> substitutionMapForConstrainedType = {};
-        for (int i = 0; i < constrainedType.typeParameters.length; ++i) {
-          substitutionMapForConstrainedType[constrainedType.typeParameters[i]] =
-              new TypeParameterType.forAlphaRenaming(
-                  constrainedType.typeParameters[i],
-                  freshTypeParameters.freshTypeParameters[i]);
-        }
-        Substitution substitutionForConstrainedType =
-            Substitution.fromMap(substitutionMapForConstrainedType);
-        Substitution substitutionForP = constrainSupertype
-            ? substitutionForBound
-            : substitutionForConstrainedType;
-        Substitution substitutionForQ = constrainSupertype
-            ? substitutionForConstrainedType
-            : substitutionForBound;
-        if (_isNullabilityAwareSubtypeMatch(
-            substitutionForP.substituteType(p.withoutTypeParameters),
-            substitutionForQ.substituteType(q.withoutTypeParameters),
+        List<StructuralParameter> freshTypeParameters =
+            getFreshStructuralParameters(p.typeParameters).freshTypeParameters;
+        List<DartType> freshTypeParametersAsTypesForP =
+            new List<DartType>.generate(
+                freshTypeParameters.length,
+                (int i) => new StructuralParameterType.forAlphaRenaming(
+                    p.typeParameters[i], freshTypeParameters[i]));
+        List<DartType> freshTypeParametersAsTypesForQ =
+            new List<DartType>.generate(
+                freshTypeParameters.length,
+                (int i) => new StructuralParameterType.forAlphaRenaming(
+                    q.typeParameters[i], freshTypeParameters[i]));
+        FunctionType instantiatedP = FunctionTypeInstantiator.instantiate(
+            p, freshTypeParametersAsTypesForP);
+        FunctionType instantiatedQ = FunctionTypeInstantiator.instantiate(
+            q, freshTypeParametersAsTypesForQ);
+        if (_isNullabilityAwareSubtypeMatch(instantiatedP, instantiatedQ,
             constrainSupertype: constrainSupertype)) {
           List<_ProtoConstraint> constraints =
               _protoConstraints.sublist(baseConstraintCount);
           _protoConstraints.length = baseConstraintCount;
           NullabilityAwareTypeVariableEliminator eliminator =
               new NullabilityAwareTypeVariableEliminator(
-                  eliminationTargets:
-                      freshTypeParameters.freshTypeParameters.toSet(),
+                  eliminationTargets: freshTypeParameters.toSet(),
                   bottomType: const NeverType.nonNullable(),
                   topType: coreTypes.objectNullableRawType,
                   topFunctionType: coreTypes.functionNonNullableRawType,
@@ -921,14 +925,34 @@ abstract class TypeConstraintGatherer {
     if (supertype is UnknownType) return true;
     // A type variable `T` in `L` is a subtype match for any type schema `Q`:
     // - Under constraint `T <: Q`.
-    if (subtype is TypeParameterType &&
+
+    // TODO(cstefantsova): Don't forget to remove the commented out code below.
+    // [TypeParameter] objects are never the target of inference, and the
+    // condition will always fail for them.
+
+    // if (subtype is TypeParameterType &&
+    //     _parametersToConstrain.contains(subtype.parameter)) {
+    //   _constrainParameterUpper(subtype.parameter, supertype);
+    //   return true;
+    // }
+    if (subtype is StructuralParameterType &&
         _parametersToConstrain.contains(subtype.parameter)) {
       _constrainParameterUpper(subtype.parameter, supertype);
       return true;
     }
     // A type schema `Q` is a subtype match for a type variable `T` in `L`:
     // - Under constraint `Q <: T`.
-    if (supertype is TypeParameterType &&
+
+    // TODO(cstefantsova): Don't forget to remove the commented out code below.
+    // [TypeParameter] objects are never the target of inference, and the
+    // condition will always fail for them.
+
+    // if (supertype is TypeParameterType &&
+    //     _parametersToConstrain.contains(supertype.parameter)) {
+    //   _constrainParameterLower(supertype.parameter, subtype);
+    //   return true;
+    // }
+    if (supertype is StructuralParameterType &&
         _parametersToConstrain.contains(supertype.parameter)) {
       _constrainParameterLower(supertype.parameter, subtype);
       return true;
@@ -1036,6 +1060,22 @@ abstract class TypeConstraintGatherer {
       //   constraints `C`.
       return _isNullabilityObliviousSubtypeMatch(
           subtype.parameter.bound, supertype);
+    } else if (subtype is StructuralParameterType) {
+      if (supertype is StructuralParameterType &&
+          identical(subtype.parameter, supertype.parameter)) {
+        // Kernel doesn't yet allow a type variable to have different bounds
+        // under different circumstances (see dartbug.com/29529) so for now if
+        // we get here, the bounds must be the same.
+        // TODO(paulberry): update this code once dartbug.com/29529 is
+        // addressed.
+        return true;
+      }
+      // A type variable `T` not in `L` with bound `P` is a subtype match for a
+      // type `Q` with respect to `L` under constraints `C`:
+      // - If `P` is a subtype match for `Q` with respect to `L` under
+      //   constraints `C`.
+      return _isNullabilityObliviousSubtypeMatch(
+          subtype.parameter.bound, supertype);
     }
     if (subtype is InterfaceType && supertype is InterfaceType) {
       return _isInterfaceSubtypeMatch(subtype, supertype);
@@ -1084,25 +1124,27 @@ abstract class TypeConstraintGatherer {
   /// set of type variables for the type parameters [params1] and [params2],
   /// respectively, allowing further comparison.
   bool _matchTypeFormals(
-      List<TypeParameter> params1,
-      List<TypeParameter> params2,
-      Map<TypeParameter, DartType> substitution1,
-      Map<TypeParameter, DartType> substitution2,
-      List<TypeParameter> freshTypeVariables) {
+      List<StructuralParameter> params1,
+      List<StructuralParameter> params2,
+      List<StructuralParameter> freshTypeVariables,
+      List<DartType> freshTypeVariablesAsTypes) {
     assert(params1.length == params2.length);
     // TODO(paulberry): in imitation of analyzer, we're checking the bounds as
     // we build up the substitutions.  But I don't think that's correct--I think
     // we should build up both substitutions completely before checking any
     // bounds.  See dartbug.com/29629.
     for (int i = 0; i < params1.length; ++i) {
-      TypeParameter pFresh = new TypeParameter(params2[i].name);
+      StructuralParameter pFresh = new StructuralParameter(params2[i].name);
       freshTypeVariables.add(pFresh);
       DartType variableFresh =
-          new TypeParameterType.forAlphaRenaming(params2[i], pFresh);
-      substitution1[params1[i]] = variableFresh;
-      substitution2[params2[i]] = variableFresh;
-      DartType bound1 = substitute(params1[i].bound, substitution1);
-      DartType bound2 = substitute(params2[i].bound, substitution2);
+          new StructuralParameterType.forAlphaRenaming(params2[i], pFresh);
+      freshTypeVariablesAsTypes.add(variableFresh);
+      DartType bound1 = new FunctionTypeInstantiator.fromIterables(
+              params1.sublist(0, i + 1), freshTypeVariablesAsTypes)
+          .visit(params1[i].bound);
+      DartType bound2 = new FunctionTypeInstantiator.fromIterables(
+              params2.sublist(0, i + 1), freshTypeVariablesAsTypes)
+          .visit(params2[i].bound);
       pFresh.bound = bound2;
       if (!_isNullabilityObliviousSubtypeMatch(bound2, bound1)) return false;
     }
@@ -1114,7 +1156,7 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   final TypeSchemaEnvironment environment;
 
   TypeSchemaConstraintGatherer(
-      this.environment, Iterable<TypeParameter> typeParameters,
+      this.environment, Iterable<StructuralParameter> typeParameters,
       {required bool isNonNullableByDefault})
       : super.subclassing(typeParameters,
             isNonNullableByDefault: isNonNullableByDefault);
@@ -1176,7 +1218,7 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
 /// which tracks the upper and lower bounds that are together implied by a set
 /// of [_ProtoConstraint]s.
 class _ProtoConstraint {
-  final TypeParameter parameter;
+  final StructuralParameter parameter;
 
   final DartType bound;
 

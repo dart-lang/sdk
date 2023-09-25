@@ -65,7 +65,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
     if (node.returnType.accept(this)) return true;
     int oldVariance = _variance;
     _variance = Variance.invariant;
-    for (TypeParameter parameter in node.typeParameters) {
+    for (StructuralParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
     }
     _variance = Variance.combine(Variance.contravariant, oldVariance);
@@ -116,6 +116,11 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   bool visitTypeParameterType(TypeParameterType node) {
     return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
+  }
+
+  @override
+  bool visitStructuralParameterType(StructuralParameterType node) {
+    return false;
   }
 
   @override

@@ -1288,6 +1288,7 @@ severity: $severity
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
           case TypeVariableBuilder():
+          case StructuralVariableBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
           // TODO(johnniwinther): How should we handle this case?
@@ -1854,25 +1855,36 @@ severity: $severity
       ClassBuilder object, TypeBuilder dynamicType) {
     Map<TypeVariableBuilder, SourceLibraryBuilder> unboundTypeVariableBuilders =
         {};
+    Map<StructuralVariableBuilder, SourceLibraryBuilder>
+        unboundFunctionTypeTypeVariableBuilders = {};
     for (SourceLibraryBuilder library in libraryBuilders) {
-      library.collectUnboundTypeVariables(unboundTypeVariableBuilders);
+      library.collectUnboundTypeVariables(
+          unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
     }
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List<TypeVariableBuilder> sortedTypeVariableBuilders =
-        sortTypeVariablesTopologically(unboundTypeVariableBuilders.keys);
-    for (TypeVariableBuilder builder in sortedTypeVariableBuilders) {
-      builder.finish(
-          unboundTypeVariableBuilders[builder]!, object, dynamicType);
+    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+        sortedTypeVariables = sortAllTypeVariablesTopologically([
+      ...unboundFunctionTypeTypeVariableBuilders.keys,
+      ...unboundTypeVariableBuilders.keys
+    ]);
+    for (Object builder in sortedTypeVariables) {
+      if (builder is TypeVariableBuilder) {
+        builder.finish(
+            unboundTypeVariableBuilders[builder]!, object, dynamicType);
+      } else {
+        builder as StructuralVariableBuilder;
+        builder.finish(unboundFunctionTypeTypeVariableBuilders[builder]!,
+            object, dynamicType);
+      }
     }
 
     for (SourceLibraryBuilder library in libraryBuilders) {
       library.processPendingNullabilities();
     }
 
-    ticker.logMs(
-        "Resolved ${sortedTypeVariableBuilders.length} type-variable bounds");
+    ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
   /// Computes variances of type parameters on typedefs in [libraryBuilders].

@@ -324,7 +324,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         }
       case FunctionTypeBuilder(
-          :List<TypeVariableBuilder>? typeVariables,
+          :List<StructuralVariableBuilder>? typeVariables,
           :List<ParameterBuilder>? formals,
           :TypeBuilder returnType
         ):
@@ -345,7 +345,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         }
         if (typeVariables != null) {
-          for (TypeVariableBuilder typeVariable in typeVariables) {
+          for (StructuralVariableBuilder typeVariable in typeVariables) {
             TypeBuilder? bound = typeVariable.bound;
             if (_checkRepresentationDependency(
                 bound,

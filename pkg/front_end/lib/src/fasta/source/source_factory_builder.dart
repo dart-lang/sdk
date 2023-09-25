@@ -631,15 +631,15 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     // Compute the substitution of the target class type parameters if
     // [redirectionTarget] has any type arguments.
-    Substitution? substitution;
+    FunctionTypeInstantiator? instantiator;
     bool hasProblem = false;
     if (typeArguments != null && typeArguments.length > 0) {
-      substitution = Substitution.fromPairs(
+      instantiator = new FunctionTypeInstantiator.fromIterables(
           targetFunctionType.typeParameters, typeArguments);
       for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
-        TypeParameter typeParameter = targetFunctionType.typeParameters[i];
-        DartType typeParameterBound =
-            substitution.substituteType(typeParameter.bound);
+        StructuralParameter typeParameter =
+            targetFunctionType.typeParameters[i];
+        DartType typeParameterBound = instantiator.visit(typeParameter.bound);
         DartType typeArgument = typeArguments[i];
         // Check whether the [typeArgument] respects the bounds of
         // [typeParameter].
@@ -687,9 +687,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     }
 
     // Substitute if necessary.
-    targetFunctionType = substitution == null
+    targetFunctionType = instantiator == null
         ? targetFunctionType
-        : (substitution.substituteType(targetFunctionType.withoutTypeParameters)
+        : (instantiator.visit(targetFunctionType.withoutTypeParameters)
             as FunctionType);
 
     return hasProblem ? null : targetFunctionType;
@@ -747,9 +747,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // The factory type cannot contain any type parameters other than those of
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
-    FunctionType factoryType = function
-        .computeThisFunctionType(libraryBuilder.nonNullable)
-        .withoutTypeParameters;
+    FunctionType factoryType =
+        function.computeThisFunctionType(libraryBuilder.nonNullable);
     if (isPatch) {
       // The redirection target type uses the origin type parameters so we must
       // substitute patch type parameters before checking subtyping.
@@ -766,6 +765,16 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     }
     FunctionType? redirecteeType =
         _computeRedirecteeType(this, typeEnvironment);
+    Map<TypeParameter, DartType> substitutionMap = {};
+    for (int i = 0; i < factoryType.typeParameters.length; i++) {
+      TypeParameter functionTypeParameter = origin.function.typeParameters[i];
+      substitutionMap[functionTypeParameter] =
+          new StructuralParameterType.forAlphaRenamingFromTypeParameters(
+              functionTypeParameter, factoryType.typeParameters[i]);
+    }
+    redirecteeType = redirecteeType != null
+        ? substitute(redirecteeType, substitutionMap) as FunctionType
+        : null;
 
     // TODO(hillerstrom): It would be preferable to know whether a failure
     // happened during [_computeRedirecteeType].
@@ -778,25 +787,29 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (!(classBuilder.cls.isEnum &&
         (redirectionTarget.target?.isConstructor ?? false))) {
       // Check whether [redirecteeType] <: [factoryType].
-      if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType,
+      if (!typeEnvironment.isSubtypeOf(
+          redirecteeType,
+          factoryType.withoutTypeParameters,
           SubtypeCheckMode.ignoringNullabilities)) {
         libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType,
-                factoryType,
+                factoryType.withoutTypeParameters,
                 libraryBuilder.isNonNullableByDefault),
             redirectionTarget.charOffset,
             noLength,
             redirectionTarget.fileUri);
       } else if (libraryBuilder.isNonNullableByDefault) {
         if (!typeEnvironment.isSubtypeOf(
-            redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+            redirecteeType,
+            factoryType.withoutTypeParameters,
+            SubtypeCheckMode.withNullabilities)) {
           libraryBuilder.addProblemForRedirectingFactory(
               this,
               templateIncompatibleRedirecteeFunctionType.withArguments(
                   redirecteeType,
-                  factoryType,
+                  factoryType.withoutTypeParameters,
                   libraryBuilder.isNonNullableByDefault),
               redirectionTarget.charOffset,
               noLength,

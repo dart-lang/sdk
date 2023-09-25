@@ -461,6 +461,17 @@ class Scope extends MutableScope {
     return newScope;
   }
 
+  Scope withStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables) {
+    if (typeVariables == null) return this;
+    Scope newScope = new Scope.nested(this, "type variables",
+        isModifiable: false, kind: ScopeKind.typeParameters);
+    for (StructuralVariableBuilder t in typeVariables) {
+      (newScope._local ??= {})[t.name] = t;
+    }
+    return newScope;
+  }
+
   /// Create a special scope for use by labeled statements. This scope doesn't
   /// introduce a new scope for local variables, only for labels. This deals
   /// with corner cases like this:

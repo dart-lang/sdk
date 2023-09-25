@@ -717,6 +717,39 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  @override
+  void enterFunctionTypeScope(
+      {List<StructuralParameter>? typeParameters,
+      bool memberScope = false,
+      bool variableScope = false}) {
+    if (typeParameters != null) {
+      _typeParameterIndexer.enterFunctionType(typeParameters);
+    }
+    if (memberScope) {
+      _variableIndexer = null;
+    }
+    if (variableScope) {
+      _variableIndexer ??= new VariableIndexer();
+      _variableIndexer!.pushScope();
+    }
+  }
+
+  @override
+  void leaveFunctionTypeScope(
+      {List<StructuralParameter>? typeParameters,
+      bool memberScope = false,
+      bool variableScope = false}) {
+    if (variableScope) {
+      _variableIndexer!.popScope();
+    }
+    if (memberScope) {
+      _variableIndexer = null;
+    }
+    if (typeParameters != null) {
+      _typeParameterIndexer.exitFunctionType(typeParameters);
+    }
+  }
+
   void _writeMetadataSection(Component component) {
     // Make sure metadata payloads section is 8-byte aligned,
     // so certain kinds of metadata can contain aligned data.
@@ -2489,7 +2522,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       writeByte(Tag.FunctionType);
       writeByte(node.nullability.index);
-      enterScope(typeParameters: node.typeParameters);
+      enterFunctionTypeScope(typeParameters: node.typeParameters);
       writeNodeList(node.typeParameters);
       writeUInt30(node.requiredParameterCount);
       writeUInt30(
@@ -2497,7 +2530,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
       writeNode(node.returnType);
-      leaveScope(typeParameters: node.typeParameters);
+      leaveFunctionTypeScope(typeParameters: node.typeParameters);
     }
   }
 
@@ -2525,6 +2558,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    writeByte(Tag.TypeParameterType);
+    writeByte(node.declaredNullability.index);
+    writeUInt30(_typeParameterIndexer[node.parameter]);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     writeByte(Tag.IntersectionType);
     writeDartType(node.left);
@@ -2545,6 +2585,22 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeAnnotationList(node.annotations);
     if (node.isLegacyCovariant) {
       writeByte(TypeParameter.legacyCovariantSerializationMarker);
+    } else {
+      writeByte(node.variance);
+    }
+    writeStringReference(node.name ?? '');
+    writeNode(node.bound);
+    writeNode(node.defaultType);
+  }
+
+  @override
+  void visitStructuralParameter(StructuralParameter node) {
+    writeByte(node.flags);
+    // TODO(cstefantsova): Eventually remove the annotations from the binary
+    // encoding of [StructuralParameter] objects.
+    writeAnnotationList([]);
+    if (node.isLegacyCovariant) {
+      writeByte(StructuralParameter.legacyCovariantSerializationMarker);
     } else {
       writeByte(node.variance);
     }
@@ -3298,12 +3354,21 @@ class ConstantIndexer extends RecursiveResultVisitor {
 }
 
 class TypeParameterIndexer {
-  final Map<TypeParameter, int> index = <TypeParameter, int>{};
+  final Map< /* TypeParameter | StructuralParameter */ Object, int> index =
+      <Object, int>{};
   int stackHeight = 0;
 
   void enter(List<TypeParameter> typeParameters) {
     for (int i = 0; i < typeParameters.length; ++i) {
       TypeParameter parameter = typeParameters[i];
+      index[parameter] = stackHeight;
+      ++stackHeight;
+    }
+  }
+
+  void enterFunctionType(List<StructuralParameter> structuralParameters) {
+    for (int i = 0; i < structuralParameters.length; ++i) {
+      StructuralParameter parameter = structuralParameters[i];
       index[parameter] = stackHeight;
       ++stackHeight;
     }
@@ -3316,9 +3381,18 @@ class TypeParameterIndexer {
     }
   }
 
-  int operator [](TypeParameter parameter) =>
-      index[parameter] ??
-      (throw new ArgumentError('Type parameter $parameter is not indexed'));
+  void exitFunctionType(List<StructuralParameter> structuralParameters) {
+    stackHeight -= structuralParameters.length;
+    for (int i = 0; i < structuralParameters.length; ++i) {
+      index.remove(structuralParameters[i]);
+    }
+  }
+
+  int operator [](Object parameter) {
+    assert(parameter is TypeParameter || parameter is StructuralParameter);
+    return index[parameter] ??
+        (throw new ArgumentError('Type parameter $parameter is not indexed'));
+  }
 }
 
 class StringIndexer {

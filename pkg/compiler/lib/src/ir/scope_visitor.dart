@@ -450,6 +450,12 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     return const EvaluationComplexity.constant();
   }
 
+  @override
+  EvaluationComplexity visitStructuralParameter(
+      ir.StructuralParameter typeParameter) {
+    return const EvaluationComplexity.constant();
+  }
+
   /// Add `this` as a variable that needs to be accessed (and thus may become a
   /// free/captured variable.
   /// If [onlyIfNeedsRti] is true, set thisUsedAsFreeVariableIfNeedsRti to true
@@ -766,6 +772,17 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   @override
   EvaluationComplexity visitTypeParameterType(ir.TypeParameterType node) {
     _analyzeTypeVariable(node, _currentTypeUsage!);
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
+  EvaluationComplexity visitStructuralParameterType(
+      ir.StructuralParameterType node) {
+    // The type variable is a function type variable, like `T` in
+    //
+    //     List<void Function<T>(T)> list;
+    //
+    // which doesn't correspond to a captured local variable.
     return const EvaluationComplexity.lazy();
   }
 
@@ -1513,12 +1530,6 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
         case TypeVariableKind.local:
           _useTypeVariableAsLocal(typeVariable, usage);
           break;
-        case TypeVariableKind.function:
-        // The type variable is a function type variable, like `T` in
-        //
-        //     List<void Function<T>(T)> list;
-        //
-        // which doesn't correspond to a captured local variable.
       }
     }
   }

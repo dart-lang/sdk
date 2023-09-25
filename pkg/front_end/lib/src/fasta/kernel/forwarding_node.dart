@@ -274,14 +274,13 @@ class ForwardingNode {
         FunctionType type = _combinedMemberSignature
             .getMemberTypeForTarget(superTarget) as FunctionType;
         if (type.typeParameters.isNotEmpty) {
-          type = Substitution.fromPairs(
-                  type.typeParameters,
-                  function.typeParameters
-                      .map((TypeParameter parameter) => new TypeParameterType
-                          .withDefaultNullabilityForLibrary(
+          type = FunctionTypeInstantiator.instantiate(
+              type,
+              function.typeParameters
+                  .map((TypeParameter parameter) =>
+                      new TypeParameterType.withDefaultNullabilityForLibrary(
                           parameter, procedure.enclosingLibrary))
-                      .toList())
-              .substituteType(type.withoutTypeParameters) as FunctionType;
+                  .toList());
         }
         List<Expression> positionalArguments = new List.generate(
             function.positionalParameters.length, (int index) {

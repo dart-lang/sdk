@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart' show FunctionTypeInstantiator;
 
 import 'utils.dart';
 
@@ -73,9 +73,9 @@ class ProtobufHandler {
         _builderInfoAddMethod = libraryIndex.getProcedure(
             protobufLibraryUri, 'BuilderInfo', 'add') {
     final functionType = _builderInfoAddMethod.getterType as FunctionType;
-    _typeOfBuilderInfoAddOfNull = Substitution.fromPairs(
-            functionType.typeParameters, const <DartType>[NullType()])
-        .substituteType(functionType.withoutTypeParameters) as FunctionType;
+    _typeOfBuilderInfoAddOfNull = FunctionTypeInstantiator.instantiate(
+        functionType, const <DartType>[NullType()]);
+    ;
   }
 
   bool usesAnnotationClass(Class cls) => cls == _tagNumberClass;

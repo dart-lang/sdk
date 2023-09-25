@@ -45,8 +45,8 @@ class Stringifier extends ir.ExpressionVisitor<String?>
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   final IrToElementMap elementMap;
-  final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
-      <ir.TypeParameter, DartType>{};
+  final Map<ir.StructuralParameter, DartType> currentFunctionTypeParameters =
+      <ir.StructuralParameter, DartType>{};
 
   DartTypeConverter(this.elementMap);
 
@@ -67,7 +67,10 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
         // from the intersection of the declared nullability with the
         // nullability of the bound. We don't need a nullability wrapper in this
         // case.
-        if (nullabilitySource is ir.TypeParameterType) return baseType;
+        if (nullabilitySource is ir.TypeParameterType ||
+            nullabilitySource is ir.StructuralParameterType) {
+          return baseType;
+        }
 
         // Iff `T` has undetermined nullability, then so will `FutureOr<T>`
         // since it's the union of `T`, which has undetermined nullability, and
@@ -100,10 +103,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitTypeParameterType(ir.TypeParameterType node) {
-    DartType? typeParameter = currentFunctionTypeParameters[node.parameter];
-    if (typeParameter != null) {
-      return _convertNullability(typeParameter, node);
-    }
     if (node.parameter.declaration is ir.Typedef) {
       // Typedefs are only used in type literals so we never need their type
       // variables.
@@ -115,6 +114,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitStructuralParameterType(ir.StructuralParameterType node) {
+    DartType typeParameter = currentFunctionTypeParameters[node.parameter]!;
+    return _convertNullability(typeParameter, node);
+  }
+
+  @override
   DartType visitIntersectionType(ir.IntersectionType node) {
     return node.left.accept(this);
   }
@@ -123,7 +128,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   DartType visitFunctionType(ir.FunctionType node) {
     int index = 0;
     List<FunctionTypeVariable>? typeVariables;
-    for (ir.TypeParameter typeParameter in node.typeParameters) {
+    for (ir.StructuralParameter typeParameter in node.typeParameters) {
       FunctionTypeVariable typeVariable =
           _dartTypes.functionTypeVariable(index);
       currentFunctionTypeParameters[typeParameter] = typeVariable;
@@ -154,7 +159,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
         node.namedParameters.map((n) => visitType(n.type)).toList(),
         typeVariables ?? const <FunctionTypeVariable>[]);
     DartType type = _convertNullability(functionType, node);
-    for (ir.TypeParameter typeParameter in node.typeParameters) {
+    for (ir.StructuralParameter typeParameter in node.typeParameters) {
       currentFunctionTypeParameters.remove(typeParameter);
     }
     return type;
