@@ -22116,14 +22116,6 @@ WarningCode:
         C.c();
       }
       ```
-  DOC_IMPORT_CANNOT_BE_DEFERRED:
-    problemMessage: "Doc imports can't be deferred."
-    correctionMessage: Try removing the 'deferred' keyword.
-    hasPublishedDocs: false
-  DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
-    problemMessage: "Doc imports can't have configurations."
-    correctionMessage: Try removing the configurations.
-    hasPublishedDocs: false
   DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
     problemMessage: "The '{0}' directive has '{1}' arguments, but only '{2}' are expected."
     correctionMessage: Try removing the extra arguments.
@@ -22197,6 +22189,21 @@ WarningCode:
      0: the name of the doc directive
      1: the name of the first missing argument
      2: the name of the second missing argument
+  DOC_DIRECTIVE_UNKNOWN:
+    problemMessage: "Doc directive '{0}' is unknown."
+    correctionMessage: 'Try using one of the supported doc directives.'
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the unknown doc directive.
+  DOC_IMPORT_CANNOT_BE_DEFERRED:
+    problemMessage: "Doc imports can't be deferred."
+    correctionMessage: Try removing the 'deferred' keyword.
+    hasPublishedDocs: false
+  DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+    problemMessage: "Doc imports can't have configurations."
+    correctionMessage: Try removing the configurations.
+    hasPublishedDocs: false
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
