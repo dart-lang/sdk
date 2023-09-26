@@ -68,6 +68,39 @@ final class DocDirectiveNamedArgument extends DocDirectiveArgument {
   });
 }
 
+/// A parameter in a doc directive, with it's expected format, if it has one.
+@experimental
+final class DocDirectiveParameter {
+  final String name;
+  final DocDirectiveParameterFormat expectedFormat;
+
+  const DocDirectiveParameter(this.name, this.expectedFormat);
+}
+
+/// The expected format of a doc directive parameter, which indicates some
+/// minimal validation that can produce diagnostics.
+@experimental
+enum DocDirectiveParameterFormat {
+  /// A format indicating that arguments are not validated.
+  any('any'),
+
+  /// A format indicating that an argument must be parsable as an integer.
+  integer('an integer'),
+
+  /// A format indicating that an argument must be parsable as a URI.
+  uri('a URI'),
+
+  /// A format indicating that an argument must be parsable as a URI, and be in
+  /// the format of a YouTube video URL.
+  youtubeUrl("a YouTube URL, starting with '$youtubeUrlPrefix'");
+
+  static const youtubeUrlPrefix = 'https://www.youtube.com/watch?v=';
+
+  final String displayString;
+
+  const DocDirectiveParameterFormat(this.displayString);
+}
+
 /// A positional argument in a doc directive. See [DocDirective] for their
 /// syntax.
 @experimental
@@ -126,8 +159,14 @@ enum DocDirectiveType {
   /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#animations.
   animation(
     'animation',
-    positionalParameters: ['width', 'height', 'url'],
-    namedParameters: ['id'],
+    positionalParameters: [
+      DocDirectiveParameter('width', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('height', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('url', DocDirectiveParameterFormat.uri),
+    ],
+    namedParameters: [
+      DocDirectiveParameter('id', DocDirectiveParameterFormat.any),
+    ],
   ),
 
   /// A [DocDirective] declaring the associated library is the "canonical"
@@ -147,7 +186,9 @@ enum DocDirectiveType {
     // directive name is a rare departure from that style. Migrate users to use
     // 'canonical-for'.
     'canonicalFor',
-    positionalParameters: ['element'],
+    positionalParameters: [
+      DocDirectiveParameter('element', DocDirectiveParameterFormat.any),
+    ],
   ),
 
   /// A [DocDirective] declaring a categorization into a named category.
@@ -191,8 +232,13 @@ enum DocDirectiveType {
   /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#examples.
   example(
     'example',
-    positionalParameters: ['path'],
-    namedParameters: ['region', 'lang'],
+    positionalParameters: [
+      DocDirectiveParameter('path', DocDirectiveParameterFormat.any)
+    ],
+    namedParameters: [
+      DocDirectiveParameter('region', DocDirectiveParameterFormat.any),
+      DocDirectiveParameter('lang', DocDirectiveParameterFormat.any),
+    ],
   ),
 
   /// A [DocDirective] declaring a block of HTML content which is to be inserted
@@ -207,7 +253,12 @@ enum DocDirectiveType {
   /// This directive has one required argument: the name. For example:
   ///
   /// `{@macro some-macro}`
-  macro('macro', positionalParameters: ['name']),
+  macro(
+    'macro',
+    positionalParameters: [
+      DocDirectiveParameter('name', DocDirectiveParameterFormat.any),
+    ],
+  ),
 
   /// A [DocDirective] declaring a categorization into a named sub-category.
   ///
@@ -234,7 +285,13 @@ enum DocDirectiveType {
   /// See documentation at
   /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#templates-and-macros.
   // TODO(srawlins): Migrate users to use 'end-template'.
-  template.block('template', 'endtemplate', positionalParameters: ['name']),
+  template.block(
+    'template',
+    'endtemplate',
+    positionalParameters: [
+      DocDirectiveParameter('name', DocDirectiveParameterFormat.any),
+    ],
+  ),
 
   /// A [DocDirective] declaring an embedded YouTube video.
   ///
@@ -245,7 +302,14 @@ enum DocDirectiveType {
   ///
   /// See documentation at
   /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#youtube-videos.
-  youtube('youtube', positionalParameters: ['width', 'height', 'url']);
+  youtube(
+    'youtube',
+    positionalParameters: [
+      DocDirectiveParameter('width', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('height', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('url', DocDirectiveParameterFormat.youtubeUrl),
+    ],
+  );
 
   /// Whether this starts a block directive, which must be closed by a specific
   /// closing directive.
@@ -262,11 +326,11 @@ enum DocDirectiveType {
   /// in the case of a block directive's closing tag, and `null` otherwise.
   final String? opposingName;
 
-  /// The positional parameter names, which are each required.
-  final List<String> positionalParameters;
+  /// The positional parameters, which are each required.
+  final List<DocDirectiveParameter> positionalParameters;
 
-  /// The named parameter names, which are each optional.
-  final List<String> namedParameters;
+  /// The named parameters, which are each optional.
+  final List<DocDirectiveParameter> namedParameters;
 
   /// Whether "rest" parameters are allowed.
   ///
@@ -276,8 +340,8 @@ enum DocDirectiveType {
 
   const DocDirectiveType(
     this.name, {
-    this.positionalParameters = const <String>[],
-    this.namedParameters = const <String>[],
+    this.positionalParameters = const <DocDirectiveParameter>[],
+    this.namedParameters = const <DocDirectiveParameter>[],
     this.restParametersAllowed = false,
   })  : isBlock = false,
         opposingName = null;
@@ -285,9 +349,9 @@ enum DocDirectiveType {
   const DocDirectiveType.block(
     this.name,
     this.opposingName, {
-    this.positionalParameters = const <String>[],
+    this.positionalParameters = const <DocDirectiveParameter>[],
   })  : isBlock = true,
-        namedParameters = const <String>[],
+        namedParameters = const <DocDirectiveParameter>[],
         restParametersAllowed = false;
 
   const DocDirectiveType.end(
@@ -295,8 +359,8 @@ enum DocDirectiveType {
     required String openingTag,
   })  : opposingName = openingTag,
         isBlock = false,
-        positionalParameters = const <String>[],
-        namedParameters = const <String>[],
+        positionalParameters = const <DocDirectiveParameter>[],
+        namedParameters = const <DocDirectiveParameter>[],
         restParametersAllowed = false;
 }
 

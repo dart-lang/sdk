@@ -9054,32 +9054,6 @@ bool Function::IsIdempotent() const {
 bool Function::RecognizedKindForceOptimize() const {
   switch (recognized_kind()) {
     // Uses unboxed/untagged data not supported in unoptimized.
-    case MethodRecognizer::kByteArrayBaseGetInt8:
-    case MethodRecognizer::kByteArrayBaseGetUint8:
-    case MethodRecognizer::kByteArrayBaseGetInt16:
-    case MethodRecognizer::kByteArrayBaseGetUint16:
-    case MethodRecognizer::kByteArrayBaseGetInt32:
-    case MethodRecognizer::kByteArrayBaseGetUint32:
-    case MethodRecognizer::kByteArrayBaseGetInt64:
-    case MethodRecognizer::kByteArrayBaseGetUint64:
-    case MethodRecognizer::kByteArrayBaseGetFloat32:
-    case MethodRecognizer::kByteArrayBaseGetFloat64:
-    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
-    case MethodRecognizer::kByteArrayBaseGetInt32x4:
-    case MethodRecognizer::kByteArrayBaseSetInt8:
-    case MethodRecognizer::kByteArrayBaseSetUint8:
-    case MethodRecognizer::kByteArrayBaseSetInt16:
-    case MethodRecognizer::kByteArrayBaseSetUint16:
-    case MethodRecognizer::kByteArrayBaseSetInt32:
-    case MethodRecognizer::kByteArrayBaseSetUint32:
-    case MethodRecognizer::kByteArrayBaseSetInt64:
-    case MethodRecognizer::kByteArrayBaseSetUint64:
-    case MethodRecognizer::kByteArrayBaseSetFloat32:
-    case MethodRecognizer::kByteArrayBaseSetFloat64:
-    case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-    case MethodRecognizer::kByteArrayBaseSetFloat64x2:
-    case MethodRecognizer::kByteArrayBaseSetInt32x4:
     case MethodRecognizer::kFinalizerBase_getIsolateFinalizers:
     case MethodRecognizer::kFinalizerBase_setIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:

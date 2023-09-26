@@ -53,6 +53,7 @@ class ElementTextConfiguration {
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
   bool withRedirectedConstructors = false;
+  bool withReferences = false;
   bool withSyntheticDartCoreImport = false;
 
   ElementTextConfiguration({
@@ -584,6 +585,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -992,6 +994,19 @@ class _ElementWriter {
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
+  }
+
+  void _writeReference(ElementImpl e) {
+    if (!configuration.withReferences) {
+      return;
+    }
+
+    if (e.reference case final reference?) {
+      _sink.writeIndentedLine(() {
+        _sink.write('reference: ');
+        _elementPrinter.writeReference(reference);
+      });
+    }
   }
 
   void _writeShouldUseTypeForInitializerInference(

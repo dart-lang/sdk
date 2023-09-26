@@ -142,20 +142,13 @@ abstract class Generator implements Comparable<Generator> {
 /// An abstract implementation of a [Generator].
 abstract class DefaultGenerator extends Generator {
   DefaultGenerator(
-    String id,
-    String label,
-    String description, {
-    String? alternateId,
-    List<String> categories = const [],
-    bool deprecated = false,
-  }) : super(
-          id,
-          label,
-          description,
-          categories: categories,
-          alternateId: alternateId,
-          deprecated: deprecated,
-        );
+    super.id,
+    super.label,
+    super.description, {
+    super.alternateId,
+    super.categories,
+    super.deprecated,
+  });
 }
 
 /// A target for a [Generator]. This class knows how to create files given a

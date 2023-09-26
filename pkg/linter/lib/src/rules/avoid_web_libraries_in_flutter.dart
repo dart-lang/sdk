@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../analyzer.dart';
@@ -77,15 +78,15 @@ class AvoidWebLibrariesInFlutter extends LintRule {
     if (parsedPubspec['dependencies'] case {'flutter': var _?}) {
       if (parsedPubspec['flutter']
           case {'plugin': {'platforms': {'web': _?}}}) {
-        // Is a Flutter web plugin, allow web libraries.
+        // Is a Flutter web plugin; allow web libraries.
         return false;
       } else {
-        // Is a non-web Flutter package, don't allow web libraries.
+        // Is a non-web Flutter package; don't allow web libraries.
         return true;
       }
     }
 
-    // Is not a Flutter package, allow web libraries.
+    // Is not a Flutter package; allow web libraries.
     return false;
   }
 
@@ -95,8 +96,8 @@ class AvoidWebLibrariesInFlutter extends LintRule {
     bool hasFlutter(String root) {
       var hasFlutter = _rootHasFlutterCache[root];
       if (hasFlutter == null) {
-        // clear previous cache
-        _rootHasFlutterCache.clear();
+        // Clear the previous cache.
+        clearCache();
         var pubspecFile = locatePubspecFile(context.currentUnit.unit);
         hasFlutter = hasFlutterDep(pubspecFile);
         _rootHasFlutterCache[root] = hasFlutter;
@@ -112,6 +113,9 @@ class AvoidWebLibrariesInFlutter extends LintRule {
       }
     }
   }
+
+  @visibleForTesting
+  static void clearCache() => _rootHasFlutterCache.clear();
 }
 
 class _Visitor extends SimpleAstVisitor<void> {

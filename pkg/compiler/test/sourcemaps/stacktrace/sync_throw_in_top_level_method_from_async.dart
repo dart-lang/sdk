@@ -9,8 +9,8 @@ main() {
 }
 
 @pragma('dart2js:noInline')
-test1() async /*2:test1*/ {
-  /*9:test1*/ test2();
+test1() async {
+  /*2:test1*/ /*9:test1*/ test2();
 }
 
 @pragma('dart2js:noInline')

@@ -9033,6 +9033,13 @@ abstract class AuxiliaryStatement extends Statement {
 class ExpressionStatement extends Statement {
   Expression expression;
 
+  // TODO(johnniwinther): Fix this so set value is not lost. We include this
+  //   getter so offset is consistent before and after serialization.
+  //   ExpressionStatements are common so serializing the offset could
+  //   increase serialized size.
+  @override
+  int get fileOffset => expression.fileOffset;
+
   ExpressionStatement(this.expression) {
     expression.parent = this;
   }

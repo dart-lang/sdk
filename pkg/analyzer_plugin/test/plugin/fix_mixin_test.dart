@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/plugin/fix_mixin.dart';
@@ -71,8 +70,7 @@ class _TestFixContributor implements FixContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with FixesMixin {
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   PrioritizedSourceChange createChange() {
     return PrioritizedSourceChange(0, SourceChange(''));

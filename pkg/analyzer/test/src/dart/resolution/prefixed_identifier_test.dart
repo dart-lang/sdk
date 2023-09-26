@@ -394,9 +394,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
-  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -429,9 +429,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
-  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -466,9 +466,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
-  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
   staticType: int
 ''');
   }
@@ -501,9 +501,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
-  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -536,9 +536,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
-  staticElement: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
   staticType: void Function()
 ''');
   }
@@ -667,9 +667,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
     staticType: int
-  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -702,9 +702,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
     staticType: int
-  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -737,9 +737,9 @@ PrefixedIdentifier
   period: .
   identifier: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
     staticType: void Function()
-  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+  staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
   staticType: void Function()
 ''');
   }

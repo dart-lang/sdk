@@ -22161,6 +22161,14 @@ WarningCode:
       Parameters:
       0: the name of the doc directive
       1: the name of the missing argument
+  DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+    problemMessage: "The '{0}' argument must be formatted as {1}."
+    correctionMessage: "Try formatting '{0}' as {1}."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive argument
+      1: the expected format
   DOC_DIRECTIVE_MISSING_OPENING_TAG:
     problemMessage: "Doc directive is missing an opening tag."
     correctionMessage: "Try opening the directive with the appropriate opening tag, '{0}'."

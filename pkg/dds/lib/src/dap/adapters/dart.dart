@@ -108,39 +108,27 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   DartAttachRequestArguments({
     this.vmServiceUri,
     this.vmServiceInfoFile,
-    Object? restart,
-    String? name,
-    String? cwd,
-    List<String>? additionalProjectPaths,
-    bool? debugSdkLibraries,
-    bool? debugExternalPackageLibraries,
-    bool? showGettersInDebugViews,
-    bool? evaluateGettersInDebugViews,
-    bool? evaluateToStringInDebugViews,
-    bool? sendLogsToClient,
-    bool? sendCustomProgressEvents,
-    bool? allowAnsiColorOutput,
+    super.restart,
+    super.name,
+    super.cwd,
+    super.additionalProjectPaths,
+    super.debugSdkLibraries,
+    super.debugExternalPackageLibraries,
+    super.showGettersInDebugViews,
+    super.evaluateGettersInDebugViews,
+    super.evaluateToStringInDebugViews,
+    super.sendLogsToClient,
+    super.sendCustomProgressEvents = null,
+    super.allowAnsiColorOutput,
   }) : super(
-          name: name,
-          cwd: cwd,
           // env is not supported for Dart attach because we don't spawn a process.
           env: null,
-          restart: restart,
-          additionalProjectPaths: additionalProjectPaths,
-          debugSdkLibraries: debugSdkLibraries,
-          debugExternalPackageLibraries: debugExternalPackageLibraries,
-          showGettersInDebugViews: showGettersInDebugViews,
-          evaluateGettersInDebugViews: evaluateGettersInDebugViews,
-          evaluateToStringInDebugViews: evaluateToStringInDebugViews,
-          sendLogsToClient: sendLogsToClient,
-          sendCustomProgressEvents: sendCustomProgressEvents,
-          allowAnsiColorOutput: allowAnsiColorOutput,
         );
 
-  DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
+  DartAttachRequestArguments.fromMap(super.obj)
       : vmServiceUri = arg.read<String?>(obj, 'vmServiceUri'),
         vmServiceInfoFile = arg.read<String?>(obj, 'vmServiceInfoFile'),
-        super.fromMap(obj);
+        super.fromMap();
 
   @override
   Map<String, Object?> toJson() => {
@@ -2709,36 +2697,22 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     this.console,
     this.customTool,
     this.customToolReplacesArgs,
-    Object? restart,
-    String? name,
-    String? cwd,
-    Map<String, String>? env,
-    List<String>? additionalProjectPaths,
-    bool? debugSdkLibraries,
-    bool? debugExternalPackageLibraries,
-    bool? showGettersInDebugViews,
-    bool? evaluateGettersInDebugViews,
-    bool? evaluateToStringInDebugViews,
-    bool? sendLogsToClient,
-    bool? sendCustomProgressEvents,
-    bool? allowAnsiColorOutput,
-  }) : super(
-          restart: restart,
-          name: name,
-          cwd: cwd,
-          env: env,
-          additionalProjectPaths: additionalProjectPaths,
-          debugSdkLibraries: debugSdkLibraries,
-          debugExternalPackageLibraries: debugExternalPackageLibraries,
-          showGettersInDebugViews: showGettersInDebugViews,
-          evaluateGettersInDebugViews: evaluateGettersInDebugViews,
-          evaluateToStringInDebugViews: evaluateToStringInDebugViews,
-          sendLogsToClient: sendLogsToClient,
-          sendCustomProgressEvents: sendCustomProgressEvents,
-          allowAnsiColorOutput: allowAnsiColorOutput,
-        );
+    super.restart,
+    super.name,
+    super.cwd,
+    super.env,
+    super.additionalProjectPaths,
+    super.debugSdkLibraries,
+    super.debugExternalPackageLibraries,
+    super.showGettersInDebugViews,
+    super.evaluateGettersInDebugViews,
+    super.evaluateToStringInDebugViews,
+    super.sendLogsToClient,
+    super.sendCustomProgressEvents = null,
+    super.allowAnsiColorOutput,
+  });
 
-  DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)
+  DartLaunchRequestArguments.fromMap(super.obj)
       : noDebug = arg.read<bool?>(obj, 'noDebug'),
         program = arg.read<String>(obj, 'program'),
         args = arg.readOptionalList<String>(obj, 'args'),
@@ -2749,7 +2723,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         console = arg.read<String?>(obj, 'console'),
         customTool = arg.read<String?>(obj, 'customTool'),
         customToolReplacesArgs = arg.read<int?>(obj, 'customToolReplacesArgs'),
-        super.fromMap(obj);
+        super.fromMap();
 
   @override
   Map<String, Object?> toJson() => {

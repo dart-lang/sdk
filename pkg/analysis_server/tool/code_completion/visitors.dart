@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -125,6 +124,20 @@ class ExpectedCompletion {
 }
 
 class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
+  static const ASYNC_STAR = 'async*';
+
+  static const DEFAULT_COLON = 'default:';
+
+  static const DEFERRED_AS = 'deferred as';
+
+  static const EXPORT_STATEMENT = "export '';";
+
+  static const IMPORT_STATEMENT = "import '';";
+
+  static const PART_STATEMENT = "part '';";
+  static const SYNC_STAR = 'sync*';
+  static const YIELD_STAR = 'yield*';
+
   /// The result of resolving the file being visited.
   final ResolvedUnitResult result;
 

@@ -407,8 +407,8 @@ Sets the verbosity level of the compilation.
   late final Option defineOption;
   late final Option packagesOption;
 
-  CompileSubcommandCommand(String name, String description, bool verbose,
-      {bool hidden = false})
+  CompileSubcommandCommand(super.name, super.description, super.verbose,
+      {super.hidden})
       : defineOption = Option(
           flag: 'define',
           abbr: 'D',
@@ -424,8 +424,7 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
             help:
                 '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
-For example: dart compile $name --packages=/tmp/pkgs.json main.dart'''),
-        super(name, description, verbose, hidden: hidden);
+For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
 
   bool shouldAllowNoSoundNullSafety() {
     // We need to maintain support for generating AOT snapshots and kernel

@@ -11,9 +11,8 @@ import 'package:yaml/yaml.dart';
 /// An [EditBuilder] used to build edits in YAML files.
 class YamlEditBuilderImpl extends EditBuilderImpl implements YamlEditBuilder {
   /// Initialize a newly created builder to build a source edit.
-  YamlEditBuilderImpl(
-      YamlFileEditBuilderImpl sourceFileEditBuilder, int offset, int length)
-      : super(sourceFileEditBuilder, offset, length);
+  YamlEditBuilderImpl(YamlFileEditBuilderImpl super.sourceFileEditBuilder,
+      super.offset, super.length);
 
   YamlFileEditBuilderImpl get dartFileEditBuilder =>
       fileEditBuilder as YamlFileEditBuilderImpl;
@@ -80,5 +79,5 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
 class YamlLinkedEditBuilderImpl extends LinkedEditBuilderImpl
     implements YamlLinkedEditBuilder {
   /// Initialize a newly created linked edit builder.
-  YamlLinkedEditBuilderImpl(EditBuilderImpl editBuilder) : super(editBuilder);
+  YamlLinkedEditBuilderImpl(super.editBuilder);
 }

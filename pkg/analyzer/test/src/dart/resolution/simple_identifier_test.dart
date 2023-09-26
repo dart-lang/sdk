@@ -187,7 +187,7 @@ class A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
   staticType: int
 ''');
   }
@@ -468,7 +468,7 @@ mixin A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+  staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
   staticType: int
 ''');
   }

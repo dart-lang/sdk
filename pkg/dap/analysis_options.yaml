@@ -1,0 +1,7 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # TODO: We need to address existing instances in
+    # lib/src/protocol_generated.dart (#53600).
+    use_super_parameters: ignore

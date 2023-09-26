@@ -174,6 +174,32 @@ namespace dart {
   V(TypedData_Float64x2Array_new, 2)                                           \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
+  V(TypedData_GetInt8, 2)                                                      \
+  V(TypedData_SetInt8, 3)                                                      \
+  V(TypedData_GetUint8, 2)                                                     \
+  V(TypedData_SetUint8, 3)                                                     \
+  V(TypedData_GetInt16, 2)                                                     \
+  V(TypedData_SetInt16, 3)                                                     \
+  V(TypedData_GetUint16, 2)                                                    \
+  V(TypedData_SetUint16, 3)                                                    \
+  V(TypedData_GetInt32, 2)                                                     \
+  V(TypedData_SetInt32, 3)                                                     \
+  V(TypedData_GetUint32, 2)                                                    \
+  V(TypedData_SetUint32, 3)                                                    \
+  V(TypedData_GetInt64, 2)                                                     \
+  V(TypedData_SetInt64, 3)                                                     \
+  V(TypedData_GetUint64, 2)                                                    \
+  V(TypedData_SetUint64, 3)                                                    \
+  V(TypedData_GetFloat32, 2)                                                   \
+  V(TypedData_SetFloat32, 3)                                                   \
+  V(TypedData_GetFloat64, 2)                                                   \
+  V(TypedData_SetFloat64, 3)                                                   \
+  V(TypedData_GetFloat32x4, 2)                                                 \
+  V(TypedData_SetFloat32x4, 3)                                                 \
+  V(TypedData_GetInt32x4, 2)                                                   \
+  V(TypedData_SetInt32x4, 3)                                                   \
+  V(TypedData_GetFloat64x2, 2)                                                 \
+  V(TypedData_SetFloat64x2, 3)                                                 \
   V(TypedDataView_ByteDataView_new, 4)                                         \
   V(TypedDataView_Int8ArrayView_new, 4)                                        \
   V(TypedDataView_Uint8ArrayView_new, 4)                                       \

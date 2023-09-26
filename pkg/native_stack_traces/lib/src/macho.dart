@@ -175,8 +175,8 @@ class SegmentCommand extends LoadCommand {
   final Map<String, Section> sections;
 
   SegmentCommand._(
-      int cmd,
-      int cmdsize,
+      super.cmd,
+      super.cmdsize,
       this.segname,
       this.vmaddr,
       this.vmsize,
@@ -187,7 +187,7 @@ class SegmentCommand extends LoadCommand {
       this.nsects,
       this.flags,
       this.sections)
-      : super._(cmd, cmdsize);
+      : super._();
 
   static SegmentCommand fromReader(Reader reader, int cmd, int cmdsize) {
     final segname = reader.readFixedLengthNullTerminatedString(16);
@@ -296,9 +296,9 @@ class SymbolTableCommand extends LoadCommand {
   final int _stroff;
   final int _strsize;
 
-  SymbolTableCommand._(int cmd, int cmdsize, this._symoff, this._nsyms,
+  SymbolTableCommand._(super.cmd, super.cmdsize, this._symoff, this._nsyms,
       this._stroff, this._strsize)
-      : super._(cmd, cmdsize);
+      : super._();
 
   static SymbolTableCommand fromReader(Reader reader, int cmd, int cmdsize) {
     final symoff = _readMachOUint32(reader);

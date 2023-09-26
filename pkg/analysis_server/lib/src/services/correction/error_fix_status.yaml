@@ -3452,22 +3452,29 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
+WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+  status: noFix
 WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
   status: needsFix
   notes: |-
-    The fix is to remove the extra arguments..
+    The fix is to remove the extra arguments.
 WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
   status: needsFix
   notes: |-
     The fix is to remove the unexpected named argument.
 WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
-  status: needsEvaluation
+  status: needsFix
+  notes: Add the closing brace at the end of the line.
 WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG:
-  status: needsEvaluation
+  status: needsFix
+  notes: Add the appropriate closing tag, perhaps on the line just following.
 WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
   status: noFix
 WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    I can think of two: Offer to insert the appropriate starting tag (maybe
+    on the preceding line), and offer to change the end-tag to the start-tag.
 WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
   status: noFix
 WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:

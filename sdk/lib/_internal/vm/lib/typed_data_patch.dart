@@ -2051,128 +2051,102 @@ abstract final class _TypedList extends _TypedListBase {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetInt8")
   external int _getInt8(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetInt8")
   external void _setInt8(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetUint8")
   external int _getUint8(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetUint8")
   external void _setUint8(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetInt16")
   external int _getInt16(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetInt16")
   external void _setInt16(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetUint16")
   external int _getUint16(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetUint16")
   external void _setUint16(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetInt32")
   external int _getInt32(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetInt32")
   external void _setInt32(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetUint32")
   external int _getUint32(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetUint32")
   external void _setUint32(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetInt64")
   external int _getInt64(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetInt64")
   external void _setInt64(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetUint64")
   external int _getUint64(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetUint64")
   external void _setUint64(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetFloat32")
   external double _getFloat32(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetFloat32")
   external void _setFloat32(int offsetInBytes, double value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetFloat64")
   external double _getFloat64(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetFloat64")
   external void _setFloat64(int offsetInBytes, double value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetFloat32x4")
   external Float32x4 _getFloat32x4(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetFloat32x4")
   external void _setFloat32x4(int offsetInBytes, Float32x4 value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetInt32x4")
   external Int32x4 _getInt32x4(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetInt32x4")
   external void _setInt32x4(int offsetInBytes, Int32x4 value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_GetFloat64x2")
   external Float64x2 _getFloat64x2(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  @pragma("vm:idempotent")
-  @pragma("vm:prefer-inline")
+  @pragma("vm:external-name", "TypedData_SetFloat64x2")
   external void _setFloat64x2(int offsetInBytes, Float64x2 value);
 
   /**

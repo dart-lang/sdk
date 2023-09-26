@@ -52,11 +52,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   final bool isNonNullableByDefault;
 
   /// Initialize a newly created builder to build a source edit.
-  DartEditBuilderImpl(
-      DartFileEditBuilderImpl sourceFileEditBuilder, int offset, int length)
+  DartEditBuilderImpl(DartFileEditBuilderImpl super.sourceFileEditBuilder,
+      super.offset, super.length)
       : isNonNullableByDefault = sourceFileEditBuilder
-            .resolvedUnit.libraryElement.isNonNullableByDefault,
-        super(sourceFileEditBuilder, offset, length);
+            .resolvedUnit.libraryElement.isNonNullableByDefault;
 
   DartFileEditBuilderImpl get dartFileEditBuilder =>
       fileEditBuilder as DartFileEditBuilderImpl;
@@ -2040,8 +2039,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
     implements DartLinkedEditBuilder {
   /// Initialize a newly created linked edit builder.
-  DartLinkedEditBuilderImpl(DartEditBuilderImpl editBuilder)
-      : super(editBuilder);
+  DartLinkedEditBuilderImpl(DartEditBuilderImpl super.editBuilder);
 
   DartEditBuilderImpl get dartEditBuilder => editBuilder as DartEditBuilderImpl;
 

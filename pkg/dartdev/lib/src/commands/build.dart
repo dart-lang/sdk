@@ -152,11 +152,11 @@ Use linkMode as dynamic library instead.""");
       Asset targetLocation(Asset asset) {
         final path = asset.path;
         switch (path.runtimeType) {
-          case AssetSystemPath:
-          case AssetInExecutable:
-          case AssetInProcess:
+          case const (AssetSystemPath):
+          case const (AssetInExecutable):
+          case const (AssetInProcess):
             return asset;
-          case AssetAbsolutePath:
+          case const (AssetAbsolutePath):
             return asset.copyWith(
               path: AssetRelativePath(
                 Uri(

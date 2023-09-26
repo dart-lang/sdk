@@ -843,7 +843,8 @@ void ScopeBuilder::VisitExpression() {
       VisitDartType();         // read type.
       return;
     case kTypeLiteral:
-      VisitDartType();  // read type.
+      helper_.ReadPosition();  // read file offset.
+      VisitDartType();         // read type.
       return;
     case kThisExpression:
       HandleLoadReceiver();
@@ -976,7 +977,8 @@ void ScopeBuilder::VisitExpression() {
     }
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
-      helper_.ReadUInt();  // library index
+      helper_.ReadPosition();  // read file offset.
+      helper_.ReadUInt();      // library index
       break;
     case kAwaitExpression:
       helper_.ReadPosition();  // read position.
@@ -1075,7 +1077,8 @@ void ScopeBuilder::VisitStatement() {
       }
       return;
     case kLabeledStatement:
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
       return;
     case kBreakStatement:
       helper_.ReadPosition();  // read position.
@@ -1129,6 +1132,7 @@ void ScopeBuilder::VisitStatement() {
       helper_.SkipOptionalDartType();             // read expression type.
       int case_count = helper_.ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
+        helper_.ReadPosition();  // read file offset.
         int expression_count =
             helper_.ReadListLength();  // read number of expressions.
         for (intptr_t j = 0; j < expression_count; ++j) {

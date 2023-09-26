@@ -614,7 +614,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor {
 class NotNullCollector extends _TestRecursiveVisitor {
   final notNullExpressions = <Expression>[];
 
-  NotNullCollector(Set<Library> librariesFromDill) : super(librariesFromDill);
+  NotNullCollector(super.librariesFromDill);
 
   @override
   void defaultExpression(Expression node) {
@@ -626,7 +626,7 @@ class NotNullCollector extends _TestRecursiveVisitor {
 }
 
 class ExpectAllNotNull extends _TestRecursiveVisitor {
-  ExpectAllNotNull(Set<Library> librariesFromDill) : super(librariesFromDill);
+  ExpectAllNotNull(super.librariesFromDill);
 
   @override
   void defaultExpression(Expression node) {

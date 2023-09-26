@@ -690,8 +690,9 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@class').getChild(name);
+
+    final reference = _readReference();
+    final name = reference.name;
 
     var element = ClassElementImpl(name, -1);
 
@@ -761,12 +762,10 @@ class LibraryReader {
     InterfaceElementImpl classElement,
     Reference classReference,
   ) {
-    var containerRef = classReference.getChild('@constructor');
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-      var name = _reader.readStringReference();
-      var referenceName = name.ifNotEmptyOrElse('new');
-      var reference = containerRef.getChild(referenceName);
+      final reference = _readReference();
+      final name = reference.name.ifEqualThen('new', '');
       var element = ConstructorElementImpl(name, -1);
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
@@ -870,8 +869,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@enum').getChild(name);
+    final reference = _readReference();
+    final name = reference.name;
 
     var element = EnumElementImpl(name, -1);
 
@@ -954,9 +953,9 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readOptionalStringReference();
-    var refName = _reader.readStringReference();
-    var reference = unitReference.getChild('@extension').getChild(refName);
+
+    final reference = _readReference();
+    final name = _reader.readBool() ? reference.name : null;
 
     var element = ExtensionElementImpl(name, -1);
     element.setLinkedData(
@@ -998,9 +997,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    final name = _reader.readStringReference();
-    final containerRef = unitReference.getChild('@extensionType');
-    final reference = containerRef.getChild(name);
+    final reference = _readReference();
+    final name = reference.name;
 
     final element = ExtensionTypeElementImpl(name, -1);
     element.setLinkedData(
@@ -1048,12 +1046,11 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     ElementImpl classElement,
     Reference classReference,
-    Reference containerRef,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
+    final reference = _readReference();
+    final name = reference.name;
     var isConstElement = _reader.readBool();
-    var reference = containerRef.getChild(name);
 
     FieldElementImpl element;
     if (isConstElement) {
@@ -1087,12 +1084,11 @@ class LibraryReader {
     List<PropertyAccessorElement> accessors,
     List<FieldElement> variables,
   ) {
-    var containerRef = classReference.getChild('@field');
     var createdElements = <FieldElement>[];
     var variableElementCount = _reader.readUInt30();
     for (var i = 0; i < variableElementCount; i++) {
-      var variable = _readFieldElement(
-          unitElement, classElement, classReference, containerRef);
+      var variable =
+          _readFieldElement(unitElement, classElement, classReference);
       createdElements.add(variable);
       variables.add(variable);
 
@@ -1114,8 +1110,8 @@ class LibraryReader {
   ) {
     unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-      var name = _reader.readStringReference();
-      var reference = unitReference.getChild('@function').getChild(name);
+      final reference = _readReference();
+      final name = reference.name;
 
       var element = FunctionElementImpl(name, -1);
 
@@ -1234,11 +1230,10 @@ class LibraryReader {
     ElementImpl enclosingElement,
     Reference enclosingReference,
   ) {
-    var containerRef = enclosingReference.getChild('@method');
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-      var name = _reader.readStringReference();
-      var reference = containerRef.getChild(name);
+      final reference = _readReference();
+      final name = reference.name;
       var element = MethodElementImpl(name, -1);
       var linkedData = MethodElementLinkedData(
         reference: reference,
@@ -1260,8 +1255,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@mixin').getChild(name);
+    final reference = _readReference();
+    final name = reference.name;
 
     var element = MixinElementImpl(name, -1);
 
@@ -1424,14 +1419,12 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
-    var name = _reader.readStringReference();
+    final reference = _readReference();
+    final name = reference.name;
 
     var element = PropertyAccessorElementImpl(name, -1);
     PropertyAccessorElementFlags.read(_reader, element);
 
-    var reference = classReference
-        .getChild(element.isGetter ? '@getter' : '@setter')
-        .getChild(name);
     var linkedData = PropertyAccessorElementLinkedData(
       reference: reference,
       libraryReader: this,
@@ -1516,6 +1509,12 @@ class LibraryReader {
     }
   }
 
+  /// Read the reference of a non-local element.
+  Reference _readReference() {
+    final referenceIndex = _reader.readUInt30();
+    return _referenceReader.referenceOfIndex(referenceIndex);
+  }
+
   TopLevelInferenceError? _readTopLevelInferenceError() {
     var kindIndex = _reader.readByte();
     var kind = TopLevelInferenceErrorKind.values[kindIndex];
@@ -1533,9 +1532,9 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
+    final reference = _readReference();
+    final name = reference.name;
     var isConst = _reader.readBool();
-    var reference = unitReference.getChild('@variable').getChild(name);
 
     TopLevelVariableElementImpl element;
     if (isConst) {
@@ -1588,8 +1587,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@typeAlias').getChild(name);
+    final reference = _readReference();
+    final name = reference.name;
 
     var isFunctionTypeAliasBased = _reader.readBool();
 
