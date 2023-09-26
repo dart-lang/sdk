@@ -780,10 +780,7 @@ class UseBuildContextSynchronously extends LintRule {
       correctionMessage:
           "Try rewriting the code to not reference the 'BuildContext'.");
 
-  /// Flag to short-circuit `inTestDir` checking when running tests.
-  final bool inTestMode;
-
-  UseBuildContextSynchronously({this.inTestMode = false})
+  UseBuildContextSynchronously()
       : super(
           name: 'use_build_context_synchronously',
           description: _desc,
@@ -799,7 +796,7 @@ class UseBuildContextSynchronously extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var unit = context.currentUnit.unit;
-    if (inTestMode || !context.inTestDir(unit)) {
+    if (!context.inTestDir(unit)) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
       registry.addInstanceCreationExpression(this, visitor);
