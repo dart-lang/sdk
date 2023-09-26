@@ -259,20 +259,29 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // evaluation.
       var constructor = node.constructorName.staticElement;
       if (constructor != null) {
-        ConstantVisitor constantVisitor =
+        var constantVisitor =
             ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);
-        final result =
-            _evaluationEngine.evaluateAndReportErrorsInConstructorCall(
-                _currentLibrary,
-                node,
-                constructor.returnType.typeArguments,
-                node.argumentList.arguments,
-                constructor,
-                constantVisitor,
-                _errorReporter);
-        if (result is! InvalidConstant) {
-          // Check for further errors in individual arguments.
-          node.argumentList.accept(this);
+        var result = _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
+            _currentLibrary,
+            node,
+            constructor.returnType.typeArguments,
+            node.argumentList.arguments,
+            constructor,
+            constantVisitor);
+        switch (result) {
+          case InvalidConstant():
+            if (!result.avoidReporting) {
+              _errorReporter.reportErrorForOffset(
+                result.errorCode,
+                result.offset,
+                result.length,
+                result.arguments,
+                result.contextMessages,
+              );
+            }
+          case DartObjectImpl():
+            // Check for further errors in individual arguments.
+            node.argumentList.accept(this);
         }
       }
     } else {
