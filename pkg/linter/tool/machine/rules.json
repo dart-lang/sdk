@@ -2609,7 +2609,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-this-when-not-needed-to-avoid-shadowing):\n\n**DON'T** use `this` when not needed to avoid shadowing.\n\n**BAD:**\n```dart\nclass Box {\n  var value;\n  void update(new_value) {\n    this.value = new_value;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  var value;\n  void update(new_value) {\n    value = new_value;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  var value;\n  void update(value) {\n    this.value = value;\n  }\n}\n```\n\n",
+    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-this-when-not-needed-to-avoid-shadowing):\n\n**DON'T** use `this` when not needed to avoid shadowing.\n\n**BAD:**\n```dart\nclass Box {\n  int value;\n  void update(int newValue) {\n    this.value = newValue;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  int value;\n  void update(int newValue) {\n    value = newValue;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  int value;\n  void update(int value) {\n    this.value = value;\n  }\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
