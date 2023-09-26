@@ -678,7 +678,9 @@ class ProgramBuilder {
         List<MemberEntity> members = [];
         _elementEnvironment.forEachLocalClassMember(cls, members.add);
         _elementEnvironment.forEachInjectedClassMember(cls, members.add);
-        _elementEnvironment.forEachConstructorBody(cls, members.add);
+        _elementEnvironment.forEachConstructorBody(cls, (body) {
+          if (_codegenWorld.isLateMemberReachable(body)) members.add(body);
+        });
         _sorter.sortMembers(members).forEach(visitMember);
       }
     }
