@@ -11,8 +11,14 @@ This is a patch release that:
   such as shared libraries loaded through `dart:ffi`, that may have different
   versions of the same symbols (issue [#53267]).
 
+- Fixes an issue with super slow access to variables while debugging.
+  The fix avoids searching static functions in the imported libraries
+  as references to members are fully resolved by the front-end. (issue
+  [#53541])
+
 [#53579]: https://github.com/dart-lang/sdk/issues/53579
 [#53267]: https://github.com/dart-lang/sdk/issues/53267
+[#53541]: https://github.com/dart-lang/sdk/issues/53541
 
 ## 3.1.2 - 2023-09-13
 
