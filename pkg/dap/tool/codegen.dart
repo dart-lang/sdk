@@ -299,8 +299,7 @@ class CodeGenerator {
         buffer.writeln('this.$fieldName, ');
       }
 
-      // Properties from the base class are standard arguments that will be
-      // passed to a super() call.
+      // Properties from the base class are super-parameters.
       for (final entry in baseProperties.entries.sortedBy((e) => e.key)) {
         final propertyName = entry.key;
         // If this field is defined by the class and the base, prefer the
@@ -312,12 +311,11 @@ class CodeGenerator {
           continue;
         }
         final isOptional = !type.requiresField(propertyName);
-        final dartType = propertyType.asDartType(isOptional: isOptional);
         buffer.writeIndented('');
         if (!isOptional) {
           buffer.write('required ');
         }
-        buffer.writeln('$dartType $fieldName, ');
+        buffer.writeln('super.$fieldName, ');
       }
       buffer
         ..outdent()
@@ -325,32 +323,29 @@ class CodeGenerator {
     }
     buffer.write(')');
 
+    // We might still need an explicit super() call if we have literal values
+    // to pass through.
     if (baseType != null) {
-      buffer.write(': super(');
-      if (baseProperties.isNotEmpty) {
+      final requiredExplicitSuperArgs = baseProperties.entries
+          .map((entry) =>
+              MapEntry(entry.key, classProperties[entry.key]?.literalValue))
+          .where((entry) => entry.value != null)
+          .toList();
+      if (requiredExplicitSuperArgs.isNotEmpty) {
         buffer
+          ..write(': super(')
           ..writeln()
           ..indent();
-        for (final entry in baseProperties.entries) {
-          final propertyName = entry.key;
-          // Skip any properties that have literal values defined by the base
-          // as we won't need to supply them.
-          if (entry.value.literalValue != null) {
-            continue;
-          }
-          // If this field is defined by the class and the base, prefer the
-          // class one as it may contain things like the literal values.
-          final propertyType = classProperties[propertyName] ?? entry.value;
-          final fieldName = _dartSafeName(propertyName);
-          final literalValue = propertyType.literalValue;
-          final value = literalValue != null ? "'$literalValue'" : fieldName;
-          buffer.writeIndentedln('$fieldName: $value, ');
+        for (final entry in requiredExplicitSuperArgs) {
+          final name = entry.key;
+          final value = entry.value;
+          buffer.writeIndentedln('$name: \'$value\', ');
         }
         buffer
           ..outdent()
-          ..writeIndented('');
+          ..writeIndented('')
+          ..write(')');
       }
-      buffer.write(')');
     }
     buffer.writeln(';');
   }
@@ -544,7 +539,10 @@ class CodeGenerator {
     Map<String, JsonType> properties, {
     bool callSuper = false,
   }) {
-    buffer.writeIndented('$name.fromMap(Map<String, Object?> obj)');
+    buffer
+      ..writeIndented('$name.fromMap(')
+      ..write(callSuper ? 'super.obj' : 'Map<String, Object?> obj')
+      ..write(')');
     if (properties.isNotEmpty || callSuper) {
       buffer
         ..writeln(':')
@@ -570,7 +568,7 @@ class CodeGenerator {
         if (!isFirst) {
           buffer.writeln(',');
         }
-        buffer.writeIndented('super.fromMap(obj)');
+        buffer.writeIndented('super.fromMap()');
       }
       buffer.outdent();
     }
