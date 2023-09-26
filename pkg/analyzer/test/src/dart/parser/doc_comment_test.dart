@@ -1693,6 +1693,63 @@ Comment
 ''');
   }
 
+  test_tool_withRestArguments() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@tool snippets one two three}
+/// More text.
+/// {@end-tool}
+class A {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.comment('tool snippets');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@tool snippets one two three}
+    /// More text.
+    /// {@end-tool}
+  docDirectives
+    BlockDocDirective
+      openingTag
+        offset: [26, 57]
+        type: [DocDirectiveType.tool]
+        positionalArguments
+          snippets
+          one
+          two
+          three
+      closingTag
+        offset: [76, 88]
+        type: [DocDirectiveType.endTool]
+''');
+  }
+
+  test_unknownDocDirective() {
+    final parseResult = parseStringWithErrors(r'''
+int x = 0;
+
+/// Text.
+/// {@yotube 123}
+class A {}
+''');
+    parseResult.assertErrors([
+      error(WarningCode.DOC_DIRECTIVE_UNKNOWN, 28, 6),
+    ]);
+
+    final node = parseResult.findNode.comment('yotube');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@yotube 123}
+''');
+  }
+
   test_youTubeDirective() {
     final parseResult = parseStringWithErrors(r'''
 int x = 0;

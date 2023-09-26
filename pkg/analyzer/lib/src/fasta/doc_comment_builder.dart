@@ -394,6 +394,9 @@ final class DocCommentBuilder {
       case 'end-inject-html':
         _endBlockDocDirectiveTag(parser, DocDirectiveType.endInjectHtml);
         return true;
+      case 'end-tool':
+        _endBlockDocDirectiveTag(parser, DocDirectiveType.endTool);
+        return true;
       case 'endtemplate':
         _endBlockDocDirectiveTag(parser, DocDirectiveType.endTemplate);
         return true;
@@ -403,17 +406,28 @@ final class DocCommentBuilder {
       case 'inject-html':
         _parseBlockDocDirectiveTag(parser, DocDirectiveType.injectHtml);
         return true;
+      case 'macro':
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.macro));
+        return true;
       case 'subCategory':
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.subCategory));
         return true;
       case 'template':
         _parseBlockDocDirectiveTag(parser, DocDirectiveType.template);
         return true;
+      case 'tool':
+        _parseBlockDocDirectiveTag(parser, DocDirectiveType.tool);
+        return true;
       case 'youtube':
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    // TODO(srawlins): Handle unknown (misspelled?) directive.
+    _errorReporter?.reportErrorForOffset(
+      WarningCode.DOC_DIRECTIVE_UNKNOWN,
+      _characterSequence._offset + nameIndex,
+      nameEnd - nameIndex,
+      [name],
+    );
     return false;
   }
 

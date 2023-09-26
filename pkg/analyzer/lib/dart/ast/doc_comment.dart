@@ -214,6 +214,13 @@ enum DocDirectiveType {
   /// are included. This also allows us to parse (erroneous) dangling end tags.
   endInjectHtml.end('end-inject-html', openingTag: 'inject-html'),
 
+  /// The end tag for the [DocDirectiveType.tool] tag.
+  ///
+  /// This tag should not really constitute a "type" of doc directive, but this
+  /// implementation is a one-to-one mapping of "types" and "tags", so end tags
+  /// are included. This also allows us to parse (erroneous) dangling end tags.
+  endTool.end('end-tool', openingTag: 'tool'),
+
   /// The end tag for the [DocDirectiveType.template] tag.
   ///
   /// This tag should not really constitute a "type" of doc directive, but this
@@ -293,6 +300,23 @@ enum DocDirectiveType {
     ],
   ),
 
+  /// A [DocDirective] declaring a tool.
+  ///
+  /// A tool directive invokes an external tool, with the text between the
+  /// opening and closing tags as stdin, and replaces the directive with the
+  /// output of the tool.
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#external-tools.
+  tool.block(
+    'tool',
+    'end-tool',
+    positionalParameters: [
+      DocDirectiveParameter('name', DocDirectiveParameterFormat.any),
+    ],
+    restParametersAllowed: true,
+  ),
+
   /// A [DocDirective] declaring an embedded YouTube video.
   ///
   /// This directive has three required arguments: the width, the height, and
@@ -350,9 +374,9 @@ enum DocDirectiveType {
     this.name,
     this.opposingName, {
     this.positionalParameters = const <DocDirectiveParameter>[],
+    this.restParametersAllowed = false,
   })  : isBlock = true,
-        namedParameters = const <DocDirectiveParameter>[],
-        restParametersAllowed = false;
+        namedParameters = const <DocDirectiveParameter>[];
 
   const DocDirectiveType.end(
     this.name, {

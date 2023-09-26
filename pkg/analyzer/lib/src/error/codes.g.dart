@@ -6143,6 +6143,14 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
   );
 
+  ///  Parameters:
+  ///  0: the name of the unknown doc directive.
+  static const WarningCode DOC_DIRECTIVE_UNKNOWN = WarningCode(
+    'DOC_DIRECTIVE_UNKNOWN',
+    "Doc directive '{0}' is unknown.",
+    correctionMessage: "Try using one of the supported doc directives.",
+  );
+
   static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
     'DOC_IMPORT_CANNOT_BE_DEFERRED',
     "Doc imports can't be deferred.",

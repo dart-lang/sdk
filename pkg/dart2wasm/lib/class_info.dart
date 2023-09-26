@@ -29,6 +29,7 @@ class FieldIndex {
   static const classId = 0;
   static const boxValue = 1;
   static const identityHash = 1;
+  static const objectFieldBase = 2;
   static const stringArray = 2;
   static const listLength = 3;
   static const listArray = 4;
@@ -174,6 +175,13 @@ class ClassInfo {
     assert(expectedIndex == null || expectedIndex == struct.fields.length);
     struct.fields.add(fieldType);
   }
+
+  // This returns the types of all the class's fields (including
+  // superclass fields), except for the class id and the identity hash
+  List<w.ValueType> getClassFieldTypes() => [
+        for (var fieldType in struct.fields.skip(FieldIndex.objectFieldBase))
+          fieldType.type.unpacked
+      ];
 }
 
 ClassInfo upperBound(Set<ClassInfo> classes) {
@@ -291,8 +299,9 @@ class ClassInfoCollector {
   /// This field is initialized when a class with a type parameter is first
   /// encountered. Initialization depends on [Translator] visiting the [_Type]
   /// class first and creating a [ClassInfo] for it.
-  late final w.FieldType typeType =
-      w.FieldType(translator.classInfo[translator.typeClass]!.nullableType);
+  late final w.FieldType typeType = w.FieldType(
+      translator.classInfo[translator.typeClass]!.nonNullableType,
+      mutable: false);
 
   ClassInfoCollector(this.translator);
 
@@ -436,7 +445,8 @@ class ClassInfoCollector {
     ClassInfo? superInfo = info.superInfo;
     if (superInfo == null) {
       // Top - add class id field
-      info._addField(w.FieldType(w.NumType.i32), FieldIndex.classId);
+      info._addField(
+          w.FieldType(w.NumType.i32, mutable: false), FieldIndex.classId);
     } else if (info.struct != superInfo.struct) {
       // Copy fields from superclass
       for (w.FieldType fieldType in superInfo.struct.fields) {
@@ -462,12 +472,8 @@ class ClassInfoCollector {
       for (Field field in info.cls!.fields) {
         if (field.isInstanceMember) {
           w.ValueType wasmType = translator.translateType(field.type);
-          // TODO(askesc): Generalize this check for finer nullability control
-          if (wasmType != w.RefType.struct(nullable: false)) {
-            wasmType = wasmType.withNullability(true);
-          }
           translator.fieldIndex[field] = info.struct.fields.length;
-          info._addField(w.FieldType(wasmType));
+          info._addField(w.FieldType(wasmType, mutable: !field.isFinal));
         }
       }
     } else {

@@ -255,7 +255,7 @@ class ClosureLayouter extends RecursiveVisitor {
     //  - A `_FunctionType`
     return m.types.defineStruct(name,
         fields: [
-          w.FieldType(w.NumType.i32),
+          w.FieldType(w.NumType.i32, mutable: false),
           w.FieldType(w.NumType.i32),
           w.FieldType(w.RefType.struct(nullable: false)),
           w.FieldType(w.RefType.def(vtableStruct, nullable: false),
@@ -945,8 +945,9 @@ class Lambda {
 /// child context (and its descendants).
 class Context {
   /// The node containing the scope covered by the context. This is either a
-  /// [FunctionNode] (for members, local functions and function expressions),
-  /// a [ForStatement], a [DoStatement] or a [WhileStatement].
+  /// [FunctionNode] (for members, local functions, constructor bodies and
+  /// function expressions), a [Constructor], a [ForStatement], a [DoStatement]
+  ///  or a [WhileStatement].
   final TreeNode owner;
 
   /// The parent of this context, corresponding to the lexically enclosing
@@ -961,7 +962,7 @@ class Context {
   final List<TypeParameter> typeParameters = [];
 
   /// Whether this context contains a captured `this`. Only member contexts can.
-  bool containsThis = false;
+  final bool containsThis;
 
   /// The Wasm struct representing this context at runtime.
   late final w.StructType struct;
@@ -980,10 +981,11 @@ class Context {
 
   int get thisFieldIndex {
     assert(containsThis);
-    return 0;
+
+    return parent != null ? 1 : 0;
   }
 
-  Context(this.owner, this.parent);
+  Context(this.owner, this.parent, this.containsThis);
 }
 
 /// A captured variable.
@@ -1012,6 +1014,9 @@ class Closures {
   final Map<TreeNode, Capture> captures = {};
   bool isThisCaptured = false;
   final Map<FunctionNode, Lambda> lambdas = {};
+
+  // This [TreeNode] is the context owner, and can be a [FunctionNode],
+  // [Constructor], [ForStatement], [DoStatement] or a [WhileStatement].
   final Map<TreeNode, Context> contexts = {};
   final Set<FunctionDeclaration> closurizedFunctions = {};
 
@@ -1046,7 +1051,17 @@ class Closures {
     // Make struct definitions
     for (Context context in contexts.values) {
       if (!context.isEmpty) {
-        context.struct = m.types.defineStruct("<context>");
+        if (context.owner is Constructor) {
+          Constructor constructor = context.owner as Constructor;
+          context.struct =
+              m.types.defineStruct("<${constructor}-constructor-context>");
+        } else if (context.owner.parent is Constructor) {
+          Constructor constructor = context.owner.parent as Constructor;
+          context.struct =
+              m.types.defineStruct("<${constructor}-constructor-body-context>");
+        } else {
+          context.struct = m.types.defineStruct("<context>");
+        }
       }
     }
 
@@ -1055,7 +1070,6 @@ class Closures {
       if (!context.isEmpty) {
         w.StructType struct = context.struct;
         if (context.parent != null) {
-          assert(!context.containsThis);
           assert(!context.parent!.isEmpty);
           struct.fields.add(w.FieldType(
               w.RefType.def(context.parent!.struct, nullable: true)));
@@ -1084,6 +1098,9 @@ class Closures {
 class CaptureFinder extends RecursiveVisitor {
   final Closures closures;
   final Member member;
+
+  // Stores the depth of captured type parameters and variables. The [TreeNode]
+  // key must be either a [VariableDeclaration] or a [TypeParameter].
   final Map<TreeNode, int> variableDepth = {};
   final List<bool> functionIsSyncStarOrAsync = [false];
 
@@ -1191,7 +1208,16 @@ class CaptureFinder extends RecursiveVisitor {
 
   @override
   void visitTypeParameterType(TypeParameterType node) {
-    if (node.parameter.declaration == member.enclosingClass) {
+    bool classTypeParameter =
+        node.parameter.declaration == member.enclosingClass;
+
+    if (classTypeParameter && member is Constructor) {
+      // Type parameters can be captured by lambdas inside the initializer
+      // list, which does not have access to `this` as the object has not been
+      // allocated yet. Therefore, these captured type parameters must be
+      // added to the context instead.
+      _visitVariableUse(node.parameter);
+    } else if (classTypeParameter) {
       _visitThis();
     } else if (node.parameter.declaration is GenericFunction) {
       _visitVariableUse(node.parameter);
@@ -1261,10 +1287,8 @@ class ContextCollector extends RecursiveVisitor {
     while (parent != null && parent.isEmpty) {
       parent = parent.parent;
     }
-    currentContext = Context(node, parent);
-    if (closures.isThisCaptured && outerMost) {
-      currentContext!.containsThis = true;
-    }
+    bool containsThis = closures.isThisCaptured && outerMost;
+    currentContext = Context(node, parent, containsThis);
     closures.contexts[node] = currentContext!;
     node.visitChildren(this);
     currentContext = oldContext;
@@ -1272,9 +1296,83 @@ class ContextCollector extends RecursiveVisitor {
 
   @override
   void visitConstructor(Constructor node) {
-    node.function.accept(this);
-    currentContext = closures.contexts[node.function]!;
+    // Constructors should always be the outermost context.
+    assert(currentContext == null);
+
+    // Create constructor context.
+    final Context constructorAllocatorContext = Context(node, null, false);
+    currentContext = constructorAllocatorContext;
+
+    // Visit the class's type parameters so that captured type parameters can
+    // be added to the context. Initializer lists don't have access to `this`,
+    // which would contain the type parameters, so the type parameters must
+    // be captured from the constructor arguments instead.
+    visitList(node.enclosingClass.typeParameters, this);
+
+    // Visit the constructor function's parameters directly instead of calling
+    // node.visitChildren(), so that a new context is not allocated for the
+    // FunctionNode, and any captured parameters are added to the Constructor
+    // context.
+    visitList(node.function.typeParameters, this);
+    visitList(node.function.positionalParameters, this);
+    visitList(node.function.namedParameters, this);
+
+    // Visit the constructor's initializers to add captured arguments to the
+    // context.
     visitList(node.initializers, this);
+
+    // If no type parameters, arguments, or `this` are captured by the
+    // constructor body, we do not need to allocate a context for the
+    // constructor or constructor body. If parameters are captured, we want
+    // the constructor context to contain these, so that they can be shared
+    // between the constructor initializer and body functions. If `this` is
+    // captured, we want the constructor body function context to contain it.
+
+    if (!constructorAllocatorContext.isEmpty) {
+      // Some type arguments or variables have been captured by the
+      // initializer list.
+
+      if (closures.isThisCaptured) {
+        // In this case, we need two contexts: a constructor context to store
+        // the captured arguments/type parameters (shared by the initializer
+        // and constructor body, and a separate context just for the
+        // constructor body to store the captured `this`, as initializer lists
+        // cannot have access to `this`.
+        assert(!constructorAllocatorContext.containsThis);
+        final constructorBodyContext =
+            Context(node.function, constructorAllocatorContext, true);
+
+        closures.contexts[node.function] = constructorBodyContext;
+        closures.contexts[node] = constructorAllocatorContext;
+
+        currentContext = constructorBodyContext;
+      } else {
+        // We only need the constructor context, so contexts in the constructor
+        // body can have this as parent.
+        closures.contexts[node] = constructorAllocatorContext;
+      }
+
+      node.function.body?.accept(this);
+    } else {
+      // We may only need a context for the constructor body function, as no
+      // parameters have been captured by the initializer list, and we only
+      // need the body context if the body captures parameters, or contains
+      // `this`. We must create a new context with the correct owner
+      // (node.function) for debugging purposes, and drop the
+      // constructor allocator context as it is not used.
+      final Context constructorBodyContext =
+          Context(node.function, null, closures.isThisCaptured);
+      currentContext = constructorBodyContext;
+
+      node.function.body?.accept(this);
+
+      if (!constructorBodyContext.isEmpty) {
+        // We only allocate the context if it is not empty.
+        closures.contexts[node.function] = constructorBodyContext;
+      }
+    }
+
+    currentContext = null;
   }
 
   @override

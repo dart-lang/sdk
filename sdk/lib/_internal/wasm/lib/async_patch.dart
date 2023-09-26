@@ -27,7 +27,7 @@ class _AsyncSuspendState {
 
   // Context containing the local variables of the function.
   @pragma("wasm:entry-point")
-  final WasmStructRef? _context;
+  WasmStructRef? _context;
 
   // CFG target index for the next resumption.
   @pragma("wasm:entry-point")
