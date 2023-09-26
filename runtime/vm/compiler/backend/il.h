@@ -8701,6 +8701,7 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
                                    Token::Kind op_kind,
                                    Value* value,
                                    intptr_t deopt_id,
+                                   SpeculativeMode speculative_mode,
                                    Range* range);
 
   Value* value() const { return inputs_[0]; }
