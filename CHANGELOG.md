@@ -1,4 +1,4 @@
-## 3.1.3
+## 3.1.3 - 2023-09-27
 
 This is a patch release that:
 
@@ -9,7 +9,7 @@ This is a patch release that:
 - The standalone Dart VM now exports symbols only for the Dart_* embedding API
   functions, avoiding conflicts with other DSOs loaded into the same process,
   such as shared libraries loaded through `dart:ffi`, that may have different
-  versions of the same symbols (issue [#53267]).
+  versions of the same symbols (issue [#53503]).
 
 - Fixes an issue with super slow access to variables while debugging.
   The fix avoids searching static functions in the imported libraries
@@ -17,7 +17,7 @@ This is a patch release that:
   [#53541])
 
 [#53579]: https://github.com/dart-lang/sdk/issues/53579
-[#53267]: https://github.com/dart-lang/sdk/issues/53267
+[#53267]: https://github.com/dart-lang/sdk/issues/53503
 [#53541]: https://github.com/dart-lang/sdk/issues/53541
 
 ## 3.1.2 - 2023-09-13
