@@ -27,6 +27,11 @@ var r = (hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
     ]);
   }
 
+  void test_fromObject_noWarningForStaticMembers() async {
+    await assertNoErrorsInCode(
+        'var r = (hash: 1, hashAll: 2, hashAllUnordered: 3);');
+  }
+
   void test_fromObject_withPositional() async {
     await assertErrorsInCode(r'''
 var r = (0, hashCode: 1, noSuchMethod: 2, runtimeType: 3, toString: 4);
@@ -87,6 +92,13 @@ void f(({int hashCode, int noSuchMethod, int runtimeType, int toString}) r) {}
       error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 45, 11),
       error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 62, 8),
     ]);
+  }
+
+  void test_fromObject_noWarningForStaticMembers() async {
+    await assertNoErrorsInCode(r'''
+void f(({int hash,}) r) {}
+void g((int hashAll,) r) {}
+''');
   }
 
   void test_fromObject_positional() async {
