@@ -954,6 +954,47 @@ class Assembler : public MicroAssembler {
   void SmiTag(Register reg) override { SmiTag(reg, reg); }
   void SmiTag(Register dst, Register src) { slli(dst, src, kSmiTagSize); }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+#if XLEN == 32
+    LoadInt32FromBoxOrSmi(result, value);
+#else
+    LoadInt64FromBoxOrSmi(result, value);
+#endif
+  }
+
+  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value);
+    BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
+    LoadFieldFromOffset(result, value, target::Mint::value_offset(),
+                        compiler::kFourBytes);
+    Bind(&done);
+  }
+
+  void LoadInt64FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+#if XLEN == 32
+    UNIMPLEMENTED();
+#else
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value);
+    BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
+    LoadFieldFromOffset(result, value, target::Mint::value_offset());
+    Bind(&done);
+#endif
+  }
+
   void BranchIfNotSmi(Register reg,
                       Label* label,
                       JumpDistance distance = kFarJump);
