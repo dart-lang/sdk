@@ -37,7 +37,7 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength = 0,
       int expectedBytesReceived = 0,
-      Map<String, String>? expectedHeaders = null,
+      Map<String, String?>? expectedHeaders = null,
       bool chunked = false,
       bool upgrade = false,
       int unparsedLength = 0,
@@ -71,8 +71,8 @@ class HttpParserTest {
           Expect.equals(-1, incoming.transferLength);
         }
         if (expectedHeaders != null) {
-          expectedHeaders.forEach((String name, String value) =>
-              Expect.equals(value, headers![name]![0]));
+          expectedHeaders.forEach((String name, String? value) =>
+              Expect.equals(value, headers?[name]?[0]));
         }
         incoming.listen((List<int> data) {
           Expect.isFalse(upgraded);
@@ -539,6 +539,45 @@ Transfer-Encoding: chunked\r
     _testParseRequest(request, "POST", "/test",
         expectedTransferLength: -1, expectedBytesReceived: 60, chunked: true);
 
+    // Content-Length and "Transfer-Encoding: chunked" are specified.
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 10\r
+Transfer-Encoding: chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(request, "POST", "/test",
+        expectedTransferLength: -1,
+        expectedBytesReceived: 10,
+        chunked: true,
+        expectedHeaders: {
+          'content-length': null,
+          'transfer-encoding': 'chunked'
+        });
+
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+Content-Length: 10\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(request, "POST", "/test",
+        expectedTransferLength: -1,
+        expectedBytesReceived: 10,
+        chunked: true,
+        expectedHeaders: {
+          'content-length': null,
+          'transfer-encoding': 'chunked'
+        });
+
     // Test HTTP upgrade.
     request = """
 GET /irc HTTP/1.1\r
@@ -797,32 +836,6 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
     _testParseInvalidRequest(request);
 
     request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
-    _testParseInvalidRequest(request);
-
-    // Content-Length and "Transfer-Encoding: chunked" are specified (error
-    // per RFC-7320).
-    request = """
-POST /test HTTP/1.1\r
-Content-Length: 7\r
-Transfer-Encoding: chunked\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
-    _testParseInvalidRequest(request);
-
-    request = """
-POST /test HTTP/1.1\r
-Transfer-Encoding: chunked\r
-Content-Length: 7\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
     _testParseInvalidRequest(request);
   }
 
