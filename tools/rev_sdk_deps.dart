@@ -9,8 +9,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart' as pool;
+
+/// The following set of packages should be individually reviewed.
+///
+/// Generally, they are from repos that are not Dart team owned, and we want to
+/// ensure that we consistently review all changes from those repos.
+const Set<String> individuallyReviewedPackages = {
+  'tar',
+};
 
 void main(List<String> args) async {
   // Validate we're running from the repo root.
@@ -36,7 +45,7 @@ void main(List<String> args) async {
 
   final gitPool = pool.Pool(10);
 
-  final depsToRev = Map.fromEntries(
+  final revDepsToCommits = Map.fromEntries(
     (await Future.wait(
       deps.map((dep) {
         return gitPool.withResource(() async {
@@ -53,14 +62,24 @@ void main(List<String> args) async {
     }),
   );
 
-  if (depsToRev.isEmpty) {
+  if (revDepsToCommits.isEmpty) {
     print('No new revisions.');
     return;
   }
 
-  final depsToRevNames = depsToRev.keys.map((e) => e.name).join(', ');
+  final separateReviewDeps = revDepsToCommits.keys
+      .where((dep) => individuallyReviewedPackages.contains(dep.name))
+      .toList();
+  revDepsToCommits
+      .removeWhere((dep, _) => individuallyReviewedPackages.contains(dep.name));
+
+  final depsToRevNames = revDepsToCommits.keys.map((e) => e.name).join(', ');
 
   print('Move moving forward revisions for: $depsToRevNames.');
+  if (separateReviewDeps.isNotEmpty) {
+    print('(additional, individually reviewed updates are also available for: '
+        '${separateReviewDeps.map((dep) => dep.name).join(', ')})');
+  }
   print('');
   print('Commit message:');
   print('');
@@ -69,7 +88,7 @@ void main(List<String> args) async {
   print('Revisions updated by `dart tools/rev_sdk_deps.dart`.');
   print('');
 
-  for (var entry in depsToRev.entries) {
+  for (var entry in revDepsToCommits.entries) {
     final dep = entry.key;
     final commit = entry.value;
 
@@ -88,6 +107,19 @@ void main(List<String> args) async {
     await gclient.setHash(dep, commit);
 
     print('');
+  }
+
+  if (separateReviewDeps.isNotEmpty) {
+    final boldText = Ansi(true)
+        .emphasized('Note: updates are also available for additional packages');
+    print('$boldText; these require individual review.\nPlease ensure that the '
+        'review for these changes is thorough. To roll them:');
+    print('');
+    for (var dep in separateReviewDeps) {
+      print('${dep.name} from ${dep.url}:');
+      print('  dart tools/manage_deps.dart bump third_party/pkg/${dep.name}');
+      print('');
+    }
   }
 }
 
