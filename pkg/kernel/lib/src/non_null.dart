@@ -183,34 +183,7 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
 
   @override
   DartType? visitStructuralParameterType(StructuralParameterType node) {
-    // NonNull(X) = X & NonNull(B), where B is the bound of X.
-    //
-    // NonNull(T?) = NonNull(T)
-    //
-    // NonNull(T*) = NonNull(T)
-    if (node.nullability == Nullability.nonNullable) {
-      return null;
-    }
-    // NonNull(X) = X & NonNull(B), where B is the bound of X.
-    if (node.bound.nullability == Nullability.nonNullable) {
-      // The bound is already non-nullable so we set the declared nullability
-      // to non-nullable.
-      return node.withDeclaredNullability(Nullability.nonNullable);
-    }
-    DartType? bound = node.bound.accept(this);
-    if (bound == null) {
-      // The bound could not be made non-nullable so we set the declared
-      // nullability to undetermined.
-      if (node.declaredNullability == Nullability.undetermined) {
-        return null;
-      }
-      return node.withDeclaredNullability(Nullability.undetermined);
-    } else {
-      // TODO(cstefantsova): Should [StructuralParameterType] have their
-      // own intersection types?
-      throw new StateError("Intersection types aren't supported for "
-          "StructuralParameterType.");
-    }
+    return null;
   }
 
   @override
