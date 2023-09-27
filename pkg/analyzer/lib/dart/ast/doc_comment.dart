@@ -248,6 +248,10 @@ enum DocDirectiveType {
     ],
   ),
 
+  /// A [DocDirective] indicating that constants should not have their own
+  /// pages or implementations displayed.
+  hideConstantImplementations('hideConstantImplementations'),
+
   /// A [DocDirective] declaring a block of HTML content which is to be inserted
   /// after all other processing, including Markdown parsing.
   ///

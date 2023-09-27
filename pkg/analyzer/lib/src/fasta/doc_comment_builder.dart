@@ -403,6 +403,10 @@ final class DocCommentBuilder {
       case 'example':
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.example));
         return true;
+      case 'hideConstantImplementations':
+        _pushDocDirective(parser
+            .simpleDirective(DocDirectiveType.hideConstantImplementations));
+        return true;
       case 'inject-html':
         _parseBlockDocDirectiveTag(parser, DocDirectiveType.injectHtml);
         return true;
