@@ -45,9 +45,12 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
         builder.write(indentNew1);
         builder.writeln('builder: (context) {');
 
-        widgetSrc = widgetSrc.replaceAll(
-          RegExp('^$indentOld', multiLine: true),
+        widgetSrc = utils.replaceSourceIndent(
+          widgetSrc,
+          indentOld,
           indentNew2,
+          includeLeading: false,
+          includeTrailingNewline: false,
         );
         builder.write(indentNew2);
         builder.write('return $widgetSrc');
