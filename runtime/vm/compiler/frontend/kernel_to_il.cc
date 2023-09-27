@@ -1577,14 +1577,26 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
            (kind == MethodRecognizer::kDoubleFloorToDouble) ||
            (kind == MethodRecognizer::kDoubleCeilToDouble))) {
-        body += DoubleToDouble(kind);
+        switch (kind) {
+          case MethodRecognizer::kDoubleTruncateToDouble:
+            body += UnaryDoubleOp(Token::kTRUNCATE);
+            break;
+          case MethodRecognizer::kDoubleFloorToDouble:
+            body += UnaryDoubleOp(Token::kFLOOR);
+            break;
+          case MethodRecognizer::kDoubleCeilToDouble:
+            body += UnaryDoubleOp(Token::kCEILING);
+            break;
+          default:
+            UNREACHABLE();
+        }
       } else {
         body += InvokeMathCFunction(kind, function.NumParameters());
       }
     } break;
     case MethodRecognizer::kMathSqrt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += MathUnary(MathUnaryInstr::kSqrt);
+      body += UnaryDoubleOp(Token::kSQRT);
     } break;
     case MethodRecognizer::kFinalizerBase_setIsolate:
       ASSERT_EQUAL(function.NumParameters(), 1);

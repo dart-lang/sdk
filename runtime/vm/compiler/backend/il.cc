@@ -565,7 +565,8 @@ Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
   while (true) {
     Definition* orig;
     if (def->IsConstraint() || def->IsBox() || def->IsUnbox() ||
-        def->IsIntConverter()) {
+        def->IsIntConverter() || def->IsFloatToDouble() ||
+        def->IsDoubleToFloat()) {
       orig = def->InputAt(0)->definition();
     } else {
       orig = def->OriginalDefinition();
@@ -2121,32 +2122,26 @@ static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
 }
 
 Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
-#ifdef DEBUG
-  // Must only be used in Float32 StoreIndexedInstr, FloatToDoubleInstr,
-  // Phis introduce by load forwarding, or MaterializeObject for
-  // eliminated Float32 array.
-  ASSERT(env_use_list() == nullptr);
-  for (Value* use = input_use_list(); use != nullptr; use = use->next_use()) {
-    ASSERT(use->instruction()->IsPhi() ||
-           use->instruction()->IsFloatToDouble() ||
-           (use->instruction()->IsStoreIndexed() &&
-            (use->instruction()->AsStoreIndexed()->class_id() ==
-             kTypedDataFloat32ArrayCid)) ||
-           (use->instruction()->IsMaterializeObject() &&
-            (use->instruction()->AsMaterializeObject()->cls().id() ==
-             kTypedDataFloat32ArrayCid)));
-  }
-#endif
   if (!HasUses()) return nullptr;
   if (value()->definition()->IsFloatToDouble()) {
     // F2D(D2F(v)) == v.
     return value()->definition()->AsFloatToDouble()->value()->definition();
   }
+  if (value()->BindsToConstant()) {
+    double narrowed_val =
+        static_cast<float>(Double::Cast(value()->BoundConstant()).value());
+    return flow_graph->GetConstant(
+        Double::ZoneHandle(Double::NewCanonical(narrowed_val)), kUnboxedFloat);
+  }
   return this;
 }
 
 Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : nullptr;
+  if (!HasUses()) return nullptr;
+  if (value()->BindsToConstant()) {
+    return flow_graph->GetConstant(value()->BoundConstant(), kUnboxedDouble);
+  }
+  return this;
 }
 
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -2166,11 +2161,11 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((op_kind() == Token::kMUL) &&
       (left()->definition() == right()->definition())) {
-    MathUnaryInstr* math_unary = new MathUnaryInstr(
-        MathUnaryInstr::kDoubleSquare, new Value(left()->definition()),
-        DeoptimizationTarget());
-    flow_graph->InsertBefore(this, math_unary, env(), FlowGraph::kValue);
-    return math_unary;
+    UnaryDoubleOpInstr* square = new UnaryDoubleOpInstr(
+        Token::kSQUARE, new Value(left()->definition()), DeoptimizationTarget(),
+        speculative_mode_, representation());
+    flow_graph->InsertBefore(this, square, env(), FlowGraph::kValue);
+    return square;
   }
 
   return this;
@@ -2638,13 +2633,6 @@ Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : nullptr;
 }
 
-// A math unary instruction has a side effect (exception
-// thrown) if the argument is not a number.
-// TODO(srdjan): eliminate if has no uses and input is guaranteed to be number.
-Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
-  return this;
-}
-
 bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
                                      const Slot& field,
                                      Object* result) {
@@ -3083,7 +3071,25 @@ Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((unbox_defn != nullptr) &&
       (unbox_defn->representation() == from_representation()) &&
       (unbox_defn->value()->Type()->ToCid() == Type()->ToCid())) {
+    if (from_representation() == kUnboxedFloat) {
+      // This is a narrowing conversion.
+      return this;
+    }
     return unbox_defn->value()->definition();
+  }
+
+  return this;
+}
+
+Definition* BoxLanesInstr::Canonicalize(FlowGraph* flow_graph) {
+  return HasUses() ? this : NULL;
+}
+
+Definition* UnboxLaneInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
+  if (BoxLanesInstr* box = value()->definition()->AsBoxLanes()) {
+    return box->InputAt(lane())->definition();
   }
 
   return this;
@@ -3157,11 +3163,28 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
     return value_defn;
   }
 
-  // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
-  if ((box_defn != nullptr) &&
-      (box_defn->from_representation() == representation())) {
-    return box_defn->value()->definition();
+  if (box_defn != nullptr) {
+    // Fold away Unbox<rep>(Box<rep>(v)).
+    if (box_defn->from_representation() == representation()) {
+      return box_defn->value()->definition();
+    }
+
+    if ((box_defn->from_representation() == kUnboxedDouble) &&
+        (representation() == kUnboxedFloat)) {
+      Definition* replacement = new DoubleToFloatInstr(
+          box_defn->value()->CopyWithType(), DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
+      return replacement;
+    }
+
+    if ((box_defn->from_representation() == kUnboxedFloat) &&
+        (representation() == kUnboxedDouble)) {
+      Definition* replacement = new FloatToDoubleInstr(
+          box_defn->value()->CopyWithType(), DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
+      return replacement;
+    }
   }
 
   if (representation() == kUnboxedDouble && value()->BindsToConstant()) {
@@ -3173,6 +3196,22 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
       return flow_graph->GetConstant(double_val, kUnboxedDouble);
     } else if (val.IsDouble()) {
       return flow_graph->GetConstant(val, kUnboxedDouble);
+    }
+  }
+
+  if (representation() == kUnboxedFloat && value()->BindsToConstant()) {
+    const Object& val = value()->BoundConstant();
+    if (val.IsInteger()) {
+      double narrowed_val =
+          static_cast<float>(Integer::Cast(val).AsDoubleValue());
+      return flow_graph->GetConstant(
+          Double::ZoneHandle(Double::NewCanonical(narrowed_val)),
+          kUnboxedFloat);
+    } else if (val.IsDouble()) {
+      double narrowed_val = static_cast<float>(Double::Cast(val).value());
+      return flow_graph->GetConstant(
+          Double::ZoneHandle(Double::NewCanonical(narrowed_val)),
+          kUnboxedFloat);
     }
   }
 
@@ -6985,19 +7024,6 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       UNREACHABLE();
   }
   return kLibcPowRuntimeEntry;
-}
-
-const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
-  switch (kind) {
-    case kIllegal:
-      return "illegal";
-    case kSqrt:
-      return "sqrt";
-    case kDoubleSquare:
-      return "double-square";
-  }
-  UNREACHABLE();
-  return "";
 }
 
 TruncDivModInstr::TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id)

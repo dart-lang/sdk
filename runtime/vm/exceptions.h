@@ -146,6 +146,7 @@ class CatchEntryMove {
   enum class SourceKind {
     kConstant,
     kTaggedSlot,
+    kFloatSlot,
     kDoubleSlot,
     kFloat32x4Slot,
     kFloat64x2Slot,

@@ -82,7 +82,15 @@ class DeoptContext : public MallocAllocated {
     return cpu_registers_[reg];
   }
 
-  double FpuRegisterValue(FpuRegister reg) const {
+  float FpuRegisterValueAsFloat(FpuRegister reg) const {
+    ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
+    ASSERT(fpu_registers_ != NULL);
+    ASSERT(reg >= 0);
+    ASSERT(reg < kNumberOfFpuRegisters);
+    return *reinterpret_cast<float*>(&fpu_registers_[reg]);
+  }
+
+  double FpuRegisterValueAsDouble(FpuRegister reg) const {
     ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
     ASSERT(fpu_registers_ != nullptr);
     ASSERT(reg >= 0);
@@ -157,6 +165,11 @@ class DeoptContext : public MallocAllocated {
   void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
     deferred_slots_ = new DeferredObjectRef(
         idx, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
+  }
+
+  void DeferMaterialization(float value, DoublePtr* slot) {
+    deferred_slots_ = new DeferredDouble(
+        value, reinterpret_cast<ObjectPtr*>(slot), deferred_slots_);
   }
 
   void DeferMaterialization(double value, DoublePtr* slot) {
@@ -267,6 +280,7 @@ class DeoptInstr : public ZoneAllocated {
     kRetAddress,
     kConstant,
     kWord,
+    kFloat,
     kDouble,
     kFloat32x4,
     kFloat64x2,
@@ -358,9 +372,16 @@ struct RegisterReader<Register, T> {
 };
 
 template <>
+struct RegisterReader<FpuRegister, float> {
+  static double Read(DeoptContext* context, FpuRegister reg) {
+    return context->FpuRegisterValueAsFloat(reg);
+  }
+};
+
+template <>
 struct RegisterReader<FpuRegister, double> {
   static double Read(DeoptContext* context, FpuRegister reg) {
-    return context->FpuRegisterValue(reg);
+    return context->FpuRegisterValueAsDouble(reg);
   }
 };
 

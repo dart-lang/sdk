@@ -1463,6 +1463,17 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   }
 }
 
+void Assembler::LoadSImmediate(FpuRegister dst, float immediate) {
+  int32_t bits = bit_cast<int32_t>(immediate);
+  if (bits == 0) {
+    xorps(dst, dst);
+  } else {
+    intptr_t index = object_pool_builder().FindImmediate(bits);
+    LoadUnboxedSingle(
+        dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
+  }
+}
+
 void Assembler::LoadDImmediate(FpuRegister dst, double immediate) {
   int64_t bits = bit_cast<int64_t>(immediate);
   if (bits == 0) {

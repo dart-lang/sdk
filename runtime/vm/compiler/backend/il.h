@@ -459,6 +459,8 @@ struct InstrAttrs {
   M(LoadStaticField, _)                                                        \
   M(StoreStaticField, kNoGC)                                                   \
   M(BooleanNegate, kNoGC)                                                      \
+  M(BoolToInt, kNoGC)                                                          \
+  M(IntToBool, kNoGC)                                                          \
   M(InstanceOf, _)                                                             \
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
@@ -486,9 +488,9 @@ struct InstrAttrs {
   M(Int64ToDouble, kNoGC)                                                      \
   M(DoubleToInteger, _)                                                        \
   M(DoubleToSmi, kNoGC)                                                        \
-  M(DoubleToDouble, kNoGC)                                                     \
   M(DoubleToFloat, kNoGC)                                                      \
   M(FloatToDouble, kNoGC)                                                      \
+  M(FloatCompare, kNoGC)                                                       \
   M(CheckClass, kNoGC)                                                         \
   M(CheckClassId, kNoGC)                                                       \
   M(CheckSmi, kNoGC)                                                           \
@@ -499,7 +501,6 @@ struct InstrAttrs {
   M(CheckEitherNonSmi, kNoGC)                                                  \
   M(BinaryDoubleOp, kNoGC)                                                     \
   M(DoubleTestOp, kNoGC)                                                       \
-  M(MathUnary, kNoGC)                                                          \
   M(MathMinMax, kNoGC)                                                         \
   M(Box, _)                                                                    \
   M(Unbox, kNoGC)                                                              \
@@ -530,6 +531,8 @@ struct InstrAttrs {
   M(TestRange, kNoGC)                                                          \
   M(ExtractNthOutput, kNoGC)                                                   \
   M(MakePair, kNoGC)                                                           \
+  M(UnboxLane, kNoGC)                                                          \
+  M(BoxLanes, _)                                                               \
   M(BinaryUint32Op, kNoGC)                                                     \
   M(ShiftUint32Op, kNoGC)                                                      \
   M(SpeculativeShiftUint32Op, kNoGC)                                           \
@@ -6890,6 +6893,59 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateInstr);
 };
 
+// bool ? -1 : 0
+class BoolToIntInstr : public TemplateDefinition<1, NoThrow> {
+ public:
+  explicit BoolToIntInstr(Value* value) { SetInputAt(0, value); }
+
+  DECLARE_INSTRUCTION(BoolToInt)
+  virtual CompileType ComputeType() const;
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kTagged;
+  }
+  virtual Representation representation() const { return kUnboxedInt32; }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  DECLARE_EMPTY_SERIALIZATION(BoolToIntInstr, TemplateDefinition)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoolToIntInstr);
+};
+
+// int == 0 ? false : true
+class IntToBoolInstr : public TemplateDefinition<1, NoThrow> {
+ public:
+  explicit IntToBoolInstr(Value* value) {
+    ASSERT(value->definition()->representation() == kUnboxedInt32);
+    SetInputAt(0, value);
+  }
+
+  DECLARE_INSTRUCTION(IntToBool)
+  virtual CompileType ComputeType() const;
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kUnboxedInt32;
+  }
+  virtual Representation representation() const { return kTagged; }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  DECLARE_EMPTY_SERIALIZATION(IntToBoolInstr, TemplateDefinition)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(IntToBoolInstr);
+};
+
 class InstanceOfInstr : public TemplateDefinition<3, Throws> {
  public:
   InstanceOfInstr(const InstructionSource& source,
@@ -8314,65 +8370,6 @@ bool Definition::IsInt64Definition() {
          IsBoxInt64() || IsUnboxInt64();
 }
 
-class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
- public:
-  enum MathUnaryKind {
-    kIllegal,
-    kSqrt,
-    kDoubleSquare,
-  };
-  MathUnaryInstr(MathUnaryKind kind, Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), kind_(kind) {
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-  MathUnaryKind kind() const { return kind_; }
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual Representation representation() const { return kUnboxedDouble; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kUnboxedDouble;
-  }
-
-  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kNotSpeculative;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return GetDeoptId();
-  }
-
-  DECLARE_INSTRUCTION(MathUnary)
-  virtual CompileType ComputeType() const;
-
-  virtual bool AttributesEqual(const Instruction& other) const {
-    return kind() == other.AsMathUnary()->kind();
-  }
-
-  Definition* Canonicalize(FlowGraph* flow_graph);
-
-  static const char* KindToCString(MathUnaryKind kind);
-
-  PRINT_OPERANDS_TO_SUPPORT
-
-#define FIELD_LIST(F) F(const MathUnaryKind, kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MathUnaryInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(MathUnaryInstr);
-};
-
 // Calls into the runtime and performs a case-insensitive comparison of the
 // UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
 // str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
@@ -8506,11 +8503,15 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
                       Value* right,
                       intptr_t deopt_id,
                       const InstructionSource& source,
-                      SpeculativeMode speculative_mode = kGuardInputs)
+                      SpeculativeMode speculative_mode = kGuardInputs,
+                      Representation representation = kUnboxedDouble)
       : TemplateDefinition(source, deopt_id),
         op_kind_(op_kind),
         token_pos_(source.token_pos),
-        speculative_mode_(speculative_mode) {
+        speculative_mode_(speculative_mode),
+        representation_(representation) {
+    ASSERT((representation == kUnboxedFloat) ||
+           (representation == kUnboxedDouble));
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -8524,11 +8525,11 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual Representation representation() const { return kUnboxedDouble; }
+  virtual Representation representation() const { return representation_; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx == 0) || (idx == 1));
-    return kUnboxedDouble;
+    return representation_;
   }
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
@@ -8551,13 +8552,15 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_bin_op = other.AsBinaryDoubleOp();
     return (op_kind() == other_bin_op->op_kind()) &&
-           (speculative_mode_ == other_bin_op->speculative_mode_);
+           (speculative_mode_ == other_bin_op->speculative_mode_) &&
+           (representation_ == other_bin_op->representation_);
   }
 
 #define FIELD_LIST(F)                                                          \
   F(const Token::Kind, op_kind_)                                               \
   F(const TokenPosition, token_pos_)                                           \
-  F(const SpeculativeMode, speculative_mode_)
+  F(const SpeculativeMode, speculative_mode_)                                  \
+  F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BinaryDoubleOpInstr,
                                           TemplateDefinition,
@@ -9290,17 +9293,19 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(SpeculativeShiftUint32OpInstr);
 };
 
-// Handles only NEGATE.
 class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnaryDoubleOpInstr(Token::Kind op_kind,
                      Value* value,
                      intptr_t deopt_id,
-                     SpeculativeMode speculative_mode = kGuardInputs)
+                     SpeculativeMode speculative_mode = kGuardInputs,
+                     Representation representation = kUnboxedDouble)
       : TemplateDefinition(deopt_id),
         op_kind_(op_kind),
-        speculative_mode_(speculative_mode) {
-    ASSERT(op_kind == Token::kNEGATE);
+        speculative_mode_(speculative_mode),
+        representation_(representation) {
+    ASSERT((representation == kUnboxedFloat) ||
+           (representation == kUnboxedDouble));
     SetInputAt(0, value);
   }
 
@@ -9318,11 +9323,11 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return GetDeoptId();
   }
 
-  virtual Representation representation() const { return kUnboxedDouble; }
+  virtual Representation representation() const { return representation_; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedDouble;
+    return representation_;
   }
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
@@ -9330,14 +9335,18 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   }
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    return speculative_mode_ == other.AsUnaryDoubleOp()->speculative_mode_;
+    auto other_op = other.Cast<UnaryDoubleOpInstr>();
+    return (op_kind_ == other_op->op_kind_) &&
+           (speculative_mode_ == other_op->speculative_mode_) &&
+           (representation_ == other_op->representation_);
   }
 
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
   F(const Token::Kind, op_kind_)                                               \
-  F(const SpeculativeMode, speculative_mode_)
+  F(const SpeculativeMode, speculative_mode_)                                  \
+  F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnaryDoubleOpInstr,
                                           TemplateDefinition,
@@ -9599,56 +9608,6 @@ class DoubleToSmiInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
 };
 
-class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
- public:
-  DoubleToDoubleInstr(Value* value,
-                      MethodRecognizer::Kind recognized_kind,
-                      intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), recognized_kind_(recognized_kind) {
-    ASSERT((recognized_kind == MethodRecognizer::kDoubleTruncateToDouble) ||
-           (recognized_kind == MethodRecognizer::kDoubleFloorToDouble) ||
-           (recognized_kind == MethodRecognizer::kDoubleCeilToDouble));
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
-
-  DECLARE_INSTRUCTION(DoubleToDouble)
-  virtual CompileType ComputeType() const;
-
-  virtual bool ComputeCanDeoptimize() const { return false; }
-
-  virtual Representation representation() const { return kUnboxedDouble; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kUnboxedDouble;
-  }
-
-  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return kNotSpeculative;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
-
-  virtual bool AttributesEqual(const Instruction& other) const {
-    return other.AsDoubleToDouble()->recognized_kind() == recognized_kind();
-  }
-
-#define FIELD_LIST(F) F(const MethodRecognizer::Kind, recognized_kind_)
-
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(DoubleToDoubleInstr,
-                                          TemplateDefinition,
-                                          FIELD_LIST)
-#undef FIELD_LIST
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleInstr);
-};
-
 class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   DoubleToFloatInstr(Value* value,
@@ -9726,6 +9685,47 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FloatToDoubleInstr);
+};
+
+// left op right ? -1 : 0
+class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
+ public:
+  FloatCompareInstr(Token::Kind op_kind, Value* left, Value* right)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  DECLARE_INSTRUCTION(FloatCompare)
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUnboxedInt32; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return kUnboxedFloat;
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsFloatCompare()->op_kind() == op_kind();
+  }
+
+#define FIELD_LIST(F) F(const Token::Kind, op_kind_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(FloatCompareInstr,
+                                          TemplateDefinition,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FloatCompareInstr);
 };
 
 // TODO(sjindel): Replace with FFICallInstr.
@@ -9874,6 +9874,149 @@ class MakePairInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MakePairInstr);
+};
+
+class UnboxLaneInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  UnboxLaneInstr(Value* value,
+                 intptr_t n,
+                 Representation definition_rep,
+                 intptr_t definition_cid)
+      : lane_(n),
+        definition_rep_(definition_rep),
+        definition_cid_(definition_cid) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(UnboxLane)
+
+  virtual CompileType ComputeType() const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  intptr_t lane() const { return lane_; }
+
+  virtual Representation representation() const { return definition_rep_; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kTagged;
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    auto const other_split = other.AsUnboxLane();
+    return (other_split->representation() == representation()) &&
+           (other_split->lane() == lane());
+  }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F)                                                          \
+  F(const intptr_t, lane_)                                                     \
+  F(const Representation, definition_rep_)                                     \
+  F(const intptr_t, definition_cid_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(UnboxLaneInstr,
+                                          TemplateDefinition,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxLaneInstr);
+};
+
+class BoxLanesInstr : public TemplateDefinition<4, NoThrow, Pure> {
+ public:
+  BoxLanesInstr(Representation from_representation, Value* x, Value* y)
+      : from_representation_(from_representation) {
+    ASSERT(from_representation == kUnboxedDouble);
+    ASSERT(x->definition()->representation() == from_representation);
+    ASSERT(y->definition()->representation() == from_representation);
+    SetInputAt(0, x);
+    SetInputAt(1, y);
+  }
+  BoxLanesInstr(Representation from_representation,
+                Value* x,
+                Value* y,
+                Value* z,
+                Value* w)
+      : from_representation_(from_representation) {
+    ASSERT((from_representation == kUnboxedInt32) ||
+           (from_representation == kUnboxedFloat));
+    ASSERT(x->definition()->representation() == from_representation);
+    ASSERT(y->definition()->representation() == from_representation);
+    ASSERT(z->definition()->representation() == from_representation);
+    ASSERT(w->definition()->representation() == from_representation);
+    SetInputAt(0, x);
+    SetInputAt(1, y);
+    SetInputAt(2, z);
+    SetInputAt(3, w);
+  }
+
+  intptr_t InputCount() const {
+    switch (from_representation_) {
+      case kUnboxedDouble:
+        return 2;
+      case kUnboxedFloat:
+        return 4;
+      case kUnboxedInt32:
+        return 4;
+      default:
+        UNREACHABLE();
+        return 0;
+    }
+  }
+  Value* x() const { return inputs_[0]; }
+  Value* y() const { return inputs_[1]; }
+  Value* z() const {
+    ASSERT((from_representation() == kUnboxedInt32) ||
+           (from_representation() == kUnboxedFloat));
+    return inputs_[2];
+  }
+  Value* w() const {
+    ASSERT((from_representation() == kUnboxedInt32) ||
+           (from_representation() == kUnboxedFloat));
+    return inputs_[3];
+  }
+  Representation from_representation() const { return from_representation_; }
+
+  DECLARE_INSTRUCTION(BoxLanes)
+  virtual CompileType ComputeType() const;
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0 || idx == 1 || idx == 2 || idx == 3);
+    return from_representation();
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsBoxLanes()->from_representation() == from_representation();
+  }
+
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual TokenPosition token_pos() const { return TokenPosition::kBox; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F) F(const Representation, from_representation_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(BoxLanesInstr,
+                                          TemplateDefinition,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxLanesInstr);
 };
 
 class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {

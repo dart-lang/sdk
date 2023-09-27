@@ -389,6 +389,9 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
     case kUnboxedUint32:
       src_kind = CatchEntryMove::SourceKind::kUint32Slot;
       break;
+    case kUnboxedFloat:
+      src_kind = CatchEntryMove::SourceKind::kFloatSlot;
+      break;
     case kUnboxedDouble:
       src_kind = CatchEntryMove::SourceKind::kDoubleSlot;
       break;
