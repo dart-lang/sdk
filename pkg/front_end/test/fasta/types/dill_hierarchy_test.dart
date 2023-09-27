@@ -40,37 +40,37 @@ Object:
 
 A:
   superclasses:
-    Object
+    Object!
 
 B:
   Longest path to Object: 2
   superclasses:
-    Object
-  interfaces: A
+    Object!
+  interfaces: A!
 
 C:
   Longest path to Object: 2
   superclasses:
-    Object
-  interfaces: A
+    Object!
+  interfaces: A!
 
 D:
   Longest path to Object: 3
   superclasses:
-    Object
-  interfaces: B<T%>, A, C<U%>
+    Object!
+  interfaces: B<T%>!, A!, C<U%>!
 
 E:
   Longest path to Object: 4
   superclasses:
-    Object
-  interfaces: D<int!,double!>, B<int!>, A, C<double!>
+    Object!
+  interfaces: D<int!,double!>!, B<int!>!, A!, C<double!>!
 
 F:
   Longest path to Object: 4
   superclasses:
-    Object
-  interfaces: D<int!,bool!>, B<int!>, A, C<bool!>
+    Object!
+  interfaces: D<int!,bool!>!, B<int!>!, A!, C<bool!>!
 """;
 
 void main() {
