@@ -3530,31 +3530,33 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   FunctionTypeBuilder addFunctionType(
       TypeBuilder returnType,
-      (
-        List<StructuralVariableBuilder>,
-        Map<TypeVariableBuilder, TypeBuilder>
-      )? freshStructuralParameters,
+      FreshStructuralVariableBuildersFromNominalVariableBuilders?
+          freshStructuralParameters,
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
       int charOffset) {
-    List<StructuralVariableBuilder>? structuralParameters;
     if (freshStructuralParameters != null) {
-      Map<TypeVariableBuilder, TypeBuilder> nominalToStructuralSubstitutionMap;
-      (structuralParameters, nominalToStructuralSubstitutionMap) =
-          freshStructuralParameters;
       if (formals != null) {
         for (FormalParameterBuilder formal in formals) {
-          formal.type = formal.type.subst(nominalToStructuralSubstitutionMap);
+          formal.type =
+              formal.type.subst(freshStructuralParameters.substitutionMap);
         }
       }
-      returnType = returnType.subst(nominalToStructuralSubstitutionMap);
+      returnType = returnType.subst(freshStructuralParameters.substitutionMap);
     }
-    FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(returnType,
-        structuralParameters, formals, nullabilityBuilder, fileUri, charOffset);
-    checkStructuralVariables(structuralParameters, null);
-    if (structuralParameters != null) {
-      for (StructuralVariableBuilder builder in structuralParameters) {
+    List<StructuralVariableBuilder>? structuralVariableBuilders =
+        freshStructuralParameters?.freshStructuralVariableBuilders;
+    FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(
+        returnType,
+        structuralVariableBuilders,
+        formals,
+        nullabilityBuilder,
+        fileUri,
+        charOffset);
+    checkStructuralVariables(structuralVariableBuilders, null);
+    if (structuralVariableBuilders != null) {
+      for (StructuralVariableBuilder builder in structuralVariableBuilders) {
         if (builder.metadata != null) {
           if (!libraryFeatures.genericMetadata.isEnabled) {
             addProblem(messageAnnotationOnFunctionTypeTypeVariable,
@@ -3566,7 +3568,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
     endNestedDeclaration(TypeParameterScopeKind.functionType, "#function_type")
-        .resolveNamedTypesWithStructuralVariables(structuralParameters, this);
+        .resolveNamedTypesWithStructuralVariables(
+            structuralVariableBuilders, this);
     return builder;
   }
 
@@ -3611,7 +3614,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   ///
   /// The function returns a pair of the list of the converted parameters and a
   /// map from the old parameters into the new parameters.
-  (List<StructuralVariableBuilder>, Map<TypeVariableBuilder, TypeBuilder>)?
+  FreshStructuralVariableBuildersFromNominalVariableBuilders?
       convertNominalToStructuralTypeVariables(
           List<TypeVariableBuilder>? nominalTypeVariables) {
     if (nominalTypeVariables == null) return null;
@@ -3653,7 +3656,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     processPendingNullabilities(typeFilter: potentiallyUnsetNullabilities);
-    return (structuralVariables, nominalToStructuralSubstitutionMap);
+    return new FreshStructuralVariableBuildersFromNominalVariableBuilders(
+        structuralVariables, nominalToStructuralSubstitutionMap);
   }
 
   BodyBuilderContext get bodyBuilderContext =>
