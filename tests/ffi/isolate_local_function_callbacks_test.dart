@@ -84,10 +84,15 @@ testNativeCallableDoubleCloseError() {
       exceptionalReturn: 0);
   Expect.notEquals(nullptr, callback.nativeFunction);
   callback.close();
-  Expect.equals(nullptr, callback.nativeFunction);
+
   Expect.throwsStateError(() {
-    callback.close();
+    final _ = callback.nativeFunction;
   });
+
+  // Expect that these do not throw.
+  callback.close();
+  callback.keepIsolateAlive = true;
+  Expect.isFalse(callback.keepIsolateAlive);
 }
 
 late NativeCallable selfClosingStaticCallback;
@@ -105,7 +110,9 @@ testNativeCallableNestedCloseCallStatic() {
       callTwoIntFunction(selfClosingStaticCallback.nativeFunction, 1000, 234));
 
   // The callback is already closed.
-  Expect.equals(nullptr, selfClosingStaticCallback.nativeFunction);
+  Expect.throwsStateError(() {
+    final _ = selfClosingStaticCallback.nativeFunction;
+  });
 }
 
 testNativeCallableNestedCloseCallClosure() {
@@ -122,7 +129,9 @@ testNativeCallableNestedCloseCallClosure() {
   Expect.equals(1234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
 
   // The callback is already closed.
-  Expect.equals(nullptr, callback.nativeFunction);
+  Expect.throwsStateError(() {
+    final _ = callback.nativeFunction;
+  });
 }
 
 int throwerCallback(int a, int b) {

@@ -270,15 +270,15 @@ abstract final class NativeCallable<T extends Function> {
   /// The native function pointer which can be used to invoke the `callback`
   /// passed to the constructor.
   ///
-  /// If this receiver has been [close]d, the pointer is a [nullptr].
+  /// This pointer must not be read after the callable has been [close]d.
   Pointer<NativeFunction<T>> get nativeFunction;
 
   /// Closes this callback and releases its resources.
   ///
   /// Further calls to existing [nativeFunction]s will result in undefined
-  /// behavior. New accesses to [nativeFunction] will give a [nullptr].
+  /// behavior.
   ///
-  /// This method must not be called more than once on each native callback.
+  /// Subsequent calls to [close] will be ignored.
   ///
   /// It is safe to call [close] inside the [callback].
   void close();
