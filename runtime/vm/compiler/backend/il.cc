@@ -2201,6 +2201,7 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
                                                Token::Kind op_kind,
                                                Value* value,
                                                intptr_t deopt_id,
+                                               SpeculativeMode speculative_mode,
                                                Range* range) {
   UnaryIntegerOpInstr* op = nullptr;
   switch (representation) {
@@ -2213,7 +2214,7 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
       op = new UnaryUint32OpInstr(op_kind, value, deopt_id);
       break;
     case kUnboxedInt64:
-      op = new UnaryInt64OpInstr(op_kind, value, deopt_id);
+      op = new UnaryInt64OpInstr(op_kind, value, deopt_id, speculative_mode);
       break;
     default:
       UNREACHABLE();
@@ -2292,7 +2293,8 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
                                                 right_range);
         }
       } else {
-        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
+        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id,
+                                    speculative_mode);
       }
       break;
     default:
@@ -2433,7 +2435,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if (rhs == RepresentationMask(representation())) {
         UnaryIntegerOpInstr* bit_not = UnaryIntegerOpInstr::Make(
             representation(), Token::kBIT_NOT, left()->CopyWithType(),
-            GetDeoptId(), range());
+            GetDeoptId(), SpeculativeModeOfInputs(), range());
         if (bit_not != nullptr) {
           flow_graph->InsertBefore(this, bit_not, env(), FlowGraph::kValue);
           return bit_not;
@@ -2453,7 +2455,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if (rhs == -1) {
         UnaryIntegerOpInstr* negation = UnaryIntegerOpInstr::Make(
             representation(), Token::kNEGATE, left()->CopyWithType(),
-            GetDeoptId(), range());
+            GetDeoptId(), SpeculativeModeOfInputs(), range());
         if (negation != nullptr) {
           flow_graph->InsertBefore(this, negation, env(), FlowGraph::kValue);
           return negation;

@@ -45,9 +45,6 @@ class CodegenEnqueuer extends Enqueuer {
 
   final Queue<WorkItem> _queue = Queue<WorkItem>();
 
-  /// All declaration elements that have been processed by codegen.
-  final Set<MemberEntity> _processedEntities = {};
-
   // If not `null` this is called when the queue has been emptied. It allows for
   // applying additional impacts before re-emptying the queue.
   void Function()? onEmptyForTesting;
@@ -73,7 +70,7 @@ class CodegenEnqueuer extends Enqueuer {
   /// Create a [WorkItem] for [entity] and add it to the work list if it has not
   /// already been processed.
   void _addToWorkList(MemberEntity entity) {
-    if (_processedEntities.contains(entity)) return;
+    if (worldBuilder.processedEntities.contains(entity)) return;
 
     final workItem = _workItemBuilder.createWorkItem(entity);
     if (workItem == null) return;
@@ -248,11 +245,11 @@ class CodegenEnqueuer extends Enqueuer {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
         WorkItem work = _queue.removeLast();
-        if (!_processedEntities.contains(work.element)) {
+        if (!worldBuilder.processedEntities.contains(work.element)) {
           f(work);
           // TODO(johnniwinther): Register the processed element here. This
           // is currently a side-effect of calling `work.run`.
-          _processedEntities.add(work.element);
+          worldBuilder.processedEntities.add(work.element);
         }
       }
       List<ClassEntity> recents = _recentClasses.toList(growable: false);
@@ -284,7 +281,7 @@ class CodegenEnqueuer extends Enqueuer {
 
   @override
   void logSummary(void log(String message)) {
-    log('Compiled ${_processedEntities.length} methods.');
+    log('Compiled ${processedEntities.length} methods.');
     listener.logSummary(log);
   }
 
@@ -292,5 +289,6 @@ class CodegenEnqueuer extends Enqueuer {
   String toString() => 'Enqueuer($name)';
 
   @override
-  Iterable<MemberEntity> get processedEntities => _processedEntities;
+  Iterable<MemberEntity> get processedEntities =>
+      worldBuilder.processedEntities;
 }

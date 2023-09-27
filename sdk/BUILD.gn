@@ -46,10 +46,10 @@ declare_args() {
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc.dart.snapshot
-# ........dds.dart.snapshot
+# ........dds_aot.dart.snapshot (AOT snapshot) or dds.dart.snapshot (ia32)
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot
-# ........gen_kernel.dart.snapshot (if not on ia32)
+# ........gen_kernel_aot.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
 # ........kernel_worker.dart.snapshot
 # ......resources/
@@ -117,14 +117,21 @@ _platform_sdk_snapshots = [
     "../utils/dartdev:dartdev",
   ],
   [
-    "dds",
-    "../utils/dds:dds",
-  ],
-  [
     "frontend_server",
     "../utils/kernel-service:frontend_server",
   ],
 ]
+if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  _platform_sdk_snapshots += [ [
+        "dds_aot",
+        "../utils/dds:dds_aot",
+      ] ]
+} else {
+  _platform_sdk_snapshots += [ [
+        "dds",
+        "../utils/dds:dds",
+      ] ]
+}
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
@@ -358,7 +365,7 @@ copy("copy_vm_platform_strong_product") {
 copy("copy_gen_kernel_snapshot") {
   visibility = [ ":group_dart2native" ]
   deps = [ "../utils/gen_kernel" ]
-  sources = [ "$root_gen_dir/gen_kernel.dart.snapshot" ]
+  sources = [ "$root_gen_dir/gen_kernel_aot.dart.snapshot" ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
 }

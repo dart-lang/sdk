@@ -178,10 +178,7 @@ void defineRuleUnitTests() {
 }
 
 void testRule(String ruleName, File file,
-    {bool debug = true,
-    bool failOnErrors = true,
-    bool useMockSdk = true,
-    String? analysisOptions}) {
+    {bool useMockSdk = true, String? analysisOptions}) {
   test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
@@ -192,12 +189,8 @@ void testRule(String ruleName, File file,
 
     try {
       var errorInfos = await _getErrorInfos(ruleName, file,
-          useMockSdk: useMockSdk,
-          debug: debug,
-          analysisOptions: analysisOptions);
+          useMockSdk: useMockSdk, analysisOptions: analysisOptions);
       _validateExpectedLints(file, errorInfos,
-          debug: debug,
-          failOnErrors: failOnErrors,
           analysisOptions: analysisOptions);
     } finally {
       noSoundNullSafety = true;
@@ -214,10 +207,8 @@ void testRules(String ruleDir, {String? analysisOptions}) {
 }
 
 Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
-    {required bool useMockSdk,
-    required bool debug,
-    required String? analysisOptions}) async {
-  registerLintRules(inTestMode: debug);
+    {required bool useMockSdk, required String? analysisOptions}) async {
+  registerLintRules();
   var rule = Registry.ruleRegistry[ruleName];
   if (rule == null) {
     fail('rule `$ruleName` is not registered; unable to test.');
@@ -253,7 +244,7 @@ Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
 /// Parse lint annotations in the given [file] and validate that they correspond
 /// with errors in the provided [errorInfos].
 void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
-    {bool debug = true, bool failOnErrors = true, String? analysisOptions}) {
+    {String? analysisOptions}) {
   var expected = <AnnotationMatcher>[];
 
   var lineNumber = 1;
@@ -272,10 +263,11 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
       var errorType = error.errorCode.type;
       if (errorType == ErrorType.LINT) {
         actual.add(Annotation.forError(error, info.lineInfo));
-      } else if (failOnErrors && errorType.severity == ErrorSeverity.ERROR) {
+      } else if (errorType.severity == ErrorSeverity.ERROR) {
         var location = info.lineInfo.getLocation(error.offset);
-        errors.add(
-            '${file.path} ${location.lineNumber}:${location.columnNumber} ${error.message}');
+        errors
+            .add('${file.path} ${location.lineNumber}:${location.columnNumber} '
+                '${error.message}');
       }
     }
   }
@@ -291,22 +283,20 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
     // https://github.com/dart-lang/linter/issues/909
     // ignore: avoid_catches_without_on_clauses
   } catch (_) {
-    if (debug) {
-      // Dump results for debugging purposes.
+    // Dump results for debugging purposes.
 
-      // AST
-      var optionsProvider = AnalysisOptionsProvider();
-      var optionMap = optionsProvider.getOptionsFromString(analysisOptions);
-      var optionsImpl = AnalysisOptionsImpl();
-      optionsImpl.applyOptions(optionMap);
+    // AST
+    var optionsProvider = AnalysisOptionsProvider();
+    var optionMap = optionsProvider.getOptionsFromString(analysisOptions);
+    var optionsImpl = AnalysisOptionsImpl();
+    optionsImpl.applyOptions(optionMap);
 
-      var features = optionsImpl.contextFeatures;
+    var features = optionsImpl.contextFeatures;
 
-      FileSpelunker(file.absolute.path, featureSet: features).spelunk();
-      printToConsole('');
-      // Lints.
-      ResultReporter(errorInfos).write();
-    }
+    FileSpelunker(file.absolute.path, featureSet: features).spelunk();
+    printToConsole('');
+    // Lints.
+    ResultReporter(errorInfos).write();
 
     // Rethrow and fail.
     rethrow;

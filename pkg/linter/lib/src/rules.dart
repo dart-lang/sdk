@@ -232,7 +232,7 @@ import 'rules/use_to_and_as_if_applicable.dart';
 import 'rules/valid_regexps.dart';
 import 'rules/void_checks.dart';
 
-void registerLintRules({bool inTestMode = false}) {
+void registerLintRules() {
   Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
     ..register(AlwaysDeclareReturnTypes())
@@ -442,7 +442,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(UnreachableFromMain())
     ..register(UnrelatedTypeEqualityChecks())
     ..register(UnsafeHtml())
-    ..register(UseBuildContextSynchronously(inTestMode: inTestMode))
+    ..register(UseBuildContextSynchronously())
     ..register(UseColoredBox())
     ..register(UseDecoratedBox())
     ..register(UseEnums())

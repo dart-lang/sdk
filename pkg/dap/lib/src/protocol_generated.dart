@@ -46,22 +46,15 @@ class AttachResponse extends Response {
       AttachResponse.fromMap(obj);
 
   AttachResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  AttachResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  AttachResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -348,23 +341,15 @@ class BreakpointLocationsResponse extends Response {
       BreakpointLocationsResponse.fromMap(obj);
 
   BreakpointLocationsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  BreakpointLocationsResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  BreakpointLocationsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -432,22 +417,15 @@ class CancelResponse extends Response {
       CancelResponse.fromMap(obj);
 
   CancelResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  CancelResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  CancelResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1234,22 +1212,15 @@ class CompletionsResponse extends Response {
       CompletionsResponse.fromMap(obj);
 
   CompletionsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  CompletionsResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  CompletionsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1293,23 +1264,15 @@ class ConfigurationDoneResponse extends Response {
       ConfigurationDoneResponse.fromMap(obj);
 
   ConfigurationDoneResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ConfigurationDoneResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  ConfigurationDoneResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1372,22 +1335,15 @@ class ContinueResponse extends Response {
       ContinueResponse.fromMap(obj);
 
   ContinueResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ContinueResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  ContinueResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1529,23 +1485,15 @@ class DataBreakpointInfoResponse extends Response {
       DataBreakpointInfoResponse.fromMap(obj);
 
   DataBreakpointInfoResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  DataBreakpointInfoResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  DataBreakpointInfoResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1643,22 +1591,15 @@ class DisassembleResponse extends Response {
       DisassembleResponse.fromMap(obj);
 
   DisassembleResponse({
-    Map<String, Object?>? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  DisassembleResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  DisassembleResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1853,22 +1794,15 @@ class DisconnectResponse extends Response {
       DisconnectResponse.fromMap(obj);
 
   DisconnectResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  DisconnectResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  DisconnectResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1889,22 +1823,15 @@ class ErrorResponse extends Response {
       ErrorResponse.fromMap(obj);
 
   ErrorResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ErrorResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  ErrorResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -1990,22 +1917,15 @@ class EvaluateResponse extends Response {
       EvaluateResponse.fromMap(obj);
 
   EvaluateResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  EvaluateResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  EvaluateResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -2036,16 +1956,15 @@ class Event extends ProtocolMessage {
   Event({
     this.body,
     required this.event,
-    required int seq,
+    required super.seq,
   }) : super(
-          seq: seq,
           type: 'event',
         );
 
-  Event.fromMap(Map<String, Object?> obj)
+  Event.fromMap(super.obj)
       : body = obj['body'],
         event = obj['event'] as String,
-        super.fromMap(obj);
+        super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -2318,22 +2237,15 @@ class ExceptionInfoResponse extends Response {
       ExceptionInfoResponse.fromMap(obj);
 
   ExceptionInfoResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ExceptionInfoResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  ExceptionInfoResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -2542,22 +2454,15 @@ class GotoResponse extends Response {
       GotoResponse.fromMap(obj);
 
   GotoResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  GotoResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  GotoResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -2717,22 +2622,15 @@ class GotoTargetsResponse extends Response {
       GotoTargetsResponse.fromMap(obj);
 
   GotoTargetsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  GotoTargetsResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  GotoTargetsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -2936,22 +2834,15 @@ class InitializeResponse extends Response {
       InitializeResponse.fromMap(obj);
 
   InitializeResponse({
-    Capabilities? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  InitializeResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  InitializeResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3085,22 +2976,15 @@ class LaunchResponse extends Response {
       LaunchResponse.fromMap(obj);
 
   LaunchResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  LaunchResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  LaunchResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3140,22 +3024,15 @@ class LoadedSourcesResponse extends Response {
       LoadedSourcesResponse.fromMap(obj);
 
   LoadedSourcesResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  LoadedSourcesResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  LoadedSourcesResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3438,22 +3315,15 @@ class ModulesResponse extends Response {
       ModulesResponse.fromMap(obj);
 
   ModulesResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ModulesResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  ModulesResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3528,22 +3398,15 @@ class NextResponse extends Response {
       NextResponse.fromMap(obj);
 
   NextResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  NextResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  NextResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3595,22 +3458,15 @@ class PauseResponse extends Response {
       PauseResponse.fromMap(obj);
 
   PauseResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  PauseResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  PauseResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3725,22 +3581,15 @@ class ReadMemoryResponse extends Response {
       ReadMemoryResponse.fromMap(obj);
 
   ReadMemoryResponse({
-    Map<String, Object?>? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ReadMemoryResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  ReadMemoryResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3771,16 +3620,15 @@ class Request extends ProtocolMessage {
   Request({
     this.arguments,
     required this.command,
-    required int seq,
+    required super.seq,
   }) : super(
-          seq: seq,
           type: 'request',
         );
 
-  Request.fromMap(Map<String, Object?> obj)
+  Request.fromMap(super.obj)
       : arguments = obj['arguments'],
         command = obj['command'] as String,
-        super.fromMap(obj);
+        super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3837,19 +3685,18 @@ class Response extends ProtocolMessage {
     this.message,
     required this.requestSeq,
     required this.success,
-    required int seq,
+    required super.seq,
   }) : super(
-          seq: seq,
           type: 'response',
         );
 
-  Response.fromMap(Map<String, Object?> obj)
+  Response.fromMap(super.obj)
       : body = obj['body'],
         command = obj['command'] as String,
         message = obj['message'] as String?,
         requestSeq = obj['request_seq'] as int,
         success = obj['success'] as bool,
-        super.fromMap(obj);
+        super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -3963,22 +3810,15 @@ class RestartFrameResponse extends Response {
       RestartFrameResponse.fromMap(obj);
 
   RestartFrameResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  RestartFrameResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  RestartFrameResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4000,22 +3840,15 @@ class RestartResponse extends Response {
       RestartResponse.fromMap(obj);
 
   RestartResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  RestartResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  RestartResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4079,23 +3912,15 @@ class ReverseContinueResponse extends Response {
       ReverseContinueResponse.fromMap(obj);
 
   ReverseContinueResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ReverseContinueResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  ReverseContinueResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4202,22 +4027,15 @@ class RunInTerminalResponse extends Response {
       RunInTerminalResponse.fromMap(obj);
 
   RunInTerminalResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  RunInTerminalResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  RunInTerminalResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4409,22 +4227,15 @@ class ScopesResponse extends Response {
       ScopesResponse.fromMap(obj);
 
   ScopesResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ScopesResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  ScopesResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4517,22 +4328,15 @@ class SetBreakpointsResponse extends Response {
       SetBreakpointsResponse.fromMap(obj);
 
   SetBreakpointsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SetBreakpointsResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  SetBreakpointsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4592,23 +4396,15 @@ class SetDataBreakpointsResponse extends Response {
       SetDataBreakpointsResponse.fromMap(obj);
 
   SetDataBreakpointsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SetDataBreakpointsResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  SetDataBreakpointsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4715,23 +4511,15 @@ class SetExceptionBreakpointsResponse extends Response {
       SetExceptionBreakpointsResponse.fromMap(obj);
 
   SetExceptionBreakpointsResponse({
-    Map<String, Object?>? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SetExceptionBreakpointsResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  SetExceptionBreakpointsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4815,22 +4603,15 @@ class SetExpressionResponse extends Response {
       SetExpressionResponse.fromMap(obj);
 
   SetExpressionResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SetExpressionResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  SetExpressionResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4890,23 +4671,15 @@ class SetFunctionBreakpointsResponse extends Response {
       SetFunctionBreakpointsResponse.fromMap(obj);
 
   SetFunctionBreakpointsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SetFunctionBreakpointsResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  SetFunctionBreakpointsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -4966,23 +4739,15 @@ class SetInstructionBreakpointsResponse extends Response {
       SetInstructionBreakpointsResponse.fromMap(obj);
 
   SetInstructionBreakpointsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SetInstructionBreakpointsResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  SetInstructionBreakpointsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5067,22 +4832,15 @@ class SetVariableResponse extends Response {
       SetVariableResponse.fromMap(obj);
 
   SetVariableResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SetVariableResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  SetVariableResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5345,22 +5103,15 @@ class SourceResponse extends Response {
       SourceResponse.fromMap(obj);
 
   SourceResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  SourceResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  SourceResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5558,12 +5309,10 @@ class StackFrameFormat extends ValueFormat {
     this.parameterTypes,
     this.parameterValues,
     this.parameters,
-    bool? hex,
-  }) : super(
-          hex: hex,
-        );
+    super.hex,
+  });
 
-  StackFrameFormat.fromMap(Map<String, Object?> obj)
+  StackFrameFormat.fromMap(super.obj)
       : includeAll = obj['includeAll'] as bool?,
         line = obj['line'] as bool?,
         module = obj['module'] as bool?,
@@ -5571,7 +5320,7 @@ class StackFrameFormat extends ValueFormat {
         parameterTypes = obj['parameterTypes'] as bool?,
         parameterValues = obj['parameterValues'] as bool?,
         parameters = obj['parameters'] as bool?,
-        super.fromMap(obj);
+        super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5682,22 +5431,15 @@ class StackTraceResponse extends Response {
       StackTraceResponse.fromMap(obj);
 
   StackTraceResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  StackTraceResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  StackTraceResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5765,22 +5507,15 @@ class StartDebuggingResponse extends Response {
       StartDebuggingResponse.fromMap(obj);
 
   StartDebuggingResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  StartDebuggingResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  StartDebuggingResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5852,22 +5587,15 @@ class StepBackResponse extends Response {
       StepBackResponse.fromMap(obj);
 
   StepBackResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  StepBackResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  StepBackResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -5948,22 +5676,15 @@ class StepInResponse extends Response {
       StepInResponse.fromMap(obj);
 
   StepInResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  StepInResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  StepInResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -6094,22 +5815,15 @@ class StepInTargetsResponse extends Response {
       StepInTargetsResponse.fromMap(obj);
 
   StepInTargetsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  StepInTargetsResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  StepInTargetsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -6184,22 +5898,15 @@ class StepOutResponse extends Response {
       StepOutResponse.fromMap(obj);
 
   StepOutResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  StepOutResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  StepOutResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -6256,22 +5963,15 @@ class TerminateResponse extends Response {
       TerminateResponse.fromMap(obj);
 
   TerminateResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  TerminateResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  TerminateResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -6325,23 +6025,15 @@ class TerminateThreadsResponse extends Response {
       TerminateThreadsResponse.fromMap(obj);
 
   TerminateThreadsResponse({
-    Object? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  TerminateThreadsResponse.fromMap(Map<String, Object?> obj)
-      : super.fromMap(obj);
+  TerminateThreadsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -6400,22 +6092,15 @@ class ThreadsResponse extends Response {
       ThreadsResponse.fromMap(obj);
 
   ThreadsResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  ThreadsResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  ThreadsResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -6754,22 +6439,15 @@ class VariablesResponse extends Response {
       VariablesResponse.fromMap(obj);
 
   VariablesResponse({
-    required Map<String, Object?> body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    required super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  VariablesResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  VariablesResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -6857,22 +6535,15 @@ class WriteMemoryResponse extends Response {
       WriteMemoryResponse.fromMap(obj);
 
   WriteMemoryResponse({
-    Map<String, Object?>? body,
-    required String command,
-    String? message,
-    required int requestSeq,
-    required int seq,
-    required bool success,
-  }) : super(
-          seq: seq,
-          requestSeq: requestSeq,
-          success: success,
-          command: command,
-          message: message,
-          body: body,
-        );
+    super.body,
+    required super.command,
+    super.message,
+    required super.requestSeq,
+    required super.seq,
+    required super.success,
+  });
 
-  WriteMemoryResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+  WriteMemoryResponse.fromMap(super.obj) : super.fromMap();
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
