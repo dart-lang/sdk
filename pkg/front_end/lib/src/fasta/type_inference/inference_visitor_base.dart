@@ -4455,8 +4455,10 @@ class _WhyNotPromotedVisitor
     if (member is Member) {
       propertyReference = member;
       propertyType = reason.staticType;
+      // TODO(paulberry): handle the case where there is no documentation link
       return templateFieldNotPromoted
-          .withArguments(reason.propertyName, reason.documentationLink.url)
+          .withArguments(
+              reason.propertyName, reason.documentationLink?.url ?? '')
           .withLocation(member.fileUri, member.fileOffset, noLength);
     } else {
       assert(member == null,

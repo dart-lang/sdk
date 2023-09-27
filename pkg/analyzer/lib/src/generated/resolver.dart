@@ -5382,11 +5382,12 @@ class _WhyNotPromotedVisitor
             "'$propertyName' refers to a property so it couldn't be promoted",
         offset: property.nonSynthetic.nameOffset,
         length: property.nameLength,
-        url: reason.documentationLink.url);
+        // TODO(paulberry): handle the case where there is no documentation link
+        url: reason.documentationLink?.url);
   }
 
-  DiagnosticMessageImpl _contextMessageForWrite(
-      String variableName, AstNode node, NonPromotionReason reason) {
+  DiagnosticMessageImpl _contextMessageForWrite(String variableName,
+      AstNode node, DemoteViaExplicitWrite<PromotableElement> reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "Variable '$variableName' could not be promoted due to an "

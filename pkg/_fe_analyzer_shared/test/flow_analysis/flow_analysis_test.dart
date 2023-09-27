@@ -5,6 +5,7 @@
 import 'dart:core' as core;
 import 'dart:core';
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_link.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -5761,7 +5762,8 @@ main() {
     group('because property', () {
       test('via explicit this', () {
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?');
+        h.addMember('C', 'field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
         h.run([
           if_(this_.property('field').eq(nullLiteral), [
             return_(),
@@ -5770,15 +5772,18 @@ main() {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason =
                 reasons.values.single as PropertyNotPromoted;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotEnabled);
             expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.property);
+                NonPromotionDocumentationLink.fieldPromotionUnavailable);
           }),
         ]);
       });
 
       test('via implicit this/super', () {
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?');
+        h.addMember('C', 'field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
         h.run([
           if_(thisProperty('field').eq(nullLiteral), [
             return_(),
@@ -5787,14 +5792,17 @@ main() {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason =
                 reasons.values.single as PropertyNotPromoted;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotEnabled);
             expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.property);
+                NonPromotionDocumentationLink.fieldPromotionUnavailable);
           }),
         ]);
       });
 
       test('via variable', () {
-        h.addMember('C', 'field', 'Object?');
+        h.addMember('C', 'field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
         var x = Var('x');
         h.run([
           declare(x, type: 'C', initializer: expr('C')),
@@ -5805,8 +5813,10 @@ main() {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason =
                 reasons.values.single as PropertyNotPromoted;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotEnabled);
             expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.property);
+                NonPromotionDocumentationLink.fieldPromotionUnavailable);
           }),
         ]);
       });
