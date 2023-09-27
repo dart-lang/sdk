@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
@@ -5351,10 +5352,44 @@ class _WhyNotPromotedVisitor
       PropertyNotPromoted<DartType> reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
-      propertyReference = receiverElement;
+      var property = propertyReference = receiverElement;
       propertyType = reason.staticType;
-      return _contextMessageForProperty(
-          receiverElement, reason.propertyName, reason);
+      var propertyName = reason.propertyName;
+      String message;
+      switch (reason.whyNotPromotable) {
+        case PropertyNonPromotabilityReason.isNotEnabled:
+          message =
+              "'$propertyName' refers to a field. It couldn't be promoted "
+              "because field promotion is only available in Dart 3.2 and "
+              "above.";
+        case PropertyNonPromotabilityReason.isNotField:
+          message =
+              "'$propertyName' refers to a getter so it couldn't be promoted.";
+        case PropertyNonPromotabilityReason.isNotPrivate:
+          message =
+              "'$propertyName' refers to a public field so it couldn't be "
+              "promoted.";
+        case PropertyNonPromotabilityReason.isExternal:
+          message =
+              "'$propertyName' refers to an external field so it couldn't be "
+              "promoted.";
+        case PropertyNonPromotabilityReason.isNotFinal:
+          message =
+              "'$propertyName' refers to a non-final field so it couldn't be "
+              "promoted.";
+        case PropertyNonPromotabilityReason.isInterferedWith:
+          // TODO(paulberry): Generate a context message for each conflicting
+          // declaration.
+          return null;
+      }
+      return DiagnosticMessageImpl(
+          filePath: property.source.fullName,
+          message: message,
+          offset: property.nonSynthetic.nameOffset,
+          length: property.nameLength,
+          // TODO(paulberry): Handle the case where there is no documentation
+          // link.
+          url: reason.documentationLink?.url);
     } else {
       assert(receiverElement == null,
           'Unrecognized property element: ${receiverElement.runtimeType}');
@@ -5370,20 +5405,6 @@ class _WhyNotPromotedVisitor
         offset: _errorEntity.offset,
         length: _errorEntity.length,
         url: reason.documentationLink.url);
-  }
-
-  DiagnosticMessageImpl _contextMessageForProperty(
-      PropertyAccessorElement property,
-      String propertyName,
-      NonPromotionReason reason) {
-    return DiagnosticMessageImpl(
-        filePath: property.source.fullName,
-        message:
-            "'$propertyName' refers to a property so it couldn't be promoted",
-        offset: property.nonSynthetic.nameOffset,
-        length: property.nameLength,
-        // TODO(paulberry): handle the case where there is no documentation link
-        url: reason.documentationLink?.url);
   }
 
   DiagnosticMessageImpl _contextMessageForWrite(String variableName,
