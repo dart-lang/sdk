@@ -5440,6 +5440,8 @@ class StaticCallInstr : public TemplateDartCall<0> {
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   DECLARE_INSTRUCTION(StaticCall)
+  DECLARE_ATTRIBUTES(&function())
+
   virtual CompileType ComputeType() const;
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
   bool Evaluate(FlowGraph* flow_graph, const Object& argument, Object* result);

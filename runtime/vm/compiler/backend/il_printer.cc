@@ -219,6 +219,10 @@ class IlTestPrinter : public AllStatic {
 
     void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
 
+    void WriteAttribute(const Function* function) {
+      writer_->PrintValue(function->QualifiedUserVisibleNameCString());
+    }
+
     void WriteAttribute(const Object* obj) {
       if (obj->IsNull()) {
         writer_->PrintValueNull();
