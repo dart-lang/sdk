@@ -114,7 +114,6 @@ abstract class CombinedMemberSignatureBase<T> {
   /// types or function types is used.
   CombinedMemberSignatureBase(this.classBuilder, {required this.forSetter}) {
     int? bestSoFarIndex;
-    StringBuffer sb = new StringBuffer();
     if (members.length == 1) {
       bestSoFarIndex = 0;
     } else {
@@ -170,9 +169,6 @@ abstract class CombinedMemberSignatureBase<T> {
       }
     }
 
-    if (bestSoFarIndex == null) {
-      print(sb.toString());
-    }
     _canonicalMemberIndex = bestSoFarIndex;
   }
 

@@ -1154,8 +1154,18 @@ class MacroApplications {
                   name: name),
               typeArguments: typeArguments,
               isNullable: isNullable);
+        } else if (name is Identifier) {
+          return new macro.NamedTypeAnnotationImpl(
+              id: macro.RemoteInstance.uniqueId,
+              identifier: new TypeBuilderIdentifier(
+                  typeBuilder: typeBuilder,
+                  libraryBuilder: libraryBuilder,
+                  id: macro.RemoteInstance.uniqueId,
+                  name: name.name),
+              typeArguments: typeArguments,
+              isNullable: isNullable);
         } else if (name is QualifiedName) {
-          assert(name.qualifier is String);
+          assert(name.qualifier is Identifier);
           return new macro.NamedTypeAnnotationImpl(
               id: macro.RemoteInstance.uniqueId,
               identifier: new TypeBuilderIdentifier(

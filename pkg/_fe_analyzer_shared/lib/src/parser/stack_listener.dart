@@ -189,13 +189,13 @@ abstract class StackListener extends Listener with StackChecker {
 
   @override
   void handleNoName(Token token) {
-    debugEvent("NoName");
+    debugEvent("handleNoName");
     push(NullValues.Identifier);
   }
 
   @override
   void endInitializer(Token token) {
-    debugEvent("Initializer");
+    debugEvent("endInitializer");
   }
 
   void checkEmpty(int charOffset) {

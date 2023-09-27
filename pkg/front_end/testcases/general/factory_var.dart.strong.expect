@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/factory_var.dart:6:11: Error: Can't have modifier 'var' here.
+// Try removing 'var'.
+//   factory var x = 1;
+//           ^^^
+//
+// pkg/front_end/testcases/general/factory_var.dart:6:17: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   factory var x = 1;
+//                 ^
+//
+// pkg/front_end/testcases/general/factory_var.dart:6:19: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
+//   factory var x = 1;
+//                   ^
+//
+// pkg/front_end/testcases/general/factory_var.dart:6:17: Error: Expected ';' after this.
+//   factory var x = 1;
+//                 ^
+//
+// pkg/front_end/testcases/general/factory_var.dart:6:15: Error: The name of a constructor must match the name of the enclosing class.
+//   factory var x = 1;
+//               ^
+// pkg/front_end/testcases/general/factory_var.dart:5:7: Context: The name of the enclosing class is 'Class'.
+// class Class {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/factory_var.dart:6:19: Error: Expected a class member, but got '1'.
+//   factory var x = 1;
+//                   ^
+//
+// pkg/front_end/testcases/general/factory_var.dart:6:20: Error: Expected a class member, but got ';'.
+//   factory var x = 1;
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static factory x() → self::Class
+    ;
+}

@@ -1,0 +1,10 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/nameless_enum.dart:5:6: Error: Expected an identifier, but got '{'.
+// Try inserting an identifier before '{'.
+// enum {a, b, c}
+//      ^
+//
+import self as self;

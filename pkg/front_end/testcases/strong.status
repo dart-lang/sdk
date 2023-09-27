@@ -1,4 +1,4 @@
-# Copyrighi (c) 2017, the Dart project authors. Please see the AUTHORS file
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -82,6 +82,7 @@ inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForce
 
 # UNSORTED ONES:
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
+general/bad_import: SemiFuzzCrash # missing end token on import
 general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure

@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,11 +6,11 @@ import 'dart:convert' as json;
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
-import 'package:expect/expect.dart';
-import 'package:front_end/src/fasta/command_line_reporting.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/testing/analysis_helper.dart';
 import 'package:kernel/ast.dart';
+
+import '../fasta/command_line_reporting.dart';
+import '../fasta/fasta_codes.dart';
+import 'analysis_helper.dart';
 
 /// [AnalysisVisitor] that supports tracking error/problem occurrences in an
 /// allowed list file.
@@ -30,7 +30,7 @@ class VerifyingAnalysis extends AnalysisVisitor {
         try {
           _expectedJson = json.jsonDecode(file.readAsStringSync());
         } catch (e) {
-          Expect.fail('Error reading allowed list from $_allowedListPath: $e');
+          throw 'Error reading allowed list from $_allowedListPath: $e';
         }
       }
     }
@@ -175,6 +175,7 @@ class VerifyingAnalysis extends AnalysisVisitor {
       });
       if (total > 0) {
         print('${total} error(s) allowed in total.');
+        print('Use option -v to see error details.');
       }
     }
   }

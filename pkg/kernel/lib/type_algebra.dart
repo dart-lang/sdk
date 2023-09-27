@@ -169,11 +169,13 @@ class FreshTypeParameters {
   }
 }
 
-/// Generates a fresh copy of the given type parameters, with their bounds
-/// substituted to reference the new parameters.
+/// Creates a fresh representation of the given [TypeParameter]s as
+/// [StructuralParameter]s, with their bounds substituted to reference the new
+/// parameters.
 ///
-/// The returned object contains the fresh type parameter list as well as a
-/// mapping to be used for replacing other types to use the new type parameters.
+/// The returned object contains the fresh list of [StructuralParameter]s as
+/// well as a mapping to be used for replacing other types to use the new type
+/// parameters instead of the old.
 FreshStructuralParametersFromTypeParameters
     getFreshStructuralParametersFromTypeParameters(
         List<TypeParameter> typeParameters) {
@@ -212,11 +214,20 @@ FreshStructuralParametersFromTypeParameters
       freshParameters, freshTypeArguments, substitutionMap);
 }
 
+/// Representation of [TypeParameter]s as a fresh copy of [StructuralParameter]s
+///
+/// The objects of [FreshStructuralParametersFromTypeParameters] are generated
+/// from the given list of [TypeParameter]s and contain the list
+/// [freshTypeParameters] of [StructuralParameter]s intended to replace the
+/// initial list of [TypeParameter]s, the list [freshTypeArguments] representing
+/// [freshTypeArguments] as types, and the [substitution] intended to replace
+/// occurrences [TypeParameter]s from the original list with
+/// [freshTypeArguments], according to [substitutionMap].
 class FreshStructuralParametersFromTypeParameters {
   /// The newly created type parameters.
   final List<StructuralParameter> freshTypeParameters;
 
-  /// List of [TypeParameterType]s for [TypeParameter].
+  /// List of [StructuralParameterType]s for each of [freshTypeParameters]
   final List<DartType> freshTypeArguments;
 
   /// Substitution from the original type parameters to [freshTypeArguments].
@@ -725,7 +736,7 @@ class _InnerTypeSubstitutor extends _SubstitutorBase {
   StructuralParameter freshStructuralParameter(StructuralParameter node) {
     assert(
         !substitution.containsKey(node),
-        "TypeParameter '${node}' is not in the scope "
+        "StructuralParameter '${node}' is not in the scope "
         "of the inner substitutor.");
 
     StructuralParameter fresh = new StructuralParameter(node.name)

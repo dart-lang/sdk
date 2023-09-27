@@ -284,7 +284,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference,
         isSynthesized: true);
-    members["values"] = valuesBuilder;
+    if (customValuesDeclaration != null) {
+      customValuesDeclaration.next = valuesBuilder;
+    } else {
+      members["values"] = valuesBuilder;
+    }
 
     DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
 
@@ -405,9 +409,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
     scope.forEachLocalMember((name, member) {
-      if (name != "values") {
-        members[name] = member as MemberBuilder;
-      }
+      members[name] = member as MemberBuilder;
     });
     scope.forEachLocalSetter((name, member) {
       setters[name] = member;
@@ -664,9 +666,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
     DartType selfType =
         this.selfType.build(libraryBuilder, TypeUse.enumSelfType);
-    Builder? builder = firstMemberNamed(fieldBuilder.name);
-    if (builder == null || !builder.isField) return selfType;
-    fieldBuilder = builder as SourceFieldBuilder;
     if (!_builtElements.add(fieldBuilder)) return fieldBuilder.fieldType;
 
     if (enumConstantInfos == null) return selfType;

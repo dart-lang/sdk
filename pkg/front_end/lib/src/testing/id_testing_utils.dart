@@ -8,6 +8,7 @@ import '../fasta/builder/declaration_builders.dart';
 import '../fasta/builder/library_builder.dart';
 import '../fasta/builder/member_builder.dart';
 import '../fasta/builder/type_builder.dart';
+import '../fasta/identifiers.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';
@@ -773,7 +774,8 @@ String typeBuilderToText(TypeBuilder type) {
 
 void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
   if (type is NamedTypeBuilder) {
-    sb.write(type.name);
+    Object name = type.name;
+    sb.write(name is Identifier ? name.name : name);
     if (type.arguments != null && type.arguments!.isNotEmpty) {
       sb.write('<');
       _typeBuildersToText(type.arguments!, sb);

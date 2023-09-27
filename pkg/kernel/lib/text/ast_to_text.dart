@@ -400,42 +400,36 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     return getVariableName(node);
   }
 
-  String getTypeParameterName(
-      /* TypeParameter | StructuralParameter */ Object node) {
-    assert(node is TypeParameter || node is StructuralParameter);
-    if (node is TypeParameter) {
-      return node.name ?? syntheticNames.nameTypeParameter(node);
-    } else {
-      node as StructuralParameter;
-      return node.name ?? syntheticNames.nameStructuralParameter(node);
+  String getTypeParameterName(TypeParameter node) {
+    return node.name ?? syntheticNames.nameTypeParameter(node);
+  }
+
+  String getStructuralParameterName(StructuralParameter node) {
+    return node.name ?? syntheticNames.nameStructuralParameter(node);
+  }
+
+  String getTypeParameterReference(TypeParameter node) {
+    String name = getTypeParameterName(node);
+    GenericDeclaration? declaration = node.declaration;
+    switch (declaration) {
+      case Class():
+        String className = getClassReference(declaration);
+        return '$className::$name';
+      case Procedure():
+        String member = getMemberReference(declaration);
+        return '$member::$name';
+      case Typedef():
+      case Extension():
+      case ExtensionTypeDeclaration():
+      case LocalFunction():
+      // TODO(johnniwinther): Support these cases correctly.
+      case null:
+        return name; // Bound inside a function type.
     }
   }
 
-  String getTypeParameterReference(
-      /* TypeParameter | StructuralParameter */ Object node) {
-    assert(node is TypeParameter || node is StructuralParameter);
-    String name = getTypeParameterName(node);
-    if (node is TypeParameter) {
-      GenericDeclaration? declaration = node.declaration;
-      switch (declaration) {
-        case Class():
-          String className = getClassReference(declaration);
-          return '$className::$name';
-        case Procedure():
-          String member = getMemberReference(declaration);
-          return '$member::$name';
-        case Typedef():
-        case Extension():
-        case ExtensionTypeDeclaration():
-        case LocalFunction():
-        // TODO(johnniwinther): Support these cases correctly.
-        case null:
-          return name; // Bound inside a function type.
-      }
-    } else {
-      node as StructuralParameter;
-      return name;
-    }
+  String getStructuralParameterReference(StructuralParameter node) {
+    return getStructuralParameterName(node);
   }
 
   void writeComponentProblems(Component component) {
@@ -1082,10 +1076,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     }
   }
 
-  void writeTypeParameterReference(
-      /* TypeParameter | StructuralParameter */ Object node) {
-    assert(node is TypeParameter || node is StructuralParameter);
+  void writeTypeParameterReference(TypeParameter node) {
     writeWord(getTypeParameterReference(node));
+  }
+
+  void writeStructuralParameterReference(StructuralParameter node) {
+    writeWord(getStructuralParameterReference(node));
   }
 
   void writeExpression(Expression node, [int? minimumPrecedence]) {
@@ -2763,7 +2759,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitStructuralParameterType(StructuralParameterType node) {
-    writeTypeParameterReference(node.parameter);
+    writeStructuralParameterReference(node.parameter);
     writeNullability(node.declaredNullability);
   }
 
@@ -2813,7 +2809,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         "invariant"
       ][node.variance]);
     }
-    writeWord(getTypeParameterName(node));
+    writeWord(getStructuralParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
     if (node.defaultType != node.bound) {

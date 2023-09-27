@@ -1,0 +1,6 @@
+class Class {
+  factory var x ()= ;
+  ---- unknown chunk starts ----
+1;
+---- unknown chunk ends ----
+}
