@@ -664,9 +664,18 @@ using serializable_type_t =
 #define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BaseTextBuffer* f) const;
-#define DECLARE_ATTRIBUTES(...)                                                \
-  auto GetAttributes() const { return std::make_tuple(__VA_ARGS__); }          \
-  static auto GetAttributeNames() { return std::make_tuple(#__VA_ARGS__); }
+// Used for an instruction with a single attribute where the name of the
+// attribute should be derived from the expression. See
+// IlTestPrinter::AttributesSerializer::WriteAttributeName for more info.
+#define DECLARE_ATTRIBUTE(Attribute)                                           \
+  auto GetAttributes() const {                                                 \
+    return std::make_tuple(Attribute);                                         \
+  }                                                                            \
+  static auto GetAttributeNames() {                                            \
+    return std::make_tuple(#Attribute);                                        \
+  }
+// Used for instructions with either multiple attributes or where the name of
+// the attribute should not be derived from the expression.
 #define DECLARE_ATTRIBUTES_NAMED(names, values)                                \
   auto GetAttributes() const {                                                 \
     return std::make_tuple values;                                             \
@@ -677,7 +686,7 @@ using serializable_type_t =
 #else
 #define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
-#define DECLARE_ATTRIBUTES(...)
+#define DECLARE_ATTRIBUTE(Attribute)
 #define DECLARE_ATTRIBUTES_NAMED(names, values)
 #endif  // defined(INCLUDE_IL_PRINTER)
 
@@ -2854,7 +2863,7 @@ class ParameterInstr : public TemplateDefinition<0, NoThrow> {
         block_(block) {}
 
   DECLARE_INSTRUCTION(Parameter)
-  DECLARE_ATTRIBUTES(index())
+  DECLARE_ATTRIBUTE(index())
 
   // Index of the parameter in the flow graph environment.
   intptr_t env_index() const { return env_index_; }
@@ -3650,7 +3659,7 @@ class ComparisonInstr : public Definition {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
-  DECLARE_ATTRIBUTES(kind())
+  DECLARE_ATTRIBUTE(kind())
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
 
@@ -4060,7 +4069,7 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
                           intptr_t pair_index = 0);
 
   PRINT_OPERANDS_TO_SUPPORT
-  DECLARE_ATTRIBUTES_NAMED(("value"), (&value()))
+  DECLARE_ATTRIBUTE(&value());
 
 #define FIELD_LIST(F)                                                          \
   F(const Object&, value_)                                                     \
@@ -4913,7 +4922,7 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
       const compiler::TableSelector* selector);
 
   DECLARE_INSTRUCTION(DispatchTableCall)
-  DECLARE_ATTRIBUTES(selector_name())
+  DECLARE_ATTRIBUTE(selector_name())
 
   const Function& interface_target() const { return interface_target_; }
   const compiler::TableSelector* selector() const { return selector_; }
@@ -5440,7 +5449,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   DECLARE_INSTRUCTION(StaticCall)
-  DECLARE_ATTRIBUTES(&function())
+  DECLARE_ATTRIBUTE(&function())
 
   virtual CompileType ComputeType() const;
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
@@ -6103,6 +6112,8 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   }
 
   DECLARE_INSTRUCTION(StoreField)
+  DECLARE_ATTRIBUTES_NAMED(("slot", "is_initialization"),
+                           (&slot(), is_initialization()))
 
   enum { kInstancePos = 0, kValuePos = 1 };
 
@@ -7593,7 +7604,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
   virtual Representation representation() const;
 
   DECLARE_INSTRUCTION(LoadField)
-  DECLARE_ATTRIBUTES(&slot())
+  DECLARE_ATTRIBUTE(&slot())
 
   virtual CompileType ComputeType() const;
 
@@ -9797,7 +9808,7 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(ExtractNthOutput)
-  DECLARE_ATTRIBUTES(index())
+  DECLARE_ATTRIBUTE(index())
 
   virtual CompileType ComputeType() const;
   virtual bool ComputeCanDeoptimize() const { return false; }

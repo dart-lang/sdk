@@ -170,6 +170,13 @@ void JSONWriter::PrintValue(const char* s) {
   buffer_.AddChar('"');
 }
 
+void JSONWriter::PrintValue(const char* s, intptr_t i) {
+  PrintCommaIfNeeded();
+  buffer_.AddChar('"');
+  AddEscapedUTF8String(s, i);
+  buffer_.AddChar('"');
+}
+
 bool JSONWriter::PrintValueStr(const String& s,
                                intptr_t offset,
                                intptr_t count) {

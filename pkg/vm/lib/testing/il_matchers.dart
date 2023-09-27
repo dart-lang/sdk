@@ -59,17 +59,33 @@ class FlowGraph {
     return {for (final e in attrs.entries) e.key: instr['d'][e.value]};
   }
 
+  void _formatAttributes(
+      StringBuffer buffer, Map<String, int> attributeIndex, List attributes) {
+    bool addSeparator = false;
+    for (final e in attributeIndex.entries) {
+      final value = attributes[e.value];
+      // Skip printing attributes with value false.
+      if (value is bool && !value) continue;
+      if (addSeparator) {
+        buffer..write(', ');
+      }
+      buffer.write(e.key);
+      if (value is! bool) {
+        buffer
+          ..write(': ')
+          ..write(value);
+      }
+      addSeparator = true;
+    }
+  }
+
   void _formatInternal(StringBuffer buffer, Map<String, dynamic> instr) {
     buffer.write(instr['o']);
-    final attrs = descriptors[instr['o']]
-        ?.attributeIndex
-        .entries
-        .map((e) => '${e.key}: ${instr['d'][e.value]}');
+    final attrs = descriptors[instr['o']]?.attributeIndex;
     if (attrs != null) {
-      buffer
-        ..write('[')
-        ..writeAll(attrs, ',')
-        ..write(']');
+      buffer.write('[');
+      _formatAttributes(buffer, attrs, instr['d']);
+      buffer.write(']');
     }
     final condition = instr['cc'];
     if (condition != null) {
@@ -139,18 +155,11 @@ class InstructionDescriptor {
   final List<String> attributes;
   final Map<String, int> attributeIndex;
 
-  InstructionDescriptor.fromJson(List<dynamic> attrs)
-      : this._(attrs.map((v) => _demangle(v)).toList());
+  InstructionDescriptor.fromJson(List attrs) : this._(attrs.cast<String>());
 
   InstructionDescriptor._(List<String> attrs)
-      : attributes = attrs.cast<String>(),
+      : attributes = attrs,
         attributeIndex = {for (var i = 0; i < attrs.length; i++) attrs[i]: i};
-
-  static String _demangle(String v) {
-    final prefixLen = v.startsWith('&') ? 1 : 0;
-    final suffixLen = v.endsWith('()') ? 2 : 0;
-    return v.substring(prefixLen, v.length - suffixLen);
-  }
 }
 
 /// Matching environment.
