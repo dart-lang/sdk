@@ -4,6 +4,8 @@
 
 library dart._wasm;
 
+import 'dart:js_interop';
+
 // A collection a special Dart types that are mapped directly to Wasm types
 // by the dart2wasm compiler. These types have a number of constraints:
 //
@@ -280,3 +282,12 @@ extension DoubleToWasmFloat on double {
   WasmF32 toWasmF32() => WasmF32.fromDouble(this);
   WasmF64 toWasmF64() => WasmF64.fromDouble(this);
 }
+
+extension WasmExternRefToJSAny on WasmExternRef {
+  external JSAny get toJS;
+}
+
+// Note: We would make this an extension method on JSAny, but external methods
+// on JS interop types are assumed to be JS interop functions, not methods that
+// are patched in patch files. So instead we just use a plain function here.
+external WasmExternRef? externRefForJSAny(JSAny object);
