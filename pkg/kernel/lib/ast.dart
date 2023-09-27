@@ -3771,6 +3771,8 @@ class FunctionNode extends TreeNode {
         namedParameters.sort();
       }
     }
+    // TODO(johnniwinther,cstefantsova): Cache the function type here and use
+    // [DartType.withDeclaredNullability] to handle the variants.
     return new FunctionType(positionalParameters, returnType, nullability,
         namedParameters: namedParameters,
         typeParameters: structuralParameters,
@@ -3785,6 +3787,7 @@ class FunctionNode extends TreeNode {
   /// parameters constructed after those of the class.  In both cases, if the
   /// resulting function type is generic, a fresh set of type parameters is used
   /// in it.
+  // TODO(johnniwinther,cstefantsova): Merge it with [computeThisFunctionType].
   FunctionType computeFunctionType(Nullability nullability) {
     return computeThisFunctionType(nullability);
   }
@@ -12390,12 +12393,7 @@ class TypeParameterType extends DartType {
   @override
   Nullability get nullability => declaredNullability;
 
-  /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
-  ///
-  /// In contrast with other types, [TypeParameterType.withDeclaredNullability]
-  /// doesn't set the overall nullability of the returned type but sets that of
-  /// the left-hand side of the intersection type.  In case [promotedBound] is
-  /// null, it is an equivalent of setting the overall nullability.
+  /// Gets a new [TypeParameterType] with given [declaredNullability].
   @override
   TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
     if (declaredNullability == this.declaredNullability) {
@@ -12459,25 +12457,21 @@ class TypeParameterType extends DartType {
 
 /// Reference to a structural type variable declared by a [FunctionType]
 class StructuralParameterType extends DartType {
-  /// The declared nullability of a type-parameter type.
-  ///
-  /// When a [TypeParameterType] represents an intersection,
-  /// [declaredNullability] is the nullability of the left-hand side.
+  /// The declared nullability of the structural parameter type.
   @override
   Nullability declaredNullability;
 
-  StructuralParameter parameter;
+  final StructuralParameter parameter;
 
   StructuralParameterType(this.parameter, this.declaredNullability);
 
-  /// Creates a type-parameter type to be used in alpha-renaming.
+  /// Creates a structural parameter type to be used in alpha-renaming.
   ///
   /// The constructed type object is supposed to be used as a value in a
-  /// substitution map created to perform an alpha-renaming from parameter
-  /// [from] to parameter [to] on a generic type.  The resulting type-parameter
-  /// type is an occurrence of [to] as a type, but the nullability property is
-  /// derived from the bound of [from].  It allows to assign the bound to [to]
-  /// after the desired alpha-renaming is performed, which is often the case.
+  /// substitution map created to perform an alpha-renaming from the parameter
+  /// [from] to the parameter [to] on a generic type. The resulting structural
+  /// parameter type is an occurrence of [to] as a type, but the nullability
+  /// property is derived from the bound of [from].
   StructuralParameterType.forAlphaRenaming(
       StructuralParameter from, StructuralParameter to)
       : this(to, computeNullabilityFromBound(from));
@@ -12554,12 +12548,7 @@ class StructuralParameterType extends DartType {
   @override
   Nullability get nullability => declaredNullability;
 
-  /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
-  ///
-  /// In contrast with other types, [TypeParameterType.withDeclaredNullability]
-  /// doesn't set the overall nullability of the returned type but sets that of
-  /// the left-hand side of the intersection type.  In case [promotedBound] is
-  /// null, it is an equivalent of setting the overall nullability.
+  /// Gets a new [StructuralParameterType] with given [declaredNullability].
   @override
   StructuralParameterType withDeclaredNullability(
       Nullability declaredNullability) {
@@ -12569,11 +12558,11 @@ class StructuralParameterType extends DartType {
     return new StructuralParameterType(parameter, declaredNullability);
   }
 
-  /// Gets the nullability of a type-parameter type based on the bound.
+  /// Gets the nullability of a structural parameter type based on the bound.
   ///
-  /// This is a helper function to be used when the bound of the type parameter
-  /// is changing or is being set for the first time, and the update on some
-  /// type-parameter types is required.
+  /// This is a helper function to be used when the bound of the structural
+  /// parameter is changing or is being set for the first time, and the update
+  /// on some structural parameter types is required.
   static Nullability computeNullabilityFromBound(
       StructuralParameter structuralParameter) {
     // If the bound is nullable or 'undetermined', both nullable and

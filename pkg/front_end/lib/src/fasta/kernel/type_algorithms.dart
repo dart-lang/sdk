@@ -301,7 +301,7 @@ TypeBuilder _substituteNamedTypeBuilder(
       }
       return type;
     }
-  } else if (type.declaration is StructuralVariableBuilder) {
+  } else if (declaration is StructuralVariableBuilder) {
     if (variance == Variance.contravariant) {
       TypeBuilder? replacement = lowerSubstitution[type.declaration];
       if (replacement != null) {
