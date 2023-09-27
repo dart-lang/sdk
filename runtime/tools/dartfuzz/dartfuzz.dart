@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.100';
+const String version = '1.101';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -119,8 +119,30 @@ abstract class Method {
     }
   }
 
+  void emitFunctionAnnotations() {
+    if (fuzzer.rollDice(6)) {
+      fuzzer.emitLn('@pragma("vm:always-consider-inlining")');
+    }
+    if (fuzzer.rollDice(6)) {
+      fuzzer.emitLn('@pragma("vm:entry-point")');
+    }
+    if (fuzzer.rollDice(6)) {
+      fuzzer.emitLn('@pragma("vm:never-inline")');
+    }
+    if (fuzzer.rollDice(6)) {
+      fuzzer.emitLn('@pragma("vm:prefer-inline")');
+    }
+    if (fuzzer.rollDice(10)) {
+      fuzzer.emit('@pragma(');
+      fuzzer.emitString();
+      fuzzer.emit(')');
+      fuzzer.emitNewline();
+    }
+  }
+
   void emitFunctionDefinition() {
     final type = returnType.dartName;
+    emitFunctionAnnotations();
     fuzzer.emitLn('$type $name', newline: false);
     fuzzer.emitParenWrapped(() => fuzzer.emitParDecls(parameters));
     emitFunctionBody();
