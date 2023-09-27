@@ -1743,6 +1743,24 @@ class Assembler : public AssemblerBase {
 #endif  // defined(DART_COMPRESSED_POINTERS)
   }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    LoadInt64FromBoxOrSmi(result, value);
+  }
+
+  void LoadInt64FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value);
+    BranchIfSmi(value, &done);
+    LoadFieldFromOffset(result, value, target::Mint::value_offset());
+    Bind(&done);
+  }
+
   // For ARM, the near argument is ignored.
   void BranchIfNotSmi(Register reg,
                       Label* label,

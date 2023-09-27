@@ -614,3 +614,11 @@ class StructuralVariableBuilder extends TypeDeclarationBuilderImpl
         growable: true);
   }
 }
+
+class FreshStructuralVariableBuildersFromNominalVariableBuilders {
+  final List<StructuralVariableBuilder> freshStructuralVariableBuilders;
+  final Map<TypeVariableBuilder, TypeBuilder> substitutionMap;
+
+  FreshStructuralVariableBuildersFromNominalVariableBuilders(
+      this.freshStructuralVariableBuilders, this.substitutionMap);
+}

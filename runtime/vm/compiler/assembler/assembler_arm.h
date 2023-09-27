@@ -1372,6 +1372,23 @@ class Assembler : public AssemblerBase {
     b(label, NE);
   }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    LoadInt32FromBoxOrSmi(result, value);
+  }
+
+  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value, &done);
+    LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset());
+    Bind(&done);
+  }
+
   // For ARM, the near argument is ignored.
   void BranchIfSmi(Register reg,
                    Label* label,

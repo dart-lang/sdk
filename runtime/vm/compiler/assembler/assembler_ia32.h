@@ -1074,6 +1074,10 @@ class Assembler : public AssemblerBase {
 
   void SmiUntag(Register reg) { sarl(reg, Immediate(kSmiTagSize)); }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    UNIMPLEMENTED();
+  }
+
   void BranchIfNotSmi(Register reg,
                       Label* label,
                       JumpDistance distance = kFarJump) {

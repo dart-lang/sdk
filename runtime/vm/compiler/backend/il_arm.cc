@@ -4451,10 +4451,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  compiler::Label done;
-  __ SmiUntag(result, value, &done);
-  __ LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset());
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {

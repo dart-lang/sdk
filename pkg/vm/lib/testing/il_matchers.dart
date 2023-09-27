@@ -53,30 +53,101 @@ class FlowGraph {
     return env;
   }
 
-  void dump() {
-    String formatOne(Map<String, dynamic> instr) {
-      final inputs = instr['i']?.map((v) => 'v$v').join(', ') ?? '';
-      final successors = instr['s'] != null ? ' goto ${instr['s']}' : '';
-      final attrs = descriptors[instr['o']]
-          ?.attributeIndex
-          .entries
-          .map((e) => '${e.key}: ${instr['d'][e.value]}')
-          .join(',');
-      final condition = instr['cc'] != null ? formatOne(instr['cc']) : '';
-      final attrsWrapped = attrs != null ? '[$attrs]' : '';
-      final inputsWrapped =
-          condition != '' ? ' if $condition then ' : '($inputs)';
-      return '${instr['o']}$attrsWrapped$inputsWrapped$successors';
-    }
+  Map<String, dynamic>? attributesFor(Map<String, dynamic> instr) {
+    final attrs = descriptors[instr['o']]?.attributeIndex;
+    if (attrs == null) return null;
+    return {for (final e in attrs.entries) e.key: instr['d'][e.value]};
+  }
 
-    for (var block in blocks) {
-      print('B${block['b']}[${block['o']}]');
-      for (var instr in [...?block['d'], ...?block['is']]) {
-        final v = instr['v'] ?? -1;
-        final prefix = v != -1 ? 'v$v <- ' : '';
-        print('  ${prefix}${formatOne(instr)}');
+  void _formatAttributes(
+      StringBuffer buffer, Map<String, int> attributeIndex, List attributes) {
+    bool addSeparator = false;
+    for (final e in attributeIndex.entries) {
+      final value = attributes[e.value];
+      // Skip printing attributes with value false.
+      if (value is bool && !value) continue;
+      if (addSeparator) {
+        buffer..write(', ');
       }
+      buffer.write(e.key);
+      if (value is! bool) {
+        buffer
+          ..write(': ')
+          ..write(value);
+      }
+      addSeparator = true;
     }
+  }
+
+  void _formatInternal(StringBuffer buffer, Map<String, dynamic> instr) {
+    buffer.write(instr['o']);
+    final attrs = descriptors[instr['o']]?.attributeIndex;
+    if (attrs != null) {
+      buffer.write('[');
+      _formatAttributes(buffer, attrs, instr['d']);
+      buffer.write(']');
+    }
+    final condition = instr['cc'];
+    if (condition != null) {
+      buffer.write(' if ');
+      _formatInternal(buffer, condition);
+      buffer.write(' then');
+    } else {
+      final inputs = instr['i']?.map((v) => 'v$v') ?? [];
+      buffer
+        ..write('(')
+        ..writeAll(inputs, ', ')
+        ..write(')');
+    }
+    if (instr['s'] != null) {
+      buffer
+        ..write(' goto ')
+        ..write(instr['s']);
+    }
+  }
+
+  void formatInstruction(StringBuffer buffer, Map<String, dynamic> instr) {
+    if (instr['v'] != null) {
+      buffer
+        ..write('v')
+        ..write(instr['v'])
+        ..write(' <- ');
+    }
+    _formatInternal(buffer, instr);
+  }
+
+  void _formatBlock(StringBuffer buffer, Map<String, dynamic> block) {
+    buffer
+      ..write(blockName(block))
+      ..write('[')
+      ..write(block['o'])
+      ..write(']');
+    final defs = block['d'] ?? [];
+    if (defs.isNotEmpty) {
+      buffer.writeln(' {');
+      for (final instr in defs) {
+        buffer.write('  ');
+        formatInstruction(buffer, instr);
+        buffer.writeln();
+      }
+      buffer.write('}');
+    }
+    buffer.writeln();
+    for (final instr in block['is'] ?? []) {
+      buffer.write('  ');
+      formatInstruction(buffer, instr);
+      buffer.writeln();
+    }
+  }
+
+  String blockName(Map<String, dynamic> block) => 'B${block['b']}';
+
+  void dump() {
+    final buffer = StringBuffer();
+    for (var block in blocks) {
+      _formatBlock(buffer, block);
+    }
+    print(buffer);
   }
 }
 
@@ -84,18 +155,11 @@ class InstructionDescriptor {
   final List<String> attributes;
   final Map<String, int> attributeIndex;
 
-  InstructionDescriptor.fromJson(List<dynamic> attrs)
-      : this._(attrs.map((v) => _demangle(v)).toList());
+  InstructionDescriptor.fromJson(List attrs) : this._(attrs.cast<String>());
 
   InstructionDescriptor._(List<String> attrs)
-      : attributes = attrs.cast<String>(),
+      : attributes = attrs,
         attributeIndex = {for (var i = 0; i < attrs.length; i++) attrs[i]: i};
-
-  static String _demangle(String v) {
-    final prefixLen = v.startsWith('&') ? 1 : 0;
-    final suffixLen = v.endsWith('()') ? 2 : 0;
-    return v.substring(prefixLen, v.length - suffixLen);
-  }
 }
 
 /// Matching environment.

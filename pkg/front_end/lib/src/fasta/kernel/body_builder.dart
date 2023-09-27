@@ -9918,23 +9918,23 @@ class FormalParameters {
 
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      [(
-        List<StructuralVariableBuilder>,
-        Map<TypeVariableBuilder, TypeBuilder>
-      )? freshStructuralParameters]) {
+      [FreshStructuralVariableBuildersFromNominalVariableBuilders?
+          freshStructuralParameters]) {
     if (freshStructuralParameters != null) {
-      var (
-        List<StructuralVariableBuilder> structuralParameters,
-        Map<TypeVariableBuilder, TypeBuilder> nominalToStructuralSubstitutionMap
-      ) = freshStructuralParameters;
       if (parameters != null) {
         for (FormalParameterBuilder formal in parameters!) {
-          formal.type = formal.type.subst(nominalToStructuralSubstitutionMap);
+          formal.type =
+              formal.type.subst(freshStructuralParameters.substitutionMap);
         }
       }
-      returnType = returnType.subst(nominalToStructuralSubstitutionMap);
-      return new FunctionTypeBuilderImpl(returnType, structuralParameters,
-          parameters, nullabilityBuilder, uri, charOffset);
+      returnType = returnType.subst(freshStructuralParameters.substitutionMap);
+      return new FunctionTypeBuilderImpl(
+          returnType,
+          freshStructuralParameters.freshStructuralVariableBuilders,
+          parameters,
+          nullabilityBuilder,
+          uri,
+          charOffset);
     } else {
       return new FunctionTypeBuilderImpl(
           returnType, null, parameters, nullabilityBuilder, uri, charOffset);

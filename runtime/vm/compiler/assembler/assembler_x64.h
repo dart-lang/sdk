@@ -1071,6 +1071,12 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    LoadInt64FromBoxOrSmi(result, value);
+  }
+
+  void LoadInt64FromBoxOrSmi(Register result, Register value);
+
   void BranchIfNotSmi(Register reg,
                       Label* label,
                       JumpDistance distance = kFarJump) {

@@ -817,22 +817,14 @@ abstract class TypeConstraintGatherer {
                 constrainSupertype: !constrainSupertype);
       }
       if (isMatch) {
-        List<StructuralParameter> freshTypeParameters =
-            getFreshStructuralParameters(p.typeParameters).freshTypeParameters;
-        List<DartType> freshTypeParametersAsTypesForP =
+        List<DartType> typeParametersOfPAsTypesForQ =
             new List<DartType>.generate(
-                freshTypeParameters.length,
+                p.typeParameters.length,
                 (int i) => new StructuralParameterType.forAlphaRenaming(
-                    p.typeParameters[i], freshTypeParameters[i]));
-        List<DartType> freshTypeParametersAsTypesForQ =
-            new List<DartType>.generate(
-                freshTypeParameters.length,
-                (int i) => new StructuralParameterType.forAlphaRenaming(
-                    q.typeParameters[i], freshTypeParameters[i]));
-        FunctionType instantiatedP = FunctionTypeInstantiator.instantiate(
-            p, freshTypeParametersAsTypesForP);
+                    q.typeParameters[i], p.typeParameters[i]));
+        FunctionType instantiatedP = p.withoutTypeParameters;
         FunctionType instantiatedQ = FunctionTypeInstantiator.instantiate(
-            q, freshTypeParametersAsTypesForQ);
+            q, typeParametersOfPAsTypesForQ);
         if (_isNullabilityAwareSubtypeMatch(instantiatedP, instantiatedQ,
             constrainSupertype: constrainSupertype)) {
           List<_ProtoConstraint> constraints =
@@ -840,7 +832,7 @@ abstract class TypeConstraintGatherer {
           _protoConstraints.length = baseConstraintCount;
           NullabilityAwareTypeVariableEliminator eliminator =
               new NullabilityAwareTypeVariableEliminator(
-                  eliminationTargets: freshTypeParameters.toSet(),
+                  eliminationTargets: p.typeParameters.toSet(),
                   bottomType: const NeverType.nonNullable(),
                   topType: coreTypes.objectNullableRawType,
                   topFunctionType: coreTypes.functionNonNullableRawType,
