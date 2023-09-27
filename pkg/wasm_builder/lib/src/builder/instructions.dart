@@ -145,7 +145,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Create a new instruction sequence.
   InstructionsBuilder(this.module, List<ir.ValueType> outputs,
       {this.isGlobalInitializer = false})
-      : _stackTraces = module.watchPoints != null ? {} : null {
+      : _stackTraces = module.watchPoints.isNotEmpty ? {} : null {
     _labelStack.add(Expression(const [], outputs));
   }
 
@@ -164,7 +164,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   void _add(ir.Instruction i) {
     _instructions.add(i);
-    if (module.watchPoints != null) {
+    if (module.watchPoints.isNotEmpty) {
       _stackTraces![i] = StackTrace.current;
     }
   }
