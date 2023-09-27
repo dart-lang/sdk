@@ -230,6 +230,14 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   }
 }
 
+#if !defined(DART_HOST_OS_ANDROID)
+void* ThreadInterrupter::PrepareCurrentThread() {
+  return nullptr;
+}
+
+void ThreadInterrupter::CleanupCurrentThreadState(void* state) {}
+#endif
+
 #endif  // !PRODUCT
 
 }  // namespace dart

@@ -51,6 +51,15 @@ class SignalHandler : public AllStatic {
   static uintptr_t GetCStackPointer(const mcontext_t& mcontext);
   static uintptr_t GetDartStackPointer(const mcontext_t& mcontext);
   static uintptr_t GetLinkRegister(const mcontext_t& mcontext);
+
+#if defined(DART_HOST_OS_ANDROID)
+  // Prepare current thread for handling interrupts. Returns
+  // opaque pointer to the allocated state (if any).
+  static void* PrepareCurrentThread();
+
+  // Cleanup any state which was created by |PrepareCurrentThread|.
+  static void CleanupCurrentThreadState(void* state);
+#endif
 };
 
 #undef USE_SIGNAL_HANDLER_TRAMPOLINE

@@ -38,22 +38,13 @@ inline void UpdateTimelineTrackMetadata(const OSThread& thread) {
 OSThread::OSThread()
     : BaseThread(true),
       id_(OSThread::GetCurrentThreadId()),
-#if defined(DEBUG)
-      join_id_(kInvalidThreadJoinId),
-#endif
 #ifdef SUPPORT_TIMELINE
       trace_id_(OSThread::GetCurrentThreadTraceId()),
 #endif
       name_(OSThread::GetCurrentThreadName()),
       timeline_block_lock_(),
-      timeline_block_(nullptr),
-      thread_list_next_(nullptr),
       thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
-      log_(new class Log()),
-      stack_base_(0),
-      stack_limit_(0),
-      stack_headroom_(0),
-      thread_(nullptr) {
+      log_(new class Log()) {
   // Try to get accurate stack bounds from pthreads, etc.
   if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
     FATAL("Failed to retrieve stack bounds");
@@ -106,6 +97,11 @@ OSThread::~OSThread() {
 #endif
   timeline_block_ = nullptr;
   free(name_);
+  if (FLAG_profiler && prepared_for_interrupts_) {
+    ThreadInterrupter::CleanupCurrentThreadState(thread_interrupter_state_);
+    thread_interrupter_state_ = nullptr;
+    prepared_for_interrupts_ = false;
+  }
 }
 
 void OSThread::SetName(const char* name) {
@@ -147,6 +143,10 @@ void OSThread::EnableThreadInterrupts() {
   if (FLAG_profiler && (old == 1)) {
     // We just decremented from 1 to 0.
     // Make sure the thread interrupter is awake.
+    if (!prepared_for_interrupts_) {
+      thread_interrupter_state_ = ThreadInterrupter::PrepareCurrentThread();
+      prepared_for_interrupts_ = true;
+    }
     ThreadInterrupter::WakeUp();
   }
   if (old == 0) {
