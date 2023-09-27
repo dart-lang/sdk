@@ -7,7 +7,7 @@
 // Regression test for https://github.com/dart-lang/sdk/issues/39767.
 //
 // Verifies that pushing now-dead definitions as call arguments where the
-// PushArgumentInstrs end up outliving the original call in the IL due to
+// MoveArgumentInstrs end up outliving the original call in the IL due to
 // environmental uses do not remain after dead code elimination removes their
 // definitions.
 
