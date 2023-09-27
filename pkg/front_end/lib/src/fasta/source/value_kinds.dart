@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:core';
+import 'dart:core' as type;
+
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues;
 
@@ -17,6 +20,7 @@ import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 
 import 'package:kernel/ast.dart' as type;
 
+import '../builder/constructor_reference_builder.dart' as type;
 import '../builder/declaration_builders.dart' as type;
 import '../builder/formal_parameter_builder.dart' as type;
 import '../builder/metadata_builder.dart' as type;
@@ -24,6 +28,8 @@ import '../builder/mixin_application_builder.dart' as type;
 import '../builder/type_builder.dart' as type;
 import '../builder/record_type_builder.dart' as type;
 
+import '../combinator.dart' as type;
+import '../configuration.dart' as type;
 import '../identifiers.dart' as type;
 
 import '../kernel/body_builder.dart' as type
@@ -42,6 +48,7 @@ import '../operator.dart' as type;
 import '../scope.dart' as type;
 
 import '../source/outline_builder.dart' as type;
+import '../source/source_enum_builder.dart' as type show EnumConstantInfo;
 
 import '../constant_context.dart' as type;
 
@@ -53,6 +60,8 @@ class ValueKinds {
   static const ValueKind Arguments = const SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
       const SingleValueKind<type.Arguments>(NullValues.Arguments);
+  static const ValueKind ArgumentsTokenOrNull =
+      const SingleValueKind<type.Token>(NullValues.Arguments);
   static const ValueKind AssignedVariablesNodeInfo =
       const SingleValueKind<type.AssignedVariablesNodeInfo>();
   static const ValueKind AsyncMarker =
@@ -64,12 +73,27 @@ class ValueKinds {
   static const ValueKind BreakTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.BreakTarget);
   static const ValueKind Bool = const SingleValueKind<bool>();
+  static const ValueKind CombinatorListOrNull =
+      const SingleValueKind<List<type.CombinatorBuilder>>(
+          NullValues.Combinators);
   static const ValueKind Condition = const SingleValueKind<type.Condition>();
+  static const ValueKind ConfigurationListOrNull =
+      const SingleValueKind<List<type.Configuration>>(
+          NullValues.ConditionalUris);
   static const ValueKind ConstantContext =
       const SingleValueKind<type.ConstantContext>();
+  static const ValueKind ConstructorReferenceBuilderOrNull =
+      const SingleValueKind<type.ConstructorReferenceBuilder>(
+          NullValues.ConstructorReference);
   static const ValueKind ContinueTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.ContinueTarget);
   static const ValueKind DartType = const SingleValueKind<type.DartType>();
+  static const ValueKind EnumConstantInfo =
+      const SingleValueKind<type.EnumConstantInfo>();
+  static const ValueKind EnumConstantInfoOrNull =
+      const SingleValueKind<type.EnumConstantInfo>(NullValues.EnumConstantInfo);
+  static const ValueKind EnumConstantInfoOrParserRecovery =
+      const UnionValueKind([EnumConstantInfo, ParserRecovery]);
   static const ValueKind Expression = const SingleValueKind<type.Expression>();
   static const ValueKind ExpressionOrPatternGuardCase =
       const SingleValueKind<type.ExpressionOrPatternGuardCase>();
@@ -77,6 +101,8 @@ class ValueKinds {
       const SingleValueKind<List<type.ExpressionOrPatternGuardCase>>();
   static const ValueKind ExpressionOrNull =
       const SingleValueKind<type.Expression>(NullValues.Expression);
+  static const ValueKind FieldInitializerTokenOrNull =
+      const SingleValueKind<type.Token>(NullValues.FieldInitializer);
   static const ValueKind FieldInitializerOrNull =
       const SingleValueKind<type.Expression>(NullValues.FieldInitializer);
   static const ValueKind FormalParameters =
@@ -92,6 +118,13 @@ class ValueKinds {
   static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
       const SingleValueKind<type.Identifier>(NullValues.Identifier);
+  static const ValueKind IdentifierOrParserRecovery =
+      const UnionValueKind([Identifier, ParserRecovery]);
+  static const ValueKind IdentifierOrParserRecoveryOrNull =
+      const UnionValueKind([IdentifierOrNull, ParserRecovery]);
+  static const ValueKind IdentifierOrQualifiedNameOrOperatorOrParserRecovery =
+      const UnionValueKind(
+          [Identifier, QualifiedName, Operator, ParserRecovery]);
   static const ValueKind Initializer =
       const SingleValueKind<type.Initializer>();
   static const ValueKind Integer = const SingleValueKind<int>();
@@ -109,6 +142,10 @@ class ValueKinds {
       const SingleValueKind<type.Pattern>(NullValues.Pattern);
   static const ValueKind PatternListOrNull =
       const SingleValueKind<List<type.Pattern>>(NullValues.PatternList);
+  static const ValueKind PrefixOrNull =
+      const SingleValueKind<type.Identifier>(NullValues.Prefix);
+  static const ValueKind PrefixOrParserRecoveryOrNull =
+      const UnionValueKind([PrefixOrNull, ParserRecovery]);
   static const ValueKind MethodBody = const SingleValueKind<type.MethodBody>();
   static const ValueKind MixinApplicationBuilder =
       const SingleValueKind<type.MixinApplicationBuilder>();
@@ -119,17 +156,16 @@ class ValueKinds {
       const SingleValueKind<List<type.Modifier>>();
   static const ValueKind ModifiersOrNull =
       const SingleValueKind<List<type.Modifier>>(NullValues.Modifiers);
-  static const ValueKind Name = const SingleValueKind<String>();
+  static const ValueKind Name = const SingleValueKind<type.String>();
   static const ValueKind NamedExpression =
       const SingleValueKind<type.NamedExpression>();
+  static const ValueKind NameList = const SingleValueKind<List<type.String>>();
   static const ValueKind NameListOrNull =
-      const SingleValueKind<List<String>>(NullValues.IdentifierList);
+      const SingleValueKind<List<type.String>>(NullValues.IdentifierList);
+  static const ValueKind NameListOrParserRecovery =
+      const UnionValueKind([NameList, ParserRecovery]);
   static const ValueKind NameOrNull =
-      const SingleValueKind<String>(NullValues.Name);
-  // TODO(johnniwinther): Remove this. We shouldn't use NullValues.Identifier
-  // for String names.
-  static const ValueKind NameOrNullIdentifier =
-      const SingleValueKind<String>(NullValues.Identifier);
+      const SingleValueKind<type.String>(NullValues.Name);
   static const ValueKind NameOrOperator =
       const UnionValueKind([Name, Operator]);
   static const ValueKind NameOrQualifiedNameOrOperator =
@@ -173,9 +209,12 @@ class ValueKinds {
       const SingleValueKind<type.Statement>(NullValues.Block);
   static const ValueKind StatementListOrNullList =
       const SingleValueKind<List<List<type.Statement>?>>();
+  static const ValueKind String = const SingleValueKind<type.String>();
   static const ValueKind Token = const SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull =
       const SingleValueKind<type.Token>(NullValues.Token);
+  static const ValueKind TokenOrParserRecovery =
+      const UnionValueKind([Token, ParserRecovery]);
   static const ValueKind TypeOrNull =
       const SingleValueKind<type.TypeBuilder>(NullValues.TypeBuilder);
   static const ValueKind TypeArguments =

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show operatorFromString;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Operator;
 import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
     show StaticWeakReferences;
 import 'package:kernel/ast.dart' as ir;
@@ -935,7 +934,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           _computeDynamicInvocationReturnType(node, receiverType);
       _staticTypeCache._expressionTypes[node] = returnType;
       handleDynamicInvocation(node, receiverType, argumentTypes, returnType);
-      if (operatorFromString(node.name.text) == null &&
+      if (Operator.fromText(node.name.text) == null &&
           receiverType is ir.DynamicType) {
         // We might implicitly call a getter that returns a function.
         handleFunctionInvocation(

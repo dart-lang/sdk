@@ -21,6 +21,7 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+general/bad_import: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39058_prime.crash: UnknownChunk # Test has parser errors
 general/error_recovery/issue_39202.crash: UnknownChunk # Test has parser errors
 regress/ambiguous_builder_01: UnknownChunk # Test has parser errors

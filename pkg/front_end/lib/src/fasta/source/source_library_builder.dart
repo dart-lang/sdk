@@ -59,7 +59,7 @@ import '../configuration.dart' show Configuration;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
-import '../identifiers.dart' show QualifiedName, flattenName;
+import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
 import '../import.dart' show Import;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/members_builder.dart';
@@ -690,17 +690,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  String? computeAndValidateConstructorName(Object? name, int charOffset,
+  String? computeAndValidateConstructorName(Identifier identifier,
       {isFactory = false}) {
     String className = currentTypeParameterScopeBuilder.name;
     String prefix;
     String? suffix;
-    if (name is QualifiedName) {
-      prefix = name.qualifier as String;
-      suffix = name.name;
+    int charOffset;
+    if (identifier is QualifiedName) {
+      Identifier qualifier = identifier.qualifier as Identifier;
+      prefix = qualifier.name;
+      suffix = identifier.name;
+      charOffset = qualifier.nameOffset;
     } else {
-      prefix = name as String;
+      prefix = identifier.name;
       suffix = null;
+      charOffset = identifier.nameOffset;
     }
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
@@ -889,8 +893,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           modifiers,
           isTopLevel,
           type ?? addInferableType(),
-          info.name,
-          info.charOffset,
+          info.identifier.name,
+          info.identifier.nameOffset,
           info.charEndOffset,
           startToken,
           hasInitializer,
@@ -1757,8 +1761,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
       List<TypeBuilder>? arguments, int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
-    if (_omittedTypeDeclarationBuilders != null) {
-      Builder? builder = _omittedTypeDeclarationBuilders[name];
+    if (_omittedTypeDeclarationBuilders != null && name is Identifier) {
+      Builder? builder = _omittedTypeDeclarationBuilders[name.name];
       if (builder is OmittedTypeDeclarationBuilder) {
         return new DependentTypeBuilder(builder.omittedTypeBuilder);
       }
@@ -3255,7 +3259,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addFactoryMethod(
       List<MetadataBuilder>? metadata,
       int modifiers,
-      Object name,
+      Identifier identifier,
       List<FormalParameterBuilder>? formals,
       ConstructorReferenceBuilder? redirectionTarget,
       int startCharOffset,
@@ -3286,11 +3290,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Prepare the simple procedure name.
     String procedureName;
     String? constructorName =
-        computeAndValidateConstructorName(name, charOffset, isFactory: true);
+        computeAndValidateConstructorName(identifier, isFactory: true);
     if (constructorName != null) {
       procedureName = constructorName;
     } else {
-      procedureName = name as String;
+      procedureName = identifier.name;
     }
 
     ContainerType containerType =
@@ -5827,9 +5831,14 @@ class TypeParameterScopeBuilder {
     Scope? scope;
     for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
       Object? nameOrQualified = namedTypeBuilder.name;
-      String? name = nameOrQualified is QualifiedName
-          ? nameOrQualified.qualifier as String
-          : nameOrQualified as String?;
+      String? name;
+      if (nameOrQualified is QualifiedName) {
+        name = (nameOrQualified.qualifier as Identifier).name;
+      } else if (nameOrQualified is Identifier) {
+        name = nameOrQualified.name;
+      } else {
+        name = nameOrQualified as String?;
+      }
       Builder? declaration;
       if (name != null) {
         if (members != null) {
@@ -5886,9 +5895,14 @@ class TypeParameterScopeBuilder {
     Scope? scope;
     for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
       Object? nameOrQualified = namedTypeBuilder.name;
-      String? name = nameOrQualified is QualifiedName
-          ? nameOrQualified.qualifier as String
-          : nameOrQualified as String?;
+      String? name;
+      if (nameOrQualified is QualifiedName) {
+        name = (nameOrQualified.qualifier as Identifier).name;
+      } else if (nameOrQualified is Identifier) {
+        name = nameOrQualified.name;
+      } else {
+        name = nameOrQualified as String?;
+      }
       Builder? declaration;
       if (name != null) {
         if (members != null) {
@@ -5956,14 +5970,13 @@ class TypeParameterScopeBuilder {
 }
 
 class FieldInfo {
-  final String name;
-  final int charOffset;
+  final Identifier identifier;
   final Token? initializerToken;
   final Token? beforeLast;
   final int charEndOffset;
 
-  const FieldInfo(this.name, this.charOffset, this.initializerToken,
-      this.beforeLast, this.charEndOffset);
+  const FieldInfo(this.identifier, this.initializerToken, this.beforeLast,
+      this.charEndOffset);
 }
 
 Uri computeLibraryUri(Builder declaration) {
@@ -5977,7 +5990,7 @@ Uri computeLibraryUri(Builder declaration) {
 }
 
 String extractName(Object name) {
-  return name is QualifiedName ? name.name : name as String;
+  return name is Identifier ? name.name : name as String;
 }
 
 class PostponedProblem {

@@ -37,11 +37,13 @@ import '../fasta_codes.dart'
         Message,
         messageExpectedBlockToSkip,
         templateInternalProblemNotFound;
-import '../identifiers.dart' show QualifiedName;
+import '../identifiers.dart'
+    show Identifier, OperatorIdentifier, QualifiedName, SimpleIdentifier;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
 import '../kernel/body_builder_context.dart';
+import '../operator.dart';
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
 import '../scope.dart';
@@ -311,6 +313,11 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+    assert(checkState(typedefKeyword, [
+      if (equals == null) ValueKinds.Token,
+      /* name */ ValueKinds.IdentifierOrParserRecovery,
+      /* metadata token */ ValueKinds.TokenOrNull,
+    ]));
     debugEvent("FunctionTypeAlias");
 
     if (equals == null) pop(); // endToken
@@ -321,7 +328,7 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery) return;
 
     Builder? typedefBuilder =
-        lookupBuilder(typedefKeyword, null, name as String);
+        lookupBuilder(typedefKeyword, null, (name as Identifier).name);
     if (typedefBuilder is SourceTypeAliasBuilder) {
       TypeBuilder? type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
@@ -372,6 +379,11 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
+    assert(checkState(beginToken, [
+      /* bodyToken */ ValueKinds.Token,
+      /* name */ ValueKinds.IdentifierOrParserRecovery,
+      /* metadata token */ ValueKinds.TokenOrNull,
+    ]));
     debugEvent("TopLevelMethod");
     Token bodyToken = pop() as Token;
     Object? name = pop();
@@ -380,7 +392,7 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery) return;
 
     final BodyBuilder listener = createFunctionListener(
-        lookupBuilder(beginToken, getOrSet, name as String)
+        lookupBuilder(beginToken, getOrSet, (name as Identifier).name)
             as SourceFunctionBuilderImpl);
     buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
   }
@@ -428,7 +440,7 @@ class DietListener extends StackListenerImpl {
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
     if (!token.isSynthetic) {
-      push(token.lexeme);
+      push(new SimpleIdentifier(token));
     } else {
       // This comes from a synthetic token which is inserted by the parser in
       // an attempt to recover.  This almost always means that the parser has
@@ -440,13 +452,8 @@ class DietListener extends StackListenerImpl {
   @override
   void handleQualified(Token period) {
     assert(checkState(period, [
-      /*suffix*/ ValueKinds.NameOrParserRecovery,
-      /*prefix*/ unionOfKinds([
-        ValueKinds.Name,
-        ValueKinds.Generator,
-        ValueKinds.ParserRecovery,
-        ValueKinds.QualifiedName,
-      ]),
+      /*suffix*/ ValueKinds.IdentifierOrParserRecovery,
+      /*prefix*/ ValueKinds.IdentifierOrParserRecovery,
     ]));
     debugEvent("handleQualified");
     Object? suffix = pop();
@@ -456,8 +463,9 @@ class DietListener extends StackListenerImpl {
     } else if (suffix is ParserRecovery) {
       push(suffix);
     } else {
-      assert(identical(suffix, period.next!.lexeme));
-      push(new QualifiedName(prefix!, period.next!));
+      Identifier prefixIdentifier = prefix as Identifier;
+      Identifier suffixIdentifier = suffix as Identifier;
+      push(new QualifiedName(prefixIdentifier, suffixIdentifier.token));
     }
   }
 
@@ -519,13 +527,13 @@ class DietListener extends StackListenerImpl {
   @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
-    push(token.stringValue);
+    push(new OperatorIdentifier(token));
   }
 
   @override
   void handleInvalidOperatorName(Token operatorKeyword, Token token) {
     debugEvent("InvalidOperatorName");
-    push('invalid');
+    push(new SimpleIdentifier(token));
   }
 
   @override
@@ -639,6 +647,11 @@ class DietListener extends StackListenerImpl {
   @override
   void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
+    assert(checkState(beginToken, [
+      /* bodyToken */ ValueKinds.Token,
+      /* name */ ValueKinds.IdentifierOrQualifiedNameOrOperatorOrParserRecovery,
+      /* metadata token */ ValueKinds.TokenOrNull,
+    ]));
     debugEvent("ClassFactoryMethod");
     Token bodyToken = pop() as Token;
     Object? name = pop();
@@ -647,7 +660,7 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
     SourceFunctionBuilderImpl builder =
-        lookupConstructor(beginToken, _getConstructorName(name!))
+        lookupConstructor(beginToken, _getConstructorName(name as Identifier))
             as SourceFunctionBuilderImpl;
     if (_inRedirectingFactory) {
       buildRedirectingFactoryMethod(
@@ -751,7 +764,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("Method");
     assert(checkState(beginToken, [
       /* bodyToken */ ValueKinds.Token,
-      /* name */ ValueKinds.NameOrQualifiedNameOrOperatorOrParserRecovery,
+      /* name */ ValueKinds.IdentifierOrParserRecovery,
       /* metadata token */ ValueKinds.TokenOrNull,
     ]));
     // TODO(danrubel): Consider removing the beginParam parameter
@@ -762,13 +775,20 @@ class DietListener extends StackListenerImpl {
     Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
+    Identifier identifier = name as Identifier;
+
     SourceFunctionBuilder builder;
     if (isConstructor) {
-      builder = lookupConstructor(beginToken, _getConstructorName(name!))
+      builder = lookupConstructor(beginToken, _getConstructorName(identifier))
           as SourceFunctionBuilder;
     } else {
-      Builder? memberBuilder =
-          lookupBuilder(beginToken, getOrSet, name as String);
+      String name = identifier.name;
+      // TODO(johnniwinther): Find a uniform way to compute this.
+      bool hasNoFormals = identical(beginParam.next, beginParam.endGroup);
+      if (Operator.subtract == identifier.operator && hasNoFormals) {
+        name = Operator.unaryMinus.text;
+      }
+      Builder? memberBuilder = lookupBuilder(beginToken, getOrSet, name);
       if (currentClass?.isEnum == true &&
           memberBuilder is SourceFieldBuilder &&
           memberBuilder.name == "values") {
@@ -881,14 +901,18 @@ class DietListener extends StackListenerImpl {
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
+    assert(checkState(
+        token, repeatedKind(ValueKinds.IdentifierOrParserRecovery, count)));
+
     _benchmarker?.beginSubdivide(BenchmarkSubdivides.diet_listener_buildFields);
-    List<String?>? names = const FixedNullableList<String>().pop(stack, count);
+    List<Identifier?>? names =
+        const FixedNullableList<Identifier>().pop(stack, count);
     Token? metadata = pop() as Token?;
     checkEmpty(token.charOffset);
     if (names == null || currentClassIsParserRecovery) return;
 
     SourceFieldBuilder declaration =
-        lookupBuilder(token, null, names.first!) as SourceFieldBuilder;
+        lookupBuilder(token, null, names.first!.name) as SourceFieldBuilder;
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     _parseFields(
@@ -925,7 +949,7 @@ class DietListener extends StackListenerImpl {
   void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
     assert(checkState(token, [
       ValueKinds.Token,
-      ValueKinds.NameOrParserRecoveryOrNull,
+      ValueKinds.IdentifierOrParserRecoveryOrNull,
       ValueKinds.TokenOrNull
     ]));
     debugEvent("beginClassOrMixinBody");
@@ -938,9 +962,9 @@ class DietListener extends StackListenerImpl {
       currentClassIsParserRecovery = true;
       return;
     }
-    if (name is String) {
+    if (name is Identifier) {
       currentDeclaration =
-          lookupBuilder(beginToken, null, name) as DeclarationBuilder;
+          lookupBuilder(beginToken, null, name.name) as DeclarationBuilder;
     } else {
       currentDeclaration = lookupUnnamedExtensionBuilder(beginToken);
     }
@@ -994,7 +1018,9 @@ class DietListener extends StackListenerImpl {
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
     debugEvent("beginExtensionDeclaration");
-    push(nameToken?.lexeme ?? NullValues.Name);
+    push(nameToken != null
+        ? new SimpleIdentifier(nameToken)
+        : NullValues.Identifier);
     push(extensionKeyword);
   }
 
@@ -1008,7 +1034,7 @@ class DietListener extends StackListenerImpl {
   @override
   void beginExtensionTypeDeclaration(Token extensionKeyword, Token nameToken) {
     debugEvent("beginExtensionTypeDeclaration");
-    push(nameToken.lexeme);
+    push(new SimpleIdentifier(nameToken));
     push(extensionKeyword);
 
     // The current declaration is set in [beginClassOrMixinOrExtensionBody] but
@@ -1032,13 +1058,15 @@ class DietListener extends StackListenerImpl {
       Token beginToken, Token? constKeyword, bool hasConstructorName) {
     assert(checkState(beginToken, [
       /* formals begin token */ ValueKinds.Token,
-      if (hasConstructorName) ValueKinds.NameOrParserRecovery,
+      if (hasConstructorName) ValueKinds.IdentifierOrParserRecovery,
     ]));
     debugEvent("endPrimaryConstructor");
     Token formalsToken = pop() as Token; // Pop formals begin token.
     String constructorName = '';
     if (hasConstructorName) {
-      constructorName = pop() as String; // Pop constructor name.
+      // TODO(johnniwinther): Handle [ParserRecovery].
+      Identifier identifier = pop() as Identifier;
+      constructorName = identifier.name;
     }
     SourceFunctionBuilder builder =
         lookupConstructor(formalsToken, constructorName)
@@ -1070,7 +1098,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void beginEnum(Token enumKeyword) {
-    assert(checkState(enumKeyword, [ValueKinds.NameOrParserRecovery]));
+    assert(checkState(enumKeyword, [ValueKinds.IdentifierOrParserRecovery]));
     debugEvent("Enum");
     Object? name = pop();
 
@@ -1082,8 +1110,9 @@ class DietListener extends StackListenerImpl {
       return;
     }
 
+    Identifier identifier = name as Identifier;
     currentDeclaration =
-        lookupBuilder(enumKeyword, null, name as String) as DeclarationBuilder;
+        lookupBuilder(enumKeyword, null, identifier.name) as DeclarationBuilder;
     memberScope = currentDeclaration!.scope;
   }
 
@@ -1286,14 +1315,14 @@ class DietListener extends StackListenerImpl {
         .lookupLocalUnnamedExtension(uri, extensionToken.charOffset);
   }
 
-  String _getConstructorName(Object nameOrQualified) {
+  String _getConstructorName(Identifier nameOrQualified) {
     String suffix;
     if (nameOrQualified is QualifiedName) {
       suffix = nameOrQualified.name;
     } else {
-      suffix = nameOrQualified == currentDeclaration!.name
+      suffix = nameOrQualified.name == currentDeclaration!.name
           ? ""
-          : nameOrQualified as String;
+          : nameOrQualified.name;
     }
     return suffix;
   }

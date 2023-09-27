@@ -56,6 +56,7 @@ general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes aw
 
 # UNSORTED ONES:
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
+general/bad_import: SemiFuzzCrash # missing end token on import
 macros/scope_access: SemiFuzzCrash
 
 const_functions/const_functions_list: SemiFuzzCrash
