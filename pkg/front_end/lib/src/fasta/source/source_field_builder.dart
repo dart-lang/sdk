@@ -333,7 +333,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
-    assert(!hasBodyBeenBuilt);
+    assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
     if (!hasInitializer &&
         initializer != null &&
