@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N avoid_bool_literals_in_conditional_expressions`
-
 late bool a, b, c;
 
 var d = a ? true : b; // LINT

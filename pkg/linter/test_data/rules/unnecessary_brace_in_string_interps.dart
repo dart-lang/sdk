@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N unnecessary_brace_in_string_interps`
-
 main(args) {
   print('hello');
   print('hello $args');
