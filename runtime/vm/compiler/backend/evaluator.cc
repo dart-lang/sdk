@@ -189,20 +189,92 @@ IntegerPtr Evaluator::BitLengthEvaluate(const Object& value,
   return result.ptr();
 }
 
-double Evaluator::EvaluateDoubleOp(const double left,
-                                   const double right,
-                                   Token::Kind token_kind) {
-  switch (token_kind) {
-    case Token::kADD:
-      return left + right;
-    case Token::kSUB:
-      return left - right;
-    case Token::kMUL:
-      return left * right;
-    case Token::kDIV:
-      return Utils::DivideAllowZero(left, right);
-    default:
-      UNREACHABLE();
+double Evaluator::EvaluateUnaryDoubleOp(const double value,
+                                        Token::Kind token_kind,
+                                        Representation representation) {
+  // The different set of operations for float32 and float64 is due to the
+  // different set of operations made available by dart:core.double and
+  // dart:typed_data.Float64x2 versus dart:typed_data.Float32x4.
+  if (representation == kUnboxedDouble) {
+    switch (token_kind) {
+      case Token::kABS:
+        return fabs(value);
+      case Token::kNEGATE:
+        return -value;
+      case Token::kSQRT:
+        return sqrt(value);
+      case Token::kSQUARE:
+        return value * value;
+      case Token::kTRUNCATE:
+        return trunc(value);
+      case Token::kFLOOR:
+        return floor(value);
+      case Token::kCEILING:
+        return ceil(value);
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    ASSERT(representation == kUnboxedFloat);
+    switch (token_kind) {
+      case Token::kABS:
+        return fabsf(static_cast<float>(value));
+      case Token::kNEGATE:
+        return -static_cast<float>(value);
+      case Token::kRECIPROCAL:
+        return 1.0f / static_cast<float>(value);
+      case Token::kRECIPROCAL_SQRT:
+        return sqrtf(1.0f / static_cast<float>(value));
+      case Token::kSQRT:
+        return sqrtf(static_cast<float>(value));
+      case Token::kSQUARE:
+        return static_cast<float>(value) * static_cast<float>(value);
+      default:
+        UNREACHABLE();
+    }
+  }
+}
+
+double Evaluator::EvaluateBinaryDoubleOp(const double left,
+                                         const double right,
+                                         Token::Kind token_kind,
+                                         Representation representation) {
+  if (representation == kUnboxedDouble) {
+    switch (token_kind) {
+      case Token::kADD:
+        return left + right;
+      case Token::kSUB:
+        return left - right;
+      case Token::kMUL:
+        return left * right;
+      case Token::kDIV:
+        return Utils::DivideAllowZero(left, right);
+      case Token::kMIN:
+        return fmin(left, right);
+      case Token::kMAX:
+        return fmax(left, right);
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    ASSERT(representation == kUnboxedFloat);
+    switch (token_kind) {
+      case Token::kADD:
+        return static_cast<float>(left) + static_cast<float>(right);
+      case Token::kSUB:
+        return static_cast<float>(left) - static_cast<float>(right);
+      case Token::kMUL:
+        return static_cast<float>(left) * static_cast<float>(right);
+      case Token::kDIV:
+        return Utils::DivideAllowZero(static_cast<float>(left),
+                                      static_cast<float>(right));
+      case Token::kMIN:
+        return fminf(static_cast<float>(left), static_cast<float>(right));
+      case Token::kMAX:
+        return fmaxf(static_cast<float>(left), static_cast<float>(right));
+      default:
+        UNREACHABLE();
+    }
   }
 }
 

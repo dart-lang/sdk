@@ -3657,6 +3657,18 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
   }
 }
 
+void Assembler::LoadSImmediate(FRegister reg, float imms) {
+  int32_t imm = bit_cast<int32_t, float>(imms);
+  if (imm == 0) {
+    fmvwx(reg, ZR);  // bit_cast uint32_t -> float
+  } else {
+    ASSERT(constant_pool_allowed());
+    intptr_t index = object_pool_builder().FindImmediate(imm);
+    intptr_t offset = target::ObjectPool::element_offset(index);
+    LoadSFromOffset(reg, PP, offset);
+  }
+}
+
 void Assembler::LoadDImmediate(FRegister reg, double immd) {
   int64_t imm = bit_cast<int64_t, double>(immd);
   if (imm == 0) {

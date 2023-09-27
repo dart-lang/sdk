@@ -284,6 +284,7 @@ class Flutter {
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
             parent is Statement ||
+            parent is SwitchExpressionCase && parent.expression == node ||
             parent is VariableDeclaration) {
           return node as Expression;
         }

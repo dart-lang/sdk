@@ -2293,6 +2293,13 @@ void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
   addl(dest, inc_imm);
 }
 
+void Assembler::LoadSImmediate(XmmRegister dst, float value) {
+  int32_t constant = bit_cast<int32_t, float>(value);
+  pushl(Immediate(constant));
+  movss(dst, Address(ESP, 0));
+  addl(ESP, Immediate(target::kWordSize));
+}
+
 void Assembler::LoadDImmediate(XmmRegister dst, double value) {
   // TODO(5410843): Need to have a code constants table.
   int64_t constant = bit_cast<int64_t, double>(value);

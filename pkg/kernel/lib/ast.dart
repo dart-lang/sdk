@@ -6597,10 +6597,10 @@ class ConstructorInvocation extends InvocationExpression {
     // TODO(cstefantsova): Get raw type from a CoreTypes object if arguments is
     // empty.
     return arguments.types.isEmpty
-        ? new InterfaceType(
-            enclosingClass, Nullability.legacy, const <DartType>[])
-        : new InterfaceType(
-            enclosingClass, Nullability.legacy, arguments.types);
+        ? new InterfaceType(enclosingClass, target.enclosingLibrary.nonNullable,
+            const <DartType>[])
+        : new InterfaceType(enclosingClass, target.enclosingLibrary.nonNullable,
+            arguments.types);
   }
 
   @override
@@ -13123,7 +13123,8 @@ class Supertype extends Node {
   }
 
   InterfaceType get asInterfaceType {
-    return new InterfaceType(classNode, Nullability.legacy, typeArguments);
+    return new InterfaceType(
+        classNode, classNode.enclosingLibrary.nonNullable, typeArguments);
   }
 
   @override

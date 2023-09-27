@@ -432,6 +432,8 @@ class MicroAssembler : public AssemblerBase {
   void feqs(Register rd, FRegister rs1, FRegister rs2);
   void flts(Register rd, FRegister rs1, FRegister rs2);
   void fles(Register rd, FRegister rs1, FRegister rs2);
+  void fgts(Register rd, FRegister rs1, FRegister rs2) { flts(rd, rs2, rs1); }
+  void fges(Register rd, FRegister rs1, FRegister rs2) { fles(rd, rs2, rs1); }
   void fclasss(Register rd, FRegister rs1);
   // int32_t <- float
   void fcvtws(Register rd, FRegister rs1, RoundingMode rounding = RNE);
@@ -517,6 +519,8 @@ class MicroAssembler : public AssemblerBase {
   void feqd(Register rd, FRegister rs1, FRegister rs2);
   void fltd(Register rd, FRegister rs1, FRegister rs2);
   void fled(Register rd, FRegister rs1, FRegister rs2);
+  void fgtd(Register rd, FRegister rs1, FRegister rs2) { fltd(rd, rs2, rs1); }
+  void fged(Register rd, FRegister rs1, FRegister rs2) { fled(rd, rs2, rs1); }
   void fclassd(Register rd, FRegister rs1);
   // int32_t <- double
   void fcvtwd(Register rd, FRegister rs1, RoundingMode rounding = RNE);
@@ -1162,6 +1166,9 @@ class Assembler : public MicroAssembler {
                              Register index);
   void LoadSFromOffset(FRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(FRegister dest, Register base, int32_t offset);
+  void LoadSFieldFromOffset(FRegister dest, Register base, int32_t offset) {
+    LoadSFromOffset(dest, base, offset - kHeapObjectTag);
+  }
   void LoadDFieldFromOffset(FRegister dest, Register base, int32_t offset) {
     LoadDFromOffset(dest, base, offset - kHeapObjectTag);
   }
@@ -1189,6 +1196,9 @@ class Assembler : public MicroAssembler {
     StoreToOffset(ZR, address);
   }
   void StoreSToOffset(FRegister src, Register base, int32_t offset);
+  void StoreSFieldToOffset(FRegister src, Register base, int32_t offset) {
+    StoreSToOffset(src, base, offset - kHeapObjectTag);
+  }
   void StoreDToOffset(FRegister src, Register base, int32_t offset);
   void StoreDFieldToOffset(FRegister src, Register base, int32_t offset) {
     StoreDToOffset(src, base, offset - kHeapObjectTag);
@@ -1348,6 +1358,7 @@ class Assembler : public MicroAssembler {
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadImmediate(Register reg, intx_t imm);
 
+  void LoadSImmediate(FRegister reg, float imms);
   void LoadDImmediate(FRegister reg, double immd);
   void LoadQImmediate(FRegister reg, simd128_value_t immq);
 

@@ -179,7 +179,7 @@ vars = {
   "stream_channel_rev": "0ce7ab69c3a2ab83cdeb9dc60e1bacbb83abc165",
   "string_scanner_rev": "da9142cf9809e7e1364144b8193ec60d87f0a4b8",
   "sync_http_rev": "8233f74cd8a87707c13beceb59b56bca41b52966",
-  "tar_rev": "3c68cba8e51c569428222b9185469249206172c6", # external package, review all rolls. disable rev_sdk_deps.dart,
+  "tar_rev": "3c68cba8e51c569428222b9185469249206172c6",
   "term_glyph_rev": "1b28285a7e818b8e87c4d2119d968c5b36d73c7a",
   "test_rev": "8191a355cefe5e6073e597d139bfb46e4b00c493",
   "test_descriptor_rev": "030193dfdfbf85930eae8536909c546151da9e9c",
