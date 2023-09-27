@@ -848,6 +848,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kThisExpression:
       HandleLoadReceiver();
+      helper_.ReadPosition();  // read file offset.
       return;
     case kRethrow:
       helper_.ReadPosition();  // read position.
@@ -933,27 +934,36 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kBigIntLiteral:
+      helper_.ReadPosition();         // read position.
       helper_.SkipStringReference();  // read string reference.
       return;
     case kStringLiteral:
+      helper_.ReadPosition();         // read position.
       helper_.SkipStringReference();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
-      helper_.ReadUInt();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read value.
       return;
     case kPositiveIntLiteral:
-      helper_.ReadUInt();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read value.
       return;
     case kDoubleLiteral:
-      helper_.ReadDouble();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadDouble();    // read value.
       return;
     case kTrueLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kConstantExpression:
       helper_.ReadPosition();
@@ -1175,7 +1185,8 @@ void ScopeBuilder::VisitStatement() {
     case kTryCatch: {
       ++depth_.try_;
       AddTryVariables();
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
       --depth_.try_;
 
       ++depth_.catch_;
@@ -1216,7 +1227,8 @@ void ScopeBuilder::VisitStatement() {
       ++depth_.finally_;
       AddTryVariables();
 
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
 
       --depth_.finally_;
       --depth_.try_;

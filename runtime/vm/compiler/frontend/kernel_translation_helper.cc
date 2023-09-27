@@ -2667,6 +2667,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipDartType();  // read type.
       return;
     case kThisExpression:
+      ReadPosition();  // read position.
       return;
     case kRethrow:
       ReadPosition();  // read position.
@@ -2732,27 +2733,36 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfDartTypes();  // read type arguments.
       return;
     case kBigIntLiteral:
+      ReadPosition();         // read position.
       SkipStringReference();  // read string reference.
       return;
     case kStringLiteral:
+      ReadPosition();         // read position.
       SkipStringReference();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
-      ReadUInt();  // read value.
+      ReadPosition();  // read position.
+      ReadUInt();      // read value.
       return;
     case kPositiveIntLiteral:
-      ReadUInt();  // read value.
+      ReadPosition();  // read position.
+      ReadUInt();      // read value.
       return;
     case kDoubleLiteral:
-      ReadDouble();  // read value.
+      ReadPosition();  // read position.
+      ReadDouble();    // read value.
       return;
     case kTrueLiteral:
+      ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      ReadPosition();  // read position.
       return;
     case kConstantExpression:
       ReadPosition();  // read position.
@@ -2893,6 +2903,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     }
     case kTryCatch: {
+      ReadPosition();                           // read position
       SkipStatement();                          // read body.
       ReadByte();                               // read flags
       intptr_t catch_count = ReadListLength();  // read number of catches.
@@ -2912,6 +2923,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     }
     case kTryFinally:
+      ReadPosition();   // read position
       SkipStatement();  // read body.
       SkipStatement();  // read finalizer.
       return;

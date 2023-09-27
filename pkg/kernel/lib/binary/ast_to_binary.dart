@@ -223,7 +223,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByte(constant.value ? 1 : 0);
     } else if (constant is IntConstant) {
       writeByte(ConstantTag.IntConstant);
-      writeInteger(constant.value);
+      writeInteger(constant.value, TreeNode.noOffset);
     } else if (constant is DoubleConstant) {
       writeByte(ConstantTag.DoubleConstant);
       writeDouble(constant.value);
@@ -1998,30 +1998,35 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitStringLiteral(StringLiteral node) {
     writeByte(Tag.StringLiteral);
+    writeOffset(node.fileOffset);
     writeStringReference(node.value);
   }
 
   @override
   void visitIntLiteral(IntLiteral node) {
-    writeInteger(node.value);
+    writeInteger(node.value, node.fileOffset);
   }
 
-  void writeInteger(int value) {
+  void writeInteger(int value, int fileOffset) {
     int biasedValue = value + Tag.SpecializedIntLiteralBias;
     if (biasedValue >= 0 &&
         biasedValue & Tag.SpecializedPayloadMask == biasedValue) {
       writeByte(Tag.SpecializedIntLiteral + biasedValue);
+      writeOffset(fileOffset);
     } else if (value.abs() >> 30 == 0) {
       if (value < 0) {
         writeByte(Tag.NegativeIntLiteral);
+        writeOffset(fileOffset);
         writeUInt30(-value);
       } else {
         writeByte(Tag.PositiveIntLiteral);
+        writeOffset(fileOffset);
         writeUInt30(value);
       }
     } else {
       // TODO: Pick a better format for big int literals.
       writeByte(Tag.BigIntLiteral);
+      writeOffset(fileOffset);
       writeStringReference('$value');
     }
   }
@@ -2029,6 +2034,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     writeByte(Tag.DoubleLiteral);
+    writeOffset(node.fileOffset);
     writeDouble(node.value);
   }
 
@@ -2039,16 +2045,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitBoolLiteral(BoolLiteral node) {
     writeByte(node.value ? Tag.TrueLiteral : Tag.FalseLiteral);
+    writeOffset(node.fileOffset);
   }
 
   @override
   void visitNullLiteral(NullLiteral node) {
     writeByte(Tag.NullLiteral);
+    writeOffset(node.fileOffset);
   }
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
     writeByte(Tag.SymbolLiteral);
+    writeOffset(node.fileOffset);
     writeStringReference(node.value);
   }
 
@@ -2062,6 +2071,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitThisExpression(ThisExpression node) {
     writeByte(Tag.ThisExpression);
+    writeOffset(node.fileOffset);
   }
 
   @override
@@ -2362,6 +2372,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTryCatch(TryCatch node) {
     writeByte(Tag.TryCatch);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     bool needsStackTrace = node.catches.any((Catch c) => c.stackTrace != null);
     writeByte(_encodeTryCatchFlags(needsStackTrace, node.isSynthetic));
@@ -2385,6 +2396,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTryFinally(TryFinally node) {
     writeByte(Tag.TryFinally);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     writeNode(node.finalizer);
   }

@@ -571,6 +571,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateDartTypeFingerprint();  // read type.
       return;
     case kThisExpression:
+      ReadPosition();  // read position.
       return;
     case kRethrow:
       ReadPosition();  // read position.
@@ -636,20 +637,26 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateListOfDartTypesFingerprint();  // read type arguments.
       return;
     case kBigIntLiteral:
+      ReadPosition();                         // read position.
       CalculateStringReferenceFingerprint();  // read string reference.
       return;
     case kStringLiteral:
+      ReadPosition();                         // read position.
       CalculateStringReferenceFingerprint();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
+      ReadPosition();         // read position.
       BuildHash(ReadUInt());  // read value.
       return;
     case kPositiveIntLiteral:
+      ReadPosition();         // read position.
       BuildHash(ReadUInt());  // read value.
       return;
     case kDoubleLiteral: {
+      ReadPosition();               // read position.
       double value = ReadDouble();  // read value.
       uint64_t data = bit_cast<uint64_t>(value);
       BuildHash(static_cast<uint32_t>(data >> 32));
@@ -657,10 +664,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     }
     case kTrueLiteral:
+      ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      ReadPosition();  // read position.
       return;
     case kConstantExpression:
       ReadPosition();
@@ -803,6 +813,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       return;
     }
     case kTryCatch: {
+      ReadPosition();                           // read position.
       CalculateStatementFingerprint();          // read body.
       BuildHash(ReadByte());                    // read flags
       intptr_t catch_count = ReadListLength();  // read number of catches.
@@ -824,6 +835,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       return;
     }
     case kTryFinally:
+      ReadPosition();                   // read position.
       CalculateStatementFingerprint();  // read body.
       CalculateStatementFingerprint();  // read finalizer.
       return;
