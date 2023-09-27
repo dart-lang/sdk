@@ -4081,21 +4081,19 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       source,
       isNonNullableByDefault: false,
     );
-
-    // TODO(kallentu): Remove unwrapping of Constant.
-    var expressionConstant = expression.accept(
-      ConstantVisitor(
-        ConstantEvaluationEngine(
-          declaredVariables: DeclaredVariables.fromMap(declaredVariables),
-          isNonNullableByDefault:
-              unit.featureSet.isEnabled(Feature.non_nullable),
-          configuration: ConstantEvaluationConfiguration(),
-        ),
-        this.result.libraryElement as LibraryElementImpl,
-        errorReporter,
-        lexicalEnvironment: lexicalEnvironment,
+    var constantVisitor = ConstantVisitor(
+      ConstantEvaluationEngine(
+        declaredVariables: DeclaredVariables.fromMap(declaredVariables),
+        isNonNullableByDefault: unit.featureSet.isEnabled(Feature.non_nullable),
+        configuration: ConstantEvaluationConfiguration(),
       ),
+      this.result.libraryElement as LibraryElementImpl,
+      errorReporter,
+      lexicalEnvironment: lexicalEnvironment,
     );
+
+    var expressionConstant =
+        constantVisitor.evaluateAndReportInvalidConstant(expression);
     var result =
         expressionConstant is DartObjectImpl ? expressionConstant : null;
     if (errorCodes == null) {

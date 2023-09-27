@@ -2380,9 +2380,10 @@ class InvalidConstant implements Constant {
 
   /// Whether this error was an exception thrown during constant evaluation.
   ///
-  /// In [ConstantEvaluationEngine.evaluateAndReportErrorsInConstructorCall],
-  /// we report this with a [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]
-  /// and a context message pointing to where the exception was thrown.
+  /// In [ConstantEvaluationEngine.evaluateAndFormatErrorsInConstructorCall],
+  /// we convert this error into a
+  /// [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION] with a context message
+  /// pointing to where the exception was thrown.
   final bool isRuntimeException;
 
   /// Whether the constant evaluation encounters an unresolved expression.
