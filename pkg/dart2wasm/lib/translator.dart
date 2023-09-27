@@ -43,7 +43,7 @@ class TranslatorOptions {
   bool jsCompatibility = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
-  List<int>? watchPoints = null;
+  List<int> watchPoints = [];
 }
 
 /// The main entry point for the translation from kernel to Wasm and the hub for

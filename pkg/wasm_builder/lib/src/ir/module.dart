@@ -16,7 +16,7 @@ class Module implements Serializable {
   final Types types;
   final DataSegments dataSegments;
   final List<Import> imports;
-  final List<int>? watchPoints;
+  final List<int> watchPoints;
   final bool dataReferencedFromGlobalInitializer;
 
   Module(
@@ -35,7 +35,7 @@ class Module implements Serializable {
   /// Serialize a module to its binary representation.
   @override
   void serialize(Serializer s) {
-    if (watchPoints != null) {
+    if (watchPoints.isNotEmpty) {
       Serializer.traceEnabled = true;
     }
     // Wasm module preamble: magic number, version 1.

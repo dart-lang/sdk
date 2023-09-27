@@ -6,7 +6,7 @@ import '../ir/ir.dart' as ir;
 import 'serializer.dart';
 
 abstract class Section implements Serializable {
-  final List<int>? watchPoints;
+  final List<int> watchPoints;
 
   Section(this.watchPoints);
 
