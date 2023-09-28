@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ET3<T extends core::num>(core::int id) {
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+  constructor c1 = self::ET3|constructor#c1;
+  constructor tearoff c1 = self::ET3|constructor#_#c1#tearOff;
+  static redirecting-factory f1 = self::ET3|constructor#f1;
+  static redirecting-factory tearoff f1 = self::ET3|constructor#_#f1#tearOff;
+}
+static inline-class-member method ET3|constructor#<T extends core::num>(core::int id) → self::ET3<self::ET3|constructor#::T> /* = core::int */
+  ;
+static inline-class-member method ET3|constructor#_#new#tearOff<T extends core::num>(core::int id) → self::ET3<self::ET3|constructor#_#new#tearOff::T> /* = core::int */
+  return self::ET3|constructor#<self::ET3|constructor#_#new#tearOff::T>(id);
+static inline-class-member method ET3|constructor#c1<T extends core::num>() → self::ET3<self::ET3|constructor#c1::T> /* = core::int */
+  ;
+static inline-class-member method ET3|constructor#_#c1#tearOff<T extends core::num>() → self::ET3<self::ET3|constructor#_#c1#tearOff::T> /* = core::int */
+  return self::ET3|constructor#c1<self::ET3|constructor#_#c1#tearOff::T>();
+static inline-class-member method ET3|constructor#f1<T extends core::num>() → self::ET3<self::ET3|constructor#f1::T> /* = core::int */ /* redirection-target: self::ET3|constructor#c1<dynamic>*/
+  return self::ET3|constructor#c1<dynamic>();
+static inline-class-member method ET3|constructor#_#f1#tearOff<T extends core::num>() → self::ET3<self::ET3|constructor#_#f1#tearOff::T> /* = core::int */
+  return self::ET3|constructor#c1<dynamic>();

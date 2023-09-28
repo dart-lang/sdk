@@ -991,7 +991,8 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
     macro.ParameterizedTypeDeclaration definingClass =
-        getClassDeclaration(builder.classBuilder);
+        // TODO(johnniwinther): Support extension type factories.
+        getClassDeclaration(builder.classBuilder!);
 
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
