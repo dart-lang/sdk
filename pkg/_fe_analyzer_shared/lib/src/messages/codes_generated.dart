@@ -5318,6 +5318,103 @@ const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     correctionMessage: r"""Try removing 'this.'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateFieldNotPromotedBecauseConflictingField =
+    const Template<Message Function(String name, String name2, String string)>(
+        "FieldNotPromotedBecauseConflictingField",
+        problemMessageTemplate:
+            r"""'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments: _withArgumentsFieldNotPromotedBecauseConflictingField);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeFieldNotPromotedBecauseConflictingField =
+    const Code<Message Function(String name, String name2, String string)>(
+  "FieldNotPromotedBecauseConflictingField",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseConflictingField(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseConflictingField,
+      problemMessage:
+          """'${name}' couldn't be promoted because there is a conflicting non-promotable field in class '${name2}'.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateFieldNotPromotedBecauseConflictingGetter =
+    const Template<Message Function(String name, String name2, String string)>(
+        "FieldNotPromotedBecauseConflictingGetter",
+        problemMessageTemplate:
+            r"""'#name' couldn't be promoted because there is a conflicting getter in class '#name2'.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments: _withArgumentsFieldNotPromotedBecauseConflictingGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeFieldNotPromotedBecauseConflictingGetter =
+    const Code<Message Function(String name, String name2, String string)>(
+  "FieldNotPromotedBecauseConflictingGetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseConflictingGetter(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseConflictingGetter,
+      problemMessage:
+          """'${name}' couldn't be promoted because there is a conflicting getter in class '${name2}'.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateFieldNotPromotedBecauseConflictingNsmForwarder =
+    const Template<Message Function(String name, String name2, String string)>(
+        "FieldNotPromotedBecauseConflictingNsmForwarder",
+        problemMessageTemplate:
+            r"""'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments:
+            _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeFieldNotPromotedBecauseConflictingNsmForwarder =
+    const Code<Message Function(String name, String name2, String string)>(
+  "FieldNotPromotedBecauseConflictingNsmForwarder",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseConflictingNsmForwarder,
+      problemMessage:
+          """'${name}' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '${name2}'.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,

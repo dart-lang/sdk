@@ -13,8 +13,8 @@ class C1 {
 userDefinableBinaryOpLhs(C1 c) {
   if (c.bad == null) return;
   c.bad
-      /*cfe.invoke: notPromoted(propertyNotPromoted(target: member:C1.bad, type: int?))*/
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C1.bad, type: int?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: int?))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: int?))*/
       +
       1;
 }
@@ -25,8 +25,8 @@ class C2 {
 
 userDefinableUnaryOp(C2 c) {
   if (c.bad == null) return;
-  /*cfe.invoke: notPromoted(propertyNotPromoted(target: member:C2.bad, type: int?))*/
+  /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C2.bad, type: int?))*/
   -c.
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C2.bad, type: int?))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C2.bad, type: int?))*/
       bad;
 }

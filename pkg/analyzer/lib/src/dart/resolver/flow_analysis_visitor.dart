@@ -547,7 +547,9 @@ class TypeSystemOperations
     if (field.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
     if (field.isExternal) return PropertyNonPromotabilityReason.isExternal;
     if (!field.isFinal) return PropertyNonPromotabilityReason.isNotFinal;
-    return PropertyNonPromotabilityReason.isInterferedWith;
+    // Non-promotion reason must be due to a conflict with some other
+    // declaration.
+    return null;
   }
 }
 

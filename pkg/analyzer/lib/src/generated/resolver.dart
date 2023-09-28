@@ -5348,8 +5348,34 @@ class _WhyNotPromotedVisitor
   }
 
   @override
-  DiagnosticMessage? visitPropertyNotPromoted(
-      PropertyNotPromoted<DartType> reason) {
+  DiagnosticMessage? visitPropertyNotPromotedDueToConflict(
+      PropertyNotPromotedDueToConflict<DartType> reason) {
+    var receiverElement = reason.propertyMember;
+    if (receiverElement is PropertyAccessorElement) {
+      var property = propertyReference = receiverElement;
+      propertyType = reason.staticType;
+      var propertyName = reason.propertyName;
+      // TODO(paulberry): plumb the necessary data through the element model so
+      // that the analyzer can find the conflicting declaration(s).
+      String message =
+          "'$propertyName' couldn't be promoted because there is a conflicting "
+          "declaration elsewhere in the library.";
+      return DiagnosticMessageImpl(
+          filePath: property.source.fullName,
+          message: message,
+          offset: property.nonSynthetic.nameOffset,
+          length: property.nameLength,
+          url: null);
+    } else {
+      assert(receiverElement == null,
+          'Unrecognized property element: ${receiverElement.runtimeType}');
+      return null;
+    }
+  }
+
+  @override
+  DiagnosticMessage? visitPropertyNotPromotedForInherentReason(
+      PropertyNotPromotedForInherentReason<DartType> reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
@@ -5377,19 +5403,13 @@ class _WhyNotPromotedVisitor
           message =
               "'$propertyName' refers to a non-final field so it couldn't be "
               "promoted.";
-        case PropertyNonPromotabilityReason.isInterferedWith:
-          // TODO(paulberry): Generate a context message for each conflicting
-          // declaration.
-          return null;
       }
       return DiagnosticMessageImpl(
           filePath: property.source.fullName,
           message: message,
           offset: property.nonSynthetic.nameOffset,
           length: property.nameLength,
-          // TODO(paulberry): Handle the case where there is no documentation
-          // link.
-          url: reason.documentationLink?.url);
+          url: reason.documentationLink.url);
     } else {
       assert(receiverElement == null,
           'Unrecognized property element: ${receiverElement.runtimeType}');

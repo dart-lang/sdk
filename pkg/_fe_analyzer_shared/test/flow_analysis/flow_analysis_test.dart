@@ -5771,7 +5771,7 @@ main() {
           this_.property('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason =
-                reasons.values.single as PropertyNotPromoted;
+                reasons.values.single as PropertyNotPromotedForInherentReason;
             expect(nonPromotionReason.whyNotPromotable,
                 PropertyNonPromotabilityReason.isNotEnabled);
             expect(nonPromotionReason.documentationLink,
@@ -5791,7 +5791,7 @@ main() {
           thisProperty('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason =
-                reasons.values.single as PropertyNotPromoted;
+                reasons.values.single as PropertyNotPromotedForInherentReason;
             expect(nonPromotionReason.whyNotPromotable,
                 PropertyNonPromotabilityReason.isNotEnabled);
             expect(nonPromotionReason.documentationLink,
@@ -5812,7 +5812,7 @@ main() {
           x.property('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason =
-                reasons.values.single as PropertyNotPromoted;
+                reasons.values.single as PropertyNotPromotedForInherentReason;
             expect(nonPromotionReason.whyNotPromotable,
                 PropertyNonPromotabilityReason.isNotEnabled);
             expect(nonPromotionReason.documentationLink,

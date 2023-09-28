@@ -32,7 +32,7 @@ main() {
     var c = Class(fields: [f]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
     check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
-    check(nonPromotabilityInfo['_f']!.interferingFields).unorderedEquals([f]);
+    check(nonPromotabilityInfo['_f']!.conflictingFields).unorderedEquals([f]);
     check(f.nonPromotabilityReason)
         .equals(PropertyNonPromotabilityReason.isNotFinal);
   });
@@ -86,7 +86,7 @@ main() {
       var d = Class(getters: [getter]);
       var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
       check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
-      check(nonPromotabilityInfo['_f']!.interferingGetters)
+      check(nonPromotabilityInfo['_f']!.conflictingGetters)
           .unorderedEquals([getter]);
     });
 
@@ -96,7 +96,7 @@ main() {
       var d = Class(isAbstract: true, getters: [getter]);
       var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
       check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
-      check(nonPromotabilityInfo['_f']!.interferingGetters)
+      check(nonPromotabilityInfo['_f']!.conflictingGetters)
           .unorderedEquals([getter]);
     });
   });
@@ -132,7 +132,7 @@ main() {
       var e = Class(implements: [d]);
       var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
       check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
-      check(nonPromotabilityInfo['_f']!.interferingNsmClasses)
+      check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
           .unorderedEquals([e]);
     });
 
@@ -143,7 +143,7 @@ main() {
       var e = Class(implements: [d]);
       var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
       check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
-      check(nonPromotabilityInfo['_f']!.interferingNsmClasses)
+      check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
           .unorderedEquals([e]);
     });
   });
@@ -167,7 +167,7 @@ main() {
     var e = Class(extendsOrMixesIn: [d]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
     check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
-    check(nonPromotabilityInfo['_f']!.interferingNsmClasses)
+    check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
         .unorderedEquals([e]);
   });
 
@@ -192,7 +192,7 @@ main() {
     var e = Class(implements: [d]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
     check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
-    check(nonPromotabilityInfo['_f']!.interferingNsmClasses)
+    check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
         .unorderedEquals([e]);
   });
 

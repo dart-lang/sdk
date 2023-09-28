@@ -5537,6 +5537,58 @@ FieldNotPromotedBecauseNotFinal:
       }
     }
 
+FieldNotPromotedBecauseConflictingGetter:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting getter in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D {
+      int? get _i => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingField:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D {
+      int? _i;
+      D(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingNsmForwarder:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D implements C {
+      noSuchMethod(invocation) => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
 ThisNotPromoted:
   problemMessage: "'this' can't be promoted."
   correctionMessage: "See #string"

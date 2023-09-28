@@ -14,7 +14,7 @@ class C1 {
 required_unnamed(C1 c) {
   if (c.bad == null) return;
   c.f(c.
-      /*notPromoted(propertyNotPromoted(target: member:C1.bad, type: int?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: int?))*/ bad);
 }
 
 class C2 {
@@ -25,7 +25,7 @@ class C2 {
 optional_unnamed(C2 c) {
   if (c.bad == null) return;
   c.f(c.
-      /*notPromoted(propertyNotPromoted(target: member:C2.bad, type: int?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C2.bad, type: int?))*/ bad);
 }
 
 class C3 {
@@ -37,7 +37,7 @@ required_named(C3 c) {
   if (c.bad == null) return;
   c.f(
       i: c.
-          /*notPromoted(propertyNotPromoted(target: member:C3.bad, type: int?))*/ bad);
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C3.bad, type: int?))*/ bad);
 }
 
 class C4 {
@@ -49,7 +49,7 @@ optional_named(C4 c) {
   if (c.bad == null) return;
   c.f(
       i: c.
-          /*notPromoted(propertyNotPromoted(target: member:C4.bad, type: int?))*/ bad);
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C4.bad, type: int?))*/ bad);
 }
 
 class C5 {
@@ -60,7 +60,7 @@ class C5 {
 type_inferred(C5 c) {
   if (c.bad == null) return;
   c.f(c.
-      /*notPromoted(propertyNotPromoted(target: member:C5.bad, type: List<int>?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C5.bad, type: List<int>?))*/ bad);
 }
 
 class C6 {
@@ -71,7 +71,7 @@ class C6 {
 C6? constructor_with_implicit_new(C6 c) {
   if (c.bad == null) return null;
   return C6(c.
-      /*notPromoted(propertyNotPromoted(target: member:C6.bad, type: int?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C6.bad, type: int?))*/ bad);
 }
 
 class C7 {
@@ -82,7 +82,7 @@ class C7 {
 C7? constructor_with_explicit_new(C7 c) {
   if (c.bad == null) return null;
   return new C7(c.
-      /*notPromoted(propertyNotPromoted(target: member:C7.bad, type: int?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C7.bad, type: int?))*/ bad);
 }
 
 class C8 {
@@ -93,7 +93,7 @@ userDefinableBinaryOpRhs(C8 c) {
   if (c.bad == null) return;
   1 +
       c.
-          /*notPromoted(propertyNotPromoted(target: member:C8.bad, type: int?))*/ bad;
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C8.bad, type: int?))*/ bad;
 }
 
 class C9 {
@@ -136,11 +136,11 @@ class C11 {
 andOperand(C11 c, bool b) {
   if (c.bad == null) return;
   c.f(c.
-          /*notPromoted(propertyNotPromoted(target: member:C11.bad, type: bool?))*/ bad &&
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C11.bad, type: bool?))*/ bad &&
       b);
   c.f(b &&
       c.
-          /*notPromoted(propertyNotPromoted(target: member:C11.bad, type: bool?))*/ bad);
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C11.bad, type: bool?))*/ bad);
 }
 
 class C12 {
@@ -151,11 +151,11 @@ class C12 {
 orOperand(C12 c, bool b) {
   if (c.bad == null) return;
   c.f(c.
-          /*notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ bad ||
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C12.bad, type: bool?))*/ bad ||
       b);
   c.f(b ||
       c.
-          /*notPromoted(propertyNotPromoted(target: member:C12.bad, type: bool?))*/ bad);
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C12.bad, type: bool?))*/ bad);
 }
 
 class C13 {
@@ -165,7 +165,7 @@ class C13 {
 assertStatementCondition(C13 c) {
   if (c.bad == null) return;
   assert(c.
-      /*notPromoted(propertyNotPromoted(target: member:C13.bad, type: bool?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C13.bad, type: bool?))*/ bad);
 }
 
 class C14 {
@@ -173,7 +173,7 @@ class C14 {
   C14.assertInitializerCondition(C14 c)
       : bad = c.bad!,
         assert(c.
-            /*notPromoted(propertyNotPromoted(target: member:C14.bad, type: bool?))*/ bad);
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C14.bad, type: bool?))*/ bad);
 }
 
 class C15 {
@@ -184,7 +184,7 @@ class C15 {
 notOperand(C15 c) {
   if (c.bad == null) return;
   c.f(!c.
-      /*notPromoted(propertyNotPromoted(target: member:C15.bad, type: bool?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C15.bad, type: bool?))*/ bad);
 }
 
 class C16 {
@@ -196,23 +196,23 @@ forLoopCondition(C16 c) {
   if (c.bad == null) return;
   for (;
       c.
-          /*notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;) {}
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C16.bad, type: bool?))*/ bad;) {}
   [
     for (;
         c.
-            /*notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;)
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C16.bad, type: bool?))*/ bad;)
       null
   ];
   ({
     for (;
         c.
-            /*notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;)
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C16.bad, type: bool?))*/ bad;)
       null
   });
   ({
     for (;
         c.
-            /*notPromoted(propertyNotPromoted(target: member:C16.bad, type: bool?))*/ bad;)
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C16.bad, type: bool?))*/ bad;)
       null: null
   });
 }
@@ -225,7 +225,7 @@ class C17 {
 conditionalExpressionCondition(C17 c) {
   if (c.bad == null) return;
   c.f(c.
-          /*notPromoted(propertyNotPromoted(target: member:C17.bad, type: bool?))*/ bad
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C17.bad, type: bool?))*/ bad
       ? 1
       : 2);
 }
@@ -237,7 +237,7 @@ class C18 {
 doLoopCondition(C18 c) {
   if (c.bad == null) return;
   do {} while (c.
-      /*notPromoted(propertyNotPromoted(target: member:C18.bad, type: bool?))*/ bad);
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C18.bad, type: bool?))*/ bad);
 }
 
 class C19 {
@@ -247,20 +247,20 @@ class C19 {
 ifCondition(C19 c) {
   if (c.bad == null) return;
   if (c.
-      /*notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad) {}
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C19.bad, type: bool?))*/ bad) {}
   [
     if (c.
-        /*notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad)
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C19.bad, type: bool?))*/ bad)
       null
   ];
   ({
     if (c.
-        /*notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad)
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C19.bad, type: bool?))*/ bad)
       null
   });
   ({
     if (c.
-        /*notPromoted(propertyNotPromoted(target: member:C19.bad, type: bool?))*/ bad)
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C19.bad, type: bool?))*/ bad)
       null: null
   });
 }
@@ -272,7 +272,7 @@ class C20 {
 whileCondition(C20 c) {
   if (c.bad == null) return;
   while (c.
-      /*notPromoted(propertyNotPromoted(target: member:C20.bad, type: bool?))*/ bad) {}
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C20.bad, type: bool?))*/ bad) {}
 }
 
 class C21 {
@@ -282,7 +282,7 @@ class C21 {
 assignmentRhs(C21 c, int i) {
   if (c.bad == null) return;
   i = c.
-      /*notPromoted(propertyNotPromoted(target: member:C21.bad, type: int?))*/ bad;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C21.bad, type: int?))*/ bad;
 }
 
 class C22 {
@@ -292,7 +292,7 @@ class C22 {
 variableInitializer(C22 c) {
   if (c.bad == null) return;
   int i = c.
-      /*notPromoted(propertyNotPromoted(target: member:C22.bad, type: int?))*/ bad;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C22.bad, type: int?))*/ bad;
 }
 
 class C23 {
@@ -302,7 +302,7 @@ class C23 {
   C23.constructorInitializer(C23 c)
       : x = c.bad!,
         y = c.
-            /*notPromoted(propertyNotPromoted(target: member:C23.bad, type: int?))*/ bad;
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C23.bad, type: int?))*/ bad;
 }
 
 class C24 {
@@ -312,23 +312,23 @@ class C24 {
 forVariableInitializer(C24 c) {
   if (c.bad == null) return;
   for (int i = c.
-          /*notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad, type: int?))*/ bad;
       false;) {}
   [
     for (int i = c.
-            /*notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad, type: int?))*/ bad;
         false;)
       null
   ];
   ({
     for (int i = c.
-            /*notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad, type: int?))*/ bad;
         false;)
       null
   });
   ({
     for (int i = c.
-            /*notPromoted(propertyNotPromoted(target: member:C24.bad, type: int?))*/ bad;
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad, type: int?))*/ bad;
         false;)
       null: null
   });
@@ -341,23 +341,23 @@ class C25 {
 forAssignmentInitializer(C25 c, int i) {
   if (c.bad == null) return;
   for (i = c.
-          /*notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad, type: int?))*/ bad;
       false;) {}
   [
     for (i = c.
-            /*notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad, type: int?))*/ bad;
         false;)
       null
   ];
   ({
     for (i = c.
-            /*notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad, type: int?))*/ bad;
         false;)
       null
   });
   ({
     for (i = c.
-            /*notPromoted(propertyNotPromoted(target: member:C25.bad, type: int?))*/ bad;
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad, type: int?))*/ bad;
         false;)
       null: null
   });
@@ -371,7 +371,7 @@ compoundAssignmentRhs(C26 c) {
   num n = 0;
   if (c.bad == null) return;
   n += c.
-      /*notPromoted(propertyNotPromoted(target: member:C26.bad, type: int?))*/ bad;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C26.bad, type: int?))*/ bad;
 }
 
 class C27 {
@@ -381,7 +381,7 @@ class C27 {
 indexGet(C27 c, List<int> values) {
   if (c.bad == null) return;
   values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C27.bad, type: int?))*/ bad];
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C27.bad, type: int?))*/ bad];
 }
 
 class C28 {
@@ -391,7 +391,7 @@ class C28 {
 indexSet(C28 c, List<int> values) {
   if (c.bad == null) return;
   values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C28.bad, type: int?))*/ bad] = 0;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C28.bad, type: int?))*/ bad] = 0;
 }
 
 class C29 {
@@ -401,7 +401,7 @@ class C29 {
 indexSetCompound(C29 c, List<int> values) {
   if (c.bad == null) return;
   values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C29.bad, type: int?))*/ bad] += 1;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C29.bad, type: int?))*/ bad] += 1;
 }
 
 class C30 {
@@ -411,7 +411,7 @@ class C30 {
 indexSetIfNull(C30 c, List<int?> values) {
   if (c.bad == null) return;
   values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C30.bad, type: int?))*/ bad] ??= 1;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C30.bad, type: int?))*/ bad] ??= 1;
 }
 
 class C31 {
@@ -421,9 +421,9 @@ class C31 {
 indexSetPreIncDec(C31 c, List<int> values) {
   if (c.bad == null) return;
   ++values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ bad];
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C31.bad, type: int?))*/ bad];
   --values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C31.bad, type: int?))*/ bad];
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C31.bad, type: int?))*/ bad];
 }
 
 class C32 {
@@ -433,9 +433,9 @@ class C32 {
 indexSetPostIncDec(C32 c, List<int> values) {
   if (c.bad == null) return;
   values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ bad]++;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C32.bad, type: int?))*/ bad]++;
   values[c.
-      /*notPromoted(propertyNotPromoted(target: member:C32.bad, type: int?))*/ bad]--;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C32.bad, type: int?))*/ bad]--;
 }
 
 extension E33 on int {
@@ -449,7 +449,7 @@ class C33 {
 explicitExtensionInvocation(C33 c) {
   if (c.bad == null) return;
   E33(c.
-          /*notPromoted(propertyNotPromoted(target: member:C33.bad, type: int?))*/ bad)
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C33.bad, type: int?))*/ bad)
       .f();
 }
 
@@ -463,7 +463,7 @@ class D34 extends C34 {
   D34(C34 c)
       : other = c.bad!,
         super(c.
-            /*notPromoted(propertyNotPromoted(target: member:C34.bad, type: int?))*/ bad);
+            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C34.bad, type: int?))*/ bad);
 }
 
 class C35 {
@@ -473,5 +473,5 @@ class C35 {
 indexSetRhs(C35 c, List<int> x) {
   if (c.bad == null) return;
   x[0] = c.
-      /*notPromoted(propertyNotPromoted(target: member:C35.bad, type: int?))*/ bad;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C35.bad, type: int?))*/ bad;
 }
