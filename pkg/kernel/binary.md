@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 110;
+  UInt32 formatVersion = 111;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -1000,6 +1000,7 @@ type AsExpression extends Expression {
 
 type StringLiteral extends Expression {
   Byte tag = 39;
+  FileOffset fileOffset;
   StringReference value;
 }
 
@@ -1008,42 +1009,51 @@ type IntegerLiteral extends Expression {}
 type SpecializedIntLiteral extends IntegerLiteral {
   Byte tag = 240 + N; // Where 0 <= N < 8.
   // Integer literal with value (N - 3), that is, an integer in range -3..4.
+  FileOffset fileOffset;
 }
 
 type PositiveIntLiteral extends IntegerLiteral {
   Byte tag = 55;
+  FileOffset fileOffset;
   UInt value;
 }
 
 type NegativeIntLiteral extends IntegerLiteral {
   Byte tag = 56;
+  FileOffset fileOffset;
   UInt absoluteValue;
 }
 
 type BigIntLiteral extends IntegerLiteral {
   Byte tag = 57;
+  FileOffset fileOffset;
   StringReference valueString;
 }
 
 type DoubleLiteral extends Expression {
   Byte tag = 40;
+  FileOffset fileOffset;
   Double value;
 }
 
 type TrueLiteral extends Expression {
   Byte tag = 41;
+  FileOffset fileOffset;
 }
 
 type FalseLiteral extends Expression {
   Byte tag = 42;
+  FileOffset fileOffset;
 }
 
 type NullLiteral extends Expression {
   Byte tag = 43;
+  FileOffset fileOffset;
 }
 
 type SymbolLiteral extends Expression {
   Byte tag = 44;
+  FileOffset fileOffset;
   StringReference value; // Everything strictly after the '#'.
 }
 
@@ -1055,6 +1065,7 @@ type TypeLiteral extends Expression {
 
 type ThisExpression extends Expression {
   Byte tag = 46;
+  FileOffset fileOffset;
 }
 
 type Rethrow extends Expression {
@@ -1438,6 +1449,7 @@ type ReturnStatement extends Statement {
 
 type TryCatch extends Statement {
   Byte tag = 75;
+  FileOffset fileOffset;
   Statement body;
   // "any catch needs a stacktrace" means it has a stacktrace variable.
   Byte flags (anyCatchNeedsStackTrace, isSynthesized);
@@ -1454,6 +1466,7 @@ type Catch {
 
 type TryFinally extends Statement {
   Byte tag = 76;
+  FileOffset fileOffset;
   Statement body;
   Statement finalizer;
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N iterable_contains_unrelated_type`
-
 // TODO(https://github.com/dart-lang/linter/issues/4143): Use 3.0.0
 // @dart=2.19
 

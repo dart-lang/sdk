@@ -1188,7 +1188,8 @@ class LinkingUnit {
 
 /// This class examines all the [InterfaceElement]s in a library and determines
 /// which fields are promotable within that library.
-class _FieldPromotability extends FieldPromotability<InterfaceElement> {
+class _FieldPromotability extends FieldPromotability<InterfaceElement,
+    FieldElement, PropertyAccessorElement> {
   /// The [_libraryBuilder] for the library being analyzed.
   final LibraryBuilder _libraryBuilder;
 
@@ -1239,11 +1240,11 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement> {
     }
 
     // Compute the set of field names that are not promotable.
-    var unpromotableFieldNames = computeUnpromotablePrivateFieldNames();
+    var fieldNonPromotabilityInfo = computeNonPromotabilityInfo();
 
     // Set the `isPromotable` bit for each field element that *is* promotable.
     for (var field in _potentiallyPromotableFields) {
-      if (!unpromotableFieldNames.contains(field.name)) {
+      if (fieldNonPromotabilityInfo[field.name] == null) {
         field.isPromotable = true;
       }
     }
@@ -1258,11 +1259,11 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement> {
         continue;
       }
 
-      var isPotentiallyPromotable = addField(classInfo, field.name,
+      var nonPromotabilityReason = addField(classInfo, field, field.name,
           isFinal: field.isFinal,
           isAbstract: field.isAbstract,
           isExternal: field.isExternal);
-      if (isPotentiallyPromotable) {
+      if (nonPromotabilityReason == null) {
         _potentiallyPromotableFields.add(field);
       }
     }
@@ -1272,7 +1273,8 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement> {
         continue;
       }
 
-      addGetter(classInfo, accessor.name, isAbstract: accessor.isAbstract);
+      addGetter(classInfo, accessor, accessor.name,
+          isAbstract: accessor.isAbstract);
     }
   }
 }

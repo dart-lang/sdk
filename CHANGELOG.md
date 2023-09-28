@@ -105,6 +105,9 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - All `NativeCallable` constructors can now accept closures. Previously
   `NativeCallable`s had the same restrictions as `Pointer.fromFunction`, and
   could only create callbacks for static functions.
+- **Breaking change** [#53311][]: `NativeCallable.nativeFunction` now throws an
+  error if is called after the `NativeCallable` has already been `close`d. Calls
+  to `close` after the first are now ignored.
 
 #### `dart:io`
 

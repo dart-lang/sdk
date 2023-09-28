@@ -5468,9 +5468,74 @@ VariableCouldBeNullDueToWrite:
   problemMessage: "Variable '#name' could not be promoted due to an assignment."
   correctionMessage: "Try null checking the variable after the assignment.  See #string"
 
-FieldNotPromoted:
-  problemMessage: "'#name' refers to a property so it couldn't be promoted."
+FieldNotPromotedBecauseNotEnabled:
+  problemMessage: "'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above."
   correctionMessage: "See #string"
+  script: >
+    // @dart=3.1
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotField:
+  problemMessage: "'#name' refers to a getter so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      int? get _i => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotPrivate:
+  problemMessage: "'#name' refers to a public field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? i;
+      C(this.i);
+    }
+    test(C c) {
+      if (c.i != null) {
+        c.i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseExternal:
+  problemMessage: "'#name' refers to an external field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      external final int? _i;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotFinal:
+  problemMessage: "'#name' refers to a non-final field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      int? _i;
+      C(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
 
 ThisNotPromoted:
   problemMessage: "'this' can't be promoted."

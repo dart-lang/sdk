@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test test/rule_test.dart -N avoid_dynamic_calls`
-
 import 'dart:core';
 import 'dart:core' as core_top_level_prefix_as;
 

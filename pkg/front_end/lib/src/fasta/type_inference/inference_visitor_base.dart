@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
@@ -4455,8 +4456,27 @@ class _WhyNotPromotedVisitor
     if (member is Member) {
       propertyReference = member;
       propertyType = reason.staticType;
-      return templateFieldNotPromoted
-          .withArguments(reason.propertyName, reason.documentationLink.url)
+      Template<Message Function(String, String)> template;
+      switch (reason.whyNotPromotable) {
+        case PropertyNonPromotabilityReason.isNotEnabled:
+          template = templateFieldNotPromotedBecauseNotEnabled;
+        case PropertyNonPromotabilityReason.isNotField:
+          template = templateFieldNotPromotedBecauseNotField;
+        case PropertyNonPromotabilityReason.isNotPrivate:
+          template = templateFieldNotPromotedBecauseNotPrivate;
+        case PropertyNonPromotabilityReason.isExternal:
+          template = templateFieldNotPromotedBecauseExternal;
+        case PropertyNonPromotabilityReason.isNotFinal:
+          template = templateFieldNotPromotedBecauseNotFinal;
+        case PropertyNonPromotabilityReason.isInterferedWith:
+          // TODO(paulberry): Generate a context message for each conflicting
+          // declaration.
+          return null;
+      }
+      // TODO(paulberry): Handle the case where there is no documentation link.
+      return template
+          .withArguments(
+              reason.propertyName, reason.documentationLink?.url ?? '')
           .withLocation(member.fileUri, member.fileOffset, noLength);
     } else {
       assert(member == null,

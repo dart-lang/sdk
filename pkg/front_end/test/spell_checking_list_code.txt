@@ -19,6 +19,7 @@ accompany
 accounting
 accounts
 accumulated
+accumulates
 accumulating
 accumulation
 accumulator
@@ -66,6 +67,7 @@ app
 apparently
 applicable
 approximation
+arbiter
 architectures
 area
 arg
@@ -442,6 +444,7 @@ dispatched
 dispose
 disposed
 disposes
+distinguished
 distribute
 diverged
 divided
@@ -790,6 +793,8 @@ intentionally
 interacts
 interested
 interfere
+interfered
+interfering
 interim
 interior
 interleaved

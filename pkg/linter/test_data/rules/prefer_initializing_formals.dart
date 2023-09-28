@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N prefer_initializing_formals`
-
 class D {
   /// https://github.com/dart-lang/linter/issues/2664
   D(int initialValue) : value = initialValue;

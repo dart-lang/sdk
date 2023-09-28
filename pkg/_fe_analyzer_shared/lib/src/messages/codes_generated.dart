@@ -5318,29 +5318,160 @@ const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     correctionMessage: r"""Try removing 'this.'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateFieldNotPromoted =
-    const Template<Message Function(String name, String string)>(
-        "FieldNotPromoted",
-        problemMessageTemplate:
-            r"""'#name' refers to a property so it couldn't be promoted.""",
-        correctionMessageTemplate: r"""See #string""",
-        withArguments: _withArgumentsFieldNotPromoted);
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseExternal = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseExternal",
+    problemMessageTemplate:
+        r"""'#name' refers to an external field so it couldn't be promoted.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseExternal);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)> codeFieldNotPromoted =
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseExternal =
     const Code<Message Function(String name, String string)>(
-  "FieldNotPromoted",
+  "FieldNotPromotedBecauseExternal",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromoted(String name, String string) {
+Message _withArgumentsFieldNotPromotedBecauseExternal(
+    String name, String string) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (string.isEmpty) throw 'No string provided';
-  return new Message(codeFieldNotPromoted,
+  return new Message(codeFieldNotPromotedBecauseExternal,
       problemMessage:
-          """'${name}' refers to a property so it couldn't be promoted.""",
+          """'${name}' refers to an external field so it couldn't be promoted.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseNotEnabled = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseNotEnabled",
+    problemMessageTemplate:
+        r"""'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseNotEnabled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotEnabled =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotEnabled",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotEnabled(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotEnabled,
+      problemMessage:
+          """'${name}' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateFieldNotPromotedBecauseNotField =
+    const Template<Message Function(String name, String string)>(
+        "FieldNotPromotedBecauseNotField",
+        problemMessageTemplate:
+            r"""'#name' refers to a getter so it couldn't be promoted.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments: _withArgumentsFieldNotPromotedBecauseNotField);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotField =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotField",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotField(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotField,
+      problemMessage:
+          """'${name}' refers to a getter so it couldn't be promoted.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseNotFinal = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseNotFinal",
+    problemMessageTemplate:
+        r"""'#name' refers to a non-final field so it couldn't be promoted.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseNotFinal);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotFinal =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotFinal",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotFinal(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotFinal,
+      problemMessage:
+          """'${name}' refers to a non-final field so it couldn't be promoted.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateFieldNotPromotedBecauseNotPrivate =
+    const Template<Message Function(String name, String string)>(
+        "FieldNotPromotedBecauseNotPrivate",
+        problemMessageTemplate:
+            r"""'#name' refers to a public field so it couldn't be promoted.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotPrivate =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotPrivate",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotPrivate(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotPrivate,
+      problemMessage:
+          """'${name}' refers to a public field so it couldn't be promoted.""",
       correctionMessage: """See ${string}""",
       arguments: {'name': name, 'string': string});
 }

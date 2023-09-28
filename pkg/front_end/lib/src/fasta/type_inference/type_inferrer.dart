@@ -149,8 +149,7 @@ class TypeInferrerImpl implements TypeInferrer {
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
             nullability: libraryBuilder.nonNullable,
-            unpromotablePrivateFieldNames:
-                libraryBuilder.unpromotablePrivateFieldNames,
+            fieldNonPromotabilityInfo: libraryBuilder.fieldNonPromotabilityInfo,
             typeCacheNonNullable: engine.typeCacheNonNullable,
             typeCacheNullable: engine.typeCacheNullable,
             typeCacheLegacy: engine.typeCacheLegacy);

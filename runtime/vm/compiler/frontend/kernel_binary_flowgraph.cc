@@ -3696,6 +3696,7 @@ void StreamingFlowGraphBuilder::FlattenStringConcatenation(
     switch (PeekTag()) {
       case kStringLiteral: {
         ReadTag();
+        ReadPosition();
         const String& s = H.DartSymbolPlain(ReadStringReference());
         // Skip empty strings.
         if (!s.Equals("")) {
@@ -3976,6 +3977,7 @@ Fragment StreamingFlowGraphBuilder::BuildTypeLiteral(TokenPosition* position) {
 
 Fragment StreamingFlowGraphBuilder::BuildThisExpression(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return LoadLocal(parsed_function()->receiver_var());
@@ -4254,6 +4256,7 @@ Fragment StreamingFlowGraphBuilder::BuildBlockExpression() {
 
 Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   const String& value =
@@ -4270,6 +4273,7 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return Constant(H.DartSymbolPlain(
@@ -4278,6 +4282,7 @@ Fragment StreamingFlowGraphBuilder::BuildStringLiteral(
 
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload,
                                                     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   int64_t value = static_cast<int32_t>(payload) - SpecializedIntLiteralBias;
@@ -4286,6 +4291,7 @@ Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload,
 
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(bool is_negative,
                                                     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   int64_t value = is_negative ? -static_cast<int64_t>(ReadUInt())
@@ -4295,6 +4301,7 @@ Fragment StreamingFlowGraphBuilder::BuildIntLiteral(bool is_negative,
 
 Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   Double& constant = Double::ZoneHandle(
@@ -4304,12 +4311,14 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
 
 Fragment StreamingFlowGraphBuilder::BuildBoolLiteral(bool value,
                                                      TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return Constant(Bool::Get(value));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildNullLiteral(TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
@@ -5466,6 +5475,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
   ASSERT(block_expression_depth() == 0);  // no try-catch in block-expr
   InlineBailout("kernel::FlowgraphBuilder::VisitTryCatch");
 
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
   intptr_t try_handler_index = AllocateTryIndex();
   Fragment try_body = TryCatch(try_handler_index);
   JoinEntryInstr* after_try = BuildJoinEntry();
@@ -5590,6 +5602,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
   // AST node isn't a problem.
 
   InlineBailout("kernel::FlowgraphBuilder::VisitTryFinally");
+
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
 
   // There are 5 different cases where we need to execute the finally block:
   //

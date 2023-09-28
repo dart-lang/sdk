@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N no_leading_underscores_for_local_identifiers`
-
 /// https://github.com/dart-lang/linter/issues/3360
 int _g() { // OK (not local)
   int _bar() { // LINT

@@ -269,10 +269,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
   /// yet, or field promotion is disabled for this library.  If not `null`,
-  /// field promotion is enabled for this library and this is the set of private
-  /// field names for which promotion is blocked due to the presence of a
-  /// non-final field or a concrete getter.
-  Set<String>? unpromotablePrivateFieldNames;
+  /// information about which fields are promotable in this library.
+  FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   SourceLibraryBuilder.internal(
       SourceLoader loader,
@@ -1618,16 +1616,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  /// Sets [unpromotablePrivateFieldNames] based on the contents of this
-  /// library.
+  /// Sets [fieldNonPromotabilityInfo] based on the contents of this library.
   void computeFieldPromotability() {
     _FieldPromotability fieldPromotability = new _FieldPromotability();
+    Map<Member, PropertyNonPromotabilityReason> individualPropertyReasons = {};
 
     // Iterate through all the classes, enums, and mixins in the library,
     // recording the non-synthetic instance fields and getters of each.
-    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
-    while (iterator.moveNext()) {
-      SourceClassBuilder class_ = iterator.current;
+    Iterator<SourceClassBuilder> classIterator = localMembersIteratorOfType();
+    while (classIterator.moveNext()) {
+      SourceClassBuilder class_ = classIterator.current;
       ClassInfo<Class> classInfo = fieldPromotability.addClass(class_.actualCls,
           isAbstract: class_.isAbstract);
       Iterator<SourceMemberBuilder> memberIterator =
@@ -1637,23 +1635,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         if (member.isStatic) continue;
         if (member is SourceFieldBuilder) {
           if (member.isSynthesized) continue;
-          // Note: external fields have already been de-sugared into getters, so
-          // we can just pass `false` for `isExternal`.
-          fieldPromotability.addField(classInfo, member.name,
+          PropertyNonPromotabilityReason? reason = fieldPromotability.addField(
+              classInfo, member, member.name,
               isFinal: member.isFinal,
               isAbstract: member.isAbstract,
-              isExternal: false);
+              isExternal: member.isExternal);
+          if (reason != null) {
+            individualPropertyReasons[member.readTarget] = reason;
+          }
         } else if (member is SourceProcedureBuilder && member.isGetter) {
           if (member.isSynthetic) continue;
-          fieldPromotability.addGetter(classInfo, member.name,
+          fieldPromotability.addGetter(classInfo, member, member.name,
               isAbstract: member.isAbstract);
+          individualPropertyReasons[member.procedure] =
+              PropertyNonPromotabilityReason.isNotField;
         }
       }
     }
 
-    // Compute the set of field names that are not promotable.
-    unpromotablePrivateFieldNames =
-        fieldPromotability.computeUnpromotablePrivateFieldNames();
+    // And for each extension getter, make a note of why it's not promotable.
+    Iterator<SourceExtensionBuilder> extensionIterator =
+        localMembersIteratorOfType();
+    while (extensionIterator.moveNext()) {
+      SourceExtensionBuilder extension_ = extensionIterator.current;
+      for (Builder member in extension_.scope.localMembers) {
+        if (member is SourceProcedureBuilder &&
+            !member.isStatic &&
+            member.isGetter) {
+          individualPropertyReasons[member.procedure] =
+              PropertyNonPromotabilityReason.isNotField;
+        }
+      }
+    }
+
+    // Compute information about field non-promotability.
+    fieldNonPromotabilityInfo = new FieldNonPromotabilityInfo(
+        fieldNameInfo: fieldPromotability.computeNonPromotabilityInfo(),
+        individualPropertyReasons: individualPropertyReasons);
   }
 
   @override
@@ -5480,7 +5498,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
 /// This class examines all the [Class]es in a library and determines which
 /// fields are promotable within that library.
-class _FieldPromotability extends FieldPromotability<Class> {
+class _FieldPromotability extends FieldPromotability<Class, SourceFieldBuilder,
+    SourceProcedureBuilder> {
   @override
   Iterable<Class> getSuperclasses(Class class_,
       {required bool ignoreImplements}) {
@@ -5981,6 +6000,30 @@ class FieldInfo {
 
   const FieldInfo(this.identifier, this.initializerToken, this.beforeLast,
       this.charEndOffset);
+}
+
+/// Information about which fields are promotable in a given library.
+class FieldNonPromotabilityInfo {
+  /// Map whose keys are private field names for which promotion is blocked, and
+  /// whose values are [FieldNameNonPromotabilityInfo] objects containing
+  /// information about why promotion is blocked for the given name.
+  ///
+  /// This map is the final arbiter on whether a given property access is
+  /// considered promotable, but since it is keyed on the field name, it doesn't
+  /// always provide the most specific information about *why* a given property
+  /// isn't promotable; for more detailed information about a specific property,
+  /// see [individualPropertyReasons].
+  final Map<
+      String,
+      FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
+          SourceProcedureBuilder>> fieldNameInfo;
+
+  /// Map whose keys are the members that a property get might resolve to, and
+  /// whose values are the reasons why the given property couldn't be promoted.
+  final Map<Member, PropertyNonPromotabilityReason> individualPropertyReasons;
+
+  FieldNonPromotabilityInfo(
+      {required this.fieldNameInfo, required this.individualPropertyReasons});
 }
 
 Uri computeLibraryUri(Builder declaration) {

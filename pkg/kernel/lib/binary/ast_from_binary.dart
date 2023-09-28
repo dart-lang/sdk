@@ -2736,44 +2736,56 @@ class BinaryBuilder {
   }
 
   Expression _readStringLiteral() {
-    return new StringLiteral(readStringReference());
+    int offset = readOffset();
+    return new StringLiteral(readStringReference())..fileOffset = offset;
   }
 
   Expression _readSpecializedIntLiteral(int tagByte) {
     int biasedValue = tagByte & Tag.SpecializedPayloadMask;
-    return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias);
+    return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias)
+      ..fileOffset = readOffset();
   }
 
   Expression _readPositiveIntLiteral() {
-    return new IntLiteral(readUInt30());
+    int offset = readOffset();
+    int value = readUInt30();
+    return new IntLiteral(value)..fileOffset = offset;
   }
 
   Expression _readNegativeIntLiteral() {
-    return new IntLiteral(-readUInt30());
+    int offset = readOffset();
+    int value = -readUInt30();
+    return new IntLiteral(value)..fileOffset = offset;
   }
 
   Expression _readBigIntLiteral() {
-    return new IntLiteral(int.parse(readStringReference()));
+    int offset = readOffset();
+    int value = int.parse(readStringReference());
+    return new IntLiteral(value)..fileOffset = offset;
   }
 
   Expression _readDoubleLiteral() {
-    return new DoubleLiteral(readDouble());
+    int offset = readOffset();
+    double value = readDouble();
+    return new DoubleLiteral(value)..fileOffset = offset;
   }
 
   Expression _readTrueLiteral() {
-    return new BoolLiteral(true);
+    return new BoolLiteral(true)..fileOffset = readOffset();
   }
 
   Expression _readFalseLiteral() {
-    return new BoolLiteral(false);
+    return new BoolLiteral(false)..fileOffset = readOffset();
   }
 
   Expression _readNullLiteral() {
-    return new NullLiteral();
+    return new NullLiteral()..fileOffset = readOffset();
   }
 
   Expression _readSymbolLiteral() {
-    return new SymbolLiteral(readStringReference());
+    int offset = readOffset();
+    String value = readStringReference();
+    return new SymbolLiteral(value)..fileOffset = offset;
   }
 
   Expression _readTypeLiteral() {
@@ -2782,7 +2794,7 @@ class BinaryBuilder {
   }
 
   Expression _readThisLiteral() {
-    return new ThisExpression();
+    return new ThisExpression()..fileOffset = readOffset();
   }
 
   Expression _readRethrow() {
@@ -3615,13 +3627,17 @@ class BinaryBuilder {
   }
 
   Statement _readTryCatch() {
+    int offset = readOffset();
     Statement body = readStatement();
     int flags = readByte();
-    return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
+    return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2)
+      ..fileOffset = offset;
   }
 
   Statement _readTryFinally() {
-    return new TryFinally(readStatement(), readStatement());
+    int offset = readOffset();
+    return new TryFinally(readStatement(), readStatement())
+      ..fileOffset = offset;
   }
 
   Statement _readYieldStatement() {
