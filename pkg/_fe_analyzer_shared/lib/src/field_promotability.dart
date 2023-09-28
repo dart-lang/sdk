@@ -32,14 +32,14 @@ class FieldNameNonPromotabilityInfo<Class extends Object, Field, Getter> {
   /// (This list is initially empty and
   /// [FieldPromotability.computeNonPromotabilityInfo] accumulates entries into
   /// it.)
-  final List<Field> interferingFields = [];
+  final List<Field> conflictingFields = [];
 
   /// The explicit concrete getters with the given name.
   ///
   /// (This list is initially empty and
   /// [FieldPromotability.computeNonPromotabilityInfo] accumulates entries into
   /// it.)
-  final List<Getter> interferingGetters = [];
+  final List<Getter> conflictingGetters = [];
 
   /// The classes that implicitly forward a getter with the given name to
   /// `noSuchMethod`.
@@ -53,7 +53,7 @@ class FieldNameNonPromotabilityInfo<Class extends Object, Field, Getter> {
   /// (This list is initially empty and
   /// [FieldPromotability.computeNonPromotabilityInfo] accumulates entries into
   /// it.)
-  final List<Class> interferingNsmClasses = [];
+  final List<Class> conflictingNsmClasses = [];
 
   FieldNameNonPromotabilityInfo._();
 }
@@ -206,7 +206,7 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
     if (isExternal || !isFinal) {
       // The field isn't promotable, nor is any other field in the library with
       // the same name.
-      _fieldNonPromoInfo(name).interferingFields.add(field);
+      _fieldNonPromoInfo(name).conflictingFields.add(field);
       return isExternal
           ? PropertyNonPromotabilityReason.isExternal
           : PropertyNonPromotabilityReason.isNotFinal;
@@ -241,7 +241,7 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
       classInfo._implementedNode._directNames.add(name);
 
       // The getter is concrete, so no fields with the same name are promotable.
-      _fieldNonPromoInfo(name).interferingGetters.add(getter);
+      _fieldNonPromoInfo(name).conflictingGetters.add(getter);
     }
   }
 
@@ -281,7 +281,7 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
       // fields with these names are not safe to promote.
       for (String name in interfaceNames) {
         if (!implementedNames.contains(name)) {
-          _fieldNonPromoInfo(name).interferingNsmClasses.add(info._class);
+          _fieldNonPromoInfo(name).conflictingNsmClasses.add(info._class);
         }
       }
     }
@@ -339,15 +339,6 @@ enum PropertyNonPromotabilityReason {
 
   /// The property is not promotable because it's a non-final field.
   isNotFinal,
-
-  /// The property is not promotable because there's an explicit getter,
-  /// implicit noSuchMethod forwarding getter, or non-promotable field elsewhere
-  /// in the library, and that getter or field has the same name.
-  ///
-  /// Further information about what precise class members interfered with
-  /// promotion may be found in the map returned by
-  /// [FieldPromotability.computeNonPromotabilityInfo].
-  isInterferedWith,
 }
 
 /// Dependency walker that traverses the graph of a class's type hierarchy,

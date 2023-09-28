@@ -39,7 +39,7 @@ extension_property_get_of_variable(int? i, int? j) {
 
 property_get_of_expression(C c) {
   if (c.i == null) return;
-  c.i. /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
+  c.i. /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
 }
 
 extension_property_get_of_expression(C c) {
@@ -48,8 +48,8 @@ extension_property_get_of_expression(C c) {
   c
       .i
       .
-      /*cfe.invoke: notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
       propertyOnNonNullInt;
 }
 
@@ -57,8 +57,8 @@ method_invocation(C c) {
   if (c.i == null) return;
   c.i
       .
-      /*cfe.invoke: notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
       abs();
 }
 
@@ -67,8 +67,8 @@ extension_method_invocation(C c) {
   c.i.methodOnNullableInt();
   c.i
       .
-      /*cfe.invoke: notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/
       methodOnNonNullInt();
 }
 
@@ -76,7 +76,7 @@ call_invocation(C c) {
   if (c.f == null) return;
   c.f
       .
-      /*cfe.invoke: notPromoted(propertyNotPromoted(target: member:C.f, type: void Function()?))*/
-      /*analyzer.notPromoted(propertyNotPromoted(target: member:C.f, type: void Function()?))*/
+      /*cfe.invoke: notPromoted(propertyNotPromotedForInherentReason(target: member:C.f, type: void Function()?))*/
+      /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.f, type: void Function()?))*/
       call();
 }

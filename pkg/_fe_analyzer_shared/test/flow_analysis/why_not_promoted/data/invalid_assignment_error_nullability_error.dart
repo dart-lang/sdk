@@ -14,5 +14,5 @@ class C1 {
 test(C1 c) sync* {
   if (c.bad == null) return;
   yield* c.
-      /*notPromoted(propertyNotPromoted(target: member:C1.bad, type: List<int>?))*/ bad;
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C1.bad, type: List<int>?))*/ bad;
 }
