@@ -341,6 +341,8 @@ class KeywordHelper {
     }
     var fields = node.fields;
     if (fields.type == null) {
+      // TODO(brianwilkerson) We should probably not suggest types if `var` is
+      //  being used.
       addKeyword(Keyword.DYNAMIC);
       addKeyword(Keyword.VOID);
     }
