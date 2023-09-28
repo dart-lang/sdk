@@ -1653,12 +1653,27 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    // And for each extension getter, make a note of why it's not promotable.
+    // And for each getter in an extension or extension type, make a note of why
+    // it's not promotable.
     Iterator<SourceExtensionBuilder> extensionIterator =
         localMembersIteratorOfType();
     while (extensionIterator.moveNext()) {
       SourceExtensionBuilder extension_ = extensionIterator.current;
       for (Builder member in extension_.scope.localMembers) {
+        if (member is SourceProcedureBuilder &&
+            !member.isStatic &&
+            member.isGetter) {
+          individualPropertyReasons[member.procedure] =
+              PropertyNonPromotabilityReason.isNotField;
+        }
+      }
+    }
+    Iterator<SourceExtensionTypeDeclarationBuilder> extensionTypeIterator =
+        localMembersIteratorOfType();
+    while (extensionTypeIterator.moveNext()) {
+      SourceExtensionTypeDeclarationBuilder extensionType =
+          extensionTypeIterator.current;
+      for (Builder member in extensionType.scope.localMembers) {
         if (member is SourceProcedureBuilder &&
             !member.isStatic &&
             member.isGetter) {

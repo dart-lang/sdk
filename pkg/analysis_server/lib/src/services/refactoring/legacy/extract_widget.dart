@@ -364,11 +364,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     builder.addDeletion(linesRange);
   }
 
-  String _replaceIndent(String code, String indentOld, String indentNew) {
-    var regExp = RegExp('^$indentOld', multiLine: true);
-    return code.replaceAll(regExp, indentNew);
-  }
-
   /// Replace invocations of the [_method] with instantiations of the new
   /// widget class.
   void _replaceInvocationsWithInstantiations(DartFileEditBuilder builder) {
@@ -525,7 +520,13 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                 var indentNew = '    ';
 
                 var code = utils.getNodeText(expression);
-                code = _replaceIndent(code, indentOld, indentNew);
+                code = utils.replaceSourceIndent(
+                  code,
+                  indentOld,
+                  indentNew,
+                  includeLeading: false,
+                  includeTrailingNewline: false,
+                );
 
                 builder.writeln('{');
 
@@ -539,7 +540,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                 var indentNew = '    ';
 
                 var code = utils.getRangeText(_statementsRange!);
-                code = _replaceIndent(code, indentOld, indentNew);
+                code = utils.replaceSourceIndent(code, indentOld, indentNew,
+                    includeLeading: false, includeTrailingNewline: false);
 
                 builder.writeln('{');
 

@@ -4362,7 +4362,7 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     SimdLowering lowering(flow_graph, call, graph_entry, entry, last, result);
     return lowering.TryInline(kind);
 #else
-    UNREACHABLE();
+    return false;
 #endif
   }
 
