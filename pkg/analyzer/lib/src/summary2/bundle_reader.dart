@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -482,7 +483,35 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
     element.entryPoint = reader.readElement() as FunctionElement?;
 
+    element.fieldNameNonPromotabilityInfo =
+        _readFieldNameNonPromotabilityInfo(reader);
+
     applyConstantOffsets?.perform();
+  }
+
+  Map<String, FieldNameNonPromotabilityInfo>?
+      _readFieldNameNonPromotabilityInfo(ResolutionReader reader) {
+    // The summary format for `LibraryElementImpl.fieldNameNonPromotabilityInfo`
+    // is as follows:
+    // - bool: `true` if field name non-promotability information is present,
+    //   `false` if not.
+    // - If information is present:
+    //   - Uint30: number of entries in the map.
+    //   - For each map entry:
+    //     - String reference: key
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingFields`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingGetters`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingNsmClasses`
+    if (!reader.readBool()) return null;
+    int length = reader.readUInt30();
+    if (length == 0) return const {};
+    return {
+      for (int i = 0; i < length; i++)
+        reader.readStringReference(): FieldNameNonPromotabilityInfo(
+            conflictingFields: reader.readElementList(),
+            conflictingGetters: reader.readElementList(),
+            conflictingNsmClasses: reader.readElementList())
+    };
   }
 
   void _readLibraryOrAugmentation(

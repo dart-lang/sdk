@@ -1248,6 +1248,9 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
         field.isPromotable = true;
       }
     }
+
+    // TODO(paulberry): Populate with real data.
+    _libraryBuilder.element.fieldNameNonPromotabilityInfo = {};
   }
 
   /// Records all the non-synthetic instance fields and getters of [class_] into

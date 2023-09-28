@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -4110,6 +4111,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// The macro executor for the bundle to which this library belongs.
   BundleMacroExecutor? bundleMacroExecutor;
 
+  /// Information about why non-promotable private fields in the library are not
+  /// promotable, or `null` if field promotion is not enabled in this library.
+  /// See [fieldNameNonPromotabilityInfo].
+  Map<String, FieldNameNonPromotabilityInfo>? _fieldNameNonPromotabilityInfo;
+
   /// All augmentations of this library, in the depth-first pre-order order.
   late final List<LibraryAugmentationElementImpl> augmentations =
       _computeAugmentations();
@@ -4179,6 +4185,35 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   set exportNamespace(Namespace exportNamespace) {
     _exportNamespace = exportNamespace;
+  }
+
+  /// Information about why non-promotable private fields in the library are not
+  /// promotable, or `null` if field promotion is not enabled in this library.
+  ///
+  /// There are two ways an access to a private property name might not be
+  /// promotable: the property might be non-promotable for a reason inherent to
+  /// itself (e.g. it's declared as a concrete getter rather than a field, or
+  /// it's a non-final field), or the property might have the same name as an
+  /// inherently non-promotable property elsewhere in the same library (in which
+  /// case the inherently non-promotable property is said to be "conflicting").
+  ///
+  /// When a compile-time error occurs because a property is non-promotable due
+  /// conflicting properties elsewhere in the library, the analyzer needs to be
+  /// able to find the conflicting properties in order to generate context
+  /// messages. This data structure allows that, by mapping each non-promotable
+  /// private name to the set of conflicting declarations.
+  ///
+  /// If a field in the library has a private name and that name does not appear
+  /// as a key in this map, the field is promotable.
+  Map<String, FieldNameNonPromotabilityInfo>?
+      get fieldNameNonPromotabilityInfo {
+    _readLinkedData();
+    return _fieldNameNonPromotabilityInfo;
+  }
+
+  set fieldNameNonPromotabilityInfo(
+      Map<String, FieldNameNonPromotabilityInfo>? value) {
+    _fieldNameNonPromotabilityInfo = value;
   }
 
   bool get hasPartOfDirective {
