@@ -8,6 +8,13 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
 import 'package:kernel/src/replacement_visitor.dart';
 
+Never throwUnsupportedInvalidType(InvalidType type) => throw UnsupportedError(
+    'Unsupported invalid type $type (${type.runtimeType}).');
+
+Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
+    throw UnsupportedError(
+        'Unsupported auxiliary type $type (${type.runtimeType}).');
+
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
 

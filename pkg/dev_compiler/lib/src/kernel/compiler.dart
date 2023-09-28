@@ -1206,50 +1206,67 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         {bool emitNullability = true}) {
       js_ast.Expression emitDeferredType(DartType t,
           {bool emitNullability = true}) {
-        if (t is InterfaceType) {
-          _declareBeforeUse(t.classNode);
-          if (t.typeArguments.isNotEmpty) {
-            var typeRep = _emitGenericClassType(
-                t,
-                _options.newRuntimeTypes
-                    // No reason to defer type arguments in the new type
-                    // representation.
-                    ? t.typeArguments.map(_emitType)
-                    : t.typeArguments.map(emitDeferredType));
+        switch (t) {
+          case InterfaceType():
+            _declareBeforeUse(t.classNode);
+            if (t.typeArguments.isNotEmpty) {
+              var typeRep = _emitGenericClassType(
+                  t,
+                  _options.newRuntimeTypes
+                      // No reason to defer type arguments in the new type
+                      // representation.
+                      ? t.typeArguments.map(_emitType)
+                      : t.typeArguments.map(emitDeferredType));
+              return emitNullability
+                  ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
+                  : typeRep;
+            }
+            return _emitInterfaceType(t, emitNullability: emitNullability);
+          case FutureOrType():
+            var normalizedType = _futureOrNormalizer.normalize(t);
+            if (normalizedType is FutureOrType) {
+              _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
+              var typeRep = _emitFutureOrTypeWithArgument(
+                  emitDeferredType(normalizedType.typeArgument));
+              return emitNullability
+                  ? _emitNullabilityWrapper(
+                      typeRep, normalizedType.declaredNullability)
+                  : typeRep;
+            }
+            return emitDeferredType(normalizedType,
+                emitNullability: emitNullability);
+          case RecordType():
+            var positional = t.positional.map(emitDeferredType);
+            var named = t.named.map((n) => emitDeferredType(n.type));
+            var typeRep = _emitRecordType(t, positional, named);
             return emitNullability
-                ? _emitNullabilityWrapper(typeRep, t.declaredNullability)
+                ? _emitNullabilityWrapper(typeRep, t.nullability)
                 : typeRep;
-          }
-          return _emitInterfaceType(t, emitNullability: emitNullability);
-        } else if (t is FutureOrType) {
-          var normalizedType = _futureOrNormalizer.normalize(t);
-          if (normalizedType is FutureOrType) {
-            _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
-            var typeRep = _emitFutureOrTypeWithArgument(
-                emitDeferredType(normalizedType.typeArgument));
-            return emitNullability
-                ? _emitNullabilityWrapper(
-                    typeRep, normalizedType.declaredNullability)
-                : typeRep;
-          }
-          return emitDeferredType(normalizedType,
-              emitNullability: emitNullability);
-        } else if (t is RecordType) {
-          var positional = t.positional.map(emitDeferredType);
-          var named = t.named.map((n) => emitDeferredType(n.type));
-          var typeRep = _emitRecordType(t, positional, named);
-          return emitNullability
-              ? _emitNullabilityWrapper(typeRep, t.nullability)
-              : typeRep;
-        } else if (t is TypeParameterType) {
-          return _emitTypeParameterType(t, emitNullability: emitNullability);
-        } else if (t is StructuralParameterType) {
-          return _emitTypeParameterType(t, emitNullability: emitNullability);
+
+          case TypeParameterType():
+          case StructuralParameterType():
+            return _emitTypeParameterType(t, emitNullability: emitNullability);
+          case IntersectionType():
+            return _emitTypeParameterType(t.left,
+                emitNullability: emitNullability);
+          case ExtensionType():
+            return emitDeferredType(t.typeErasure);
+          case DynamicType():
+          case VoidType():
+          case NeverType():
+          case NullType():
+          // TODO(nshahan): It seems like a bug that `FunctionType`s have no
+          // special handling here when they do in `shouldDefer()`.
+          case FunctionType():
+          case TypedefType():
+            return _emitType(t);
+          case AuxiliaryType():
+            throwUnsupportedAuxiliaryType(t);
+          case InvalidType():
+            throwUnsupportedInvalidType(t);
         }
-        return _emitType(t);
       }
 
-      assert(isKnownDartTypeImplementor(t));
       var savedEmittingDeferredType = _emittingDeferredType;
       _emittingDeferredType = true;
       var deferredClassRep =
@@ -1261,37 +1278,44 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     bool shouldDefer(InterfaceType t) {
       var visited = <DartType>{};
       bool defer(DartType t) {
-        assert(isKnownDartTypeImplementor(t));
-        if (t is InterfaceType) {
-          var tc = t.classNode;
-          if (c == tc) return true;
-          if (tc == _coreTypes.objectClass || !visited.add(t)) return false;
-          if (t.typeArguments.any(defer)) return true;
-          var mixin = tc.mixedInType;
-          return mixin != null && defer(mixin.asInterfaceType) ||
-              defer(tc.supertype!.asInterfaceType);
+        switch (t) {
+          case InterfaceType(classNode: var tc):
+            if (c == tc) return true;
+            if (tc == _coreTypes.objectClass || !visited.add(t)) return false;
+            if (t.typeArguments.any(defer)) return true;
+            var mixin = tc.mixedInType;
+            return mixin != null && defer(mixin.asInterfaceType) ||
+                defer(tc.supertype!.asInterfaceType);
+          case FutureOrType():
+            if (c == _coreTypes.deprecatedFutureOrClass) return true;
+            if (!visited.add(t)) return false;
+            if (defer(t.typeArgument)) return true;
+            return defer(
+                _coreTypes.deprecatedFutureOrClass.supertype!.asInterfaceType);
+          case TypedefType():
+            return t.typeArguments.any(defer);
+          case FunctionType():
+            return defer(t.returnType) ||
+                t.positionalParameters.any(defer) ||
+                t.namedParameters.any((np) => defer(np.type)) ||
+                t.typeParameters.any((tp) => defer(tp.bound));
+          case RecordType():
+            return t.positional.any(defer) || t.named.any((n) => defer(n.type));
+          case ExtensionType():
+            return defer(t.typeErasure);
+          case DynamicType():
+          case VoidType():
+          case NeverType():
+          case NullType():
+          case IntersectionType():
+          case TypeParameterType():
+          case StructuralParameterType():
+            return false;
+          case AuxiliaryType():
+            throwUnsupportedAuxiliaryType(t);
+          case InvalidType():
+            throwUnsupportedInvalidType(t);
         }
-        if (t is FutureOrType) {
-          if (c == _coreTypes.deprecatedFutureOrClass) return true;
-          if (!visited.add(t)) return false;
-          if (defer(t.typeArgument)) return true;
-          return defer(
-              _coreTypes.deprecatedFutureOrClass.supertype!.asInterfaceType);
-        }
-        if (t is TypedefType) {
-          return t.typeArguments.any(defer);
-        }
-        if (t is FunctionType) {
-          return defer(t.returnType) ||
-              t.positionalParameters.any(defer) ||
-              t.namedParameters.any((np) => defer(np.type)) ||
-              t.typeParameters.any((tp) => defer(tp.bound));
-        }
-        if (t is RecordType) {
-          return t.positional.any(defer) || t.named.any((n) => defer(n.type));
-        }
-        if (t is ExtensionType) return defer(t.typeErasure);
-        return false;
       }
 
       return defer(t);
