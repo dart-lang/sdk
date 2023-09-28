@@ -1008,13 +1008,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "StaticInvocation of '${node.target}' that's an instance member.");
     }
     if (node.isConst &&
-        (!node.target.isConst ||
-            !node.target.isExternal ||
-            node.target.kind != ProcedureKind.Factory)) {
+        !(node.target.isConst &&
+            node.target.isExternal &&
+            node.target.kind == ProcedureKind.Factory) &&
+        !(node.target.isConst && node.target.isExtensionTypeMember)) {
       problem(
           node,
           "Constant StaticInvocation of '${node.target}' that isn't"
-          " a const external factory.");
+          " a const external factory or a const extension type constructor.");
     }
     if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Constant StaticInvocation.");
