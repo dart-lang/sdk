@@ -3210,6 +3210,10 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
 ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
   status: needsFix
   notes: Remove it.
+ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
+  status: needsFix
+  notes: |-
+    Remove the comma.
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:

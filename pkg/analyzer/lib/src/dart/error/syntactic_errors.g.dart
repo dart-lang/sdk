@@ -1818,6 +1818,13 @@ class ParserErrorCode extends ErrorCode {
     correctionMessage: "Try removing the modifier.",
   );
 
+  static const ParserErrorCode REPRESENTATION_FIELD_TRAILING_COMMA =
+      ParserErrorCode(
+    'REPRESENTATION_FIELD_TRAILING_COMMA',
+    "The representation field can't have a trailing comma.",
+    correctionMessage: "Try removing the trailing comma.",
+  );
+
   static const ParserErrorCode SEALED_ENUM = ParserErrorCode(
     'SEALED_ENUM',
     "Enums can't be declared to be 'sealed'.",
