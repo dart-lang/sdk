@@ -106,6 +106,9 @@ class FindNode {
 
   LabeledStatement get singleLabeledStatement => _single();
 
+  LibraryAugmentationDirective get singleLibraryAugmentationDirective =>
+      _single();
+
   LibraryDirective get singleLibraryDirective => _single();
 
   ListLiteral get singleListLiteral => _single();

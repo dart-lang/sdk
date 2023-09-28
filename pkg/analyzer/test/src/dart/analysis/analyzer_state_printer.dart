@@ -232,7 +232,21 @@ class AnalyzerStatePrinter {
       });
     } else if (kind is AugmentationUnknownFileKind) {
       _withIndent(() {
-        _writelnWithIndent('uri: ${kind.unlinked.uri}');
+        final uri = kind.uri;
+        if (uri is DirectiveUriWithoutString) {
+          _writelnWithIndent('noUriStr');
+        } else if (uri is DirectiveUriWithInSummarySource) {
+          throw UnimplementedError('${uri.runtimeType}');
+        } else if (uri is DirectiveUriWithUri) {
+          sink.write(_indent);
+          sink.write('uri: ${uri.relativeUri}');
+          sink.writeln();
+        } else if (uri is DirectiveUriWithString) {
+          final uriStr = _stringOfUriStr(uri.relativeUriStr);
+          sink.write(_indent);
+          sink.write('uriStr: $uriStr');
+          sink.writeln();
+        }
       });
     } else if (kind is LibraryFileKind) {
       expect(kind.library, same(kind));

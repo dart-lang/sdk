@@ -64,6 +64,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
   CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT,
+  CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY,
   CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE,

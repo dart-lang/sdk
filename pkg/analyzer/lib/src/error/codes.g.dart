@@ -209,6 +209,22 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_IMPORT =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_IMPORT',
+    "The library does not import this augmentation.",
+    correctionMessage:
+        "Try updating the augmented library to import this augmentation.",
+  );
+
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_LIBRARY =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_LIBRARY',
+    "The URI does not resolve to a library.",
+    correctionMessage:
+        "Try updating the URI to reference the augmented library",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER =
       CompileTimeErrorCode(
