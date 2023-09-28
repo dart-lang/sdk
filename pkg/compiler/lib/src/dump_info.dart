@@ -4,7 +4,7 @@
 
 library dump_info;
 
-import 'dart:convert' show JsonDecoder, JsonEncoder, StringConversionSink;
+import 'dart:convert' show JsonEncoder, JsonDecoder;
 
 import 'package:compiler/src/js_model/elements.dart';
 import 'package:compiler/src/serialization/serialization.dart';
@@ -36,7 +36,6 @@ import 'js_model/js_world.dart' show JClosedWorld;
 import 'js_backend/field_analysis.dart';
 import 'options.dart';
 import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
-import 'util/sink_adapter.dart';
 
 /// Collects data used for the dump info task.
 ///
@@ -1545,15 +1544,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void dumpInfoJson(AllInfo data) {
-    StringBuffer jsonBuffer = StringBuffer();
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-    final sink = encoder.startChunkedConversion(
-        StringConversionSink.fromStringSink(jsonBuffer));
-    sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
     final name = (options.outputUri?.pathSegments.last ?? 'out');
-    outputProvider.createOutputSink(name, 'info.json', api.OutputType.dumpInfo)
-      ..add(jsonBuffer.toString())
-      ..close();
+    final outputSink = outputProvider.createOutputSink(
+        name, 'info.json', api.OutputType.dumpInfo);
+    final sink =
+        encoder.startChunkedConversion(_BufferedStringOutputSink(outputSink));
+    sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
     reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "View the dumped .info.json file at "
           "https://dart-lang.github.io/dump-info-visualizer"
@@ -1562,8 +1559,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
   void dumpInfoBinary(AllInfo data) {
     final name = (options.outputUri?.pathSegments.last ?? 'out') + ".info.data";
-    Sink<List<int>> sink = BinaryOutputSinkAdapter(
-        outputProvider.createBinarySink(options.outputUri!.resolve(name)));
+    Sink<List<int>> sink =
+        outputProvider.createBinarySink(options.outputUri!.resolve(name));
     dump_info.encode(data, sink);
     reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "Use `package:dart2js_info` to parse and process the dumped "
@@ -1720,6 +1717,29 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         minified: options.enableMinification);
 
     return result;
+  }
+}
+
+class _BufferedStringOutputSink implements Sink<String> {
+  StringBuffer buffer = StringBuffer();
+  final Sink<String> outputSink;
+  static const int _maxLength = 1024 * 1024 * 500;
+
+  _BufferedStringOutputSink(this.outputSink);
+
+  @override
+  void add(String data) {
+    buffer.write(data);
+    if (buffer.length > _maxLength) {
+      outputSink.add(buffer.toString());
+      buffer.clear();
+    }
+  }
+
+  @override
+  void close() {
+    outputSink.add(buffer.toString());
+    outputSink.close();
   }
 }
 
