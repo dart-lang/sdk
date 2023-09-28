@@ -3308,33 +3308,40 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// If we're emitting the type information for `foo`, we cannot refer to `C`
   /// yet, so we must evaluate foo's type lazily.
   bool _canEmitTypeAtTopLevel(DartType type) {
-    assert(isKnownDartTypeImplementor(type));
-    if (type is InterfaceType) {
-      return !_pendingClasses!.contains(type.classNode) &&
-          type.typeArguments.every(_canEmitTypeAtTopLevel);
+    switch (type) {
+      case InterfaceType():
+        return !_pendingClasses!.contains(type.classNode) &&
+            type.typeArguments.every(_canEmitTypeAtTopLevel);
+      case FutureOrType():
+        return !_pendingClasses!.contains(_coreTypes.deprecatedFutureOrClass) &&
+            _canEmitTypeAtTopLevel(type.typeArgument);
+      case FunctionType():
+        // Generic functions are always safe to emit, because they're lazy until
+        // type arguments are applied.
+        if (type.typeParameters.isNotEmpty) return true;
+        return _canEmitTypeAtTopLevel(type.returnType) &&
+            type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
+            type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type));
+      case RecordType():
+        return type.positional.every(_canEmitTypeAtTopLevel) &&
+            type.named.every((n) => _canEmitTypeAtTopLevel(n.type));
+      case TypedefType():
+        return type.typeArguments.every(_canEmitTypeAtTopLevel);
+      case ExtensionType():
+        return _canEmitTypeAtTopLevel(type.typeErasure);
+      case DynamicType():
+      case VoidType():
+      case NeverType():
+      case NullType():
+      case IntersectionType():
+      case TypeParameterType():
+      case StructuralParameterType():
+        return true;
+      case AuxiliaryType():
+        throwUnsupportedAuxiliaryType(type);
+      case InvalidType():
+        throwUnsupportedInvalidType(type);
     }
-    if (type is FutureOrType) {
-      return !_pendingClasses!.contains(_coreTypes.deprecatedFutureOrClass) &&
-          _canEmitTypeAtTopLevel(type.typeArgument);
-    }
-    if (type is FunctionType) {
-      // Generic functions are always safe to emit, because they're lazy until
-      // type arguments are applied.
-      if (type.typeParameters.isNotEmpty) return true;
-
-      return _canEmitTypeAtTopLevel(type.returnType) &&
-          type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
-          type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type));
-    }
-    if (type is RecordType) {
-      return type.positional.every(_canEmitTypeAtTopLevel) &&
-          type.named.every((n) => _canEmitTypeAtTopLevel(n.type));
-    }
-    if (type is TypedefType) {
-      return type.typeArguments.every(_canEmitTypeAtTopLevel);
-    }
-    if (type is ExtensionType) return _canEmitTypeAtTopLevel(type.typeErasure);
-    return true;
   }
 
   /// Emits a Dart [type] into code.
