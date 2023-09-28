@@ -18,9 +18,6 @@ import 'package:test/test.dart';
 main() async {
   SnippetTester tester = SnippetTester();
   await tester.verify();
-  if (tester.output.isNotEmpty) {
-    fail(tester.output.toString());
-  }
 }
 
 class SnippetTester {
@@ -79,7 +76,13 @@ class SnippetTester {
     for (Resource child in folder.getChildren()) {
       if (child is File) {
         if (child.shortName.endsWith('.md')) {
-          await verifyFile(child);
+          test('Verify docs in ${child.path}', () async {
+            output.clear();
+            await verifyFile(child);
+            if (output.isNotEmpty) {
+              fail(output.toString());
+            }
+          });
         }
       } else if (child is Folder) {
         await verifyFolder(child);

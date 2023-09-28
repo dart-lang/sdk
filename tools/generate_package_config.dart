@@ -141,12 +141,6 @@ void writeIfDifferent(File file, String contents) {
 Iterable<Package> makePackageConfigs(List<String> packageDirs) sync* {
   for (var packageDir in packageDirs) {
     var name = pubspecName(packageDir);
-    // TODO(https://github.com/dart-lang/webdev/issues/2201): Wait for webdev
-    // to roll in the fix for the pubspec and then remove this workaround.
-    if (posix(packageDir) ==
-        'third_party/pkg/webdev/fixtures/_webdevSoundSmoke') {
-      name = '_webdev_sound_smoke';
-    }
     var version = pubspecLanguageVersion(packageDir);
     var hasLibDirectory =
         Directory(join(repoRoot, packageDir, 'lib')).existsSync();
