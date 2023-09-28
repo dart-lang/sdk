@@ -43,7 +43,6 @@ OSThread::OSThread()
 #endif
       name_(OSThread::GetCurrentThreadName()),
       timeline_block_lock_(),
-      thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
       log_(new class Log()) {
   // Try to get accurate stack bounds from pthreads, etc.
   if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
@@ -97,11 +96,13 @@ OSThread::~OSThread() {
 #endif
   timeline_block_ = nullptr;
   free(name_);
-  if (FLAG_profiler && prepared_for_interrupts_) {
+#if !defined(PRODUCT)
+  if (prepared_for_interrupts_) {
     ThreadInterrupter::CleanupCurrentThreadState(thread_interrupter_state_);
     thread_interrupter_state_ = nullptr;
     prepared_for_interrupts_ = false;
   }
+#endif  // !defined(PRODUCT)
 }
 
 void OSThread::SetName(const char* name) {
@@ -132,6 +133,7 @@ uword OSThread::GetCurrentStackPointer() {
   return stack_allocated_local;
 }
 
+#if !defined(PRODUCT)
 void OSThread::DisableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
   thread_interrupt_disabled_.fetch_add(1u);
@@ -159,6 +161,7 @@ void OSThread::EnableThreadInterrupts() {
 bool OSThread::ThreadInterruptsEnabled() {
   return thread_interrupt_disabled_ == 0;
 }
+#endif  // !defined(PRODUCT)
 
 static void DeleteThread(void* thread) {
   MSAN_UNPOISON(&thread, sizeof(thread));
