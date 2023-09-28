@@ -1513,6 +1513,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Remove 'var'",
   );
+  static const REMOVE_VAR_KEYWORD = FixKind(
+    'dart.fix.remove.var.keyword',
+    DartFixKindPriority.DEFAULT,
+    "Remove 'var'",
+  );
   static const RENAME_METHOD_PARAMETER = FixKind(
     'dart.fix.rename.methodParameter',
     DartFixKindPriority.DEFAULT,

@@ -3180,7 +3180,7 @@ ParserErrorCode.OUT_OF_ORDER_CLAUSES:
     There isn't enough information for a fix. Consider splitting this diagnostic
     so that each variant has enough information.
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
-  status: noFix
+  status: hasFix
 ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
   status: noFix
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:

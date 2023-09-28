@@ -221,6 +221,7 @@ import 'remove_unused_import_test.dart' as remove_unused_import;
 import 'remove_unused_label_test.dart' as remove_unused_label;
 import 'remove_unused_local_variable_test.dart' as remove_unused_local_variable;
 import 'remove_unused_parameter_test.dart' as remove_unused_parameter;
+import 'remove_var_keyword_test.dart' as remove_var_keyword;
 import 'remove_var_test.dart' as remove_var;
 import 'rename_method_parameter_test.dart' as rename_method_parameter;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
@@ -468,6 +469,7 @@ void main() {
     remove_unused_local_variable.main();
     remove_unused_parameter.main();
     remove_var.main();
+    remove_var_keyword.main();
     rename_method_parameter.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
