@@ -108,8 +108,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   }
 
   @override
-  SourceClassBuilder get classBuilder =>
-      super.classBuilder as SourceClassBuilder;
+  DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
 
   List<SourceFactoryBuilder>? get patchesForTesting => _patches;
 
@@ -307,7 +306,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   @override
   String get fullNameForErrors {
-    return "${flattenName(classBuilder.name, charOffset, fileUri)}"
+    return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
         "${name.isEmpty ? '' : '.$name'}";
   }
 
@@ -474,10 +473,10 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
-              fileUri, classBuilder.thisType, libraryBuilder, null);
+              fileUri, declarationBuilder.thisType, libraryBuilder, null);
       InferenceHelper helper = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-              libraryBuilder, bodyBuilderContext, classBuilder.scope, fileUri);
+          .createBodyBuilderForOutlineExpression(libraryBuilder,
+              bodyBuilderContext, declarationBuilder.scope, fileUri);
       Builder? targetBuilder = redirectionTarget.target;
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
@@ -503,7 +502,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         // Assume that the error is reported elsewhere, use 'dynamic' for
         // recovery.
         typeArguments = new List<DartType>.filled(
-            target.enclosingClass!.typeParameters.length, const DynamicType(),
+            declarationBuilder.typeVariablesCount, const DynamicType(),
             growable: true);
       }
 
@@ -736,7 +735,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       libraryBuilder.addProblemForRedirectingFactory(
           this,
           templateCyclicRedirectingFactoryConstructors
-              .withArguments("${classBuilder.name}"
+              .withArguments("${declarationBuilder.name}"
                   "${name == '' ? '' : '.${name}'}"),
           charOffset,
           noLength,
@@ -784,7 +783,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     // Redirection to generative enum constructors is forbidden and is reported
     // as an error elsewhere.
-    if (!(classBuilder.cls.isEnum &&
+    if (!((classBuilder?.cls.isEnum ?? false) &&
         (redirectionTarget.target?.isConstructor ?? false))) {
       // Check whether [redirecteeType] <: [factoryType].
       if (!typeEnvironment.isSubtypeOf(
