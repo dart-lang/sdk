@@ -52,4 +52,12 @@ class Registry with IterableMixin<LintRule> {
       _codeMap[lintCode.uniqueName] = lintCode;
     }
   }
+
+  /// Remove the given lint [rule] from this registry.
+  void unregister(LintRule rule) {
+    _ruleMap.remove(rule.name);
+    for (var lintCode in rule.lintCodes) {
+      _codeMap.remove(lintCode.uniqueName);
+    }
+  }
 }
