@@ -1,0 +1,12 @@
+name: http
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  ffi: ^2.1.0
+
+dev_dependencies:
+  test: ^1.21.1

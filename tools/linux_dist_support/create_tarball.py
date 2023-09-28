@@ -42,7 +42,6 @@ versiondir = ''
 ignoredPaths = [
     'buildtools/linux-x64/go',
     'buildtools/linux-x64/rust',
-    'samples',
     'third_party/7zip',
     'third_party/android_tools',
     'third_party/clang',
