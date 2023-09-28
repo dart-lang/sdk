@@ -386,11 +386,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     final augmentationTarget = reader.readElement();
     if (augmentationTarget is FieldElementImpl) {
       augmentationTarget.augmentation = element;
-      augmentationTarget.getter?.variable = element;
-      augmentationTarget.setter?.variable = element;
       element.augmentationTarget = augmentationTarget;
-      element.getter = augmentationTarget.getter;
-      element.setter = augmentationTarget.setter;
     }
 
     if (element is ConstFieldElementImpl) {
@@ -1815,11 +1811,6 @@ class PropertyAccessorElementLinkedData
     final augmentationTarget = reader.readElement();
     if (augmentationTarget is PropertyAccessorElementImpl) {
       augmentationTarget.augmentation = element;
-      if (element.isGetter) {
-        augmentationTarget.variable.getter = element;
-      } else {
-        augmentationTarget.variable.setter = element;
-      }
       element.augmentationTarget = augmentationTarget;
       element.variable = augmentationTarget.variable;
     }

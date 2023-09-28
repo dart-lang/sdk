@@ -566,14 +566,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -593,8 +593,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -643,14 +641,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -670,9 +668,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_2
-                getter: getter_0
-                setter: setter_0
+                id: field_1
                 augmentationTarget: self::@class::A::@field::foo
                 augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
@@ -684,9 +680,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_1
-                getter: getter_0
-                setter: setter_0
+                id: field_2
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
 ''');
   }
@@ -734,7 +728,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -743,7 +737,7 @@ library
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -762,8 +756,8 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
-                variable: field_1
+                id: getter_1
+                variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
     package:test/b.dart
       definingUnit
@@ -775,8 +769,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -825,13 +817,13 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
         augmented
@@ -855,8 +847,8 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
-                variable: field_1
+                id: setter_1
+                variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo
     package:test/b.dart
       definingUnit
@@ -868,8 +860,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -908,16 +898,16 @@ library
           synthetic @-1
         accessors
           synthetic get foo @-1
-            returnType: double
+            returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
-                type: double
+                type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -937,8 +927,6 @@ library
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -979,7 +967,7 @@ library
           get foo @45
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -998,7 +986,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -1449,7 +1436,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -1476,7 +1463,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
 ''');
@@ -1524,7 +1511,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -1552,7 +1539,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
@@ -1564,7 +1551,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
@@ -1607,7 +1594,7 @@ library
         accessors
           get foo1 @45
             returnType: int
-            id: getter_2
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
@@ -1632,7 +1619,7 @@ library
             accessors
               augment get foo1 @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo1
 ''');
@@ -1678,7 +1665,7 @@ library
         accessors
           get foo @70
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
         augmented
@@ -1698,7 +1685,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
@@ -1710,7 +1697,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
@@ -2457,7 +2444,7 @@ library
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
         augmented
@@ -2480,7 +2467,7 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo
 ''');
@@ -2526,7 +2513,7 @@ library
               requiredPositional _ @50
                 type: int
             returnType: void
-            id: setter_2
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
@@ -2557,7 +2544,7 @@ library
                   requiredPositional _ @70
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_2
                 variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo1
 ''');
@@ -49229,14 +49216,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49256,8 +49243,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49306,14 +49291,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49333,9 +49318,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_2
-                getter: getter_0
-                setter: setter_0
+                id: field_1
                 augmentationTarget: self::@mixin::A::@field::foo
                 augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
@@ -49347,9 +49330,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_1
-                getter: getter_0
-                setter: setter_0
+                id: field_2
                 augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
 ''');
   }
@@ -49397,7 +49378,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -49406,7 +49387,7 @@ library
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49425,8 +49406,8 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
-                variable: field_1
+                id: getter_1
+                variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
     package:test/b.dart
       definingUnit
@@ -49438,8 +49419,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49488,13 +49467,13 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
         augmented
@@ -49518,8 +49497,8 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
-                variable: field_1
+                id: setter_1
+                variable: field_0
                 augmentationTarget: self::@mixin::A::@setter::foo
     package:test/b.dart
       definingUnit
@@ -49531,8 +49510,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49571,16 +49548,16 @@ library
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic get foo @-1
-            returnType: double
+            returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
-                type: double
+                type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49600,8 +49577,6 @@ library
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49642,7 +49617,7 @@ library
           get foo @45
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49661,7 +49636,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -50008,7 +49982,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -50035,7 +50009,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
 ''');
@@ -50083,7 +50057,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -50111,7 +50085,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
@@ -50123,7 +50097,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
@@ -50166,7 +50140,7 @@ library
         accessors
           get foo1 @45
             returnType: int
-            id: getter_2
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
@@ -50191,7 +50165,7 @@ library
             accessors
               augment get foo1 @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo1
 ''');
@@ -50237,7 +50211,7 @@ library
         accessors
           get foo @70
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
         augmented
@@ -50257,7 +50231,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
@@ -50269,7 +50243,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
@@ -50764,7 +50738,7 @@ library
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
         augmented
@@ -50787,7 +50761,7 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@setter::foo
 ''');
@@ -50833,7 +50807,7 @@ library
               requiredPositional _ @50
                 type: int
             returnType: void
-            id: setter_2
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
@@ -50864,7 +50838,7 @@ library
                   requiredPositional _ @70
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_2
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@setter::foo1
 ''');
