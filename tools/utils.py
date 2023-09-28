@@ -480,19 +480,7 @@ def DiagnoseExitCode(exit_code, command):
                 ' '.join(command), exit_code, exit_code & 0xffffffff))
 
 
-# The checked-in SDKs are documented at
-#     https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
 def CheckedInSdkPath():
-    # We don't use the normal macos, linux, win32 directory names here, instead,
-    # we use the names that the download_from_google_storage script uses.
-    osdict = {'Darwin': 'mac', 'Linux': 'linux', 'Windows': 'win'}
-    system = platform.system()
-    try:
-        osname = osdict[system]
-    except KeyError:
-        sys.stderr.write(
-            'WARNING: platform "{}" not supported\n'.format(system))
-        return None
     tools_dir = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(tools_dir, 'sdks', 'dart-sdk')
 
