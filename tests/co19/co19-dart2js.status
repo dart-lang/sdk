@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+Language/Classes/Instance_Methods/Method_noSuchMethod/definition_A01_t03: SkipByDesign # Non-JS-interop external members are not supported
+Language/Classes/Instance_Methods/Method_noSuchMethod/definition_A02_t02: SkipByDesign # Non-JS-interop external members are not supported
 Language/Expressions/Constants/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/integer_size_t04: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/literal_number_t01: SkipByDesign # uses integer literal not representable as JavaScript number
