@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_helper.dart';
+import 'package:analysis_server/src/services/completion/dart/label_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -30,9 +31,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// The suggestion collector to which suggestions will be added.
   final SuggestionCollector collector;
 
-  /// A helper that can be used to suggest keywords.
+  /// The helper used to suggest keywords.
   late final KeywordHelper keywordHelper = KeywordHelper(
       collector: collector, featureSet: featureSet, offset: offset);
+
+  /// The helper used to suggest labels.
+  late final LabelHelper labelHelper = LabelHelper(collector: collector);
 
   /// Initialize a newly created completion visitor that can use the [state] to
   /// add candidate suggestions to the [collector].
@@ -135,7 +139,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addFunctionBodyModifiers(null);
     } else if (node.type.coversOffset(offset)) {
       collector.completionLocation = 'AsExpression_type';
-      // TODO(brianwilkerson) Is there a reason we aren't suggesting `void`?
+      // TODO(brianwilkerson) Add a parameter to _forTypeAnnotation to prohibit
+      //  producing `void`, then convert the call below.
       keywordHelper.addKeyword(Keyword.DYNAMIC);
     }
   }
@@ -214,8 +219,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    if (offset <= node.breakKeyword.end) {
+    var breakEnd = node.breakKeyword.end;
+    if (offset <= breakEnd) {
       keywordHelper.addKeyword(Keyword.BREAK);
+    } else if (breakEnd < offset && offset <= node.semicolon.offset) {
+      labelHelper.addLabels(node);
     }
   }
 
@@ -337,8 +345,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    if (offset <= node.continueKeyword.end) {
+    var continueEnd = node.continueKeyword.end;
+    if (offset <= continueEnd) {
       keywordHelper.addKeyword(Keyword.CONTINUE);
+    } else if (continueEnd < offset && offset <= node.semicolon.offset) {
+      labelHelper.addLabels(node);
     }
   }
 
