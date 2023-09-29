@@ -2916,6 +2916,43 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
+void LoadClassIdInstr::InferRange(uword* lower, uword* upper) {
+  ASSERT(kIllegalCid == 0);
+  *lower = 1;
+  *upper = kClassIdTagMax;
+
+  CompileType* ctype = object()->Type();
+  intptr_t cid = ctype->ToCid();
+  if (cid != kDynamicCid) {
+    *lower = *upper = cid;
+  } else if (CompilerState::Current().is_aot()) {
+    *upper = IsolateGroup::Current()->class_table()->NumCids();
+
+    HierarchyInfo* hi = Thread::Current()->hierarchy_info();
+    if (hi != nullptr) {
+      const auto& type = *ctype->ToAbstractType();
+      if (type.IsType() && !type.IsFutureOrType() &&
+          !Instance::NullIsAssignableTo(type)) {
+        const auto& type_class = Class::Handle(type.type_class());
+        const auto& ranges =
+            hi->SubtypeRangesForClass(type_class, /*include_abstract=*/false,
+                                      /*exclude_null=*/true);
+        if (ranges.length() > 0) {
+          *lower = ranges[0].cid_start;
+          *upper = ranges[ranges.length() - 1].cid_end;
+        }
+      }
+    }
+  }
+}
+
+void LoadClassIdInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  uword lower, upper;
+  InferRange(&lower, &upper);
+  *range = Range(RangeBoundary::FromConstant(lower),
+                 RangeBoundary::FromConstant(upper));
+}
+
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(IsStringClassId(class_id()));
   RangeBoundary zero = RangeBoundary::FromConstant(0);

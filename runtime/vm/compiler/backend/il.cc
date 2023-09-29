@@ -3742,6 +3742,27 @@ Definition* TestRangeInstr::Canonicalize(FlowGraph* flow_graph) {
     return flow_graph->GetConstant(
         Bool::Get(in_range == (kind() == Token::kIS)));
   }
+
+  const Range* range = value()->definition()->range();
+  if (range != nullptr) {
+    if (range->IsWithin(lower_, upper_)) {
+      return flow_graph->GetConstant(Bool::Get(kind() == Token::kIS));
+    }
+    if (!range->Overlaps(lower_, upper_)) {
+      return flow_graph->GetConstant(Bool::Get(kind() != Token::kIS));
+    }
+  }
+
+  if (LoadClassIdInstr* load_cid = value()->definition()->AsLoadClassId()) {
+    uword lower, upper;
+    load_cid->InferRange(&lower, &upper);
+    if (lower >= lower_ && upper <= upper_) {
+      return flow_graph->GetConstant(Bool::Get(kind() == Token::kIS));
+    } else if (lower > upper_ || upper < lower_) {
+      return flow_graph->GetConstant(Bool::Get(kind() != Token::kIS));
+    }
+  }
+
   return this;
 }
 
