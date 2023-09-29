@@ -252,14 +252,12 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       Set.unmodifiable(_visitedJsInteropTypes);
 
   @override
-  String visitAuxiliaryType(AuxiliaryType node) {
-    throw UnsupportedError(
-        'Unsupported auxiliary type $node (${node.runtimeType}).');
-  }
+  String visitAuxiliaryType(AuxiliaryType node) =>
+      throwUnsupportedAuxiliaryType(node);
 
   @override
-  String visitInvalidType(DartType node) =>
-      throw UnimplementedError('Unknown DartType: $node');
+  String visitInvalidType(InvalidType node) =>
+      throwUnsupportedInvalidType(node);
 
   @override
   String visitDynamicType(DynamicType node) => Recipe.pushDynamicString;
