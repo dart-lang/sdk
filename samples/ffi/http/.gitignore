@@ -1,0 +1,6 @@
+.dart_tool
+.packages
+pubspec.lock
+lib/libfake_http.so
+lib/libfake_http.dylib
+lib/fake_http.dll

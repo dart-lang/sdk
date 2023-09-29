@@ -38,35 +38,50 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
         type = type.parameter.bound;
       }
     }
-    assert(isKnownDartTypeImplementor(type));
-
-    // Note that this should be changed if Dart gets non-nullable types
-    if (type == const NullType()) return JSType.jsNull;
-
-    if (type is InterfaceType) {
-      var c = type.classNode;
-      if (c == coreTypes.numClass ||
-          c == coreTypes.intClass ||
-          c == coreTypes.doubleClass ||
-          c == _jsNumber) {
+    switch (type) {
+      case NullType():
+        // Note that this should be changed if Dart gets non-nullable types.
+        return JSType.jsNull;
+      case InterfaceType(classNode: var c)
+          when c == coreTypes.numClass ||
+              c == coreTypes.intClass ||
+              c == coreTypes.doubleClass ||
+              c == _jsNumber:
         return JSType.jsNumber;
-      }
-      if (c == coreTypes.boolClass || c == _jsBool) return JSType.jsBoolean;
-      if (c == coreTypes.stringClass || c == _jsString) return JSType.jsString;
-      if (c == coreTypes.objectClass) return JSType.jsUnknown;
-    }
-    if (type is FutureOrType) {
-      var argumentRep = typeFor(type.typeArgument);
-      if (argumentRep is JSObject || argumentRep is JSNull) {
+
+      case InterfaceType(classNode: var c)
+          when c == coreTypes.boolClass || c == _jsBool:
+        return JSType.jsBoolean;
+      case InterfaceType(classNode: var c)
+          when c == coreTypes.stringClass || c == _jsString:
+        return JSType.jsString;
+      case InterfaceType(classNode: var c) when c == coreTypes.objectClass:
+        return JSType.jsUnknown;
+      case FutureOrType():
+        var argumentRep = typeFor(type.typeArgument);
+        if (argumentRep is JSObject || argumentRep is JSNull) {
+          return JSType.jsObject;
+        }
+        return JSType.jsUnknown;
+      case DynamicType():
+      case VoidType():
+        return JSType.jsUnknown;
+      case ExtensionType():
+        return typeFor(type.typeErasure);
+      case InterfaceType():
+      case NeverType():
+      case FunctionType():
+      case TypedefType():
+      case IntersectionType():
+      case TypeParameterType():
+      case StructuralParameterType():
+      case RecordType():
         return JSType.jsObject;
-      }
-      return JSType.jsUnknown;
+      case AuxiliaryType():
+        throwUnsupportedAuxiliaryType(type);
+      case InvalidType():
+        throwUnsupportedInvalidType(type);
     }
-    if (type == const DynamicType() || type == const VoidType()) {
-      return JSType.jsUnknown;
-    }
-    if (type is ExtensionType) typeFor(type.typeErasure);
-    return JSType.jsObject;
   }
 
   /// Returns the known implementation type for [t], if any.
