@@ -598,7 +598,7 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
-    if (charCodes is JSArray) {
+    if (charCodes is JSArray<int>) {
       return _stringFromJSArray(charCodes, start, end);
     }
     if (charCodes is NativeUint8List) {
@@ -620,11 +620,11 @@ class String {
   }
 
   static String _stringFromJSArray(
-      /*=JSArray<int>*/ list, int start, int? endOrNull) {
+      JSArray<int> list, int start, int? endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
-      list = list.sublist(start, end);
+      list = JS('!', '#.slice(#, #)', list, start, end);
     }
     return Primitives.stringFromCharCodes(list);
   }
