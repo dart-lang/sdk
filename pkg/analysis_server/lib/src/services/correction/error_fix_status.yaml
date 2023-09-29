@@ -217,6 +217,12 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
+  status: needsFix
+  notes: |-
+    The fix is to add `import augment`.
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
+  status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
   status: needsFix
   notes: |-
@@ -3210,6 +3216,10 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
 ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
   status: needsFix
   notes: Remove it.
+ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
+  status: needsFix
+  notes: |-
+    Remove the comma.
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:

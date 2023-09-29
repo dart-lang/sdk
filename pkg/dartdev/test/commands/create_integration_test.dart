@@ -165,7 +165,7 @@ void defineCreateTests() {
 
           // If the sample should exit on its own, it should always result in
           // an exit code of 0.
-          final duration = const Duration(seconds: 30);
+          final duration = const Duration(seconds: 60);
           final exitCode =
               await process.exitCode.timeout(duration, onTimeout: () {
             print('Command $command timed out');

@@ -37,12 +37,10 @@ class RuntimeObjectKind {
 /// descriptors for all classes in a library:
 ///
 /// ```
-/// {
-///   classes: [
-///     { 'className': <dart class name> },
+/// [
+///     <dart class name>,
 ///     ...
-///   ]
-/// }
+/// ]
 /// ```
 ///
 /// TODO(annagrin): remove when debugger consumes debug symbols.
@@ -52,11 +50,17 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
   var library = getLibrary('$libraryUri');
   if (library == null) throw 'cannot find library for $libraryUri';
 
-  var classes = <String>[];
+  final classes = <String>[];
   for (var name in getOwnPropertyNames(library)) {
-    var cls = _get<Object?>(library, name);
-    if (cls != null && _isDartClassObject(cls)) {
-      classes.add(_dartClassName(cls));
+    final field = name as String;
+    var descriptor = getOwnPropertyDescriptor(library, field);
+    // Filter out all getters prevent causing side-effects by calling them.
+    if (_get<Object?>(descriptor, 'value') != null &&
+        _get<Object?>(descriptor, 'get') == null) {
+      final cls = _get<Object?>(library, field);
+      if (cls != null && _isDartClassObject(cls)) {
+        classes.add(_dartClassName(cls));
+      }
     }
   }
   return classes;
@@ -64,7 +68,7 @@ List<String> getLibraryMetadata(@notNull String libraryUri) {
 
 /// Collect class metadata.
 ///
-/// Returns a JavaScript descriptor for the [className] class in [libraryUri].
+/// Returns a JavaScript descriptor for the class [name] class in [libraryUri].
 ///
 /// /// ```
 /// {

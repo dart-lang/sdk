@@ -1112,6 +1112,12 @@ CompileTimeErrorCode:
         }
       }
       ```
+  AUGMENTATION_WITHOUT_IMPORT:
+    problemMessage: The library does not import this augmentation.
+    correctionMessage: Try updating the augmented library to import this augmentation.
+  AUGMENTATION_WITHOUT_LIBRARY:
+    problemMessage: The URI does not resolve to a library.
+    correctionMessage: Try updating the URI to reference the augmented library
   AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
     problemMessage: "The 'await' expression can't be used in a 'late' local variable's initializer."
     correctionMessage: "Try removing the 'late' modifier, or rewriting the initializer without using the 'await' expression."
@@ -20474,6 +20480,9 @@ ParserErrorCode:
   REPRESENTATION_FIELD_MODIFIER:
     problemMessage: "Representation fields can't have modifiers."
     correctionMessage: Try removing the modifier.
+  REPRESENTATION_FIELD_TRAILING_COMMA:
+    problemMessage: The representation field can't have a trailing comma.
+    correctionMessage: Try removing the trailing comma.
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.

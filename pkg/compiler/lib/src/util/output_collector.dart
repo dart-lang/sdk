@@ -37,7 +37,7 @@ class BufferedBinaryOutputSink implements api.BinaryOutputSink {
   BufferedBinaryOutputSink(this.uri);
 
   @override
-  void write(List<int> buffer, [int start = 0, int? end]) {
+  void add(List<int> buffer, [int start = 0, int? end]) {
     list.addAll(buffer.sublist(start, end));
   }
 

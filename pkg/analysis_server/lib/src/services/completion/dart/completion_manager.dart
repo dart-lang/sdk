@@ -187,7 +187,12 @@ class DartCompletionManager {
     }
 
     try {
-      _runFirstPass(request, builder);
+      await performance.runAsync(
+        'InScopeCompletionPass',
+        (performance) async {
+          _runFirstPass(request, builder);
+        },
+      );
       for (var contributor in contributors) {
         await performance.runAsync(
           '${contributor.runtimeType}',

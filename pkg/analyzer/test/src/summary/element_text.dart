@@ -462,12 +462,13 @@ class _ElementWriter {
     }
   }
 
-  void _writeExtensionElement(ExtensionElement e) {
+  void _writeExtensionElement(ExtensionElementImpl e) {
     _sink.writeIndentedLine(() {
       _writeName(e);
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -507,6 +508,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -914,6 +916,7 @@ class _ElementWriter {
     }
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -938,7 +941,9 @@ class _ElementWriter {
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
-      expect(e.getter, isNotNull);
+      if (!e.isAugmentation) {
+        expect(e.getter, isNotNull);
+      }
 
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -981,6 +986,7 @@ class _ElementWriter {
     }
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -1064,6 +1070,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);

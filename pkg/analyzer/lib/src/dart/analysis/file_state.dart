@@ -46,19 +46,16 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// The file has a `library augment` directive.
-abstract class AugmentationFileKind extends LibraryOrAugmentationFileKind {
+abstract class AugmentationFileKind<U extends DirectiveUri>
+    extends LibraryOrAugmentationFileKind {
   final UnlinkedLibraryAugmentationDirective unlinked;
+  final U uri;
 
   AugmentationFileKind({
     required super.file,
     required this.unlinked,
+    required this.uri,
   });
-
-  @override
-  LibraryFileKind get asLibrary {
-    // TODO(scheglov): implement asLibrary
-    throw UnimplementedError();
-  }
 
   /// Returns `true` if the `library augment` directive confirms [container].
   bool isAugmentationOf(LibraryOrAugmentationFileKind container);
@@ -133,14 +130,12 @@ class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
 }
 
 /// The URI of the [unlinked] can be resolved.
-class AugmentationKnownFileKind extends AugmentationFileKind {
-  /// The file that is referenced by the [unlinked].
-  final FileState uriFile;
-
+class AugmentationKnownFileKind
+    extends AugmentationFileKind<DirectiveUriWithFile> {
   AugmentationKnownFileKind({
     required super.file,
     required super.unlinked,
-    required this.uriFile,
+    required super.uri,
   });
 
   /// If the [uriFile] has `import augment` of this file, returns [uriFile].
@@ -171,6 +166,9 @@ class AugmentationKnownFileKind extends AugmentationFileKind {
     return null;
   }
 
+  /// The file that is referenced by the [uri].
+  FileState get uriFile => uri.file;
+
   @override
   void dispose() {
     super.dispose();
@@ -198,10 +196,11 @@ class AugmentationKnownFileKind extends AugmentationFileKind {
 }
 
 /// The URI of the [unlinked] can not be resolved.
-class AugmentationUnknownFileKind extends AugmentationFileKind {
+class AugmentationUnknownFileKind extends AugmentationFileKind<DirectiveUri> {
   AugmentationUnknownFileKind({
     required super.file,
     required super.unlinked,
+    required super.uri,
   });
 
   @override
@@ -351,6 +350,7 @@ abstract class FileKind {
     return LibraryFileKind(
       file: file,
       name: null,
+      recoveredFrom: this,
     );
   }
 
@@ -802,19 +802,19 @@ class FileState {
     final partOfNameDirective = unlinked2.partOfNameDirective;
     final partOfUriDirective = unlinked2.partOfUriDirective;
     if (libraryAugmentationDirective != null) {
-      final uriStr = libraryAugmentationDirective.uri;
-      final uriResolution = _fileForRelativeUri(uriStr);
-      switch (uriResolution) {
-        case UriResolutionFile(:final file):
+      final uri = _buildDirectiveUri(libraryAugmentationDirective.uri);
+      switch (uri) {
+        case DirectiveUriWithFile _:
           _kind = AugmentationKnownFileKind(
             file: this,
             unlinked: libraryAugmentationDirective,
-            uriFile: file,
+            uri: uri,
           );
         default:
           _kind = AugmentationUnknownFileKind(
             file: this,
             unlinked: libraryAugmentationDirective,
+            uri: uri,
           );
       }
     } else if (libraryDirective != null) {
@@ -886,17 +886,15 @@ class FileState {
       } else if (directive is LibraryAugmentationDirective) {
         final uri = directive.uri;
         final uriStr = uri.stringValue;
-        if (uriStr != null) {
-          libraryAugmentationDirective = UnlinkedLibraryAugmentationDirective(
-            augmentKeywordOffset: directive.augmentKeyword.offset,
-            libraryKeywordOffset: directive.libraryKeyword.offset,
-            uri: uriStr,
-            uriRange: UnlinkedSourceRange(
-              offset: uri.offset,
-              length: uri.length,
-            ),
-          );
-        }
+        libraryAugmentationDirective = UnlinkedLibraryAugmentationDirective(
+          augmentKeywordOffset: directive.augmentKeyword.offset,
+          libraryKeywordOffset: directive.libraryKeyword.offset,
+          uri: uriStr,
+          uriRange: UnlinkedSourceRange(
+            offset: uri.offset,
+            length: uri.length,
+          ),
+        );
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           name: directive.name2?.name,
@@ -1688,6 +1686,9 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// Or `null` if no `library` directive.
   final String? name;
 
+  /// The [FileKind] that created this object in [FileKind.asLibrary].
+  final FileKind? recoveredFrom;
+
   List<PartState>? _parts;
 
   /// The synthetic augmentation imports added to [augmentationImports] for
@@ -1700,6 +1701,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   LibraryFileKind({
     required super.file,
     required this.name,
+    this.recoveredFrom,
   }) {
     file._fsState._libraryNameToFiles.add(this);
   }

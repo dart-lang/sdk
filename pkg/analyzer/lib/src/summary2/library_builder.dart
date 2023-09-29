@@ -64,14 +64,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
         if (existing != null) {
           existing.augmentation = element;
           element.augmentationTarget = existing;
-          // Link the accessor to the variable.
-          final variable = existing.variable;
-          element.variable = variable;
-          if (element.isGetter) {
-            variable.getter = element;
-          } else {
-            variable.setter = element;
-          }
+          element.variable = existing.variable;
         }
       }
       accessors[name] = element;
@@ -99,11 +92,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
         final existing = fields[name];
         if (existing != null) {
           existing.augmentation = element;
-          existing.getter?.variable = element;
-          existing.setter?.variable = element;
           element.augmentationTarget = existing;
-          element.getter = existing.getter;
-          element.setter = existing.setter;
         }
       }
       fields[name] = element;
@@ -1248,6 +1237,9 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
         field.isPromotable = true;
       }
     }
+
+    // TODO(paulberry): Populate with real data.
+    _libraryBuilder.element.fieldNameNonPromotabilityInfo = {};
   }
 
   /// Records all the non-synthetic instance fields and getters of [class_] into

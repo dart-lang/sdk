@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -123,6 +124,8 @@ class BundleWriter {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
     _resolutionSink.writeElement(libraryElement.entryPoint);
+    _writeFieldNameNonPromotabilityInfo(
+        libraryElement.fieldNameNonPromotabilityInfo);
     LibraryElementFlags.write(_sink, libraryElement);
     _writeUnitElement(libraryElement.definingCompilationUnit);
     _writeList(libraryElement.parts, _writePartElement);
@@ -387,6 +390,32 @@ class BundleWriter {
     }
 
     _resolutionSink._writeOptionalNode(element.constantInitializer);
+  }
+
+  void _writeFieldNameNonPromotabilityInfo(
+      Map<String, FieldNameNonPromotabilityInfo>? info) {
+    // The summary format for `LibraryElementImpl.fieldNameNonPromotabilityInfo`
+    // is as follows:
+    // - bool: `true` if field name non-promotability information is present,
+    //   `false` if not.
+    // - If information is present:
+    //   - Uint30: number of entries in the map.
+    //   - For each map entry:
+    //     - String reference: key
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingFields`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingGetters`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingNsmClasses`
+    _resolutionSink.writeBool(info != null);
+    if (info == null) {
+      return;
+    }
+    _resolutionSink.writeUInt30(info.length);
+    for (var MapEntry(:key, :value) in info.entries) {
+      _resolutionSink._writeStringReference(key);
+      _resolutionSink._writeElementList(value.conflictingFields);
+      _resolutionSink._writeElementList(value.conflictingGetters);
+      _resolutionSink._writeElementList(value.conflictingNsmClasses);
+    }
   }
 
   void _writeFunctionElement(FunctionElementImpl element) {

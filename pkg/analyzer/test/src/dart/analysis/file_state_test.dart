@@ -1070,6 +1070,69 @@ elementFactory
 ''');
   }
 
+  test_newFile_augmentation_noRelativeUri() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment ':net';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: augmentationUnknown_0
+        uriStr: :net
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_augmentation_noRelativeUriStr() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment '${'foo.dart'}';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: augmentationUnknown_0
+        noUriStr
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
+  test_newFile_augmentation_noSource() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'foo:bar';
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+files
+  /home/test/lib/a.dart
+    uri: package:test/a.dart
+    current
+      id: file_0
+      kind: augmentationUnknown_0
+        uri: foo:bar
+      unlinkedKey: k00
+libraryCycles
+elementFactory
+''');
+  }
+
   test_newFile_augmentation_targetNotExists() async {
     final b = newFile('$testPackageLibPath/b.dart', r'''
 library augment 'a.dart';

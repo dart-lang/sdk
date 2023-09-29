@@ -2819,11 +2819,18 @@ class AstBuilder extends StackListener {
       fieldName = firstFormalParameter.name!;
       // Check for multiple fields.
       final maybeComma = firstFormalParameter.endToken.next;
-      if (maybeComma != null && maybeComma != formalParameterList.endToken) {
-        errorReporter.errorReporter?.reportErrorForToken(
-          ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
-          maybeComma,
-        );
+      if (maybeComma != null && maybeComma.type == TokenType.COMMA) {
+        if (formalParameterList.parameters.length == 1) {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA,
+            maybeComma,
+          );
+        } else {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
+            maybeComma,
+          );
+        }
       }
     } else {
       errorReporter.errorReporter?.reportErrorForToken(

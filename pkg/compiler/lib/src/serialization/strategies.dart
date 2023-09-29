@@ -17,7 +17,6 @@ import '../inferrer/types.dart';
 import '../js_model/js_world.dart';
 import '../options.dart';
 import '../source_file_provider.dart';
-import '../util/sink_adapter.dart';
 import 'serialization.dart';
 import 'task.dart';
 
@@ -143,11 +142,8 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
       GlobalTypeInferenceResults results, CompilerOptions options) {
     Uri uri = Uri.base.resolve('world.data');
     DataSinkWriter sink = DataSinkWriter(
-        BinaryDataSink(
-            BinaryOutputSinkAdapter(RandomAccessBinaryOutputSink(uri))),
-        options,
-        useDataKinds: useDataKinds,
-        importedIndices: indices);
+        BinaryDataSink(RandomAccessBinaryOutputSink(uri)), options,
+        useDataKinds: useDataKinds, importedIndices: indices);
     serializeGlobalTypeInferenceResultsToSink(results, sink);
     return File.fromUri(uri).readAsBytesSync();
   }
@@ -183,9 +179,7 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
       JClosedWorld closedWorld, CompilerOptions options) {
     Uri uri = Uri.base.resolve('closed_world.data');
     DataSinkWriter sink = DataSinkWriter(
-        BinaryDataSink(
-            BinaryOutputSinkAdapter(RandomAccessBinaryOutputSink(uri))),
-        options,
+        BinaryDataSink(RandomAccessBinaryOutputSink(uri)), options,
         useDataKinds: useDataKinds);
     serializeClosedWorldToSink(closedWorld, sink);
     return File.fromUri(uri).readAsBytesSync();
