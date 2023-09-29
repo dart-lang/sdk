@@ -4701,7 +4701,11 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
+  if (op_kind() == Token::kSQUARE) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresFpuRegister());
+  }
   return summary;
 }
 
@@ -4717,9 +4721,7 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ sqrtsd(result, value);
       break;
     case Token::kSQUARE:
-      if (result != value) {
-        __ movsd(result, value);
-      }
+      ASSERT(result == value);
       __ mulsd(result, value);
       break;
     case Token::kTRUNCATE:

@@ -1041,11 +1041,6 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
 bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
     InstanceCallInstr* call,
     const AbstractType& type) {
-  if (precompiler_ == nullptr) {
-    // Loading not complete, can't do CHA yet.
-    return false;
-  }
-
   HierarchyInfo* hi = thread()->hierarchy_info();
   if (hi == nullptr) {
     return false;

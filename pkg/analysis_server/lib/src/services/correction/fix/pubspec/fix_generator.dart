@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -115,6 +116,8 @@ class PubspecFixGenerator {
       // Consider replacing the path with a valid path.
     } else if (errorCode == PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY) {
       // Consider removing the dependency.
+    } else if (errorCode == PubspecWarningCode.MISSING_DEPENDENCY) {
+      await _addMissingDependency(errorCode);
     }
     return fixes;
   }
@@ -130,6 +133,91 @@ class PubspecFixGenerator {
     change.id = kind.id;
     change.message = formatList(kind.message, null);
     fixes.add(Fix(kind, change));
+  }
+
+  Future<void> _addMissingDependency(ErrorCode errorCode) async {
+    var builder = ChangeBuilder(
+        workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
+
+    final data = error.data as MissingDependencyData;
+    var addDeps = data.addDeps;
+    var addDevDeps = data.addDevDeps;
+    var removeDevDeps = data.removeDevDeps;
+
+    if (addDeps.isNotEmpty) {
+      var (text, offset) = _getTextAndOffset('dependencies', addDeps);
+      await builder.addGenericFileEdit(file, (builder) {
+        builder.addSimpleInsertion(offset, text);
+      });
+    }
+    if (addDevDeps.isNotEmpty) {
+      var (text, offset) = _getTextAndOffset('dev_dependencies', addDevDeps);
+      await builder.addGenericFileEdit(file, (builder) {
+        builder.addSimpleInsertion(offset, text);
+      });
+    }
+    if (removeDevDeps.isNotEmpty) {
+      var section = document.contents.value['dev_dependencies'] as YamlMap;
+      // remove the section if all entries are removed.
+      if (removeDevDeps.length == section.nodes.length) {
+        MapEntry<dynamic, YamlNode>? node, prevNode;
+        for (var entry in (document.contents as YamlMap).nodes.entries) {
+          if (entry.key.value == 'dev_dependencies') {
+            node = entry;
+            break;
+          }
+          prevNode = entry;
+        }
+        if (node != null && prevNode != null) {
+          var startOffset = (prevNode.value as YamlMap).span.end.offset;
+          var endOffset = (node.value as YamlMap).span.end.offset;
+          await builder.addGenericFileEdit(file, (builder) {
+            builder
+                .addDeletion(SourceRange(startOffset, endOffset - startOffset));
+          });
+        }
+      } else {
+        // go through entries and remove them.
+        for (var dep in removeDevDeps) {
+          dynamic node, nextNode;
+          for (var entry in section.nodes.entries) {
+            if (entry.key.value == dep) {
+              node = entry;
+              continue;
+            }
+            if (node != null) {
+              nextNode = entry;
+              break;
+            }
+          }
+          if (node != null) {
+            var startOffset = (node.key as YamlScalar).span.start.offset;
+            if (nextNode == null) {
+              // Removing the last entry, check to see if there are any other
+              // sections after dev_dependencies.
+              MapEntry<dynamic, YamlNode>? deps;
+              for (var entry in (document.contents as YamlMap).nodes.entries) {
+                if (entry.key.value == 'dev_dependencies') {
+                  deps = entry;
+                }
+                if (deps != null) {
+                  nextNode == entry;
+                  break;
+                }
+              }
+            }
+            var endOffset = nextNode == null
+                ? (node.value as YamlScalar).span.end.offset
+                : (nextNode.key as YamlScalar).span.start.offset;
+            await builder.addGenericFileEdit(file, (builder) {
+              builder.addDeletion(
+                  SourceRange(startOffset, endOffset - startOffset));
+            });
+          }
+        }
+      }
+    }
+    _addFixFromBuilder(builder, PubspecFixKind.addDependency);
   }
 
   Future<void> _addNameEntry() async {
@@ -150,6 +238,24 @@ class PubspecFixGenerator {
       builder.addSimpleInsertion(firstOffset, 'name: $packageName$endOfLine');
     });
     _addFixFromBuilder(builder, PubspecFixKind.addName);
+  }
+
+  (String, int) _getTextAndOffset(
+      String sectionName, List<String> packageNames) {
+    var section = document.contents.value[sectionName];
+    var buffer = StringBuffer();
+    if (section == null) {
+      buffer.writeln('$sectionName:');
+    }
+    for (var name in packageNames) {
+      buffer.writeln('  $name: any');
+    }
+
+    var offset = section == null
+        ? document.contents.span.end.offset
+        : (section as YamlNode).span.end.offset;
+
+    return (buffer.toString(), offset);
   }
 
   String _identifierFrom(String directoryName) {

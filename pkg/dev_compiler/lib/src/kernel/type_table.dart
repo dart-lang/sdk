@@ -68,61 +68,67 @@ String _typeString(DartType type, {bool flat = false}) {
       : type.declaredNullability == Nullability.nullable
           ? 'N'
           : '';
-  assert(isKnownDartTypeImplementor(type));
-  if (type is InterfaceType) {
-    var name = '${type.classNode.name}$nullability';
-    var typeArgs = type.typeArguments;
-    if (typeArgs.isEmpty) return name;
-    if (typeArgs.every((p) => p == const DynamicType())) return name;
-    return "${name}Of${typeArgs.map(_typeString).join("\$")}";
+  switch (type) {
+    case InterfaceType():
+      var name = '${type.classNode.name}$nullability';
+      var typeArgs = type.typeArguments;
+      if (typeArgs.isEmpty) return name;
+      if (typeArgs.every((p) => p == const DynamicType())) return name;
+      return "${name}Of${typeArgs.map(_typeString).join("\$")}";
+    case FutureOrType():
+      var name = 'FutureOr$nullability';
+      if (type.typeArgument == const DynamicType()) return name;
+      return '${name}Of${_typeString(type.typeArgument)}';
+    case TypedefType():
+      var name = '${type.typedefNode.name}$nullability';
+      var typeArgs = type.typeArguments;
+      if (typeArgs.isEmpty) return name;
+      if (typeArgs.every((p) => p == const DynamicType())) return name;
+      return "${name}Of${typeArgs.map(_typeString).join("\$")}";
+    case FunctionType():
+      if (flat) return 'Fn';
+      var rType = _typeString(type.returnType, flat: true);
+      var params = type.positionalParameters
+          .take(3)
+          .map((p) => _typeString(p, flat: true));
+      var paramList = params.join('And');
+      var count = type.positionalParameters.length;
+      if (count > 3 || type.namedParameters.isNotEmpty) {
+        paramList = '${paramList}__';
+      } else if (count == 0) {
+        paramList = 'Void';
+      }
+      return '${paramList}To$nullability$rType';
+    case TypeParameterType():
+      return '${type.parameter.name}$nullability';
+    case StructuralParameterType():
+      return '${type.parameter.name}$nullability';
+    case IntersectionType():
+      return '${type.left.parameter.name}$nullability';
+    case DynamicType():
+      return 'dynamic';
+    case VoidType():
+      return 'void';
+    case NeverType():
+      return 'Never$nullability';
+    case NullType():
+      return 'Null';
+    case RecordType():
+      if (flat) return 'Rec';
+      var positional =
+          type.positional.take(3).map((p) => _typeString(p, flat: true));
+      var elements = positional.join('And');
+      if (type.positional.length > 3 || type.named.isNotEmpty) {
+        elements = '${elements}__';
+      }
+      return 'Rec${nullability}Of$elements';
+    case ExtensionType():
+      return _typeString(type.typeErasure);
+    case AuxiliaryType():
+      throwUnsupportedAuxiliaryType(type);
+    case InvalidType():
+      throwUnsupportedInvalidType(type);
   }
-  if (type is FutureOrType) {
-    var name = 'FutureOr$nullability';
-    if (type.typeArgument == const DynamicType()) return name;
-    return '${name}Of${_typeString(type.typeArgument)}';
-  }
-  if (type is TypedefType) {
-    var name = '${type.typedefNode.name}$nullability';
-    var typeArgs = type.typeArguments;
-    if (typeArgs.isEmpty) return name;
-    if (typeArgs.every((p) => p == const DynamicType())) return name;
-    return "${name}Of${typeArgs.map(_typeString).join("\$")}";
-  }
-  if (type is FunctionType) {
-    if (flat) return 'Fn';
-    var rType = _typeString(type.returnType, flat: true);
-    var params = type.positionalParameters
-        .take(3)
-        .map((p) => _typeString(p, flat: true));
-    var paramList = params.join('And');
-    var count = type.positionalParameters.length;
-    if (count > 3 || type.namedParameters.isNotEmpty) {
-      paramList = '${paramList}__';
-    } else if (count == 0) {
-      paramList = 'Void';
-    }
-    return '${paramList}To$nullability$rType';
-  }
-  if (type is TypeParameterType) return '${type.parameter.name}$nullability';
-  if (type is StructuralParameterType) {
-    return '${type.parameter.name}$nullability';
-  }
-  if (type is DynamicType) return 'dynamic';
-  if (type is VoidType) return 'void';
-  if (type is NeverType) return 'Never$nullability';
-  if (type is NullType) return 'Null';
-  if (type is RecordType) {
-    if (flat) return 'Rec';
-    var positional =
-        type.positional.take(3).map((p) => _typeString(p, flat: true));
-    var elements = positional.join('And');
-    if (type.positional.length > 3 || type.named.isNotEmpty) {
-      elements = '${elements}__';
-    }
-    return 'Rec${nullability}Of$elements';
-  }
-  if (type is ExtensionType) return _typeString(type.typeErasure);
-  return 'invalid';
 }
 
 class TypeTable {

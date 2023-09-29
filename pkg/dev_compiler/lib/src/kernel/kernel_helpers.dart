@@ -307,28 +307,6 @@ class LabelContinueFinder extends RecursiveVisitor<void> {
       found = true;
 }
 
-/// Ensures that all of the known DartType implementors are handled.
-///
-/// The goal of the function is to catch a new unhandled implementor of
-/// [DartType] in a chain of if-else statements analyzing possibilities for an
-/// object of DartType. It doesn't introduce a run-time overhead in production
-/// code if used in an assert.
-bool isKnownDartTypeImplementor(DartType t) {
-  return t is DynamicType ||
-      t is ExtensionType ||
-      t is FunctionType ||
-      t is FutureOrType ||
-      t is InterfaceType ||
-      t is InvalidType ||
-      t is NeverType ||
-      t is NullType ||
-      t is RecordType ||
-      t is StructuralParameterType ||
-      t is TypeParameterType ||
-      t is TypedefType ||
-      t is VoidType;
-}
-
 /// Whether [member] is declared native, as in:
 ///
 ///    void foo() native;

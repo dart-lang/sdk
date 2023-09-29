@@ -3362,6 +3362,8 @@ PubspecWarningCode.INVALID_DEPENDENCY:
   status: noFix
 PubspecWarningCode.INVALID_PLATFORMS_FIELD:
   status: needsEvaluation
+PubspecWarningCode.MISSING_DEPENDENCY:
+  status: noFix
 PubspecWarningCode.MISSING_NAME:
   status: noFix
   since: ~2.15

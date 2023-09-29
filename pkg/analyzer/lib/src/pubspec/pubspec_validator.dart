@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -130,6 +131,8 @@ final class PubspecValidationContext {
     YamlNode node,
     ErrorCode errorCode, [
     List<Object>? arguments,
+    List<DiagnosticMessage>? messages,
+    Object? data,
   ]) {
     final span = node.span;
     reporter.reportErrorForOffset(
@@ -137,6 +140,8 @@ final class PubspecValidationContext {
       span.start.offset,
       span.length,
       arguments,
+      messages,
+      data,
     );
   }
 }

@@ -102,6 +102,7 @@ class DocumentationValidator {
     'PubspecWarningCode.INVALID_DEPENDENCY',
     'PubspecWarningCode.INVALID_PLATFORMS_FIELD',
     'PubspecWarningCode.MISSING_NAME',
+    'PubspecWarningCode.MISSING_DEPENDENCY',
     'PubspecWarningCode.NAME_NOT_STRING',
     'PubspecWarningCode.PATH_DOES_NOT_EXIST',
     'PubspecWarningCode.PATH_NOT_POSIX',

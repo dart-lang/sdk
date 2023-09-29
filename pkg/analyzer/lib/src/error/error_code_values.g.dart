@@ -908,6 +908,7 @@ const List<ErrorCode> errorCodeValues = [
   PubspecWarningCode.FLUTTER_FIELD_NOT_MAP,
   PubspecWarningCode.INVALID_DEPENDENCY,
   PubspecWarningCode.INVALID_PLATFORMS_FIELD,
+  PubspecWarningCode.MISSING_DEPENDENCY,
   PubspecWarningCode.MISSING_NAME,
   PubspecWarningCode.NAME_NOT_STRING,
   PubspecWarningCode.PATH_DOES_NOT_EXIST,

@@ -1452,6 +1452,50 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_InstanceCallWithNoICDataInAOT) {
                   it.function().ptr() == getter.ptr());
 }
 
+static void TestTestRangeCanonicalize(const AbstractType& type,
+                                      uword lower,
+                                      uword upper,
+                                      bool result) {
+  using compiler::BlockBuilder;
+  CompilerState S(Thread::Current(), /*is_aot=*/true, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H(/*num_parameters=*/1);
+  H.AddVariable("v0", type);
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+  ReturnInstr* ret;
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    Definition* param =
+        builder.AddParameter(0, 0, /*with_frame=*/true, kTagged);
+    Definition* load_cid =
+        builder.AddDefinition(new LoadClassIdInstr(new Value(param)));
+    Definition* test_range = builder.AddDefinition(new TestRangeInstr(
+        InstructionSource(), new Value(load_cid), lower, upper, kTagged));
+    ret = builder.AddReturn(new Value(test_range));
+  }
+  H.FinishGraph();
+  H.flow_graph()->Canonicalize();
+
+  EXPECT_PROPERTY(ret, it.value()->BindsToConstant());
+  EXPECT_PROPERTY(ret,
+                  it.value()->BoundConstant().ptr() == Bool::Get(result).ptr());
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_TestRange) {
+  HierarchyInfo hierarchy_info(thread);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::IntType()),
+                            kOneByteStringCid, kTwoByteStringCid, false);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::IntType()), kSmiCid,
+                            kMintCid, true);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::NullType()), kSmiCid,
+                            kMintCid, false);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::Double()), kSmiCid,
+                            kMintCid, false);
+  TestTestRangeCanonicalize(AbstractType::ZoneHandle(Type::ObjectType()), 1,
+                            kClassIdTagMax, true);
+}
+
 void TestStaticFieldForwarding(Thread* thread,
                                const Class& test_cls,
                                const Field& field,

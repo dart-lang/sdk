@@ -7617,6 +7617,9 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
            other_load->input_can_be_smi_ == input_can_be_smi_;
   }
 
+  void InferRange(uword* lower, uword* upper);
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \

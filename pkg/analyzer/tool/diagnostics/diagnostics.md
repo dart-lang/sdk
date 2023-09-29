@@ -11836,6 +11836,39 @@ void f(int x) {}
 void g({required int x}) {}
 {% endprettify %}
 
+### missing_dependency
+
+_Missing a dependency on imported package '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a package that has been
+imported in the source but is not listed in the dependency of the
+importing package.
+
+#### Example
+
+The following code produces this diagnostic because the package `path` is
+not listed in the dependencies, while there is an import statement
+with package `path` in the source code of package example:
+
+{% prettify yaml tag=pre+code %}
+name: example
+dependencies:
+  meta: ^1.0.2
+{% endprettify %}
+
+#### Common fixes
+
+Add the missing package 'path' to the `dependencies` field:
+
+{% prettify yaml tag=pre+code %}
+name: example
+dependencies:
+  meta: ^1.0.2
+  path: any
+{% endprettify %}
+
 ### missing_enum_constant_in_switch
 
 _Missing case clause for '{0}'._
