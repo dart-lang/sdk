@@ -1757,6 +1757,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "runtime"
           ]
         },
@@ -1782,6 +1783,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "dart_precompiled_runtime",
             "gen_snapshot",
             "runtime"
