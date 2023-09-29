@@ -20994,6 +20994,45 @@ PubspecWarningCode:
       dependencies:
         meta: ^1.0.2
       ```
+  MISSING_DEPENDENCY:
+    problemMessage: "Missing a dependency on imported package '{0}'."
+    correctionMessage: "Try adding {0}."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the list of packages missing from the dependencies and the list of
+      packages missing from the dev_dependencies (if any) in the pubspec file.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when there's a package that has been
+      imported in the source but is not listed in the dependency of the
+      importing package.
+
+      #### Example
+
+      The following code produces this diagnostic because the package `path` is
+      not listed in the dependencies, while there is an import statement
+      with package `path` in the source code of package example:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      dependencies:
+        meta: ^1.0.2
+      ```
+
+      #### Common fixes
+
+      Add the missing package 'path' to the `dependencies` field:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      dependencies:
+        meta: ^1.0.2
+        path: any
+      ```
   NAME_NOT_STRING:
     problemMessage: "The value of the 'name' field is required to be a string."
     correctionMessage: Try converting the value to be a string.
