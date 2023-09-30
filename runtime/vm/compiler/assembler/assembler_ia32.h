@@ -1075,8 +1075,22 @@ class Assembler : public AssemblerBase {
 
   void SmiUntag(Register reg) { sarl(reg, Immediate(kSmiTagSize)); }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    UNIMPLEMENTED();
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
+    if (result != value) {
+      MoveRegister(result, value);
+      value = result;
+    }
+    ASSERT(value == result);
+    compiler::Label done;
+    SmiUntag(result);  // Leaves CF after SmiUntag.
+    j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
+    // Undo untagging by multiplying value by 2.
+    // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+    COMPILE_ASSERT(kSmiTagShift == 1);
+    movl(result, compiler::Address(result, result, TIMES_1,
+                                   target::Mint::value_offset()));
+    Bind(&done);
   }
 
   void BranchIfNotSmi(Register reg,

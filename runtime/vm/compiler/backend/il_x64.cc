@@ -3865,25 +3865,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  compiler::Label done;
-#if !defined(DART_COMPRESSED_POINTERS)
-  ASSERT(value == result);
-  // Optimistically untag value.
-  __ SmiUntag(value);
-  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  // Undo untagging by multiplying value by 2.
-  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
-  __ movsxd(result,
-            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
-#else
-  ASSERT(value != result);
-  // Cannot speculatively untag with value == result because it erases the
-  // upper bits needed to dereference when it is a Mint.
-  __ SmiUntagAndSignExtend(result, value);
-  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movsxd(result, compiler::FieldAddress(value, Mint::value_offset()));
-#endif
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {

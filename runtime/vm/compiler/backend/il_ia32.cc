@@ -3573,12 +3573,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value == result);
-  compiler::Label done;
-  __ SmiUntag(value);  // Leaves CF after SmiUntag.
-  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movl(result, compiler::FieldAddress(value, Mint::value_offset()));
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {

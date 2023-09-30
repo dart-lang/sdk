@@ -1743,11 +1743,24 @@ class Assembler : public AssemblerBase {
 #endif  // defined(DART_COMPRESSED_POINTERS)
   }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    LoadInt64FromBoxOrSmi(result, value);
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    sbfx(result, value, kSmiTagSize,
+         Utils::Minimum(static_cast<int>(32), compiler::target::kSmiBits));
+    BranchIfSmi(value, &done);
+    LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset(),
+                        compiler::kFourBytes);
+    Bind(&done);
   }
 
-  void LoadInt64FromBoxOrSmi(Register result, Register value) {
+  void LoadInt64FromBoxOrSmi(Register result, Register value) override {
     if (result == value) {
       ASSERT(TMP != value);
       MoveRegister(TMP, value);

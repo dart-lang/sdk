@@ -3345,7 +3345,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
       "ret\n");
 }
 
-static void EnterTestFrame(Assembler* assembler) {
+void EnterTestFrame(Assembler* assembler) {
   COMPILE_ASSERT(THR != CallingConventions::kArg1Reg);
   COMPILE_ASSERT(CODE_REG != CallingConventions::kArg2Reg);
   __ EnterFrame(0);
@@ -3357,7 +3357,7 @@ static void EnterTestFrame(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 }
 
-static void LeaveTestFrame(Assembler* assembler) {
+void LeaveTestFrame(Assembler* assembler) {
   __ popq(THR);
   __ popq(PP);
   __ popq(CODE_REG);
@@ -6445,41 +6445,6 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   result = test->Invoke<intptr_t, intptr_t>(kMintCid);
   EXPECT_EQ(kMintCid, result);
 }
-
-#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
-  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
-                          assembler) {                                         \
-    const bool same_register = SAME_REGISTER;                                  \
-    const Register src = CallingConventions::ArgumentRegisters[0];             \
-    const Register dst =                                                       \
-        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
-    const intptr_t value = VALUE;                                              \
-                                                                               \
-    EnterTestFrame(assembler);                                                 \
-                                                                               \
-    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
-    __ LoadWordFromBoxOrSmi(dst, src);                                         \
-    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
-                                                                               \
-    LeaveTestFrame(assembler);                                                 \
-    __ Ret();                                                                  \
-  }                                                                            \
-                                                                               \
-  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
-    const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(0x0);         \
-    EXPECT_EQ(static_cast<intptr_t>(VALUE), res);                              \
-  }
-
-LOAD_FROM_BOX_TEST(0, true)
-LOAD_FROM_BOX_TEST(0, false)
-LOAD_FROM_BOX_TEST(1, true)
-LOAD_FROM_BOX_TEST(1, false)
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, false)
-LOAD_FROM_BOX_TEST(0x8000000000000000, true)
-LOAD_FROM_BOX_TEST(0x8000000000000000, false)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
-LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
 
 }  // namespace compiler
 }  // namespace dart

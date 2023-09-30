@@ -5082,6 +5082,20 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kMintCid, result);
 }
 
+void EnterTestFrame(Assembler* assembler) {
+  __ EnterFrame(0);
+  __ pushl(CODE_REG);
+  __ pushl(THR);
+  __ LoadFromOffset(CODE_REG, EBP, target::kWordSize * 2);
+  __ LoadFromOffset(THR, EBP, target::kWordSize * 3);
+}
+
+void LeaveTestFrame(Assembler* assembler) {
+  __ popl(THR);
+  __ popl(CODE_REG);
+  __ LeaveFrame();
+}
+
 }  // namespace compiler
 }  // namespace dart
 
