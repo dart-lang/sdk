@@ -139,13 +139,21 @@ ASSEMBLER_TEST_RUN(InstantiateTypeArgumentsHashKeys, test) {
 
 #define __ assembler->
 
+#if defined(TARGET_ARCH_IA32)
+const Register kArg1Reg = EAX;
+const Register kArg2Reg = ECX;
+#else
+const Register kArg1Reg = CallingConventions::ArgumentRegisters[0];
+const Register kArg2Reg = CallingConventions::ArgumentRegisters[1];
+#endif
+
 #define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
   ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
                           assembler) {                                         \
     const bool same_register = SAME_REGISTER;                                  \
-    const Register src = CallingConventions::ArgumentRegisters[0];             \
-    const Register dst =                                                       \
-        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
+                                                                               \
+    const Register src = kArg1Reg;                                             \
+    const Register dst = same_register ? src : kArg2Reg;                       \
     const intptr_t value = VALUE;                                              \
                                                                                \
     EnterTestFrame(assembler);                                                 \
@@ -164,7 +172,6 @@ ASSEMBLER_TEST_RUN(InstantiateTypeArgumentsHashKeys, test) {
     EXPECT_EQ(static_cast<intptr_t>(VALUE), static_cast<intptr_t>(res));       \
   }
 
-#if !defined(TARGET_ARCH_IA32)
 LOAD_FROM_BOX_TEST(0, true)
 LOAD_FROM_BOX_TEST(0, false)
 LOAD_FROM_BOX_TEST(1, true)
@@ -183,7 +190,6 @@ LOAD_FROM_BOX_TEST(0x8000000000000000, true)
 LOAD_FROM_BOX_TEST(0x8000000000000000, false)
 LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
 LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
-#endif
 #endif
 
 }  // namespace dart
