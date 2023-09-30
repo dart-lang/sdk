@@ -18,7 +18,11 @@ Future<void> main() async {
 
   test('httpServe', () async {
     final completer = Completer<String>();
-    httpServe((request) => completer.complete(request));
+    httpServe((request) {
+      if (!completer.isCompleted) {
+        completer.complete(request);
+      }
+    });
     final request = await completer.future;
     expect(request, contains('www.example.com'));
   });

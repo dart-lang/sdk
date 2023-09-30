@@ -3449,14 +3449,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitAuxiliaryType(AuxiliaryType type) {
-    assert(false, 'Unsupported auxiliary type $type (${type.runtimeType}).');
-    return _emitInvalidNode(type);
-  }
+  js_ast.Expression visitAuxiliaryType(AuxiliaryType type) =>
+      throw throwUnsupportedAuxiliaryType(type);
 
   @override
   js_ast.Expression visitInvalidType(InvalidType type) =>
-      _emitInvalidNode(type);
+      throwUnsupportedInvalidType(type);
 
   @override
   js_ast.Expression visitDynamicType(DynamicType type) =>
