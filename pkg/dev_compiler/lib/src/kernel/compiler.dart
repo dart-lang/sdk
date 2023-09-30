@@ -16,6 +16,7 @@ import 'package:collection/collection.dart'
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName, JsBuiltin;
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart';
@@ -143,6 +144,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   DDCTypeEnvironment _currentTypeEnvironment = const EmptyTypeEnvironment();
 
   final TypeRecipeGenerator _typeRecipeGenerator;
+
+  /// Visitor used for testing static invocations in the dart:_rti library to
+  /// determine if they are suitable for inlining at call sites.
+  final BasicInlineTester _inlineTester;
 
   /// The current element being loaded.
   /// We can use this to determine if we're loading top-level code or not:
@@ -377,7 +382,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _extensionTypeEraser = ExtensionTypeEraser(),
         _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy),
         _extensionIndex =
-            ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
+            ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment),
+        _inlineTester = BasicInlineTester(_constants);
 
   @override
   Library? get currentLibrary => _currentLibrary;
@@ -6316,6 +6322,53 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (target.isFactory) return _emitFactoryInvocation(node);
 
     var enclosingLibrary = target.enclosingLibrary;
+    if (isDartLibrary(enclosingLibrary, '_rti') &&
+        _inlineTester.canInline(target.function)) {
+      // Transform code that would otherwise appear as a static invocation:
+      // ```
+      // if (_rti._isString(object)) {...}
+      // ```
+      //
+      // to be avoid cost of extra function calls:
+      //
+      // ```
+      // if (typeof object == "string") {...}
+      // ```
+      var body = node.target.function.body;
+      Expression? bodyToInline;
+      // Extract the body.
+      if (body is ReturnStatement) {
+        // Ex: foo() => <body>;
+        bodyToInline = body.expression;
+      } else if (body is Block) {
+        // Ex: foo() { <body> }
+        var singleStatement = body.statements.single;
+        if (singleStatement is ReturnStatement) {
+          bodyToInline = singleStatement.expression;
+        }
+      }
+      if (bodyToInline != null) {
+        // Clone the function parameters and create the mappings from the clone
+        // to the argument passed.
+        var cloner = CloneVisitorNotMembers();
+        var originalParameters = target.function.positionalParameters;
+        var replacementArguments = node.arguments.positional;
+        var replacements = {
+          for (var i = 0; i < originalParameters.length; i++)
+            originalParameters[i].accept(cloner) as VariableDeclaration:
+                replacementArguments[i],
+        };
+        // Clone the body using the same cloner to ensure the cloned parameters
+        // are correctly linked to their accesses.
+        var cloneToInline = bodyToInline.accept(cloner);
+        // Substitute the use of the parameters with the values passed.
+        var replacer = VariableGetReplacer(replacements);
+        var replaced = cloneToInline.accept(replacer) as Expression;
+        // Compile the result normally and wrap in parenthesis.
+        return js.call('(#)', [replaced.accept(this)]);
+      }
+    }
+
     if (_isDartInternal(enclosingLibrary)) {
       var args = node.arguments;
       if (args.positional.length == 1 &&

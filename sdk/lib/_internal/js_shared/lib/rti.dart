@@ -511,6 +511,7 @@ class _FunctionParameters {
   }
 }
 
+@pragma('ddc:trust-inline')
 Object? _theUniverse() => JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE);
 
 Rti _rtiEval(Rti environment, String recipe) {
@@ -1975,9 +1976,11 @@ class _Universe {
 
   // Field accessors.
 
+  @pragma('ddc:trust-inline')
   static Object evalCache(Object? universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.evalCache);
 
+  @pragma('ddc:trust-inline')
   static Object typeRules(Object? universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.typeRules);
 
