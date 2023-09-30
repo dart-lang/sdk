@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/assembler_test.h"
 #include "vm/globals.h"
 #include "vm/hash.h"
 #include "vm/os.h"
@@ -135,5 +136,54 @@ ASSEMBLER_TEST_RUN(InstantiateTypeArgumentsHashKeys, test) {
 #endif
 #undef HASH_TEST
 }
+
+#define __ assembler->
+
+#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
+  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
+                          assembler) {                                         \
+    const bool same_register = SAME_REGISTER;                                  \
+    const Register src = CallingConventions::ArgumentRegisters[0];             \
+    const Register dst =                                                       \
+        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
+    const intptr_t value = VALUE;                                              \
+                                                                               \
+    EnterTestFrame(assembler);                                                 \
+                                                                               \
+    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
+    __ LoadWordFromBoxOrSmi(dst, src);                                         \
+    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
+                                                                               \
+    LeaveTestFrame(assembler);                                                 \
+                                                                               \
+    __ Ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
+    const int64_t res = test->InvokeWithCodeAndThread<int64_t>();              \
+    EXPECT_EQ(static_cast<intptr_t>(VALUE), static_cast<intptr_t>(res));       \
+  }
+
+#if !defined(TARGET_ARCH_IA32)
+LOAD_FROM_BOX_TEST(0, true)
+LOAD_FROM_BOX_TEST(0, false)
+LOAD_FROM_BOX_TEST(1, true)
+LOAD_FROM_BOX_TEST(1, false)
+#if defined(TARGET_ARCH_IS_32_BIT)
+LOAD_FROM_BOX_TEST(0x7FFFFFFF, true)
+LOAD_FROM_BOX_TEST(0x7FFFFFFF, false)
+LOAD_FROM_BOX_TEST(0x80000000, true)
+LOAD_FROM_BOX_TEST(0x80000000, false)
+LOAD_FROM_BOX_TEST(0xFFFFFFFF, true)
+LOAD_FROM_BOX_TEST(0xFFFFFFFF, false)
+#else
+LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, true)
+LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, false)
+LOAD_FROM_BOX_TEST(0x8000000000000000, true)
+LOAD_FROM_BOX_TEST(0x8000000000000000, false)
+LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
+LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
+#endif
+#endif
 
 }  // namespace dart
