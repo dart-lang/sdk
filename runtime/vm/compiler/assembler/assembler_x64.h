@@ -1072,11 +1072,10 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    LoadInt64FromBoxOrSmi(result, value);
-  }
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override;
 
-  void LoadInt64FromBoxOrSmi(Register result, Register value);
+  void LoadInt64FromBoxOrSmi(Register result, Register value) override;
 
   void BranchIfNotSmi(Register reg,
                       Label* label,

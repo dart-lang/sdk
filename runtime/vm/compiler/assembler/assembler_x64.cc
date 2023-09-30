@@ -1351,6 +1351,33 @@ void Assembler::LoadInt64FromBoxOrSmi(Register result, Register value) {
   Bind(&done);
 }
 
+void Assembler::LoadInt32FromBoxOrSmi(Register result, Register value) {
+  compiler::Label done;
+#if !defined(DART_COMPRESSED_POINTERS)
+  // Optimistically untag value.
+  SmiUntag(result, value);
+  j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
+  // Undo untagging by multiplying value by 2.
+  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+  movsxd(result, compiler::Address(result, result, TIMES_1,
+                                   compiler::target::Mint::value_offset()));
+#else
+  if (result == value) {
+    ASSERT(TMP != value);
+    MoveRegister(TMP, value);
+    value = TMP;
+  }
+  ASSERT(value != result);
+  // Cannot speculatively untag with value == result because it erases the
+  // upper bits needed to dereference when it is a Mint.
+  SmiUntagAndSignExtend(result, value);
+  j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
+  movsxd(result,
+         compiler::FieldAddress(value, compiler::target::Mint::value_offset()));
+#endif
+  Bind(&done);
+}
+
 void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, target::Thread::isolate_offset()));
 }

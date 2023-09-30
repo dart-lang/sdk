@@ -1372,11 +1372,8 @@ class Assembler : public AssemblerBase {
     b(label, NE);
   }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    LoadInt32FromBoxOrSmi(result, value);
-  }
-
-  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
     if (result == value) {
       ASSERT(TMP != value);
       MoveRegister(TMP, value);

@@ -1075,11 +1075,8 @@ class Assembler : public AssemblerBase {
 
   void SmiUntag(Register reg) { sarl(reg, Immediate(kSmiTagSize)); }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    LoadInt32FromBoxOrSmi(result, value);
-  }
-
-  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
     if (result != value) {
       MoveRegister(result, value);
       value = result;
