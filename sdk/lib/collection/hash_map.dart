@@ -74,7 +74,7 @@ typedef _Hasher<K> = int Function(K object);
 /// ```dart continued
 /// final keyOneExists = planets.containsKey(4); // true
 /// final keyFiveExists = planets.containsKey(1); // false
-/// ```dart continued
+/// ```
 /// To check whether the map has an entry with a specific value,
 /// use [containsValue].
 /// ```dart continued
