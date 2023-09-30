@@ -3863,6 +3863,7 @@ ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
 }
 
 static void EnterTestFrame(Assembler* assembler) {
+  __ SetupDartSP();
   __ EnterFrame(0);
   __ Push(CODE_REG);
   __ Push(THR);
@@ -3882,15 +3883,14 @@ static void LeaveTestFrame(Assembler* assembler) {
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
+  __ RestoreCSP();
 }
 
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 42);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3899,11 +3899,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0xf1234123);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3912,11 +3910,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x4321f1234124);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3925,11 +3921,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x9287436598237465);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3940,11 +3934,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Object::null_object());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3955,12 +3947,10 @@ ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
 
 // PushObject null.
 ASSEMBLER_TEST_GENERATE(PushObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ PushObject(Object::null_object());
   __ Pop(R0);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3971,7 +3961,6 @@ ASSEMBLER_TEST_RUN(PushObjectNull, test) {
 
 // CompareObject null.
 ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Object::bool_true());
   __ LoadObject(R1, Object::bool_false());
@@ -3979,7 +3968,6 @@ ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
   __ CompareObject(R2, Object::null_object());
   __ csel(R0, R0, R1, EQ);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3989,11 +3977,9 @@ ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Bool::True());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -4003,11 +3989,9 @@ ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Bool::False());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -7712,7 +7696,6 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
         same_register ? src : CallingConventions::ArgumentRegisters[1];        \
     const intptr_t value = VALUE;                                              \
                                                                                \
-    __ SetupDartSP();                                                          \
     EnterTestFrame(assembler);                                                 \
                                                                                \
     __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
@@ -7720,7 +7703,6 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
     __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
                                                                                \
     LeaveTestFrame(assembler);                                                 \
-    __ RestoreCSP();                                                           \
     __ Ret();                                                                  \
   }                                                                            \
                                                                                \
