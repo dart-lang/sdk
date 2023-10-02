@@ -339,6 +339,13 @@ class DapTestClient {
   Future<Response> pause(int threadId) =>
       sendRequest(PauseArguments(threadId: threadId));
 
+  /// Sends a restartFrame request for the given frame.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> restartFrame(int frameId) =>
+      sendRequest(RestartFrameArguments(frameId: frameId));
+
   /// Sends a next (step over) request for the given thread.
   ///
   /// [granularity] is always ignored because the Dart debugger does not support

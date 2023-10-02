@@ -491,6 +491,46 @@ main() {
       ], eagerError: true);
     });
 
+    test('can restart frame', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(restartFrameProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final outputEventsFuture = dap.client.outputEvents.toList();
+
+      // Stop at the breakpoint in the printMessage function.
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final threadId = stop.threadId!;
+
+      // Restart back to the main function and expect a new stop event.
+      final stack =
+          await client.getValidStack(threadId, startFrame: 0, numFrames: 2);
+      final mainFunctionFrame = stack.stackFrames[1];
+      await Future.wait([
+        client.expectStop('step'),
+        client.restartFrame(mainFunctionFrame.id),
+      ], eagerError: true);
+
+      // Resume, hit breakpoint again, resume to end.
+      await Future.wait([
+        client.expectStop('breakpoint'),
+        client.continue_(threadId),
+      ], eagerError: true);
+      await Future.wait([
+        client.event('terminated'),
+        client.continue_(threadId),
+      ], eagerError: true);
+
+      // Finally, verify we got output that shows we restarted and re-ran the
+      // code before the breakpoint.
+      final outputEvents = await outputEventsFuture;
+      final outputMessages = outputEvents.map((e) => e.output.trim());
+
+      expect(
+        outputMessages,
+        containsAll(['Hello', 'Hello', 'World']),
+      );
+    });
+
     test('forwards tool events to client', () async {
       final testFile = dap.createTestFile(simpleToolEventProgram);
 

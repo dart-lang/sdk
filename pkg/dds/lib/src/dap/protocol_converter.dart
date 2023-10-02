@@ -644,9 +644,9 @@ class ProtocolConverter {
           )
         : null;
 
-    // The VM only allows us to restart from frames that are not the top frame,
-    // but since we're also showing asyncCausalFrames any indexes past the first
-    // async boundary will not line up so we cap it there.
+    // The VM only allows us to restart from frames that are not the top frame.
+    // Since we're showing `asyncCausalFrames`, frame indices past the first
+    // async boundary are not real so we can't support those.
     final canRestart = !isTopFrame &&
         (firstAsyncMarkerIndex == null || frame.index! < firstAsyncMarkerIndex);
 
