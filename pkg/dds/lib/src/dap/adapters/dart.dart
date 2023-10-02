@@ -1162,8 +1162,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       supportsValueFormattingOptions: true,
       supportsLogPoints: true,
       supportsRestartRequest: supportsRestartRequest,
-      // TODO(dantup): All of these...
-      // supportsRestartFrame: true,
+      supportsRestartFrame: true,
       supportsTerminateRequest: true,
     ));
 
@@ -1274,10 +1273,35 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   Future<void> pauseRequest(
     Request request,
     PauseArguments args,
-    void Function(PauseResponseBody) sendResponse,
+    void Function() sendResponse,
   ) async {
     await isolateManager.pauseThread(args.threadId);
-    sendResponse(PauseResponseBody());
+    sendResponse();
+  }
+
+  /// Handles the clients "restartFrame" request for the frame in
+  /// [args.frameId].
+  @override
+  Future<void> restartFrameRequest(
+    Request request,
+    RestartFrameArguments args,
+    void Function() sendResponse,
+  ) async {
+    final data = isolateManager.getStoredData(args.frameId);
+    if (data == null) {
+      // Thread/frame is no longer valid.
+      return;
+    }
+
+    final thread = data.thread;
+    final frame = data.data;
+    final frameIndex = frame is vm.Frame ? frame.index : null;
+    if (frameIndex == null) {
+      return;
+    }
+
+    await isolateManager.rewindThread(thread.threadId, frameIndex: frameIndex);
+    sendResponse();
   }
 
   /// restart is called by the client when the user invokes a restart (for
@@ -1679,9 +1703,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // up until the first async boundary (e.g. rewind) since we're showing
         // the user async frames which are out-of-sync with the real frames
         // past that point.
-        final firstAsyncMarkerIndex = frames.indexWhere(
+        int? firstAsyncMarkerIndex = frames.indexWhere(
           (frame) => frame.kind == vm.FrameKind.kAsyncSuspensionMarker,
         );
+        // indexWhere returns -1 if not found, we treat that as no marker (we
+        // can rewind for all frames in the stack).
+        if (firstAsyncMarkerIndex == -1) {
+          firstAsyncMarkerIndex = null;
+        }
 
         // Pre-resolve all URIs in batch so the call below does not trigger
         // many requests to the server.

@@ -278,6 +278,36 @@ class IsolateManager {
   /// [vm.StepOption.kOver], a [StepOption.kOverAsyncSuspension] step will be
   /// sent instead.
   Future<void> resumeThread(int threadId, [String? resumeType]) async {
+    _resume(threadId, resumeType: resumeType);
+  }
+
+  /// Rewinds an isolate to an earlier frame using its client [threadId].
+  ///
+  /// If the isolate is not paused, or already has a pending resume request
+  /// in-flight, a request will not be sent.
+  Future<void> rewindThread(int threadId, {required int frameIndex}) async {
+    _resume(
+      threadId,
+      resumeType: vm.StepOption.kRewind,
+      frameIndex: frameIndex,
+    );
+  }
+
+  /// Resumes (or steps) an isolate using its client [threadId].
+  ///
+  /// If the isolate is not paused, or already has a pending resume request
+  /// in-flight, a request will not be sent.
+  ///
+  /// If the isolate is paused at an async suspension and the [resumeType] is
+  /// [vm.StepOption.kOver], a [vm.StepOption.kOverAsyncSuspension] step will be
+  /// sent instead.
+  ///
+  /// If [resumeType] is [vm.StepOption.kRewind], [frameIndex] must be supplied.
+  Future<void> _resume(
+    int threadId, {
+    String? resumeType,
+    int? frameIndex,
+  }) async {
     // The first time a user resumes a thread is our signal that the app is now
     // "running" and future isolates can be auto-resumed. This only affects
     // attach, as it's already `true` for launch requests.
@@ -314,7 +344,11 @@ class IsolateManager {
 
     thread.hasPendingResume = true;
     try {
-      await _adapter.vmService?.resume(thread.isolate.id!, step: resumeType);
+      await _adapter.vmService?.resume(
+        thread.isolate.id!,
+        step: resumeType,
+        frameIndex: frameIndex,
+      );
     } on vm.SentinelException {
       // It's possible during these async requests that the isolate went away
       // (for example a shutdown/restart) and we no longer care about
