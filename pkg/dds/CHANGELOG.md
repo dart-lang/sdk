@@ -1,5 +1,6 @@
 # 2.11.1
 - [DAP] `restartFrameRequest` is now supported for frames up until the first async boundary (that are not also the top frame).
+- Update `vm_service` version to >=11.0.0 <13.0.0.
 
 # 2.11.0
 - Added a retry to the DevTools handler for serving static files.
