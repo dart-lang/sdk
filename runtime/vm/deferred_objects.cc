@@ -421,15 +421,9 @@ void DeferredObject::Fill() {
                   static_cast<uint64_t>(Integer::Cast(value).AsInt64Value()));
               break;
             case kTypedDataFloat32ArrayCid:
-              // Although element of Float32 array is represented with Double,
-              // it is already converted to 32-bit float via DoubleToFloat
-              // instruction before it was stored.
-              // Reinterpret double value as float to get the value back.
               typed_data.SetFloat32(
                   element_offset,
-                  bit_cast<float, uint32_t>(
-                      static_cast<uint32_t>(bit_cast<uint64_t, double>(
-                          Double::Cast(value).value()))));
+                  static_cast<float>(Double::Cast(value).value()));
               break;
             case kTypedDataFloat64ArrayCid:
               typed_data.SetFloat64(element_offset,

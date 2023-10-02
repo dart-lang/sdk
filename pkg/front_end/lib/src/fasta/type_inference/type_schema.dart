@@ -1,9 +1,10 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/assumptions.dart';
+import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/src/printer.dart';
 
 import 'package:kernel/import_table.dart' show ImportTable;
@@ -12,7 +13,7 @@ import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer, globalDebuggingNames;
 
 /// Determines whether a type schema contains `?` somewhere inside it.
-bool isKnown(DartType schema) => schema.accept(const _IsKnownVisitor());
+bool isKnown(DartType schema) => !schema.accept(const _HasUnknownVisitor());
 
 /// Converts a [DartType] to a string, representing the unknown type as `?`.
 String typeSchemaToString(DartType schema) {
@@ -47,7 +48,7 @@ class TypeSchemaPrinter extends Printer {
 ///
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
-class UnknownType extends DartType {
+class UnknownType extends AuxiliaryType {
   const UnknownType();
 
   @override
@@ -65,15 +66,6 @@ class UnknownType extends DartType {
     // equal.
     return other is UnknownType;
   }
-
-  @override
-  R accept<R>(DartTypeVisitor<R> v) {
-    return v.defaultDartType(this);
-  }
-
-  @override
-  R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) =>
-      v.defaultDartType(this, arg);
 
   @override
   void visitChildren(Visitor<dynamic> v) {}
@@ -95,87 +87,10 @@ class UnknownType extends DartType {
   }
 }
 
-/// Visitor that computes [isKnown].
-class _IsKnownVisitor implements DartTypeVisitor<bool> {
-  const _IsKnownVisitor();
+/// Visitor used to compute [isKnown].
+class _HasUnknownVisitor extends FindTypeVisitor {
+  const _HasUnknownVisitor();
 
   @override
-  bool defaultDartType(DartType node) => node is! UnknownType;
-
-  @override
-  bool visitDynamicType(DynamicType node) => true;
-
-  @override
-  bool visitInvalidType(InvalidType node) => true;
-
-  @override
-  bool visitNeverType(NeverType node) => true;
-
-  @override
-  bool visitIntersectionType(IntersectionType node) => true;
-
-  @override
-  bool visitNullType(NullType node) => true;
-
-  @override
-  bool visitTypeParameterType(TypeParameterType node) => true;
-
-  @override
-  bool visitVoidType(VoidType node) => true;
-
-  @override
-  bool visitFunctionType(FunctionType node) {
-    if (!node.returnType.accept(this)) return false;
-    for (DartType parameterType in node.positionalParameters) {
-      if (!parameterType.accept(this)) return false;
-    }
-    for (NamedType namedParameterType in node.namedParameters) {
-      if (!namedParameterType.type.accept(this)) return false;
-    }
-    for (TypeParameter typeParameter in node.typeParameters) {
-      if (!typeParameter.bound.accept(this)) return false;
-      if (!typeParameter.defaultType.accept(this)) return false;
-    }
-    return true;
-  }
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    for (DartType typeArgument in node.typeArguments) {
-      if (!typeArgument.accept(this)) return false;
-    }
-    return true;
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
-    for (DartType typeArgument in node.typeArguments) {
-      if (!typeArgument.accept(this)) return false;
-    }
-    return true;
-  }
-
-  @override
-  bool visitRecordType(RecordType node) {
-    for (DartType positional in node.positional) {
-      if (!positional.accept(this)) return false;
-    }
-    for (NamedType named in node.named) {
-      if (!named.type.accept(this)) return false;
-    }
-    return true;
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType node) {
-    return node.typeArgument.accept(this);
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    for (DartType typeArgument in node.typeArguments) {
-      if (!typeArgument.accept(this)) return false;
-    }
-    return true;
-  }
+  bool visitAuxiliaryType(AuxiliaryType node) => node is UnknownType;
 }

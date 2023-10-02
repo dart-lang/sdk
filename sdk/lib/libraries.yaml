@@ -227,6 +227,7 @@ wasm_common:
       uri: _internal/wasm/lib/string_helper.dart
     _wasm:
       uri: _wasm/wasm_types.dart
+      patches: _internal/wasm/lib/wasm_types_patch.dart
     async:
       uri: async/async.dart
       patches:

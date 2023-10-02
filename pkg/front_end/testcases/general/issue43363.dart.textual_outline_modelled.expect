@@ -1,0 +1,11 @@
+class E {
+  E() : this.named(), this.x = 1;
+  final int x;
+  final int y;
+  ---- unknown chunk starts ----
+this.
+---- unknown chunk ends ----
+  E.named() : this.x = 5, this.y = 6;
+  y = 2;
+}
+main() {}

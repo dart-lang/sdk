@@ -214,7 +214,7 @@ class _ServiceTesteeLauncher {
           blank = true;
         }
         if ((uri != null) && (blank == true) && (first == true)) {
-          completer.complete(uri);
+          completer.complete(uri!);
           // Stop repeat completions.
           first = false;
           print('** Signaled to run test queries on $uri');

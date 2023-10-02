@@ -9,17 +9,13 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
 import '../identifiers.dart';
@@ -404,7 +400,12 @@ class DeclaredSourceConstructorBuilder
       super.classBuilder as SourceClassBuilder;
 
   @override
-  Member get readTarget => _constructorTearOff ?? _constructor;
+  Member get readTarget =>
+      _constructorTearOff ??
+      // The case is need to ensure that the upper bound is [Member] and not
+      // [GenericFunction].
+      // ignore: unnecessary_cast
+      _constructor as Member;
 
   @override
   Member? get writeTarget => null;
@@ -471,12 +472,12 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
-    f(_constructor, BuiltMemberKind.Constructor);
-    if (_constructorTearOff != null) {
-      f(_constructorTearOff!, BuiltMemberKind.Method);
-    }
+    f(
+        member: _constructor,
+        tearOff: _constructorTearOff,
+        kind: BuiltMemberKind.Constructor);
   }
 
   bool _hasBeenBuilt = false;
@@ -492,7 +493,7 @@ class DeclaredSourceConstructorBuilder
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(
-            tearOff: _constructorTearOff!,
+            tearOff: _constructorTearOff,
             declarationConstructor: constructor,
             implementationConstructor: _constructor,
             enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
@@ -719,7 +720,7 @@ class DeclaredSourceConstructorBuilder
             libraryBuilder: libraryBuilder));
         if (_constructorTearOff != null) {
           delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-              superTarget, _constructorTearOff!, substitution,
+              superTarget, _constructorTearOff, substitution,
               positionalSuperParameters:
                   positionalSuperParameters ?? const <int>[],
               namedSuperParameters: namedSuperParameters ?? const <String>[],
@@ -821,12 +822,12 @@ class DeclaredSourceConstructorBuilder
   @override
   VariableDeclaration? getTearOffParameter(int index) {
     if (_constructorTearOff != null) {
-      if (index < _constructorTearOff!.function.positionalParameters.length) {
-        return _constructorTearOff!.function.positionalParameters[index];
+      if (index < _constructorTearOff.function.positionalParameters.length) {
+        return _constructorTearOff.function.positionalParameters[index];
       } else {
-        index -= _constructorTearOff!.function.positionalParameters.length;
-        if (index < _constructorTearOff!.function.namedParameters.length) {
-          return _constructorTearOff!.function.namedParameters[index];
+        index -= _constructorTearOff.function.positionalParameters.length;
+        if (index < _constructorTearOff.function.namedParameters.length) {
+          return _constructorTearOff.function.namedParameters[index];
         }
       }
     }
@@ -837,12 +838,12 @@ class DeclaredSourceConstructorBuilder
     finishConstructorPatch(origin.constructor, _constructor);
 
     if (_constructorTearOff != null) {
-      finishProcedurePatch(origin._constructorTearOff!, _constructorTearOff!);
+      finishProcedurePatch(origin._constructorTearOff!, _constructorTearOff);
     }
   }
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     if (!isPatch) return 0;
     _finishPatch();
     return 1;
@@ -1156,7 +1157,7 @@ class SourceExtensionTypeConstructorBuilder
   void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {}
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     if (!isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
@@ -1177,12 +1178,12 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
-    f(_constructor, BuiltMemberKind.ExtensionTypeConstructor);
-    if (_constructorTearOff != null) {
-      f(_constructorTearOff!, BuiltMemberKind.ExtensionTypeTearOff);
-    }
+    f(
+        member: _constructor,
+        tearOff: _constructorTearOff,
+        kind: BuiltMemberKind.ExtensionTypeConstructor);
   }
 
   bool _hasBeenBuilt = false;
@@ -1218,7 +1219,7 @@ class SourceExtensionTypeConstructorBuilder
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(
-            tearOff: _constructorTearOff!,
+            tearOff: _constructorTearOff,
             declarationConstructor: _constructor,
             implementationConstructor: _constructor,
             libraryBuilder: libraryBuilder);
@@ -1325,7 +1326,7 @@ class ExtensionTypeInitializerToStatementConverter
       this.statements, this.thisVariable);
 
   @override
-  void defaultInitializer(Initializer node) {
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
     if (node is ExtensionTypeRedirectingInitializer) {
       statements.add(new ExpressionStatement(
           new VariableSet(

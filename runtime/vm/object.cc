@@ -93,8 +93,6 @@ DEFINE_FLAG(
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\"). "
     "Also show legacy nullability in type names.");
-DEFINE_FLAG(bool, use_lib_cache, false, "Use library name cache");
-DEFINE_FLAG(bool, use_exp_cache, false, "Use library exported name cache");
 
 DEFINE_FLAG(bool,
             remove_script_timestamps_for_test,
@@ -2291,6 +2289,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_number_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_number_type(type);
 
     cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate_group,
                                               /*register_class=*/true,
@@ -9102,11 +9102,11 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy1:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy2:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy4:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy8:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy16:
+    case MethodRecognizer::kTypedData_memMove1:
+    case MethodRecognizer::kTypedData_memMove2:
+    case MethodRecognizer::kTypedData_memMove4:
+    case MethodRecognizer::kTypedData_memMove8:
+    case MethodRecognizer::kTypedData_memMove16:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
     // kernel_to_il.cc that no GC can happen in between the relevant IL
@@ -13650,130 +13650,6 @@ static bool ShouldBePrivate(const String& name) {
            name.CharAt(1) == 'e' && name.CharAt(2) == 't' &&
            name.CharAt(3) == ':'));
 }
-class StringEqualsTraits {
- public:
-  static const char* Name() { return "StringEqualsTraits"; }
-  static bool ReportStats() { return false; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    return String::Cast(a).Equals(String::Cast(b));
-  }
-  static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
-};
-typedef UnorderedHashMap<StringEqualsTraits> ResolvedNamesMap;
-
-// Returns true if the name is found in the cache, false no cache hit.
-// obj is set to the cached entry. It may be null, indicating that the
-// name does not resolve to anything in this library.
-bool Library::LookupResolvedNamesCache(const String& name, Object* obj) const {
-  if (resolved_names() == Array::null()) {
-    return false;
-  }
-  ResolvedNamesMap cache(resolved_names());
-  bool present = false;
-  *obj = cache.GetOrNull(name, &present);
-// Mutator compiler thread may add entries and therefore
-// change 'resolved_names()' while running a background compilation;
-// ASSERT that 'resolved_names()' has not changed only in mutator.
-#if defined(DEBUG)
-  if (Thread::Current()->IsDartMutatorThread()) {
-    ASSERT(cache.Release().ptr() == resolved_names());
-  } else {
-    // Release must be called in debug mode.
-    cache.Release();
-  }
-#endif
-  return present;
-}
-
-// Add a name to the resolved name cache. This name resolves to the
-// given object in this library scope. obj may be null, which means
-// the name does not resolve to anything in this library scope.
-void Library::AddToResolvedNamesCache(const String& name,
-                                      const Object& obj) const {
-  if (!FLAG_use_lib_cache || Compiler::IsBackgroundCompilation()) {
-    return;
-  }
-  if (resolved_names() == Array::null()) {
-    InitResolvedNamesCache();
-  }
-  ResolvedNamesMap cache(resolved_names());
-  cache.UpdateOrInsert(name, obj);
-  untag()->set_resolved_names(cache.Release().ptr());
-}
-
-bool Library::LookupExportedNamesCache(const String& name, Object* obj) const {
-  ASSERT(FLAG_use_exp_cache);
-  if (exported_names() == Array::null()) {
-    return false;
-  }
-  ResolvedNamesMap cache(exported_names());
-  bool present = false;
-  *obj = cache.GetOrNull(name, &present);
-// Mutator compiler thread may add entries and therefore
-// change 'exported_names()' while running a background compilation;
-// do not ASSERT that 'exported_names()' has not changed.
-#if defined(DEBUG)
-  if (Thread::Current()->IsDartMutatorThread()) {
-    ASSERT(cache.Release().ptr() == exported_names());
-  } else {
-    // Release must be called in debug mode.
-    cache.Release();
-  }
-#endif
-  return present;
-}
-
-void Library::AddToExportedNamesCache(const String& name,
-                                      const Object& obj) const {
-  if (!FLAG_use_exp_cache || Compiler::IsBackgroundCompilation()) {
-    return;
-  }
-  if (exported_names() == Array::null()) {
-    InitExportedNamesCache();
-  }
-  ResolvedNamesMap cache(exported_names());
-  cache.UpdateOrInsert(name, obj);
-  untag()->set_exported_names(cache.Release().ptr());
-}
-
-void Library::InvalidateResolvedName(const String& name) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Object& entry = Object::Handle(zone);
-  if (FLAG_use_lib_cache && LookupResolvedNamesCache(name, &entry)) {
-    // TODO(koda): Support deleted sentinel in snapshots and remove only 'name'.
-    ClearResolvedNamesCache();
-  }
-  if (!FLAG_use_exp_cache) {
-    return;
-  }
-  // When a new name is added to a library, we need to invalidate all
-  // caches that contain an entry for this name. If the name was previously
-  // looked up but could not be resolved, the cache contains a null entry.
-  GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      zone, thread->isolate_group()->object_store()->libraries());
-  Library& lib = Library::Handle(zone);
-  intptr_t num_libs = libs.Length();
-  for (intptr_t i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    if (lib.LookupExportedNamesCache(name, &entry)) {
-      lib.ClearExportedNamesCache();
-    }
-  }
-}
-
-// Invalidate all exported names caches in the isolate.
-void Library::InvalidateExportedNamesCaches() {
-  GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      IsolateGroup::Current()->object_store()->libraries());
-  Library& lib = Library::Handle();
-  intptr_t num_libs = libs.Length();
-  for (intptr_t i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    lib.ClearExportedNamesCache();
-  }
-}
 
 void Library::RehashDictionary(const Array& old_dict,
                                intptr_t new_dict_size) const {
@@ -13860,9 +13736,6 @@ ObjectPtr Library::LookupReExport(const String& name,
     trail = new ZoneGrowableArray<intptr_t>();
   }
   Object& obj = Object::Handle();
-  if (FLAG_use_exp_cache && LookupExportedNamesCache(name, &obj)) {
-    return obj.ptr();
-  }
 
   const intptr_t lib_id = this->index();
   ASSERT(lib_id >= 0);  // We use -1 to indicate that a cycle was found.
@@ -13882,10 +13755,7 @@ ObjectPtr Library::LookupReExport(const String& name,
       }
     }
   }
-  bool in_cycle = (trail->RemoveLast() < 0);
-  if (FLAG_use_exp_cache && !in_cycle && !Compiler::IsBackgroundCompilation()) {
-    AddToExportedNamesCache(name, obj);
-  }
+  trail->RemoveLast();
   return obj.ptr();
 }
 
@@ -13921,7 +13791,6 @@ void Library::AddClass(const Class& cls) const {
   AddObject(cls, class_name);
   // Link class to this library.
   cls.set_library(*this);
-  InvalidateResolvedName(class_name);
 }
 
 static void AddScriptIfUnique(const GrowableObjectArray& scripts,
@@ -14168,8 +14037,6 @@ void Library::DropDependenciesAndCaches() const {
   untag()->set_imports(Object::empty_array().ptr());
   untag()->set_exports(Object::empty_array().ptr());
   StoreNonPointer(&untag()->num_imports_, 0);
-  untag()->set_resolved_names(Array::null());
-  untag()->set_exported_names(Array::null());
   untag()->set_loaded_scripts(Array::null());
   untag()->set_dependencies(Array::null());
 #if defined(PRODUCT)
@@ -14215,33 +14082,6 @@ static ArrayPtr NewDictionary(intptr_t initial_size) {
   return dict.ptr();
 }
 
-void Library::InitResolvedNamesCache() const {
-  Thread* thread = Thread::Current();
-  ASSERT(thread->IsDartMutatorThread());
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  Array& cache = thread->ArrayHandle();
-  cache = HashTables::New<ResolvedNamesMap>(64);
-  untag()->set_resolved_names(cache.ptr());
-}
-
-void Library::ClearResolvedNamesCache() const {
-  ASSERT(Thread::Current()->IsDartMutatorThread());
-  untag()->set_resolved_names(Array::null());
-}
-
-void Library::InitExportedNamesCache() const {
-  Thread* thread = Thread::Current();
-  ASSERT(thread->IsDartMutatorThread());
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  Array& cache = thread->ArrayHandle();
-  cache = HashTables::New<ResolvedNamesMap>(16);
-  untag()->set_exported_names(cache.ptr());
-}
-
-void Library::ClearExportedNamesCache() const {
-  untag()->set_exported_names(Array::null());
-}
-
 void Library::InitClassDictionary() const {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
@@ -14275,8 +14115,6 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   const Library& result = Library::Handle(zone, Library::New());
   result.untag()->set_name(Symbols::Empty().ptr());
   result.untag()->set_url(url.ptr());
-  result.untag()->set_resolved_names(Array::null());
-  result.untag()->set_exported_names(Array::null());
   result.untag()->set_dictionary(Object::empty_array().ptr());
   Array& array = Array::Handle(zone);
   array = HashTables::New<MetadataMap>(4, Heap::kOld);
@@ -21975,6 +21813,10 @@ TypePtr Type::Int32x4() {
 
 TypePtr Type::Number() {
   return IsolateGroup::Current()->object_store()->number_type();
+}
+
+TypePtr Type::NullableNumber() {
+  return IsolateGroup::Current()->object_store()->nullable_number_type();
 }
 
 TypePtr Type::StringType() {

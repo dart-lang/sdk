@@ -21,6 +21,13 @@ class TypeDefinitionTest extends AbstractLspAnalysisServerTest {
     return pathContext.toUri(sdkCorePath);
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+
+    setLocationLinkSupport();
+  }
+
   Future<void> test_currentFile() async {
     final contents = '''
 class [[A]] {}
@@ -78,6 +85,8 @@ const a = [[12^3]];
   /// Checks a result when the client does not support [LocationLink], only
   /// the original LSP [Location].
   Future<void> test_location() async {
+    setLocationLinkSupport(false);
+
     final contents = '''
 const a^ = 'test string';
 ''';
@@ -288,10 +297,7 @@ void f() {
   Future<LocationLink> _getResult(String contents,
       {Uri? fileUri, bool inOpenFile = true}) async {
     fileUri ??= mainFileUri;
-    await initialize(
-      textDocumentCapabilities:
-          withLocationLinkSupport(emptyTextDocumentClientCapabilities),
-    );
+    await initialize();
     if (inOpenFile) {
       await openFile(fileUri, withoutMarkers(contents));
     }

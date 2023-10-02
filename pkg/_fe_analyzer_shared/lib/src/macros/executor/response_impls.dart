@@ -33,171 +33,165 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
                 if (macro is ClassTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is ClassDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is ClassDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.constructor:
             switch (phase) {
               case Phase.types:
                 if (macro is ConstructorTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is ConstructorDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is ConstructorDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
+          case DeclarationKind.extension:
+            switch (phase) {
+              case Phase.types:
+                if (macro is ExtensionTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.declarations:
+                if (macro is ExtensionDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.definitions:
+                if (macro is ExtensionDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+            }
           case DeclarationKind.field:
             switch (phase) {
               case Phase.types:
                 if (macro is FieldTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is FieldDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is FieldDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.function:
             switch (phase) {
               case Phase.types:
                 if (macro is FunctionTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is FunctionDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is FunctionDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
+          case DeclarationKind.library:
+            switch (phase) {
+              case Phase.types:
+                if (macro is LibraryTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.declarations:
+                if (macro is LibraryDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.definitions:
+                if (macro is LibraryDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+            }
           case DeclarationKind.method:
             switch (phase) {
               case Phase.types:
                 if (macro is MethodTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is MethodDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is MethodDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.enumType:
             switch (phase) {
               case Phase.types:
                 if (macro is EnumTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is EnumDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is EnumDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.enumValue:
             switch (phase) {
               case Phase.types:
                 if (macro is EnumValueTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is EnumValueDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is EnumValueDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.mixinType:
             switch (phase) {
               case Phase.types:
                 if (macro is MixinTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is MixinDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is MixinDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.variable:
             switch (phase) {
               case Phase.types:
                 if (macro is VariableTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is VariableDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is VariableDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
         }
       }
     }

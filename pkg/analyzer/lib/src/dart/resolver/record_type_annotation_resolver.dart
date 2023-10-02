@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 
@@ -61,14 +62,10 @@ class RecordTypeAnnotationResolver {
                   CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
                   nameToken);
             }
-          } else {
-            var objectElement = typeProvider.objectElement;
-            if (objectElement.getGetter(name) != null ||
-                objectElement.getMethod(name) != null) {
-              errorReporter.reportErrorForToken(
-                  CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
-                  nameToken);
-            }
+          } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
+              name)) {
+            errorReporter.reportErrorForToken(
+                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameToken);
           }
         }
       }

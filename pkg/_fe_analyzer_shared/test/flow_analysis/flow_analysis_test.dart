@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:core' as core;
+import 'dart:core';
+
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_link.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:test/test.dart';
 
@@ -1415,9 +1420,14 @@ main() {
         getSsaNodes((nodes) {
           var info = nodes[x]!.expressionInfo!;
           var key = h.promotionKeyStore.keyForVariable(y);
-          expect(info.after.promotionInfo[key]!.promotedTypes, null);
-          expect(info.ifTrue.promotionInfo[key]!.promotedTypes, null);
-          expect(info.ifFalse.promotionInfo[key]!.promotedTypes!.single.type,
+          expect(info.after.promotionInfo!.get(h, key)!.promotedTypes, null);
+          expect(info.ifTrue.promotionInfo!.get(h, key)!.promotedTypes, null);
+          expect(
+              info.ifFalse.promotionInfo!
+                  .get(h, key)!
+                  .promotedTypes!
+                  .single
+                  .type,
               'int');
         }),
       ]);
@@ -3535,7 +3545,7 @@ main() {
         var s1 = FlowModel<Type>(Reachability.initial);
         var s2 = s1._tryPromoteForTypeCheck(h, intQVar, 'int').ifTrue;
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(intQVar):
               _matchVariableModel(chain: ['int'], ofInterest: ['int'])
         });
@@ -3571,7 +3581,7 @@ main() {
             .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['int?', 'int'], ofInterest: ['int?', 'int'])
         });
@@ -3586,7 +3596,9 @@ main() {
 
         var s = FlowModel<Type>(Reachability.initial)._write(
             h, null, objectQVar, Type('Object?'), new SsaNode<Type>(null));
-        expect(s.promotionInfo[h.promotionKeyStore.keyForVariable(objectQVar)],
+        expect(
+            s.promotionInfo
+                ?.get(h, h.promotionKeyStore.keyForVariable(objectQVar)),
             isNull);
       });
 
@@ -3626,12 +3638,12 @@ main() {
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
-        expect(s1.promotionInfo,
+        expect(s1.promotionInfo.unwrap(h),
             contains(h.promotionKeyStore.keyForVariable(objectQVar)));
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
             Type('int?'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: null,
               ofInterest: isEmpty,
@@ -3647,7 +3659,7 @@ main() {
             .ifTrue
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
-        expect(s1.promotionInfo, {
+        expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'int'],
               ofInterest: ['num?', 'int'],
@@ -3657,7 +3669,7 @@ main() {
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
             Type('num'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'int'],
@@ -3675,7 +3687,7 @@ main() {
             .ifTrue
             ._tryPromoteForTypeCheck(h, objectQVar, 'int')
             .ifTrue;
-        expect(s1.promotionInfo, {
+        expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'num', 'int'],
               ofInterest: ['num?', 'num', 'int'],
@@ -3685,7 +3697,7 @@ main() {
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
             Type('num'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num', 'int'],
@@ -3701,7 +3713,7 @@ main() {
             .ifTrue
             ._tryPromoteForTypeCheck(h, objectQVar, 'num')
             .ifTrue;
-        expect(s1.promotionInfo, {
+        expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num'],
@@ -3712,7 +3724,7 @@ main() {
             h, null, objectQVar, Type('num'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num'],
@@ -3728,7 +3740,7 @@ main() {
             .ifTrue
             ._tryPromoteForTypeCheck(h, objectQVar, 'num')
             .ifTrue;
-        expect(s1.promotionInfo, {
+        expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num'],
@@ -3739,7 +3751,7 @@ main() {
             h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?', 'num'],
               ofInterest: ['num?', 'num'],
@@ -3753,13 +3765,13 @@ main() {
           var x = Var('x')..type = Type('int?');
 
           var s1 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
-          expect(s1.promotionInfo, {
+          expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null),
           });
 
           var s2 = s1._write(h, null, x, Type('int'), new SsaNode<Type>(null));
-          expect(s2.promotionInfo, {
+          expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: ['int']),
           });
@@ -3769,20 +3781,20 @@ main() {
           var x = Var('x')..type = Type('int?');
 
           var s1 = FlowModel<Type>(Reachability.initial)._declare(h, x, true);
-          expect(s1.promotionInfo, {
+          expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null),
           });
 
           var s2 = s1._conservativeJoin(h, [], [x]);
-          expect(s2.promotionInfo, {
+          expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null, writeCaptured: true),
           });
 
           // 'x' is write-captured, so not promoted
           var s3 = s2._write(h, null, x, Type('int'), new SsaNode<Type>(null));
-          expect(s3.promotionInfo, {
+          expect(s3.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x):
                 _matchVariableModel(chain: null, writeCaptured: true),
           });
@@ -3793,7 +3805,7 @@ main() {
               ._declare(h, objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
               .ifTrue;
-          expect(s1.promotionInfo, {
+          expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['int?'],
               ofInterest: ['int?'],
@@ -3801,7 +3813,7 @@ main() {
           });
           var s2 = s1._write(
               h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
-          expect(s2.promotionInfo, {
+          expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['int?', 'int'],
               ofInterest: ['int?'],
@@ -3814,7 +3826,7 @@ main() {
               ._declare(h, objectQVar, true)
               ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
               .ifFalse;
-          expect(s1.promotionInfo, {
+          expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['Object'],
               ofInterest: ['int?'],
@@ -3822,7 +3834,7 @@ main() {
           });
           var s2 = s1._write(
               h, null, objectQVar, Type('int'), new SsaNode<Type>(null));
-          expect(s2.promotionInfo, {
+          expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['Object', 'int'],
               ofInterest: ['int?'],
@@ -3836,7 +3848,7 @@ main() {
             ._declare(h, objectQVar, true)
             ._tryPromoteForTypeCheck(h, objectQVar, 'num?')
             .ifFalse;
-        expect(s1.promotionInfo, {
+        expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['Object'],
             ofInterest: ['num?'],
@@ -3844,7 +3856,7 @@ main() {
         });
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
             Type('num?'), new SsaNode<Type>(null));
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?'],
             ofInterest: ['num?'],
@@ -3859,7 +3871,7 @@ main() {
             .ifTrue
             ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
             .ifFalse;
-        expect(s1.promotionInfo, {
+        expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'num'],
             ofInterest: ['num?', 'int?'],
@@ -3867,7 +3879,7 @@ main() {
         });
         var s2 = s1._write(h, _MockNonPromotionReason(), objectQVar,
             Type('int?'), new SsaNode<Type>(null));
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: ['num?', 'int?'],
             ofInterest: ['num?', 'int?'],
@@ -3896,7 +3908,7 @@ main() {
                 .ifFalse
                 ._tryPromoteForTypeCheck(h, x, 'A?')
                 .ifFalse;
-            expect(s1.promotionInfo, {
+            expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object'],
                 ofInterest: ['A?', 'B?'],
@@ -3904,7 +3916,7 @@ main() {
             });
 
             var s2 = s1._write(h, null, x, Type('C'), new SsaNode<Type>(null));
-            expect(s2.promotionInfo, {
+            expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'B'],
                 ofInterest: ['A?', 'B?'],
@@ -3921,7 +3933,7 @@ main() {
                 .ifFalse
                 ._tryPromoteForTypeCheck(h, x, 'B?')
                 .ifFalse;
-            expect(s1.promotionInfo, {
+            expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object'],
                 ofInterest: ['A?', 'B?'],
@@ -3929,7 +3941,7 @@ main() {
             });
 
             var s2 = s1._write(h, null, x, Type('C'), new SsaNode<Type>(null));
-            expect(s2.promotionInfo, {
+            expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'B'],
                 ofInterest: ['A?', 'B?'],
@@ -3946,7 +3958,7 @@ main() {
                 .ifFalse
                 ._tryPromoteForTypeCheck(h, x, 'A?')
                 .ifFalse;
-            expect(s1.promotionInfo, {
+            expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object'],
                 ofInterest: ['A', 'A?'],
@@ -3954,7 +3966,7 @@ main() {
             });
 
             var s2 = s1._write(h, null, x, Type('B'), new SsaNode<Type>(null));
-            expect(s2.promotionInfo, {
+            expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
                 chain: ['Object', 'A'],
                 ofInterest: ['A', 'A?'],
@@ -3971,7 +3983,7 @@ main() {
                 .ifFalse
                 ._tryPromoteForTypeCheck(h, objectQVar, 'num*')
                 .ifFalse;
-            expect(s1.promotionInfo, {
+            expect(s1.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(objectQVar):
                   _matchVariableModel(
                 chain: ['Object'],
@@ -3983,7 +3995,7 @@ main() {
             // It's ambiguous whether to promote to num? or num*, so we don't
             // promote.
             expect(s2, isNot(same(s1)));
-            expect(s2.promotionInfo, {
+            expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(objectQVar):
                   _matchVariableModel(
                 chain: ['Object'],
@@ -4000,7 +4012,7 @@ main() {
               .ifFalse
               ._tryPromoteForTypeCheck(h, objectQVar, 'num*')
               .ifFalse;
-          expect(s1.promotionInfo, {
+          expect(s1.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['Object'],
               ofInterest: ['num?', 'num*'],
@@ -4010,7 +4022,7 @@ main() {
               Type('num?'), new SsaNode<Type>(null));
           // It's ambiguous whether to promote to num? or num*, but since the
           // written type is exactly num?, we use that.
-          expect(s2.promotionInfo, {
+          expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
               chain: ['num?'],
               ofInterest: ['num?', 'num*'],
@@ -4030,7 +4042,7 @@ main() {
             .ifTrue
             ._tryPromoteForTypeCheck(h, x, 'int?')
             .ifTrue;
-        expect(s1.promotionInfo, {
+        expect(s1.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
             chain: ['num?', 'int?'],
             ofInterest: ['num?', 'int?'],
@@ -4039,7 +4051,7 @@ main() {
 
         var s2 = s1._write(h, _MockNonPromotionReason(), x, Type('double'),
             new SsaNode<Type>(null));
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
             chain: ['num?', 'num'],
             ofInterest: ['num?', 'int?'],
@@ -4054,7 +4066,7 @@ main() {
       test('initialized', () {
         var s =
             FlowModel<Type>(Reachability.initial)._declare(h, objectQVar, true);
-        expect(s.promotionInfo, {
+        expect(s.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
               _matchVariableModel(assigned: true, unassigned: false),
         });
@@ -4063,7 +4075,7 @@ main() {
       test('not initialized', () {
         var s = FlowModel<Type>(Reachability.initial)
             ._declare(h, objectQVar, false);
-        expect(s.promotionInfo, {
+        expect(s.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
               _matchVariableModel(assigned: false, unassigned: true),
         });
@@ -4099,7 +4111,7 @@ main() {
             .ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
               _matchVariableModel(chain: ['int?', 'int'], ofInterest: ['int?'])
         });
@@ -4123,7 +4135,7 @@ main() {
         var s2 = s1._conservativeJoin(h, [intQVar], []);
         expect(s2, isNot(same(s1)));
         expect(s2.reachable, same(s1.reachable));
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
               _matchVariableModel(chain: ['int'], ofInterest: ['int']),
           h.promotionKeyStore.keyForVariable(intQVar):
@@ -4139,7 +4151,7 @@ main() {
             .ifTrue;
         var s2 = s1._conservativeJoin(h, [intQVar], []);
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
               _matchVariableModel(chain: ['int'], ofInterest: ['int']),
           h.promotionKeyStore.keyForVariable(intQVar):
@@ -4155,7 +4167,7 @@ main() {
             .ifTrue;
         var s2 = s1._conservativeJoin(h, [], [intQVar]);
         expect(s2.reachable.overallReachable, true);
-        expect(s2.promotionInfo, {
+        expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar):
               _matchVariableModel(chain: ['int'], ofInterest: ['int']),
           h.promotionKeyStore.keyForVariable(intQVar): _matchVariableModel(
@@ -4267,7 +4279,7 @@ main() {
               : s0._tryPromoteForTypeCheck(h, x, otherType).ifTrue;
           var result = s2.rebaseForward(h, s1);
           if (expectedChain == null) {
-            expect(result.promotionInfo,
+            expect(result.promotionInfo.unwrap(h),
                 contains(h.promotionKeyStore.keyForVariable(x)));
             expect(result._infoFor(h, x).promotedTypes, isNull);
           } else {
@@ -4586,15 +4598,16 @@ main() {
 
     group('without input reuse', () {
       test('promoted with unpromoted', () {
-        var p1 = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intType]),
           y: model(null)
-        };
-        var p2 = {
+        });
+        var s2 = s0._setInfo(h, {
           x: model(null),
           y: model([intType])
-        };
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), {
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
           x: _matchVariableModel(chain: null, ofInterest: ['int']),
           y: _matchVariableModel(chain: null, ofInterest: ['int'])
         });
@@ -4602,112 +4615,138 @@ main() {
     });
     group('should re-use an input if possible', () {
       test('identical inputs', () {
-        var p = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intType]),
           y: model([stringType])
-        };
-        expect(FlowModel.joinPromotionInfo(h, p, p), same(p));
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s1), same(s1));
       });
 
       test('one input empty', () {
-        var p1 = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intType]),
           y: model([stringType])
-        };
-        var p2 = <int, PromotionModel<Type>>{};
-        const expected = const <int, PromotionModel<Never>>{};
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), same(expected));
-        expect(FlowModel.joinPromotionInfo(h, p2, p1), same(expected));
+        });
+        var s2 = s0;
+        const Null expected = null;
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo,
+            same(expected));
+        expect(FlowModel.joinPromotionInfo(h, s2, s1).promotionInfo,
+            same(expected));
       });
 
       test('promoted with unpromoted', () {
-        var p1 = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intType])
-        };
-        var p2 = {x: model(null)};
+        });
+        var s2 = s0._setInfo(h, {x: model(null)});
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['int'])
         };
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), expected);
-        expect(FlowModel.joinPromotionInfo(h, p2, p1), expected);
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h),
+            expected);
+        expect(FlowModel.joinPromotionInfo(h, s2, s1).promotionInfo.unwrap(h),
+            expected);
       });
 
       test('related type chains', () {
-        var p1 = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intQType, intType])
-        };
-        var p2 = {
+        });
+        var s2 = s0._setInfo(h, {
           x: model([intQType])
-        };
+        });
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), expected);
-        expect(FlowModel.joinPromotionInfo(h, p2, p1), expected);
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h),
+            expected);
+        expect(FlowModel.joinPromotionInfo(h, s2, s1).promotionInfo.unwrap(h),
+            expected);
       });
 
       test('unrelated type chains', () {
-        var p1 = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intType])
-        };
-        var p2 = {
+        });
+        var s2 = s0._setInfo(h, {
           x: model([stringType])
-        };
+        });
         var expected = {
           x: _matchVariableModel(chain: null, ofInterest: ['String', 'int'])
         };
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), expected);
-        expect(FlowModel.joinPromotionInfo(h, p2, p1), expected);
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h),
+            expected);
+        expect(FlowModel.joinPromotionInfo(h, s2, s1).promotionInfo.unwrap(h),
+            expected);
       });
 
       test('sub-map', () {
+        var s0 = FlowModel<Type>(Reachability.initial);
         var xModel = model([intType]);
-        var p1 = {
+        var s1 = s0._setInfo(h, {
           x: xModel,
           y: model([stringType])
-        };
-        var p2 = {x: xModel};
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), same(p2));
-        expect(FlowModel.joinPromotionInfo(h, p2, p1), same(p2));
+        });
+        var s2 = s0._setInfo(h, {x: xModel});
+        var expected = {x: xModel};
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h),
+            expected);
+        expect(FlowModel.joinPromotionInfo(h, s2, s1).promotionInfo.unwrap(h),
+            expected);
       });
 
       test('sub-map with matched subtype', () {
-        var p1 = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intQType, intType]),
           y: model([stringType])
-        };
-        var p2 = {
+        });
+        var s2 = s0._setInfo(h, {
           x: model([intQType])
-        };
+        });
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), expected);
-        expect(FlowModel.joinPromotionInfo(h, p2, p1), expected);
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h),
+            expected);
+        expect(FlowModel.joinPromotionInfo(h, s2, s1).promotionInfo.unwrap(h),
+            expected);
       });
 
       test('sub-map with mismatched subtype', () {
-        var p1 = {
+        var s0 = FlowModel<Type>(Reachability.initial);
+        var s1 = s0._setInfo(h, {
           x: model([intQType]),
           y: model([stringType])
-        };
-        var p2 = {
+        });
+        var s2 = s0._setInfo(h, {
           x: model([intQType, intType])
-        };
+        });
         var expected = {
           x: _matchVariableModel(chain: ['int?'], ofInterest: ['int?', 'int'])
         };
-        expect(FlowModel.joinPromotionInfo(h, p1, p2), expected);
-        expect(FlowModel.joinPromotionInfo(h, p2, p1), expected);
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h),
+            expected);
+        expect(FlowModel.joinPromotionInfo(h, s2, s1).promotionInfo.unwrap(h),
+            expected);
       });
 
       test('assigned', () {
+        var s0 = FlowModel<Type>(Reachability.initial);
         var unassigned = model(null, assigned: false);
         var assigned = model(null, assigned: true);
-        var p1 = {x: assigned, y: assigned, z: unassigned, w: unassigned};
-        var p2 = {x: assigned, y: unassigned, z: assigned, w: unassigned};
-        var joined = FlowModel.joinPromotionInfo(h, p1, p2);
-        expect(joined, {
+        var s1 = s0._setInfo(
+            h, {x: assigned, y: assigned, z: unassigned, w: unassigned});
+        var s2 = s0._setInfo(
+            h, {x: assigned, y: unassigned, z: assigned, w: unassigned});
+        var joined = FlowModel.joinPromotionInfo(h, s1, s2);
+        expect(joined.promotionInfo.unwrap(h), {
           x: same(assigned),
           y: _matchVariableModel(
               chain: null, assigned: false, unassigned: false),
@@ -4718,22 +4757,23 @@ main() {
       });
 
       test('write captured', () {
+        var s0 = FlowModel<Type>(Reachability.initial);
         var intQModel = model([intQType]);
         var writeCapturedModel = intQModel.writeCapture();
-        var p1 = {
+        var s1 = s0._setInfo(h, {
           x: writeCapturedModel,
           y: writeCapturedModel,
           z: intQModel,
           w: intQModel
-        };
-        var p2 = {
+        });
+        var s2 = s0._setInfo(h, {
           x: writeCapturedModel,
           y: intQModel,
           z: writeCapturedModel,
           w: intQModel
-        };
-        var joined = FlowModel.joinPromotionInfo(h, p1, p2);
-        expect(joined, {
+        });
+        var joined = FlowModel.joinPromotionInfo(h, s1, s2);
+        expect(joined.promotionInfo.unwrap(h), {
           x: same(writeCapturedModel),
           y: same(writeCapturedModel),
           z: same(writeCapturedModel),
@@ -4747,7 +4787,6 @@ main() {
     late int x;
     var intType = Type('int');
     var stringType = Type('String');
-    const emptyMap = const <int, PromotionModel<Type>>{};
 
     setUp(() {
       x = h.promotionKeyStore.keyForVariable(Var('x')..type = Type('Object?'));
@@ -4762,32 +4801,35 @@ main() {
             ssaNode: new SsaNode<Type>(null));
 
     test('inherits types of interest from other', () {
-      var m1 = FlowModel.withInfo(Reachability.initial, {
+      var m0 = FlowModel<Type>(Reachability.initial);
+      var m1 = m0._setInfo(h, {
         x: model([intType])
       });
-      var m2 = FlowModel.withInfo(Reachability.initial, {
+      var m2 = m0._setInfo(h, {
         x: model([stringType])
       });
-      expect(m1.inheritTested(h.typeOperations, m2).promotionInfo[x]!.tested,
+      expect(m1.inheritTested(h, m2).promotionInfo!.get(h, x)!.tested,
           _matchOfInterestSet(['int', 'String']));
     });
 
     test('handles variable missing from other', () {
-      var m1 = FlowModel.withInfo(Reachability.initial, {
+      var m0 = FlowModel<Type>(Reachability.initial);
+      var m1 = m0._setInfo(h, {
         x: model([intType])
       });
-      var m2 = FlowModel.withInfo(Reachability.initial, emptyMap);
-      expect(m1.inheritTested(h.typeOperations, m2), same(m1));
+      var m2 = m0;
+      expect(m1.inheritTested(h, m2), same(m1));
     });
 
     test('returns identical model when no changes', () {
-      var m1 = FlowModel.withInfo(Reachability.initial, {
+      var m0 = FlowModel<Type>(Reachability.initial);
+      var m1 = m0._setInfo(h, {
         x: model([intType])
       });
-      var m2 = FlowModel.withInfo(Reachability.initial, {
+      var m2 = m0._setInfo(h, {
         x: model([intType])
       });
-      expect(m1.inheritTested(h.typeOperations, m2), same(m1));
+      expect(m1.inheritTested(h, m2), same(m1));
     });
   });
 
@@ -5592,6 +5634,8 @@ main() {
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5612,10 +5656,13 @@ main() {
         checkNotPromoted(x),
         x.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int'), Type('int?')]));
-          expect((reasons[Type('int')] as DemoteViaExplicitWrite<Var>).node,
-              same(writeExpression));
-          expect((reasons[Type('int?')] as DemoteViaExplicitWrite<Var>).node,
-              same(writeExpression));
+          for (var type in [Type('int'), Type('int?')]) {
+            var nonPromotionReason =
+                reasons[type] as DemoteViaExplicitWrite<Var>;
+            expect(nonPromotionReason.node, same(writeExpression));
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.write);
+          }
         }),
       ]);
     });
@@ -5636,6 +5683,8 @@ main() {
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writePattern));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5659,6 +5708,8 @@ main() {
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5682,6 +5733,8 @@ main() {
           var nonPromotionReason =
               reasons[Type('int')] as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
+          expect(nonPromotionReason.documentationLink,
+              NonPromotionDocumentationLink.write);
         }),
       ]);
     });
@@ -5709,36 +5762,47 @@ main() {
     group('because property', () {
       test('via explicit this', () {
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?');
+        h.addMember('C', 'field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
         h.run([
           if_(this_.property('field').eq(nullLiteral), [
             return_(),
           ]),
           this_.property('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromotedForInherentReason;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotEnabled);
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.fieldPromotionUnavailable);
           }),
         ]);
       });
 
       test('via implicit this/super', () {
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?');
+        h.addMember('C', 'field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
         h.run([
           if_(thisProperty('field').eq(nullLiteral), [
             return_(),
           ]),
           thisProperty('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromotedForInherentReason;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotEnabled);
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.fieldPromotionUnavailable);
           }),
         ]);
       });
 
       test('via variable', () {
-        h.addMember('C', 'field', 'Object?');
+        h.addMember('C', 'field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
         var x = Var('x');
         h.run([
           declare(x, type: 'C', initializer: expr('C')),
@@ -5747,8 +5811,12 @@ main() {
           ]),
           x.property('field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromotedForInherentReason;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotEnabled);
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.fieldPromotionUnavailable);
           }),
         ]);
       });
@@ -5765,8 +5833,9 @@ main() {
           ]),
           this_.whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('D')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+            var nonPromotionReason = reasons.values.single as ThisNotPromoted;
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.this_);
           }),
         ]);
       });
@@ -5781,8 +5850,9 @@ main() {
           ]),
           implicitThis_whyNotPromoted('C', (reasons) {
             expect(reasons.keys, unorderedEquals([Type('D')]));
-            var nonPromotionReason = reasons.values.single;
-            expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
+            var nonPromotionReason = reasons.values.single as ThisNotPromoted;
+            expect(nonPromotionReason.documentationLink,
+                NonPromotionDocumentationLink.this_);
           }),
         ]);
       });
@@ -10951,7 +11021,8 @@ Matcher _matchVariableModel(
 
 class _MockNonPromotionReason extends NonPromotionReason {
   @override
-  String get documentationLink => fail('Unexpected call to documentationLink');
+  NonPromotionDocumentationLink get documentationLink =>
+      fail('Unexpected call to documentationLink');
 
   @override
   String get shortName => fail('Unexpected call to shortName');
@@ -10966,7 +11037,7 @@ class _MockNonPromotionReason extends NonPromotionReason {
 extension on FlowModel<Type> {
   FlowModel<Type> _conservativeJoin(FlowAnalysisTestHarness h,
           Iterable<Var> writtenVariables, Iterable<Var> capturedVariables) =>
-      conservativeJoin([
+      conservativeJoin(h, [
         for (Var v in writtenVariables) h.promotionKeyStore.keyForVariable(v)
       ], [
         for (Var v in capturedVariables) h.promotionKeyStore.keyForVariable(v)
@@ -10974,11 +11045,23 @@ extension on FlowModel<Type> {
 
   FlowModel<Type> _declare(
           FlowAnalysisTestHarness h, Var variable, bool initialized) =>
-      this.declare(h.promotionKeyStore.keyForVariable(variable), initialized);
+      this.declare(
+          h, h.promotionKeyStore.keyForVariable(variable), initialized);
 
   PromotionModel<Type> _infoFor(FlowAnalysisTestHarness h, Var variable) =>
-      infoFor(h.promotionKeyStore.keyForVariable(variable),
+      infoFor(h, h.promotionKeyStore.keyForVariable(variable),
           ssaNode: new SsaNode(null));
+
+  FlowModel<Type> _setInfo(
+      FlowAnalysisTestHarness h, Map<int, PromotionModel<Type>> newInfo) {
+    var result = this;
+    for (var core.MapEntry(:key, :value) in newInfo.entries) {
+      if (result.promotionInfo?.get(h, key) != value) {
+        result = result.updatePromotionInfo(h, key, value);
+      }
+    }
+    return result;
+  }
 
   ExpressionInfo<Type> _tryMarkNonNullable(
           FlowAnalysisTestHarness h, Var variable) =>
@@ -10996,7 +11079,8 @@ extension on FlowModel<Type> {
       new TrivialVariableReference<Type>(
           promotionKey: _varRef(h, variable),
           after: this,
-          type: promotionInfo[h.promotionKeyStore.keyForVariable(variable)]
+          type: promotionInfo
+                  ?.get(h, h.promotionKeyStore.keyForVariable(variable))
                   ?.promotedTypes
                   ?.last ??
               variable.type,
@@ -11012,4 +11096,12 @@ extension on FlowModel<Type> {
       write(h, nonPromotionReason, h.promotionKeyStore.keyForVariable(variable),
           writtenType, newSsaNode, h.typeOperations,
           unpromotedType: variable.type);
+}
+
+extension on PromotionInfo<Type>? {
+  Map<int, PromotionModel<Type>> unwrap(FlowAnalysisTestHarness h) => {
+        for (var FlowLinkDiffEntry(:int key, right: second!)
+            in h.reader.diff(null, this).entries)
+          key: second.model
+      };
 }

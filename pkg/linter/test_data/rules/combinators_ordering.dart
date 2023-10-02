@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N combinators_ordering`
-
 import 'dart:math' as m1 show max, min; // OK
 import 'dart:math' as m2 show min, max; // LINT
 

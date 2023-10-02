@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/testing/analysis_helper.dart';
-import 'verifying_analysis.dart';
+import '../../lib/src/testing/verifying_analysis.dart';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart';
 import 'package:kernel/ast.dart';

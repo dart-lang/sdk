@@ -403,7 +403,7 @@ class Enum extends Member {
 }
 
 class EnumParser extends Parser {
-  EnumParser(Token? startToken) : super(startToken);
+  EnumParser(super.startToken);
 
   void parseInto(Enum e) {
     // enum ErrorKind { UnhandledException, Foo, Bar }
@@ -670,7 +670,7 @@ class MethodArg extends Member {
 }
 
 class MethodParser extends Parser {
-  MethodParser(Token? startToken) : super(startToken);
+  MethodParser(super.startToken);
 
   void parseInto(Method method) {
     // method is return type, name, (, args )
@@ -1009,7 +1009,7 @@ class TypeField extends Member {
 }
 
 class TypeParser extends Parser {
-  TypeParser(Token? startToken) : super(startToken);
+  TypeParser(super.startToken);
 
   void parseInto(Type type) {
     // class ClassList extends Response {

@@ -2,17 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X> Function<X>(X, int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
-//  - 'X/*1*/' is from 'unknown'.
-//  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test2() => A.foo2; // Error.
 //                                ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X> Function<X>()' can't be returned from a function with return type 'A<X> Function<X>(X)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
-//  - 'X/*1*/' is from 'unknown'.
-//  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test3() => A.new; // Error.
 //                                ^
 //
@@ -46,10 +42,8 @@ library;
 // A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.
 //                                ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:22:33: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:22:33: Error: A value of type 'A<X> Function<X>()' can't be returned from a function with return type 'A<X> Function<X>(X)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
-//  - 'X/*1*/' is from 'unknown'.
-//  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test11() => A.bar1; // Error.
 //                                 ^
 //
@@ -70,17 +64,13 @@ class A<X extends core::Object? = dynamic> extends core::Object {
 static method test1() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return #C1;
 static method test2() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X> Function<X>(X, int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
- - 'X/*1*/' is from 'unknown'.
- - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test2() => A.foo2; // Error.
                                ^" in #C2 as{TypeError} Never;
 static method test3() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X> Function<X>()' can't be returned from a function with return type 'A<X> Function<X>(X)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
- - 'X/*1*/' is from 'unknown'.
- - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test3() => A.new; // Error.
                                ^" in #C3 as{TypeError} Never;
 static method test4() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
@@ -116,10 +106,8 @@ A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.
 static method test10() → <X extends core::Object? = dynamic>() → self::A<X%>
   return #C7;
 static method test11() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
-  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:22:33: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:22:33: Error: A value of type 'A<X> Function<X>()' can't be returned from a function with return type 'A<X> Function<X>(X)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
- - 'X/*1*/' is from 'unknown'.
- - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test11() => A.bar1; // Error.
                                 ^" in #C7 as{TypeError} Never;
 static method test12() → () → self::A<core::int>

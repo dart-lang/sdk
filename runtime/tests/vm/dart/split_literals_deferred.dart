@@ -4,6 +4,7 @@
 
 import "split_literals.dart";
 
+@pragma("vm:never-inline")
 void foo() {
   print("Deferred literal!");
   print(const <String>["Deferred literal in a list!"]);

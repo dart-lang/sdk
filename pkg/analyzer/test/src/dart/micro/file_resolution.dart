@@ -41,6 +41,9 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   final printer.IdProvider _idProvider = printer.IdProvider();
 
+  printer.AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
+      printer.AnalyzerStatePrinterConfiguration();
+
   FileSystemState get fsState => fileResolver.fsState!;
 
   LibraryContext get libraryContext {
@@ -63,17 +66,14 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     newFile(testFile.path, content);
   }
 
-  void assertStateString(
-    String expected, {
-    bool omitSdkFiles = true,
-  }) {
+  void assertStateString(String expected) {
     final buffer = StringBuffer();
     printer.AnalyzerStatePrinter(
       byteStore: byteStore,
       unlinkedUnitStore: fsState.unlinkedUnitStore as UnlinkedUnitStoreImpl,
       idProvider: _idProvider,
       libraryContext: libraryContext,
-      omitSdkFiles: omitSdkFiles,
+      configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
       sink: buffer,
       withKeysGetPut: true,

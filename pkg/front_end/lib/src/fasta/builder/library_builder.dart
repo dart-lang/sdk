@@ -28,13 +28,12 @@ import '../messages.dart'
 import '../scope.dart';
 
 import 'builder.dart';
-import 'class_builder.dart';
+import 'declaration_builders.dart';
 import 'member_builder.dart';
 import 'modifier_builder.dart';
 import 'name_iterator.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
-import 'type_alias_builder.dart';
 import 'type_builder.dart';
 
 abstract class LibraryBuilder implements ModifierBuilder {

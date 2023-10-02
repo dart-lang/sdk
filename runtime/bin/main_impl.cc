@@ -19,6 +19,7 @@
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
 #include "bin/eventhandler.h"
+#include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
 #include "bin/isolate_data.h"
@@ -1152,6 +1153,11 @@ static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback =
 #endif  // !defined(PRODUCT)
 
 void main(int argc, char** argv) {
+#if !defined(DART_HOST_OS_WINDOWS)
+  // Very early so any crashes during startup can also be symbolized.
+  EXEUtils::LoadDartProfilerSymbols(argv[0]);
+#endif
+
   char* script_name = nullptr;
   // Allows the dartdev process to point to the desired package_config.
   char* package_config_override = nullptr;

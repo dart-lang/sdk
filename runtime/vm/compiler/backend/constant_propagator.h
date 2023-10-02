@@ -39,6 +39,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   static ObjectPtr Unknown() { return Object::unknown_constant().ptr(); }
 
  private:
+  void InsertRedefinitionsAfterEqualityComparisons();
   void Analyze();
   void Transform();
   // Tries to replace uses of [defn] with a constant, returns true if

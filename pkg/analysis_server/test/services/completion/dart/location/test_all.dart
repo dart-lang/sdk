@@ -21,6 +21,7 @@ import 'enum_test.dart' as enum_;
 import 'extends_clause_test.dart' as extends_clause;
 import 'extension_body_test.dart' as extension_body;
 import 'extension_declaration_test.dart' as extension_declaration;
+import 'extension_type_declaration_test.dart' as extension_type_declaration;
 import 'field_declaration_test.dart' as field_declaration;
 import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'for_element_test.dart' as for_element;
@@ -88,6 +89,7 @@ void main() {
     extends_clause.main();
     extension_body.main();
     extension_declaration.main();
+    extension_type_declaration.main();
     field_declaration.main();
     field_formal_parameter.main();
     for_element.main();

@@ -17,7 +17,117 @@ import '../../analysis_server_base.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UtilTest);
+    defineReflectiveTests(CorrectionUtilsTest);
   });
+}
+
+@reflectiveTest
+class CorrectionUtilsTest extends AbstractSingleUnitTest {
+  Future<void> assertReplacedIndentation(
+    String source,
+    String expected, {
+    String indentOld = '  ',
+    String indentNew = '    ',
+    bool includeLeading = true,
+    bool includeTrailingNewline = true,
+  }) async {
+    // Use strings as-is, because tests are explicit and cover both kinds of eols.
+    useLineEndingsForPlatform = false;
+    await parseTestCode(source);
+    final util = CorrectionUtils(testParsedResult);
+    final actual = util.replaceSourceIndent(
+      testCode,
+      indentOld,
+      indentNew,
+      includeLeading: includeLeading,
+      includeTrailingNewline: includeTrailingNewline,
+    );
+    expect(actual, expected);
+  }
+
+  Future<void> test_replaceSourceIndent_leading_empty_crlf() async {
+    await assertReplacedIndentation(
+      indentOld: '',
+      indentNew: '  ',
+      'a\r\nb\r\nc',
+      '  a\r\n  b\r\n  c\r\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_leading_empty_lf() async {
+    await assertReplacedIndentation(
+      indentOld: '',
+      indentNew: '  ',
+      'a\nb\nc',
+      '  a\n  b\n  c\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_leading_nonEmpty_crlf() async {
+    await assertReplacedIndentation(
+      '  a\r\n  b\r\n  c',
+      '    a\r\n    b\r\n    c\r\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_leading_nonEmpty_lf() async {
+    await assertReplacedIndentation(
+      '  a\n  b\n  c',
+      '    a\n    b\n    c\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_noLeading_empty_crlf() async {
+    await assertReplacedIndentation(
+      includeLeading: false,
+      indentOld: '',
+      indentNew: '  ',
+      'a\r\nb\r\nc',
+      'a\r\n  b\r\n  c\r\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_noLeading_empty_lf() async {
+    await assertReplacedIndentation(
+      includeLeading: false,
+      indentOld: '',
+      indentNew: '  ',
+      'a\nb\nc',
+      'a\n  b\n  c\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_noLeading_nonEmpty_crlf() async {
+    await assertReplacedIndentation(
+      includeLeading: false,
+      '  a\r\n  b\r\n  c',
+      '  a\r\n    b\r\n    c\r\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_noLeading_nonEmpty_lf() async {
+    await assertReplacedIndentation(
+      includeLeading: false,
+      '  a\n  b\n  c',
+      '  a\n    b\n    c\n',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_noTrailing_crlf() async {
+    await assertReplacedIndentation(
+      includeTrailingNewline: false,
+      '  a\r\n  b\r\n  c',
+      '    a\r\n    b\r\n    c',
+    );
+  }
+
+  Future<void> test_replaceSourceIndent_noTrailing_lf() async {
+    await assertReplacedIndentation(
+      includeTrailingNewline: false,
+      '  a\n  b\n  c',
+      '    a\n    b\n    c',
+    );
+  }
 }
 
 @reflectiveTest

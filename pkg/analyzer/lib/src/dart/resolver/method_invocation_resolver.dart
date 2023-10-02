@@ -892,15 +892,20 @@ class MethodInvocationResolver with ScopeHelpers {
     var target = node.target;
     if (target == null) {
       functionExpression = node.methodName;
-      targetType = _resolver.flowAnalysis.flow?.propertyGet(
-              functionExpression,
-              node.isCascaded
-                  ? CascadePropertyTarget.singleton
-                  : ThisPropertyTarget.singleton,
-              node.methodName.name,
-              node.methodName.staticElement,
-              getterReturnType) ??
-          targetType;
+      var element = node.methodName.staticElement;
+      if (element is ExecutableElement &&
+          element.enclosingElement is InstanceElement &&
+          !element.isStatic) {
+        targetType = _resolver.flowAnalysis.flow?.propertyGet(
+                functionExpression,
+                node.isCascaded
+                    ? CascadePropertyTarget.singleton
+                    : ThisPropertyTarget.singleton,
+                node.methodName.name,
+                element,
+                getterReturnType) ??
+            targetType;
+      }
     } else {
       if (target is SimpleIdentifierImpl &&
           target.staticElement is PrefixElement) {

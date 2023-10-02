@@ -9,6 +9,7 @@ import 'dart:_js_types' as js_types;
 import 'dart:_wasm';
 import 'dart:async' show Completer;
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe' as unsafe;
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
@@ -28,15 +29,22 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   // reified `JSUndefined` and `JSNull`, we have to handle the case where
   // `this == null`. However, after migration we can remove these checks.
   @patch
-  bool get isUndefined => this == null || isJSUndefined(this?.toExternRef);
+  bool get isUndefined =>
+      throw UnimplementedError("JS 'null' and 'undefined' are internalized as "
+          "Dart null in dart2wasm. As such, they can not be differentiated and "
+          "this API should not be used when compiling to Wasm.");
 
   @patch
-  bool get isNull => this == null || this!.toExternRef.isNull;
+  bool get isNull =>
+      throw UnimplementedError("JS 'null' and 'undefined' are internalized as "
+          "Dart null in dart2wasm. As such, they can not be differentiated and "
+          "this API should not be used when compiling to Wasm.");
 
   @patch
-  JSBoolean typeofEquals(JSString type) =>
-      _box<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, t) => typeof o === t', this?.toExternRef, type.toExternRef));
+  bool typeofEquals(String type) =>
+      _box<JSBoolean>(js_helper.JS<WasmExternRef?>('(o, t) => typeof o === t',
+              this?.toExternRef, type.toJS.toExternRef))
+          .toDart;
 
   @patch
   Object? dartify() => js_util.dartify(this);
@@ -53,9 +61,10 @@ extension NullableObjectUtilExtension on Object? {
 @patch
 extension JSObjectUtilExtension on JSObject {
   @patch
-  JSBoolean instanceof(JSFunction constructor) =>
+  bool instanceof(JSFunction constructor) =>
       _box<JSBoolean>(js_helper.JS<WasmExternRef?>(
-          '(o, c) => o instanceof c', toExternRef, constructor.toExternRef));
+              '(o, c) => o instanceof c', toExternRef, constructor.toExternRef))
+          .toDart;
 }
 
 /// [JSExportedDartFunction] <-> [Function]
@@ -101,17 +110,19 @@ extension ObjectToJSBoxedDartObject on Object {
 extension JSPromiseToFuture on JSPromise {
   @patch
   Future<JSAny?> get toDart {
-    final completer = Completer<JSAny>();
-    final success = (JSAny r) {
+    final completer = Completer<JSAny?>();
+    final success = (JSAny? r) {
       return completer.complete(r);
     }.toJS;
-    final error = (JSAny e) {
+    final error = (JSAny? e) {
       // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
       // all backends and if it is feasible, or feasible for some limited use
       // cases, then we should pass [e] directly to `completeError`.
       // TODO(joshualitt): Use helpers to avoid conflating `null` and `JSNull` /
       // `JSUndefined`.
       if (e == null) {
+        // Note that we pass false as a default. It's not currently possible to
+        // be able to differentiate between null and undefined.
         return completer.completeError(js_util.NullRejectionException(false));
       }
       return completer.completeError(e);
@@ -330,13 +341,18 @@ extension JSArrayToList on JSArray {
 
 @patch
 extension ListToJSArray on List<JSAny?> {
-  @patch
-  JSArray get toJS {
+  JSArray? get _underlyingArray {
     final t = this;
     return t is js_types.JSArrayImpl
         ? JSValue.boxT<JSArray>(t.toExternRef)
-        : toJSArray(this);
+        : null;
   }
+
+  @patch
+  JSArray get toJS => _underlyingArray ?? toJSArray(this);
+
+  @patch
+  JSArray get toJSProxyOrRef => _underlyingArray ?? _createJSProxyOfList(this);
 }
 
 /// [JSNumber] -> [double] or [int].
@@ -391,4 +407,141 @@ extension StringToJSString on String {
     return _box<JSString>(
         t is js_types.JSStringImpl ? t.toExternRef : jsStringFromDartString(t));
   }
+}
+
+@JS('Array')
+@staticInterop
+class _Array {
+  external static JSObject get prototype;
+}
+
+@JS('Symbol')
+@staticInterop
+class _Symbol {
+  external static JSSymbol get isConcatSpreadable;
+}
+
+// Used only so we can use `createStaticInteropMock`'s prototype-setting.
+@JS()
+@staticInterop
+class __ListBackedJSArray {}
+
+/// Implementation of indexing, `length`, and core handler methods.
+///
+/// JavaScript's `Array` methods are similar to Dart's `ListMixin`, because they
+/// only rely on the implementation of `length` and indexing methods (and
+/// support for any JS operators like `in` or `delete`).
+/// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#generic_array_methods
+class _ListBackedJSArray {
+  final List<JSAny?> _list;
+  // The proxy that wraps this list.
+  late final JSArray proxy;
+
+  _ListBackedJSArray(this._list);
+
+  @JSExport()
+  int get length => _list.length;
+
+  // TODO(srujzs): Resizing the list populates the list with `null`. Should we
+  // instead populate it with `undefined` as JS does?
+  @JSExport()
+  void set length(int val) => _list.length = val;
+
+  // []
+  @JSExport()
+  JSAny? _getIndex(int index) => _list[index];
+
+  // []=
+  @JSExport()
+  void _setIndex(int index, JSAny? value) {
+    // Need to resize the array if out of bounds.
+    if (index >= length) length = index + 1;
+    _list[index] = value;
+  }
+
+  // in
+  @JSExport()
+  bool _hasIndex(int index) => index >= 0 && index < length;
+
+  // delete
+  @JSExport()
+  bool _deleteIndex(int index) {
+    if (_hasIndex(index)) {
+      _list.removeAt(index);
+      return true;
+    }
+    return false;
+  }
+}
+
+JSArray _createJSProxyOfList(List<JSAny?> list) {
+  final wrapper = _ListBackedJSArray(list);
+  final jsExportWrapper =
+      js_util.createStaticInteropMock<__ListBackedJSArray, _ListBackedJSArray>(
+          wrapper, _Array.prototype) as JSObject;
+
+  // Needed for `concat` to spread the contents of the current array instead of
+  // prepending.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/isConcatSpreadable
+  jsExportWrapper.setProperty(_Symbol.isConcatSpreadable, true.toJS);
+
+  final getIndex = jsExportWrapper['_getIndex']!.toExternRef;
+  final setIndex = jsExportWrapper['_setIndex']!.toExternRef;
+  final hasIndex = jsExportWrapper['_hasIndex']!.toExternRef;
+  final deleteIndex = jsExportWrapper['_deleteIndex']!.toExternRef;
+
+  final proxy = _box<JSArray>(js_helper.JS<WasmExternRef?>('''
+    (wrapper, getIndex, setIndex, hasIndex, deleteIndex) => new Proxy(wrapper, {
+      'get': function (target, prop, receiver) {
+        if (typeof prop == 'string') {
+          const numProp = Number(prop);
+          if (Number.isInteger(numProp)) {
+            const args = new Array();
+            args.push(numProp);
+            return Reflect.apply(getIndex, wrapper, args);
+          }
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+      'set': function (target, prop, value, receiver) {
+        if (typeof prop == 'string') {
+          const numProp = Number(prop);
+          if (Number.isInteger(numProp)) {
+            const args = new Array();
+            args.push(numProp, value);
+            Reflect.apply(setIndex, wrapper, args);
+            return true;
+          }
+        }
+        // Note that handler set is required to return a bool (whether it
+        // succeeded or not), so `[]=` won't return the value set.
+        return Reflect.set(target, prop, value, receiver);
+      },
+      'has': function (target, prop) {
+        if (typeof prop == 'string') {
+          const numProp = Number(prop);
+          if (Number.isInteger(numProp)) {
+            const args = new Array();
+            args.push(numProp);
+            // Array-like objects are assumed to have indices as properties.
+            return Reflect.apply(hasIndex, wrapper, args);
+          }
+        }
+        return Reflect.has(target, prop);
+      },
+      'deleteProperty': function (target, prop) {
+        if (typeof prop == 'string') {
+          const numProp = Number(prop);
+          if (Number.isInteger(numProp)) {
+            const args = new Array();
+            args.push(numProp);
+            return Reflect.apply(deleteIndex, wrapper, args);
+          }
+        }
+        return Reflect.deleteProperty(target, prop);
+      }
+    })''', jsExportWrapper.toExternRef, getIndex, setIndex, hasIndex,
+      deleteIndex));
+  wrapper.proxy = proxy;
+  return proxy;
 }

@@ -73,7 +73,7 @@ abstract class Bar extends core::Object implements core::List<core::List<core::L
 extension /* unnamed */ _extension#0 on core::Symbol {
   operator > = self::_extension#0|>;
   method call = self::_extension#0|call;
-  tearoff call = self::_extension#0|get#call;
+  method tearoff call = self::_extension#0|get#call;
 }
 static extension-member method _extension#0|>(lowered final core::Symbol #this, dynamic _) → core::String
   return "Greater Than used";

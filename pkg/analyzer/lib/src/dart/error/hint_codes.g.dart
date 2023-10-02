@@ -46,15 +46,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the element
-  static const HintCode DEPRECATED_EXPORT_USE = HintCode(
-    'DEPRECATED_EXPORT_USE',
-    "The ability to import '{0}' indirectly is deprecated.",
-    correctionMessage: "Try importing '{0}' directly.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
   ///  0: the name of the member
   static const HintCode DEPRECATED_MEMBER_USE = HintCode(
     'DEPRECATED_MEMBER_USE',
@@ -135,16 +126,6 @@ class HintCode extends AnalyzerErrorCode {
         "library.",
     correctionMessage: "Try migrating the imported library.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the non-diagnostic being ignored
-  static const HintCode UNIGNORABLE_IGNORE = HintCode(
-    'UNIGNORABLE_IGNORE',
-    "The diagnostic '{0}' can't be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
   );
 
   ///  No parameters.

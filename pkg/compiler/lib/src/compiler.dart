@@ -736,6 +736,15 @@ class Compiler {
         await produceGlobalTypeInferenceResults(closedWorldAndIndices!);
     if (shouldStopAfterGlobalTypeInference) return;
 
+    // Allow the original references to these to be GCed and only hold
+    // references to them if we are actually running the dump info task later.
+    JClosedWorld? closedWorldForDumpInfo;
+    DataSourceIndices? globalInferenceIndicesForDumpInfo;
+    if (options.dumpInfoWriteUri != null || options.dumpInfoReadUri != null) {
+      closedWorldForDumpInfo = closedWorldAndIndices.data;
+      globalInferenceIndicesForDumpInfo = globalTypeInferenceResults.indices;
+    }
+
     // Run codegen.
     final sourceLookup = SourceLookup(output.component);
     CodegenResults codegenResults =
@@ -746,8 +755,8 @@ class Compiler {
       final dumpInfoData =
           await serializationTask.deserializeDumpInfoProgramData(
               backendStrategy,
-              closedWorldAndIndices.data!,
-              globalTypeInferenceResults.indices);
+              closedWorldForDumpInfo!,
+              globalInferenceIndicesForDumpInfo);
       await runDumpInfo(codegenResults, dumpInfoData);
     } else {
       // Link.
@@ -762,8 +771,8 @@ class Compiler {
           serializationTask.serializeDumpInfoProgramData(
               backendStrategy,
               dumpInfoData,
-              closedWorldAndIndices.data!,
-              globalTypeInferenceResults.indices);
+              closedWorldForDumpInfo!,
+              globalInferenceIndicesForDumpInfo);
         }
       }
     }

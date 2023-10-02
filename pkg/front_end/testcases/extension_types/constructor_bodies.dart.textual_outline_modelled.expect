@@ -1,21 +1,16 @@
----- unknown chunk starts ----
 extension type Class1(int it) {
----- unknown chunk ends ----
-Class1.named1(this.it, int additional);
-Class1.named2(int this.it, int additional) {}
-Class1.named3(int it) : this.it = it;
-Class1.named4(int additional, int it) : this.it = it;
-Class1.named5(int additional, int it) : this.it = it {}
-Class1.named6(String text) : it = text.length;
----- unknown chunk starts ----
-} extension type Class2<T>(T it) {
----- unknown chunk ends ----
-Class2.named1(this.it, int additional);
-Class2.named2(T this.it, int additional) {}
-Class2.named3(T it) : this.it = it;
-Class2.named4(int additional, T it) : this.it = it;
-Class2.named5(int additional, T it) : this.it = it {}
-Class2.named6(List<T> list) : it = list.first;
----- unknown chunk starts ----
+  Class1.named1(this.it, int additional);
+  Class1.named2(int this.it, int additional) {}
+  Class1.named3(int it) : this.it = it;
+  Class1.named4(int additional, int it) : this.it = it;
+  Class1.named5(int additional, int it) : this.it = it {}
+  Class1.named6(String text) : it = text.length;
 }
----- unknown chunk ends ----
+extension type Class2<T>(T it) {
+  Class2.named1(this.it, int additional);
+  Class2.named2(T this.it, int additional) {}
+  Class2.named3(T it) : this.it = it;
+  Class2.named4(int additional, T it) : this.it = it;
+  Class2.named5(int additional, T it) : this.it = it {}
+  Class2.named6(List<T> list) : it = list.first;
+}

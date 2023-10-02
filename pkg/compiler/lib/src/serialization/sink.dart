@@ -595,18 +595,23 @@ class DataSinkWriter {
   }
 
   void _writeTypeParameter(ir.TypeParameter value, MemberData? memberData) {
-    ir.TreeNode parent = value.parent!;
-    if (parent is ir.Class) {
+    ir.GenericDeclaration declaration = value.declaration!;
+    // TODO(fishythefish): Use exhaustive pattern switch.
+    if (declaration is ir.Class) {
       _sinkWriter.writeEnum(_TypeParameterKind.cls);
-      _writeClassNode(parent);
-      _sinkWriter.writeInt(parent.typeParameters.indexOf(value));
-    } else if (parent is ir.FunctionNode) {
+      _writeClassNode(declaration);
+      _sinkWriter.writeInt(declaration.typeParameters.indexOf(value));
+    } else if (declaration is ir.Procedure) {
       _sinkWriter.writeEnum(_TypeParameterKind.functionNode);
-      _writeFunctionNode(parent, memberData);
-      _sinkWriter.writeInt(parent.typeParameters.indexOf(value));
+      _writeFunctionNode(declaration.function, memberData);
+      _sinkWriter.writeInt(declaration.typeParameters.indexOf(value));
+    } else if (declaration is ir.LocalFunction) {
+      _sinkWriter.writeEnum(_TypeParameterKind.functionNode);
+      _writeFunctionNode(declaration.function, memberData);
+      _sinkWriter.writeInt(declaration.typeParameters.indexOf(value));
     } else {
       throw UnsupportedError(
-          "Unsupported TypeParameter parent ${parent.runtimeType}");
+          "Unsupported TypeParameter declaration ${declaration.runtimeType}");
     }
   }
 
@@ -676,7 +681,7 @@ class DataSinkWriter {
   }
 
   void _writeDartTypeNode(
-      ir.DartType? value, List<ir.TypeParameter> functionTypeVariables,
+      ir.DartType? value, List<ir.StructuralParameter> functionTypeVariables,
       {bool allowNull = false}) {
     if (value == null) {
       if (!allowNull) {

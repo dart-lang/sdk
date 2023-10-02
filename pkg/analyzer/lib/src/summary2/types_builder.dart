@@ -153,7 +153,8 @@ class TypesBuilder {
         element.augmentedInternal = augmented;
         augmented.mixins.addAll(element.mixins);
         augmented.interfaces.addAll(element.interfaces);
-        augmented.fields.addAll(element.fields);
+        augmented.fields.addAll(element.fields.notAugmented);
+        augmented.constructors.addAll(element.constructors.notAugmented);
         augmented.accessors.addAll(element.accessors.notAugmented);
         augmented.methods.addAll(element.methods.notAugmented);
       }
@@ -347,7 +348,7 @@ class TypesBuilder {
         element.augmentedInternal = augmented;
         augmented.superclassConstraints.addAll(element.superclassConstraints);
         augmented.interfaces.addAll(element.interfaces);
-        augmented.fields.addAll(element.fields);
+        augmented.fields.addAll(element.fields.notAugmented);
         augmented.accessors.addAll(element.accessors.notAugmented);
         augmented.methods.addAll(element.methods.notAugmented);
       }
@@ -437,6 +438,15 @@ class TypesBuilder {
       augmented.interfaces.addAll(
         toDeclaration.mapInterfaceTypes(element.interfaces),
       );
+
+      augmented.constructors.addAll(
+        element.constructors.notAugmented.map((element) {
+          if (toDeclaration.map.isEmpty) {
+            return element;
+          }
+          return ConstructorMember(typeProvider, element, toDeclaration, false);
+        }),
+      );
     }
 
     if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
@@ -447,7 +457,7 @@ class TypesBuilder {
 
     if (augmented is AugmentedInstanceElementImpl) {
       augmented.fields.addAll(
-        element.fields.map((element) {
+        element.fields.notAugmented.map((element) {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
@@ -760,6 +770,12 @@ class _ToInferMixinsAugmentation {
 }
 
 extension<T extends ExecutableElement> on List<T> {
+  Iterable<T> get notAugmented {
+    return where((e) => e.augmentation == null);
+  }
+}
+
+extension<T extends PropertyInducingElement> on List<T> {
   Iterable<T> get notAugmented {
     return where((e) => e.augmentation == null);
   }

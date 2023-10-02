@@ -76,8 +76,7 @@ class InformativeDataApplier {
     var unitElements = libraryElement.units;
     for (var i = 0; i < unitElements.length; i++) {
       var unitElement = unitElements[i];
-      var unitUri = unitElement.source.uri;
-      var unitInfoBytes = _unitsInformativeBytes2[unitUri];
+      var unitInfoBytes = _getInfoUnitBytes(unitElement);
       if (unitInfoBytes != null) {
         var unitReader = SummaryDataReader(unitInfoBytes);
         var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
@@ -704,6 +703,20 @@ class InformativeDataApplier {
         element.nameOffset = info.nameOffset;
       },
     );
+  }
+
+  Uint8List? _getInfoUnitBytes(CompilationUnitElement element) {
+    final uri = element.source.uri;
+    if (_unitsInformativeBytes2[uri] case final bytes?) {
+      return bytes;
+    }
+
+    switch (element.enclosingElement) {
+      case LibraryAugmentationElementImpl(:final macroGenerated?):
+        return macroGenerated.informativeBytes;
+    }
+
+    return null;
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(
@@ -1858,7 +1871,8 @@ class _InfoUnit {
     return _InfoUnit._(
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
-      lineStarts: reader.readUInt30List(),
+      // Having duplicated line-starts adds up --- deduplicate if possible.
+      lineStarts: _readUint30ListPossiblyFromCache(cache, reader),
       libraryName: _InfoLibraryName(reader),
       libraryConstantOffsets: reader.readUInt30List(),
       docComment: reader.readStringUtf8(),
@@ -1929,6 +1943,22 @@ class _InfoUnit {
     required this.mixinDeclarations,
     required this.topLevelVariable,
   });
+
+  static Uint32List _readUint30ListPossiblyFromCache(
+      InfoDeclarationStore cache, SummaryDataReader reader) {
+    final initialOffset = reader.offset;
+    final cacheKey = cache.createKey(reader, initialOffset);
+    final cachedLineStarts =
+        cache.get<Uint32List>(reader, cacheKey, initialOffset);
+    if (cachedLineStarts != null) {
+      return cachedLineStarts;
+    } else {
+      // Add to cache.
+      var lineStarts = reader.readUInt30List();
+      cache.put(reader, cacheKey, initialOffset, lineStarts);
+      return lineStarts;
+    }
+  }
 }
 
 class _OffsetsApplier extends _OffsetsAstVisitor {

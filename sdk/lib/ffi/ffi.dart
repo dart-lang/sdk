@@ -214,6 +214,54 @@ abstract final class NativeCallable<T extends Function> {
   ///
   /// This callback must be [close]d when it is no longer needed. The [Isolate]
   /// that created the callback will be kept alive until [close] is called.
+  ///
+  /// For example:
+  ///
+  /// ```dart
+  /// import 'dart:async';
+  /// import 'dart:ffi';
+  /// import 'package:ffi/ffi.dart';
+  ///
+  /// // Processes a simple HTTP GET request using a native HTTP library that
+  /// // processes the request on a background thread.
+  /// Future<String> httpGet(String uri) async {
+  ///   final uriPointer = uri.toNativeUtf8();
+  ///
+  ///   // Create the NativeCallable.listener.
+  ///   final completer = Completer<String>();
+  ///   late final NativeCallable<NativeHttpCallback> callback;
+  ///   void onResponse(Pointer<Utf8> responsePointer) {
+  ///     completer.complete(responsePointer.toDartString());
+  ///     calloc.free(responsePointer);
+  ///     calloc.free(uriPointer);
+  ///
+  ///     // Remember to close the NativeCallable once the native API is
+  ///     // finished with it, otherwise this isolate will stay alive
+  ///     // indefinitely.
+  ///     callback.close();
+  ///   }
+  ///   callback = NativeCallable<NativeHttpCallback>.listener(onResponse);
+  ///
+  ///   // Invoke the native HTTP API. Our example HTTP library processes our
+  ///   // request on a background thread, and calls the callback on that same
+  ///   // thread when it receives the response.
+  ///   nativeHttpGet(uriPointer, callback.nativeFunction);
+  ///
+  ///   return completer.future;
+  /// }
+  ///
+  /// // Load the native functions from a DynamicLibrary.
+  /// final DynamicLibrary dylib = DynamicLibrary.process();
+  /// typedef NativeHttpCallback = Void Function(Pointer<Utf8>);
+  ///
+  /// typedef HttpGetFunction = void Function(
+  ///     Pointer<Utf8>, Pointer<NativeFunction<NativeHttpCallback>>);
+  /// typedef HttpGetNativeFunction = Void Function(
+  ///     Pointer<Utf8>, Pointer<NativeFunction<NativeHttpCallback>>);
+  /// final nativeHttpGet =
+  ///     dylib.lookupFunction<HttpGetNativeFunction, HttpGetFunction>(
+  ///         'http_get');
+  /// ```
   factory NativeCallable.listener(
       @DartRepresentationOf("T") Function callback) {
     throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
@@ -222,15 +270,15 @@ abstract final class NativeCallable<T extends Function> {
   /// The native function pointer which can be used to invoke the `callback`
   /// passed to the constructor.
   ///
-  /// If this receiver has been [close]d, the pointer is a [nullptr].
+  /// This pointer must not be read after the callable has been [close]d.
   Pointer<NativeFunction<T>> get nativeFunction;
 
   /// Closes this callback and releases its resources.
   ///
   /// Further calls to existing [nativeFunction]s will result in undefined
-  /// behavior. New accesses to [nativeFunction] will give a [nullptr].
+  /// behavior.
   ///
-  /// This method must not be called more than once on each native callback.
+  /// Subsequent calls to [close] will be ignored.
   ///
   /// It is safe to call [close] inside the [callback].
   void close();

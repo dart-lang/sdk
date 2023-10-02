@@ -1,0 +1,4 @@
+class C {
+  const C() : =this.x;
+}
+main() {}

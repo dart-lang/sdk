@@ -114,16 +114,11 @@ namespace dart {
   V(Float32x4List, ., TypedData_Float32x4Array_factory, 0x0a6eefa8)            \
   V(Int32x4List, ., TypedData_Int32x4Array_factory, 0x5a09288e)                \
   V(Float64x2List, ., TypedData_Float64x2Array_factory, 0xecbc738a)            \
-  V(_TypedListBase, _checkBoundsAndMemcpy1,                                    \
-    TypedData_checkBoundsAndMemcpy1, 0xf9d326bd)                               \
-  V(_TypedListBase, _checkBoundsAndMemcpy2,                                    \
-    TypedData_checkBoundsAndMemcpy2, 0xf0756646)                               \
-  V(_TypedListBase, _checkBoundsAndMemcpy4,                                    \
-    TypedData_checkBoundsAndMemcpy4, 0xe8cfd800)                               \
-  V(_TypedListBase, _checkBoundsAndMemcpy8,                                    \
-    TypedData_checkBoundsAndMemcpy8, 0xe945188e)                               \
-  V(_TypedListBase, _checkBoundsAndMemcpy16,                                   \
-    TypedData_checkBoundsAndMemcpy16, 0xebd06cb3)                              \
+  V(_TypedListBase, _memMove1, TypedData_memMove1, 0xd2767fb0)                 \
+  V(_TypedListBase, _memMove2, TypedData_memMove2, 0xed382bb6)                 \
+  V(_TypedListBase, _memMove4, TypedData_memMove4, 0xcfe37726)                 \
+  V(_TypedListBase, _memMove8, TypedData_memMove8, 0xd1d8e325)                 \
+  V(_TypedListBase, _memMove16, TypedData_memMove16, 0x07861cd5)               \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0xd0e522d0)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0xcc42cce1)                         \
@@ -275,7 +270,6 @@ namespace dart {
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b1d23cb)               \
   V(_WeakReference, get:target, WeakReference_getTarget, 0xc98185aa)           \
   V(_WeakReference, set:_target, WeakReference_setTarget, 0xc71add9a)          \
-  V(::, _classRangeCheck, ClassRangeCheck, 0xef2bb89a)                         \
   V(::, _abi, FfiAbi, 0x7c3c2b95)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x630c8491)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3fe722bc)        \
@@ -316,16 +310,16 @@ namespace dart {
   V(::, _storePointer, FfiStorePointer, 0x8b5a5939)                            \
   V(::, _fromAddress, FfiFromAddress, 0x810f9a01)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7ccffbde)                           \
-  V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x767b7ab8)      \
-  V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd08e6de6)    \
-  V(::, _asExternalTypedDataInt32, FfiAsExternalTypedDataInt32, 0x3815fd66)    \
-  V(::, _asExternalTypedDataInt64, FfiAsExternalTypedDataInt64, 0xaf9bbc1b)    \
-  V(::, _asExternalTypedDataUint8, FfiAsExternalTypedDataUint8, 0x3513fc54)    \
-  V(::, _asExternalTypedDataUint16, FfiAsExternalTypedDataUint16, 0x8996925a)  \
-  V(::, _asExternalTypedDataUint32, FfiAsExternalTypedDataUint32, 0xd2645061)  \
-  V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06afe5e5)  \
-  V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f37d22c)    \
-  V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40bf4e01)  \
+  V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x767b7e79)      \
+  V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd08e71a7)    \
+  V(::, _asExternalTypedDataInt32, FfiAsExternalTypedDataInt32, 0x38160127)    \
+  V(::, _asExternalTypedDataInt64, FfiAsExternalTypedDataInt64, 0xaf9bbfdc)    \
+  V(::, _asExternalTypedDataUint8, FfiAsExternalTypedDataUint8, 0x35140015)    \
+  V(::, _asExternalTypedDataUint16, FfiAsExternalTypedDataUint16, 0x8996961b)  \
+  V(::, _asExternalTypedDataUint32, FfiAsExternalTypedDataUint32, 0xd2645422)  \
+  V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06afe9a6)  \
+  V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f37d5ed)    \
+  V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40bf51c2)  \
   V(::, _getNativeField, GetNativeField, 0xa0051366)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x73009f9f)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea6c2)                          \

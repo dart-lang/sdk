@@ -35,13 +35,13 @@ class KeywordHelper {
     // in order to help users discover what keywords are available. If the
     // keywords are in the wrong order a diagnostic (and fix) will help them get
     // the keywords in the correct location.
-    if (node.extendsClause == null) {
+    if (_isAbsentOrIn(node.extendsClause?.extendsKeyword)) {
       addKeyword(Keyword.EXTENDS);
     }
-    if (node.withClause == null) {
+    if (_isAbsentOrIn(node.withClause?.withKeyword)) {
       addKeyword(Keyword.WITH);
     }
-    if (node.implementsClause == null) {
+    if (_isAbsentOrIn(node.implementsClause?.implementsKeyword)) {
       addKeyword(Keyword.IMPLEMENTS);
     }
   }
@@ -69,6 +69,9 @@ class KeywordHelper {
   /// declaration before the `class` keyword. The [node] is the class
   /// declaration containing the selection point.
   void addClassModifiers(ClassDeclaration node) {
+    if (_isAbsentOrIn(node.abstractKeyword) && node.sealedKeyword == null) {
+      addKeyword(Keyword.ABSTRACT);
+    }
     if (featureSet.isEnabled(Feature.class_modifiers) &&
         featureSet.isEnabled(Feature.sealed_class)) {
       if (node.baseKeyword == null &&
@@ -86,12 +89,12 @@ class KeywordHelper {
           addKeyword(Keyword.MIXIN);
         }
       }
-      if (node.baseKeyword != null && node.mixinKeyword == null) {
+      if (node.baseKeyword != null && _isAbsentOrIn(node.mixinKeyword)) {
         // base ^ class A {}
         // abstract base ^ class A {}
         addKeyword(Keyword.MIXIN);
       }
-      if (node.mixinKeyword != null && node.baseKeyword == null) {
+      if (node.mixinKeyword != null && _isAbsentOrIn(node.baseKeyword)) {
         // abstract ^ mixin class A {}
         addKeyword(Keyword.BASE);
       }
@@ -130,6 +133,7 @@ class KeywordHelper {
     addKeyword(Keyword.CONST);
     addKeyword(Keyword.COVARIANT);
     addKeyword(Keyword.DYNAMIC);
+    addKeyword(Keyword.EXTERNAL);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.MIXIN);
     addKeyword(Keyword.TYPEDEF);
@@ -190,6 +194,20 @@ class KeywordHelper {
     }
   }
 
+  /// Add the keywords that are appropriate when the selection is at the
+  /// beginning of a directive in a compilation unit. The [before] directive is
+  /// the directive before the one being added.
+  void addDirectiveKeywords(CompilationUnit unit, Directive? before) {
+    // TODO(brianwilkerson) If we had both the members before and after the new
+    //  directive, we could limit the keywords based on surrounding members.
+    if (before == null && !unit.directives.any((d) => d is LibraryDirective)) {
+      addKeyword(Keyword.LIBRARY);
+    }
+    addKeywordFromText(Keyword.IMPORT, " '^';");
+    addKeywordFromText(Keyword.EXPORT, " '^';");
+    addKeywordFromText(Keyword.PART, " '^';");
+  }
+
   /// Add the keywords that are appropriate when the selection is in an enum
   /// declaration between the name of the enum and the body. The [node] is the
   /// enum declaration containing the selection point.
@@ -198,10 +216,10 @@ class KeywordHelper {
     // in order to help users discover what keywords are available. If the
     // keywords are in the wrong order a diagnostic (and fix) will help them get
     // the keywords in the correct location.
-    if (node.withClause == null) {
+    if (_isAbsentOrIn(node.withClause?.withKeyword)) {
       addKeyword(Keyword.WITH);
     }
-    if (node.implementsClause == null) {
+    if (_isAbsentOrIn(node.implementsClause?.implementsKeyword)) {
       addKeyword(Keyword.IMPLEMENTS);
     }
   }
@@ -232,7 +250,7 @@ class KeywordHelper {
       }
       if (node is Expression) {
         return !node.inConstantContext;
-      } else if (node is IfStatement) {
+      } else if (node is ExpressionStatement || node is IfStatement) {
         return true;
       } else if (node is PatternVariableDeclaration) {
         return true;
@@ -290,23 +308,89 @@ class KeywordHelper {
   void addExtensionDeclarationKeywords(ExtensionDeclaration node) {
     if (node.onKeyword.isSynthetic) {
       addKeyword(Keyword.ON);
+      if (node.name == null && featureSet.isEnabled(Feature.inline_class)) {
+        addPseudoKeyword('type');
+      }
     }
   }
 
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of a member in an extension.
-  void addExtensionMemberKeywords() {
+  void addExtensionMemberKeywords({required bool isStatic}) {
     addKeyword(Keyword.CONST);
     addKeyword(Keyword.DYNAMIC);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.GET);
-    addKeyword(Keyword.OPERATOR);
+    if (!isStatic) addKeyword(Keyword.OPERATOR);
     addKeyword(Keyword.SET);
-    addKeyword(Keyword.STATIC);
+    if (!isStatic) addKeyword(Keyword.STATIC);
     addKeyword(Keyword.VAR);
     addKeyword(Keyword.VOID);
-    if (featureSet.isEnabled(Feature.non_nullable)) {
-      addKeyword(Keyword.LATE);
+  }
+
+  /// Add the keywords that are appropriate when the selection is at the
+  /// beginning of field declaration.
+  ///
+  /// If the declaration consists of a single variable and the name of the
+  /// variable is a keyword, then the parser used a keyword as the name of the
+  /// variable as part of recovery and the [keyword] should be treated like the
+  /// keyword it really is.
+  void addFieldDeclarationKeywords(FieldDeclaration node, {Keyword? keyword}) {
+    if (_isAbsentOrIn(node.externalKeyword) && keyword != Keyword.EXTERNAL) {
+      addKeyword(Keyword.EXTERNAL);
+    }
+    var fields = node.fields;
+    if (fields.type == null) {
+      // TODO(brianwilkerson) We should probably not suggest types if `var` is
+      //  being used.
+      addKeyword(Keyword.DYNAMIC);
+      addKeyword(Keyword.VOID);
+    }
+    if (!node.isStatic && keyword != Keyword.STATIC) {
+      if (_isAbsentOrIn(node.abstractKeyword) && keyword != Keyword.ABSTRACT) {
+        addKeyword(Keyword.ABSTRACT);
+      }
+      if (_isAbsentOrIn(node.covariantKeyword) &&
+          keyword != Keyword.COVARIANT) {
+        addKeyword(Keyword.COVARIANT);
+      }
+      if (_isAbsentOrIn(fields.lateKeyword) &&
+          keyword != Keyword.LATE &&
+          featureSet.isEnabled(Feature.non_nullable)) {
+        addKeyword(Keyword.LATE);
+      }
+      addKeyword(Keyword.STATIC);
+    }
+    var firstField = fields.variables.firstOrNull;
+    if (firstField != null) {
+      if (!firstField.isConst &&
+          !firstField.isFinal &&
+          keyword != Keyword.CONST &&
+          keyword != Keyword.FINAL &&
+          keyword != Keyword.VAR) {
+        addKeyword(Keyword.CONST);
+        addKeyword(Keyword.FINAL);
+        if (fields.type == null) {
+          addKeyword(Keyword.VAR);
+        }
+      }
+    }
+  }
+
+  /// Add the keywords that are appropriate when the selection is at the start
+  /// of a formal parameter in the given [parameterList].
+  void addFormalParameterKeywords(FormalParameterList parameterList) {
+    addKeyword(Keyword.COVARIANT);
+    addKeyword(Keyword.FINAL);
+    if (parameterList.inNamedGroup(offset)) {
+      addKeyword(Keyword.REQUIRED);
+    }
+    var parent = parameterList.parent;
+    if (parent is ConstructorDeclaration) {
+      if (featureSet.isEnabled(Feature.super_parameters)) {
+        addKeyword(Keyword.SUPER);
+      }
+      addKeyword(Keyword.THIS);
     }
   }
 
@@ -314,7 +398,7 @@ class KeywordHelper {
   /// or `=>` in a function body. The [body] is used to determine which keywords
   /// are appropriate.
   void addFunctionBodyModifiers(FunctionBody? body) {
-    if (body?.keyword == null) {
+    if (_isAbsentOrIn(body?.keyword)) {
       addKeyword(Keyword.ASYNC);
       if (body is! ExpressionFunctionBody) {
         addKeywordFromText(Keyword.ASYNC, '*');
@@ -385,10 +469,10 @@ class KeywordHelper {
     // in order to help users discover what keywords are available. If the
     // keywords are in the wrong order a diagnostic (and fix) will help them get
     // the keywords in the correct location.
-    if (node.onClause == null) {
+    if (_isAbsentOrIn(node.onClause?.onKeyword)) {
       addKeyword(Keyword.ON);
     }
-    if (node.implementsClause == null) {
+    if (_isAbsentOrIn(node.implementsClause?.implementsKeyword)) {
       addKeyword(Keyword.IMPLEMENTS);
     }
   }
@@ -415,7 +499,7 @@ class KeywordHelper {
   /// declaration before the `mixin` keyword. The [node] is the mixin
   /// declaration containing the selection point.
   void addMixinModifiers(MixinDeclaration node) {
-    if (node.baseKeyword == null) {
+    if (_isAbsentOrIn(node.baseKeyword)) {
       addKeyword(Keyword.BASE);
     }
   }
@@ -425,6 +509,11 @@ class KeywordHelper {
   void addPatternKeywords() {
     addConstantExpressionKeywords(inConstantContext: false);
     addVariablePatternKeywords();
+  }
+
+  /// Add a keyword suggestion to suggest the [keyword].
+  void addPseudoKeyword(String keyword) {
+    collector.addSuggestion(KeywordSuggestion.fromPseudoKeyword(keyword));
   }
 
   /// Add the keywords that are appropriate when the selection is at the
@@ -487,6 +576,12 @@ class KeywordHelper {
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.VAR);
   }
+
+  /// Return `true` if the [token] is `null` or if the offset is toughing the
+  /// [token].
+  bool _isAbsentOrIn(Token? token) {
+    return token == null || (token.offset <= offset && offset <= token.end);
+  }
 }
 
 extension on CollectionElement? {
@@ -506,6 +601,19 @@ extension on CollectionElement? {
     return finalElement is IfElement &&
         finalElement.elseKeyword == null &&
         !finalElement.thenElement.isSynthetic;
+  }
+}
+
+extension on FormalParameterList {
+  bool inNamedGroup(int offset) {
+    final leftDelimiter = this.leftDelimiter;
+    if (leftDelimiter == null ||
+        leftDelimiter.type != TokenType.OPEN_CURLY_BRACKET) {
+      return false;
+    }
+    var left = leftDelimiter.end;
+    var right = rightDelimiter?.offset ?? rightParenthesis.offset;
+    return left <= offset && offset <= right;
   }
 }
 

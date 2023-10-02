@@ -10,7 +10,7 @@ extension Extension<T extends core::num> on core::List<T> {
   get finalField = self::Extension|get#finalField;
   static get staticFinalField = get self::Extension|staticFinalField;
   method method = self::Extension|method;
-  tearoff method = self::Extension|get#method;
+  method tearoff method = self::Extension|get#method;
   static method staticMethod = self::Extension|staticMethod;
   get getter = self::Extension|get#getter;
   static get staticGetter = get self::Extension|staticGetter;

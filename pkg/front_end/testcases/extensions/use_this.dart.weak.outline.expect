@@ -12,15 +12,15 @@ class B1<T extends core::Object? = dynamic> extends core::Object {
 }
 extension A2 on self::A1 {
   method method1 = self::A2|method1;
-  tearoff method1 = self::A2|get#method1;
+  method tearoff method1 = self::A2|get#method1;
   method method2 = self::A2|method2;
-  tearoff method2 = self::A2|get#method2;
+  method tearoff method2 = self::A2|get#method2;
 }
 extension B2<T extends core::Object? = dynamic> on self::B1<T%> {
   method method1 = self::B2|method1;
-  tearoff method1 = self::B2|get#method1;
+  method tearoff method1 = self::B2|get#method1;
   method method2 = self::B2|method2;
-  tearoff method2 = self::B2|get#method2;
+  method tearoff method2 = self::B2|get#method2;
 }
 static extension-member method A2|method1(lowered final self::A1 #this) → self::A1
   ;

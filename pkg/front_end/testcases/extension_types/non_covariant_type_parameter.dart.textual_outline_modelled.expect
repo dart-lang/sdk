@@ -1,7 +1,16 @@
+extension type ET_Bivariant<T>(T Function(T) f) {}
+extension type ET_BivariantAlias<T>(Bivariant<T> f) {}
+extension type ET_Contravariant<T>(void Function(T) f) {}
+extension type ET_ContravariantAlias<T>(Contravariant<T> f) {}
+extension type ET_ContravariantAlias1<T> (Contravariant<T> Function() f) {}
+extension type ET_ContravariantAlias2<T> (void Function(Covariant<T>) f) {}
+extension type ET_Covariant<T>(T Function() f) {}
+extension type ET_CovariantAlias<T>(Covariant<T> f) {}
+extension type ET_CovariantAlias1<T> (Covariant<T> Function() f) {}
+extension type ET_CovariantAlias2<T> (void Function(Contravariant<T>) f) {}
+extension type ET_Invariant<T>(void Function<S extends T>() f) {}
+extension type ET_InvariantAlias<T>(Invariant<T> f) {}
 typedef Bivariant<T> = T Function(T);
 typedef Contravariant<T> = void Function(T);
 typedef Covariant<T> = T Function();
 typedef Invariant<T> = void Function<S extends T>();
----- unknown chunk starts ----
-extension type ET_Contravariant<T>(void Function(T) f) {} extension type ET_Invariant<T>(void Function<S extends T>() f) {} extension type ET_Covariant<T>(T Function() f) {} extension type ET_Bivariant<T>(T Function(T) f) {} extension type ET_ContravariantAlias<T>(Contravariant<T> f) {} extension type ET_InvariantAlias<T>(Invariant<T> f) {} extension type ET_CovariantAlias<T>(Covariant<T> f) {} extension type ET_BivariantAlias<T>(Bivariant<T> f) {} extension type ET_ContravariantAlias1<T> (Contravariant<T> Function() f) {} extension type ET_ContravariantAlias2<T> (void Function(Covariant<T>) f) {} extension type ET_CovariantAlias1<T> (Covariant<T> Function() f) {} extension type ET_CovariantAlias2<T> (void Function(Contravariant<T>) f) {}
----- unknown chunk ends ----

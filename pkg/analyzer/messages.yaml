@@ -8382,8 +8382,8 @@ CompileTimeErrorCode:
 
       The analyzer produces this diagnostic when `this` is used outside of an
       instance method or a generative constructor. The reserved word `this` is
-      only defined in the context of an instance method or a generative
-      constructor.
+      only defined in the context of an instance method, a generative
+      constructor, or the initializer of a late instance field declaration.
 
       #### Example
 
@@ -9171,7 +9171,7 @@ CompileTimeErrorCode:
       entry even though it's a set literal:
 
       ```dart
-      const collection = <String>{[!'a' : 'b'!]};
+      var collection = <String>{[!'a' : 'b'!]};
       ```
 
       #### Common fixes
@@ -9181,7 +9181,7 @@ CompileTimeErrorCode:
       another type argument:
 
       ```dart
-      const collection = <String, String>{'a' : 'b'};
+      var collection = <String, String>{'a' : 'b'};
       ```
 
       In other cases, you might need to change the explicit type from `Set` to
@@ -9192,7 +9192,7 @@ CompileTimeErrorCode:
       included in the set:
 
       ```dart
-      const collection = <String>{'a', 'b'};
+      var collection = <String>{'a', 'b'};
       ```
   MAP_KEY_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
@@ -19707,64 +19707,6 @@ HintCode:
       ```dart
       void f({int i = 0}) {}
       ```
-  DEPRECATED_EXPORT_USE:
-    problemMessage: "The ability to import '{0}' indirectly is deprecated."
-    correctionMessage: "Try importing '{0}' directly."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the element
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when one library imports a name from
-      a second library, and the second library exports the name from a third
-      library but has indicated that it won't export the third library in the
-      future.
-
-      #### Example
-
-      Given a library `a.dart` defining the class `A`:
-
-      ```dart
-      %uri="lib/a.dart"
-      class A {}
-      ```
-
-      And a second library `b.dart` that exports `a.dart` but has marked the
-      export as being deprecated:
-
-      ```dart
-      %uri="lib/b.dart"
-      import 'a.dart';
-
-      @deprecated
-      export 'a.dart';
-      ```
-
-      The following code produces this diagnostic because the class `A` won't be
-      exported from `b.dart` in some future version:
-
-      ```dart
-      import 'b.dart';
-
-      [!A!]? a;
-      ```
-
-      #### Common fixes
-
-      If the name is available from a different library that you can import,
-      then replace the existing import with an import for that library (or add
-      an import for the defining library if you still need the old import):
-
-      ```dart
-      import 'a.dart';
-
-      A? a;
-      ```
-
-      If the name isn't available, then look for instructions from the library
-      author or contact them directly to find out how to update your code.
   DEPRECATED_MEMBER_USE:
     problemMessage: "'{0}' is deprecated and shouldn't be used."
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
@@ -19989,12 +19931,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  UNIGNORABLE_IGNORE:
-    problemMessage: "The diagnostic '{0}' can't be ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    comment: |-
-      Parameters:
-      0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
     problemMessage: Unnecessary cast.
     correctionMessage: Try removing the cast.
@@ -22025,6 +21961,64 @@ WarningCode:
         }
       }
       ```
+  DEPRECATED_EXPORT_USE:
+    problemMessage: "The ability to import '{0}' indirectly is deprecated."
+    correctionMessage: "Try importing '{0}' directly."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the element
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when one library imports a name from
+      a second library, and the second library exports the name from a third
+      library but has indicated that it won't export the third library in the
+      future.
+
+      #### Example
+
+      Given a library `a.dart` defining the class `A`:
+
+      ```dart
+      %uri="lib/a.dart"
+      class A {}
+      ```
+
+      And a second library `b.dart` that exports `a.dart` but has marked the
+      export as being deprecated:
+
+      ```dart
+      %uri="lib/b.dart"
+      import 'a.dart';
+
+      @deprecated
+      export 'a.dart';
+      ```
+
+      The following code produces this diagnostic because the class `A` won't be
+      exported from `b.dart` in some future version:
+
+      ```dart
+      import 'b.dart';
+
+      [!A!]? a;
+      ```
+
+      #### Common fixes
+
+      If the name is available from a different library that you can import,
+      then replace the existing import with an import for that library (or add
+      an import for the defining library if you still need the old import):
+
+      ```dart
+      import 'a.dart';
+
+      A? a;
+      ```
+
+      If the name isn't available, then look for instructions from the library
+      author or contact them directly to find out how to update your code.
   DEPRECATED_EXTENDS_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Extending 'Function' is deprecated."
@@ -22122,6 +22116,86 @@ WarningCode:
         C.c();
       }
       ```
+  DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
+    problemMessage: "The '{0}' directive has '{1}' arguments, but only '{2}' are expected."
+    correctionMessage: Try removing the extra arguments.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the actual number of arguments
+      2: the expected number of arguments
+  DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
+    problemMessage: "The '{0}' directive has an unexpected named argument, '{1}'."
+    correctionMessage: "Try removing the unexpected argument."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the unexpected argument
+  DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+    problemMessage: "Doc directive is missing a closing curly brace ('}')."
+    correctionMessage: "Try closing the directive with a curly brace."
+    hasPublishedDocs: false
+  DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+    problemMessage: "Doc directive is missing a closing tag."
+    correctionMessage: "Try closing the directive with the appropriate closing tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
+  DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}' argument."
+    correctionMessage: "Try adding a '{1}' argument before the closing '}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the missing argument
+  DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+    problemMessage: "The '{0}' argument must be formatted as {1}."
+    correctionMessage: "Try formatting '{0}' as {1}."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive argument
+      1: the expected format
+  DOC_DIRECTIVE_MISSING_OPENING_TAG:
+    problemMessage: "Doc directive is missing an opening tag."
+    correctionMessage: "Try opening the directive with the appropriate opening tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
+  DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument."
+    correctionMessage: "Try adding the missing arguments before the closing '}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the first missing argument
+      2: the name of the second missing argument
+      3: the name of the third missing argument
+  DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+   sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+   problemMessage: "The '{0}' directive is missing a '{1}' and a '{2}' argument."
+   correctionMessage: "Try adding the missing arguments before the closing '}'."
+   hasPublishedDocs: false
+   comment: |-
+     Parameters:
+     0: the name of the doc directive
+     1: the name of the first missing argument
+     2: the name of the second missing argument
+  DOC_DIRECTIVE_UNKNOWN:
+    problemMessage: "Doc directive '{0}' is unknown."
+    correctionMessage: 'Try using one of the supported doc directives.'
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the unknown doc directive.
   DOC_IMPORT_CANNOT_BE_DEFERRED:
     problemMessage: "Doc imports can't be deferred."
     correctionMessage: Try removing the 'deferred' keyword.
@@ -25164,6 +25238,12 @@ WarningCode:
 
       var x = min(0, 1);
       ```
+  UNIGNORABLE_IGNORE:
+    problemMessage: "The diagnostic '{0}' can't be ignored."
+    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    comment: |-
+      Parameters:
+      0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
     aliasFor: HintCode.UNNECESSARY_CAST
     comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].

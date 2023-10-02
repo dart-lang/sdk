@@ -814,6 +814,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, int64_t immediate) {
     LoadImmediate(reg, Immediate(immediate));
   }
+  void LoadSImmediate(FpuRegister dst, float immediate);
   void LoadDImmediate(FpuRegister dst, double immediate);
   void LoadQImmediate(FpuRegister dst, simd128_value_t immediate);
 
@@ -1071,6 +1072,12 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    LoadInt64FromBoxOrSmi(result, value);
+  }
+
+  void LoadInt64FromBoxOrSmi(Register result, Register value);
+
   void BranchIfNotSmi(Register reg,
                       Label* label,
                       JumpDistance distance = kFarJump) {
@@ -1194,6 +1201,9 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void LoadUnboxedSingle(FpuRegister dst, Register base, int32_t offset) {
+    movss(dst, Address(base, offset));
+  }
   void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
     movsd(dst, Address(base, offset));
   }
@@ -1205,6 +1215,9 @@ class Assembler : public AssemblerBase {
       movaps(dst, src);
     }
   }
+
+  void MsanUnpoison(Register base, intptr_t length_in_bytes);
+  void MsanUnpoison(Register base, Register length_in_bytes);
 
 #if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);
@@ -1352,6 +1365,21 @@ class Assembler : public AssemblerBase {
                         Register instance,
                         Register end_address,
                         Register temp);
+
+  void CheckAllocationCanary(Register top) {
+#if defined(DEBUG)
+    Label okay;
+    cmpl(Address(top, 0), Immediate(kAllocationCanary));
+    j(EQUAL, &okay, Assembler::kNearJump);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    movl(Address(top, 0), Immediate(kAllocationCanary));
+#endif
+  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

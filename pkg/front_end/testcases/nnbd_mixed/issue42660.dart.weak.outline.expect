@@ -26,7 +26,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
 }
 extension E on core::int {
   method m = self2::E|m;
-  tearoff m = self2::E|get#m;
+  method tearoff m = self2::E|get#m;
 }
 static extension-member method E|m(lowered final core::int #this) → core::String
   ;

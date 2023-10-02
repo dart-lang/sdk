@@ -41,7 +41,8 @@ class StateTarget {
 /// target indices to all control flow targets of these.
 ///
 /// Target indices are assigned in program order.
-class _YieldFinder extends StatementVisitor<void> {
+class _YieldFinder extends StatementVisitor<void>
+    with StatementVisitorDefaultMixin<void> {
   final SyncStarCodeGenerator codeGen;
 
   // The number of `yield` or `yield*` statements seen so far.
@@ -207,7 +208,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
   @override
   void generate() {
     closures = Closures(translator, member);
-    setupParametersAndContexts(member);
+    setupParametersAndContexts(member.reference);
     generateTypeChecks(member.function!.typeParameters, member.function!,
         translator.paramInfoFor(reference));
     generateBodies(member.function!);

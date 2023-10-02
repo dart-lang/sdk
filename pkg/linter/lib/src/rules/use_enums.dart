@@ -12,22 +12,24 @@ import '../ast.dart';
 
 const _desc = r'Use enums rather than classes that behave like enums.';
 
-// todo(pq): add a link to any docs describing enhanced-enums once published
-
 const _details = r'''
 Classes that look like enumerations should be declared as `enum`s.
 
 **DO** use enums where appropriate.
 
 Candidates for enums are classes that:
+
   * are concrete,
   * are private or have only private generative constructors,
   * have two or more static const fields with the same type as the class,
   * have generative constructors that are only invoked at the top-level of the
     initialization expression of these static fields,
   * do not define `hashCode`, `==`, `values` or `index`,
-  * do not extend any class other than Object, and
+  * do not extend any class other than `Object`, and
   * have no subclasses declared in the defining library.
+
+To learn more about creating and using these enums, check out
+[Declaring enhanced enums](https://dart.dev/language/enums#declaring-enhanced-enums).
 
 **BAD:**
 ```dart

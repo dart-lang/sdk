@@ -52,5 +52,6 @@ The features are listed in alphabetical order.
 - [ ] Signature Help
 - [ ] Snippets
 - [ ] Sort Members
-- [ ] Type Hierarchy
+- [ ] Type Hierarchy - legacy
+- [ ] Type Hierarchy - LSP
 - [ ] Workspace Symbols

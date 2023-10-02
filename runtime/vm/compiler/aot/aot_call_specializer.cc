@@ -468,32 +468,12 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
     switch (op_kind) {
       case Token::kEQ:
       case Token::kNE: {
-        // If both arguments are nullable Smi or one of the arguments is
-        // a null or Smi and the other argument is nullable then emit
-        // StrictCompare (all arguments are going to be boxed anyway).
-        // Otherwise prefer EqualityCompare to avoid redundant boxing.
-        const bool left_is_null_or_smi =
-            left_type->IsNull() || left_type->IsNullableSmi();
-        const bool right_is_null_or_smi =
-            right_type->IsNull() || right_type->IsNullableSmi();
-        const bool both_are_nullable_smis =
-            left_type->IsNullableSmi() && right_type->IsNullableSmi();
         const bool either_can_be_null =
             left_type->is_nullable() || right_type->is_nullable();
-        if (both_are_nullable_smis ||
-            ((left_is_null_or_smi || right_is_null_or_smi) &&
-             either_can_be_null)) {
-          replacement = new (Z) StrictCompareInstr(
-              instr->source(),
-              (op_kind == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
-              left_value->CopyWithType(Z), right_value->CopyWithType(Z),
-              /*needs_number_check=*/false, DeoptId::kNone);
-        } else {
-          replacement = new (Z) EqualityCompareInstr(
-              instr->source(), op_kind, left_value->CopyWithType(Z),
-              right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
-              /*null_aware=*/either_can_be_null, Instruction::kNotSpeculative);
-        }
+        replacement = new (Z) EqualityCompareInstr(
+            instr->source(), op_kind, left_value->CopyWithType(Z),
+            right_value->CopyWithType(Z), kMintCid, DeoptId::kNone,
+            /*null_aware=*/either_can_be_null, Instruction::kNotSpeculative);
         break;
       }
       case Token::kLT:
@@ -1077,52 +1057,25 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   }
 
   Definition* left = call->ArgumentAt(0);
+  LoadClassIdInstr* load_cid =
+      new (Z) LoadClassIdInstr(new (Z) Value(left), kUnboxedUword);
+  InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
 
-  // left.instanceof(type) =>
-  //     _classRangeCheck(left.cid, lower_limit, upper_limit)
-  LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-  InsertBefore(call, left_cid, nullptr, FlowGraph::kValue);
-  ConstantInstr* lower_cid =
-      flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(lower_limit)));
-
+  ComparisonInstr* check_range;
   if (lower_limit == upper_limit) {
-    StrictCompareInstr* check_cid = new (Z)
-        StrictCompareInstr(call->source(), Token::kEQ_STRICT,
-                           new (Z) Value(left_cid), new (Z) Value(lower_cid),
-                           /* number_check = */ false, DeoptId::kNone);
-    ReplaceCall(call, check_cid);
-    return true;
+    ConstantInstr* cid_constant = flow_graph()->GetConstant(
+        Smi::Handle(Z, Smi::New(lower_limit)), kUnboxedUword);
+    check_range = new (Z) EqualityCompareInstr(
+        call->source(), Token::kEQ, new Value(load_cid),
+        new Value(cid_constant), kIntegerCid, DeoptId::kNone, false,
+        Instruction::kNotSpeculative);
+  } else {
+    check_range =
+        new (Z) TestRangeInstr(call->source(), new (Z) Value(load_cid),
+                               lower_limit, upper_limit, kUnboxedUword);
   }
+  ReplaceCall(call, check_range);
 
-  ConstantInstr* upper_cid =
-      flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(upper_limit)));
-
-  InputsArray args(Z, 3);
-  args.Add(new (Z) Value(left_cid));
-  args.Add(new (Z) Value(lower_cid));
-  args.Add(new (Z) Value(upper_cid));
-
-  const Library& dart_internal = Library::Handle(Z, Library::InternalLibrary());
-  const String& target_name = Symbols::_classRangeCheck();
-  const Function& target = Function::ZoneHandle(
-      Z, dart_internal.LookupFunctionAllowPrivate(target_name));
-  ASSERT(!target.IsNull());
-  ASSERT(target.IsRecognized());
-  ASSERT(FlowGraphInliner::FunctionHasPreferInlinePragma(target));
-
-  const intptr_t kTypeArgsLen = 0;
-  StaticCallInstr* new_call = new (Z) StaticCallInstr(
-      call->source(), target, kTypeArgsLen,
-      Object::null_array(),  // argument_names
-      std::move(args), call->deopt_id(), call->CallCount(), ICData::kOptimized);
-  Environment* copy =
-      call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
-  for (intptr_t i = 0; i < new_call->InputCount(); ++i) {
-    copy->PushValue(new (Z) Value(new_call->ArgumentAt(i)));
-  }
-  call->RemoveEnvironment();
-  ReplaceCall(call, new_call);
-  copy->DeepCopyTo(Z, new_call);
   return true;
 }
 
@@ -1189,8 +1142,8 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
 
   const bool receiver_can_be_smi =
       call->CanReceiverBeSmiBasedOnInterfaceTarget(zone());
-  auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z), kUntagged,
-                                           receiver_can_be_smi);
+  auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z),
+                                           kUnboxedUword, receiver_can_be_smi);
   InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);
 
   auto dispatch_table_call = DispatchTableCallInstr::FromCall(

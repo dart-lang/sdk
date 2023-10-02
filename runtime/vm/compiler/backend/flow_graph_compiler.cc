@@ -389,6 +389,9 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
     case kUnboxedUint32:
       src_kind = CatchEntryMove::SourceKind::kUint32Slot;
       break;
+    case kUnboxedFloat:
+      src_kind = CatchEntryMove::SourceKind::kFloatSlot;
+      break;
     case kUnboxedDouble:
       src_kind = CatchEntryMove::SourceKind::kDoubleSlot;
       break;
@@ -3180,8 +3183,8 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   LocationSummary* locs = instruction()->locs();
-  __ PushRegisterPair(locs->in(CheckBoundBase::kIndexPos).reg(),
-                      locs->in(CheckBoundBase::kLengthPos).reg());
+  __ PushRegisterPair(locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
+                      locs->in(CheckBoundBaseInstr::kLengthPos).reg());
 }
 
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,

@@ -46,7 +46,7 @@ import 'codegen_helpers.dart';
 import 'nodes.dart';
 import 'variable_allocator.dart';
 
-abstract class CodegenPhase {
+mixin CodegenPhase {
   String get name;
   void visitGraph(HGraph graph);
 }

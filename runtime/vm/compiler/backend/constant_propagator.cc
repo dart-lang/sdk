@@ -384,6 +384,10 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
 }
 
 void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
+  if (instr->inserted_by_constant_propagation()) {
+    return;
+  }
+
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value)) {
     SetValue(instr, value);
@@ -691,6 +695,18 @@ void ConstantPropagator::VisitTestCids(TestCidsInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitTestRange(TestRangeInstr* instr) {
+  const Object& input = instr->value()->definition()->constant_value();
+  if (IsNonConstant(input)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(input) && input.IsSmi()) {
+    uword value = Smi::Cast(input).Value();
+    bool in_range = (instr->lower() <= value) && (value <= instr->upper());
+    ASSERT((instr->kind() == Token::kIS) || (instr->kind() == Token::kISNOT));
+    SetValue(instr, Bool::Get(in_range == (instr->kind() == Token::kIS)));
+  }
+}
+
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   Definition* left_defn = instr->left()->definition();
   Definition* right_defn = instr->right()->definition();
@@ -878,6 +894,16 @@ void ConstantPropagator::VisitBooleanNegate(BooleanNegateInstr* instr) {
   } else {
     SetValue(instr, non_constant_);
   }
+}
+
+void ConstantPropagator::VisitBoolToInt(BoolToIntInstr* instr) {
+  // TODO(riscv)
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitIntToBool(IntToBoolInstr* instr) {
+  // TODO(riscv)
+  SetValue(instr, non_constant_);
 }
 
 void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
@@ -1252,8 +1278,27 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
   VisitUnaryIntegerOp(instr);
 }
 
+static bool IsIntegerOrDouble(const Object& value) {
+  return value.IsInteger() || value.IsDouble();
+}
+
+static double ToDouble(const Object& value) {
+  return value.IsInteger() ? Integer::Cast(value).AsDoubleValue()
+                           : Double::Cast(value).value();
+}
+
 void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
-  // TODO(kmillikin): Handle unary operations.
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsUnknown(value)) {
+    return;
+  }
+  if (value.IsDouble()) {
+    const double result_val = Evaluator::EvaluateUnaryDoubleOp(
+        ToDouble(value), instr->op_kind(), instr->representation());
+    const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
+    SetValue(instr, result);
+    return;
+  }
   SetValue(instr, non_constant_);
 }
 
@@ -1309,11 +1354,6 @@ void ConstantPropagator::VisitDoubleToSmi(DoubleToSmiInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitDoubleToDouble(DoubleToDoubleInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
-}
-
 void ConstantPropagator::VisitDoubleToFloat(DoubleToFloatInstr* instr) {
   // TODO(kmillikin): Handle conversion.
   SetValue(instr, non_constant_);
@@ -1321,6 +1361,11 @@ void ConstantPropagator::VisitDoubleToFloat(DoubleToFloatInstr* instr) {
 
 void ConstantPropagator::VisitFloatToDouble(FloatToDoubleInstr* instr) {
   // TODO(kmillikin): Handle conversion.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitFloatCompare(FloatCompareInstr* instr) {
+  // TODO(riscv)
   SetValue(instr, non_constant_);
 }
 
@@ -1343,6 +1388,25 @@ void ConstantPropagator::VisitMakePair(MakePairInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitUnboxLane(UnboxLaneInstr* instr) {
+  if (BoxLanesInstr* box = instr->value()->definition()->AsBoxLanes()) {
+    const Object& value =
+        box->InputAt(instr->lane())->definition()->constant_value();
+    if (IsUnknown(value)) {
+      return;
+    }
+    SetValue(instr, value);
+    return;
+  }
+
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitBoxLanes(BoxLanesInstr* instr) {
+  // TODO(riscv)
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
   SetValue(instr, instr->value());
 }
@@ -1361,15 +1425,6 @@ void ConstantPropagator::VisitMaterializeObject(MaterializeObjectInstr* instr) {
   UNREACHABLE();
 }
 
-static bool IsIntegerOrDouble(const Object& value) {
-  return value.IsInteger() || value.IsDouble();
-}
-
-static double ToDouble(const Object& value) {
-  return value.IsInteger() ? Integer::Cast(value).AsDoubleValue()
-                           : Double::Cast(value).value();
-}
-
 void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
@@ -1383,8 +1438,9 @@ void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
   const bool both_are_integers = left.IsInteger() && right.IsInteger();
   if (IsIntegerOrDouble(left) && IsIntegerOrDouble(right) &&
       !both_are_integers) {
-    const double result_val = Evaluator::EvaluateDoubleOp(
-        ToDouble(left), ToDouble(right), instr->op_kind());
+    const double result_val = Evaluator::EvaluateBinaryDoubleOp(
+        ToDouble(left), ToDouble(right), instr->op_kind(),
+        instr->representation());
     const Double& result = Double::ZoneHandle(Double::NewCanonical(result_val));
     SetValue(instr, result);
     return;
@@ -1421,11 +1477,6 @@ void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
 }
 
 void ConstantPropagator::VisitSimdOp(SimdOpInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitMathUnary(MathUnaryInstr* instr) {
-  // TODO(kmillikin): Handle Math's unary operations (sqrt, cos, sin).
   SetValue(instr, non_constant_);
 }
 
@@ -1507,7 +1558,81 @@ void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+// Insert redefinition for |original| definition which conveys information
+// that |original| is equal to |constant_value| in the dominated code.
+static RedefinitionInstr* InsertRedefinition(FlowGraph* graph,
+                                             BlockEntryInstr* dom,
+                                             Definition* original,
+                                             const Object& constant_value) {
+  auto redef = new RedefinitionInstr(new Value(original),
+                                     /*inserted_by_constant_propagation=*/true);
+
+  graph->InsertAfter(dom, redef, nullptr, FlowGraph::kValue);
+  graph->RenameDominatedUses(original, redef, redef);
+
+  if (redef->input_use_list() == nullptr) {
+    // There are no dominated uses, so the newly added Redefinition is useless.
+    redef->RemoveFromGraph();
+    return nullptr;
+  }
+
+  redef->constant_value() = constant_value.ptr();
+  return redef;
+}
+
+// Find all Branch(v eq constant) (eq being one of ==, !=, === or !==) in the
+// graph and redefine |v| in the true successor to record information about
+// it being equal to the constant. For comparisons between boolean values
+// we also redefine |v| in the false successor - because booleans have
+// only two possible values (e.g. if |v| is |true| in true successor, then
+// it is |false| in false successor).
+//
+// We don't actually _replace_ |v| with |constant| in the dominated code
+// because it might complicate subsequent optimizations (e.g. lead to
+// redundant phis).
+void ConstantPropagator::InsertRedefinitionsAfterEqualityComparisons() {
+  for (auto block : graph_->reverse_postorder()) {
+    if (auto branch = block->last_instruction()->AsBranch()) {
+      auto comparison = branch->comparison();
+      if (comparison->IsStrictCompare() ||
+          (comparison->IsEqualityCompare() &&
+           comparison->operation_cid() != kDoubleCid)) {
+        Value* value;
+        ConstantInstr* constant_defn;
+        if (comparison->IsComparisonWithConstant(&value, &constant_defn) &&
+            !value->BindsToConstant()) {
+          const Object& constant_value = constant_defn->value();
+
+          // Found comparison with constant. Introduce Redefinition().
+          ASSERT(comparison->kind() == Token::kNE_STRICT ||
+                 comparison->kind() == Token::kNE ||
+                 comparison->kind() == Token::kEQ_STRICT ||
+                 comparison->kind() == Token::kEQ);
+          const bool negated = (comparison->kind() == Token::kNE_STRICT ||
+                                comparison->kind() == Token::kNE);
+          const auto true_successor =
+              negated ? branch->false_successor() : branch->true_successor();
+          InsertRedefinition(graph_, true_successor, value->definition(),
+                             constant_value);
+
+          // When comparing two boolean values we can also apply renaming
+          // to the false successor because we know that only true and false
+          // are possible values.
+          if (constant_value.IsBool() && value->Type()->IsBool()) {
+            const auto false_successor =
+                negated ? branch->true_successor() : branch->false_successor();
+            InsertRedefinition(graph_, false_successor, value->definition(),
+                               Bool::Get(!Bool::Cast(constant_value).value()));
+          }
+        }
+      }
+    }
+  }
+}
+
 void ConstantPropagator::Analyze() {
+  InsertRedefinitionsAfterEqualityComparisons();
+
   GraphEntryInstr* entry = graph_->graph_entry();
   reachable_->Add(entry->preorder_number());
   block_worklist_.Add(entry);
@@ -1747,10 +1872,29 @@ void ConstantPropagator::Transform() {
 }
 
 bool ConstantPropagator::TransformDefinition(Definition* defn) {
+  if (defn == nullptr) {
+    return false;
+  }
+
+  if (auto redef = defn->AsRedefinition()) {
+    if (redef->inserted_by_constant_propagation()) {
+      redef->ReplaceUsesWith(redef->value()->definition());
+      return true;
+    }
+
+    if (IsConstant(defn->constant_value()) &&
+        !IsConstant(defn->OriginalDefinition()->constant_value())) {
+      // Redefinition might have become constant because some other
+      // redefinition narrowed it, we should ignore this and not
+      // replace it.
+      return false;
+    }
+  }
+
   // Replace constant-valued instructions without observable side
   // effects.  Do this for smis and old objects only to avoid having to
   // copy other objects into the heap's old generation.
-  if ((defn != nullptr) && IsConstant(defn->constant_value()) &&
+  if (IsConstant(defn->constant_value()) &&
       (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
       !defn->IsConstant() && !defn->IsStoreIndexed() && !defn->IsStoreField() &&
       !defn->IsStoreStaticField()) {

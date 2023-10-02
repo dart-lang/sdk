@@ -33,13 +33,13 @@ extension NumberExtension on self::Number {
 extension ClassExtension on self::Class {
   get property = self::ClassExtension|get#property;
   method testImplicitProperties = self::ClassExtension|testImplicitProperties;
-  tearoff testImplicitProperties = self::ClassExtension|get#testImplicitProperties;
+  method tearoff testImplicitProperties = self::ClassExtension|get#testImplicitProperties;
   set property = self::ClassExtension|set#property;
 }
 extension IntClassExtension on self::IntClass {
   get property = self::IntClassExtension|get#property;
   method testImplicitProperties = self::IntClassExtension|testImplicitProperties;
-  tearoff testImplicitProperties = self::IntClassExtension|get#testImplicitProperties;
+  method tearoff testImplicitProperties = self::IntClassExtension|get#testImplicitProperties;
   set property = self::IntClassExtension|set#property;
 }
 static extension-member method NumberExtension|+(lowered final self::Number #this, core::Object other) → self::Number {

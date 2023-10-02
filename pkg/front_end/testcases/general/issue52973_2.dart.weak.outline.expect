@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef Exactly<invariant T extends core::Object? = dynamic> = (T%) → T%;
 extension CheckType<T extends core::Object? = dynamic> on T% {
   method expect = self::CheckType|expect;
-  tearoff expect = self::CheckType|get#expect;
+  method tearoff expect = self::CheckType|get#expect;
 }
 static method f<X extends core::Object? = dynamic>(self::f::X? arg) → void
   ;

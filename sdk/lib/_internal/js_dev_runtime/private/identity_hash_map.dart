@@ -95,7 +95,8 @@ base class IdentityMap<K, V> extends InternalMap<K, V> {
   }
 }
 
-class _JSMapIterable<E> extends EfficientLengthIterable<E> {
+class _JSMapIterable<E> extends EfficientLengthIterable<E>
+    implements HideEfficientLengthIterable<E> {
   final InternalMap _map;
   @notNull
   final bool _isKeys;

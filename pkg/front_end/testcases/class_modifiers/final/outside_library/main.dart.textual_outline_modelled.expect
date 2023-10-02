@@ -1,12 +1,10 @@
 import 'main_lib.dart';
+
+base mixin MixinOnA on A {}
+base mixin MixinOnAB on A, B {}
+
 enum EnumImplementsFinalMixin implements A { x }
+
 final class ExtendsFinalClass extends A {}
+
 final class ImplementsFinalClass implements A {}
----- unknown chunk starts ----
-base
----- unknown chunk ends ----
-mixin MixinOnA on A {}
----- unknown chunk starts ----
-base
----- unknown chunk ends ----
-mixin MixinOnAB on A, B {}

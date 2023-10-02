@@ -166,7 +166,7 @@ import "dart:core" as core;
 
 extension Extension on core::int {
   method instanceMethod = self::Extension|instanceMethod;
-  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
   get instanceGetter = self::Extension|get#instanceGetter;
   field instanceField = self::Extension|instanceField;
   field instanceFieldAndSetter1 = self::Extension|instanceFieldAndSetter1;
@@ -177,9 +177,9 @@ extension Extension on core::int {
   field instanceFieldAndDuplicateSetter = self::Extension|instanceFieldAndDuplicateSetter;
   field instanceDuplicateFieldAndDuplicateSetter = self::Extension|instanceDuplicateFieldAndDuplicateSetter;
   method instanceMethodAndSetter1 = self::Extension|instanceMethodAndSetter1;
-  tearoff instanceMethodAndSetter1 = self::Extension|get#instanceMethodAndSetter1;
+  method tearoff instanceMethodAndSetter1 = self::Extension|get#instanceMethodAndSetter1;
   method instanceMethodAndSetter2 = self::Extension|instanceMethodAndSetter2;
-  tearoff instanceMethodAndSetter2 = self::Extension|get#instanceMethodAndSetter2;
+  method tearoff instanceMethodAndSetter2 = self::Extension|get#instanceMethodAndSetter2;
   set instanceSetter = self::Extension|set#instanceSetter;
   set instanceDuplicateFieldAndSetter = self::Extension|set#instanceDuplicateFieldAndSetter;
   set instanceFieldAndDuplicateSetter = self::Extension|set#instanceFieldAndDuplicateSetter;

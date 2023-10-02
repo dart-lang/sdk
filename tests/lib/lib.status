@@ -81,11 +81,14 @@ js/static_interop_test/inline_class/external_extension_member_test: SkipByDesign
 js/static_interop_test/inline_class/external_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/inline_class/external_static_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/inline_class/external_static_member_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/js_array_proxy_or_ref_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/js_function_conversions_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/jsobject_type_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/native_error_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/typed_data_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/type_parameter_lowering_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 
 [ $simulator ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.

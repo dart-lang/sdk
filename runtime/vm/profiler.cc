@@ -71,7 +71,12 @@ ProfilerCounters Profiler::counters_ = {};
 
 static void DumpStackFrame(intptr_t frame_index, uword pc, uword fp) {
   uword start = 0;
-  if (auto const name = NativeSymbolResolver::LookupSymbolName(pc, &start)) {
+  // The pc for all frames except the top frame is a return address, which can
+  // belong to a different inlining interval than the call. Subtract one to get
+  // the symbolization for the call.
+  uword lookup_pc = frame_index == 0 ? pc : pc - 1;
+  if (auto const name =
+          NativeSymbolResolver::LookupSymbolName(lookup_pc, &start)) {
     uword offset = pc - start;
     OS::PrintErr("  pc 0x%" Pp " fp 0x%" Pp " %s+0x%" Px "\n", pc, fp, name,
                  offset);

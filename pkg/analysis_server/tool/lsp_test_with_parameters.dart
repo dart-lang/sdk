@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 Future<void> main(List<String> args) async {
-  print("""
+  print('''
 ================================================================================
   Stress test tool for language-server protocol.
 
@@ -27,15 +27,15 @@ Future<void> main(List<String> args) async {
   --every=<int>      Set how often - in ms - to fire an event. Defaults to 100.
 
 ================================================================================
-""");
+''');
   {
     Uri exe = Uri.base.resolve(Platform.resolvedExecutable);
     Uri librariesDart =
-        exe.resolve("../lib/_internal/sdk_library_metadata/lib/libraries.dart");
+        exe.resolve('../lib/_internal/sdk_library_metadata/lib/libraries.dart');
     if (!File.fromUri(librariesDart).existsSync()) {
-      throw "Execute with a dart that has "
+      throw 'Execute with a dart that has '
           "'../lib/_internal/sdk_library_metadata/lib/libraries.dart' "
-          "available (e.g. out/ReleaseX64/dart-sdk/bin/dart)";
+          'available (e.g. out/ReleaseX64/dart-sdk/bin/dart)';
     }
   }
   Uri? rootUri;
@@ -45,24 +45,24 @@ Future<void> main(List<String> args) async {
   int? clickColumn;
   int everyMs = 100;
   for (String arg in args) {
-    if (arg.startsWith("--root=")) {
-      rootUri = Uri.base.resolve(arg.substring("--root=".length).trim());
-    } else if (arg.startsWith("--sdk=")) {
-      sdkUri = Uri.base.resolve(arg.substring("--sdk=".length).trim());
-    } else if (arg.startsWith("--click=")) {
-      clickOnUri = Uri.base.resolve(arg.substring("--click=".length).trim());
-    } else if (arg.startsWith("--line=")) {
-      clickLine = int.parse(arg.substring("--line=".length).trim());
-    } else if (arg.startsWith("--column=")) {
-      clickColumn = int.parse(arg.substring("--column=".length).trim());
-    } else if (arg.startsWith("--every=")) {
-      everyMs = int.parse(arg.substring("--every=".length).trim());
-    } else if (arg == "--verbose" || arg == "-v") {
+    if (arg.startsWith('--root=')) {
+      rootUri = Uri.base.resolve(arg.substring('--root='.length).trim());
+    } else if (arg.startsWith('--sdk=')) {
+      sdkUri = Uri.base.resolve(arg.substring('--sdk='.length).trim());
+    } else if (arg.startsWith('--click=')) {
+      clickOnUri = Uri.base.resolve(arg.substring('--click='.length).trim());
+    } else if (arg.startsWith('--line=')) {
+      clickLine = int.parse(arg.substring('--line='.length).trim());
+    } else if (arg.startsWith('--column=')) {
+      clickColumn = int.parse(arg.substring('--column='.length).trim());
+    } else if (arg.startsWith('--every=')) {
+      everyMs = int.parse(arg.substring('--every='.length).trim());
+    } else if (arg == '--verbose' || arg == '-v') {
       verbosity++;
-    } else if (arg.startsWith("--verbosity=")) {
-      verbosity = int.parse(arg.substring("--verbosity=".length).trim());
+    } else if (arg.startsWith('--verbosity=')) {
+      verbosity = int.parse(arg.substring('--verbosity='.length).trim());
     } else {
-      throw "Unknown argument: $arg";
+      throw 'Unknown argument: $arg';
     }
   }
 
@@ -71,7 +71,7 @@ Future<void> main(List<String> args) async {
   }
   if (!Directory.fromUri(rootUri).existsSync()) {
     throw "Directory $rootUri doesn't exist. "
-        "Specify existing directory with --root=";
+        'Specify existing directory with --root=';
   }
 
   if (sdkUri == null) {
@@ -79,7 +79,7 @@ Future<void> main(List<String> args) async {
   }
   if (!Directory.fromUri(sdkUri).existsSync()) {
     throw "Directory $sdkUri doesn't exist. "
-        "Specify existing directory with --sdk=";
+        'Specify existing directory with --sdk=';
   }
 
   if (clickOnUri == null) {
@@ -87,7 +87,7 @@ Future<void> main(List<String> args) async {
   }
   if (!File.fromUri(clickOnUri).existsSync()) {
     throw "File $clickOnUri doesn't exist. "
-        "Specify existing file with --click=";
+        'Specify existing file with --click=';
   }
 
   if (clickLine == null) {
@@ -98,7 +98,7 @@ Future<void> main(List<String> args) async {
   }
 
   Process p = await Process.start(Platform.resolvedExecutable, [
-    "language-server",
+    'language-server',
   ]);
 
   p.stdout.listen(listenToStdout);
@@ -108,17 +108,17 @@ Future<void> main(List<String> args) async {
         in outstandingRequestsWithId.entries) {
       if (waitingFor.value.elapsed > const Duration(seconds: 1)) {
         if (!reportedSomething) {
-          print("----");
+          print('----');
           reportedSomething = true;
         }
-        print("==> Has been waiting for ${waitingFor.key} for "
-            "${waitingFor.value.elapsed}");
+        print('==> Has been waiting for ${waitingFor.key} for '
+            '${waitingFor.value.elapsed}');
       }
     }
     if (reportedSomething) {
-      print("----");
+      print('----');
     } else {
-      print(" -- not waiting for anything -- ");
+      print(' -- not waiting for anything -- ');
     }
   });
 
@@ -151,9 +151,9 @@ final buffer = <int>[];
 int? headerContentLength;
 
 Map<String, dynamic> initNotification = {
-  "jsonrpc": "2.0",
-  "method": "initialized",
-  "params": {}
+  'jsonrpc': '2.0',
+  'method': 'initialized',
+  'params': {}
 };
 
 /// There's something weird about getting (several) id 3's that wasn't
@@ -165,12 +165,12 @@ Completer<Map<String, dynamic>> receivedCompleter = Completer();
 int verbosity = 0;
 Map<String, dynamic> gotoDef(int id, Uri uri, int line, int char) {
   return {
-    "jsonrpc": "2.0",
-    "id": id,
-    "method": "textDocument/definition",
-    "params": {
-      "textDocument": {"uri": "$uri"},
-      "position": {"line": line, "character": char}
+    'jsonrpc': '2.0',
+    'id': id,
+    'method': 'textDocument/definition',
+    'params': {
+      'textDocument': {'uri': '$uri'},
+      'position': {'line': line, 'character': char}
     }
   };
 }
@@ -184,19 +184,19 @@ Map<String, dynamic> initMessage(int processId, Uri rootUri) {
     name = rootUri.pathSegments[rootUri.pathSegments.length - 2];
   }
   return {
-    "id": 0,
-    "jsonrpc": "2.0",
-    "method": "initialize",
-    "params": {
-      "processId": processId,
-      "clientInfo": {"name": "lspTestScript", "version": "0.0.1"},
-      "locale": "en",
-      "rootPath": rootPath,
-      "rootUri": "$rootUri",
-      "capabilities": {},
-      "initializationOptions": {},
-      "workspaceFolders": [
-        {"uri": "$rootUri", "name": rootUri.pathSegments.last}
+    'id': 0,
+    'jsonrpc': '2.0',
+    'method': 'initialize',
+    'params': {
+      'processId': processId,
+      'clientInfo': {'name': 'lspTestScript', 'version': '0.0.1'},
+      'locale': 'en',
+      'rootPath': rootPath,
+      'rootUri': '$rootUri',
+      'capabilities': {},
+      'initializationOptions': {},
+      'workspaceFolders': [
+        {'uri': '$rootUri', 'name': rootUri.pathSegments.last}
       ]
     }
   };
@@ -205,13 +205,13 @@ Map<String, dynamic> initMessage(int processId, Uri rootUri) {
 Map<String, dynamic> initMore(Uri sdkUri) {
   String sdkPath = sdkUri.toFilePath();
   return {
-    "id": 1,
-    "jsonrpc": "2.0",
-    "result": [
+    'id': 1,
+    'jsonrpc': '2.0',
+    'result': [
       {
-        "useLsp": true,
-        "sdkPath": sdkPath,
-        "allowAnalytics": false,
+        'useLsp': true,
+        'sdkPath': sdkPath,
+        'allowAnalytics': false,
       }
     ]
   };
@@ -223,17 +223,17 @@ void listenToStdout(List<int> event) {
   for (int element in event) {
     buffer.add(element);
     if (verbosity > 3 && buffer.length % 1000 == 999) {
-      print("DEBUG MESSAGE: Stdout buffer with length ${buffer.length} so far: "
-          "${utf8.decode(buffer)}");
+      print('DEBUG MESSAGE: Stdout buffer with length ${buffer.length} so far: '
+          '${utf8.decode(buffer)}');
     }
     if (headerContentLength == null && _endsWithCrLfCrLf()) {
       String headerRaw = utf8.decode(buffer);
       buffer.clear();
-      List<String> headers = headerRaw.split("\r\n");
+      List<String> headers = headerRaw.split('\r\n');
       for (String header in headers) {
-        if (header.startsWith("Content-Length:")) {
+        if (header.startsWith('Content-Length:')) {
           String contentLength =
-              header.substring("Content-Length:".length).trim();
+              header.substring('Content-Length:'.length).trim();
           headerContentLength = int.parse(contentLength);
           break;
         }
@@ -245,7 +245,7 @@ void listenToStdout(List<int> event) {
       headerContentLength = null;
       Map<String, dynamic> message =
           json.decode(messageString) as Map<String, dynamic>;
-      dynamic possibleId = message["id"];
+      dynamic possibleId = message['id'];
       if (possibleId is int) {
         if (possibleId > largestIdSeen) {
           largestIdSeen = possibleId;
@@ -253,9 +253,9 @@ void listenToStdout(List<int> event) {
 
         if (verbosity > 0) {
           if (messageString.length > 100) {
-            print("Got message ${messageString.substring(0, 100)}...");
+            print('Got message ${messageString.substring(0, 100)}...');
           } else {
-            print("Got message $messageString");
+            print('Got message $messageString');
           }
         }
 
@@ -263,14 +263,14 @@ void listenToStdout(List<int> event) {
         if (stopwatch != null) {
           stopwatch.stop();
           if (verbosity > 2) {
-            print(" => Got response for $possibleId in ${stopwatch.elapsed}");
+            print(' => Got response for $possibleId in ${stopwatch.elapsed}');
           }
         }
       } else if (verbosity > 1) {
         if (messageString.length > 100) {
-          print("Got message ${messageString.substring(0, 100)}...");
+          print('Got message ${messageString.substring(0, 100)}...');
         } else {
-          print("Got message $messageString");
+          print('Got message $messageString');
         }
       }
       receivedCompleter.complete(message);
@@ -288,12 +288,12 @@ Future<void> send(Process p, Map<String, dynamic> json) async {
       'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
   final asciiEncodedHeader = ascii.encode(header);
 
-  dynamic possibleId = json["id"];
+  dynamic possibleId = json['id'];
   if (possibleId is int && possibleId > largestIdSeen) {
     largestIdSeen = possibleId;
     outstandingRequestsWithId[possibleId] = Stopwatch()..start();
     if (verbosity > 2) {
-      print("Sending message with id $possibleId");
+      print('Sending message with id $possibleId');
     }
   }
 
@@ -302,7 +302,7 @@ Future<void> send(Process p, Map<String, dynamic> json) async {
   p.stdin.add(utf8EncodedBody);
   await p.stdin.flush();
   if (verbosity > 2) {
-    print("\n\nMessage sent...\n\n");
+    print('\n\nMessage sent...\n\n');
   }
 }
 

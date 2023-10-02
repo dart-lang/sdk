@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=
+// VMOptions=--optimization_level=3
+
 main() {
   var parent = new Element(null);
   var child = new Element(parent);

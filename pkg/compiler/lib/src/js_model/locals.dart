@@ -293,7 +293,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   }
 }
 
-class JumpVisitor extends ir.Visitor<void> with ir.VisitorVoidMixin {
+class JumpVisitor extends ir.VisitorDefault<void> with ir.VisitorVoidMixin {
   int jumpIndex = 0;
   int labelIndex = 0;
   final MemberEntity member;

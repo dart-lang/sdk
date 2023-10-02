@@ -167,6 +167,18 @@ import 'deprecated_implements_function_test.dart'
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
+import 'doc_directive_argument_wrong_format_test.dart'
+    as doc_directive_argument_wrong_format;
+import 'doc_directive_has_extra_arguments_test.dart'
+    as doc_directive_has_extra_arguments;
+import 'doc_directive_has_unexpected_named_argument_test.dart'
+    as doc_directive_has_unexpected_named_argument;
+import 'doc_directive_missing_one_argument_test.dart'
+    as doc_directive_missing_one_argument;
+import 'doc_directive_missing_three_arguments_test.dart'
+    as doc_directive_missing_three_arguments;
+import 'doc_directive_missing_two_arguments_test.dart'
+    as doc_directive_missing_two_arguments;
 import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
 import 'doc_import_cannot_have_configurations_test.dart'
@@ -1016,6 +1028,12 @@ main() {
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     division_optimization.main();
+    doc_directive_argument_wrong_format.main();
+    doc_directive_has_extra_arguments.main();
+    doc_directive_has_unexpected_named_argument.main();
+    doc_directive_missing_one_argument.main();
+    doc_directive_missing_three_arguments.main();
+    doc_directive_missing_two_arguments.main();
     doc_import_cannot_be_deferred.main();
     doc_import_cannot_have_configurations.main();
     duplicate_augmentation_import.main();

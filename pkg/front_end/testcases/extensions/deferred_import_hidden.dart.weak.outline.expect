@@ -18,7 +18,7 @@ extension Extension on core::int {
   static method staticMethod = self2::Extension|staticMethod;
   get property = self2::Extension|get#property;
   method method = self2::Extension|method;
-  tearoff method = self2::Extension|get#method;
+  method tearoff method = self2::Extension|get#method;
   static set staticProperty = set self2::Extension|staticProperty;
   set property = self2::Extension|set#property;
 }

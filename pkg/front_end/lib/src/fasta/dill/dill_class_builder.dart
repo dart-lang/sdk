@@ -8,12 +8,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 import '../problems.dart' show unimplemented;
 import '../scope.dart';
@@ -84,8 +83,8 @@ class DillClassBuilder extends ClassBuilderImpl {
   List<TypeVariableBuilder>? get typeVariables {
     List<TypeVariableBuilder>? typeVariables = _typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
-      typeVariables = _typeVariables =
-          computeTypeVariableBuilders(libraryBuilder, cls.typeParameters);
+      typeVariables =
+          _typeVariables = computeTypeVariableBuilders(cls.typeParameters);
     }
     return typeVariables;
   }
@@ -253,9 +252,9 @@ TypeBuilder? computeTypeBuilder(
 }
 
 List<TypeVariableBuilder>? computeTypeVariableBuilders(
-    LibraryBuilder library, List<TypeParameter>? typeParameters) {
+    List<TypeParameter>? typeParameters) {
   if (typeParameters == null || typeParameters.length == 0) return null;
   return new List.generate(typeParameters.length,
-      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i], library),
+      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i]),
       growable: false);
 }

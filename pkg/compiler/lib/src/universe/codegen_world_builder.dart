@@ -40,6 +40,12 @@ abstract class CodegenWorldBuilder {
 
 // The immutable result of the [CodegenWorldBuilder].
 abstract class CodegenWorld extends BuiltWorld {
+  /// Returns `true` if [member] is a late member visited by the codegen
+  /// enqueuer and is therefore reachable within the program. After
+  /// serialization all late members are registered in the closed world. This
+  /// predicate is used to determine which of these members are actually used.
+  bool isLateMemberReachable(MemberEntity member);
+
   /// Calls [f] for each generic call method on a live closure class.
   void forEachGenericClosureCallMethod(void Function(FunctionEntity) f);
 
@@ -104,6 +110,9 @@ class CodegenWorldBuilderImpl extends WorldBuilder
     implements CodegenWorldBuilder {
   final JClosedWorld _closedWorld;
   final OneShotInterceptorData _oneShotInterceptorData;
+
+  /// All declaration elements that have been processed by codegen.
+  final Set<MemberEntity> processedEntities = {};
 
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
@@ -585,7 +594,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         liveMemberUsage[member] = usage;
       }
     });
-    return CodegenWorldImpl(_closedWorld, liveMemberUsage,
+    return CodegenWorldImpl(_closedWorld, liveMemberUsage, processedEntities,
         constTypeLiterals: _constTypeLiterals,
         constructorReferences: _constructorReferences,
         directlyInstantiatedClasses: directlyInstantiatedClasses,
@@ -609,6 +618,7 @@ class CodegenWorldImpl implements CodegenWorld {
   final JClosedWorld _closedWorld;
 
   final Map<MemberEntity, MemberUsage> _liveMemberUsage;
+  final Set<MemberEntity> _reachableLateMembers;
 
   @override
   final Iterable<DartType> constTypeLiterals;
@@ -653,6 +663,7 @@ class CodegenWorldImpl implements CodegenWorld {
   final OneShotInterceptorData oneShotInterceptorData;
 
   CodegenWorldImpl(this._closedWorld, this._liveMemberUsage,
+      Iterable<MemberEntity> processedEntities,
       {required this.constTypeLiterals,
       required this.constructorReferences,
       required this.directlyInstantiatedClasses,
@@ -669,7 +680,10 @@ class CodegenWorldImpl implements CodegenWorld {
       required Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
       required Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
       required this.oneShotInterceptorData})
-      : _compiledConstants = compiledConstants,
+      : _reachableLateMembers = processedEntities
+            .where((e) => e is JGeneratorBody || e is JConstructorBody)
+            .toSet(),
+        _compiledConstants = compiledConstants,
         _invokedNames = invokedNames,
         _invokedGetters = invokedGetters,
         _invokedSetters = invokedSetters,
@@ -906,5 +920,10 @@ class CodegenWorldImpl implements CodegenWorld {
     if (usage == null) return false;
     return usage.invokes.contains(Access.superAccess) ||
         usage.writes.contains(Access.superAccess);
+  }
+
+  @override
+  bool isLateMemberReachable(MemberEntity member) {
+    return _reachableLateMembers.contains(member);
   }
 }

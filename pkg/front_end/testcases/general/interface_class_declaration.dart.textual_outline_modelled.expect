@@ -1,7 +1,5 @@
 // @dart = 2.19
 abstract interface class B {}
-
 interface class A {}
-
 interface class C = Object with M;
 mixin M {}

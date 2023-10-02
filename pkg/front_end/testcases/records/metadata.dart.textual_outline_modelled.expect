@@ -1,0 +1,5 @@
+@metadata<int> (int, int)
+a = (42, 42);
+class metadata<T> {
+  const metadata();
+}

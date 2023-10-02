@@ -40,7 +40,13 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         for (var argument in childArgs.arguments) {
           if (argument != stableChild) {
             var text = utils.getNodeText(argument);
-            text = replaceSourceIndent(text, childIndent, parentIndent);
+            text = utils.replaceSourceIndent(
+              text,
+              childIndent,
+              parentIndent,
+              includeLeading: false,
+              includeTrailingNewline: false,
+            );
             builder.write(parentIndent);
             builder.write('  ');
             builder.write(text);
@@ -60,7 +66,13 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
         for (var argument in parentArgs.arguments) {
           if (!flutter.isChildArgument(argument)) {
             var text = utils.getNodeText(argument);
-            text = replaceSourceIndent(text, parentIndent, childIndent);
+            text = utils.replaceSourceIndent(
+              text,
+              parentIndent,
+              childIndent,
+              includeLeading: false,
+              includeTrailingNewline: false,
+            );
             builder.write(childIndent);
             builder.write('  ');
             builder.write(text);

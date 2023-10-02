@@ -118,6 +118,7 @@ enum MatchOpCode {
   kMatch##Instruction, kMatchAndMove##Instruction,                             \
       kMatchAndMoveOptional##Instruction,
   FOR_EACH_INSTRUCTION(DEFINE_MATCH_OPCODES)
+      FOR_EACH_ABSTRACT_INSTRUCTION(DEFINE_MATCH_OPCODES)
 #undef DEFINE_MATCH_OPCODES
 
   // Matches a branch and moves left.
@@ -161,6 +162,7 @@ class MatchCode {
     RELEASE_ASSERT(opcode == kMatch##Type || opcode == kMatchAndMove##Type);   \
   }
   FOR_EACH_INSTRUCTION(DEFINE_TYPED_CONSTRUCTOR)
+  FOR_EACH_ABSTRACT_INSTRUCTION(DEFINE_TYPED_CONSTRUCTOR)
 #undef DEFINE_TYPED_CONSTRUCTOR
 
   MatchOpCode opcode() { return opcode_; }

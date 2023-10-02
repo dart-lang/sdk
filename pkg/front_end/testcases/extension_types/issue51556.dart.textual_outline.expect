@@ -1,4 +1,8 @@
-extension type JSAny(Object value) {} extension type JSObject(Object value) implements JSAny {} extension type JSArray(List<JSAny?> value) implements JSObject {} extension type JSExportedDartObject(Object value) implements JSObject {} extension type JSNumber(double value) implements JSAny {}
+extension type JSAny(Object value) {}
+extension type JSObject(Object value) implements JSAny {}
+extension type JSArray(List<JSAny?> value) implements JSObject {}
+extension type JSExportedDartObject(Object value) implements JSObject {}
+extension type JSNumber(double value) implements JSAny {}
 extension ObjectToJSExportedDartObject on Object {
   JSExportedDartObject get toJS => JSExportedDartObject(this);
 }

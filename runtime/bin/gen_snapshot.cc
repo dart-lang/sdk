@@ -17,6 +17,7 @@
 #include "bin/dartutils.h"
 #include "bin/error_exit.h"
 #include "bin/eventhandler.h"
+#include "bin/exe_utils.h"
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/options.h"
@@ -844,6 +845,11 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
 }
 
 int main(int argc, char** argv) {
+#if !defined(DART_HOST_OS_WINDOWS)
+  // Very early so any crashes during startup can also be symbolized.
+  EXEUtils::LoadDartProfilerSymbols(argv[0]);
+#endif
+
   const int EXTRA_VM_ARGUMENTS = 7;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions inputs(argc);

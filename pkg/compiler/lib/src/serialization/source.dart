@@ -862,7 +862,8 @@ class DataSourceReader {
     return interner?.internDartTypeNode(type) ?? type;
   }
 
-  ir.DartType? _readDartTypeNode(List<ir.TypeParameter> functionTypeVariables) {
+  ir.DartType? _readDartTypeNode(
+      List<ir.StructuralParameter> functionTypeVariables) {
     DartTypeNodeKind kind = readEnum(DartTypeNodeKind.values);
     switch (kind) {
       case DartTypeNodeKind.none:
@@ -891,22 +892,19 @@ class DataSourceReader {
         assert(0 <= index && index < functionTypeVariables.length);
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
-        ir.DartType? promotedBound = _readDartTypeNode(functionTypeVariables);
-        ir.TypeParameterType typeParameterType = ir.TypeParameterType(
-            functionTypeVariables[index], typeParameterTypeNullability);
-        if (promotedBound == null) {
-          return typeParameterType;
-        } else {
-          return ir.IntersectionType(typeParameterType, promotedBound);
-        }
+        ir.StructuralParameterType typeParameterType =
+            ir.StructuralParameterType(
+                functionTypeVariables[index], typeParameterTypeNullability);
+        return typeParameterType;
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
-        List<ir.TypeParameter> typeParameters = List<ir.TypeParameter>.generate(
-            typeParameterCount, (int index) => ir.TypeParameter(),
-            growable: false);
+        List<ir.StructuralParameter> typeParameters =
+            List<ir.StructuralParameter>.generate(
+                typeParameterCount, (int index) => ir.StructuralParameter(),
+                growable: false);
         functionTypeVariables =
-            List<ir.TypeParameter>.from(functionTypeVariables)
+            List<ir.StructuralParameter>.from(functionTypeVariables)
               ..addAll(typeParameters);
         for (int index = 0; index < typeParameterCount; index++) {
           typeParameters[index].name = readString();
@@ -977,7 +975,7 @@ class DataSourceReader {
   }
 
   List<ir.NamedType> _readNamedTypeNodes(
-      List<ir.TypeParameter> functionTypeVariables) {
+      List<ir.StructuralParameter> functionTypeVariables) {
     int count = readInt();
     if (count == 0) return const [];
     return List<ir.NamedType>.generate(count, (index) {
@@ -1009,7 +1007,7 @@ class DataSourceReader {
   }
 
   List<ir.DartType> _readDartTypeNodes(
-      List<ir.TypeParameter> functionTypeVariables) {
+      List<ir.StructuralParameter> functionTypeVariables) {
     int count = readInt();
     if (count == 0) return emptyListOfDartTypes;
     return List<ir.DartType>.generate(

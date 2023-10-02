@@ -202,6 +202,36 @@ void f(Object? x) {
 ''');
   }
 
+  /// Check when inlining a static member access into a switch pattern it
+  /// doesn't add unnecessary parens.
+  Future<void> test_OK_inSwitchPatternCase_staticMember() async {
+    await indexTestUnit('''
+class C {
+  static final i = 5;
+}
+
+void f() {
+  final v = C.i;
+  var _ = switch (v) {
+    _ => 1,
+  };
+}
+''');
+    _createRefactoring('v =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+class C {
+  static final i = 5;
+}
+
+void f() {
+  var _ = switch (C.i) {
+    _ => 1,
+  };
+}
+''');
+  }
+
   Future<void> test_OK_intoStringInterpolation_binaryExpression() async {
     await indexTestUnit(r'''
 void f() {

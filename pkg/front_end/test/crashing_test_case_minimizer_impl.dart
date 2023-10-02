@@ -748,7 +748,7 @@ class TestMinimizer {
     print("""
 # Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Reproduce a crash.
 
@@ -1294,7 +1294,7 @@ worlds:
       } else if (child.isMixinDeclaration()) {
         MixinDeclarationEnd decl = child.asMixinDeclaration();
         helper.replacements.add(new _Replacement(
-            decl.mixinKeyword.offset - 1, decl.endToken.offset + 1));
+            decl.beginToken.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "mixin";
       } else if (child.isNamedMixinDeclaration()) {

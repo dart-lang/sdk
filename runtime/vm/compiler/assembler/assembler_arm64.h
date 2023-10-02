@@ -1743,6 +1743,24 @@ class Assembler : public AssemblerBase {
 #endif  // defined(DART_COMPRESSED_POINTERS)
   }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    LoadInt64FromBoxOrSmi(result, value);
+  }
+
+  void LoadInt64FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value);
+    BranchIfSmi(value, &done);
+    LoadFieldFromOffset(result, value, target::Mint::value_offset());
+    Bind(&done);
+  }
+
   // For ARM, the near argument is ignored.
   void BranchIfNotSmi(Register reg,
                       Label* label,
@@ -2126,6 +2144,7 @@ class Assembler : public AssemblerBase {
     LoadImmediate(reg, imm.value());
   }
 
+  void LoadSImmediate(VRegister reg, float immd);
   void LoadDImmediate(VRegister reg, double immd);
   void LoadQImmediate(VRegister reg, simd128_value_t immq);
 
@@ -2273,6 +2292,24 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp1,
                         Register temp2);
+
+  void CheckAllocationCanary(Register top, Register tmp = TMP) {
+#if defined(DEBUG)
+    Label okay;
+    ldr(tmp, Address(top, 0));
+    cmp(tmp, Operand(kAllocationCanary));
+    b(&okay, EQUAL);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    ASSERT(top != TMP);
+    LoadImmediate(TMP, kAllocationCanary);
+    str(TMP, Address(top, 0));
+#endif
+  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

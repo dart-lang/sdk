@@ -25,7 +25,6 @@ analyzer:
     implementation_imports: ignore
     non_constant_identifier_names: ignore
     overridden_fields: ignore
-    prefer_void_to_null: ignore
     todo: ignore
 
 linter:
@@ -35,6 +34,7 @@ linter:
     - depend_on_referenced_packages
     - implicit_call_tearoffs
     - library_annotations
+    - prefer_single_quotes
     - unawaited_futures
     - unnecessary_breaks
     - unnecessary_library_directive

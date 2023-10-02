@@ -29,13 +29,13 @@ extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   static method fieldAccessFromStaticContext = self::Extension|fieldAccessFromStaticContext;
   static method getterCallsFromStaticContext = self::Extension|getterCallsFromStaticContext;
   method invocationsFromInstanceContext = self::Extension|invocationsFromInstanceContext;
-  tearoff invocationsFromInstanceContext = self::Extension|get#invocationsFromInstanceContext;
+  method tearoff invocationsFromInstanceContext = self::Extension|get#invocationsFromInstanceContext;
   method tearOffsFromInstanceContext = self::Extension|tearOffsFromInstanceContext;
-  tearoff tearOffsFromInstanceContext = self::Extension|get#tearOffsFromInstanceContext;
+  method tearoff tearOffsFromInstanceContext = self::Extension|get#tearOffsFromInstanceContext;
   method fieldAccessFromInstanceContext = self::Extension|fieldAccessFromInstanceContext;
-  tearoff fieldAccessFromInstanceContext = self::Extension|get#fieldAccessFromInstanceContext;
+  method tearoff fieldAccessFromInstanceContext = self::Extension|get#fieldAccessFromInstanceContext;
   method getterCallsFromInstanceContext = self::Extension|getterCallsFromInstanceContext;
-  tearoff getterCallsFromInstanceContext = self::Extension|get#getterCallsFromInstanceContext;
+  method tearoff getterCallsFromInstanceContext = self::Extension|get#getterCallsFromInstanceContext;
   static set property = set self::Extension|property;
 }
 static field dynamic Extension|field;

@@ -2,10 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 
 group("dds") {
   public_deps = [ ":copy_dds_snapshot" ]
+}
+
+group("dds_aot") {
+  public_deps = [ ":copy_dds_aot_snapshot" ]
 }
 
 copy("copy_dds_snapshot") {
@@ -15,8 +20,28 @@ copy("copy_dds_snapshot") {
   outputs = [ "$root_out_dir/dds.dart.snapshot" ]
 }
 
+copy("copy_dds_aot_snapshot") {
+  visibility = [ ":dds_aot" ]
+  public_deps = [ ":generate_dds_aot_snapshot" ]
+  sources = [ "$root_gen_dir/dds_aot.dart.snapshot" ]
+  outputs = [ "$root_out_dir/dds_aot.dart.snapshot" ]
+}
+
 application_snapshot("generate_dds_snapshot") {
   main_dart = "../../pkg/dds/bin/dds.dart"
   training_args = []
   output = "$root_gen_dir/dds.dart.snapshot"
+}
+
+aot_snapshot("generate_dds_aot_snapshot") {
+  main_dart = "../../pkg/dds/bin/dds.dart"
+  output = "$root_gen_dir/dds_aot.dart.snapshot"
+
+  # dartaotruntime has dart_product_config applied to it,
+  # so it is built in # product mode in both release and
+  # product builds, and is only built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and frontend_server_aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
 }

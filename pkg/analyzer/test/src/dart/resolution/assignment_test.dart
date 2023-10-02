@@ -1623,7 +1623,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
   writeType: InvalidType
   staticElement: <null>
   staticType: int
@@ -1668,11 +1668,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    parameter: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -1715,11 +1715,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    parameter: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -1769,7 +1769,7 @@ AssignmentExpression
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
   writeType: InvalidType
   staticElement: <null>
   staticType: int
@@ -1814,11 +1814,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    parameter: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -1861,11 +1861,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    parameter: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -2440,11 +2440,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    parameter: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   writeType: int
   staticElement: <null>
   staticType: int
@@ -2490,11 +2490,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    parameter: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo::@parameter::_
     staticType: int
   readElement: <null>
   readType: null
-  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo
   writeType: int
   staticElement: <null>
   staticType: int

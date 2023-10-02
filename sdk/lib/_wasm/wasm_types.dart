@@ -4,6 +4,8 @@
 
 library dart._wasm;
 
+import 'dart:js_interop';
+
 // A collection a special Dart types that are mapped directly to Wasm types
 // by the dart2wasm compiler. These types have a number of constraints:
 //
@@ -31,6 +33,9 @@ abstract class _WasmFloat extends _WasmBase {
 /// The Wasm `anyref` type.
 @pragma("wasm:entry-point")
 class WasmAnyRef extends _WasmBase {
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmAnyRef._();
+
   /// Upcast Dart object to `anyref`.
   external factory WasmAnyRef.fromObject(Object o);
 
@@ -84,6 +89,9 @@ class WasmFuncRef extends _WasmBase {
 /// The Wasm `eqref` type.
 @pragma("wasm:entry-point")
 class WasmEqRef extends WasmAnyRef {
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmEqRef._() : super._();
+
   /// Upcast Dart object to `eqref`.
   external factory WasmEqRef.fromObject(Object o);
 }
@@ -98,8 +106,8 @@ class WasmStructRef extends WasmEqRef {
 /// The Wasm `arrayref` type.
 @pragma("wasm:entry-point")
 class WasmArrayRef extends WasmEqRef {
-  /// Dummy factory to silence error about missing superclass constructor.
-  external factory WasmArrayRef._dummy();
+  /// Dummy constructor to silence error about missing superclass constructor.
+  const WasmArrayRef._() : super._();
 
   /// Length of array.
   external int get length;
@@ -200,7 +208,13 @@ class WasmFloatArray<T extends _WasmFloat> extends WasmArrayRef {
 /// A Wasm array with reference element type, containing Dart objects.
 @pragma("wasm:entry-point")
 class WasmObjectArray<T extends Object?> extends WasmArrayRef {
-  external factory WasmObjectArray(int length);
+  /// Dummy value field to contain the value for constant instances.
+  @pragma("wasm:entry-point")
+  final List<T> _value;
+
+  external factory WasmObjectArray(int length, T initialValue);
+
+  const WasmObjectArray.literal(this._value) : super._();
 
   external T read(int index);
   external void write(int index, T value);
@@ -268,3 +282,12 @@ extension DoubleToWasmFloat on double {
   WasmF32 toWasmF32() => WasmF32.fromDouble(this);
   WasmF64 toWasmF64() => WasmF64.fromDouble(this);
 }
+
+extension WasmExternRefToJSAny on WasmExternRef {
+  external JSAny get toJS;
+}
+
+// Note: We would make this an extension method on JSAny, but external methods
+// on JS interop types are assumed to be JS interop functions, not methods that
+// are patched in patch files. So instead we just use a plain function here.
+external WasmExternRef? externRefForJSAny(JSAny object);

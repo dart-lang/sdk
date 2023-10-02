@@ -212,6 +212,11 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
+  bool visitStructuralParameterType(ir.StructuralParameterType node) {
+    return true;
+  }
+
+  @override
   bool visitIntersectionType(ir.IntersectionType node) {
     return true;
   }
@@ -266,8 +271,9 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   bool visitInvalidType(ir.InvalidType node) => false;
 
   @override
-  bool defaultDartType(ir.DartType node) {
-    throw UnsupportedError("FreeVariableVisitor.defaultTypeNode");
+  bool visitAuxiliaryType(ir.AuxiliaryType node) {
+    throw UnsupportedError(
+        'Unsupported auxiliary type $node (${node.runtimeType}).');
   }
 }
 

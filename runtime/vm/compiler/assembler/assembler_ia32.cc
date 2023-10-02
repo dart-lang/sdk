@@ -2293,6 +2293,13 @@ void Assembler::IncrementSmiField(const Address& dest, int32_t increment) {
   addl(dest, inc_imm);
 }
 
+void Assembler::LoadSImmediate(XmmRegister dst, float value) {
+  int32_t constant = bit_cast<int32_t, float>(value);
+  pushl(Immediate(constant));
+  movss(dst, Address(ESP, 0));
+  addl(ESP, Immediate(target::kWordSize));
+}
+
 void Assembler::LoadDImmediate(XmmRegister dst, double value) {
   // TODO(5410843): Need to have a code constants table.
   int64_t constant = bit_cast<int64_t, double>(value);
@@ -2793,6 +2800,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential next object start.
     cmpl(instance_reg, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure, distance);
+    CheckAllocationCanary(instance_reg);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movl(Address(THR, target::Thread::top_offset()), instance_reg);
@@ -2832,6 +2840,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // EBX: potential next object start.
     cmpl(end_address, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure);
+    CheckAllocationCanary(instance);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

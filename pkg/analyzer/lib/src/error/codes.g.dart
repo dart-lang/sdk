@@ -6011,6 +6011,15 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the element
+  static const WarningCode DEPRECATED_EXPORT_USE = WarningCode(
+    'DEPRECATED_EXPORT_USE',
+    "The ability to import '{0}' indirectly is deprecated.",
+    correctionMessage: "Try importing '{0}' directly.",
+    hasPublishedDocs: true,
+  );
+
   ///  No parameters.
   static const WarningCode DEPRECATED_EXTENDS_FUNCTION = WarningCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',
@@ -6044,6 +6053,102 @@ class WarningCode extends AnalyzerErrorCode {
     "Using the 'new' keyword in a comment reference is deprecated.",
     correctionMessage: "Try referring to a constructor by its name.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive argument
+  ///  1: the expected format
+  static const WarningCode DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT = WarningCode(
+    'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+    "The '{0}' argument must be formatted as {1}.",
+    correctionMessage: "Try formatting '{0}' as {1}.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the actual number of arguments
+  ///  2: the expected number of arguments
+  static const WarningCode DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
+    "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
+    correctionMessage: "Try removing the extra arguments.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the unexpected argument
+  static const WarningCode DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT =
+      WarningCode(
+    'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
+    "The '{0}' directive has an unexpected named argument, '{1}'.",
+    correctionMessage: "Try removing the unexpected argument.",
+  );
+
+  static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_BRACE = WarningCode(
+    'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
+    "Doc directive is missing a closing curly brace ('}').",
+    correctionMessage: "Try closing the directive with a curly brace.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+    "Doc directive is missing a closing tag.",
+    correctionMessage:
+        "Try closing the directive with the appropriate closing tag, '{0}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_ONE_ARGUMENT = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}' argument.",
+    correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_OPENING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_OPENING_TAG',
+    "Doc directive is missing an opening tag.",
+    correctionMessage:
+        "Try opening the directive with the appropriate opening tag, '{0}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the first missing argument
+  ///  2: the name of the second missing argument
+  ///  3: the name of the third missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
+    correctionMessage:
+        "Try adding the missing arguments before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the first missing argument
+  ///  2: the name of the second missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
+    correctionMessage:
+        "Try adding the missing arguments before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the unknown doc directive.
+  static const WarningCode DOC_DIRECTIVE_UNKNOWN = WarningCode(
+    'DOC_DIRECTIVE_UNKNOWN',
+    "Doc directive '{0}' is unknown.",
+    correctionMessage: "Try using one of the supported doc directives.",
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
@@ -7057,6 +7162,16 @@ class WarningCode extends AnalyzerErrorCode {
     "The library '{0}' doesn't export a member with the shown name '{1}'.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the non-diagnostic being ignored
+  static const WarningCode UNIGNORABLE_IGNORE = WarningCode(
+    'UNIGNORABLE_IGNORE',
+    "The diagnostic '{0}' can't be ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
   );
 
   ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].

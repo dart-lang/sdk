@@ -1,0 +1,3 @@
+// @dart = 2.16
+enum T { t; const T.named(); }
+void main() {}

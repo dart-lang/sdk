@@ -229,8 +229,7 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   ConstantImpactVisitor(
       this.registry, this.import, this.expression, this.staticTypeContext);
 
-  @override
-  void defaultConstant(ir.Constant node) {
+  static Never _unexpectedConstant(ir.Constant node) {
     throw UnsupportedError(
         "Unexpected constant ${node} (${node.runtimeType}).");
   }
@@ -347,4 +346,17 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
     // uses ConstructorTearOff(Constant) to point to its effective target.
     // However, these should be safe to ignore.
   }
+
+  @override
+  Never visitRedirectingFactoryTearOffConstant(
+          ir.RedirectingFactoryTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitAuxiliaryConstant(ir.AuxiliaryConstant node) =>
+      _unexpectedConstant(node);
 }

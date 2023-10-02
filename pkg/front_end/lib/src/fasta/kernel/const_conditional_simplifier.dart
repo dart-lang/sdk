@@ -15,7 +15,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
   final Component _component;
 
   late final TypeEnvironment _typeEnvironment;
-  late final _ConstantEvaluator _constantEvaluator;
+  late final _ConstantEvaluator constantEvaluator;
   final bool _removeAsserts;
 
   ConstConditionalSimplifier(
@@ -33,7 +33,7 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     coreTypes ??= new CoreTypes(_component);
     classHierarchy ??= new ClassHierarchy(_component, coreTypes);
     _typeEnvironment = new TypeEnvironment(coreTypes, classHierarchy);
-    _constantEvaluator = new _ConstantEvaluator(
+    constantEvaluator = new _ConstantEvaluator(
       librarySupport,
       constantsBackend,
       _component,
@@ -45,15 +45,15 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     );
   }
 
-  Constant? _evaluate(Expression node) => _constantEvaluator._evaluate(node);
+  Constant? _evaluate(Expression node) => constantEvaluator._evaluate(node);
 
   TreeNode run() => transform(_component);
 
   @override
   TreeNode defaultMember(Member node, TreeNode? removalSentinel) {
-    return _constantEvaluator
+    return constantEvaluator
         .inStaticTypeContext(new StaticTypeContext(node, _typeEnvironment), () {
-      _constantEvaluator._clearLocalCaches();
+      constantEvaluator._clearLocalCaches();
       return super.defaultMember(node, removalSentinel);
     });
   }

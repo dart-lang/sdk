@@ -14,13 +14,15 @@ import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
+// To test non-JS types for @staticInterop.
+import 'package:js/js.dart' as pkgJs;
 import 'package:js/js_util.dart' as js_util;
 
 @JS()
 external void eval(String code);
 
-@JS()
-@staticInterop
+@pkgJs.JS()
+@pkgJs.staticInterop
 class Foo<T extends JSAny, U extends Nested> {
   external factory Foo(int a);
 }
@@ -66,8 +68,8 @@ extension FooExt<T extends JSAny, U extends Nested> on Foo<T, U> {
   external R combineNestedGeneric<R extends Nested>(R a, [R b]);
 }
 
-@JS('module.Bar')
-@staticInterop
+@pkgJs.JS('module.Bar')
+@pkgJs.staticInterop
 class Bar {
   external factory Bar(int a);
 }

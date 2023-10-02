@@ -1,0 +1,30 @@
+class Class {
+  Class() {}
+  instanceMethodAndSetter() {}
+  instanceMethodAndStaticSetter() {}
+  static staticMethodAndInstanceSetter() {}
+  static staticMethodAndSetter() {}
+  static void set instanceMethodAndStaticSetter(value) {}
+  static void set staticMethodAndSetter(value) {}
+  void set Class(value) {}
+  void set instanceMethodAndSetter(value) {}
+  void set staticMethodAndInstanceSetter(value) {}
+}
+class classAndSetter {}
+extension Extension on int? {
+  extensionInstanceMethodAndSetter() {}
+  extensionInstanceMethodAndStaticSetter() {}
+  static extensionStaticMethodAndInstanceSetter() {}
+  static extensionStaticMethodAndSetter() {}
+  static void set extensionInstanceMethodAndStaticSetter(value) {}
+  static void set extensionStaticMethodAndSetter(value) {}
+  void set extensionInstanceMethodAndSetter(value) {}
+  void set extensionStaticMethodAndInstanceSetter(value) {}
+}
+main() {}
+test() {}
+topLevelMethodAndSetter() {}
+typedef typedefAndSetter = Function();
+void set classAndSetter(value) {}
+void set topLevelMethodAndSetter(value) {}
+void set topLevelMethodAndSetter(value) {}

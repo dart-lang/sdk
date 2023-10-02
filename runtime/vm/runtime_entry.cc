@@ -3845,6 +3845,7 @@ DEFINE_RUNTIME_ENTRY(FfiAsyncCallbackSend, 1) {
 // Use expected function signatures to help MSVC compiler resolve overloading.
 typedef double (*UnaryMathCFunction)(double x);
 typedef double (*BinaryMathCFunction)(double x, double y);
+typedef void* (*MemMoveCFunction)(void* dest, const void* src, size_t n);
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     LibcPow,
@@ -3937,6 +3938,12 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     1,
     true /* is_float */,
     reinterpret_cast<RuntimeFunction>(static_cast<UnaryMathCFunction>(&log)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    MemoryMove,
+    3,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(static_cast<MemMoveCFunction>(&memmove)));
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;

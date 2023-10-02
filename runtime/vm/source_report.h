@@ -48,6 +48,7 @@ class SourceReport {
                         bool report_lines = false);
   explicit SourceReport(intptr_t report_set,
                         const GrowableObjectArray& library_filters,
+                        ZoneCStringSet* libraries_already_compiled = nullptr,
                         CompileMode compile = kNoCompile,
                         bool report_lines = false);
   ~SourceReport();
@@ -80,6 +81,7 @@ class SourceReport {
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
   intptr_t GetTokenPosOrLine(const Script& script,
                              const TokenPosition& token_pos);
+  bool IsLibraryAlreadyCompiled(const Library& lib);
   bool ShouldFiltersIncludeScript(const Script& script);
   bool ShouldFiltersIncludeUrl(const String& url);
 
@@ -99,8 +101,12 @@ class SourceReport {
 #endif
   void PrintScriptTable(JSONArray* jsarr);
 
-  void VisitFunction(JSONArray* jsarr, const Function& func);
-  void VisitField(JSONArray* jsarr, const Field& field);
+  void VisitFunction(JSONArray* jsarr,
+                     const Function& func,
+                     CompileMode compile_mode);
+  void VisitField(JSONArray* jsarr,
+                  const Field& field,
+                  CompileMode compile_mode);
   void VisitLibrary(JSONArray* jsarr, const Library& lib);
   void VisitClosures(JSONArray* jsarr);
   // An entry in the script table.
@@ -145,6 +151,7 @@ class SourceReport {
   CompileMode compile_mode_;
   bool report_lines_;
   const GrowableObjectArray& library_filters_;
+  ZoneCStringSet* libraries_already_compiled_;
   Thread* thread_;
   const Script* script_;
   TokenPosition start_pos_;

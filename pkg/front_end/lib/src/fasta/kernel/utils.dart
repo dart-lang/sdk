@@ -16,13 +16,13 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/text/ast_to_text.dart';
 
+import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../combinator.dart';
 import '../configuration.dart';
 import '../identifiers.dart';
@@ -159,7 +159,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
     for (TypeParameter typeParam in realClass.typeParameters) {
       TypeParameter newNode = new TypeParameter(typeParam.name)
-        ..parent = fakeClass;
+        ..declaration = fakeClass;
       typeParams[typeParam] = newNode;
       typeSubstitution[typeParam] =
           new TypeParameterType.forAlphaRenaming(typeParam, newNode);
@@ -237,7 +237,7 @@ List<Combinator>? toKernelCombinators(
 }
 
 final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
-final Identifier dummyIdentifier = new Identifier(dummyToken);
+final Identifier dummyIdentifier = new SimpleIdentifier(dummyToken);
 final CombinatorBuilder dummyCombinator =
     new CombinatorBuilder(false, {}, -1, dummyUri);
 final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
@@ -250,8 +250,12 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
 final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
     TypeVariableBuilder.noNameSentinel, null, -1, null,
     kind: TypeVariableKind.function);
+final StructuralVariableBuilder dummyStructuralVariableBuilder =
+    new StructuralVariableBuilder(
+        StructuralVariableBuilder.noNameSentinel, null, -1, null);
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);
-final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
+final FieldInfo dummyFieldInfo =
+    new FieldInfo(dummyIdentifier, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');

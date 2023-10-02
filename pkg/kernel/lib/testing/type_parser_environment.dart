@@ -13,6 +13,7 @@ import 'package:kernel/testing/mock_sdk.dart' show mockSdk;
 import 'package:kernel/testing/type_parser.dart' as type_parser show parse;
 
 import 'package:kernel/testing/type_parser.dart';
+import 'package:kernel/type_algebra.dart';
 
 Component parseComponent(String source, Uri uri) {
   Uri coreUri = Uri.parse("dart:core");
@@ -120,6 +121,17 @@ class Env {
     return parameterEnvironment.parameters;
   }
 
+  List<StructuralParameter> extendWithStructuralParameters(
+      String? typeParameters) {
+    if (typeParameters == null || typeParameters.isEmpty) {
+      return <StructuralParameter>[];
+    }
+    FunctionTypeParameterEnvironment parameterEnvironment = _libraryEnvironment
+        .extendToFunctionTypeParameterEnvironment(typeParameters);
+    _libraryEnvironment = parameterEnvironment.environment;
+    return parameterEnvironment.parameters;
+  }
+
   void withTypeParameters(
       String? typeParameters, void Function(List<TypeParameter>) f) {
     if (typeParameters == null || typeParameters.isEmpty) {
@@ -132,6 +144,19 @@ class Env {
       _libraryEnvironment = oldLibraryEnvironment;
     }
   }
+
+  void withStructuralParameters(
+      String? typeParameters, void Function(List<StructuralParameter>) f) {
+    if (typeParameters == null || typeParameters.isEmpty) {
+      f(<StructuralParameter>[]);
+    } else {
+      TypeParserEnvironment oldLibraryEnvironment = _libraryEnvironment;
+      List<StructuralParameter> typeParameterNodes =
+          extendWithStructuralParameters(typeParameters);
+      f(typeParameterNodes);
+      _libraryEnvironment = oldLibraryEnvironment;
+    }
+  }
 }
 
 class TypeParserEnvironment {
@@ -139,7 +164,8 @@ class TypeParserEnvironment {
 
   final Uri fileUri;
 
-  final Map<String, TreeNode> _declarations = <String, TreeNode>{};
+  final Map<String, /* TreeNode | StructuralParameter */ Object> _declarations =
+      <String, Object>{};
 
   final TypeParserEnvironment? _parent;
 
@@ -153,9 +179,19 @@ class TypeParserEnvironment {
   /// nullability of that [TypeParameterType] is not set at declaration, the
   /// [TypeParameterType] is added to [pendingNullabilities], so that it can be
   /// updated when the bound of the [TypeParameter] is ready.
-  final List<TypeParameterType> pendingNullabilities = <TypeParameterType>[];
+  ///
+  /// The same is true for [StructuralParameterType]s, and
+  /// [pendingNullabilities] contains both [TypeParameterType]s and
+  /// [StructuralParameterType]s.
+  final List< /* TypeParameterType | StructuralParameterType */ Object>
+      pendingNullabilities = <TypeParameterType>[];
 
   TypeParserEnvironment(this.uri, this.fileUri, [this._parent]);
+
+  @override
+  String toString() {
+    return "TypeParserEnvironment(${_declarations})";
+  }
 
   Node _kernelFromParsedType(ParsedType type,
       {Map<String, DartType Function()>? additionalTypes}) {
@@ -183,8 +219,8 @@ class TypeParserEnvironment {
 
   Class get objectClass => lookupDeclaration("Object") as Class;
 
-  TreeNode lookupDeclaration(String name) {
-    TreeNode? result = _declarations[name];
+  /* TreeNode | StructuralParameter */ Object lookupDeclaration(String name) {
+    Object? result = _declarations[name];
     if (result == null && _parent != null) {
       return _parent!.lookupDeclaration(name);
     }
@@ -193,14 +229,15 @@ class TypeParserEnvironment {
   }
 
   T _registerDeclaration<T extends TreeNode>(String name, T declaration) {
-    TreeNode? existing = _declarations[name];
+    Object? existing = _declarations[name];
     if (existing != null) {
       throw "Duplicated declaration: $name";
     }
     return _declarations[name] = declaration;
   }
 
-  TypeParserEnvironment _extend(Map<String, TreeNode> declarations) {
+  TypeParserEnvironment _extend(
+      Map<String, /* TreeNode | StructuralParameter */ Object> declarations) {
     return new TypeParserEnvironment(uri, fileUri, this)
       .._declarations.addAll(declarations);
   }
@@ -210,9 +247,22 @@ class TypeParserEnvironment {
     return extendToParameterEnvironment(typeParameters!).environment;
   }
 
+  TypeParserEnvironment extendWithStructuralParameters(String? typeParameters) {
+    if (typeParameters?.isEmpty ?? true) return this;
+    return extendToFunctionTypeParameterEnvironment(typeParameters!)
+        .environment;
+  }
+
   ParameterEnvironment extendToParameterEnvironment(String typeParameters) {
     assert(typeParameters.isNotEmpty);
     return const _KernelFromParsedType().computeTypeParameterEnvironment(
+        parseTypeVariables("<${typeParameters}>"), this);
+  }
+
+  FunctionTypeParameterEnvironment extendToFunctionTypeParameterEnvironment(
+      String typeParameters) {
+    assert(typeParameters.isNotEmpty);
+    return const _KernelFromParsedType().computeStructuralParameterEnvironment(
         parseTypeVariables("<${typeParameters}>"), this);
   }
 
@@ -274,7 +324,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     } else if (additionalTypes != null && additionalTypes!.containsKey(name)) {
       return additionalTypes![name]!.call();
     }
-    TreeNode declaration = environment.lookupDeclaration(name);
+    /* TreeNode | StructuralParameter */ Object declaration =
+        environment.lookupDeclaration(name);
     List<ParsedType> arguments = node.arguments;
     List<DartType> kernelArguments =
         new List<DartType>.filled(arguments.length, dummyDartType);
@@ -316,6 +367,27 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
               ? Nullability.nonNullable
               : TypeParameterType.computeNullabilityFromBound(declaration);
       TypeParameterType type = new TypeParameterType(
+          declaration,
+          interpretParsedNullability(node.parsedNullability,
+              ifOmitted: nullability));
+      // If the nullability was omitted on the type and can't be computed from
+      // the bound because it's not yet available, it will be set to null.  In
+      // that case, put it to the list to be updated later, when the bound is
+      // available.
+      // ignore: unnecessary_null_comparison
+      if (type.declaredNullability == null) {
+        environment.pendingNullabilities.add(type);
+      }
+      return type;
+    } else if (declaration is StructuralParameter) {
+      if (arguments.isNotEmpty) {
+        throw "Type variable can't have arguments (${node.name})";
+      }
+      Nullability nullability = identical(
+              declaration.bound, StructuralParameter.unsetBoundSentinel)
+          ? Nullability.nonNullable
+          : StructuralParameterType.computeNullabilityFromBound(declaration);
+      StructuralParameterType type = new StructuralParameterType(
           declaration,
           interpretParsedNullability(node.parsedNullability,
               ifOmitted: nullability));
@@ -453,8 +525,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
   @override
   FunctionType visitFunctionType(
       ParsedFunctionType node, TypeParserEnvironment environment) {
-    ParameterEnvironment parameterEnvironment =
-        computeTypeParameterEnvironment(node.typeVariables, environment);
+    FunctionTypeParameterEnvironment parameterEnvironment =
+        computeStructuralParameterEnvironment(node.typeVariables, environment);
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType> namedParameters = <NamedType>[];
     DartType returnType;
@@ -562,12 +634,90 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       typeParameters[i].defaultType = defaultTypes[i];
     }
 
-    for (TypeParameterType type in nestedEnvironment.pendingNullabilities) {
-      type.declaredNullability =
-          TypeParameterType.computeNullabilityFromBound(type.parameter);
+    for (Object type in nestedEnvironment.pendingNullabilities) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
+      if (type is TypeParameterType) {
+        type.declaredNullability =
+            TypeParameterType.computeNullabilityFromBound(type.parameter);
+      } else {
+        type as StructuralParameterType;
+        type.declaredNullability =
+            StructuralParameterType.computeNullabilityFromBound(type.parameter);
+      }
     }
     nestedEnvironment.pendingNullabilities.clear();
     return new ParameterEnvironment(typeParameters, nestedEnvironment);
+  }
+
+  FunctionTypeParameterEnvironment computeStructuralParameterEnvironment(
+      List<ParsedTypeVariable> typeVariables,
+      TypeParserEnvironment environment) {
+    List<StructuralParameter> typeParameters =
+        new List<StructuralParameter>.filled(
+            typeVariables.length, dummyStructuralParameter);
+    Map<String, StructuralParameter> typeParametersByName =
+        <String, StructuralParameter>{};
+    for (int i = 0; i < typeVariables.length; i++) {
+      String name = typeVariables[i].name;
+      typeParametersByName[name] =
+          typeParameters[i] = new StructuralParameter(name);
+    }
+    TypeParserEnvironment nestedEnvironment =
+        environment._extend(typeParametersByName);
+    Class objectClass = environment.objectClass;
+    for (int i = 0; i < typeVariables.length; i++) {
+      ParsedType? bound = typeVariables[i].bound;
+      StructuralParameter typeParameter = typeParameters[i];
+      if (bound == null) {
+        typeParameter
+          ..bound = new InterfaceType(
+              objectClass, Nullability.nullable, const <DartType>[])
+          ..defaultType = const DynamicType();
+      } else {
+        DartType type = _parseType(bound, nestedEnvironment);
+        typeParameter
+          ..bound = type
+          // The default type will be overridden below, but we need to set it
+          // so [calculateBounds] can distinguish between explicit and implicit
+          // bounds.
+          ..defaultType = type;
+      }
+    }
+    FreshTypeParametersFromStructuralParameters
+        freshTypeParametersFromStructuralParameters =
+        getFreshTypeParametersFromStructuralParameters(typeParameters);
+    Substitution substitution = Substitution.fromPairs(
+        freshTypeParametersFromStructuralParameters.freshTypeParameters,
+        new List<DartType>.generate(
+            typeParameters.length,
+            (int i) =>
+                new StructuralParameterType.forAlphaRenamingFromTypeParameters(
+                    freshTypeParametersFromStructuralParameters
+                        .freshTypeParameters[i],
+                    typeParameters[i])));
+    List<DartType> defaultTypes = calculateBounds(
+        freshTypeParametersFromStructuralParameters.freshTypeParameters,
+        objectClass,
+        isNonNullableByDefault: true);
+    for (int i = 0; i < typeParameters.length; i++) {
+      typeParameters[i].defaultType =
+          substitution.substituteType(defaultTypes[i]);
+    }
+
+    for (Object type in nestedEnvironment.pendingNullabilities) {
+      assert(type is TypeParameterType || type is StructuralParameterType);
+      if (type is TypeParameterType) {
+        type.declaredNullability =
+            TypeParameterType.computeNullabilityFromBound(type.parameter);
+      } else {
+        type as StructuralParameterType;
+        type.declaredNullability =
+            StructuralParameterType.computeNullabilityFromBound(type.parameter);
+      }
+    }
+    nestedEnvironment.pendingNullabilities.clear();
+    return new FunctionTypeParameterEnvironment(
+        typeParameters, nestedEnvironment);
   }
 }
 
@@ -576,4 +726,11 @@ class ParameterEnvironment {
   final TypeParserEnvironment environment;
 
   const ParameterEnvironment(this.parameters, this.environment);
+}
+
+class FunctionTypeParameterEnvironment {
+  final List<StructuralParameter> parameters;
+  final TypeParserEnvironment environment;
+
+  const FunctionTypeParameterEnvironment(this.parameters, this.environment);
 }

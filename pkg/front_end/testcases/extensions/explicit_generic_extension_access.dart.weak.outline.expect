@@ -12,17 +12,17 @@ extension Extension1<T extends core::num> on self::Class<T> {
   static field latestType = self::Extension1|latestType;
   get field = self::Extension1|get#field;
   method method = self::Extension1|method;
-  tearoff method = self::Extension1|get#method;
+  method tearoff method = self::Extension1|get#method;
   method genericMethod = self::Extension1|genericMethod;
-  tearoff genericMethod = self::Extension1|get#genericMethod;
+  method tearoff genericMethod = self::Extension1|get#genericMethod;
   set field = self::Extension1|set#field;
 }
 extension Extension2<T extends core::num> on self::Class<T> {
   get field = self::Extension2|get#field;
   method method = self::Extension2|method;
-  tearoff method = self::Extension2|get#method;
+  method tearoff method = self::Extension2|get#method;
   method genericMethod = self::Extension2|genericMethod;
-  tearoff genericMethod = self::Extension2|get#genericMethod;
+  method tearoff genericMethod = self::Extension2|get#genericMethod;
   set field = self::Extension2|set#field;
 }
 static field core::String? Extension1|latestType;

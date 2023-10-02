@@ -407,6 +407,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     computer._addRegionForToken(node.name, node.constructorElement);
 
@@ -429,6 +435,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitExportDirective(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitExtensionTypeDeclaration(node);
   }
 
   @override
@@ -557,6 +569,15 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    if (node.constructorName?.name case final constructorName?) {
+      computer._addRegionForToken(constructorName, node.constructorElement);
+    }
+    computer._addRegionForToken(node.fieldName, node.fieldElement);
+    super.visitRepresentationDeclaration(node);
   }
 
   @override

@@ -13,16 +13,13 @@ import 'package:kernel/type_environment.dart';
 import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../messages.dart';
@@ -327,7 +324,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         }
       case FunctionTypeBuilder(
-          :List<TypeVariableBuilder>? typeVariables,
+          :List<StructuralVariableBuilder>? typeVariables,
           :List<ParameterBuilder>? formals,
           :TypeBuilder returnType
         ):
@@ -348,7 +345,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         }
         if (typeVariables != null) {
-          for (TypeVariableBuilder typeVariable in typeVariables) {
+          for (StructuralVariableBuilder typeVariable in typeVariables) {
             TypeBuilder? bound = typeVariable.bound;
             if (_checkRepresentationDependency(
                 bound,
@@ -448,8 +445,11 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
-  void addMemberDescriptorInternal(SourceMemberBuilder memberBuilder,
-      Member member, BuiltMemberKind memberKind, Reference memberReference) {
+  void addMemberDescriptorInternal(
+      SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind,
+      Reference memberReference,
+      Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionTypeMemberKind kind;
     switch (memberKind) {
@@ -462,8 +462,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionGetter:
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
-      case BuiltMemberKind.ExtensionTearOff:
-        unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
+        unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
@@ -492,13 +491,11 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionTypeOperator:
         kind = ExtensionTypeMemberKind.Operator;
         break;
-      case BuiltMemberKind.ExtensionTypeTearOff:
-        kind = ExtensionTypeMemberKind.TearOff;
-        break;
     }
     extensionTypeDeclaration.members.add(new ExtensionTypeMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
+        tearOff: tearOffReference,
         isStatic: memberBuilder.isStatic,
         kind: kind));
   }

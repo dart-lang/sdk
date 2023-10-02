@@ -5,7 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:devtools_shared/devtools_deeplink.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_server.dart';
 import 'package:mime/mime.dart';
@@ -131,7 +133,11 @@ FutureOr<Handler> defaultHandler({
     if (!ServerApi.canHandle(request)) {
       return Response.notFound('$method is not a valid API');
     }
-    return ServerApi.handle(request, ExtensionsManager(buildDir: buildDir));
+    return ServerApi.handle(
+      request,
+      extensionsManager: ExtensionsManager(buildDir: buildDir),
+      deeplinkManager: DeeplinkManager(),
+    );
   }
 
   return (Request request) {
@@ -160,7 +166,17 @@ Future<Response> _serveStaticFile(
   final headers = {HttpHeaders.contentTypeHeader: contentType};
 
   if (contentType != 'text/html') {
-    return Response.ok(file.readAsBytesSync(), headers: headers);
+    late final Uint8List fileBytes;
+    try {
+      fileBytes = file.readAsBytesSync();
+    } on PathNotFoundException catch (_) {
+      // Wait a short delay, and then retry in case we have hit a race condition
+      // between a static file being served and accessed. See
+      // https://github.com/flutter/devtools/issues/6365.
+      await Future.delayed(Duration(milliseconds: 500));
+      fileBytes = file.readAsBytesSync();
+    }
+    return Response.ok(fileBytes, headers: headers);
   }
 
   var contents = file.readAsStringSync();

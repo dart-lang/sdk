@@ -1724,7 +1724,7 @@ class B {}
     await _refactor(
       originalSource: originalSource,
       expected: expected,
-      actionTitle: "Move $count declarations to file",
+      actionTitle: 'Move $count declarations to file',
       otherFilePath: otherFilePath,
       otherFileContent: otherFileContent,
     );

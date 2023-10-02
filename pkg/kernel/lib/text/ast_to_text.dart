@@ -11,7 +11,7 @@ import '../ast.dart';
 import '../import_table.dart';
 import '../src/text_util.dart';
 
-abstract class Namer<T> {
+abstract mixin class Namer<T> {
   int index = 0;
   final Map<T, String> map = <T, String>{};
 
@@ -143,18 +143,24 @@ String debugTypeParameterName(TypeParameter node) {
 }
 
 String debugQualifiedTypeParameterName(TypeParameter node) {
-  TreeNode? parent = node.parent;
-  if (parent is Class) {
-    return debugQualifiedClassName(parent) +
-        '::' +
-        debugTypeParameterName(node);
+  GenericDeclaration? declaration = node.declaration;
+  switch (declaration) {
+    case Class():
+      return debugQualifiedClassName(declaration) +
+          '::' +
+          debugTypeParameterName(node);
+    case Procedure():
+      return debugQualifiedMemberName(declaration) +
+          '::' +
+          debugTypeParameterName(node);
+    case Typedef():
+    case Extension():
+    case ExtensionTypeDeclaration():
+    // TODO(johnniwinther): Support these cases directly?
+    case LocalFunction():
+    case null:
+      return debugTypeParameterName(node);
   }
-  if (parent is Member) {
-    return debugQualifiedMemberName(parent) +
-        '::' +
-        debugTypeParameterName(node);
-  }
-  return debugTypeParameterName(node);
 }
 
 String debugVariableDeclarationName(VariableDeclaration node) {
@@ -196,6 +202,8 @@ class NameSystem {
   final Namer<Library> libraries = new NormalNamer<Library>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
+  final Namer<StructuralParameter> structuralParameters =
+      new NormalNamer<StructuralParameter>('#T');
   final Namer<TreeNode> labels = new NormalNamer<TreeNode>('#L');
   final Namer<Constant> constants = new ConstantNamer('#C');
   final Disambiguator<Reference, CanonicalName> prefixes =
@@ -206,6 +214,8 @@ class NameSystem {
   String nameExtension(Extension node) => extensions.getName(node);
   String nameLibrary(Library node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
+  String nameStructuralParameter(StructuralParameter node) =>
+      structuralParameters.getName(node);
   String nameSwitchCase(SwitchCase node) => labels.getName(node);
   String nameLabeledStatement(LabeledStatement node) => labels.getName(node);
   String nameConstant(Constant node) => constants.getName(node);
@@ -273,7 +283,7 @@ abstract class Annotator {
 }
 
 /// A quick and dirty ambiguous text printer.
-class Printer extends Visitor<void> with VisitorVoidMixin {
+class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   final NameSystem syntheticNames;
   final StringSink sink;
   final Annotator? annotator;
@@ -394,18 +404,32 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     return node.name ?? syntheticNames.nameTypeParameter(node);
   }
 
+  String getStructuralParameterName(StructuralParameter node) {
+    return node.name ?? syntheticNames.nameStructuralParameter(node);
+  }
+
   String getTypeParameterReference(TypeParameter node) {
     String name = getTypeParameterName(node);
-    TreeNode? parent = node.parent;
-    if (parent is FunctionNode && parent.parent is Member) {
-      String member = getMemberReference(parent.parent as Member);
-      return '$member::$name';
-    } else if (parent is Class) {
-      String className = getClassReference(parent);
-      return '$className::$name';
-    } else {
-      return name; // Bound inside a function type.
+    GenericDeclaration? declaration = node.declaration;
+    switch (declaration) {
+      case Class():
+        String className = getClassReference(declaration);
+        return '$className::$name';
+      case Procedure():
+        String member = getMemberReference(declaration);
+        return '$member::$name';
+      case Typedef():
+      case Extension():
+      case ExtensionTypeDeclaration():
+      case LocalFunction():
+      // TODO(johnniwinther): Support these cases correctly.
+      case null:
+        return name; // Bound inside a function type.
     }
+  }
+
+  String getStructuralParameterReference(StructuralParameter node) {
+    return getStructuralParameterName(node);
   }
 
   void writeComponentProblems(Component component) {
@@ -842,7 +866,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (state == WORD) {
       ensureSpace();
     }
-    writeTypeParameterList(node.typeParameters);
+    writeStructuralParameterList(node.typeParameters);
     writeSymbol('(');
     List<DartType> positional = node.positionalParameters;
 
@@ -894,6 +918,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   void writeTypeParameterList(List<TypeParameter> typeParameters) {
+    if (typeParameters.isEmpty) return;
+    writeSymbol('<');
+    writeList(typeParameters, writeNode);
+    writeSymbol('>');
+    state = WORD; // Ensure space if not followed by another symbol.
+  }
+
+  void writeStructuralParameterList(List<StructuralParameter> typeParameters) {
     if (typeParameters.isEmpty) return;
     writeSymbol('<');
     writeList(typeParameters, writeNode);
@@ -1046,6 +1078,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   void writeTypeParameterReference(TypeParameter node) {
     writeWord(getTypeParameterReference(node));
+  }
+
+  void writeStructuralParameterReference(StructuralParameter node) {
+    writeWord(getStructuralParameterReference(node));
   }
 
   void writeExpression(Expression node, [int? minimumPrecedence]) {
@@ -1325,40 +1361,47 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine(endLineString);
     ++indentation;
     node.members.forEach((ExtensionMemberDescriptor descriptor) {
-      writeIndentation();
-      writeModifier(descriptor.isStatic, 'static');
-      switch (descriptor.kind) {
-        case ExtensionMemberKind.Method:
-          writeWord('method');
-          break;
-        case ExtensionMemberKind.Getter:
-          writeWord('get');
-          break;
-        case ExtensionMemberKind.Setter:
-          writeWord('set');
-          break;
-        case ExtensionMemberKind.Operator:
-          writeWord('operator');
-          break;
-        case ExtensionMemberKind.Field:
-          writeWord('field');
-          break;
-        case ExtensionMemberKind.TearOff:
-          writeWord('tearoff');
-          break;
-      }
-      writeName(descriptor.name);
-      writeSpaced('=');
-      Member member = descriptor.member.asMember;
-      if (member is Procedure) {
-        if (member.isGetter) {
-          writeWord('get');
-        } else if (member.isSetter) {
-          writeWord('set');
+      void writeReference(Reference reference, {required bool isTearOff}) {
+        writeIndentation();
+        writeModifier(descriptor.isStatic, 'static');
+        switch (descriptor.kind) {
+          case ExtensionMemberKind.Method:
+            writeWord('method');
+            break;
+          case ExtensionMemberKind.Getter:
+            writeWord('get');
+            break;
+          case ExtensionMemberKind.Setter:
+            writeWord('set');
+            break;
+          case ExtensionMemberKind.Operator:
+            writeWord('operator');
+            break;
+          case ExtensionMemberKind.Field:
+            writeWord('field');
+            break;
         }
+        if (isTearOff) {
+          writeWord('tearoff');
+        }
+        writeName(descriptor.name);
+        writeSpaced('=');
+        Member member = reference.asMember;
+        if (member is Procedure) {
+          if (member.isGetter) {
+            writeWord('get');
+          } else if (member.isSetter) {
+            writeWord('set');
+          }
+        }
+        writeMemberReferenceFromReference(reference);
+        endLine(';');
       }
-      writeMemberReferenceFromReference(descriptor.member);
-      endLine(';');
+
+      writeReference(descriptor.member, isTearOff: false);
+      if (descriptor.tearOff != null) {
+        writeReference(descriptor.tearOff!, isTearOff: true);
+      }
     });
     --indentation;
     writeIndentation();
@@ -1388,49 +1431,56 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     endLine(endLineString);
     ++indentation;
     node.members.forEach((ExtensionTypeMemberDescriptor descriptor) {
-      writeIndentation();
-      writeModifier(descriptor.isStatic, 'static');
-      switch (descriptor.kind) {
-        case ExtensionTypeMemberKind.Constructor:
-          writeWord('constructor');
-          break;
-        case ExtensionTypeMemberKind.Factory:
-          writeWord('factory');
-          break;
-        case ExtensionTypeMemberKind.RedirectingFactory:
-          writeWord('redirecting-factory');
-          break;
-        case ExtensionTypeMemberKind.Method:
-          writeWord('method');
-          break;
-        case ExtensionTypeMemberKind.Getter:
-          writeWord('get');
-          break;
-        case ExtensionTypeMemberKind.Setter:
-          writeWord('set');
-          break;
-        case ExtensionTypeMemberKind.Operator:
-          writeWord('operator');
-          break;
-        case ExtensionTypeMemberKind.Field:
-          writeWord('field');
-          break;
-        case ExtensionTypeMemberKind.TearOff:
-          writeWord('tearoff');
-          break;
-      }
-      writeName(descriptor.name);
-      writeSpaced('=');
-      Member member = descriptor.member.asMember;
-      if (member is Procedure) {
-        if (member.isGetter) {
-          writeWord('get');
-        } else if (member.isSetter) {
-          writeWord('set');
+      void writeReference(Reference reference, {required bool isTearOff}) {
+        writeIndentation();
+        writeModifier(descriptor.isStatic, 'static');
+        switch (descriptor.kind) {
+          case ExtensionTypeMemberKind.Constructor:
+            writeWord('constructor');
+            break;
+          case ExtensionTypeMemberKind.Factory:
+            writeWord('factory');
+            break;
+          case ExtensionTypeMemberKind.RedirectingFactory:
+            writeWord('redirecting-factory');
+            break;
+          case ExtensionTypeMemberKind.Method:
+            writeWord('method');
+            break;
+          case ExtensionTypeMemberKind.Getter:
+            writeWord('get');
+            break;
+          case ExtensionTypeMemberKind.Setter:
+            writeWord('set');
+            break;
+          case ExtensionTypeMemberKind.Operator:
+            writeWord('operator');
+            break;
+          case ExtensionTypeMemberKind.Field:
+            writeWord('field');
+            break;
         }
+        if (isTearOff) {
+          writeWord('tearoff');
+        }
+        writeName(descriptor.name);
+        writeSpaced('=');
+        Member member = reference.asMember;
+        if (member is Procedure) {
+          if (member.isGetter) {
+            writeWord('get');
+          } else if (member.isSetter) {
+            writeWord('set');
+          }
+        }
+        writeMemberReferenceFromReference(reference);
+        endLine(';');
       }
-      writeMemberReferenceFromReference(descriptor.member);
-      endLine(';');
+
+      writeReference(descriptor.member, isTearOff: false);
+      if (descriptor.tearOff != null) {
+        writeReference(descriptor.tearOff!, isTearOff: true);
+      }
     });
     --indentation;
     writeIndentation();
@@ -2708,6 +2758,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    writeStructuralParameterReference(node.parameter);
+    writeNullability(node.declaredNullability);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     writeType(node.left);
     writeSpaced('&');
@@ -2735,6 +2791,25 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       ][node.variance]);
     }
     writeWord(getTypeParameterName(node));
+    writeSpaced('extends');
+    writeType(node.bound);
+    if (node.defaultType != node.bound) {
+      writeSpaced('=');
+      writeType(node.defaultType);
+    }
+  }
+
+  @override
+  void visitStructuralParameter(StructuralParameter node) {
+    if (node.variance != Variance.covariant) {
+      writeWord(const <String>[
+        "unrelated",
+        "covariant",
+        "contravariant",
+        "invariant"
+      ][node.variance]);
+    }
+    writeWord(getStructuralParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
     if (node.defaultType != node.bound) {
@@ -3052,7 +3127,7 @@ class Precedence implements ExpressionVisitor<int> {
   }
 
   @override
-  int defaultExpression(Expression node) => EXPRESSION;
+  int visitAuxiliaryExpression(AuxiliaryExpression node) => EXPRESSION;
 
   @override
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
@@ -3218,9 +3293,6 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitLet(Let node) => EXPRESSION;
-
-  @override
-  int defaultBasicLiteral(BasicLiteral node) => CALLEE;
 
   @override
   int visitBlockExpression(BlockExpression node) => EXPRESSION;

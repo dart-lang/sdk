@@ -904,7 +904,7 @@ class DartObjectImpl implements DartObject, Constant {
   Map<DartObjectImpl, DartObjectImpl>? toMapValue() {
     final state = this.state;
     if (state is MapState) {
-      return state._entries;
+      return state.entries;
     }
     return null;
   }
@@ -913,7 +913,7 @@ class DartObjectImpl implements DartObject, Constant {
   Set<DartObjectImpl>? toSetValue() {
     final state = this.state;
     if (state is SetState) {
-      return state._elements;
+      return state.elements;
     }
     return null;
   }
@@ -2352,49 +2352,95 @@ class IntState extends NumState {
 
 /// An invalid constant that contains diagnostic information.
 class InvalidConstant implements Constant {
-  /// The entity that a constant evaluator error is reported at.
-  final SyntacticEntity entity;
+  /// The length of the entity that the evaluation error is reported at.
+  final int length;
 
-  /// The error code that is reported at the location of the [entity].
+  /// The offset of the entity that the evaluation error is reported at.
+  final int offset;
+
+  /// The error code that is being reported.
   final ErrorCode errorCode;
 
   /// The arguments required to complete the message.
-  final List<Object>? arguments;
+  final List<Object> arguments;
 
   /// Additional context messages for the error, including stack trace
   /// information if the error occurs within a constructor.
   final List<DiagnosticMessage> contextMessages;
 
-  /// Return `true` if the error was an exception thrown during constant
-  /// evaluation.
+  /// Whether to omit reporting this error.
   ///
-  /// In [ConstantEvaluationEngine.evaluateAndReportErrorsInConstructorCall],
-  /// we report this with a [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]
-  /// and a context message pointing to where the exception was thrown.
+  /// If set to `true`, error reporting will ignore this invalid constant.
+  /// Defaults to `false`.
+  ///
+  /// The `ConstantVisitor` can change this to `true` when there's already an
+  /// error reported and this invalid constant would be an unnecessary follow-on
+  /// error.
+  bool avoidReporting;
+
+  /// Whether this error was an exception thrown during constant evaluation.
+  ///
+  /// In [ConstantEvaluationEngine.evaluateAndFormatErrorsInConstructorCall],
+  /// we convert this error into a
+  /// [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION] with a context message
+  /// pointing to where the exception was thrown.
   final bool isRuntimeException;
 
-  /// Return `true` if the constant evaluation encounters an unresolved
-  /// expression.
+  /// Whether the constant evaluation encounters an unresolved expression.
   final bool isUnresolved;
 
-  InvalidConstant(this.entity, this.errorCode,
-      {this.arguments,
-      List<DiagnosticMessage>? contextMessages,
-      this.isUnresolved = false,
-      this.isRuntimeException = false})
-      : contextMessages = contextMessages ?? [];
-
   /// Creates a duplicate instance of [other], with a different [entity].
-  factory InvalidConstant.forEntity(
+  factory InvalidConstant.copyWithEntity(
       InvalidConstant other, SyntacticEntity entity) {
-    return InvalidConstant(entity, other.errorCode,
-        arguments: other.arguments,
-        contextMessages: other.contextMessages,
-        isUnresolved: other.isUnresolved,
-        isRuntimeException: other.isRuntimeException);
+    return InvalidConstant.forEntity(
+      entity,
+      other.errorCode,
+      arguments: other.arguments,
+      contextMessages: other.contextMessages,
+      avoidReporting: other.avoidReporting,
+      isUnresolved: other.isUnresolved,
+      isRuntimeException: other.isRuntimeException,
+    );
   }
 
-  /// Returns a generic error depending on the [node] provided.
+  /// Creates a constant evaluation error associated with an [element].
+  InvalidConstant.forElement(Element element, ErrorCode errorCode,
+      {List<Object>? arguments,
+      List<DiagnosticMessage>? contextMessages,
+      bool avoidReporting = false,
+      bool isUnresolved = false,
+      bool isRuntimeException = false})
+      : this._(
+          element.nameLength,
+          element.nameOffset,
+          errorCode,
+          arguments: arguments,
+          contextMessages: contextMessages,
+          avoidReporting: avoidReporting,
+          isUnresolved: isUnresolved,
+          isRuntimeException: isRuntimeException,
+        );
+
+  /// Creates a constant evaluation error associated with a token or node
+  /// [entity].
+  InvalidConstant.forEntity(SyntacticEntity entity, ErrorCode errorCode,
+      {List<Object>? arguments,
+      List<DiagnosticMessage>? contextMessages,
+      bool avoidReporting = false,
+      bool isUnresolved = false,
+      bool isRuntimeException = false})
+      : this._(
+          entity.length,
+          entity.offset,
+          errorCode,
+          arguments: arguments,
+          contextMessages: contextMessages,
+          avoidReporting: avoidReporting,
+          isUnresolved: isUnresolved,
+          isRuntimeException: isRuntimeException,
+        );
+
+  /// Creates a generic error depending on the [node] provided.
   factory InvalidConstant.genericError(AstNode node,
       {bool isUnresolved = false}) {
     final parent = node.parent;
@@ -2402,13 +2448,23 @@ class InvalidConstant implements Constant {
     if (parent is ArgumentList &&
         parent2 is InstanceCreationExpression &&
         parent2.isConst) {
-      return InvalidConstant(
+      return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
           isUnresolved: isUnresolved);
     }
-    return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT,
+    return InvalidConstant.forEntity(
+        node, CompileTimeErrorCode.INVALID_CONSTANT,
         isUnresolved: isUnresolved);
   }
+
+  InvalidConstant._(this.length, this.offset, this.errorCode,
+      {List<Object>? arguments,
+      List<DiagnosticMessage>? contextMessages,
+      this.avoidReporting = false,
+      this.isUnresolved = false,
+      this.isRuntimeException = false})
+      : arguments = arguments ?? [],
+        contextMessages = contextMessages ?? [];
 }
 
 /// The state of an object representing a list.
@@ -2491,16 +2547,16 @@ class ListState extends InstanceState {
 /// The state of an object representing a map.
 class MapState extends InstanceState {
   /// The entries in the map.
-  final Map<DartObjectImpl, DartObjectImpl> _entries;
+  final Map<DartObjectImpl, DartObjectImpl> entries;
 
   /// Initialize a newly created state to represent a map with the given
   /// [entries].
-  MapState(this._entries);
+  MapState(this.entries);
 
   @override
   int get hashCode {
     int value = 0;
-    for (DartObjectImpl key in _entries.keys.toSet()) {
+    for (DartObjectImpl key in entries.keys.toSet()) {
       value = (value << 3) ^ key.hashCode;
     }
     return value;
@@ -2512,15 +2568,15 @@ class MapState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is MapState) {
-      Map<DartObjectImpl, DartObjectImpl> otherElements = other._entries;
-      int count = _entries.length;
+      Map<DartObjectImpl, DartObjectImpl> otherElements = other.entries;
+      int count = entries.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
-      for (DartObjectImpl key in _entries.keys) {
-        var value = _entries[key];
+      for (DartObjectImpl key in entries.keys) {
+        var value = entries[key];
         var otherValue = otherElements[key];
         if (value != otherValue) {
           return false;
@@ -2552,7 +2608,7 @@ class MapState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
-    _entries.forEach((DartObjectImpl key, DartObjectImpl value) {
+    entries.forEach((DartObjectImpl key, DartObjectImpl value) {
       if (first) {
         first = false;
       } else {
@@ -2763,16 +2819,16 @@ class RecordState extends InstanceState {
 /// The state of an object representing a set.
 class SetState extends InstanceState {
   /// The elements of the set.
-  final Set<DartObjectImpl> _elements;
+  final Set<DartObjectImpl> elements;
 
   /// Initialize a newly created state to represent a set with the given
   /// [elements].
-  SetState(this._elements);
+  SetState(this.elements);
 
   @override
   int get hashCode {
     int value = 0;
-    for (DartObjectImpl element in _elements) {
+    for (DartObjectImpl element in elements) {
       value = (value << 3) ^ element.hashCode;
     }
     return value;
@@ -2784,16 +2840,16 @@ class SetState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is SetState) {
-      List<DartObjectImpl> elements = _elements.toList();
-      List<DartObjectImpl> otherElements = other._elements.toList();
-      int count = elements.length;
+      List<DartObjectImpl> currentElements = elements.toList();
+      List<DartObjectImpl> otherElements = other.elements.toList();
+      int count = currentElements.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
       for (int i = 0; i < count; i++) {
-        if (elements[i] != otherElements[i]) {
+        if (currentElements[i] != otherElements[i]) {
           return false;
         }
       }
@@ -2823,7 +2879,7 @@ class SetState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
-    for (var element in _elements) {
+    for (var element in elements) {
       if (first) {
         first = false;
       } else {

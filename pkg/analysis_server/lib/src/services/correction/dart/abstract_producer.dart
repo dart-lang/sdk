@@ -677,13 +677,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     return null;
   }
 
-  /// Replace all occurrences of the [oldIndent] with the [newIndent] within the
-  /// [source].
-  String replaceSourceIndent(
-      String source, String oldIndent, String newIndent) {
-    return source.replaceAll(RegExp('^$oldIndent', multiLine: true), newIndent);
-  }
-
   /// Return `true` if the given [expression] should be wrapped with parenthesis
   /// when we want to use it as operand of a logical `and` expression.
   bool shouldWrapParenthesisBeforeAnd(Expression expression) {

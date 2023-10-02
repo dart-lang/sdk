@@ -108,7 +108,7 @@ abstract class AbstractCompletionDriverTest
 
   /// Asserts that the [response] has the [expected] textual dump produced
   /// using [printerConfiguration].
-  void assertResponse(String expected) {
+  void assertResponse(String expected, {String where = ''}) {
     final buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
@@ -118,12 +118,14 @@ abstract class AbstractCompletionDriverTest
     final actual = buffer.toString();
 
     if (actual != expected) {
-      var target = driver.server.server.completionState.currentRequest?.target;
-      var where = '';
-      if (target != null) {
-        var containingNode = target.containingNode.runtimeType;
-        var entity = target.entity;
-        where = ' (containingNode = $containingNode, entity = $entity)';
+      if (where.isEmpty) {
+        var target =
+            driver.server.server.completionState.currentRequest?.target;
+        if (target != null) {
+          var containingNode = target.containingNode.runtimeType;
+          var entity = target.entity;
+          where = ' (containingNode = $containingNode, entity = $entity)';
+        }
       }
       TextExpectationsCollector.add(actual);
       fail('''

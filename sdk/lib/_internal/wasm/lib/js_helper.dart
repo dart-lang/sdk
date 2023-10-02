@@ -10,6 +10,7 @@ import 'dart:_js_annotations' as js;
 import 'dart:_js_types' as js_types;
 import 'dart:_wasm';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 part 'regexp_helper.dart';
@@ -98,11 +99,6 @@ extension JSArrayExtension on JSArray {
   external JSNumber get length;
 }
 
-extension JSObjectExtension on JSObject {
-  external JSAny? operator [](JSString key);
-  external void operator []=(JSString key, JSAny? value);
-}
-
 class JSArrayIteratorAdapter<T> implements Iterator<T> {
   final JSArray array;
   int index = -1;
@@ -125,7 +121,8 @@ class JSArrayIteratorAdapter<T> implements Iterator<T> {
 
 /// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]
 /// interface.
-class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T> {
+class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T>
+    implements HideEfficientLengthIterable<T> {
   final JSArray array;
 
   JSArrayIterableAdapter(this.array);
@@ -526,7 +523,7 @@ List<int> jsIntTypedArrayToDartIntTypedData(
 
 JSArray toJSArray(List<JSAny?> list) {
   int length = list.length;
-  JSArray result = JSArray.withLength(length.toJS);
+  JSArray result = JSArray.withLength(length);
   for (int i = 0; i < length; i++) {
     result[i.toJS] = list[i];
   }

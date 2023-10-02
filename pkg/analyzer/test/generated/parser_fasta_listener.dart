@@ -399,9 +399,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
-    super.beginMixinDeclaration(augmentToken, baseToken, mixinKeyword, name);
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(
+        beginToken, augmentToken, baseToken, mixinKeyword, name);
     begin('MixinDeclaration');
   }
 
@@ -775,9 +776,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     end('Enum');
-    super.endEnum(enumKeyword, leftBrace, memberCount);
+    super.endEnum(beginToken, enumKeyword, leftBrace, memberCount, endToken);
   }
 
   @override
@@ -845,8 +847,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
-    super.endExtensionDeclaration(extensionKeyword, onKeyword, token);
+      Token beginToken, Token extensionKeyword, Token onKeyword, Token token) {
+    super.endExtensionDeclaration(
+        beginToken, extensionKeyword, onKeyword, token);
     end('ExtensionDeclaration');
   }
 
@@ -1106,10 +1109,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     end('MixinDeclaration');
     end('ClassOrNamedMixinApplication');
-    super.endMixinDeclaration(mixinKeyword, endToken);
+    super.endMixinDeclaration(beginToken, endToken);
   }
 
   @override

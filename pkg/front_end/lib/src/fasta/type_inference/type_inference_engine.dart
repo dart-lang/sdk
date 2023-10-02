@@ -1,7 +1,8 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -20,7 +21,8 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../source/source_constructor_builder.dart';
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart'
+    show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import 'factor_type.dart';
 import 'type_inferrer.dart';
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
@@ -37,9 +39,9 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
       : _variance = initialVariance;
 
   @override
-  bool defaultDartType(DartType node) {
+  bool visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "IncludesTypeParametersNonCovariantly.defaultDartType");
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override
@@ -65,7 +67,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
     if (node.returnType.accept(this)) return true;
     int oldVariance = _variance;
     _variance = Variance.invariant;
-    for (TypeParameter parameter in node.typeParameters) {
+    for (StructuralParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
     }
     _variance = Variance.combine(Variance.contravariant, oldVariance);
@@ -116,6 +118,11 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   bool visitTypeParameterType(TypeParameterType node) {
     return !Variance.greaterThanOrEqual(_variance, node.parameter.variance) &&
         _typeParametersToSearchFor.contains(node.parameter);
+  }
+
+  @override
+  bool visitStructuralParameterType(StructuralParameterType node) {
+    return false;
   }
 
   @override
@@ -459,10 +466,8 @@ class OperationsCfe
   final Nullability nullability;
 
   /// If `null`, field promotion is disabled for this library.  If not `null`,
-  /// field promotion is enabled for this library and this is the set of private
-  /// field names for which promotion is blocked due to the presence of a
-  /// non-final field or a concrete getter.
-  final Set<String>? unpromotablePrivateFieldNames;
+  /// information about which fields are promotable in this library.
+  final FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   final Map<DartType, DartType> typeCacheNonNullable;
   final Map<DartType, DartType> typeCacheNullable;
@@ -470,7 +475,7 @@ class OperationsCfe
 
   OperationsCfe(this.typeEnvironment,
       {required this.nullability,
-      this.unpromotablePrivateFieldNames,
+      this.fieldNonPromotabilityInfo,
       required this.typeCacheNonNullable,
       required this.typeCacheNullable,
       required this.typeCacheLegacy});
@@ -505,9 +510,9 @@ class OperationsCfe
 
   @override
   bool isPropertyPromotable(covariant Member property) {
-    Set<String>? unpromotablePrivateFieldNames =
-        this.unpromotablePrivateFieldNames;
-    if (unpromotablePrivateFieldNames == null) return false;
+    FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
+        this.fieldNonPromotabilityInfo;
+    if (fieldNonPromotabilityInfo == null) return false;
     if (property is Procedure) {
       if (property.isAbstractFieldAccessor || property.isLoweredLateField) {
         // Property was declared as a field; it was lowered to a getter or
@@ -520,7 +525,18 @@ class OperationsCfe
     }
     String name = property.name.text;
     if (!name.startsWith('_')) return false;
-    return !unpromotablePrivateFieldNames.contains(name);
+    return fieldNonPromotabilityInfo.fieldNameInfo[name] == null;
+  }
+
+  @override
+  PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
+      covariant Member property) {
+    FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
+        this.fieldNonPromotabilityInfo;
+    if (fieldNonPromotabilityInfo == null) {
+      return PropertyNonPromotabilityReason.isNotEnabled;
+    }
+    return fieldNonPromotabilityInfo.individualPropertyReasons[property];
   }
 
   // TODO(cstefantsova): Consider checking for mutual subtypes instead of ==.

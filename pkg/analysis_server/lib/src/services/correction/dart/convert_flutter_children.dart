@@ -26,7 +26,13 @@ class ConvertFlutterChildren extends ResolvedCorrectionProducer {
             var widgetText = utils.getNodeText(widget);
             var indentOld = utils.getLinePrefix(widget.offset);
             var indentNew = utils.getLinePrefix(namedExpression.offset);
-            widgetText = _replaceSourceIndent(widgetText, indentOld, indentNew);
+            widgetText = utils.replaceSourceIndent(
+              widgetText,
+              indentOld,
+              indentNew,
+              includeLeading: false,
+              includeTrailingNewline: false,
+            );
 
             await builder.addDartFileEdit(file, (builder) {
               builder.addReplacement(range.node(namedExpression), (builder) {
@@ -38,10 +44,5 @@ class ConvertFlutterChildren extends ResolvedCorrectionProducer {
         }
       }
     }
-  }
-
-  String _replaceSourceIndent(
-      String source, String indentOld, String indentNew) {
-    return source.replaceAll(RegExp('^$indentOld', multiLine: true), indentNew);
   }
 }

@@ -5,6 +5,7 @@ class A {
   void set setter(int value) {}
 }
 class B extends A {}
-extension type E(B it) implements B {} extension type F(B it) implements E {}
+extension type E(B it) implements B {}
+extension type F(B it) implements E {}
 main() {}
 expect(expected, actual) {}

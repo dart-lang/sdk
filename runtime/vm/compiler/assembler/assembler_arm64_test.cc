@@ -1125,9 +1125,9 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore32, assembler) {
   __ movz(R1, Immediate(42), 0);
 
   __ ldxr(R0, SP, kFourBytes);
-  __ clrex();                   // Simulate a context switch.
+  __ clrex();                        // Simulate a context switch.
   __ stxr(TMP, R1, SP, kFourBytes);  // IP == 1, failure
-  __ Pop(R0);                   // 40
+  __ Pop(R0);                        // 40
   __ add(R0, R0, Operand(TMP));
   __ RestoreCSP();
   __ ret();
@@ -3692,7 +3692,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0x89, 0xAB, 0xCD, 0xEF,
+      0x89,
+      0xAB,
+      0xCD,
+      0xEF,
   };
 
   EXPECT_EQ(
@@ -3719,7 +3722,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnsignedUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0x89, 0xAB, 0xCD, 0xEF,
+      0x89,
+      0xAB,
+      0xCD,
+      0xEF,
   };
 
   EXPECT_EQ(0xAB89, EXECUTE_TEST_CODE_INTPTR_INTPTR(
@@ -3745,7 +3751,10 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*StoreHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0, 0, 0, 0,
+      0,
+      0,
+      0,
+      0,
   };
 
   EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
@@ -7693,6 +7702,44 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   result = test->Invoke<intptr_t, intptr_t>(kMintCid);
   EXPECT_EQ(kMintCid, result);
 }
+
+#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
+  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
+                          assembler) {                                         \
+    const bool same_register = SAME_REGISTER;                                  \
+    const Register src = CallingConventions::ArgumentRegisters[0];             \
+    const Register dst =                                                       \
+        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
+    const intptr_t value = VALUE;                                              \
+                                                                               \
+    __ SetupDartSP();                                                          \
+    EnterTestFrame(assembler);                                                 \
+                                                                               \
+    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
+    __ LoadWordFromBoxOrSmi(dst, src);                                         \
+    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
+                                                                               \
+    LeaveTestFrame(assembler);                                                 \
+    __ RestoreCSP();                                                           \
+    __ Ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
+    const intptr_t res =                                                       \
+        test->InvokeWithCodeAndThread<intptr_t>(static_cast<intptr_t>(0x0));   \
+    EXPECT_EQ(static_cast<intptr_t>(VALUE), res);                              \
+  }
+
+LOAD_FROM_BOX_TEST(0, true)
+LOAD_FROM_BOX_TEST(0, false)
+LOAD_FROM_BOX_TEST(1, true)
+LOAD_FROM_BOX_TEST(1, false)
+LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, true)
+LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, false)
+LOAD_FROM_BOX_TEST(0x8000000000000000, true)
+LOAD_FROM_BOX_TEST(0x8000000000000000, false)
+LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
+LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
 
 }  // namespace compiler
 }  // namespace dart

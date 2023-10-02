@@ -448,13 +448,14 @@ class LocalsHandler {
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
       HInstruction box = readLocal(localBox);
-      builder.add(HFieldSet(_abstractValueDomain, redirect, box, value)
+      builder.add(HFieldSet(redirect, box, value)
         ..sourceInformation = sourceInformation);
     } else {
       assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
-      builder.add(HLocalSet(_abstractValueDomain, local, localValue, value)
-        ..sourceInformation = sourceInformation);
+      builder.add(
+          HLocalSet(local, localValue, value, _abstractValueDomain.dynamicType)
+            ..sourceInformation = sourceInformation);
     }
   }
 

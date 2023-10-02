@@ -80,7 +80,7 @@ class GetterCall extends core::Object {
 }
 extension Extension on core::int {
   method call = self::Extension|call;
-  tearoff call = self::Extension|get#call;
+  method tearoff call = self::Extension|get#call;
 }
 extension ExtensionGetter on core::double {
   get call = self::ExtensionGetter|get#call;
@@ -90,11 +90,11 @@ extension ExtensionSetter on core::bool {
 }
 extension Ambiguous1 on core::String {
   method call = self::Ambiguous1|call;
-  tearoff call = self::Ambiguous1|get#call;
+  method tearoff call = self::Ambiguous1|get#call;
 }
 extension Ambiguous2 on core::String {
   method call = self::Ambiguous2|call;
-  tearoff call = self::Ambiguous2|get#call;
+  method tearoff call = self::Ambiguous2|get#call;
 }
 static field self::Class c1;
 static field self::Class? c2;

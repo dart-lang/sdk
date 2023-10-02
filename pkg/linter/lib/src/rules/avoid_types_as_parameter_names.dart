@@ -86,6 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (result.isRequestedName) {
       var element = result.element;
       return element is ClassElement ||
+          element is ExtensionTypeElement ||
           element is TypeAliasElement ||
           element is TypeParameterElement;
     }

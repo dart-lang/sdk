@@ -13,15 +13,12 @@ import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'integration/avoid_web_libraries_in_flutter.dart'
-    as avoid_web_libraries_in_flutter;
-import 'integration/close_sinks.dart' as close_sinks;
 import 'mocks.dart';
 import 'test_constants.dart';
 
 void main() {
+  // ignore: unnecessary_lambdas
   group('integration', () {
-    ruleTests();
     coreTests();
   });
 }
@@ -86,13 +83,6 @@ void coreTests() {
         expect(configuredLints, unorderedEquals(registered));
       });
     });
-  });
-}
-
-void ruleTests() {
-  group('rule', () {
-    avoid_web_libraries_in_flutter.main();
-    close_sinks.main();
   });
 }
 

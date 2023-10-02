@@ -108,6 +108,19 @@ base mixin class B implements A {}
     ]);
   }
 
+  test_extensionType() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@reopen
+extension type E(int i) {
+  void m() { }
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 6),
+    ]);
+  }
+
   test_finalClass_supertypeIsFinal() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

@@ -2,29 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.function_type_alias_builder;
-
-import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-
-import '../fasta_codes.dart'
-    show
-        noLength,
-        templateCyclicTypedef,
-        templateTypeArgumentMismatch,
-        messageTypedefTypeVariableNotConstructor,
-        messageTypedefTypeVariableNotConstructorCause;
-import '../problems.dart' show unhandled;
-import '../source/source_library_builder.dart';
-import 'class_builder.dart';
-import 'extension_type_declaration_builder.dart';
-import 'library_builder.dart';
-import 'metadata_builder.dart';
-import 'named_type_builder.dart';
-import 'nullability_builder.dart';
-import 'type_builder.dart';
-import 'type_declaration_builder.dart';
-import 'type_variable_builder.dart';
+part of 'declaration_builders.dart';
 
 abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   TypeBuilder get type;
@@ -80,7 +58,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables});
+      List<StructuralVariableBuilder>? unboundTypeVariables});
 
   /// Helper method for computing [unalias].
   ///
@@ -107,7 +85,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
       List<TypeBuilder>? typeArguments,
       Set<TypeAliasBuilder> currentTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables);
+      List<StructuralVariableBuilder>? unboundTypeVariables);
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -247,7 +225,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables}) {
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
     Set<TypeAliasBuilder> currentTypeAliasBuilders;
     if (usedTypeAliasBuilders != null && usedTypeAliasBuilders.isEmpty) {
       currentTypeAliasBuilders = usedTypeAliasBuilders;
@@ -273,7 +251,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       List<TypeBuilder>? typeArguments,
       Set<TypeAliasBuilder> currentBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables) {
+      List<StructuralVariableBuilder>? unboundTypeVariables) {
     if (!currentBuilders.add(this)) {
       // Cyclic type alias.
       libraryBuilder.addProblem(templateCyclicTypedef.withArguments(this.name),

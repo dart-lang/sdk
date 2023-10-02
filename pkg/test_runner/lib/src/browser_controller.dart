@@ -404,6 +404,8 @@ class Chrome extends Browser {
         "--disable-component-update",
         "--disable-extensions",
         "--disable-popup-blocking",
+        "--disable-features=IntensiveWakeUpThrottling",
+        "--disable-blink-features=TimerThrottlingForBackgroundTabs",
         "--no-first-run",
         "--use-mock-keychain",
         "--user-data-dir=${userDir.path}",

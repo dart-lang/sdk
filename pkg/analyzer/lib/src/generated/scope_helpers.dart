@@ -63,7 +63,7 @@ mixin ScopeHelpers {
     required Token nameToken,
   }) {
     errorReporter.reportErrorForToken(
-      HintCode.DEPRECATED_EXPORT_USE,
+      WarningCode.DEPRECATED_EXPORT_USE,
       nameToken,
       [nameToken.lexeme],
     );

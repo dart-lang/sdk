@@ -24,7 +24,7 @@ Expression implicitThis_whyNotPromoted(String staticType,
 /// Test harness for creating flow analysis tests.  This class implements all
 /// the [Operations] needed by flow analysis, as well as other methods needed
 /// for testing.
-class FlowAnalysisTestHarness extends Harness implements FlowModelHelper<Type> {
+class FlowAnalysisTestHarness extends Harness with FlowModelHelper<Type> {
   @override
   final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
 

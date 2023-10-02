@@ -34,19 +34,19 @@ class Serializer {
     }
   }
 
-  void _debugTrace(Object data) {
+  void debugTrace(Object data) {
     _traces[_index] ??= data;
   }
 
   void writeByte(int byte) {
-    if (traceEnabled) _debugTrace(StackTrace.current);
+    if (traceEnabled) debugTrace(StackTrace.current);
     assert(byte == byte & 0xFF);
     _ensure(1);
     _data[_index++] = byte;
   }
 
   void writeBytes(List<int> bytes) {
-    if (traceEnabled) _debugTrace(StackTrace.current);
+    if (traceEnabled) debugTrace(StackTrace.current);
     _ensure(bytes.length);
     _data.setRange(_index, _index += bytes.length, bytes);
   }
@@ -101,24 +101,22 @@ class Serializer {
     }
   }
 
-  void writeData(Serializer chunk, [List<int>? watchPoints]) {
-    if (traceEnabled) _debugTrace(chunk);
-    if (watchPoints != null) {
-      for (int watchPoint in watchPoints) {
-        if (_index <= watchPoint && watchPoint < _index + chunk.data.length) {
-          int byteValue = chunk.data[watchPoint - _index];
-          Object trace = this;
-          int offset = watchPoint;
-          while (trace is Serializer) {
-            int keyOffset = trace._traces.containsKey(offset)
-                ? offset
-                : trace._traces.lastKeyBefore(offset)!;
-            trace = trace._traces[keyOffset]!;
-            offset -= keyOffset;
-          }
-          String byte = byteValue.toRadixString(16).padLeft(2, '0');
-          print("Watch $watchPoint: 0x$byte\n$trace");
+  void writeData(Serializer chunk, [List<int> watchPoints = const []]) {
+    if (traceEnabled) debugTrace(chunk);
+    for (int watchPoint in watchPoints) {
+      if (_index <= watchPoint && watchPoint < _index + chunk.data.length) {
+        int byteValue = chunk.data[watchPoint - _index];
+        Object trace = this;
+        int offset = watchPoint;
+        while (trace is Serializer) {
+          int keyOffset = trace._traces.containsKey(offset)
+              ? offset
+              : trace._traces.lastKeyBefore(offset)!;
+          trace = trace._traces[keyOffset]!;
+          offset -= keyOffset;
         }
+        String byte = byteValue.toRadixString(16).padLeft(2, '0');
+        print("Watch $watchPoint: 0x$byte\n$trace");
       }
     }
     writeBytes(chunk.data);

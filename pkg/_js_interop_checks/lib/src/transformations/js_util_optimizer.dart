@@ -466,8 +466,7 @@ class JsUtilOptimizer extends Transformer {
       invocation = _lowerCallMethod(node, shouldTrustType: false);
     } else if (target == _callConstructorTarget) {
       invocation = _lowerCallConstructor(node);
-    } else if (target.isExternal &&
-        !JsInteropChecks.isAllowedCustomStaticInteropImplementation(target)) {
+    } else if (target.isExternal && !JsInteropChecks.isPatchedMember(target)) {
       final builder = _externalInvocationBuilders.putIfAbsent(
           target, () => _getExternalInvocationBuilder(target));
       if (builder != null) invocation = builder(node.arguments, node);
@@ -715,9 +714,6 @@ class ExtensionIndex {
   void _indexExtensions(Library library) {
     if (_processedExtensionLibraries.contains(library)) return;
     for (var extension in library.extensions) {
-      // Descriptors of tear-offs have the same name as the member they tear
-      // off. This is used to find the tear-offs and their associated member.
-      final descriptorNames = <String, ExtensionMemberDescriptor>{};
       for (var descriptor in extension.members) {
         var reference = descriptor.member;
         var onType = extension.onType;
@@ -738,22 +734,16 @@ class ExtensionIndex {
           isInteropOnType = isInteropExtensionType(extensionType);
         }
         if (!isInteropOnType) continue;
+
         _extensionMemberIndex[reference] = descriptor;
         _extensionAnnotatableIndex[reference] = cls!;
         _extensionIndex[reference] = extension;
-        if (descriptor.kind == ExtensionMemberKind.Method ||
-            descriptor.kind == ExtensionMemberKind.TearOff) {
-          final descriptorName = descriptor.name.text;
-          if (descriptorNames.containsKey(descriptorName)) {
-            final previousDesc = descriptorNames[descriptorName]!;
-            if (previousDesc.kind == ExtensionMemberKind.TearOff) {
-              _extensionTearOffIndex[previousDesc.member] = descriptor.member;
-            } else {
-              _extensionTearOffIndex[descriptor.member] = previousDesc.member;
-            }
-          } else {
-            descriptorNames[descriptorName] = descriptor;
-          }
+        final tearOffReference = descriptor.tearOff;
+        if (tearOffReference != null) {
+          _extensionMemberIndex[tearOffReference] = descriptor;
+          _extensionIndex[tearOffReference] = extension;
+          _extensionAnnotatableIndex[reference] = cls;
+          _extensionTearOffIndex[tearOffReference] = reference;
         }
       }
     }
@@ -842,28 +832,15 @@ class ExtensionIndex {
     if (_processedExtensionTypeLibraries.contains(library)) return;
     for (var extensionType in library.extensionTypeDeclarations) {
       if (isInteropExtensionType(extensionType)) {
-        final descriptorNames = <String, ExtensionTypeMemberDescriptor>{};
         for (var descriptor in extensionType.members) {
           final reference = descriptor.member;
           _extensionTypeMemberIndex[reference] = descriptor;
           _extensionTypeIndex[reference] = extensionType;
-          if (descriptor.kind == ExtensionTypeMemberKind.Method ||
-              descriptor.kind == ExtensionTypeMemberKind.Constructor ||
-              descriptor.kind == ExtensionTypeMemberKind.Factory ||
-              descriptor.kind == ExtensionTypeMemberKind.TearOff) {
-            final descriptorName = descriptor.name.text;
-            if (descriptorNames.containsKey(descriptorName)) {
-              final previousDesc = descriptorNames[descriptorName]!;
-              if (previousDesc.kind == ExtensionTypeMemberKind.TearOff) {
-                _extensionTypeTearOffIndex[previousDesc.member] =
-                    descriptor.member;
-              } else {
-                _extensionTypeTearOffIndex[descriptor.member] =
-                    previousDesc.member;
-              }
-            } else {
-              descriptorNames[descriptorName] = descriptor;
-            }
+          final tearOffReference = descriptor.tearOff;
+          if (tearOffReference != null) {
+            _extensionTypeMemberIndex[tearOffReference] = descriptor;
+            _extensionTypeIndex[tearOffReference] = extensionType;
+            _extensionTypeTearOffIndex[tearOffReference] = reference;
           }
         }
       }

@@ -68,7 +68,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
   staticType: int
 ''');
@@ -103,7 +103,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -138,7 +138,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
     staticType: void Function()
   staticType: void Function()
 ''');
@@ -591,7 +591,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
     staticType: int
   staticType: int
 ''');
@@ -629,7 +629,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -999,7 +999,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
     staticType: int
   staticType: int
 ''');
@@ -1037,7 +1037,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
     staticType: int
   staticType: int
 ''');

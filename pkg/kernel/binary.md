@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 108;
+  UInt32 formatVersion = 111;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -352,13 +352,14 @@ type Extension extends Node {
   List<ExtensionMemberDescriptor> members;
 }
 
-enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, TearOff = 5, }
+enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, }
 
 type ExtensionMemberDescriptor {
   Name name;
   ExtensionMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
+  MemberReference tearOff;
 }
 
 type ExtensionTypeDeclaration extends Node {
@@ -372,17 +373,18 @@ type ExtensionTypeDeclaration extends Node {
   List<TypeParameter> typeParameters;
   DartType declaredRepresentationType;
   StringReference representationName;
-  List<ExtensionType> implements;
+  List<DartType> implements;
   List<ExtensionTypeMemberKind> members;
 }
 
-enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, TearOff = 7, }
+enum ExtensionTypeMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, }
 
 type ExtensionTypeMemberDescriptor {
   Name name;
   ExtensionTypeMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
+  MemberReference tearOff;
 }
 
 abstract type Member extends Node {}
@@ -474,6 +476,7 @@ type InvalidInitializer extends Initializer {
 type FieldInitializer extends Initializer {
   Byte tag = 8;
   Byte isSynthetic;
+  FileOffset fileOffset;
   FieldReference field;
   Expression value;
 }
@@ -997,6 +1000,7 @@ type AsExpression extends Expression {
 
 type StringLiteral extends Expression {
   Byte tag = 39;
+  FileOffset fileOffset;
   StringReference value;
 }
 
@@ -1005,52 +1009,63 @@ type IntegerLiteral extends Expression {}
 type SpecializedIntLiteral extends IntegerLiteral {
   Byte tag = 240 + N; // Where 0 <= N < 8.
   // Integer literal with value (N - 3), that is, an integer in range -3..4.
+  FileOffset fileOffset;
 }
 
 type PositiveIntLiteral extends IntegerLiteral {
   Byte tag = 55;
+  FileOffset fileOffset;
   UInt value;
 }
 
 type NegativeIntLiteral extends IntegerLiteral {
   Byte tag = 56;
+  FileOffset fileOffset;
   UInt absoluteValue;
 }
 
 type BigIntLiteral extends IntegerLiteral {
   Byte tag = 57;
+  FileOffset fileOffset;
   StringReference valueString;
 }
 
 type DoubleLiteral extends Expression {
   Byte tag = 40;
+  FileOffset fileOffset;
   Double value;
 }
 
 type TrueLiteral extends Expression {
   Byte tag = 41;
+  FileOffset fileOffset;
 }
 
 type FalseLiteral extends Expression {
   Byte tag = 42;
+  FileOffset fileOffset;
 }
 
 type NullLiteral extends Expression {
   Byte tag = 43;
+  FileOffset fileOffset;
 }
 
 type SymbolLiteral extends Expression {
   Byte tag = 44;
+  FileOffset fileOffset;
   StringReference value; // Everything strictly after the '#'.
 }
 
 type TypeLiteral extends Expression {
   Byte tag = 45;
+  FileOffset fileOffset;
   DartType type;
 }
 
 type ThisExpression extends Expression {
   Byte tag = 46;
+  FileOffset fileOffset;
 }
 
 type Rethrow extends Expression {
@@ -1164,11 +1179,13 @@ type Instantiation extends Expression {
 
 type LoadLibrary extends Expression {
   Byte tag = 14;
+  FileOffset fileOffset;
   LibraryDependencyReference deferredImport;
 }
 
 type CheckLibraryIsLoaded extends Expression {
   Byte tag = 13;
+  FileOffset fileOffset;
   LibraryDependencyReference deferredImport;
 }
 
@@ -1325,6 +1342,7 @@ type AssertStatement extends Statement {
 
 type LabeledStatement extends Statement {
   Byte tag = 65;
+  FileOffset fileOffset;
   Statement body;
 }
 
@@ -1393,6 +1411,7 @@ type SwitchStatement extends Statement {
 
 type SwitchCase {
   // Note: there is no tag on SwitchCase
+  FileOffset fileOffset;
   List<Pair<FileOffset, Expression>> expressions;
   Byte isDefault; // 1 if default, 0 is not default.
   Statement body;
@@ -1430,6 +1449,7 @@ type ReturnStatement extends Statement {
 
 type TryCatch extends Statement {
   Byte tag = 75;
+  FileOffset fileOffset;
   Statement body;
   // "any catch needs a stacktrace" means it has a stacktrace variable.
   Byte flags (anyCatchNeedsStackTrace, isSynthesized);
@@ -1446,6 +1466,7 @@ type Catch {
 
 type TryFinally extends Statement {
   Byte tag = 76;
+  FileOffset fileOffset;
   Statement body;
   Statement finalizer;
 }

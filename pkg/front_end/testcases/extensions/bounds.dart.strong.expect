@@ -4,43 +4,43 @@ import "dart:core" as core;
 
 extension Extension1<T extends core::Object> on T {
   method method1 = self::Extension1|method1;
-  tearoff method1 = self::Extension1|get#method1;
+  method tearoff method1 = self::Extension1|get#method1;
   method method2 = self::Extension1|method2;
-  tearoff method2 = self::Extension1|get#method2;
+  method tearoff method2 = self::Extension1|get#method2;
   method method3 = self::Extension1|method3;
-  tearoff method3 = self::Extension1|get#method3;
+  method tearoff method3 = self::Extension1|get#method3;
   method method4 = self::Extension1|method4;
-  tearoff method4 = self::Extension1|get#method4;
+  method tearoff method4 = self::Extension1|get#method4;
 }
 extension Extension2<T extends core::String> on T {
   method method1 = self::Extension2|method1;
-  tearoff method1 = self::Extension2|get#method1;
+  method tearoff method1 = self::Extension2|get#method1;
   method method2 = self::Extension2|method2;
-  tearoff method2 = self::Extension2|get#method2;
+  method tearoff method2 = self::Extension2|get#method2;
   method method3 = self::Extension2|method3;
-  tearoff method3 = self::Extension2|get#method3;
+  method tearoff method3 = self::Extension2|get#method3;
   method method4 = self::Extension2|method4;
-  tearoff method4 = self::Extension2|get#method4;
+  method tearoff method4 = self::Extension2|get#method4;
 }
 extension Extension3<T extends dynamic> on T% {
   method method1 = self::Extension3|method1;
-  tearoff method1 = self::Extension3|get#method1;
+  method tearoff method1 = self::Extension3|get#method1;
   method method2 = self::Extension3|method2;
-  tearoff method2 = self::Extension3|get#method2;
+  method tearoff method2 = self::Extension3|get#method2;
   method method3 = self::Extension3|method3;
-  tearoff method3 = self::Extension3|get#method3;
+  method tearoff method3 = self::Extension3|get#method3;
   method method4 = self::Extension3|method4;
-  tearoff method4 = self::Extension3|get#method4;
+  method tearoff method4 = self::Extension3|get#method4;
 }
 extension Extension4<T extends core::Object? = dynamic> on T% {
   method method1 = self::Extension4|method1;
-  tearoff method1 = self::Extension4|get#method1;
+  method tearoff method1 = self::Extension4|get#method1;
   method method2 = self::Extension4|method2;
-  tearoff method2 = self::Extension4|get#method2;
+  method tearoff method2 = self::Extension4|get#method2;
   method method3 = self::Extension4|method3;
-  tearoff method3 = self::Extension4|get#method3;
+  method tearoff method3 = self::Extension4|get#method3;
   method method4 = self::Extension4|method4;
-  tearoff method4 = self::Extension4|get#method4;
+  method tearoff method4 = self::Extension4|get#method4;
 }
 static extension-member method Extension1|method1<T extends core::Object, S extends core::Object>(lowered final self::Extension1|method1::T #this) → dynamic {}
 static extension-member method Extension1|get#method1<T extends core::Object>(lowered final self::Extension1|get#method1::T #this) → <S extends core::Object>() → dynamic

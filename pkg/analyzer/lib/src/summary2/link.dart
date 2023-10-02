@@ -42,7 +42,6 @@ Future<LinkResult> link({
   );
   return LinkResult(
     resolutionBytes: linker.resolutionBytes,
-    macroGeneratedUnits: linker.macroGeneratedUnits,
   );
 }
 
@@ -59,8 +58,6 @@ class Linker {
   late InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
   late Uint8List resolutionBytes;
-
-  final List<LinkMacroGeneratedUnit> macroGeneratedUnits = [];
 
   Linker(this.elementFactory, this.macroExecutor);
 
@@ -129,13 +126,16 @@ class Linker {
 
     _createTypeSystem();
     _resolveTypes();
+    _resolveConstructorFieldFormals();
     _buildEnumChildren();
     _computeFieldPromotability();
 
     await performance.runAsync(
       'executeMacroDeclarationsPhase',
-      (_) async {
-        await _executeMacroDeclarationsPhase();
+      (performance) async {
+        await _executeMacroDeclarationsPhase(
+          performance: performance,
+        );
       },
     );
 
@@ -179,6 +179,10 @@ class Linker {
         }
       },
     );
+
+    for (final library in builders.values) {
+      library.buildClassSyntheticConstructors();
+    }
 
     macroDeclarationBuilder.transferToElements();
 
@@ -255,9 +259,13 @@ class Linker {
     }
   }
 
-  Future<void> _executeMacroDeclarationsPhase() async {
+  Future<void> _executeMacroDeclarationsPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
     for (final library in builders.values) {
-      await library.executeMacroDeclarationsPhase();
+      await library.executeMacroDeclarationsPhase(
+        performance: performance,
+      );
     }
   }
 
@@ -267,6 +275,12 @@ class Linker {
 
   void _resolveConstantInitializers() {
     ConstantInitializersResolver(this).perform();
+  }
+
+  void _resolveConstructorFieldFormals() {
+    for (final library in builders.values) {
+      library.resolveConstructorFieldFormals();
+    }
   }
 
   void _resolveConstructors() {
@@ -312,24 +326,10 @@ class Linker {
   }
 }
 
-class LinkMacroGeneratedUnit {
-  final Uri uri;
-  final String content;
-  final ast.CompilationUnit unit;
-
-  LinkMacroGeneratedUnit({
-    required this.uri,
-    required this.content,
-    required this.unit,
-  });
-}
-
 class LinkResult {
   final Uint8List resolutionBytes;
-  final List<LinkMacroGeneratedUnit> macroGeneratedUnits;
 
   LinkResult({
     required this.resolutionBytes,
-    required this.macroGeneratedUnits,
   });
 }

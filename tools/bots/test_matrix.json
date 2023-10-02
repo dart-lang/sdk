@@ -224,10 +224,20 @@
       "pkg/",
       "samples/",
       "tools/",
+      "buildtools/linux-arm64/clang/bin/llvm",
+      "buildtools/linux-arm64/clang/bin/llvm-nm",
+      "buildtools/linux-arm64/clang/bin/llvm-strip",
+      "buildtools/linux-arm64/clang/bin/llvm-symbolizer",
       "buildtools/linux-x64/clang/bin/llvm",
+      "buildtools/linux-x64/clang/bin/llvm-nm",
       "buildtools/linux-x64/clang/bin/llvm-strip",
       "buildtools/linux-x64/clang/bin/llvm-symbolizer",
+      "buildtools/mac-arm64/clang/bin/llvm",
+      "buildtools/mac-arm64/clang/bin/llvm-nm",
+      "buildtools/mac-arm64/clang/bin/llvm-strip",
+      "buildtools/mac-arm64/clang/bin/llvm-symbolizer",
       "buildtools/mac-x64/clang/bin/llvm",
+      "buildtools/mac-x64/clang/bin/llvm-nm",
       "buildtools/mac-x64/clang/bin/llvm-strip",
       "buildtools/mac-x64/clang/bin/llvm-symbolizer",
       "buildtools/win-x64/clang/bin/llvm-symbolizer.exe",
@@ -544,6 +554,24 @@
         "timeout": 240
       }
     },
+    "dart2wasm-(linux|mac|win)-optimized-(d8|chrome)": {
+      "options": {
+        "dart2wasm-options": [
+          "-O"
+        ],
+        "host-checked": false,
+        "timeout": 240
+      }
+    },
+    "dart2wasm-(linux|mac|win)-jscm-(d8|chrome)": {
+      "options": {
+        "dart2wasm-options": [
+          "--js-compatibility"
+        ],
+        "host-checked": true,
+        "timeout": 240
+      }
+    },
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
@@ -607,8 +635,17 @@
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": [
-          "--optimization-counter-threshold=5",
-          "--random-seed=__RANDOM__"
+          "--optimization_counter_threshold=5",
+          "--random_seed=__RANDOM__"
+        ]
+      }
+    },
+    "vm-aot-optimization-level-(linux|mac|win)-(debug|product|release)-(x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "optimization_level",
+        "vm-options": [
+          "--optimization_level=3",
+          "--random_seed=__RANDOM__"
         ]
       }
     },
@@ -1673,7 +1710,8 @@
             "runtime",
             "create_sdk",
             "fuchsia_test_package",
-            "fuchsia_ffi_test_package"
+            "fuchsia_ffi_test_package",
+            "fuchsia_ffi_test_package_cfv2"
           ]
         },
         {
@@ -2239,6 +2277,40 @@
     },
     {
       "builders": [
+        "vm-aot-optimization-level-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the VM builders with a more aggressive optimization."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-optimization-level-linux-release-${arch}",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
+          ],
+          "fileset": "vm",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-reload-linux-debug-x64",
         "vm-reload-linux-release-x64"
       ],
@@ -2678,6 +2750,37 @@
           "name": "dart2wasm tests",
           "arguments": [
             "-ndart2wasm-linux-${runtime}",
+            "co19",
+            "corelib",
+            "language",
+            "lib",
+            "web"
+          ],
+          "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-linux-jscm-chrome"
+      ],
+      "meta": {
+        "description": "dart2wasm JS compatibility tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart2wasm"
+          ]
+        },
+        {
+          "name": "dart2wasm tests",
+          "arguments": [
+            "-ndart2wasm-linux-jscm-${runtime}",
             "co19",
             "corelib",
             "language",

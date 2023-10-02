@@ -1275,6 +1275,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // T4: potential next object start.
     __ LoadFromOffset(TMP, THR, target::Thread::end_offset());
     __ bgeu(T4, TMP, &slow_case);  // Branch if unsigned higher or equal.
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1342,6 +1343,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
     __ addi(T3, T3, target::kObjectAlignment);
     __ bltu(T3, T4, &loop);
+    __ WriteAllocationCanary(T4);  // Fix overshoot.
 
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
@@ -1582,6 +1584,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   __ lx(TMP, Address(THR, target::Thread::end_offset()));
   __ CompareRegisters(T3, TMP);
   __ BranchIf(CS, slow_case);  // Branch if unsigned higher or equal.
+  __ CheckAllocationCanary(A0);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1965,6 +1968,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       __ CompareRegisters(kEndReg, kNewTopReg);
       __ BranchIf(UNSIGNED_LESS_EQUAL, &slow_case);
+      __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
 
       // Successfully allocated the object, now update top to point to
       // next object start and store the class in the class field of object.
@@ -1993,6 +1997,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
       __ addi(kFieldReg, kFieldReg, target::kObjectAlignment);
       __ bltu(kFieldReg, kNewTopReg, &loop);
+      __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
     }  // kFieldReg = T4
 
     if (is_cls_parameterized) {
@@ -3451,6 +3456,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* T3: allocation size. */
     __ lx(TMP, Address(THR, target::Thread::end_offset()));
     __ bgeu(T4, TMP, &call_runtime);
+    __ CheckAllocationCanary(A0);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3501,6 +3507,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
     __ addi(T3, T3, target::kObjectAlignment);
     __ bltu(T3, T4, &loop);
+    __ WriteAllocationCanary(T4);  // Fix overshoot.
 
     __ Ret();
 

@@ -7,6 +7,8 @@
 // VMOptions=--intrinsify --enable-asserts
 // VMOptions=--no-intrinsify --enable-asserts
 // VMOptions=--optimization-counter-threshold=20 --no-background-compilation
+// VMOptions=--runtime_allocate_old
+// VMOptions=--runtime_allocate_spill_tlab
 
 import "package:expect/expect.dart";
 

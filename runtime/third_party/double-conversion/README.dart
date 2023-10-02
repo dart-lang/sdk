@@ -1,5 +1,5 @@
-URL: http://code.google.com/p/double-conversion/
-Version: double-conversion 1.1.5
+URL: https://github.com/google/double-conversion
+Version: 032fa6a7d2c319b20d3928f5d762648fa4029acf
 License: BSD
 License File: LICENSE
 

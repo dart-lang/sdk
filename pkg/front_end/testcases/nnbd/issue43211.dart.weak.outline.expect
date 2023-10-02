@@ -130,9 +130,9 @@ class C extends core::Object {
 }
 extension Extension1<X extends self::A<X%>? = self::A<dynamic>?> on self::A<X%> {
   method method1 = self::Extension1|method1;
-  tearoff method1 = self::Extension1|get#method1;
+  method tearoff method1 = self::Extension1|get#method1;
   method method2 = self::Extension1|method2;
-  tearoff method2 = self::Extension1|get#method2;
+  method tearoff method2 = self::Extension1|get#method2;
 }
 extension ext2<X extends self::A<Null>?> on self::A<X%> {
 }

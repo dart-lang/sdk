@@ -14,7 +14,7 @@ class B extends core::Object {
 }
 extension /* unnamed */ _extension#0 on self::A {
   method foo = self::_extension#0|foo;
-  tearoff foo = self::_extension#0|get#foo;
+  method tearoff foo = self::_extension#0|get#foo;
 }
 static extension-member method _extension#0|foo(lowered final self::A #this, self::A a, self::B b) → void {}
 static extension-member method _extension#0|get#foo(lowered final self::A #this) → (self::A, self::B) → void

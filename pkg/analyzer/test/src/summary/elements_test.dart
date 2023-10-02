@@ -20,31 +20,81 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementsKeepLinkingTest);
     defineReflectiveTests(ElementsFromBytesTest);
-    defineReflectiveTests(ClassAugmentationElementsKeepLinkingTest);
-    defineReflectiveTests(ClassAugmentationElementsFromBytesTest);
+    defineReflectiveTests(ClassAugmentationKeepLinkingTest);
+    defineReflectiveTests(ClassAugmentationFromBytesTest);
     defineReflectiveTests(ExtensionTypeKeepLinkingTest);
     defineReflectiveTests(ExtensionTypeFromBytesTest);
-    defineReflectiveTests(MixinAugmentationElementsKeepLinkingTest);
-    defineReflectiveTests(MixinAugmentationElementsFromBytesTest);
+    defineReflectiveTests(FunctionAugmentationKeepLinkingTest);
+    defineReflectiveTests(FunctionAugmentationFromBytesTest);
+    defineReflectiveTests(MixinAugmentationKeepLinkingTest);
+    defineReflectiveTests(MixinAugmentationFromBytesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ClassAugmentationElementsFromBytesTest extends ElementsBaseTest
-    with ClassAugmentationElementsMixin {
+class ClassAugmentationFromBytesTest extends ElementsBaseTest
+    with ClassAugmentationMixin {
   @override
   bool get keepLinkingLibraries => false;
 }
 
 @reflectiveTest
-class ClassAugmentationElementsKeepLinkingTest extends ElementsBaseTest
-    with ClassAugmentationElementsMixin {
+class ClassAugmentationKeepLinkingTest extends ElementsBaseTest
+    with ClassAugmentationMixin {
   @override
   bool get keepLinkingLibraries => true;
 }
 
-mixin ClassAugmentationElementsMixin on ElementsBaseTest {
+mixin ClassAugmentationMixin on ElementsBaseTest {
+  test_add_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+class A {
+  void foo() {}
+}
+
+augment class A {
+  void bar() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+''');
+
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class A @36
+            reference: self::@augmentation::package:test/a.dart::@class::A
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            constructors
+              synthetic @-1
+            methods
+              foo @47
+                returnType: void
+            augmented
+              constructors
+                self::@augmentation::package:test/a.dart::@class::A::@constructor::new
+              methods
+                self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+                self::@augmentation::package:test/a.dart::@class::A::@method::foo
+          augment class A @73
+            reference: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+            methods
+              bar @84
+                returnType: void
+''');
+  }
+
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
 library augment 'test.dart';
@@ -91,48 +141,50 @@ library
   definingUnit
     classes
       class A @58
-        augmentation: self::@augmentation::package:test/a1.dart::@class::A
+        augmentation: self::@augmentation::package:test/a1.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a1.dart
       definingUnit
         classes
           augment class A @97
             augmentationTarget: self::@class::A
-            augmentation: self::@augmentation::package:test/a11.dart::@class::A
+            augmentation: self::@augmentation::package:test/a11.dart::@classAugmentation::A
       augmentationImports
         package:test/a11.dart
           definingUnit
             classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a1.dart::@class::A
-                augmentation: self::@augmentation::package:test/a12.dart::@class::A
+                augmentationTarget: self::@augmentation::package:test/a1.dart::@classAugmentation::A
+                augmentation: self::@augmentation::package:test/a12.dart::@classAugmentation::A
         package:test/a12.dart
           definingUnit
             classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a11.dart::@class::A
-                augmentation: self::@augmentation::package:test/a2.dart::@class::A
+                augmentationTarget: self::@augmentation::package:test/a11.dart::@classAugmentation::A
+                augmentation: self::@augmentation::package:test/a2.dart::@classAugmentation::A
     package:test/a2.dart
       definingUnit
         classes
           augment class A @97
-            augmentationTarget: self::@augmentation::package:test/a12.dart::@class::A
-            augmentation: self::@augmentation::package:test/a21.dart::@class::A
+            augmentationTarget: self::@augmentation::package:test/a12.dart::@classAugmentation::A
+            augmentation: self::@augmentation::package:test/a21.dart::@classAugmentation::A
       augmentationImports
         package:test/a21.dart
           definingUnit
             classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a2.dart::@class::A
-                augmentation: self::@augmentation::package:test/a22.dart::@class::A
+                augmentationTarget: self::@augmentation::package:test/a2.dart::@classAugmentation::A
+                augmentation: self::@augmentation::package:test/a22.dart::@classAugmentation::A
         package:test/a22.dart
           definingUnit
             classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a21.dart::@class::A
+                augmentationTarget: self::@augmentation::package:test/a21.dart::@classAugmentation::A
 ''');
   }
 
@@ -166,13 +218,788 @@ library
         classes
           augment class A @68
             augmentationTarget: <null>
-            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
       augmentationImports
         package:test/b.dart
           definingUnit
             classes
               augment class A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+''');
+  }
+
+  test_augmented_constructors_add_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmented
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              named @51
+                periodOffset: 50
+                nameEnd: 56
+''');
+  }
+
+  test_augmented_constructors_add_named_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T2> {
+  A.named(T2 a);
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T1> {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T1 @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmented
+          constructors
+            ConstructorMember
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+              substitution: {T2: T1}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            constructors
+              named @55
+                periodOffset: 54
+                nameEnd: 60
+                parameters
+                  requiredPositional a @64
+                    type: T2
+''');
+  }
+
+  test_augmented_constructors_add_named_hasUnnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          @37
+        augmented
+          constructors
+            self::@class::A::@constructor::new
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              named @51
+                periodOffset: 50
+                nameEnd: 56
+''');
+  }
+
+  test_augmented_constructors_add_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmented
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              @49
+''');
+  }
+
+  test_augmented_constructors_add_unnamed_hasNamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          named @39
+            periodOffset: 38
+            nameEnd: 44
+        augmented
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::new
+            self::@class::A::@constructor::named
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              @49
+''');
+  }
+
+  test_augmented_constructors_add_useFieldFormal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  A.named(this.f);
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  final int f;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          final f @47
+            type: int
+        accessors
+          synthetic get f @-1
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::f
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+          accessors
+            self::@class::A::@getter::f
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              named @51
+                periodOffset: 50
+                nameEnd: 56
+                parameters
+                  requiredPositional final this.f @62
+                    type: int
+                    field: self::@class::A::@field::f
+''');
+  }
+
+  test_augmented_constructors_add_useFieldInitializer() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  const A.named() : f = 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  final int f;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          final f @47
+            type: int
+        accessors
+          synthetic get f @-1
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::f
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructor::named
+          accessors
+            self::@class::A::@getter::f
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              const named @57
+                periodOffset: 56
+                nameEnd: 62
+                constantInitializers
+                  ConstructorFieldInitializer
+                    fieldName: SimpleIdentifier
+                      token: f @67
+                      staticElement: self::@class::A::@field::f
+                      staticType: null
+                    equals: = @69
+                    expression: IntegerLiteral
+                      literal: 0 @71
+                      staticType: int
+''');
+  }
+
+  test_augmented_field_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          foo @41
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@class::A::@getter::foo
+            self::@class::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int foo = 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @56
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          foo @66
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@class::A::@getter::foo
+            self::@class::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_2
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@class::A::@field::foo
+                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int get foo => 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @56
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          foo @66
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_1
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+            self::@class::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_0
+                variable: field_1
+                augmentationTarget: self::@class::A::@getter::foo
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment set foo(int _) {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @56
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          foo @66
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+        augmented
+          fields
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@class::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            accessors
+              augment set foo= @61
+                parameters
+                  requiredPositional _ @69
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: field_1
+                augmentationTarget: self::@class::A::@setter::foo
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@class::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_differentTypes() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment double foo = 1.2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          foo @41
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get foo @-1
+            returnType: double
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: double
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@class::A::@getter::foo
+            self::@class::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              augment foo @64
+                type: double
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@class::A::@field::foo
+''');
+  }
+
+  /// This is not allowed by the specification, but allowed syntactically,
+  /// so we need a way to handle it.
+  test_augmented_field_augment_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  int get foo => 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          synthetic foo @-1
+            type: int
+            id: field_0
+            getter: getter_0
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+        constructors
+          synthetic @-1
+        accessors
+          get foo @45
+            returnType: int
+            id: getter_0
+            variable: field_1
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@class::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                augmentationTarget: self::@class::A::@field::foo
 ''');
   }
 
@@ -197,7 +1024,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           foo1 @41
             type: int
@@ -222,12 +1049,14 @@ library
         augmented
           fields
             self::@class::A::@field::foo1
-            self::@augmentation::package:test/a.dart::@class::A::@field::foo2
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+          constructors
+            self::@class::A::@constructor::new
           accessors
             self::@class::A::@getter::foo1
             self::@class::A::@setter::foo1
-            self::@augmentation::package:test/a.dart::@class::A::@getter::foo2
-            self::@augmentation::package:test/a.dart::@class::A::@setter::foo2
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -280,7 +1109,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           foo1 @44
             type: T1
@@ -305,16 +1134,18 @@ library
           fields
             self::@class::A::@field::foo1
             FieldMember
-              base: self::@augmentation::package:test/a.dart::@class::A::@field::foo2
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
               substitution: {T2: T1}
+          constructors
+            self::@class::A::@constructor::new
           accessors
             self::@class::A::@getter::foo1
             self::@class::A::@setter::foo1
             PropertyAccessorMember
-              base: self::@augmentation::package:test/a.dart::@class::A::@getter::foo2
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
               substitution: {T2: T1}
             PropertyAccessorMember
-              base: self::@augmentation::package:test/a.dart::@class::A::@setter::foo2
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
               substitution: {T2: T1}
   augmentationImports
     package:test/a.dart
@@ -346,6 +1177,110 @@ library
 ''');
   }
 
+  test_augmented_fields_add_useFieldFormal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  final int foo;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A(this.foo);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          @37
+            parameters
+              requiredPositional final this.foo @44
+                type: int
+                field: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              final foo @59
+                type: int
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
+  test_augmented_fields_add_useFieldInitializer() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  final int foo;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  const A() : foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          const @43
+            constantInitializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: foo @49
+                  staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+                  staticType: null
+                equals: = @53
+                expression: IntegerLiteral
+                  literal: 0 @55
+                  staticType: int
+        augmented
+          fields
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            fields
+              final foo @59
+                type: int
+            accessors
+              synthetic get foo @-1
+                returnType: int
+''');
+  }
+
   test_augmented_getters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -367,7 +1302,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             type: int
@@ -383,10 +1318,12 @@ library
         augmented
           fields
             self::@class::A::@field::foo1
-            self::@augmentation::package:test/a.dart::@class::A::@field::foo2
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+          constructors
+            self::@class::A::@constructor::new
           accessors
             self::@class::A::@getter::foo1
-            self::@augmentation::package:test/a.dart::@class::A::@getter::foo2
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -430,7 +1367,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             type: T1
@@ -447,12 +1384,14 @@ library
           fields
             self::@class::A::@field::foo1
             FieldMember
-              base: self::@augmentation::package:test/a.dart::@class::A::@field::foo2
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
               substitution: {T2: T1}
+          constructors
+            self::@class::A::@constructor::new
           accessors
             self::@class::A::@getter::foo1
             PropertyAccessorMember
-              base: self::@augmentation::package:test/a.dart::@class::A::@getter::foo2
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo2
               substitution: {T2: T1}
   augmentationImports
     package:test/a.dart
@@ -497,7 +1436,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             type: int
@@ -512,7 +1451,7 @@ library
             returnType: int
             id: getter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
@@ -523,8 +1462,10 @@ library
         augmented
           fields
             self::@class::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
           accessors
-            self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
             self::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
@@ -570,7 +1511,7 @@ library
   definingUnit
     classes
       class A @56
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           foo @66
             type: int
@@ -585,7 +1526,7 @@ library
             returnType: int
             id: getter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
@@ -596,8 +1537,10 @@ library
         augmented
           fields
             self::@class::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
           accessors
-            self::@augmentation::package:test/b.dart::@class::A::@getter::foo
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
             self::@class::A::@setter::foo
   augmentationImports
     package:test/a.dart
@@ -605,25 +1548,25 @@ library
         classes
           augment class A @43
             augmentationTarget: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_2
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
-                augmentation: self::@augmentation::package:test/b.dart::@class::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       definingUnit
         classes
           augment class A @43
-            augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_0
                 variable: field_0
-                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -649,7 +1592,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             type: int
@@ -666,7 +1609,7 @@ library
             returnType: int
             id: getter_2
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@getter::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
             returnType: int
             id: getter_1
@@ -675,8 +1618,10 @@ library
           fields
             self::@class::A::@field::foo1
             self::@class::A::@field::foo2
+          constructors
+            self::@class::A::@constructor::new
           accessors
-            self::@augmentation::package:test/a.dart::@class::A::@getter::foo1
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
             self::@class::A::@getter::foo2
   augmentationImports
     package:test/a.dart
@@ -722,7 +1667,7 @@ library
   definingUnit
     classes
       class A @56
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo @-1
             type: int
@@ -735,37 +1680,39 @@ library
             returnType: int
             id: getter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
         augmented
           fields
             self::@class::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
           accessors
-            self::@augmentation::package:test/b.dart::@class::A::@getter::foo
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       definingUnit
         classes
           augment class A @43
             augmentationTarget: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_2
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
-                augmentation: self::@augmentation::package:test/b.dart::@class::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       definingUnit
         classes
           augment class A @43
-            augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_0
                 variable: field_0
-                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -787,7 +1734,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -796,6 +1743,8 @@ library
           interfaces
             I1
             I2
+          constructors
+            self::@class::A::@constructor::new
       class I1 @56
         constructors
           synthetic @-1
@@ -838,7 +1787,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -848,6 +1797,8 @@ library
             I1
             I2
             I3
+          constructors
+            self::@class::A::@constructor::new
       class I1 @56
         constructors
           synthetic @-1
@@ -857,7 +1808,7 @@ library
         classes
           augment class A @68
             augmentationTarget: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
             interfaces
               I2
           class I2 @93
@@ -868,7 +1819,7 @@ library
           definingUnit
             classes
               augment class A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
                 interfaces
                   I3
               class I3 @65
@@ -898,7 +1849,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -907,6 +1858,8 @@ library
           interfaces
             I1
             I2<T>
+          constructors
+            self::@class::A::@constructor::new
       class I1 @59
         constructors
           synthetic @-1
@@ -951,7 +1904,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         interfaces
           I1
         constructors
@@ -959,6 +1912,8 @@ library
         augmented
           interfaces
             I1
+          constructors
+            self::@class::A::@constructor::new
       class I1 @59
         constructors
           synthetic @-1
@@ -1004,15 +1959,17 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         methods
           foo @42
             returnType: void
         augmented
+          constructors
+            self::@class::A::@constructor::new
           methods
-            self::@augmentation::package:test/a.dart::@class::A::@method::bar
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
             self::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
@@ -1047,18 +2004,20 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         methods
           foo1 @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@method::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
           foo2 @59
             returnType: void
         augmented
+          constructors
+            self::@class::A::@constructor::new
           methods
-            self::@augmentation::package:test/a.dart::@class::A::@method::foo1
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo1
             self::@class::A::@method::foo2
   augmentationImports
     package:test/a.dart
@@ -1101,38 +2060,40 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         methods
           foo @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
         augmented
+          constructors
+            self::@class::A::@constructor::new
           methods
-            self::@augmentation::package:test/b.dart::@class::A::@method::foo
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       definingUnit
         classes
           augment class A @68
             augmentationTarget: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
             methods
               augment foo @87
                 returnType: void
                 augmentationTarget: self::@class::A::@method::foo
-                augmentation: self::@augmentation::package:test/b.dart::@class::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
           definingUnit
             classes
               augment class A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
                 methods
                   augment foo @59
                     returnType: void
-                    augmentationTarget: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+                    augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
 ''');
   }
 
@@ -1159,16 +2120,18 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         methods
           foo @42
             returnType: T
         augmented
+          constructors
+            self::@class::A::@constructor::new
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@class::A::@method::bar
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
               substitution: {T2: T}
             self::@class::A::@method::foo
   augmentationImports
@@ -1209,17 +2172,19 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         methods
           foo @42
             returnType: T
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
         augmented
+          constructors
+            self::@class::A::@constructor::new
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo
               substitution: {T2: T}
   augmentationImports
     package:test/a.dart
@@ -1255,7 +2220,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         supertype: Object
         mixins
           M1
@@ -1265,6 +2230,8 @@ library
           mixins
             M1
             M2
+          constructors
+            self::@class::A::@constructor::new
     mixins
       mixin M1 @50
         superclassConstraints
@@ -1319,7 +2286,7 @@ library
         typeParameters
           covariant T1 @72
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         supertype: B<T1>
         mixins
           M1<T1>
@@ -1333,6 +2300,8 @@ library
             M1<T1>
             M2<T1>
             M3<T1>
+          constructors
+            self::@class::A::@constructor::new
     mixins
       mixin M1 @107
         typeParameters
@@ -1349,7 +2318,7 @@ library
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
             mixins
               M2<T2>
         mixins
@@ -1366,7 +2335,7 @@ library
             typeParameters
               covariant T3 @45
                 defaultType: dynamic
-            augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
             mixins
               M3<T3>
         mixins
@@ -1400,7 +2369,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             type: int
@@ -1419,10 +2388,12 @@ library
         augmented
           fields
             self::@class::A::@field::foo1
-            self::@augmentation::package:test/a.dart::@class::A::@field::foo2
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@field::foo2
+          constructors
+            self::@class::A::@constructor::new
           accessors
             self::@class::A::@setter::foo1
-            self::@augmentation::package:test/a.dart::@class::A::@setter::foo2
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1466,7 +2437,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           foo @41
             type: int
@@ -1488,13 +2459,15 @@ library
             returnType: void
             id: setter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
         augmented
           fields
             self::@class::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
           accessors
             self::@class::A::@getter::foo
-            self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1535,7 +2508,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         fields
           synthetic foo1 @-1
             type: int
@@ -1555,7 +2528,7 @@ library
             returnType: void
             id: setter_2
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@class::A::@setter::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
             parameters
               requiredPositional _ @71
@@ -1567,8 +2540,10 @@ library
           fields
             self::@class::A::@field::foo1
             self::@class::A::@field::foo2
+          constructors
+            self::@class::A::@constructor::new
           accessors
-            self::@augmentation::package:test/a.dart::@class::A::@setter::foo1
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
             self::@class::A::@setter::foo2
   augmentationImports
     package:test/a.dart
@@ -1616,14 +2591,16 @@ library
   definingUnit
     classes
       class B @49
-        augmentation: self::@augmentation::package:test/b.dart::@class::B
+        augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::B
         supertype: A
         constructors
           synthetic @-1
             superConstructor: package:test/a.dart::@class::A::@constructor::new
         augmented
+          constructors
+            self::@class::B::@constructor::new
           methods
-            self::@augmentation::package:test/b.dart::@class::B::@method::foo
+            self::@augmentation::package:test/b.dart::@classAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
       definingUnit
@@ -1665,7 +2642,7 @@ library
   definingUnit
     classes
       class B @32
-        augmentation: self::@augmentation::package:test/b.dart::@class::B
+        augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::B
         constructors
           synthetic @-1
         methods
@@ -1677,6 +2654,8 @@ library
         augmented
           interfaces
             A
+          constructors
+            self::@class::B::@constructor::new
           methods
             self::@class::B::@method::foo
   augmentationImports
@@ -1718,7 +2697,7 @@ library
   definingUnit
     classes
       class B @32
-        augmentation: self::@augmentation::package:test/b.dart::@class::B
+        augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::B
         constructors
           synthetic @-1
         methods
@@ -1730,6 +2709,8 @@ library
         augmented
           mixins
             A
+          constructors
+            self::@class::B::@constructor::new
           methods
             self::@class::B::@method::foo
   augmentationImports
@@ -1775,7 +2756,7 @@ library
   definingUnit
     classes
       class B @49
-        augmentation: self::@augmentation::package:test/b.dart::@class::B
+        augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::B
         supertype: A
         constructors
           synthetic @-1
@@ -1786,10 +2767,12 @@ library
               requiredPositional a @69
                 type: String
             returnType: int
-            augmentation: self::@augmentation::package:test/b.dart::@class::B::@method::foo
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
         augmented
+          constructors
+            self::@class::B::@constructor::new
           methods
-            self::@augmentation::package:test/b.dart::@class::B::@method::foo
+            self::@augmentation::package:test/b.dart::@classAugmentation::B::@methodAugmentation::foo
   augmentationImports
     package:test/b.dart
       definingUnit
@@ -1822,10 +2805,12 @@ library
   definingUnit
     classes
       abstract class A @40
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1851,10 +2836,12 @@ library
   definingUnit
     classes
       base class A @36
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1880,10 +2867,12 @@ library
   definingUnit
     classes
       final class A @37
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1909,10 +2898,12 @@ library
   definingUnit
     classes
       interface class A @41
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1938,10 +2929,12 @@ library
   definingUnit
     classes
       macro class A @37
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1967,10 +2960,12 @@ library
   definingUnit
     classes
       mixin class A @37
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -1996,10 +2991,12 @@ library
   definingUnit
     classes
       abstract sealed class A @38
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -2084,10 +3081,12 @@ library
           covariant T @33
             bound: A<dynamic>
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -2122,10 +3121,12 @@ library
           covariant T @33
             bound: B
             defaultType: B
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
       class B @55
         constructors
           synthetic @-1
@@ -3357,8 +4358,7 @@ library
 
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // This is a compile-time error but it should still analyze consistently.
-    var library = await buildLibrary('class C { C(this.x); int x; String x; }',
-        allowErrors: true);
+    var library = await buildLibrary('class C { C(this.x); int x; String x; }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3395,8 +4395,7 @@ library
 
   test_class_constructor_field_formal_no_matching_field() async {
     // This is a compile-time error but it should still analyze consistently.
-    var library =
-        await buildLibrary('class C { C(this.x); }', allowErrors: true);
+    var library = await buildLibrary('class C { C(this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3412,8 +4411,7 @@ library
   }
 
   test_class_constructor_field_formal_typed_dynamic() async {
-    var library = await buildLibrary('class C { num x; C(dynamic this.x); }',
-        allowErrors: true);
+    var library = await buildLibrary('class C { num x; C(dynamic this.x); }');
     checkElementText(library, r'''
 library
   definingUnit
@@ -3822,7 +4820,7 @@ class C {
   const C() : x = foo();
 }
 int foo() => 42;
-''', allowErrors: true);
+''');
     // It is OK to keep non-constant initializers.
     checkElementText(library, r'''
 library
@@ -5251,7 +6249,7 @@ library
 class C<E> {
   factory C() = D.named<E>;
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5271,7 +6269,7 @@ class D {}
 class C<E> {
   factory C() = D.named<E>;
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -5610,7 +6608,7 @@ library
 class C<E> {
   factory C() = D<E>;
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -8682,6 +9680,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -8721,8 +9720,7 @@ library
 
   test_class_interfaces_unresolved() async {
     var library = await buildLibrary(
-        'class C implements X, Y, Z {} class X {} class Z {}',
-        allowErrors: true);
+        'class C implements X, Y, Z {} class X {} class Z {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -9211,6 +10209,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -9324,8 +10323,7 @@ library
 
   test_class_mixins_unresolved() async {
     var library = await buildLibrary(
-        'class C extends Object with X, Y, Z {} class X {} class Z {}',
-        allowErrors: true);
+        'class C extends Object with X, Y, Z {} class X {} class Z {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -10644,6 +11642,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -10745,7 +11744,7 @@ library
   }
 
   test_class_supertype_unresolved() async {
-    var library = await buildLibrary('class C extends D {}', allowErrors: true);
+    var library = await buildLibrary('class C extends D {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -15340,7 +16339,7 @@ class C {
   static const f = 1 + foo();
 }
 int foo() => 42;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -15386,7 +16385,7 @@ class C {
   final f = 1 + foo();
 }
 int foo() => 42;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -15574,7 +16573,7 @@ library
   test_const_invalid_intLiteral() async {
     var library = await buildLibrary(r'''
 const int x = 0x;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 const int x = 0;
 ''');
@@ -15641,7 +16640,7 @@ library
     var library = await buildLibrary(r'''
 const v = 1 + foo();
 int foo() => 42;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -15680,7 +16679,7 @@ library
   test_const_invalid_topLevel_switchExpression() async {
     var library = await buildLibrary(r'''
 const a = 0 + switch (true) {_ => 1};
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -15703,7 +16702,7 @@ library
     var library = await buildLibrary(r'''
 const int a = 0;
 const bool b = a + 5;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16392,7 +17391,7 @@ library
     var library = await buildLibrary(r'''
 class C {}
 const V = const C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16431,7 +17430,7 @@ library
   test_const_invokeConstructor_named_unresolved2() async {
     var library = await buildLibrary(r'''
 const V = const C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16470,7 +17469,7 @@ class C {
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -16513,7 +17512,7 @@ library
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -16554,7 +17553,7 @@ library
   test_const_invokeConstructor_named_unresolved5() async {
     var library = await buildLibrary(r'''
 const V = const p.C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16594,7 +17593,7 @@ library
     var library = await buildLibrary(r'''
 class C<T> {}
 const V = const C.named();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16753,7 +17752,7 @@ library
   test_const_invokeConstructor_unnamed_unresolved() async {
     var library = await buildLibrary(r'''
 const V = const C();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -16785,7 +17784,7 @@ library
     var library = await buildLibrary(r'''
 import 'a.dart' as p;
 const V = const p.C();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -16821,7 +17820,7 @@ library
   test_const_invokeConstructor_unnamed_unresolved3() async {
     var library = await buildLibrary(r'''
 const V = const p.C();
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -19139,7 +20138,7 @@ library
   test_const_reference_unresolved_prefix0() async {
     var library = await buildLibrary(r'''
 const V = foo;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -19162,7 +20161,7 @@ library
     var library = await buildLibrary(r'''
 class C {}
 const V = C.foo;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -19200,7 +20199,7 @@ class C {}
     var library = await buildLibrary(r'''
 import 'foo.dart' as p;
 const V = p.C.foo;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   imports
@@ -23942,6 +24941,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -24026,7 +25026,7 @@ class Z {}
 enum E implements X, Y, Z {
   v
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -24295,6 +25295,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -25815,10 +26816,12 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
+          constructors
+            self::@class::A::@constructor::new
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -25992,7 +26995,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -31935,7 +32938,7 @@ class C {
     }
   }
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -31957,7 +32960,7 @@ class C {
     }
   }
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -31980,7 +32983,7 @@ main() {
       break;
   }
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -37909,6 +38912,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -38044,6 +39048,7 @@ library
     extensionTypes
       B @26
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -41705,7 +42710,7 @@ typedef V F(V p);
 V f(V p) {}
 V V2 = null;
 int V = 0;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -41760,7 +42765,7 @@ library
     var library = await buildLibrary('''
 var V;
 static List<V> V2;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -41792,7 +42797,7 @@ library
 class C<T> {
   m(T.K p) {}
 }
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -41815,7 +42820,7 @@ library
   test_type_invalid_unresolvedPrefix() async {
     var library = await buildLibrary('''
 p.C v;
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -43081,7 +44086,7 @@ library
   }
 
   test_type_unresolved() async {
-    var library = await buildLibrary('C c;', allowErrors: true);
+    var library = await buildLibrary('C c;');
     checkElementText(library, r'''
 library
   definingUnit
@@ -43100,8 +44105,7 @@ library
   }
 
   test_type_unresolved_prefixed() async {
-    var library = await buildLibrary('import "dart:core" as core; core.C c;',
-        allowErrors: true);
+    var library = await buildLibrary('import "dart:core" as core; core.C c;');
     checkElementText(library, r'''
 library
   imports
@@ -45512,7 +46516,7 @@ class A {
 
 @A(super)
 class C {}
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45552,7 +46556,7 @@ class A {
 
 @A(this)
 class C {}
-''', allowErrors: true);
+''');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45585,8 +46589,7 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() async {
-    var library =
-        await buildLibrary('@foo.bar() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45617,8 +46620,7 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
-    var library =
-        await buildLibrary('@String.foo() class C {}', allowErrors: true);
+    var library = await buildLibrary('@String.foo() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45649,7 +46651,7 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
-    var library = await buildLibrary('@foo.bar class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45677,9 +46679,8 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.bar class C {}',
-        allowErrors: true);
+    var library =
+        await buildLibrary('import "dart:async" as foo; @foo.bar class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -45709,8 +46710,7 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
-    var library =
-        await buildLibrary('@foo.bar.baz() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar.baz() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45747,8 +46747,7 @@ library
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
     var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.bar.baz() class C {}',
-        allowErrors: true);
+        'import "dart:async" as foo; @foo.bar.baz() class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -45787,8 +46786,7 @@ library
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
     var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.Future.bar() class C {}',
-        allowErrors: true);
+        'import "dart:async" as foo; @foo.Future.bar() class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -45826,8 +46824,7 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
-    var library =
-        await buildLibrary('@foo.bar() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo.bar() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45858,9 +46855,8 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    var library = await buildLibrary(
-        'import "dart:async" as foo; @foo.bar() class C {}',
-        allowErrors: true);
+    var library =
+        await buildLibrary('import "dart:async" as foo; @foo.bar() class C {}');
     checkElementText(library, r'''
 library
   imports
@@ -45893,7 +46889,7 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
-    var library = await buildLibrary('@foo class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45944,7 +46940,7 @@ library
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
-    var library = await buildLibrary('@foo() class C {}', allowErrors: true);
+    var library = await buildLibrary('@foo() class C {}');
     checkElementText(library, r'''
 library
   definingUnit
@@ -45967,7 +46963,7 @@ library
   }
 
   test_unresolved_export() async {
-    var library = await buildLibrary("export 'foo.dart';", allowErrors: true);
+    var library = await buildLibrary("export 'foo.dart';");
     checkElementText(library, r'''
 library
   exports
@@ -45977,7 +46973,7 @@ library
   }
 
   test_unresolved_import() async {
-    var library = await buildLibrary("import 'foo.dart';", allowErrors: true);
+    var library = await buildLibrary("import 'foo.dart';");
     var importedLibrary = library.libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);
@@ -46829,6 +47825,7 @@ library
     extensionTypes
       A @21
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -46861,6 +47858,7 @@ library
         codeOffset: 0
         codeLength: 33
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::named
         typeErasure: int
         interfaces
           Object
@@ -46900,6 +47898,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -46938,6 +47937,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -46976,6 +47976,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -47025,6 +48026,7 @@ library
         codeOffset: 0
         codeLength: 27
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47063,6 +48065,7 @@ library
       A @24
         documentationComment: /// Docs
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47095,6 +48098,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47130,6 +48134,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47165,6 +48170,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47200,6 +48206,7 @@ library
     extensionTypes
       A @32
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47240,6 +48247,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47278,6 +48286,7 @@ library
     extensionTypes
       X @64
         representation: self::@extensionType::X::@field::it
+        primaryConstructor: self::@extensionType::X::@constructor::new
         typeErasure: C
         interfaces
           A
@@ -47304,6 +48313,7 @@ library
     extensionTypes
       hasImplementsSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47315,6 +48325,7 @@ library
             returnType: int
       hasImplementsSelfReference B @56
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47339,6 +48350,7 @@ library
     extensionTypes
       hasImplementsSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47364,6 +48376,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: num
         interfaces
           Object
@@ -47375,6 +48388,7 @@ library
             returnType: num
       B @43
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int
         interfaces
           A
@@ -47399,6 +48413,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           num
@@ -47423,6 +48438,7 @@ library
     extensionTypes
       X @15
         representation: self::@extensionType::X::@field::it
+        primaryConstructor: self::@extensionType::X::@constructor::new
         typeErasure: int?
         interfaces
           Object?
@@ -47448,6 +48464,7 @@ library
     extensionTypes
       X @33
         representation: self::@extensionType::X::@field::it
+        primaryConstructor: self::@extensionType::X::@constructor::new
         typeErasure: int
         interfaces
           num
@@ -47490,6 +48507,7 @@ library
               staticType: null
             element: package:test/a.dart::@getter::foo
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47522,6 +48540,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47554,6 +48573,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47590,6 +48610,7 @@ library
         codeOffset: 0
         codeLength: 21
         representation: self::@extensionType::A::@field::<empty>
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -47630,6 +48651,7 @@ library
             bound: A<dynamic>
             defaultType: dynamic
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47656,6 +48678,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47689,6 +48712,7 @@ library
     extensionTypes
       hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -47700,6 +48724,7 @@ library
             returnType: InvalidType
       hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -47726,6 +48751,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -47737,6 +48763,7 @@ library
             returnType: B
       hasRepresentationSelfReference B @42
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -47761,6 +48788,7 @@ library
     extensionTypes
       hasRepresentationSelfReference A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: InvalidType
         interfaces
           Object?
@@ -47787,6 +48815,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47798,6 +48827,7 @@ library
             returnType: int
       B @44
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: int Function(int)
         interfaces
           Object
@@ -47827,6 +48857,7 @@ library
           covariant T @17
             defaultType: dynamic
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: T
         interfaces
           Object?
@@ -47838,6 +48869,7 @@ library
             returnType: T
       B @45
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: double
         interfaces
           Object
@@ -47864,6 +48896,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47875,6 +48908,7 @@ library
             returnType: int
       B @44
         representation: self::@extensionType::B::@field::it
+        primaryConstructor: self::@extensionType::B::@constructor::new
         typeErasure: List<int>
         interfaces
           Object
@@ -47899,6 +48933,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: int
         interfaces
           Object
@@ -47928,6 +48963,7 @@ library
           covariant U @32
             defaultType: dynamic
         representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
         typeErasure: Map<T, U>
         interfaces
           Object
@@ -47948,20 +48984,131 @@ library
 }
 
 @reflectiveTest
-class MixinAugmentationElementsFromBytesTest extends ElementsBaseTest
-    with MixinAugmentationElementsMixin {
+class FunctionAugmentationFromBytesTest extends ElementsBaseTest
+    with FunctionAugmentationMixin {
   @override
   bool get keepLinkingLibraries => false;
 }
 
 @reflectiveTest
-class MixinAugmentationElementsKeepLinkingTest extends ElementsBaseTest
-    with MixinAugmentationElementsMixin {
+class FunctionAugmentationKeepLinkingTest extends ElementsBaseTest
+    with FunctionAugmentationMixin {
   @override
   bool get keepLinkingLibraries => true;
 }
 
-mixin MixinAugmentationElementsMixin on ElementsBaseTest {
+mixin FunctionAugmentationMixin on ElementsBaseTest {
+  test_augmentationTarget() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+library augment 'test.dart';
+import augment 'a11.dart';
+import augment 'a12.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a11.dart', r'''
+library augment 'a1.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a12.dart', r'''
+library augment 'a1.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a2.dart', r'''
+library augment 'test.dart';
+import augment 'a21.dart';
+import augment 'a22.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a21.dart', r'''
+library augment 'a2.dart';
+augment void f() {}
+''');
+
+    newFile('$testPackageLibPath/a22.dart', r'''
+library augment 'a2.dart';
+augment void f() {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a1.dart';
+import augment 'a2.dart';
+void f() {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @57
+        returnType: void
+        augmentation: self::@augmentation::package:test/a1.dart::@functionAugmentation::f
+  augmentationImports
+    package:test/a1.dart
+      definingUnit
+        functions
+          augment f @96
+            returnType: void
+            augmentationTarget: self::@function::f
+            augmentation: self::@augmentation::package:test/a11.dart::@functionAugmentation::f
+      augmentationImports
+        package:test/a11.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a1.dart::@functionAugmentation::f
+                augmentation: self::@augmentation::package:test/a12.dart::@functionAugmentation::f
+        package:test/a12.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a11.dart::@functionAugmentation::f
+                augmentation: self::@augmentation::package:test/a2.dart::@functionAugmentation::f
+    package:test/a2.dart
+      definingUnit
+        functions
+          augment f @96
+            returnType: void
+            augmentationTarget: self::@augmentation::package:test/a12.dart::@functionAugmentation::f
+            augmentation: self::@augmentation::package:test/a21.dart::@functionAugmentation::f
+      augmentationImports
+        package:test/a21.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a2.dart::@functionAugmentation::f
+                augmentation: self::@augmentation::package:test/a22.dart::@functionAugmentation::f
+        package:test/a22.dart
+          definingUnit
+            functions
+              augment f @40
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a21.dart::@functionAugmentation::f
+''');
+  }
+}
+
+@reflectiveTest
+class MixinAugmentationFromBytesTest extends ElementsBaseTest
+    with MixinAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class MixinAugmentationKeepLinkingTest extends ElementsBaseTest
+    with MixinAugmentationMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+mixin MixinAugmentationMixin on ElementsBaseTest {
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -47984,7 +49131,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -47996,13 +49143,13 @@ library
         mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
       augmentationImports
         package:test/b.dart
           definingUnit
             mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
 ''');
   }
 
@@ -48036,13 +49183,486 @@ library
         mixins
           augment mixin A @68
             augmentationTarget: <null>
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
       augmentationImports
         package:test/b.dart
           definingUnit
             mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+''');
+  }
+
+  test_augmented_field_augment_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        fields
+          foo @41
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          superclassConstraints
+            Object
+          fields
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@mixin::A::@getter::foo
+            self::@mixin::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@mixin::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment int foo = 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+mixin A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @56
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        fields
+          foo @66
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          superclassConstraints
+            Object
+          fields
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@mixin::A::@getter::foo
+            self::@mixin::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_2
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@mixin::A::@field::foo
+                augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+    package:test/b.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment int get foo => 1;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+mixin A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @56
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        fields
+          foo @66
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_1
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          superclassConstraints
+            Object
+          fields
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+            self::@mixin::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            accessors
+              augment get foo @65
+                returnType: int
+                id: getter_0
+                variable: field_1
+                augmentationTarget: self::@mixin::A::@getter::foo
+    package:test/b.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@mixin::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_afterSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment set foo(int _) {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment int foo = 2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+mixin A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @56
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        fields
+          foo @66
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic get foo @-1
+            returnType: int
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+            id: setter_1
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+        augmented
+          superclassConstraints
+            Object
+          fields
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@mixin::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            accessors
+              augment set foo= @61
+                parameters
+                  requiredPositional _ @69
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: field_1
+                augmentationTarget: self::@mixin::A::@setter::foo
+    package:test/b.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@mixin::A::@field::foo
+''');
+  }
+
+  test_augmented_field_augment_field_differentTypes() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment double foo = 1.2;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {
+  int foo = 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        fields
+          foo @41
+            type: int
+            shouldUseTypeForInitializerInference: true
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+        accessors
+          synthetic get foo @-1
+            returnType: double
+            id: getter_0
+            variable: field_1
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: double
+            returnType: void
+            id: setter_0
+            variable: field_1
+        augmented
+          superclassConstraints
+            Object
+          fields
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@mixin::A::@getter::foo
+            self::@mixin::A::@setter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            fields
+              augment foo @64
+                type: double
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                setter: setter_0
+                augmentationTarget: self::@mixin::A::@field::foo
+''');
+  }
+
+  /// This is not allowed by the specification, but allowed syntactically,
+  /// so we need a way to handle it.
+  test_augmented_field_augment_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment int foo = 1;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {
+  int get foo => 0;
+}
+''');
+
+    configuration.withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        fields
+          synthetic foo @-1
+            type: int
+            id: field_0
+            getter: getter_0
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+        accessors
+          get foo @45
+            returnType: int
+            id: getter_0
+            variable: field_1
+        augmented
+          superclassConstraints
+            Object
+          fields
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@mixin::A::@getter::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            fields
+              augment foo @61
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                getter: getter_0
+                augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
 
@@ -48067,7 +49687,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48094,12 +49714,12 @@ library
             Object
           fields
             self::@mixin::A::@field::foo1
-            self::@augmentation::package:test/a.dart::@mixin::A::@field::foo2
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
           accessors
             self::@mixin::A::@getter::foo1
             self::@mixin::A::@setter::foo1
-            self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo2
-            self::@augmentation::package:test/a.dart::@mixin::A::@setter::foo2
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -48152,7 +49772,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48179,16 +49799,16 @@ library
           fields
             self::@mixin::A::@field::foo1
             FieldMember
-              base: self::@augmentation::package:test/a.dart::@mixin::A::@field::foo2
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               substitution: {T2: T1}
           accessors
             self::@mixin::A::@getter::foo1
             self::@mixin::A::@setter::foo1
             PropertyAccessorMember
-              base: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo2
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               substitution: {T2: T1}
             PropertyAccessorMember
-              base: self::@augmentation::package:test/a.dart::@mixin::A::@setter::foo2
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
               substitution: {T2: T1}
   augmentationImports
     package:test/a.dart
@@ -48241,7 +49861,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48259,10 +49879,10 @@ library
             Object
           fields
             self::@mixin::A::@field::foo1
-            self::@augmentation::package:test/a.dart::@mixin::A::@field::foo2
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
           accessors
             self::@mixin::A::@getter::foo1
-            self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo2
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -48306,7 +49926,7 @@ library
         typeParameters
           covariant T1 @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48325,12 +49945,12 @@ library
           fields
             self::@mixin::A::@field::foo1
             FieldMember
-              base: self::@augmentation::package:test/a.dart::@mixin::A::@field::foo2
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
               substitution: {T2: T1}
           accessors
             self::@mixin::A::@getter::foo1
             PropertyAccessorMember
-              base: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo2
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo2
               substitution: {T2: T1}
   augmentationImports
     package:test/a.dart
@@ -48375,7 +49995,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48390,7 +50010,7 @@ library
             returnType: int
             id: getter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
@@ -48404,7 +50024,7 @@ library
           fields
             self::@mixin::A::@field::foo
           accessors
-            self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
             self::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
@@ -48450,7 +50070,7 @@ library
   definingUnit
     mixins
       mixin A @56
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48465,7 +50085,7 @@ library
             returnType: int
             id: getter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
@@ -48479,7 +50099,7 @@ library
           fields
             self::@mixin::A::@field::foo
           accessors
-            self::@augmentation::package:test/b.dart::@mixin::A::@getter::foo
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
             self::@mixin::A::@setter::foo
   augmentationImports
     package:test/a.dart
@@ -48487,25 +50107,25 @@ library
         mixins
           augment mixin A @43
             augmentationTarget: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_2
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
-                augmentation: self::@augmentation::package:test/b.dart::@mixin::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       definingUnit
         mixins
           augment mixin A @43
-            augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_0
                 variable: field_0
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -48531,7 +50151,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48548,7 +50168,7 @@ library
             returnType: int
             id: getter_2
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
             returnType: int
             id: getter_1
@@ -48560,7 +50180,7 @@ library
             self::@mixin::A::@field::foo1
             self::@mixin::A::@field::foo2
           accessors
-            self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo1
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
             self::@mixin::A::@getter::foo2
   augmentationImports
     package:test/a.dart
@@ -48606,7 +50226,7 @@ library
   definingUnit
     mixins
       mixin A @56
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -48619,39 +50239,39 @@ library
             returnType: int
             id: getter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
         augmented
           superclassConstraints
             Object
           fields
             self::@mixin::A::@field::foo
           accessors
-            self::@augmentation::package:test/b.dart::@mixin::A::@getter::foo
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
   augmentationImports
     package:test/a.dart
       definingUnit
         mixins
           augment mixin A @43
             augmentationTarget: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_2
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
-                augmentation: self::@augmentation::package:test/b.dart::@mixin::A::@getter::foo
+                augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
     package:test/b.dart
       definingUnit
         mixins
           augment mixin A @43
-            augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+            augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
             accessors
               augment get foo @65
                 returnType: int
                 id: getter_0
                 variable: field_0
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
   }
 
@@ -48677,7 +50297,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         interfaces
@@ -48732,7 +50352,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         interfaces
@@ -48754,7 +50374,7 @@ library
         mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
             interfaces
               I2
       augmentationImports
@@ -48766,7 +50386,7 @@ library
                   synthetic @-1
             mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
                 interfaces
                   I3
 ''');
@@ -48792,7 +50412,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -48802,7 +50422,7 @@ library
           superclassConstraints
             Object
           methods
-            self::@augmentation::package:test/a.dart::@mixin::A::@method::bar
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
             self::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
@@ -48837,20 +50457,20 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
           foo1 @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
           foo2 @59
             returnType: void
         augmented
           superclassConstraints
             Object
           methods
-            self::@augmentation::package:test/a.dart::@mixin::A::@method::foo1
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo1
             self::@mixin::A::@method::foo2
   augmentationImports
     package:test/a.dart
@@ -48893,40 +50513,40 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
           foo @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
         augmented
           superclassConstraints
             Object
           methods
-            self::@augmentation::package:test/b.dart::@mixin::A::@method::foo
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
       definingUnit
         mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
             methods
               augment foo @87
                 returnType: void
                 augmentationTarget: self::@mixin::A::@method::foo
-                augmentation: self::@augmentation::package:test/b.dart::@mixin::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@methodAugmentation::foo
       augmentationImports
         package:test/b.dart
           definingUnit
             mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
                 methods
                   augment foo @59
                     returnType: void
-                    augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+                    augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
 ''');
   }
 
@@ -48953,7 +50573,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
@@ -48964,7 +50584,7 @@ library
             Object
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@mixin::A::@method::bar
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
               substitution: {T2: T}
             self::@mixin::A::@method::foo
   augmentationImports
@@ -49005,19 +50625,19 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         methods
           foo @42
             returnType: T
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
         augmented
           superclassConstraints
             Object
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@methodAugmentation::foo
               substitution: {T2: T}
   augmentationImports
     package:test/a.dart
@@ -49056,7 +50676,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -49077,10 +50697,10 @@ library
             Object
           fields
             self::@mixin::A::@field::foo1
-            self::@augmentation::package:test/a.dart::@mixin::A::@field::foo2
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@field::foo2
           accessors
             self::@mixin::A::@setter::foo1
-            self::@augmentation::package:test/a.dart::@mixin::A::@setter::foo2
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setter::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -49124,7 +50744,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -49146,7 +50766,7 @@ library
             returnType: void
             id: setter_1
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@setter::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
         augmented
           superclassConstraints
             Object
@@ -49154,7 +50774,7 @@ library
             self::@mixin::A::@field::foo
           accessors
             self::@mixin::A::@getter::foo
-            self::@augmentation::package:test/a.dart::@mixin::A::@setter::foo
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -49195,7 +50815,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         fields
@@ -49215,7 +50835,7 @@ library
             returnType: void
             id: setter_2
             variable: field_0
-            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@setter::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
             parameters
               requiredPositional _ @71
@@ -49230,7 +50850,7 @@ library
             self::@mixin::A::@field::foo1
             self::@mixin::A::@field::foo2
           accessors
-            self::@augmentation::package:test/a.dart::@mixin::A::@setter::foo1
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
             self::@mixin::A::@setter::foo2
   augmentationImports
     package:test/a.dart
@@ -49272,7 +50892,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           B1
         augmented
@@ -49323,7 +50943,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           I1
         augmented
@@ -49341,7 +50961,7 @@ library
         mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
             superclassConstraints
               I2
       augmentationImports
@@ -49353,7 +50973,7 @@ library
                   synthetic @-1
             mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
                 superclassConstraints
                   I3
 ''');
@@ -49384,7 +51004,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           I1
         augmented
@@ -49440,14 +51060,14 @@ library
   definingUnit
     mixins
       mixin B @49
-        augmentation: self::@augmentation::package:test/b.dart::@mixin::B
+        augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B
         superclassConstraints
           A
         augmented
           superclassConstraints
             A
           methods
-            self::@augmentation::package:test/b.dart::@mixin::B::@method::foo
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::B::@method::foo
   augmentationImports
     package:test/b.dart
       definingUnit
@@ -49489,7 +51109,7 @@ library
   definingUnit
     mixins
       mixin B @32
-        augmentation: self::@augmentation::package:test/b.dart::@mixin::B
+        augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B
         superclassConstraints
           Object
         methods
@@ -49544,7 +51164,7 @@ library
   definingUnit
     mixins
       mixin B @32
-        augmentation: self::@augmentation::package:test/b.dart::@mixin::B
+        augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B
         superclassConstraints
           Object
         methods
@@ -49602,7 +51222,7 @@ library
   definingUnit
     mixins
       mixin B @49
-        augmentation: self::@augmentation::package:test/b.dart::@mixin::B
+        augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B
         superclassConstraints
           A
         methods
@@ -49611,12 +51231,12 @@ library
               requiredPositional a @64
                 type: String
             returnType: int
-            augmentation: self::@augmentation::package:test/b.dart::@mixin::B::@method::foo
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
         augmented
           superclassConstraints
             A
           methods
-            self::@augmentation::package:test/b.dart::@mixin::B::@method::foo
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::B::@methodAugmentation::foo
   augmentationImports
     package:test/b.dart
       definingUnit
@@ -49649,7 +51269,7 @@ library
   definingUnit
     mixins
       base mixin A @36
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented
@@ -49738,7 +51358,7 @@ library
           covariant T @33
             bound: A<dynamic>
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
         superclassConstraints
           Object
         augmented

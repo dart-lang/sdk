@@ -168,8 +168,8 @@ size *count *class
 size       unique-size  count     class           data
 --------   --------     --------  --------        --------
      0 kb       0 kb         4    _OneByteString  #nonSharedString#
-     0 kb       0 kb         2    _OneByteString  #barUniqueString
      0 kb       0 kb         2    _OneByteString  #fooUniqueString
+     0 kb       0 kb         2    _OneByteString  #barUniqueString
      0 kb       0 kb         1    _OneByteString  #sharedString
 --------   --------     --------
      0 kb       0 kb         9
@@ -182,12 +182,12 @@ size       unique-size  count     class           data
       expectLogPattern('''
 size       unique-size  count     class     data
 --------   --------     --------  --------  --------
-     0 kb       0 kb         1    _List     len:2
+     0 kb       0 kb         1    _List     len:0
+     0 kb       0 kb         1    _List     len:0
      0 kb       0 kb         1    _List     len:2
      0 kb       0 kb         1    _List     len:1
      0 kb       0 kb         1    _List     len:1
-     0 kb       0 kb         1    _List     len:0
-     0 kb       0 kb         1    _List     len:0
+     0 kb       0 kb         1    _List     len:2
 --------   --------     --------
      0 kb       0 kb         6
     ''');
@@ -253,24 +253,6 @@ Global@\d+ .*/cli_test.dart.* {
       expectLogPattern(r'''
 There are 2 retaining paths of
 _OneByteString
-⮑ ・Bar.barLocal .*/cli_test.dart
-    ⮑ ・_List
-        ⮑ ・Global.bars .*/cli_test.dart
-            ⮑ ・Isolate.global
-                ⮑ ・Root
-
-
-There are 2 retaining paths of
-_OneByteString
-⮑ ・Bar.barUnique .*/cli_test.dart
-    ⮑ ・_List
-        ⮑ ・Global.bars .*/cli_test.dart
-            ⮑ ・Isolate.global
-                ⮑ ・Root
-
-
-There are 2 retaining paths of
-_OneByteString
 ⮑ ・Foo.fooLocal .*/cli_test.dart
     ⮑ ・_List
         ⮑ ・Global.foos .*/cli_test.dart
@@ -283,6 +265,24 @@ _OneByteString
 ⮑ ・Foo.fooUnique .*/cli_test.dart
     ⮑ ・_List
         ⮑ ・Global.foos .*/cli_test.dart
+            ⮑ ・Isolate.global
+                ⮑ ・Root
+
+
+There are 2 retaining paths of
+_OneByteString
+⮑ ・Bar.barLocal .*/cli_test.dart
+    ⮑ ・_List
+        ⮑ ・Global.bars .*/cli_test.dart
+            ⮑ ・Isolate.global
+                ⮑ ・Root
+
+
+There are 2 retaining paths of
+_OneByteString
+⮑ ・Bar.barUnique .*/cli_test.dart
+    ⮑ ・_List
+        ⮑ ・Global.bars .*/cli_test.dart
             ⮑ ・Isolate.global
                 ⮑ ・Root
 

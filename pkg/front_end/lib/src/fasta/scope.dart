@@ -9,13 +9,11 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'builder/builder.dart';
-import 'builder/class_builder.dart';
-import 'builder/extension_builder.dart';
+import 'builder/declaration_builders.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/metadata_builder.dart';
 import 'builder/name_iterator.dart';
-import 'builder/type_variable_builder.dart';
 import 'fasta_codes.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/body_builder_context.dart';
@@ -458,6 +456,17 @@ class Scope extends MutableScope {
     Scope newScope = new Scope.nested(this, "type variables",
         isModifiable: false, kind: ScopeKind.typeParameters);
     for (TypeVariableBuilder t in typeVariables) {
+      (newScope._local ??= {})[t.name] = t;
+    }
+    return newScope;
+  }
+
+  Scope withStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables) {
+    if (typeVariables == null) return this;
+    Scope newScope = new Scope.nested(this, "type variables",
+        isModifiable: false, kind: ScopeKind.typeParameters);
+    for (StructuralVariableBuilder t in typeVariables) {
       (newScope._local ??= {})[t.name] = t;
     }
     return newScope;
@@ -1009,12 +1018,12 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildOutlineNodes.");
   }
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildBodyNodes.");
     return 0;
   }

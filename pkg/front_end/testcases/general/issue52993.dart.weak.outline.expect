@@ -27,7 +27,7 @@ class Rt<T extends core::Object? = dynamic> extends core::Object {
 }
 extension St<T extends core::Object? = dynamic> on T% {
   method st = self::St|st;
-  tearoff st = self::St|get#st;
+  method tearoff st = self::St|get#st;
 }
 static method main() → void
   ;

@@ -36,7 +36,6 @@ class KernelCompilationService {
       return instance;
     }
 
-    final executablePath = io.Platform.resolvedExecutable;
     final sdkPaths = _computeSdkPaths();
 
     final socketCompleter = Completer<io.Socket>();
@@ -48,10 +47,20 @@ class KernelCompilationService {
     final host = serverSocket.address.address;
     final addressStr = '$host:${serverSocket.port}';
 
-    final process = await io.Process.start(executablePath, [
-      sdkPaths.frontEndSnapshot,
-      '--binary-protocol-address=$addressStr',
-    ]);
+    final io.Process process;
+    if (io.File(sdkPaths.frontEndAotSnapshot).existsSync()) {
+      process = await io.Process.start(sdkPaths.aotRuntime, [
+        sdkPaths.frontEndAotSnapshot,
+        '--binary-protocol-address=$addressStr',
+      ]);
+    } else {
+      // AOT snapshots cannot be generated on IA32, so we need this fallback
+      // branch until support for IA32 is dropped (https://dartbug.com/49969).
+      process = await io.Process.start(io.Platform.resolvedExecutable, [
+        sdkPaths.frontEndSnapshot,
+        '--binary-protocol-address=$addressStr',
+      ]);
+    }
 
     // When the process exits, we should not try to continue using it.
     // ignore: unawaited_futures
@@ -149,10 +158,16 @@ class KernelCompilationService {
     // Check for google3.
     final runFiles = io.Platform.environment['RUNFILES'];
     if (runFiles != null) {
+      final aotRuntimePath = io.Platform.environment['AOT_RUNTIME_PATH']!;
       final frontServerPath = io.Platform.environment['FRONTEND_SERVER_PATH']!;
+      final frontendServerAotSnapshotPath =
+          io.Platform.environment['FRONTEND_SERVER_AOT_SNAPSHOT_PATH']!;
       final platformDillPath = io.Platform.environment['PLATFORM_DILL_PATH']!;
       return _SdkPaths(
+        aotRuntime: package_path.join(runFiles, aotRuntimePath),
         frontEndSnapshot: package_path.join(runFiles, frontServerPath),
+        frontEndAotSnapshot:
+            package_path.join(runFiles, frontendServerAotSnapshotPath),
         platformDill: package_path.join(runFiles, platformDillPath),
       );
     }
@@ -162,8 +177,11 @@ class KernelCompilationService {
     final sdkPath = package_path.dirname(binPath);
 
     return _SdkPaths(
+      aotRuntime: package_path.join(binPath, 'dartaotruntime'),
       frontEndSnapshot: package_path.join(
           binPath, 'snapshots', 'frontend_server.dart.snapshot'),
+      frontEndAotSnapshot: package_path.join(
+          binPath, 'snapshots', 'frontend_server_aot.dart.snapshot'),
       platformDill: package_path.join(
           sdkPath, 'lib', '_internal', 'vm_platform_strong.dill'),
     );
@@ -221,11 +239,15 @@ class _Lock {
 }
 
 class _SdkPaths {
+  final String aotRuntime;
   final String frontEndSnapshot;
+  final String frontEndAotSnapshot;
   final String platformDill;
 
   _SdkPaths({
+    required this.aotRuntime,
     required this.frontEndSnapshot,
+    required this.frontEndAotSnapshot,
     required this.platformDill,
   });
 }

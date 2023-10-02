@@ -29,6 +29,19 @@ import 'package:meta/meta.dart';
 ''');
   }
 
+  test_extensionType() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@sealed
+extension type E(int i) {
+  void m() { }
+}
+''', [
+      error(WarningCode.INVALID_SEALED_ANNOTATION, 34, 7),
+    ]);
+  }
+
   test_mixin() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

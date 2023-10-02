@@ -37,7 +37,7 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength = 0,
       int expectedBytesReceived = 0,
-      Map<String, String>? expectedHeaders = null,
+      Map<String, String?>? expectedHeaders = null,
       bool chunked = false,
       bool upgrade = false,
       int unparsedLength = 0,
@@ -71,8 +71,8 @@ class HttpParserTest {
           Expect.equals(-1, incoming.transferLength);
         }
         if (expectedHeaders != null) {
-          expectedHeaders.forEach((String name, String value) =>
-              Expect.equals(value, headers![name]![0]));
+          expectedHeaders.forEach((String name, String? value) =>
+              Expect.equals(value, headers?[name]?[0]));
         }
         incoming.listen((List<int> data) {
           Expect.isFalse(upgraded);
@@ -425,19 +425,42 @@ Empty-Header-2:\t  \t \r
     headers["empty-header-2"] = "";
     _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
+    // Test folded headers.
     request = """
 POST /test HTTP/1.1\r
-Header-A: \t  AA\r
- A  \t \r
-X-Header-B:           b\r
-  b\r
-\t    b  \t \r
+Header-A: h\r
+ ell\r
+ o\r
+X-Header-B: w\r
+ o\r
+ r\r
+ l\r
+ d\r
 \r
 """;
 
     headers = new Map();
-    headers["header-a"] = "AAA";
-    headers["x-header-b"] = "bbb";
+    headers["header-a"] = "h ell o";
+    headers["x-header-b"] = "w o r l d";
+    _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
+
+    // Test folded headers with leading and trailing whitespace.
+    request = """
+POST /test HTTP/1.1\r
+Header-A: \t  h \t \r
+  \t ell \t  \t \r
+\to  \t \r
+X-Header-B:w\r
+\t\to\t\t\r
+\t\tr\t\t\r
+\tl \r
+\td \t\r
+\r
+""";
+
+    headers = new Map();
+    headers["header-a"] = "h \t  ell \t  \t  o";
+    headers["x-header-b"] = "w o\t\t r\t\t l  d";
     _testParseRequestLean(request, "POST", "/test", expectedHeaders: headers);
 
     // _testParseRequestLean encodes the request as ISO-8859-1. Test that the
@@ -515,6 +538,45 @@ Transfer-Encoding: chunked\r
 0\r\n\r\n""";
     _testParseRequest(request, "POST", "/test",
         expectedTransferLength: -1, expectedBytesReceived: 60, chunked: true);
+
+    // Content-Length and "Transfer-Encoding: chunked" are specified.
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 10\r
+Transfer-Encoding: chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(request, "POST", "/test",
+        expectedTransferLength: -1,
+        expectedBytesReceived: 10,
+        chunked: true,
+        expectedHeaders: {
+          'content-length': null,
+          'transfer-encoding': 'chunked'
+        });
+
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+Content-Length: 10\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(request, "POST", "/test",
+        expectedTransferLength: -1,
+        expectedBytesReceived: 10,
+        chunked: true,
+        expectedHeaders: {
+          'content-length': null,
+          'transfer-encoding': 'chunked'
+        });
 
     // Test HTTP upgrade.
     request = """
@@ -774,32 +836,6 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
     _testParseInvalidRequest(request);
 
     request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
-    _testParseInvalidRequest(request);
-
-    // Content-Length and "Transfer-Encoding: chunked" are specified (error
-    // per RFC-7320).
-    request = """
-POST /test HTTP/1.1\r
-Content-Length: 7\r
-Transfer-Encoding: chunked\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
-    _testParseInvalidRequest(request);
-
-    request = """
-POST /test HTTP/1.1\r
-Transfer-Encoding: chunked\r
-Content-Length: 7\r
-\r
-5\r
-01234\r
-5\r
-56789\r
-0\r\n\r\n""";
     _testParseInvalidRequest(request);
   }
 

@@ -74,8 +74,13 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
       } else {
         builder.addSimpleInsertion(listLoc, '[');
       }
-      var newChildArgSrc =
-          replaceSourceIndent(childArgSrc, indentOld, indentNew);
+      var newChildArgSrc = utils.replaceSourceIndent(
+        childArgSrc,
+        indentOld,
+        indentNew,
+        includeLeading: false,
+        includeTrailingNewline: false,
+      );
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(range.node(childArg), newChildArgSrc);
     }

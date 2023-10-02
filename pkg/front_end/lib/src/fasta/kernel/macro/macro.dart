@@ -19,14 +19,12 @@ import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import '../../../base/common.dart';
 import '../../builder/builder.dart';
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/member_builder.dart';
 import '../../builder/nullability_builder.dart';
-import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../builder/type_declaration_builder.dart';
 import '../../fasta_codes.dart';
 import '../../identifiers.dart';
 import '../../source/source_class_builder.dart';
@@ -427,8 +425,18 @@ class MacroApplications {
     } else if (identifier is TypeDeclarationBuilderIdentifier) {
       final TypeDeclarationBuilder typeDeclarationBuilder =
           identifier.typeDeclarationBuilder;
-      if (typeDeclarationBuilder is ClassBuilder) {
-        return getClassDeclaration(typeDeclarationBuilder);
+      switch (typeDeclarationBuilder) {
+        case ClassBuilder():
+          return getClassDeclaration(typeDeclarationBuilder);
+        case TypeAliasBuilder():
+        case TypeVariableBuilder():
+        case StructuralVariableBuilder():
+        case ExtensionBuilder():
+        case ExtensionTypeDeclarationBuilder():
+        case InvalidTypeDeclarationBuilder():
+        case BuiltinTypeDeclarationBuilder():
+        // TODO(johnniwinther): How should we handle this case?
+        case OmittedTypeDeclarationBuilder():
       }
       throw new UnimplementedError(
           'Resolving declarations is only supported for classes');
@@ -983,7 +991,8 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
     macro.ParameterizedTypeDeclaration definingClass =
-        getClassDeclaration(builder.classBuilder);
+        // TODO(johnniwinther): Support extension type factories.
+        getClassDeclaration(builder.classBuilder!);
 
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -1146,8 +1155,18 @@ class MacroApplications {
                   name: name),
               typeArguments: typeArguments,
               isNullable: isNullable);
+        } else if (name is Identifier) {
+          return new macro.NamedTypeAnnotationImpl(
+              id: macro.RemoteInstance.uniqueId,
+              identifier: new TypeBuilderIdentifier(
+                  typeBuilder: typeBuilder,
+                  libraryBuilder: libraryBuilder,
+                  id: macro.RemoteInstance.uniqueId,
+                  name: name.name),
+              typeArguments: typeArguments,
+              isNullable: isNullable);
         } else if (name is QualifiedName) {
-          assert(name.qualifier is String);
+          assert(name.qualifier is Identifier);
           return new macro.NamedTypeAnnotationImpl(
               id: macro.RemoteInstance.uniqueId,
               identifier: new TypeBuilderIdentifier(

@@ -15,22 +15,19 @@ import 'dart:typed_data';
 JSObject get globalContext => staticInteropGlobalContext as JSObject;
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.
-/// TODO(joshualitt): Remove conflation of null and undefined after migration.
 @patch
 extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isUndefined =>
-      this == null || js_util.typeofEquals(this, 'undefined');
+  bool get isUndefined => typeofEquals('undefined');
 
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isNull =>
-      this == null || foreign_helper.JS('bool', '# === null', this);
+  bool get isNull => foreign_helper.JS('bool', '# === null', this);
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean typeofEquals(JSString typeString) =>
+  bool typeofEquals(String typeString) =>
       foreign_helper.JS('bool', 'typeof # === #', this, typeString);
 
   @patch
@@ -51,7 +48,7 @@ extension NullableObjectUtilExtension on Object? {
 extension JSObjectUtilExtension on JSObject {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean instanceof(JSFunction constructor) =>
+  bool instanceof(JSFunction constructor) =>
       foreign_helper.JS('bool', '# instanceof #', this, constructor);
 }
 
@@ -298,6 +295,18 @@ extension ListToJSArray on List<JSAny?> {
   @patch
   @pragma('dart2js:prefer-inline')
   JSArray get toJS => this as JSArray;
+
+  // TODO(srujzs): Should we do a check to make sure this List is a JSArray
+  // under the hood and then potentially proxy? This applies for user lists. For
+  // now, don't do the check to avoid the cost of the check in the general case,
+  // and user lists will likely crash. Note that on dart2js, we do an
+  // `Array.isArray` check instead of `instanceof Array` when we cast to a
+  // `List`, which is what `JSArray` is. This won't work for proxy objects as
+  // they're not actually Arrays, so the cast will fail unless we change that
+  // check.
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSArray get toJSProxyOrRef => this as JSArray;
 }
 
 /// [JSNumber] -> [double] or [int].

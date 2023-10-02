@@ -8,128 +8,41 @@ library fasta.operators;
 ///
 /// The names have been chosen to represent their normal semantic meaning.
 enum Operator {
-  add,
-  bitwiseAnd,
-  bitwiseNot,
-  bitwiseOr,
-  bitwiseXor,
-  divide,
-  equals,
-  greaterThan,
-  greaterThanEquals,
-  indexGet,
-  indexSet,
-  leftShift,
-  lessThan,
-  lessThanEquals,
-  modulo,
-  multiply,
-  rightShift,
-  tripleShift,
-  subtract,
-  truncatingDivide,
-  unaryMinus,
-}
+  add("+", 1),
+  bitwiseAnd("&", 1),
+  bitwiseNot("~", 0),
+  bitwiseOr("|", 1),
+  bitwiseXor("^", 1),
+  divide("/", 1),
+  equals("==", 1),
+  greaterThan(">", 1),
+  greaterThanEquals(">=", 1),
+  indexGet("[]", 1),
+  indexSet("[]=", 2),
+  leftShift("<<", 1),
+  lessThan("<", 1),
+  lessThanEquals("<=", 1),
+  modulo("%", 1),
+  multiply("*", 1),
+  rightShift(">>", 1),
+  tripleShift(">>>", 1),
+  subtract("-", 1),
+  truncatingDivide("~/", 1),
+  unaryMinus("unary-", 0),
+  ;
 
-Operator? operatorFromString(String string) {
-  if (identical("+", string)) return Operator.add;
-  if (identical("&", string)) return Operator.bitwiseAnd;
-  if (identical("~", string)) return Operator.bitwiseNot;
-  if (identical("|", string)) return Operator.bitwiseOr;
-  if (identical("^", string)) return Operator.bitwiseXor;
-  if (identical("/", string)) return Operator.divide;
-  if (identical("==", string)) return Operator.equals;
-  if (identical(">", string)) return Operator.greaterThan;
-  if (identical(">=", string)) return Operator.greaterThanEquals;
-  if (identical("[]", string)) return Operator.indexGet;
-  if (identical("[]=", string)) return Operator.indexSet;
-  if (identical("<<", string)) return Operator.leftShift;
-  if (identical("<", string)) return Operator.lessThan;
-  if (identical("<=", string)) return Operator.lessThanEquals;
-  if (identical("%", string)) return Operator.modulo;
-  if (identical("*", string)) return Operator.multiply;
-  if (identical(">>", string)) return Operator.rightShift;
-  if (identical(">>>", string)) return Operator.tripleShift;
-  if (identical("-", string)) return Operator.subtract;
-  if (identical("~/", string)) return Operator.truncatingDivide;
-  if (identical("unary-", string)) return Operator.unaryMinus;
-  return null;
-}
+  final String text;
+  final int requiredArgumentCount;
 
-String operatorToString(Operator operator) {
-  switch (operator) {
-    case Operator.add:
-      return "+";
-    case Operator.bitwiseAnd:
-      return "&";
-    case Operator.bitwiseNot:
-      return "~";
-    case Operator.bitwiseOr:
-      return "|";
-    case Operator.bitwiseXor:
-      return "^";
-    case Operator.divide:
-      return "/";
-    case Operator.equals:
-      return "==";
-    case Operator.greaterThan:
-      return ">";
-    case Operator.greaterThanEquals:
-      return ">=";
-    case Operator.indexGet:
-      return "[]";
-    case Operator.indexSet:
-      return "[]=";
-    case Operator.leftShift:
-      return "<<";
-    case Operator.lessThan:
-      return "<";
-    case Operator.lessThanEquals:
-      return "<=";
-    case Operator.modulo:
-      return "%";
-    case Operator.multiply:
-      return "*";
-    case Operator.rightShift:
-      return ">>";
-    case Operator.tripleShift:
-      return ">>>";
-    case Operator.subtract:
-      return "-";
-    case Operator.truncatingDivide:
-      return "~/";
-    case Operator.unaryMinus:
-      return "unary-";
-  }
-}
+  const Operator(this.text, this.requiredArgumentCount);
 
-int operatorRequiredArgumentCount(Operator operator) {
-  switch (operator) {
-    case Operator.bitwiseNot:
-    case Operator.unaryMinus:
-      return 0;
-
-    case Operator.add:
-    case Operator.bitwiseAnd:
-    case Operator.bitwiseOr:
-    case Operator.bitwiseXor:
-    case Operator.divide:
-    case Operator.equals:
-    case Operator.greaterThan:
-    case Operator.greaterThanEquals:
-    case Operator.indexGet:
-    case Operator.leftShift:
-    case Operator.lessThan:
-    case Operator.lessThanEquals:
-    case Operator.modulo:
-    case Operator.multiply:
-    case Operator.rightShift:
-    case Operator.tripleShift:
-    case Operator.subtract:
-    case Operator.truncatingDivide:
-      return 1;
-
-    case Operator.indexSet:
-      return 2;
+  static Operator? fromText(String text) {
+    // TODO(johnniwinther): Should we have a map instead?
+    for (Operator operator in values) {
+      if (identical(operator.text, text)) {
+        return operator;
+      }
+    }
+    return null;
   }
 }

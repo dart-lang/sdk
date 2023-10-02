@@ -42,7 +42,7 @@ import 'type_system.dart';
 /// Calling [run] will start the work of visiting the body of the code to
 /// construct a set of inference-nodes that abstractly represent what the code
 /// is doing.
-class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
+class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
     with ir.VisitorNullMixin<TypeInformation> {
   final CompilerOptions _options;
   final JClosedWorld _closedWorld;
@@ -2305,8 +2305,7 @@ class TypeInformationConstantVisitor
 
   TypeInformationConstantVisitor(this.builder, this.expression);
 
-  @override
-  TypeInformation defaultConstant(ir.Constant node) {
+  static Never _unexpectedConstant(ir.Constant node) {
     throw UnsupportedError("Unexpected constant: "
         "${node} (${node.runtimeType})");
   }
@@ -2411,6 +2410,23 @@ class TypeInformationConstantVisitor
     assert(false, "Unexpected unevaluated constant: $node");
     return builder._types.dynamicType;
   }
+
+  @override
+  Never visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitRedirectingFactoryTearOffConstant(
+          ir.RedirectingFactoryTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitAuxiliaryConstant(ir.AuxiliaryConstant node) =>
+      _unexpectedConstant(node);
 }
 
 class Refinement {

@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/const_canonical_type.dart';
+import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/printer.dart'
@@ -173,10 +174,6 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
     }
     return value;
   }
-
-  @override
-  Constant? defaultConstant(Constant node) => throw new UnsupportedError(
-      "Unhandled constant ${node} (${node.runtimeType})");
 
   @override
   Constant? visitNullConstant(NullConstant node) => null;
@@ -352,6 +349,40 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   @override
   Constant? visitUnevaluatedConstant(UnevaluatedConstant node) => null;
+
+  @override
+  Constant? visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      null;
+
+  @override
+  Constant? visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      null;
+
+  @override
+  Constant? visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    List<DartType>? types;
+    for (int index = 0; index < node.types.length; index++) {
+      DartType? type = computeConstCanonicalType(
+          node.types[index], _evaluator.coreTypes,
+          isNonNullableByDefault: _evaluator.isNonNullableByDefault);
+      if (type != null) {
+        types ??= node.types.toList(growable: false);
+        types[index] = type;
+      }
+    }
+    if (types != null) {
+      return new TypedefTearOffConstant(
+          node.parameters, node.tearOffConstant, types);
+    }
+    return null;
+  }
+
+  @override
+  Constant? visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        'Unsupported auxiliary constant $node (${node.runtimeType}).');
+  }
 }
 
 class ConstantsTransformer extends RemovingTransformer {
@@ -1556,8 +1587,8 @@ class ConstantsTransformer extends RemovingTransformer {
       }
     }
     if (_exhaustivenessDataForTesting != null) {
-      _exhaustivenessDataForTesting!.objectFieldLookup ??= _exhaustivenessCache;
-      _exhaustivenessDataForTesting!.switchResults[replacement] =
+      _exhaustivenessDataForTesting.objectFieldLookup ??= _exhaustivenessCache;
+      _exhaustivenessDataForTesting.switchResults[replacement] =
           new ExhaustivenessResult(type, cases,
               patternGuards.map((c) => c.fileOffset).toList(), reportedErrors!);
     }
@@ -1795,10 +1826,9 @@ class ConstantsTransformer extends RemovingTransformer {
       // [PatternAssignment]s for effect.
       if (_exhaustivenessDataForTesting != null) {
         ExhaustivenessResult? result =
-            _exhaustivenessDataForTesting!.switchResults[expression];
+            _exhaustivenessDataForTesting.switchResults[expression];
         if (result != null) {
-          _exhaustivenessDataForTesting!.switchResults[expression.body] =
-              result;
+          _exhaustivenessDataForTesting.switchResults[expression.body] = result;
         }
       }
       return expression.body;
@@ -2829,9 +2859,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return _evaluateSubexpression(node);
   }
 
-  // TODO(johnniwinther): Remove this and handle each expression directly.
-  @override
-  Constant defaultExpression(Expression node) {
+  Constant _notAConstantExpression(Expression node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
     return createExpressionErrorConstant(node, messageNotAConstantExpression);
@@ -4392,7 +4420,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           templateConstEvalError
               .withArguments('Variable set of an unknown value.'));
     }
-    return defaultExpression(node);
+    return _notAConstantExpression(node);
   }
 
   /// Computes the constant for [expression] defined in the context of [member].
@@ -4898,7 +4926,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       if (value is AbortConstant) return value;
       return new _AbortDueToThrowConstant(node, value);
     }
-    return defaultExpression(node);
+    return _notAConstantExpression(node);
   }
 
   @override
@@ -5372,62 +5400,60 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   @override
-  Constant defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
-
-  @override
   Constant visitAwaitExpression(AwaitExpression node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitBlockExpression(BlockExpression node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
-  Constant visitDynamicSet(DynamicSet node) => defaultExpression(node);
+  Constant visitDynamicSet(DynamicSet node) => _notAConstantExpression(node);
 
   @override
   Constant visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
-  Constant visitInstanceSet(InstanceSet node) => defaultExpression(node);
+  Constant visitInstanceSet(InstanceSet node) => _notAConstantExpression(node);
 
   @override
-  Constant visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
+  Constant visitLoadLibrary(LoadLibrary node) => _notAConstantExpression(node);
 
   @override
-  Constant visitRethrow(Rethrow node) => defaultExpression(node);
+  Constant visitRethrow(Rethrow node) => _notAConstantExpression(node);
 
   @override
-  Constant visitStaticSet(StaticSet node) => defaultExpression(node);
+  Constant visitStaticSet(StaticSet node) => _notAConstantExpression(node);
 
   @override
   Constant visitAbstractSuperMethodInvocation(
           AbstractSuperMethodInvocation node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitSuperMethodInvocation(SuperMethodInvocation node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitAbstractSuperPropertyGet(AbstractSuperPropertyGet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitAbstractSuperPropertySet(AbstractSuperPropertySet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitSuperPropertyGet(SuperPropertyGet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
   Constant visitSuperPropertySet(SuperPropertySet node) =>
-      defaultExpression(node);
+      _notAConstantExpression(node);
 
   @override
-  Constant visitThisExpression(ThisExpression node) => defaultExpression(node);
+  Constant visitThisExpression(ThisExpression node) =>
+      _notAConstantExpression(node);
 
   @override
   Constant visitSwitchExpression(SwitchExpression node) {
@@ -5439,6 +5465,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitPatternAssignment(PatternAssignment node) {
     return createExpressionErrorConstant(node,
         templateNotConstantExpression.withArguments('Pattern assignment'));
+  }
+
+  @override
+  Constant visitAuxiliaryExpression(AuxiliaryExpression node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary expression ${node} (${node.runtimeType}).");
   }
 }
 
@@ -5458,13 +5490,10 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
 
   @override
-  ExecutionStatus defaultStatement(Statement node) {
+  ExecutionStatus visitAssertBlock(AssertBlock node) {
     throw new UnsupportedError(
         'Statement constant evaluation does not support ${node.runtimeType}.');
   }
-
-  @override
-  ExecutionStatus visitAssertBlock(AssertBlock node) => defaultStatement(node);
 
   @override
   ExecutionStatus visitAssertStatement(AssertStatement node) {
@@ -5723,6 +5752,12 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
     return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
         node, templateConstEvalError.withArguments('Yield statement.')));
   }
+
+  @override
+  ExecutionStatus visitAuxiliaryStatement(AuxiliaryStatement node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary statement ${node} (${node.runtimeType}).");
+  }
 }
 
 class ConstantCoverage {
@@ -5813,7 +5848,7 @@ class EvaluationEnvironment {
   bool get isEmpty {
     // Since we look up variables in enclosing environment, the environment
     // is not empty if its parent is not empty.
-    if (_parent != null && !_parent!.isEmpty) return false;
+    if (_parent != null && !_parent.isEmpty) return false;
     return _typeVariables.isEmpty && _variables.isEmpty;
   }
 
@@ -5861,7 +5896,7 @@ class EvaluationEnvironment {
     final DartType substitutedType = substitute(type, _typeVariables);
     if (identical(substitutedType, type) && _parent != null) {
       // No distinct type created, substitute type in parent.
-      return _parent!.substituteType(type);
+      return _parent.substituteType(type);
     }
     return substitutedType;
   }
@@ -5933,7 +5968,7 @@ class MutableListConstant extends ListConstant {
 
 /// An intermediate result that is used for invoking function nodes with their
 /// respective environment within the [ConstantEvaluator].
-class FunctionValue implements Constant {
+class FunctionValue implements AuxiliaryConstant {
   final FunctionNode function;
   final EvaluationEnvironment? environment;
 
@@ -5950,12 +5985,12 @@ class FunctionValue implements Constant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -5995,7 +6030,7 @@ class FunctionValue implements Constant {
   }
 }
 
-abstract class AbortConstant implements Constant {}
+abstract class AbortConstant implements AuxiliaryConstant {}
 
 class _AbortDueToErrorConstant extends AbortConstant {
   final TreeNode node;
@@ -6017,12 +6052,12 @@ class _AbortDueToErrorConstant extends AbortConstant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -6078,12 +6113,12 @@ class _AbortDueToInvalidExpressionConstant extends AbortConstant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -6140,12 +6175,12 @@ class _AbortDueToThrowConstant extends AbortConstant {
   }
 
   @override
-  R acceptReference<R>(Visitor<R> v) {
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) {
     throw new UnimplementedError();
   }
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -6215,87 +6250,13 @@ class SimpleErrorReporter implements ErrorReporter {
 }
 
 bool isInstantiated(DartType type) {
-  return type.accept(new IsInstantiatedVisitor());
+  return !type.accept(new HasUninstantiatedVisitor());
 }
 
-class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
-  final _availableVariables = new Set<TypeParameter>();
-
-  bool isInstantiated(DartType type) {
-    return type.accept(this);
-  }
-
-  @override
-  bool defaultDartType(DartType node) {
-    // Probably unreachable.
-    throw 'A visitor method seems to be unimplemented!';
-  }
-
-  @override
-  bool visitInvalidType(InvalidType node) => true;
-
-  @override
-  bool visitDynamicType(DynamicType node) => true;
-
-  @override
-  bool visitVoidType(VoidType node) => true;
-
-  @override
-  bool visitNullType(NullType node) => true;
-
+class HasUninstantiatedVisitor extends FindTypeVisitor {
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return _availableVariables.contains(node.parameter);
-  }
-
-  @override
-  bool visitInterfaceType(InterfaceType node) {
-    return node.typeArguments
-        .every((DartType typeArgument) => typeArgument.accept(this));
-  }
-
-  @override
-  bool visitFutureOrType(FutureOrType node) {
-    return node.typeArgument.accept(this);
-  }
-
-  @override
-  bool visitFunctionType(FunctionType node) {
-    final List<TypeParameter> parameters = node.typeParameters;
-    _availableVariables.addAll(parameters);
-    final bool result = node.typeParameters
-            .every((p) => p.bound.accept(this) && p.defaultType.accept(this)) &&
-        node.returnType.accept(this) &&
-        node.positionalParameters.every((p) => p.accept(this)) &&
-        node.namedParameters.every((p) => p.type.accept(this));
-    _availableVariables.removeAll(parameters);
-    return result;
-  }
-
-  @override
-  bool visitTypedefType(TypedefType node) {
-    // Probably unreachable.
-    return node.unalias.accept(this);
-  }
-
-  @override
-  bool visitNeverType(NeverType node) => true;
-
-  @override
-  bool visitRecordType(RecordType node) {
-    return node.positional.every((p) => p.accept(this)) &&
-        node.named.every((p) => p.type.accept(this));
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments
-        .every((DartType typeArgument) => typeArgument.accept(this));
-  }
-
-  @override
-  bool visitIntersectionType(IntersectionType node) {
-    return node.left.accept(this) && node.right.accept(this);
+    return true;
   }
 }
 

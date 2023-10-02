@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field dynamic constructorAndField;
+  field dynamic factoryAndField;
+  field dynamic redirectingFactoryAndField;
+  constructor constructorAndMethod() → self::Class
+    ;
+  constructor constructorAndField() → self::Class
+    ;
+  constructor constructorAndGetter() → self::Class
+    ;
+  constructor constructorAndSetter() → self::Class
+    ;
+  method constructorAndMethod() → void
+    ;
+  static factory factoryAndMethod() → self::Class
+    ;
+  method factoryAndMethod() → void
+    ;
+  static factory redirectingFactoryAndMethod() → self::Class /* redirection-target: self::Class::constructorAndMethod */
+    return new self::Class::constructorAndMethod();
+  method redirectingFactoryAndMethod() → void
+    ;
+  static factory factoryAndField() → self::Class
+    ;
+  static factory redirectingFactoryAndField() → self::Class /* redirection-target: self::Class::constructorAndField */
+    return new self::Class::constructorAndField();
+  get constructorAndGetter() → dynamic
+    ;
+  static factory factoryAndGetter() → self::Class
+    ;
+  get factoryAndGetter() → dynamic
+    ;
+  static factory redirectingFactoryAndGetter() → self::Class /* redirection-target: self::Class::constructorAndGetter */
+    return new self::Class::constructorAndGetter();
+  get redirectingFactoryAndGetter() → dynamic
+    ;
+  set constructorAndSetter(dynamic value) → void
+    ;
+  static factory factoryAndSetter() → self::Class
+    ;
+  set factoryAndSetter(dynamic value) → void
+    ;
+  static factory redirectingFactoryAndSetter() → self::Class /* redirection-target: self::Class::constructorAndSetter */
+    return new self::Class::constructorAndSetter();
+  set redirectingFactoryAndSetter(dynamic value) → void
+    ;
+}

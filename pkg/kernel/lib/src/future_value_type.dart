@@ -16,8 +16,7 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
   /// from within the handler on parts of the unknown type to recursively call
   /// the visitor.  If not set, an exception is thrown then an unhandled
   /// implementer of [DartType] is encountered.
-  final DartType Function(DartType node, CoreTypes coreTypes,
-          DartType Function(DartType node, CoreTypes coreTypes) recursor)?
+  final DartTypeVisitor1AuxiliaryFunction<DartType, CoreTypes>?
       unhandledTypeHandler;
 
   const FutureValueTypeVisitor({this.unhandledTypeHandler});
@@ -26,9 +25,10 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
       node.accept1(this, coreTypes);
 
   @override
-  DartType defaultDartType(DartType node, CoreTypes coreTypes) {
+  DartType visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
     if (unhandledTypeHandler == null) {
-      throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
+      throw new UnsupportedError(
+          "Unsupported auxiliary type $node (${node.runtimeType}).");
     } else {
       return unhandledTypeHandler!(node, coreTypes, visit);
     }
@@ -83,6 +83,12 @@ class FutureValueTypeVisitor implements DartTypeVisitor1<DartType, CoreTypes> {
 
   @override
   DartType visitTypeParameterType(DartType node, CoreTypes coreTypes) {
+    // Otherwise, for all S, futureValueType(S) = Object?.
+    return coreTypes.objectNullableRawType;
+  }
+
+  @override
+  DartType visitStructuralParameterType(DartType node, CoreTypes coreTypes) {
     // Otherwise, for all S, futureValueType(S) = Object?.
     return coreTypes.objectNullableRawType;
   }

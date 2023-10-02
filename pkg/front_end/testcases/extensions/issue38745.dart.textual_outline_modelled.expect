@@ -1,0 +1,11 @@
+class C<T> {}
+errors() {}
+extension ext<T> on C<T> {
+  final int property = 42;
+  final int property2 = 42;
+  int field;
+  method() {}
+  static void set property2(int value) {}
+  void set property(int value) {}
+}
+main() {}

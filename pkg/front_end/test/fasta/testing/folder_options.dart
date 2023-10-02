@@ -1,6 +1,6 @@
 // Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File;
 
@@ -138,9 +138,7 @@ class SuiteFolderOptions {
       Map<String, String> environment) {
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
       // Force enable features in development.
-      ExperimentalFlag.records: true,
-      ExperimentalFlag.patterns: true,
-      ExperimentalFlag.sealedClass: true,
+      ExperimentalFlag.inlineClass: true,
     };
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {

@@ -9,9 +9,8 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/library_builder.dart';
@@ -19,7 +18,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../identifiers.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
@@ -279,7 +277,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.name == identifier.name &&
-            formal.charOffset == identifier.charOffset) {
+            formal.charOffset == identifier.nameOffset) {
           return formal;
         }
       }

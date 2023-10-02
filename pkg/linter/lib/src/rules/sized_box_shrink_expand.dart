@@ -8,12 +8,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
 
-const _details =
-    r'''Use `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors appropriately.
+const _details = r'''
+Use `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors
+appropriately.
 
-The `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors should be used
-instead of the more general `SizedBox(...)` constructor when the named constructors
-capture the intent of the code more succinctly.
+Either the `SizedBox.shrink(...)` or `SizedBox.expand(...)` constructor should
+be used instead of the more general `SizedBox(...)` constructor when one of the
+named constructors capture the intent of the code more succinctly.
 
 **Examples**
 
@@ -90,6 +91,7 @@ class _ArgumentData {
   double? width;
 
   double? height;
+
   _ArgumentData(ArgumentList node) {
     for (var argument in node.arguments) {
       if (argument is! NamedExpression) {
@@ -98,23 +100,11 @@ class _ArgumentData {
       }
       var label = argument.name.label;
       if (label.name == 'width') {
-        width = _argumentValue(argument.expression);
+        width = argument.expression.argumentValue;
       } else if (label.name == 'height') {
-        height = _argumentValue(argument.expression);
+        height = argument.expression.argumentValue;
       }
     }
-  }
-  double? _argumentValue(Expression argument) {
-    if (argument is IntegerLiteral) {
-      return argument.value?.toDouble();
-    } else if (argument is DoubleLiteral) {
-      return argument.value;
-    } else if (argument is PrefixedIdentifier &&
-        argument.identifier.name == 'infinity' &&
-        argument.prefix.name == 'double') {
-      return double.infinity;
-    }
-    return null;
   }
 }
 
@@ -141,5 +131,19 @@ class _Visitor extends SimpleAstVisitor {
         data.height == double.infinity) {
       rule.reportLint(node.constructorName, arguments: ['expand']);
     }
+  }
+}
+
+extension on Expression {
+  double? get argumentValue {
+    var self = this;
+    return switch (self) {
+      IntegerLiteral() => self.value?.toDouble(),
+      DoubleLiteral() => self.value,
+      PrefixedIdentifier(:var identifier, :var prefix)
+          when identifier.name == 'infinity' && prefix.name == 'double' =>
+        double.infinity,
+      _ => null,
+    };
   }
 }

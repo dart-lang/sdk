@@ -268,15 +268,14 @@ class VariableSymbol extends Symbol {
     bool? isStatic,
     this.getterId,
     this.setterId,
-    required String localId,
-    required String scopeId,
-    required SourceLocation location,
+    required super.localId,
+    required String super.scopeId,
+    required SourceLocation super.location,
   })  : isConst = isConst ?? false,
         isFinal = isFinal ?? false,
-        isStatic = isStatic ?? false,
-        super(localId: localId, scopeId: scopeId, location: location);
+        isStatic = isStatic ?? false;
 
-  VariableSymbol.fromJson(Map<String, dynamic> json)
+  VariableSymbol.fromJson(super.json)
       : name = _createValue(json['name']),
         kind = _createValue(json['kind'],
             parse: parseVariableSymbolKind, ifNull: VariableSymbolKind.none),
@@ -286,7 +285,7 @@ class VariableSymbol extends Symbol {
         isStatic = _createValue(json['isStatic']),
         getterId = _createValue(json['getterId']),
         setterId = _createValue(json['setterId']),
-        super.fromJson(json);
+        super.fromJson();
 
   @override
   Map<String, dynamic> toJson() => {
@@ -344,30 +343,24 @@ class ClassSymbol extends ScopeSymbol implements TypeSymbol {
     this.superClassId,
     List<String>? interfaceIds,
     Map<String, String>? typeParameters,
-    required String localId,
-    required String scopeId,
-    required SourceLocation location,
-    List<String>? variableIds,
-    List<String>? scopeIds,
+    required super.localId,
+    required String super.scopeId,
+    required SourceLocation super.location,
+    super.variableIds,
+    super.scopeIds,
   })  : isAbstract = isAbstract ?? false,
         isConst = isConst ?? false,
         interfaceIds = interfaceIds ?? [],
-        typeParameters = typeParameters ?? {},
-        super(
-            localId: localId,
-            scopeId: scopeId,
-            variableIds: variableIds,
-            scopeIds: scopeIds,
-            location: location);
+        typeParameters = typeParameters ?? {};
 
-  ClassSymbol.fromJson(Map<String, dynamic> json)
+  ClassSymbol.fromJson(super.json)
       : name = _createValue(json['name']),
         isAbstract = _createValue(json['isAbstract']),
         isConst = _createValue(json['isConst']),
         superClassId = _createValue(json['superClassId']),
         interfaceIds = _createValueList(json['interfaceIds']),
         typeParameters = _createValueMap(json['typeParameters']),
-        super.fromJson(json);
+        super.fromJson();
 
   @override
   Map<String, dynamic> toJson() => {
@@ -403,23 +396,22 @@ class FunctionTypeSymbol extends Symbol implements TypeSymbol {
     List<String>? optionalParameterTypeIds,
     Map<String, String>? namedParameterTypeIds,
     required this.returnTypeId,
-    required String localId,
-    required String scopeId,
-    required SourceLocation location,
+    required super.localId,
+    required String super.scopeId,
+    required SourceLocation super.location,
   })  : typeParameters = typeParameters ?? {},
         parameterTypeIds = parameterTypeIds ?? [],
         optionalParameterTypeIds = optionalParameterTypeIds ?? [],
-        namedParameterTypeIds = namedParameterTypeIds ?? {},
-        super(localId: localId, scopeId: scopeId, location: location);
+        namedParameterTypeIds = namedParameterTypeIds ?? {};
 
-  FunctionTypeSymbol.fromJson(Map<String, dynamic> json)
+  FunctionTypeSymbol.fromJson(super.json)
       : parameterTypeIds = _createValueList(json['parameterTypeIds']),
         optionalParameterTypeIds =
             _createValueList(json['optionalParameterTypeIds']),
         typeParameters = _createValueMap(json['typeParameters']),
         namedParameterTypeIds = _createValueMap(json['namedParameterTypeIds']),
         returnTypeId = _createValue(json['returnTypeId']),
-        super.fromJson(json);
+        super.fromJson();
 
   @override
   Map<String, dynamic> toJson() => {
@@ -460,27 +452,20 @@ class FunctionSymbol extends ScopeSymbol {
     required this.typeId,
     bool? isStatic,
     bool? isConst,
-    required String localId,
-    required String scopeId,
-    List<String>? variableIds,
-    List<String>? scopeIds,
-    required SourceLocation location,
+    required super.localId,
+    required String super.scopeId,
+    super.variableIds,
+    super.scopeIds,
+    required SourceLocation super.location,
   })  : isStatic = isStatic ?? false,
-        isConst = isConst ?? false,
-        super(
-          localId: localId,
-          scopeId: scopeId,
-          variableIds: variableIds,
-          scopeIds: scopeIds,
-          location: location,
-        );
+        isConst = isConst ?? false;
 
-  FunctionSymbol.fromJson(Map<String, dynamic> json)
+  FunctionSymbol.fromJson(super.json)
       : name = _createValue(json['name']),
         typeId = _createValue(json['typeId']),
         isStatic = _createValue(json['isStatic']),
         isConst = _createValue(json['isConst']),
-        super.fromJson(json);
+        super.fromJson();
 
   @override
   Map<String, dynamic> toJson() => {
@@ -510,23 +495,21 @@ class LibrarySymbol extends ScopeSymbol {
     required this.uri,
     List<LibrarySymbolDependency>? dependencies,
     required this.scriptIds,
-    List<String>? variableIds,
-    List<String>? scopeIds,
+    super.variableIds,
+    super.scopeIds,
   })  : name = name ?? '',
         dependencies = dependencies ?? [],
         super(
           localId: uri,
-          variableIds: variableIds,
-          scopeIds: scopeIds,
         );
 
-  LibrarySymbol.fromJson(Map<String, dynamic> json)
+  LibrarySymbol.fromJson(super.json)
       : name = _createValue(json['name'], ifNull: ''),
         uri = _createValue(json['uri']),
         scriptIds = _createValueList(json['scriptIds']),
         dependencies = _createObjectList(
             json['dependencies'], LibrarySymbolDependency.fromJson),
-        super.fromJson(json);
+        super.fromJson();
 
   @override
   Map<String, dynamic> toJson() {
@@ -622,21 +605,16 @@ class ScopeSymbol extends Symbol {
   ScopeSymbol({
     List<String>? variableIds,
     List<String>? scopeIds,
-    required String localId,
-    String? scopeId,
-    SourceLocation? location,
+    required super.localId,
+    super.scopeId,
+    super.location,
   })  : variableIds = variableIds ?? [],
-        scopeIds = scopeIds ?? [],
-        super(
-          localId: localId,
-          scopeId: scopeId,
-          location: location,
-        );
+        scopeIds = scopeIds ?? [];
 
-  ScopeSymbol.fromJson(Map<String, dynamic> json)
+  ScopeSymbol.fromJson(super.json)
       : variableIds = _createValueList(json['variableIds']),
         scopeIds = _createValueList(json['scopeIds']),
-        super.fromJson(json);
+        super.fromJson();
 
   @override
   Map<String, dynamic> toJson() => {

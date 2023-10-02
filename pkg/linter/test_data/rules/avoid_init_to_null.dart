@@ -4,8 +4,6 @@
 
 // @dart=2.9
 
-// test w/ `dart test -N avoid_init_to_null`
-
 var x = null; //LINT
 var y; //OK
 var z = 1; //OK

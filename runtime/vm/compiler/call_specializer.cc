@@ -1224,14 +1224,15 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
   intptr_t type_cid;
   if (TypeCheckAsClassEquality(type, &type_cid)) {
-    LoadClassIdInstr* left_cid = new (Z) LoadClassIdInstr(new (Z) Value(left));
-    InsertBefore(call, left_cid, nullptr, FlowGraph::kValue);
-    ConstantInstr* cid =
-        flow_graph()->GetConstant(Smi::Handle(Z, Smi::New(type_cid)));
-
-    StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
-        call->source(), Token::kEQ_STRICT, new (Z) Value(left_cid),
-        new (Z) Value(cid), /* number_check = */ false, DeoptId::kNone);
+    LoadClassIdInstr* load_cid =
+        new (Z) LoadClassIdInstr(new (Z) Value(left), kUnboxedUword);
+    InsertBefore(call, load_cid, nullptr, FlowGraph::kValue);
+    ConstantInstr* constant_cid = flow_graph()->GetConstant(
+        Smi::Handle(Z, Smi::New(type_cid)), kUnboxedUword);
+    EqualityCompareInstr* check_cid = new (Z) EqualityCompareInstr(
+        call->source(), Token::kEQ, new Value(load_cid),
+        new Value(constant_cid), kIntegerCid, DeoptId::kNone, false,
+        Instruction::kNotSpeculative);
     ReplaceCall(call, check_cid);
     return;
   }

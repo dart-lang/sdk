@@ -1,0 +1,26 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method test() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+typedef C<unrelated T extends core::Object? = dynamic> = self2::A<core::int>;
+typedef D<unrelated T extends core::Object? = dynamic> = self2::A<core::int?>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self2::A<self2::A::T%>
+    ;
+}
+static const field <unrelated T extends core::Object? = dynamic>() → self2::A<core::int> c = #C2;
+static const field <unrelated T extends core::Object? = dynamic>() → self2::A<core::int?> d = #C3;
+
+constants  {
+  #C1 = constructor-tearoff self2::A::•
+  #C2 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C1<core::int>)
+  #C3 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C1<core::int?>)
+}

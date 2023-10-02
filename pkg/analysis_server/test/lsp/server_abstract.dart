@@ -427,175 +427,66 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setAllSupportedTextDocumentDynamicRegistrations() {
-    textDocumentCapabilities = withAllSupportedTextDocumentDynamicRegistrations(
-        textDocumentCapabilities);
+    // This list (when combined with the workspace list) should match all of
+    // the fields listed in `ClientDynamicRegistrations.supported`.
+
+    setTextDocumentDynamicRegistration('synchronization');
+    setTextDocumentDynamicRegistration('callHierarchy');
+    setTextDocumentDynamicRegistration('completion');
+    setTextDocumentDynamicRegistration('hover');
+    setTextDocumentDynamicRegistration('inlayHint');
+    setTextDocumentDynamicRegistration('signatureHelp');
+    setTextDocumentDynamicRegistration('references');
+    setTextDocumentDynamicRegistration('documentHighlight');
+    setTextDocumentDynamicRegistration('documentSymbol');
+    setTextDocumentDynamicRegistration('colorProvider');
+    setTextDocumentDynamicRegistration('formatting');
+    setTextDocumentDynamicRegistration('onTypeFormatting');
+    setTextDocumentDynamicRegistration('rangeFormatting');
+    setTextDocumentDynamicRegistration('declaration');
+    setTextDocumentDynamicRegistration('definition');
+    setTextDocumentDynamicRegistration('implementation');
+    setTextDocumentDynamicRegistration('codeAction');
+    setTextDocumentDynamicRegistration('rename');
+    setTextDocumentDynamicRegistration('foldingRange');
+    setTextDocumentDynamicRegistration('selectionRange');
+    setTextDocumentDynamicRegistration('semanticTokens');
+    setTextDocumentDynamicRegistration('typeDefinition');
+    setTextDocumentDynamicRegistration('typeHierarchy');
+  }
+
+  void setAllSupportedWorkspaceDynamicRegistrations() {
+    // This list (when combined with the textDocument list) should match all of
+    // the fields listed in `ClientDynamicRegistrations.supported`.
+    setWorkspaceDynamicRegistration('fileOperations');
   }
 
   void setApplyEditSupport([bool supported = true]) {
-    workspaceCapabilities =
-        withApplyEditSupport(workspaceCapabilities, supported);
+    workspaceCapabilities = extendWorkspaceCapabilities(
+        workspaceCapabilities, {'applyEdit': supported});
   }
 
-  void setCompletionItemLabelDetailsSupport([bool supported = true]) {
-    textDocumentCapabilities = withCompletionItemLabelDetailsSupport(
-        textDocumentCapabilities, supported);
-  }
-
-  void setCompletionItemSnippetSupport([bool supported = true]) {
+  void setCompletionItemDeprecatedFlagSupport() {
     textDocumentCapabilities =
-        withCompletionItemSnippetSupport(textDocumentCapabilities, supported);
-  }
-
-  void setConfigurationSupport() {
-    workspaceCapabilities = withConfigurationSupport(workspaceCapabilities);
-  }
-
-  void setDidChangeConfigurationDynamicRegistration() {
-    workspaceCapabilities =
-        withDidChangeConfigurationDynamicRegistration(workspaceCapabilities);
-  }
-
-  void setDocumentChangesSupport([bool supported = true]) {
-    workspaceCapabilities =
-        withDocumentChangesSupport(workspaceCapabilities, supported);
-  }
-
-  void setFileCreateSupport([bool supported = true]) {
-    if (supported) {
-      workspaceCapabilities = withDocumentChangesSupport(
-          withResourceOperationKinds(
-              workspaceCapabilities, [ResourceOperationKind.Create]));
-    } else {
-      workspaceCapabilities.workspaceEdit?.resourceOperations
-          ?.remove(ResourceOperationKind.Create);
-    }
-  }
-
-  void setFileRenameSupport([bool supported = true]) {
-    if (supported) {
-      workspaceCapabilities = withDocumentChangesSupport(
-          withResourceOperationKinds(
-              workspaceCapabilities, [ResourceOperationKind.Rename]));
-    } else {
-      workspaceCapabilities.workspaceEdit?.resourceOperations
-          ?.remove(ResourceOperationKind.Rename);
-    }
-  }
-
-  void setSnippetTextEditSupport([bool supported = true]) {
-    experimentalCapabilities['snippetTextEdit'] = supported;
-  }
-
-  void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
-    textDocumentCapabilities =
-        withCodeActionKinds(textDocumentCapabilities, kinds);
-  }
-
-  void setSupportedCommandParameterKinds(Set<String>? kinds) {
-    experimentalCapabilities['dartCodeAction'] = {
-      'commandParameterSupport': {'supportedKinds': kinds?.toList()},
-    };
-  }
-
-  void setWorkDoneProgressSupport() {
-    windowCapabilities = withWorkDoneProgressSupport(windowCapabilities);
-  }
-
-  TextDocumentClientCapabilities
-      withAllSupportedTextDocumentDynamicRegistrations(
-    TextDocumentClientCapabilities source,
-  ) {
-    // This list (when combined with the workspace list) should match all of
-    // the fields listed in `ClientDynamicRegistrations.supported`.
-    return extendTextDocumentCapabilities(source, {
-      'synchronization': {'dynamicRegistration': true},
-      'callHierarchy': {'dynamicRegistration': true},
-      'completion': {'dynamicRegistration': true},
-      'hover': {'dynamicRegistration': true},
-      'inlayHint': {'dynamicRegistration': true},
-      'signatureHelp': {'dynamicRegistration': true},
-      'references': {'dynamicRegistration': true},
-      'documentHighlight': {'dynamicRegistration': true},
-      'documentSymbol': {'dynamicRegistration': true},
-      'colorProvider': {'dynamicRegistration': true},
-      'formatting': {'dynamicRegistration': true},
-      'onTypeFormatting': {'dynamicRegistration': true},
-      'rangeFormatting': {'dynamicRegistration': true},
-      'declaration': {'dynamicRegistration': true},
-      'definition': {'dynamicRegistration': true},
-      'implementation': {'dynamicRegistration': true},
-      'codeAction': {'dynamicRegistration': true},
-      'rename': {'dynamicRegistration': true},
-      'foldingRange': {'dynamicRegistration': true},
-      'selectionRange': {'dynamicRegistration': true},
-      'semanticTokens': SemanticTokensClientCapabilities(
-          dynamicRegistration: true,
-          requests: SemanticTokensClientCapabilitiesRequests(),
-          formats: [],
-          tokenModifiers: [],
-          tokenTypes: []).toJson(),
-      'typeDefinition': {'dynamicRegistration': true},
-      'typeHierarchy': {'dynamicRegistration': true},
-    });
-  }
-
-  WorkspaceClientCapabilities withAllSupportedWorkspaceDynamicRegistrations(
-    WorkspaceClientCapabilities source,
-  ) {
-    // This list (when combined with the textDocument list) should match all of
-    // the fields listed in `ClientDynamicRegistrations.supported`.
-    return extendWorkspaceCapabilities(source, {
-      'fileOperations': {'dynamicRegistration': true},
-    });
-  }
-
-  WorkspaceClientCapabilities withApplyEditSupport(
-      WorkspaceClientCapabilities source,
-      [bool supported = true]) {
-    return extendWorkspaceCapabilities(source, {'applyEdit': supported});
-  }
-
-  TextDocumentClientCapabilities withCodeActionKinds(
-    TextDocumentClientCapabilities source,
-    List<CodeActionKind>? kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'codeAction': {
-        'codeActionLiteralSupport': kinds != null
-            ? {
-                'codeActionKind': {
-                  'valueSet': kinds.map((k) => k.toJson()).toList()
-                }
-              }
-            : null,
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withCompletionItemDeprecatedFlagSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {'deprecatedSupport': true}
       }
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemInsertReplaceSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemInsertReplaceSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {'insertReplaceSupport': true}
       }
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemInsertTextModeSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemInsertTextModeSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {
           'insertTextModeSupport': {
@@ -608,11 +499,9 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemKinds(
-    TextDocumentClientCapabilities source,
-    List<CompletionItemKind> kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemKinds(List<CompletionItemKind> kinds) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItemKind': {
           'valueSet': kinds.map((k) => k.toJson()).toList()
@@ -621,33 +510,27 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemLabelDetailsSupport(
-    TextDocumentClientCapabilities source, [
-    bool supported = true,
-  ]) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemLabelDetailsSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {'labelDetailsSupport': supported}
       }
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemSnippetSupport(
-    TextDocumentClientCapabilities source, [
-    bool supported = true,
-  ]) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemSnippetSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {'snippetSupport': supported}
       }
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemTagSupport(
-    TextDocumentClientCapabilities source,
-    List<CompletionItemTag> tags,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemTagSupport(List<CompletionItemTag> tags) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {
           'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
@@ -656,11 +539,9 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionListDefaults(
-    TextDocumentClientCapabilities source,
-    List<String> defaults,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionListDefaults(List<String> defaults) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionList': {
           'itemDefaults': defaults,
@@ -669,81 +550,156 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  WorkspaceClientCapabilities withConfigurationSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {'configuration': true});
+  void setConfigurationSupport() {
+    workspaceCapabilities = extendWorkspaceCapabilities(
+        workspaceCapabilities, {'configuration': true});
   }
 
-  TextDocumentClientCapabilities withDiagnosticCodeDescriptionSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setDiagnosticCodeDescriptionSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'publishDiagnostics': {
         'codeDescriptionSupport': true,
       }
     });
   }
 
-  TextDocumentClientCapabilities withDiagnosticTagSupport(
-    TextDocumentClientCapabilities source,
-    List<DiagnosticTag> tags,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setDiagnosticTagSupport(List<DiagnosticTag> tags) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'publishDiagnostics': {
         'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
       }
     });
   }
 
-  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {
+  void setDidChangeConfigurationDynamicRegistration() {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'didChangeConfiguration': {'dynamicRegistration': true}
     });
   }
 
-  WorkspaceClientCapabilities withDocumentChangesSupport(
-    WorkspaceClientCapabilities source, [
-    bool supported = true,
-  ]) {
-    return extendWorkspaceCapabilities(source, {
+  void setDocumentChangesSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'workspaceEdit': {'documentChanges': supported}
     });
   }
 
-  TextDocumentClientCapabilities withDocumentFormattingDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'formatting': {'dynamicRegistration': true},
-      'onTypeFormatting': {'dynamicRegistration': true},
-      'rangeFormatting': {'dynamicRegistration': true},
-    });
+  void setDocumentFormattingDynamicRegistration() {
+    setTextDocumentDynamicRegistration('formatting');
+    setTextDocumentDynamicRegistration('onTypeFormatting');
+    setTextDocumentDynamicRegistration('rangeFormatting');
   }
 
-  TextDocumentClientCapabilities withDocumentSymbolKinds(
-    TextDocumentClientCapabilities source,
-    List<SymbolKind> kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setDocumentSymbolKinds(List<SymbolKind> kinds) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'documentSymbol': {
         'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
       }
     });
   }
 
-  WorkspaceClientCapabilities withFileOperationDynamicRegistration(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {
+  void setFileCreateSupport([bool supported = true]) {
+    if (supported) {
+      setDocumentChangesSupport();
+      workspaceCapabilities = _withResourceOperationKinds(
+          workspaceCapabilities, [ResourceOperationKind.Create]);
+    } else {
+      workspaceCapabilities.workspaceEdit?.resourceOperations
+          ?.remove(ResourceOperationKind.Create);
+    }
+  }
+
+  void setFileOperationDynamicRegistration() {
+    setWorkspaceDynamicRegistration('fileOperations');
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'fileOperations': {'dynamicRegistration': true}
     });
   }
 
-  TextDocumentClientCapabilities withGivenTextDocumentDynamicRegistrations(
-    TextDocumentClientCapabilities source,
+  void setFileRenameSupport([bool supported = true]) {
+    if (supported) {
+      setDocumentChangesSupport();
+      workspaceCapabilities = _withResourceOperationKinds(
+          workspaceCapabilities, [ResourceOperationKind.Rename]);
+    } else {
+      workspaceCapabilities.workspaceEdit?.resourceOperations
+          ?.remove(ResourceOperationKind.Rename);
+    }
+  }
+
+  void setHierarchicalDocumentSymbolSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
+    });
+  }
+
+  void setHoverContentFormat(List<MarkupKind> formats) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
+    });
+  }
+
+  void setHoverDynamicRegistration() {
+    setTextDocumentDynamicRegistration('hover');
+  }
+
+  void setLineFoldingOnly() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'foldingRange': {'lineFoldingOnly': true},
+    });
+  }
+
+  void setLocationLinkSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'definition': {'linkSupport': supported},
+      'typeDefinition': {'linkSupport': supported},
+      'implementation': {'linkSupport': supported}
+    });
+  }
+
+  void setSignatureHelpContentFormat(List<MarkupKind>? formats) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'signatureHelp': {
+        'signatureInformation': {
+          'documentationFormat': formats?.map((k) => k.toJson()).toList()
+        }
+      }
+    });
+  }
+
+  void setSnippetTextEditSupport([bool supported = true]) {
+    experimentalCapabilities['snippetTextEdit'] = supported;
+  }
+
+  void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'codeAction': {
+        'codeActionLiteralSupport': kinds != null
+            ? {
+                'codeActionKind': {
+                  'valueSet': kinds.map((k) => k.toJson()).toList()
+                }
+              }
+            : null,
+      }
+    });
+  }
+
+  void setSupportedCommandParameterKinds(Set<String>? kinds) {
+    experimentalCapabilities['dartCodeAction'] = {
+      'commandParameterSupport': {'supportedKinds': kinds?.toList()},
+    };
+  }
+
+  void setTextDocumentDynamicRegistration(
     String name,
   ) {
     final json = name == 'semanticTokens'
@@ -754,64 +710,30 @@ mixin ClientCapabilitiesHelperMixin {
             tokenModifiers: [],
             tokenTypes: []).toJson()
         : {'dynamicRegistration': true};
-    return extendTextDocumentCapabilities(source, {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       name: json,
     });
   }
 
-  WorkspaceClientCapabilities withGivenWorkspaceDynamicRegistrations(
-    WorkspaceClientCapabilities source,
+  void setTextSyncDynamicRegistration() {
+    setTextDocumentDynamicRegistration('synchronization');
+  }
+
+  void setWorkDoneProgressSupport() {
+    windowCapabilities = extendWindowCapabilities(
+        windowCapabilities, {'workDoneProgress': true});
+  }
+
+  void setWorkspaceDynamicRegistration(
     String name,
   ) {
-    return extendWorkspaceCapabilities(source, {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       name: {'dynamicRegistration': true},
     });
   }
 
-  TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withHoverContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
-    });
-  }
-
-  TextDocumentClientCapabilities withHoverDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'hover': {'dynamicRegistration': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withLineFoldingOnly(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'foldingRange': {'lineFoldingOnly': true},
-    });
-  }
-
-  TextDocumentClientCapabilities withLocationLinkSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'definition': {'linkSupport': true},
-      'typeDefinition': {'linkSupport': true},
-      'implementation': {'linkSupport': true}
-    });
-  }
-
-  WorkspaceClientCapabilities withResourceOperationKinds(
+  WorkspaceClientCapabilities _withResourceOperationKinds(
     WorkspaceClientCapabilities source,
     List<ResourceOperationKind> kinds,
   ) {
@@ -822,32 +744,6 @@ mixin ClientCapabilitiesHelperMixin {
         'resourceOperations': kinds.map((k) => k.toJson()).toList(),
       }
     });
-  }
-
-  TextDocumentClientCapabilities withSignatureHelpContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'signatureHelp': {
-        'signatureInformation': {
-          'documentationFormat': formats.map((k) => k.toJson()).toList()
-        }
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withTextSyncDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'synchronization': {'dynamicRegistration': true}
-    });
-  }
-
-  WindowClientCapabilities withWorkDoneProgressSupport(
-      WindowClientCapabilities source) {
-    return extendWindowCapabilities(source, {'workDoneProgress': true});
   }
 }
 
@@ -1165,12 +1061,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     String? rootPath,
     Uri? rootUri,
     List<Uri>? workspaceFolders,
-    // TODO(dantup): Remove these capabilities fields in favour of methods like
-    //  [setApplyEditSupport] which allows extracting initialization in tests
-    //  without needing to pass capabilities these all the way through.
-    TextDocumentClientCapabilities? textDocumentCapabilities,
-    WorkspaceClientCapabilities? workspaceCapabilities,
-    WindowClientCapabilities? windowCapabilities,
     Map<String, Object?>? experimentalCapabilities,
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
@@ -1187,9 +1077,9 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     }
 
     final clientCapabilities = ClientCapabilities(
-      workspace: workspaceCapabilities ?? this.workspaceCapabilities,
-      textDocument: textDocumentCapabilities ?? this.textDocumentCapabilities,
-      window: windowCapabilities ?? this.windowCapabilities,
+      workspace: workspaceCapabilities,
+      textDocument: textDocumentCapabilities,
+      window: windowCapabilities,
       experimental: experimentalCapabilities ?? this.experimentalCapabilities,
     );
     _clientCapabilities = clientCapabilities;
@@ -1549,6 +1439,9 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
 
   void sendResponseToServer(ResponseMessage response);
 
+  // This is the signature expected for LSP.
+  // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=Response%3A-,result%3A%20null,-error%3A%20code%20and
+  // ignore: prefer_void_to_null
   Future<Null> sendShutdown() {
     final request = makeRequest(Method.shutdown, null);
     return expectSuccessfulResponseTo(request, (result) => result as Null);

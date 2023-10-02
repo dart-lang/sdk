@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -266,6 +267,31 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
         _sink.withIndent(() {
           for (var docImport in node.docImports) {
             _writeDocImport(docImport);
+          }
+        });
+      }
+      if (node.docDirectives.isNotEmpty) {
+        _sink.writelnWithIndent('docDirectives');
+        _sink.withIndent(() {
+          for (var docDirective in node.docDirectives) {
+            switch (docDirective) {
+              case SimpleDocDirective():
+                _sink.writelnWithIndent('SimpleDocDirective');
+                _sink.withIndent(() {
+                  _sink.writelnWithIndent('tag');
+                  _writeDocDirectiveTag(docDirective.tag);
+                });
+              case BlockDocDirective(:var openingTag, :var closingTag):
+                _sink.writelnWithIndent('BlockDocDirective');
+                _sink.withIndent(() {
+                  _sink.writelnWithIndent('openingTag');
+                  _writeDocDirectiveTag(openingTag);
+                  if (closingTag != null) {
+                    _sink.writelnWithIndent('closingTag');
+                    _writeDocDirectiveTag(closingTag);
+                  }
+                });
+            }
           }
         });
       }
@@ -1696,6 +1722,31 @@ Expected parent: (${parent.runtimeType}) $parent
         }
       }
     }
+  }
+
+  void _writeDocDirectiveTag(DocDirectiveTag docDirective) {
+    _sink.withIndent(() {
+      _sink.writelnWithIndent(
+          'offset: [${docDirective.offset}, ${docDirective.end}]');
+      _sink.writelnWithIndent('type: [${docDirective.type}]');
+      if (docDirective.positionalArguments.isNotEmpty) {
+        _sink.writelnWithIndent('positionalArguments');
+        _sink.withIndent(() {
+          for (var argument in docDirective.positionalArguments) {
+            _sink.writelnWithIndent(argument.value);
+          }
+        });
+      }
+      if (docDirective.namedArguments.isNotEmpty) {
+        _sink.writelnWithIndent('namedArguments');
+        _sink.withIndent(() {
+          for (var argument in docDirective.namedArguments) {
+            _sink.writeWithIndent(argument.name);
+            _sink.writeln('=${argument.value}');
+          }
+        });
+      }
+    });
   }
 
   void _writeDocImport(DocImport docImport) {

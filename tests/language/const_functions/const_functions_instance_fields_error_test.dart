@@ -35,7 +35,7 @@ int fn2() {
 
 const var3 = const A(1).x;
 //           ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_PROPERTY_ACCESS
 //                      ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
 // [cfe] The getter 'x' isn't defined for the class 'A'.

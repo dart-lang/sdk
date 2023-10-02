@@ -426,95 +426,95 @@ abstract class MemoryInstruction implements Instruction {
 }
 
 class I32Load extends MemoryInstruction {
-  I32Load(MemoryOffsetAlign memory) : super(memory, encoding: 0x28);
+  I32Load(super.memory) : super(encoding: 0x28);
 }
 
 class I64Load extends MemoryInstruction {
-  I64Load(MemoryOffsetAlign memory) : super(memory, encoding: 0x29);
+  I64Load(super.memory) : super(encoding: 0x29);
 }
 
 class F32Load extends MemoryInstruction {
-  F32Load(MemoryOffsetAlign memory) : super(memory, encoding: 0x2A);
+  F32Load(super.memory) : super(encoding: 0x2A);
 }
 
 class F64Load extends MemoryInstruction {
-  F64Load(MemoryOffsetAlign memory) : super(memory, encoding: 0x2B);
+  F64Load(super.memory) : super(encoding: 0x2B);
 }
 
 class I32Load8S extends MemoryInstruction {
-  I32Load8S(MemoryOffsetAlign memory) : super(memory, encoding: 0x2C);
+  I32Load8S(super.memory) : super(encoding: 0x2C);
 }
 
 class I32Load8U extends MemoryInstruction {
-  I32Load8U(MemoryOffsetAlign memory) : super(memory, encoding: 0x2D);
+  I32Load8U(super.memory) : super(encoding: 0x2D);
 }
 
 class I32Load16S extends MemoryInstruction {
-  I32Load16S(MemoryOffsetAlign memory) : super(memory, encoding: 0x2E);
+  I32Load16S(super.memory) : super(encoding: 0x2E);
 }
 
 class I32Load16U extends MemoryInstruction {
-  I32Load16U(MemoryOffsetAlign memory) : super(memory, encoding: 0x2F);
+  I32Load16U(super.memory) : super(encoding: 0x2F);
 }
 
 class I64Load8S extends MemoryInstruction {
-  I64Load8S(MemoryOffsetAlign memory) : super(memory, encoding: 0x30);
+  I64Load8S(super.memory) : super(encoding: 0x30);
 }
 
 class I64Load8U extends MemoryInstruction {
-  I64Load8U(MemoryOffsetAlign memory) : super(memory, encoding: 0x31);
+  I64Load8U(super.memory) : super(encoding: 0x31);
 }
 
 class I64Load16S extends MemoryInstruction {
-  I64Load16S(MemoryOffsetAlign memory) : super(memory, encoding: 0x32);
+  I64Load16S(super.memory) : super(encoding: 0x32);
 }
 
 class I64Load16U extends MemoryInstruction {
-  I64Load16U(MemoryOffsetAlign memory) : super(memory, encoding: 0x33);
+  I64Load16U(super.memory) : super(encoding: 0x33);
 }
 
 class I64Load32S extends MemoryInstruction {
-  I64Load32S(MemoryOffsetAlign memory) : super(memory, encoding: 0x34);
+  I64Load32S(super.memory) : super(encoding: 0x34);
 }
 
 class I64Load32U extends MemoryInstruction {
-  I64Load32U(MemoryOffsetAlign memory) : super(memory, encoding: 0x35);
+  I64Load32U(super.memory) : super(encoding: 0x35);
 }
 
 class I32Store extends MemoryInstruction {
-  I32Store(MemoryOffsetAlign memory) : super(memory, encoding: 0x36);
+  I32Store(super.memory) : super(encoding: 0x36);
 }
 
 class I64Store extends MemoryInstruction {
-  I64Store(MemoryOffsetAlign memory) : super(memory, encoding: 0x37);
+  I64Store(super.memory) : super(encoding: 0x37);
 }
 
 class F32Store extends MemoryInstruction {
-  F32Store(MemoryOffsetAlign memory) : super(memory, encoding: 0x38);
+  F32Store(super.memory) : super(encoding: 0x38);
 }
 
 class F64Store extends MemoryInstruction {
-  F64Store(MemoryOffsetAlign memory) : super(memory, encoding: 0x39);
+  F64Store(super.memory) : super(encoding: 0x39);
 }
 
 class I32Store8 extends MemoryInstruction {
-  I32Store8(MemoryOffsetAlign memory) : super(memory, encoding: 0x3A);
+  I32Store8(super.memory) : super(encoding: 0x3A);
 }
 
 class I32Store16 extends MemoryInstruction {
-  I32Store16(MemoryOffsetAlign memory) : super(memory, encoding: 0x3B);
+  I32Store16(super.memory) : super(encoding: 0x3B);
 }
 
 class I64Store8 extends MemoryInstruction {
-  I64Store8(MemoryOffsetAlign memory) : super(memory, encoding: 0x3C);
+  I64Store8(super.memory) : super(encoding: 0x3C);
 }
 
 class I64Store16 extends MemoryInstruction {
-  I64Store16(MemoryOffsetAlign memory) : super(memory, encoding: 0x3D);
+  I64Store16(super.memory) : super(encoding: 0x3D);
 }
 
 class I64Store32 extends MemoryInstruction {
-  I64Store32(MemoryOffsetAlign memory) : super(memory, encoding: 0x3E);
+  I64Store32(super.memory) : super(encoding: 0x3E);
 }
 
 class MemorySize implements Instruction {

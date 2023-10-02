@@ -1,0 +1,5 @@
+// @dart = 2.12
+class B {}
+class C = A with B;
+main() {}
+typedef A = ;

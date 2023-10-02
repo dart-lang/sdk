@@ -45,10 +45,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
-      () => initialize(
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
+      initialize,
       {
         if (preference != null) 'documentation': preference,
       },
@@ -72,12 +69,12 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> assertMarkdownContents(String content, Matcher matcher) async {
+    setHoverContentFormat([MarkupKind.Markdown]);
+
     final code = TestCode.parse(content);
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     final hover = await getHover(mainFileUri, code.position.position);
@@ -90,12 +87,11 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> assertPlainTextContents(String content, Matcher matcher) async {
+    setHoverContentFormat([MarkupKind.PlainText]);
     final code = TestCode.parse(content);
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     final hover = await getHover(mainFileUri, code.position.position);

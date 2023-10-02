@@ -33,10 +33,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     uri ??= mainFileUri;
 
     code = TestCode.parse(sourceContent);
-    final textDocCapabilities = lineFoldingOnly
-        ? withLineFoldingOnly(emptyTextDocumentClientCapabilities)
-        : emptyTextDocumentClientCapabilities;
-    await initialize(textDocumentCapabilities: textDocCapabilities);
+    if (lineFoldingOnly) {
+      setLineFoldingOnly();
+    }
+    await initialize();
     await openFile(uri, code.code);
 
     initializePlugin?.call();

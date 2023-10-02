@@ -5,11 +5,14 @@
 // Check that JS types work.
 
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:js_util';
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
+
+const isJSBackend = const bool.fromEnvironment('dart.library.html');
 
 @JS()
 external void eval(String code);
@@ -297,105 +300,172 @@ void syncTests() {
   expect(bigInt.toStringExternal(), '9876543210000000000000123456789');
 
   // null and undefined can flow into `JSAny?`.
-  // TODO(joshualitt): Fix tests when `JSNull` and `JSUndefined` are no longer
-  // conflated.
-  expect(nullAny.isNull, true);
-  //expect(nullAny.isUndefined, false);
-  expect(nullAny.isUndefined, true);
+  // TODO(srujzs): Remove the `isJSBackend` checks when `JSNull` and
+  // `JSUndefined` can be distinguished on dart2wasm.
+  if (isJSBackend) {
+    expect(nullAny.isNull, true);
+    expect(nullAny.isUndefined, false);
+  }
+  expect(nullAny, null);
+  expect(nullAny.isUndefinedOrNull, true);
   expect(nullAny.isDefinedAndNotNull, false);
-  expect(typeofEquals(nullAny, 'object'), true);
-  //expect(undefinedAny.isNull, false);
-  expect(undefinedAny.isNull, true);
-  expect(undefinedAny.isUndefined, true);
+  expect(nullAny.typeofEquals('object'), true);
+  if (isJSBackend) {
+    expect(undefinedAny.isNull, false);
+    expect(undefinedAny.isUndefined, true);
+  }
+  expect(undefinedAny.isUndefinedOrNull, true);
   expect(undefinedAny.isDefinedAndNotNull, false);
-  //expect(typeofEquals(undefinedAny, 'undefined'), true);
-  //expect(typeofEquals(undefinedAny, 'object'), true);
-  expect(definedNonNullAny.isNull, false);
-  expect(definedNonNullAny.isUndefined, false);
+  if (isJSBackend) {
+    expect(undefinedAny.typeofEquals('undefined'), true);
+    expect(definedNonNullAny.isNull, false);
+    expect(definedNonNullAny.isUndefined, false);
+  } else {
+    expect(undefinedAny.typeofEquals('object'), true);
+  }
+  expect(definedNonNullAny.isUndefinedOrNull, false);
   expect(definedNonNullAny.isDefinedAndNotNull, true);
-  expect(typeofEquals(definedNonNullAny, 'object'), true);
+  expect(definedNonNullAny.typeofEquals('object'), true);
 }
-
-@JS()
-external JSPromise get resolvedPromise;
-
-@JS()
-external JSPromise get rejectedPromise;
 
 @JS()
 external JSPromise getResolvedPromise();
 
 @JS()
-external JSPromise getRejectablePromise();
+external JSPromise getRejectedPromise();
 
 @JS()
-external JSVoid rejectPromiseWithNull();
+external JSPromise resolvePromiseWithNullOrUndefined(bool resolveWithNull);
 
 @JS()
-external JSVoid rejectPromiseWithUndefined();
+external JSPromise rejectPromiseWithNullOrUndefined(bool resolveWithNull);
 
 Future<void> asyncTests() async {
   eval(r'''
-    globalThis.resolvedPromise = new Promise(resolve => resolve('resolved'));
     globalThis.getResolvedPromise = function() {
-      return resolvedPromise;
+      return Promise.resolve('resolved');
     }
-    globalThis.getRejectablePromise = function() {
-      return new Promise(function(_, reject) {
-        globalThis.rejectPromise = reject;
-      });
+    globalThis.getRejectedPromise = function() {
+      return Promise.reject(new Error('rejected'));
     }
-    globalThis.rejectPromiseWithNull = function() {
-      globalThis.rejectPromise(null);
+    globalThis.resolvePromiseWithNullOrUndefined = function(resolveWithNull) {
+      return Promise.resolve(resolveWithNull ? null : undefined);
     }
-    globalThis.rejectPromiseWithUndefined = function() {
-      globalThis.rejectPromise(undefined);
+    globalThis.rejectPromiseWithNullOrUndefined = function(rejectWithNull) {
+      return Promise.reject(rejectWithNull ? null : undefined);
     }
   ''');
 
   // [JSPromise] -> [Future].
-  // Test resolved
-  {
-    Future<JSAny?> f = resolvedPromise.toDart;
-    expect(((await f) as JSString).toDart, 'resolved');
-  }
-
-  // Test rejected
-  // TODO(joshualitt): Write a test for rejected promises that works on all
-  // backends.
-
-  // Test return resolved
+  // Test resolution.
   {
     Future<JSAny?> f = getResolvedPromise().toDart;
     expect(((await f) as JSString).toDart, 'resolved');
   }
 
-  // Test promise chaining
+  // Test rejection.
+  {
+    try {
+      await getRejectedPromise().toDart;
+      fail('Expected rejected promise to throw.');
+    } catch (e) {
+      final jsError = e as JSObject;
+      expect(jsError.toString(), 'Error: rejected');
+    }
+  }
+
+  // Test resolution Promise chaining.
   {
     bool didThen = false;
-    Future<JSAny?> f = getResolvedPromise().toDart;
-    f.then((resolved) {
+    Future<JSAny?> f = getResolvedPromise().toDart.then((resolved) {
       expect((resolved as JSString).toDart, 'resolved');
       didThen = true;
+      return null;
     });
     await f;
     expect(didThen, true);
   }
 
-  // Test rejecting promise with null should trigger an exception.
-  // TODO(joshualitt): `catchError` doesn't seem to clear the JS exception on
-  // Dart2Wasm.
-  //{
-  //  bool threw = false;
-  //  Future<JSAny?> f = getRejectablePromise().toDart;
-  //  f.then((_) {}).catchError((e) {
-  //    threw = true;
-  //    expect(e is NullRejectionException, true);
-  //  });
-  //  rejectPromiseWithNull();
-  //  await f;
-  //  expect(threw, true);
-  //}
+  // Test rejection Promise chaining.
+  {
+    Future<JSAny?> f = getRejectedPromise().toDart.then((_) {
+      fail('Expected rejected promise to throw.');
+      return null;
+    }, onError: (e) {
+      final jsError = e as JSObject;
+      expect(jsError.toString(), 'Error: rejected');
+    });
+    await f;
+  }
+
+  // Test resolving promise with null and undefined.
+  Future<void> testResolveWithNullOrUndefined(bool resolveWithNull) async {
+    Future<JSAny?> f =
+        resolvePromiseWithNullOrUndefined(resolveWithNull).toDart;
+    expect(((await f) as JSAny?), null);
+  }
+
+  await testResolveWithNullOrUndefined(true);
+  await testResolveWithNullOrUndefined(false);
+
+  // Test rejecting promise with null and undefined should trigger an exception.
+  Future<void> testRejectionWithNullOrUndefined(bool rejectWithNull) async {
+    try {
+      await rejectPromiseWithNullOrUndefined(rejectWithNull).toDart;
+      fail('Expected rejected promise to throw.');
+    } catch (e) {
+      expect(e is NullRejectionException, true);
+    }
+  }
+
+  await testRejectionWithNullOrUndefined(true);
+  await testRejectionWithNullOrUndefined(false);
+
+  // [Future<JSAny?>] -> [JSPromise].
+  // Test resolution.
+  {
+    final f = Future<JSAny?>(() => 'resolved'.toJS).toJS.toDart;
+    expect(((await f) as JSString).toDart, 'resolved');
+  }
+
+  // Test rejection.
+  {
+    try {
+      await Future<JSAny?>(() => throw Exception()).toJS.toDart;
+      fail('Expected future to throw.');
+    } catch (e) {
+      expect(e is JSObject, true);
+      final jsError = e as JSObject;
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction), true);
+      expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
+      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+    }
+  }
+
+  // [Future<void>] -> [JSPromise].
+  // Test resolution.
+  {
+    var compute = false;
+    final f = Future<void>(() {
+      compute = true;
+    }).toJS.toDart;
+    await f;
+    expect(compute, true);
+  }
+
+  // Test rejection.
+  {
+    try {
+      await Future<void>(() => throw Exception()).toJS.toDart as Future<void>;
+      fail('Expected future to throw.');
+    } catch (e) {
+      expect(e is JSObject, true);
+      final jsError = e as JSObject;
+      expect(jsError.instanceof(globalContext['Error'] as JSFunction), true);
+      expect((jsError['error'] as JSBoxedDartObject).toDart is Exception, true);
+      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+    }
+  }
 }
 
 void main() async {

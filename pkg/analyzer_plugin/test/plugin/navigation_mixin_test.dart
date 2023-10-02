@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/plugin/navigation_mixin.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -88,8 +87,7 @@ class _TestNavigationContributor implements NavigationContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   @override
   List<NavigationContributor> getNavigationContributors(String path) {

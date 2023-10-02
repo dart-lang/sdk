@@ -121,5 +121,24 @@ Utils::CStringUniquePtr EXEUtils::GetDirectoryPrefixFromExeName() {
                                                          : result);
 }
 
+#if !defined(DART_HOST_OS_WINDOWS)
+void EXEUtils::LoadDartProfilerSymbols(const char* exepath) {
+  int len = strlen(exepath);
+  char* sympath = reinterpret_cast<char*>(malloc(len + 5));
+  memcpy(sympath, exepath, len);     // NOLINT
+  memcpy(sympath + len, ".sym", 5);  // NOLINT
+  File* file = File::Open(nullptr, sympath, File::kRead);
+  free(sympath);
+  if (file != nullptr) {
+    int64_t size = file->Length();
+    MappedMemory* mapping = file->Map(File::kReadOnly, 0, size);
+    Dart_AddSymbols(exepath, mapping->address(), size);
+    mapping->Leak();  // Let us delete the object but keep the mapping.
+    delete mapping;
+    file->Release();
+  }
+}
+#endif  // !defined(DART_HOST_OS_WINDOWS)
+
 }  // namespace bin
 }  // namespace dart

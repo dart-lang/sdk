@@ -50,6 +50,7 @@ LanguageFeatures/Abstract-external-fields/syntax_A02_t03: SkipByDesign # Externa
 LanguageFeatures/Enhanced-Enum/grammar_A07_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t02: SkipByDesign # Non-JS-interop external members are not supported
+LanguageFeatures/Extension-types/superinterfaces_of_extension_type_A05_t07: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-types/syntax_A08_t02: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # dart:ffi is not supported
 LibTest/core/DateTime/DateTime.fromMicrosecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
@@ -86,7 +87,3 @@ LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # 64-bit int not sup
 LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web
-
-[ $builder_tag == canary && $compiler == ddc ]
-LibTest/async/StreamController/StreamController.broadcast_Stream_all_A01_t01: Skip # Issue 50666
-LibTest/core/Stopwatch/elapsedTicks_A01_t03: Skip # Issue 50666

@@ -146,16 +146,6 @@ void defineLinterEngineTests() {
           expect(r3.compareTo(r4), -1);
         });
       });
-      group('maturity', () {
-        test('comparing', () {
-          // Custom
-          var m1 = Maturity('foo', ordinal: 0);
-          var m2 = Maturity('bar', ordinal: 1);
-          expect(m1.compareTo(m2), -1);
-          // Builtin
-          expect(Maturity.stable.compareTo(Maturity.experimental), -1);
-        });
-      });
     });
   });
 }

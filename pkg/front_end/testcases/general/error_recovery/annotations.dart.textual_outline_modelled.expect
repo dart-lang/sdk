@@ -1,0 +1,10 @@
+class A<E> {}
+class Annotation {
+  const Annotation(this.message);
+  final String message;
+}
+class C {
+  m() => new A<@annotation @Annotation("test") C>();
+}
+const annotation = null;
+main() {}

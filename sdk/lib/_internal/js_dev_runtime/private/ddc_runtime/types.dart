@@ -25,6 +25,17 @@ _throwInvalidFlagError(String message) =>
 @notNull
 bool legacyTypeChecks = !compileTimeFlag("soundNullSafety");
 
+/// Signals if the next type check should be considered to to be sound when
+/// running without sound null safety.
+///
+/// The provides a way for this library to communicate that intent to the
+/// dart:rti library.
+///
+/// This flag gets inlined by the compiler in the place of
+/// `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
+@notNull
+bool extraNullSafetyChecks = false;
+
 @notNull
 bool _weakNullSafetyWarnings = false;
 
@@ -94,9 +105,6 @@ void nativeNonNullAsserts(bool enable) {
   // are only generated in sound null safe code.
   _nativeNonNullAsserts = enable;
 }
-
-/// A JavaScript Symbol used to store the Rti object on a native array.
-final arrayRti = JS('', r'Symbol("$ti")');
 
 /// A JavaScript Symbol used to store the Rti signature object on a function.
 ///
@@ -732,7 +740,7 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
  }
  let result = map.get($returnType);
  if (result !== void 0) return result;
- result = ${new FunctionType(returnType, required, [], JS('', '{}'), JS('', '{}'))};
+ result = ${new FunctionType(JS<Type>('!', '#', returnType), required, [], JS('', '{}'), JS('', '{}'))};
  map.set($returnType, result);
  return result;
 })()''');
@@ -1230,9 +1238,9 @@ void checkTypeBound(
 }
 
 @notNull
-String typeName(type) {
+String typeName(Object? type) {
   if (JS<bool>('!', '# === void 0', type)) return 'undefined type';
-  if (JS<bool>('!', '# === null', type)) return 'null type';
+  if (type == null) return 'null type';
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     return rti.rtiToString(type);
   } else {
@@ -1422,12 +1430,22 @@ bool isSubtypeOf(@notNull t1, @notNull t2) {
   bool result = JS('', '#.get(#)', map, t2);
   if (JS('!', '# !== void 0', result)) return result;
   // Reset count before performing subtype check.
+  var currentTypeVariableCount = _typeVariableCount;
   _typeVariableCount = 0;
   var validSubtype = _isSubtype(t1, t2, true);
+  // Restoring the existing value defensively. In theory a isSubtypeOf should
+  // never trigger another subtype check but implicit downcasts from
+  // dynamic do happen in the SDK code occasionally on accident.
+  _typeVariableCount = currentTypeVariableCount;
   if (!validSubtype && !compileTimeFlag('soundNullSafety')) {
     // Reset count before performing subtype check.
+    currentTypeVariableCount = _typeVariableCount;
     _typeVariableCount = 0;
     validSubtype = _isSubtype(t1, t2, false);
+    // Restoring the existing value defensively. In theory a isSubtypeOf should
+    // never trigger another subtype check but implicit downcasts from
+    // dynamic do happen in the SDK code occasionally on accident.
+    _typeVariableCount = currentTypeVariableCount;
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
       // File and line number that caused the subtype check?

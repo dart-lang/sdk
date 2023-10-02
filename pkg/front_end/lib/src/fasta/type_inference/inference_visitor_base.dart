@@ -1,12 +1,15 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:front_end/src/fasta/source/source_field_builder.dart';
+import 'package:front_end/src/fasta/source/source_procedure_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
@@ -28,7 +31,7 @@ import '../../base/instrumentation.dart'
 import '../../base/nnbd_mode.dart';
 import '../../testing/id_extractor.dart';
 import '../../testing/id_testing_utils.dart';
-import '../builder/extension_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -38,7 +41,8 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 import '../names.dart';
 import '../problems.dart' show internalProblem, unhandled;
 import '../source/source_constructor_builder.dart';
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_library_builder.dart'
+    show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
@@ -264,7 +268,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       for (MapEntry<DartType, NonPromotionReason> entry
           in whyNotPromoted.entries) {
         if (!typeFilter(entry.key)) continue;
-        LocatedMessage? message = entry.value.accept(whyNotPromotedVisitor);
+        List<LocatedMessage> messages =
+            entry.value.accept(whyNotPromotedVisitor);
         if (dataForTesting != null) {
           String nonPromotionReasonText = entry.value.shortName;
           List<String> args = <String>[];
@@ -300,8 +305,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // promotions to non-nullable.
         // TODO(paulberry): do more testing and then expand on the comment
         // above.
-        if (message != null) {
-          context = [message];
+        if (messages.isNotEmpty) {
+          context = messages;
         }
         break;
       }
@@ -739,6 +744,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType contextType, Template<Message Function(String)> template) {
     Expression errorNode = new AsExpression(
         expression,
+        // TODO(johnniwinther): Fix this.
         // TODO(ahe): The outline phase doesn't correctly remove invalid
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
@@ -763,6 +769,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {List<LocatedMessage>? context}) {
     Expression errorNode = new AsExpression(
         expression,
+        // TODO(johnniwinther): Fix this.
         // TODO(ahe): The outline phase doesn't correctly remove invalid
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
@@ -938,8 +945,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// on [extension] with the static [receiverType].
   List<DartType> inferExtensionTypeArguments(
       Extension extension, DartType receiverType) {
-    List<TypeParameter> typeParameters = extension.typeParameters;
-    DartType onType = extension.onType;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(
+            extension.typeParameters);
+    List<StructuralParameter> typeParameters =
+        freshTypeParameters.freshTypeParameters;
+    DartType onType = freshTypeParameters.substitute(extension.onType);
     List<DartType> inferredTypes =
         new List<DartType>.filled(typeParameters.length, const UnknownType());
     TypeConstraintGatherer gatherer = typeSchemaEnvironment
@@ -981,13 +992,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           case ExtensionTypeMemberKind.Method:
             if (!isSetter) {
               targetMember = descriptor.member.asMember;
-              targetTearoff ??= targetMember;
+              targetTearoff = descriptor.tearOff?.asMember;
               targetKind = ProcedureKind.Method;
-            }
-            break;
-          case ExtensionTypeMemberKind.TearOff:
-            if (!isSetter) {
-              targetTearoff = descriptor.member.asMember;
             }
             break;
           case ExtensionTypeMemberKind.Getter:
@@ -1588,10 +1594,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isImplicitCall: isImplicitCall,
         staticTarget: staticTarget,
         isExtensionMemberInvocation: true);
-    Substitution extensionSubstitution = Substitution.fromPairs(
-        extensionFunctionType.typeParameters, extensionArguments.types);
+    FunctionTypeInstantiator extensionInstantiator =
+        new FunctionTypeInstantiator.fromIterables(
+            extensionFunctionType.typeParameters, extensionArguments.types);
 
-    List<TypeParameter> targetTypeParameters = const <TypeParameter>[];
+    List<StructuralParameter> targetTypeParameters =
+        const <StructuralParameter>[];
     if (calleeType.typeParameters.length > extensionTypeParameterCount) {
       targetTypeParameters =
           calleeType.typeParameters.skip(extensionTypeParameterCount).toList();
@@ -1603,8 +1611,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         requiredParameterCount: calleeType.requiredParameterCount - 1,
         namedParameters: calleeType.namedParameters,
         typeParameters: targetTypeParameters);
-    targetFunctionType = extensionSubstitution
-        .substituteType(targetFunctionType) as FunctionType;
+    targetFunctionType =
+        extensionInstantiator.visit(targetFunctionType) as FunctionType;
     ArgumentsImpl targetArguments = new ArgumentsImpl(
         arguments.positional.skip(1).toList(),
         named: arguments.named,
@@ -1653,7 +1661,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(!isSpecialCasedBinaryOperator && !isSpecialCasedTernaryOperator ||
         receiverType != null);
 
-    List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
+    List<StructuralParameter> calleeTypeParameters = calleeType.typeParameters;
     if (calleeTypeParameters.isNotEmpty) {
       // It's possible that one of the callee type parameters might match a type
       // that already exists as part of inference (e.g. the type of an
@@ -1664,7 +1672,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // type parameters for the callee (see dartbug.com/31759).
       // TODO(paulberry): is it possible to find a narrower set of circumstances
       // in which me must do this, to avoid a performance regression?
-      FreshTypeParameters fresh = getFreshTypeParameters(calleeTypeParameters);
+      FreshStructuralParameters fresh =
+          getFreshStructuralParameters(calleeTypeParameters);
       calleeType = fresh.applyToFunctionType(calleeType);
       calleeTypeParameters = fresh.freshTypeParameters;
     }
@@ -1676,7 +1685,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         calleeTypeParameters.isNotEmpty;
 
     List<DartType>? inferredTypes;
-    Substitution? substitution;
+    FunctionTypeInstantiator? instantiator;
     List<DartType> formalTypes = [];
     List<DartType> actualTypes = [];
 
@@ -1708,14 +1717,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
           gatherer, calleeTypeParameters, null,
           isNonNullableByDefault: isNonNullableByDefault);
-      substitution =
-          Substitution.fromPairs(calleeTypeParameters, inferredTypes);
+      instantiator = new FunctionTypeInstantiator.fromIterables(
+          calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
         calleeTypeParameters.length == explicitTypeArguments.length) {
-      substitution =
-          Substitution.fromPairs(calleeTypeParameters, explicitTypeArguments);
+      instantiator = new FunctionTypeInstantiator.fromIterables(
+          calleeTypeParameters, explicitTypeArguments);
     } else if (calleeTypeParameters.length != 0) {
-      substitution = Substitution.fromPairs(
+      instantiator = new FunctionTypeInstantiator.fromIterables(
           calleeTypeParameters,
           new List<DartType>.filled(
               calleeTypeParameters.length, const DynamicType()));
@@ -1768,9 +1777,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ExpressionInferenceResult inferArgument(
         DartType formalType, Expression argumentExpression,
         {required bool isNamed}) {
-      DartType inferredFormalType = substitution != null
-          ? substitution.substituteType(formalType)
-          : formalType;
+      DartType inferredFormalType =
+          instantiator != null ? instantiator.visit(formalType) : formalType;
       if (!isNamed) {
         if (isSpecialCasedBinaryOperator) {
           inferredFormalType =
@@ -1885,8 +1893,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
               gatherer, calleeTypeParameters, inferredTypes,
               isNonNullableByDefault: isNonNullableByDefault);
-          substitution =
-              Substitution.fromPairs(calleeTypeParameters, inferredTypes);
+          instantiator = new FunctionTypeInstantiator.fromIterables(
+              calleeTypeParameters, inferredTypes);
         }
         for (_DeferredParamInfo deferredArgument in stage) {
           ExpressionInferenceResult result = inferArgument(
@@ -1996,8 +2004,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           "Unknown type(s) in inferred types: $inferredTypes.");
       assert(inferredTypes.every((type) => !hasPromotedTypeVariable(type)),
           "Promoted type variable(s) in inferred types: $inferredTypes.");
-      substitution =
-          Substitution.fromPairs(calleeTypeParameters, inferredTypes);
+      instantiator = new FunctionTypeInstantiator.fromIterables(
+          calleeTypeParameters, inferredTypes);
       instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
           new InstrumentationValueForTypeArgs(inferredTypes));
       arguments.types.clear();
@@ -2028,8 +2036,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         int numPositionalArgs = arguments.positional.length - positionalShift;
         for (int i = 0; i < formalTypes.length; i++) {
           DartType formalType = formalTypes[i];
-          DartType expectedType = substitution != null
-              ? substitution.substituteType(formalType)
+          DartType expectedType = instantiator != null
+              ? instantiator.visit(formalType)
               : formalType;
           DartType actualType = actualTypes[i];
           Expression expression;
@@ -2069,14 +2077,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     DartType inferredType;
-    if (substitution != null) {
-      calleeType = substitution.substituteType(calleeType.withoutTypeParameters)
-          as FunctionType;
+    if (instantiator != null) {
+      calleeType =
+          instantiator.visit(calleeType.withoutTypeParameters) as FunctionType;
     }
     inferredType = calleeType.returnType;
     assert(
         !containsFreeFunctionTypeVariables(inferredType),
-        "Inferred return type $inferredType contains free variables."
+        "Inferred return type $inferredType contains free variables. "
         "Inferred function type: $calleeType.");
 
     if (!isNonNullableByDefault) {
@@ -2124,7 +2132,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     // Let `<T0, ..., Tn>` be the set of type parameters of the closure (with
     // `n`=0 if there are no type parameters).
-    List<TypeParameter> typeParameters = function.typeParameters;
+    List<TypeParameter> functionTypeParameters = function.typeParameters;
 
     // Let `(P0 x0, ..., Pm xm)` be the set of formal parameters of the closure
     // (including required, positional optional, and named optional parameters).
@@ -2141,11 +2149,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // parameters).  If there is a successful match, let `<S0, ..., Sn>` be the
     // set of matched type parameters and `(Q0, ..., Qm)` be the set of matched
     // formal parameter types, and let `N` be the return type.
-    Substitution substitution;
+    FunctionTypeInstantiator? instantiator;
     List<DartType?> formalTypesFromContext =
         new List<DartType?>.filled(formals.length, null);
     if (typeContext is FunctionType &&
-        typeContext.typeParameters.length == typeParameters.length) {
+        typeContext.typeParameters.length == functionTypeParameters.length) {
       for (int i = 0; i < formals.length; i++) {
         if (i < function.positionalParameters.length) {
           formalTypesFromContext[i] =
@@ -2159,16 +2167,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
       // Let `[T/S]` denote the type substitution where each `Si` is replaced
       // with the corresponding `Ti`.
-      Map<TypeParameter, DartType> substitutionMap =
-          <TypeParameter, DartType>{};
-      for (int i = 0; i < typeContext.typeParameters.length; i++) {
-        substitutionMap[typeContext.typeParameters[i]] =
-            i < typeParameters.length
-                ? new TypeParameterType.forAlphaRenaming(
-                    typeContext.typeParameters[i], typeParameters[i])
-                : const DynamicType();
-      }
-      substitution = Substitution.fromMap(substitutionMap);
+      instantiator = new FunctionTypeInstantiator.fromIterables(
+          typeContext.typeParameters,
+          new List<DartType>.generate(
+              typeContext.typeParameters.length,
+              (int i) => new TypeParameterType
+                  .forAlphaRenamingFromStructuralParameters(
+                  typeContext.typeParameters[i], functionTypeParameters[i])));
     } else {
       // If the match is not successful because  `K` is `_`, let all `Si`, all
       // `Qi`, and `N` all be `_`.
@@ -2176,7 +2181,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // If the match is not successful for any other reason, this will result
       // in a type error, so the implementation is free to choose the best
       // error recovery path.
-      substitution = Substitution.empty;
+      instantiator = null;
     }
 
     // Define `Ri` as follows: if `Pi` is not `_`, let `Ri` be `Pi`.
@@ -2188,7 +2193,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
           inferredType = computeGreatestClosure2(
-              substitution.substituteType(formalTypesFromContext[i]!));
+              instantiator?.visit(formalTypesFromContext[i]!) ??
+                  formalTypesFromContext[i]!);
           if (typeSchemaEnvironment.isSubtypeOf(
               inferredType,
               const NullType(),
@@ -2249,7 +2255,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // accordingly if the closure is declared with `async`, `async*`, or
     // `sync*`.
     if (returnContext is! UnknownType) {
-      returnContext = substitution.substituteType(returnContext);
+      returnContext = instantiator?.visit(returnContext) ?? returnContext;
     }
 
     // Apply type inference to `B` in return context `N’`, with any references
@@ -3544,7 +3550,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         context is FunctionType &&
         context.typeParameters.isEmpty) {
       FunctionType functionType = tearoffType;
-      List<TypeParameter> typeParameters = functionType.typeParameters;
+      List<StructuralParameter> typeParameters = functionType.typeParameters;
       if (typeParameters.isNotEmpty) {
         List<DartType> inferredTypes = new List<DartType>.filled(
             typeParameters.length, const UnknownType());
@@ -3556,9 +3562,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
             gatherer, typeParameters, inferredTypes,
             isNonNullableByDefault: isNonNullableByDefault);
-        Substitution substitution =
-            Substitution.fromPairs(typeParameters, inferredTypes);
-        tearoffType = substitution.substituteType(instantiatedType);
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                typeParameters, inferredTypes);
+        tearoffType = instantiator.visit(instantiatedType);
         return new ImplicitInstantiation(
             inferredTypes, functionType, tearoffType);
       }
@@ -3766,8 +3773,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// the unknown type.
   DartType computeFutureValueTypeSchema(DartType type) {
     return type.accept1(new FutureValueTypeVisitor(unhandledTypeHandler:
-        (DartType node, CoreTypes coreTypes,
-            DartType Function(DartType node, CoreTypes coreTypes) recursor) {
+        (AuxiliaryType node,
+            CoreTypes coreTypes,
+            DartType Function(AuxiliaryType node, CoreTypes coreTypes)
+                recursor) {
       if (node is UnknownType) {
         // futureValueTypeSchema(_) = _.
         return node;
@@ -4420,8 +4429,8 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 
 class _WhyNotPromotedVisitor
     implements
-        NonPromotionReasonVisitor<LocatedMessage?, Node, VariableDeclaration,
-            DartType> {
+        NonPromotionReasonVisitor<List<LocatedMessage>, Node,
+            VariableDeclaration, DartType> {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
@@ -4431,7 +4440,7 @@ class _WhyNotPromotedVisitor
   _WhyNotPromotedVisitor(this.inferrer);
 
   @override
-  LocatedMessage? visitDemoteViaExplicitWrite(
+  List<LocatedMessage> visitDemoteViaExplicitWrite(
       DemoteViaExplicitWrite<VariableDeclaration> reason) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
@@ -4439,33 +4448,108 @@ class _WhyNotPromotedVisitor
           .nonPromotionReasonTargets[node] = reason.shortName;
     }
     int offset = node.fileOffset;
-    return templateVariableCouldBeNullDueToWrite
-        .withArguments(reason.variable.name!, reason.documentationLink)
-        .withLocation(inferrer.helper.uri, offset, noLength);
+    return [
+      templateVariableCouldBeNullDueToWrite
+          .withArguments(reason.variable.name!, reason.documentationLink.url)
+          .withLocation(inferrer.helper.uri, offset, noLength)
+    ];
   }
 
   @override
-  LocatedMessage? visitPropertyNotPromoted(
-      PropertyNotPromoted<DartType> reason) {
+  List<LocatedMessage> visitPropertyNotPromotedDueToConflict(
+      PropertyNotPromotedDueToConflict<DartType> reason) {
+    FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
+        this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
+    if (fieldNonPromotabilityInfo == null) {
+      // This should never happen, since `fieldPromotabilityInfo` is only `null`
+      // if field promotion is disabled for this library; in which case the only
+      // reason a property might not be promoted is because field promotion is
+      // disabled, and that reason is handled by
+      // `visitPropertyNotPromotedForInherentReason`.
+      assert(false);
+      // In the unlikely event that this ever happens in practice, recover by
+      // simply not generating a context message.
+      return const [];
+    }
+    FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
+            SourceProcedureBuilder>? fieldNameInfo =
+        fieldNonPromotabilityInfo.fieldNameInfo[reason.propertyName];
+    if (fieldNameInfo == null) {
+      // This should never happen, since `fieldPromotabilityInfo` contains an
+      // entry for every non-promotable field name.
+      assert(false);
+      // In the unlikely event that this ever happens in practice, recover by
+      // simply not generating a context message.
+      return const [];
+    }
+    List<LocatedMessage> messages = [];
+    for (SourceFieldBuilder field in fieldNameInfo.conflictingFields) {
+      messages.add(templateFieldNotPromotedBecauseConflictingField
+          .withArguments(
+              reason.propertyName,
+              field.readTarget.enclosingClass!.name,
+              NonPromotionDocumentationLink.conflictingNonPromotableField.url)
+          .withLocation(field.fileUri, field.charOffset, noLength));
+    }
+    for (SourceProcedureBuilder getter in fieldNameInfo.conflictingGetters) {
+      messages.add(templateFieldNotPromotedBecauseConflictingGetter
+          .withArguments(
+              reason.propertyName,
+              getter.procedure.enclosingClass!.name,
+              NonPromotionDocumentationLink.conflictingGetter.url)
+          .withLocation(getter.fileUri, getter.charOffset, noLength));
+    }
+    for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
+      messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder
+          .withArguments(
+              reason.propertyName,
+              nsmClass.name,
+              NonPromotionDocumentationLink
+                  .conflictingNoSuchMethodForwarder.url)
+          .withLocation(nsmClass.fileUri, nsmClass.fileOffset, noLength));
+    }
+    return messages;
+  }
+
+  @override
+  List<LocatedMessage> visitPropertyNotPromotedForInherentReason(
+      PropertyNotPromotedForInherentReason<DartType> reason) {
     Object? member = reason.propertyMember;
     if (member is Member) {
       propertyReference = member;
       propertyType = reason.staticType;
-      return templateFieldNotPromoted
-          .withArguments(reason.propertyName, reason.documentationLink)
-          .withLocation(member.fileUri, member.fileOffset, noLength);
+      Template<Message Function(String, String)> template;
+      switch (reason.whyNotPromotable) {
+        case PropertyNonPromotabilityReason.isNotEnabled:
+          template = templateFieldNotPromotedBecauseNotEnabled;
+        case PropertyNonPromotabilityReason.isNotField:
+          template = templateFieldNotPromotedBecauseNotField;
+        case PropertyNonPromotabilityReason.isNotPrivate:
+          template = templateFieldNotPromotedBecauseNotPrivate;
+        case PropertyNonPromotabilityReason.isExternal:
+          template = templateFieldNotPromotedBecauseExternal;
+        case PropertyNonPromotabilityReason.isNotFinal:
+          template = templateFieldNotPromotedBecauseNotFinal;
+      }
+      return [
+        template
+            .withArguments(reason.propertyName, reason.documentationLink.url)
+            .withLocation(member.fileUri, member.fileOffset, noLength)
+      ];
     } else {
       assert(member == null,
           'Unrecognized property member: ${member.runtimeType}');
-      return null;
+      return const [];
     }
   }
 
   @override
-  LocatedMessage visitThisNotPromoted(ThisNotPromoted reason) {
-    return templateThisNotPromoted
-        .withArguments(reason.documentationLink)
-        .withoutLocation();
+  List<LocatedMessage> visitThisNotPromoted(ThisNotPromoted reason) {
+    return [
+      templateThisNotPromoted
+          .withArguments(reason.documentationLink.url)
+          .withoutLocation()
+    ];
   }
 }
 
@@ -4524,15 +4608,15 @@ class _DeferredParamInfo extends _ParamInfo {
 /// Extension of the shared [FunctionLiteralDependencies] logic used by the
 /// front end.
 class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
-    TypeParameter, _ParamInfo, _DeferredParamInfo> {
+    StructuralParameter, _ParamInfo, _DeferredParamInfo> {
   _FunctionLiteralDependencies(
       Iterable<_DeferredParamInfo> deferredParamInfo,
-      Iterable<TypeParameter> typeVariables,
+      Iterable<StructuralParameter> typeVariables,
       List<_ParamInfo> undeferredParamInfo)
       : super(deferredParamInfo, typeVariables, undeferredParamInfo);
 
   @override
-  Iterable<TypeParameter> typeVarsFreeInParamParams(
+  Iterable<StructuralParameter> typeVarsFreeInParamParams(
       _DeferredParamInfo paramInfo) {
     DartType type = paramInfo.formalType;
     if (type is FunctionType) {
@@ -4540,7 +4624,7 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
       Set<Object> explicitlyTypedParameters =
           _computeExplicitlyTypedParameterSet(
               paramInfo.unparenthesizedExpression);
-      Set<TypeParameter> result = {};
+      Set<StructuralParameter> result = {};
       for (MapEntry<Object, DartType> entry in parameterMap.entries) {
         if (explicitlyTypedParameters.contains(entry.key)) continue;
         result.addAll(allFreeTypeVariables(entry.value));
@@ -4552,7 +4636,8 @@ class _FunctionLiteralDependencies extends FunctionLiteralDependencies<
   }
 
   @override
-  Iterable<TypeParameter> typeVarsFreeInParamReturns(_ParamInfo paramInfo) {
+  Iterable<StructuralParameter> typeVarsFreeInParamReturns(
+      _ParamInfo paramInfo) {
     DartType type = paramInfo.formalType;
     if (type is FunctionType) {
       return allFreeTypeVariables(type.returnType);

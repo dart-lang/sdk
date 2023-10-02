@@ -168,6 +168,9 @@ dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
+[ $sanitizer != none ]
+dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
+
 [ $sanitizer == tsan ]
 dart/analyze_snapshot_binary_test: SkipSlow
 dart/appjit_cha_deopt_test: SkipSlow

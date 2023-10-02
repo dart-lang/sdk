@@ -21,9 +21,9 @@ class Test extends self::A {
 }
 extension E on self::A {
   method method1 = self::E|method1;
-  tearoff method1 = self::E|get#method1;
+  method tearoff method1 = self::E|get#method1;
   method method2 = self::E|method2;
-  tearoff method2 = self::E|get#method2;
+  method tearoff method2 = self::E|get#method2;
   static method staticMethod2 = self::E|staticMethod2;
 }
 static method foo(core::int x, core::int y, {required core::int z}) → dynamic

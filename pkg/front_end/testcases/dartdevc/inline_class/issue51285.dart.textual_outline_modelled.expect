@@ -1,17 +1,11 @@
----- unknown chunk starts ----
-extension type I._(int i) {
----- unknown chunk ends ----
-factory I() => 0 as I;
----- unknown chunk starts ----
-} extension type J._(int i) {
----- unknown chunk ends ----
-factory J(int i) => J._(i);
----- unknown chunk starts ----
-} extension type K<T>._(T i) {
----- unknown chunk ends ----
-factory K(T i) => K._(i);
----- unknown chunk starts ----
-}
----- unknown chunk ends ----
 expect(expected, actual) {}
+extension type I._(int i) {
+  factory I() => 0 as I;
+}
+extension type J._(int i) {
+  factory J(int i) => J._(i);
+}
+extension type K<T>._(T i) {
+  factory K(T i) => K._(i);
+}
 main() {}

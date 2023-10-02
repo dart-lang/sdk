@@ -45,8 +45,11 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
     other unrelated class in the library (because a class elsewhere in the
     program might extend one of the classes and implement the other, creating an
     override relationship between them).
-  - If it is implicitly overridden by an instance of `noSuchMethod` elsewhere in
-    the library.
+  - If there is a concrete class `C` in the library whose interface contains a
+    getter with the same name, but `C` does not have an implementation of that
+    getter (such unimplemented getters aren't safe for field promotion, because
+    they are implicitly forwarded to `noSuchMethod`, which might not return the
+    same value each time it's called).
 
 - **Breaking Change** [#53167][]: Use a more precise split point for refutable
   patterns. Previously, in an if-case statement, if flow analysis could prove
@@ -68,6 +71,16 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 - Added `broadcast` parameter to `Stream.empty` constructor.
 
+#### `dart:cli`
+
+- **Breaking change** [#52121][]:
+  - `waitFor` is disabled by default and slated for removal in 3.4. Attempting
+  to call this function will now throw an exception. Users that still depend
+  on `waitFor` can enable it by passing `--enable_deprecated_wait_for` flag
+  to the VM.
+
+[#52121]: https://github.com/dart-lang/sdk/issues/52121
+
 #### `dart:convert`
 
 - **Breaking change** [#52801][]:
@@ -82,13 +95,32 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - Added `getIsolateId` method to `Service`.
 - Added `getObjectId` method to `Service`.
 
+#### `dart:ffi`
+
+- Added the `NativeCallable.isolateLocal` constructor. This creates
+  `NativeCallable`s with the same functionality as `Pointer.fromFunction`,
+  except that `NativeCallable` accepts closures.
+- Added the `NativeCallable.keepIsolateAlive` method, which determines whether
+  the `NativeCallable` keeps the isolate that created it alive.
+- All `NativeCallable` constructors can now accept closures. Previously
+  `NativeCallable`s had the same restrictions as `Pointer.fromFunction`, and
+  could only create callbacks for static functions.
+- **Breaking change** [#53311][]: `NativeCallable.nativeFunction` now throws an
+  error if is called after the `NativeCallable` has already been `close`d. Calls
+  to `close` after the first are now ignored.
+
 #### `dart:io`
 
 - **Breaking change** [#53005][]: The headers returned by
   `HttpClientResponse.headers` and `HttpRequest.headers` no longer include
   trailing whitespace in their values.
 
+- **Breaking change** [#53227][]: Folded headers values returned by
+  `HttpClientResponse.headers` and `HttpRequest.headers` now have a space
+  inserted at the fold point.
+
 [#53005]: https://dartbug.com/53005
+[#53227]: https://dartbug.com/53227
 
 #### `dart:isolate`
 
@@ -96,7 +128,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 #### `dart:js_interop`
 
-- **JSNumber.toDart and Object.toJS**:
+- **Breaking Change on JSNumber.toDart and Object.toJS**:
   `JSNumber.toDart` is removed in favor of `toDartDouble` and `toDartInt` to
   make the type explicit. `Object.toJS` is also removed in favor of
   `Object.toJSBox`. Previously, this function would allow Dart objects to flow
@@ -128,6 +160,24 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   number of cases, like when using older browser versions. `dart:js_interop`'s
   `globalJSObject` is also renamed to `globalContext` and returns the global
   context used in the lowerings.
+- **Breaking Change on Types of `dart:js_interop` External APIs**:
+  External JS interop APIs when using `dart:js_interop` are restricted to a set
+  of allowed types. Namely, this include the primitive types like `String`, JS
+  types from `dart:js_interop`, and other static interop types (either through
+  `@staticInterop` or extension types).
+- **Breaking Change on `dart:js_interop` `isNull` and `isUndefined`**:
+  `null` and `undefined` can only be discerned in the JS backends. dart2wasm
+  conflates the two values and treats them both as Dart null. Therefore, these
+  two helper methods should not be used on dart2wasm and will throw to avoid
+  potentially erroneous code.
+- **Breaking Change on `dart:js_interop` `typeofEquals` and `instanceof`**:
+  Both APIs now return a `bool` instead of a `JSBoolean`. `typeofEquals` also
+  now takes in a `String` instead of a `JSString`.
+- **Breaking Change on `dart:js_interop` `JSAny` and `JSObject`**:
+  These types can only be implemented, and no longer extended, by user
+  `@staticInterop` types.
+- **Breaking Change on `dart:js_interop` `JSArray.withLength`**:
+  This API now takes in an `int` instead of `JSNumber`.
 
 ### Tools
 
@@ -157,6 +207,13 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 [#53106]: https://github.com/dart-lang/sdk/issues/53106
 
+#### Dart format
+
+- Always split enum declarations containing a line comment.
+- Fix regression in splitting type annotations with library prefixes.
+- Support `--enable-experiment` command-line option to enable language
+  experiments.
+
 #### Pub
 
 - New option `dart pub upgrade --tighten` which will update dependencies' lower
@@ -165,7 +222,38 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   changed between direct, dev and transitive dependency.
 - The command `dart pub upgrade` no longer shows unchanged dependencies.
 
-## 3.1.0
+## 3.1.2 - 2023-09-13
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which crashed the compiler when a typed record pattern
+  was used outside the scope of a function body, such as in a field initializer.
+  For example `final x = { for (var (int a,) in someList) a: a };`
+  (issue [#53449])
+
+- Fixes an expedient issue of users seeing an unhandled
+  exception pause in the debugger, please see
+  https://github.com/dart-lang/sdk/issues/53450 for more
+  details.
+  The fix uses try/catch in lookupAddresses instead of
+  Future error so that we don't see an unhandled exception
+  pause in the debugger (issue [#53450])
+
+[#53449]: https://github.com/dart-lang/sdk/issues/53449
+[#53450]: https://github.com/dart-lang/sdk/issues/53450
+
+## 3.1.1 - 2023-09-07
+
+This is a patch release that:
+
+- Fixes a bug in the parser which prevented a record pattern from containing a
+  nested record pattern, where the nested record pattern uses record
+  destructuring shorthand syntax, for example `final ((:a, :b), c) = record;`
+  (issue [#53352]).
+
+[#53352]: https://github.com/dart-lang/sdk/issues/53352
+
+## 3.1.0 - 2023-08-16
 
 ### Libraries
 
@@ -185,6 +273,14 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
    current directory ([#39796][]).
 
 [#39796]: https://github.com/dart-lang/sdk/issues/39796
+
+#### `dart:ffi`
+
+- Added the `NativeCallable` class, which can be used to create callbacks that
+  allow native code to call into Dart code from any thread. See
+  `NativeCallable.listener`. In future releases, `NativeCallable` will be
+  updated with more functionality, and will become the recommended way of
+  creating native callbacks for all use cases, replacing `Pointer.fromFunction`.
 
 #### `dart:io`
 

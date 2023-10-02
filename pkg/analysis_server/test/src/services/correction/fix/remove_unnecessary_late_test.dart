@@ -67,30 +67,17 @@ String s1 = '';
     await resolveTestCode('''
 late String s1 = '', s2 = '';
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 String s1 = '', s2 = '';
-''',
-      errorFilter: (error) => error.toString().contains('test.dart(21..22)'),
-    );
+''');
   }
 
   Future<void> test_topLevel_multipleVariables_fixSecond() async {
     await resolveTestCode('''
 late String s1 = '', s2 = '';
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 String s1 = '', s2 = '';
-''',
-      errorFilter: (error) => error.toString().contains('test.dart(12..13)'),
-    );
-  }
-
-  Future<void> test_topLevel_multipleVariables_notAllHaveInitializer() async {
-    await resolveTestCode('''
-late String s1, s2 = '';
 ''');
-    await assertNoFix();
   }
 }

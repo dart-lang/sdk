@@ -4,12 +4,11 @@
 
 import 'package:kernel/ast.dart';
 
-import '../fasta/builder/class_builder.dart';
+import '../fasta/builder/declaration_builders.dart';
 import '../fasta/builder/library_builder.dart';
 import '../fasta/builder/member_builder.dart';
 import '../fasta/builder/type_builder.dart';
-import '../fasta/builder/type_variable_builder.dart';
-import '../fasta/builder/extension_builder.dart';
+import '../fasta/identifiers.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';
@@ -342,10 +341,6 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   }
 
   @override
-  void defaultConstant(Constant node) => throw new UnimplementedError(
-      'Unexpected constant $node (${node.runtimeType})');
-
-  @override
   void visitNullConstant(NullConstant node) {
     sb.write('Null()');
   }
@@ -535,6 +530,12 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     sb.write('Unevaluated()');
   }
+
+  @override
+  bool visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
 }
 
 class DartTypeToTextVisitor implements DartTypeVisitor<void> {
@@ -563,8 +564,10 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType node) => throw new UnimplementedError(
-      'Unexpected type $node (${node.runtimeType})');
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
 
   @override
   void visitInvalidType(InvalidType node) {
@@ -629,7 +632,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
             sb.write(' ');
           }
         }
-        TypeParameter typeParameter = node.typeParameters[i];
+        StructuralParameter typeParameter = node.typeParameters[i];
         sb.write(typeParameter.name);
         DartType bound = typeParameter.bound;
         if (!(bound is InterfaceType && bound.classNode.name == 'Object')) {
@@ -707,6 +710,12 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    sb.write(node.parameter.name);
+    sb.write(nullabilityToText(node.nullability, typeRepresentation));
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     visit(node.left);
     sb.write(' & ');
@@ -765,7 +774,8 @@ String typeBuilderToText(TypeBuilder type) {
 
 void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
   if (type is NamedTypeBuilder) {
-    sb.write(type.name);
+    Object name = type.name;
+    sb.write(name is Identifier ? name.name : name);
     if (type.arguments != null && type.arguments!.isNotEmpty) {
       sb.write('<');
       _typeBuildersToText(type.arguments!, sb);
@@ -805,40 +815,49 @@ String errorsToText(List<FormattedMessage> errors, {bool useCodes = false}) {
 }
 
 /// Returns a textual representation of [descriptor] to be used in testing.
-String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
-  StringBuffer sb = new StringBuffer();
-  if (descriptor.isStatic) {
-    sb.write('static ');
+List<String> extensionMethodDescriptorToText(
+    ExtensionMemberDescriptor descriptor) {
+  String descriptorToText(Reference reference, {required bool forTearOff}) {
+    StringBuffer sb = new StringBuffer();
+    if (descriptor.isStatic) {
+      sb.write('static ');
+    }
+    switch (descriptor.kind) {
+      case ExtensionMemberKind.Method:
+        if (forTearOff) {
+          sb.write('tearoff ');
+        }
+        break;
+      case ExtensionMemberKind.Getter:
+        sb.write('getter ');
+        break;
+      case ExtensionMemberKind.Setter:
+        sb.write('setter ');
+        break;
+      case ExtensionMemberKind.Operator:
+        sb.write('operator ');
+        break;
+      case ExtensionMemberKind.Field:
+        sb.write('field ');
+        break;
+    }
+    sb.write(descriptor.name.text);
+    sb.write('=');
+    Member member = reference.asMember;
+    String name = member.name.text;
+    if (member is Procedure && member.isSetter) {
+      sb.write('$name=');
+    } else {
+      sb.write(name);
+    }
+    return sb.toString();
   }
-  switch (descriptor.kind) {
-    case ExtensionMemberKind.Method:
-      break;
-    case ExtensionMemberKind.Getter:
-      sb.write('getter ');
-      break;
-    case ExtensionMemberKind.Setter:
-      sb.write('setter ');
-      break;
-    case ExtensionMemberKind.Operator:
-      sb.write('operator ');
-      break;
-    case ExtensionMemberKind.Field:
-      sb.write('field ');
-      break;
-    case ExtensionMemberKind.TearOff:
-      sb.write('tearoff ');
-      break;
-  }
-  sb.write(descriptor.name.text);
-  sb.write('=');
-  Member member = descriptor.member.asMember;
-  String name = member.name.text;
-  if (member is Procedure && member.isSetter) {
-    sb.write('$name=');
-  } else {
-    sb.write(name);
-  }
-  return sb.toString();
+
+  return [
+    descriptorToText(descriptor.member, forTearOff: false),
+    if (descriptor.tearOff != null)
+      descriptorToText(descriptor.tearOff!, forTearOff: true),
+  ];
 }
 
 /// Returns a textual representation of [nullability] to be used in testing.

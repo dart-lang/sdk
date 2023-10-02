@@ -127,17 +127,18 @@ class FieldElementFlags {
   static const int _hasInitializer = 1 << 1;
   static const int _inheritsCovariant = 1 << 2;
   static const int _isAbstract = 1 << 3;
-  static const int _isConst = 1 << 4;
-  static const int _isCovariant = 1 << 5;
-  static const int _isEnumConstant = 1 << 6;
-  static const int _isExternal = 1 << 7;
-  static const int _isFinal = 1 << 8;
-  static const int _isLate = 1 << 9;
-  static const int _isPromotable = 1 << 10;
-  static const int _shouldUseTypeForInitializerInference = 1 << 11;
-  static const int _isStatic = 1 << 12;
-  static const int _isSynthetic = 1 << 13;
-  static const int _isTempAugmentation = 1 << 14;
+  static const int _isAugmentation = 1 << 4;
+  static const int _isConst = 1 << 5;
+  static const int _isCovariant = 1 << 6;
+  static const int _isEnumConstant = 1 << 7;
+  static const int _isExternal = 1 << 8;
+  static const int _isFinal = 1 << 9;
+  static const int _isLate = 1 << 10;
+  static const int _isPromotable = 1 << 11;
+  static const int _shouldUseTypeForInitializerInference = 1 << 12;
+  static const int _isStatic = 1 << 13;
+  static const int _isSynthetic = 1 << 14;
+  static const int _isTempAugmentation = 1 << 15;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -145,6 +146,7 @@ class FieldElementFlags {
     element.hasInitializer = (byte & _hasInitializer) != 0;
     element.inheritsCovariant = (byte & _inheritsCovariant) != 0;
     element.isAbstract = (byte & _isAbstract) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isConst = (byte & _isConst) != 0;
     element.isCovariant = (byte & _isCovariant) != 0;
     element.isEnumConstant = (byte & _isEnumConstant) != 0;
@@ -165,6 +167,7 @@ class FieldElementFlags {
     result |= element.hasInitializer ? _hasInitializer : 0;
     result |= element.inheritsCovariant ? _inheritsCovariant : 0;
     result |= element.isAbstract ? _isAbstract : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isConst ? _isConst : 0;
     result |= element.isCovariant ? _isCovariant : 0;
     result |= element.isEnumConstant ? _isEnumConstant : 0;
@@ -185,14 +188,16 @@ class FieldElementFlags {
 class FunctionElementFlags {
   static const int _hasImplicitReturnType = 1 << 0;
   static const int _isAsynchronous = 1 << 1;
-  static const int _isExternal = 1 << 2;
-  static const int _isGenerator = 1 << 3;
-  static const int _isStatic = 1 << 4;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isExternal = 1 << 3;
+  static const int _isGenerator = 1 << 4;
+  static const int _isStatic = 1 << 5;
 
   static void read(SummaryDataReader reader, FunctionElementImpl element) {
     var byte = reader.readByte();
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
@@ -202,6 +207,7 @@ class FunctionElementFlags {
     var result = 0;
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
@@ -380,11 +386,12 @@ class PropertyAccessorElementFlags {
 class TopLevelVariableElementFlags {
   static const int _hasImplicitType = 1 << 0;
   static const int _hasInitializer = 1 << 1;
-  static const int _isExternal = 1 << 2;
-  static const int _isFinal = 1 << 3;
-  static const int _isLate = 1 << 4;
-  static const int _shouldUseTypeForInitializerInference = 1 << 5;
-  static const int _isTempAugmentation = 1 << 6;
+  static const int _isAugmentation = 1 << 2;
+  static const int _isExternal = 1 << 3;
+  static const int _isFinal = 1 << 4;
+  static const int _isLate = 1 << 5;
+  static const int _shouldUseTypeForInitializerInference = 1 << 6;
+  static const int _isTempAugmentation = 1 << 7;
 
   static void read(
     SummaryDataReader reader,
@@ -393,6 +400,7 @@ class TopLevelVariableElementFlags {
     var byte = reader.readByte();
     element.hasImplicitType = (byte & _hasImplicitType) != 0;
     element.hasInitializer = (byte & _hasInitializer) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
@@ -405,6 +413,7 @@ class TopLevelVariableElementFlags {
     var result = 0;
     result |= element.hasImplicitType ? _hasImplicitType : 0;
     result |= element.hasInitializer ? _hasInitializer : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;

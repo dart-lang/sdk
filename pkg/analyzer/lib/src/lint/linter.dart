@@ -389,10 +389,9 @@ class LinterContextImpl implements LinterContext {
       errorReporter,
     );
 
-    // TODO(kallentu): Remove unwrapping of Constant
-    var constant = node.accept(visitor);
-    var value = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult(value, errorListener.errors);
+    var constant = visitor.evaluateAndReportInvalidConstant(node);
+    var dartObject = constant is DartObjectImpl ? constant : null;
+    return LinterConstantEvaluationResult(dartObject, errorListener.errors);
   }
 
   @override
@@ -701,6 +700,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// constitute AnalysisErrorInfos.
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
+  /// The state of a lint, and optionally since when the state began.
   final State state;
 
   LintRule({
@@ -708,11 +708,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     required this.group,
     required this.description,
     required this.details,
-    @Deprecated("Use 'state' instead.") Maturity? maturity,
     State? state,
     this.documentation,
     this.hasDocumentation = false,
-  }) : state = state ?? _toState(maturity);
+  }) : state = state ?? State.stable();
 
   /// Indicates whether the lint rule can work with just the parsed information
   /// or if it requires a resolved unit.
@@ -723,14 +722,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   @override
   LintCode get lintCode => _LintCode(name, description);
-
-  /// Lint maturity (stable|deprecated|experimental).
-  @Deprecated("Use 'state' instead.")
-  Maturity get maturity {
-    if (state.isDeprecated) return Maturity.deprecated;
-    if (state.isExperimental) return Maturity.experimental;
-    return Maturity.stable;
-  }
 
   @override
   int compareTo(LintRule other) {
@@ -800,39 +791,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     // Then do the reporting
     reporter.reportError(error);
   }
-
-  static State _toState(Maturity? maturity) {
-    if (maturity == Maturity.deprecated) return State.deprecated();
-    if (maturity == Maturity.experimental) return State.experimental();
-    return State.stable();
-  }
-}
-
-class Maturity implements Comparable<Maturity> {
-  static const Maturity stable = Maturity._('stable', ordinal: 0);
-  static const Maturity experimental = Maturity._('experimental', ordinal: 1);
-  static const Maturity deprecated = Maturity._('deprecated', ordinal: 2);
-
-  final String name;
-  final int ordinal;
-
-  factory Maturity(String name, {required int ordinal}) {
-    switch (name.toLowerCase()) {
-      case 'stable':
-        return stable;
-      case 'experimental':
-        return experimental;
-      case 'deprecated':
-        return deprecated;
-      default:
-        return Maturity._(name, ordinal: ordinal);
-    }
-  }
-
-  const Maturity._(this.name, {required this.ordinal});
-
-  @override
-  int compareTo(Maturity other) => ordinal - other.ordinal;
 }
 
 /// [LintRule]s that implement this interface want to process only some types

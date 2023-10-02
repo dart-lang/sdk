@@ -121,7 +121,7 @@ export '../base/nnbd_mode.dart' show NnbdMode;
 export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
-export '../fasta/operator.dart' show operatorFromString;
+export '../fasta/operator.dart' show Operator;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 

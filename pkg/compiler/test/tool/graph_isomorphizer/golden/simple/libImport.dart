@@ -14,7 +14,7 @@ class C_100 {
   const C_100();
 }
 
-class M_100 {}
+mixin M_100 {}
 
 class T_100 {}
 
@@ -25,7 +25,7 @@ class C_101 {
   const C_101();
 }
 
-class M_101 {}
+mixin M_101 {}
 
 class T_101 {}
 
@@ -36,7 +36,7 @@ class C_111 {
   const C_111();
 }
 
-class M_111 {}
+mixin M_111 {}
 
 class T_111 {}
 
@@ -47,7 +47,7 @@ class C_010 {
   const C_010();
 }
 
-class M_010 {}
+mixin M_010 {}
 
 class T_010 {}
 
@@ -58,7 +58,7 @@ class C_011 {
   const C_011();
 }
 
-class M_011 {}
+mixin M_011 {}
 
 class T_011 {}
 
@@ -69,7 +69,7 @@ class C_001 {
   const C_001();
 }
 
-class M_001 {}
+mixin M_001 {}
 
 class T_001 {}
 

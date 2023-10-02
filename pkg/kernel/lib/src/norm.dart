@@ -1,6 +1,6 @@
 // Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import '../ast.dart';
 import '../core_types.dart';
@@ -92,6 +92,19 @@ class _Norm extends ReplacementVisitor {
 
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
+    DartType bound = node.parameter.bound;
+    if (normalizesToNever(bound)) {
+      DartType result = NeverType.fromNullability(node.nullability);
+      return result.accept1(this, variance) ?? result;
+    }
+    assert(!coreTypes.isBottom(bound));
+    // If the bound isn't Never, the type is already normalized.
+    return null;
+  }
+
+  @override
+  DartType? visitStructuralParameterType(
+      StructuralParameterType node, int variance) {
     DartType bound = node.parameter.bound;
     if (normalizesToNever(bound)) {
       DartType result = NeverType.fromNullability(node.nullability);

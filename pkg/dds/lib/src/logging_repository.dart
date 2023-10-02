@@ -12,7 +12,7 @@ import 'common/ring_buffer.dart';
 /// `Logging` stream will be sent all messages contained within this repository
 /// upon initial subscription.
 class LoggingRepository extends RingBuffer<Map<String, dynamic>> {
-  LoggingRepository([int logHistoryLength = 10000]) : super(logHistoryLength) {
+  LoggingRepository([super.logHistoryLength = 10000]) {
     // TODO(bkonyi): enforce log history limit when DartDevelopmentService
     // allows for this to be set via Dart code.
   }

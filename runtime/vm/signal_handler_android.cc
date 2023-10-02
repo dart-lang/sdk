@@ -110,21 +110,19 @@ void SignalHandler::Install(SignalAction action) {
   // or outside of writable space at all. In the first case we
   // get memory corruption and in the second case kernel would send
   // SIGSEGV to the process. See b/152210274 for details.
-  // To work around this issue we are using alternative signal stack
-  // to handle SIGPROF signals.
-  stack_t ss;
-  ss.ss_size = SIGSTKSZ;
-  ss.ss_sp = malloc(ss.ss_size);
-  ss.ss_flags = 0;
-  int r = sigaltstack(&ss, nullptr);
-  ASSERT(r == 0);
-
+  // To work around this issue we request SIGPROF signals to be delivered
+  // on the alternative signal stack by setting SA_ONSTACK. The stack itself
+  // is configured when interrupts are enabled for a particular thread.
+  // In reality Bionic's |pthread_create| eagerly creates and assigns an
+  // alternative signal stack for each thread. However older versions of Bionic
+  // (L and below) make the size of alternative stack too small which causes
+  // stack overflows and crashes.
   struct sigaction act = {};
   act.sa_sigaction = action;
   sigemptyset(&act.sa_mask);
   sigaddset(&act.sa_mask, SIGPROF);  // Prevent nested signals.
   act.sa_flags = SA_RESTART | SA_SIGINFO | SA_ONSTACK;
-  r = sigaction(SIGPROF, &act, nullptr);
+  int r = sigaction(SIGPROF, &act, nullptr);
   ASSERT(r == 0);
 }
 
@@ -135,14 +133,56 @@ void SignalHandler::Remove() {
   act.sa_handler = SIG_IGN;
   sigemptyset(&act.sa_mask);
   int r = sigaction(SIGPROF, &act, nullptr);
+  RELEASE_ASSERT(r == 0);
+}
+
+void* SignalHandler::PrepareCurrentThread() {
+  // These constants are selected to prevent allocating alternative signal
+  // stack if Bionic has already allocated large enough one for us. They
+  // match current values used in Bionic[1].
+  //
+  // [1]: https://cs.android.com/android/platform/superproject/main/+/main:bionic/libc/bionic/pthread_internal.h;drc=3649db34a154cedb8ef53a5adbaa349970159b58;l=243
+  const intptr_t kGuardPageSize = 4 * KB;
+#if defined(TARGET_ARCH_IS_64_BIT)
+  const intptr_t kSigAltStackSize = 32 * KB;
+#else
+  const intptr_t kSigAltStackSize = 16 * KB;
+#endif
+
+  // First check if the alternative signal stack is already installed and
+  // large enough.
+  int r;
+  stack_t ss;
+  memset(&ss, 0, sizeof(ss));
+  r = sigaltstack(nullptr, &ss);
+  ASSERT(r == 0);
+  if (ss.ss_flags == 0 && ss.ss_size >= (kSigAltStackSize - kGuardPageSize)) {
+    // Bionic has created a large enough stack already.
+    return nullptr;
+  }
+
+  // We are running on an older version of Android, where Bionic creates
+  // stacks which are too small.
+  ss.ss_sp = malloc(kSigAltStackSize);
+  ss.ss_size = kSigAltStackSize;
+  ss.ss_flags = 0;
+  r = sigaltstack(&ss, nullptr);
   ASSERT(r == 0);
 
-  // Disable and delete alternative signal stack.
-  stack_t ss, old_ss;
-  ss.ss_flags = SS_DISABLE;
-  r = sigaltstack(&ss, &old_ss);
-  ASSERT(r == 0);
-  free(old_ss.ss_sp);
+  return ss.ss_sp;
+}
+
+void SignalHandler::CleanupCurrentThreadState(void* stack) {
+  if (stack != nullptr) {
+    // Disable alternative stack then free allocated memory.
+    stack_t ss, old_ss;
+    memset(&ss, 0, sizeof(ss));
+    ss.ss_flags = SS_DISABLE;
+    int r = sigaltstack(&ss, &old_ss);
+    ASSERT(r == 0);
+    ASSERT(old_ss.ss_sp == stack);
+    free(stack);
+  }
 }
 
 }  // namespace dart

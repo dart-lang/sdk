@@ -113,6 +113,8 @@ base ^ class A {}
 ''');
     assertResponse(r'''
 suggestions
+  abstract
+    kind: keyword
   mixin
     kind: keyword
 ''');
@@ -144,6 +146,8 @@ base ^ mixin class A {}
 ''');
     assertResponse('''
 suggestions
+  abstract
+    kind: keyword
 ''');
   }
 
@@ -169,6 +173,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -223,6 +229,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -291,47 +299,17 @@ suggestions
 replacement
   left: 3
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
   export '';
     kind: keyword
     selection: 8
-  extension
-    kind: keyword
-  final
-    kind: keyword
   import '';
     kind: keyword
     selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
   library
-    kind: keyword
-  mixin
     kind: keyword
   part '';
     kind: keyword
     selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
 ''');
     }
   }
@@ -370,6 +348,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -403,52 +383,21 @@ suggestions
 ^imp
 import "package:foo/foo.dart";
 ''');
-    // TODO(danrubel) should not suggest declaration keywords
     assertResponse(r'''
 replacement
   right: 3
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
   export '';
     kind: keyword
     selection: 8
-  extension
-    kind: keyword
-  final
-    kind: keyword
   import '';
     kind: keyword
     selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
   library
-    kind: keyword
-  mixin
     kind: keyword
   part '';
     kind: keyword
     selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
 ''');
   }
 
@@ -472,6 +421,8 @@ suggestions
   dynamic
     kind: keyword
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -528,6 +479,8 @@ suggestions
     kind: keyword
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   interface
@@ -571,6 +524,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -636,6 +591,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -668,6 +625,8 @@ final ^ class A {}
 ''');
     assertResponse(r'''
 suggestions
+  abstract
+    kind: keyword
 ''');
   }
 
@@ -686,6 +645,8 @@ interface ^ class A {}
 ''');
     assertResponse('''
 suggestions
+  abstract
+    kind: keyword
 ''');
   }
 
@@ -720,6 +681,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -781,6 +744,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -813,6 +778,8 @@ mixin ^ class A {}
 ''');
     assertResponse(r'''
 suggestions
+  abstract
+    kind: keyword
   base
     kind: keyword
 ''');
@@ -842,6 +809,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -882,52 +851,21 @@ suggestions
  ^imp
  import "package:foo/foo.dart";
  ''');
-    // TODO(danrubel) should not suggest declaration keywords
     assertResponse(r'''
 replacement
   right: 3
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
   export '';
     kind: keyword
     selection: 8
-  extension
-    kind: keyword
-  final
-    kind: keyword
   import '';
     kind: keyword
     selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
   library
-    kind: keyword
-  mixin
     kind: keyword
   part '';
     kind: keyword
     selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
 ''');
   }
 
@@ -970,6 +908,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -1021,6 +961,8 @@ suggestions
     selection: 8
   extension
     kind: keyword
+  external
+    kind: keyword
   final
     kind: keyword
   import '';
@@ -1068,6 +1010,8 @@ suggestions
   dynamic
     kind: keyword
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -1166,7 +1110,6 @@ import "zoo.dart";
 imp^
 import "package:foo/foo.dart";
 ''');
-    // TODO(danrubel) should not suggest declaration keywords
     if (isProtocolVersion2) {
       assertResponse(r'''
 replacement
@@ -1181,45 +1124,15 @@ suggestions
 replacement
   left: 3
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
   export '';
     kind: keyword
     selection: 8
-  extension
-    kind: keyword
-  final
-    kind: keyword
   import '';
     kind: keyword
     selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  mixin
-    kind: keyword
   part '';
     kind: keyword
     selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
 ''');
     }
   }
@@ -1230,8 +1143,7 @@ library libA;
 imp^
 import "package:foo/foo.dart";
 ''');
-    // TODO(danrubel) should not suggest declaration keywords
-    // TODO(brianwilkerson) Should not suggest library, export or part directives.
+    // TODO(brianwilkerson) Should not suggest `export` or `part` directives.
     if (isProtocolVersion2) {
       assertResponse(r'''
 replacement
@@ -1246,45 +1158,15 @@ suggestions
 replacement
   left: 3
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
   export '';
     kind: keyword
     selection: 8
-  extension
-    kind: keyword
-  final
-    kind: keyword
   import '';
     kind: keyword
     selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  mixin
-    kind: keyword
   part '';
     kind: keyword
     selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
 ''');
     }
   }
@@ -1311,6 +1193,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword
@@ -1431,6 +1315,8 @@ suggestions
     kind: keyword
     selection: 8
   extension
+    kind: keyword
+  external
     kind: keyword
   final
     kind: keyword

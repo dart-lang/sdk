@@ -1794,6 +1794,7 @@ static void TryAllocateString(Assembler* assembler,
   // A1: allocation size.
   __ lx(TMP, Address(THR, target::Thread::end_offset()));
   __ bgtu(T1, TMP, failure);
+  __ CheckAllocationCanary(A0);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.

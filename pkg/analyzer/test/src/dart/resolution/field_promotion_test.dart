@@ -712,6 +712,34 @@ PrefixedIdentifier
 ''');
   }
 
+  test_external_field() async {
+    // External final fields should not be promotable.
+    await assertNoErrorsInCode('''
+class C {
+  external final int? _field;
+}
+void f(C c) {
+  c._field!;
+  c._field;
+}
+''');
+    var node = findNode.prefixed('c._field;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: _field
+    staticElement: self::@class::C::@getter::_field
+    staticType: int?
+  staticElement: self::@class::C::@getter::_field
+  staticType: int?
+''');
+  }
+
   test_implemented_via_other_library() async {
     // When determining the set of fields/getters in a class's implementation,
     // it's necessary to traverse the whole class hierarchy, including classes

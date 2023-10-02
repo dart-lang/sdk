@@ -71,7 +71,7 @@ class LspOverLegacyTest extends AbstractAnalysisServerIntegrationTest
       expect(
           message.error['message'],
           "The 'lspMessage' parameter was not a valid LSP request:\n"
-          "jsonrpc must not be undefined");
+          'jsonrpc must not be undefined');
     }
   }
 
@@ -156,8 +156,8 @@ This is my class.''';
         'id': '12345',
         'method': Method.textDocument_hover.toString(),
         'params': {
-          "textDocument": {"uri": testFileUri.toString()},
-          "position": code.position.position.toJson(),
+          'textDocument': {'uri': testFileUri.toString()},
+          'position': code.position.position.toJson(),
         },
       }
     });

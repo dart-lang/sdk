@@ -33,7 +33,6 @@ void matchIL$sumAll(FlowGraph graph) {
     match.block('Graph'),
     match.block('Function', [
       'v2' << match.Parameter(index: 0),
-      'v56' << match.LoadField('v2', slot: ':type_arguments'),
       'v99' << match.LoadField('v2', slot: 'GrowableObjectArray.length'),
       'v120' << match.UnboxInt64('v99'),
       'v114' << match.LoadField('v2', slot: 'GrowableObjectArray.data'),
@@ -56,20 +55,6 @@ void matchIL$sumAll(FlowGraph graph) {
           match.GenericCheckBound(),
           'v135' << match.LoadIndexed('v114', match.any),
           'v45' << match.BinaryInt64Op('v130', match.any),
-          match.Branch(match.StrictCompare('v135', match.any),
-              ifTrue: 'B8', ifFalse: 'B9'),
-        ]),
-    'B8' <<
-        match.block('Target', [
-          match.AssertAssignable(),
-          match.Goto('B10'),
-        ]),
-    'B9' <<
-        match.block('Target', [
-          match.Goto('B10'),
-        ]),
-    'B10' <<
-        match.block('Join', [
           'v125' << match.UnboxInt64('v135'),
           'v28' << match.BinaryInt64Op('v5', 'v125'),
           match.Goto('B16'),

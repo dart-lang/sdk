@@ -1,0 +1,15 @@
+abstract class AbstractClass {
+  const AbstractClass.id();
+}
+class A {
+  const A.named1() sync* {}
+  const A.named2() : x = new Object();
+  final x = null;
+}
+class B {}
+class C {
+  late B b;
+}
+external foo(String x) {}
+m() {}
+main() {}

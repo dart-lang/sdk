@@ -348,7 +348,7 @@ int test() => 42;
 ''');
     _createRefactoringForStringOffset('(');
     return _assertConditionsFatal(
-        "Can only extract a single expression or a set of statements.");
+        'Can only extract a single expression or a set of statements.');
   }
 
   Future<void> test_bad_functionDeclaration_inParameters() async {
@@ -357,7 +357,7 @@ int test() => 42;
 ''');
     _createRefactoringForStringOffset(')');
     return _assertConditionsFatal(
-        "Can only extract a single expression or a set of statements.");
+        'Can only extract a single expression or a set of statements.');
   }
 
   Future<void> test_bad_functionDeclaration_name() async {
@@ -366,7 +366,7 @@ int test() => 42;
 ''');
     _createRefactoringForStringOffset('st()');
     return _assertConditionsFatal(
-        "Can only extract a single expression or a set of statements.");
+        'Can only extract a single expression or a set of statements.');
   }
 
   Future<void> test_bad_methodName_reference() async {

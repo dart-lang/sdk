@@ -117,21 +117,6 @@ The test suite run during the linter's CI, can be run locally like so:
 
     $ dart test/all.dart
 
-alternatively, tests can be run using `pub`:
-
-    $ dart test
-    
-Running a single test can be done using the `rule_debug` helper:
-
-    $ dart test/util/rule_debug.dart always_declare_return_types
-    
-would only test `always_declare_return_types`.  (This can be very handy if you
-want to run tests in the VM debugger).
-
-If you simply want to verify a test, you can run it solo in `pub`:
-
-    $ dart test -N always_declare_return_types
-
 ### Utilities
 
 You'll notice when authoring a new rule that failures cause the AST of the test

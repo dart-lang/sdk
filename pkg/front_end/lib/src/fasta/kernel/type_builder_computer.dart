@@ -9,21 +9,18 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 
 import 'package:kernel/ast.dart';
 
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/future_or_type_declaration_builder.dart';
-import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/null_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 
 import '../kernel/utils.dart';
@@ -56,10 +53,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilderComputer(this.loader);
 
-  @override
-  TypeBuilder defaultDartType(DartType node) {
-    throw "Unsupported";
-  }
+  final Map<TypeParameter, TypeVariableBuilder> functionTypeParameters = {};
 
   @override
   TypeBuilder visitInvalidType(InvalidType node) {
@@ -139,7 +133,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     TypeBuilder returnType = node.returnType.accept(this);
     // We could compute the type variables here. However, the current
     // implementation of [visitTypeParameterType] is sufficient.
-    List<TypeVariableBuilder>? typeVariables = null;
+    List<StructuralVariableBuilder>? typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
     List<ParameterBuilder> formals = new List<ParameterBuilder>.filled(
@@ -176,17 +170,18 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   @override
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
-    TreeNode? kernelClassOrTypeDef = parameter.parent;
-    Library? kernelLibrary;
-    if (kernelClassOrTypeDef is Class) {
-      kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
-    } else if (kernelClassOrTypeDef is Typedef) {
-      kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
-    }
-    LibraryBuilder library =
-        loader.lookupLibraryBuilder(kernelLibrary!.importUri)!;
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new TypeVariableBuilder.fromKernel(parameter, library),
+        new TypeVariableBuilder.fromKernel(parameter),
+        new NullabilityBuilder.fromNullability(node.nullability),
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
+        type: node);
+  }
+
+  @override
+  TypeBuilder visitStructuralParameterType(StructuralParameterType node) {
+    StructuralParameter parameter = node.parameter;
+    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+        new StructuralVariableBuilder.fromKernel(parameter),
         new NullabilityBuilder.fromNullability(node.nullability),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
         type: node);
@@ -230,5 +225,11 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         new NullabilityBuilder.fromNullability(node.nullability),
         missingUri,
         TreeNode.noOffset);
+  }
+
+  @override
+  TypeBuilder visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 }

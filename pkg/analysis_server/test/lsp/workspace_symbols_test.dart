@@ -59,9 +59,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dependencies_excluded() async {
     newFile(mainFilePath, 'class LocalClass12345 {}');
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       {
         'includeDependenciesInWorkspaceSymbols': false,
       },
@@ -74,9 +72,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dependencies_included() async {
     newFile(mainFilePath, 'class LocalClass12345 {}');
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       {
         'includeDependenciesInWorkspaceSymbols': true,
       },

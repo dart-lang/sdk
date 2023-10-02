@@ -25,7 +25,7 @@ import 'package:vm/transformations/ffi/definitions.dart'
 import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constantEvaluator show EvaluationMode;
+    as constantEvaluator show ConstantEvaluator, EvaluationMode;
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 
@@ -38,6 +38,55 @@ enum Mode {
   regular,
   stringref,
   jsCompatibility,
+}
+
+class Dart2WasmConstantsBackend extends ConstantsBackend {
+  const Dart2WasmConstantsBackend();
+
+  @override
+  bool get supportsUnevaluatedConstants => true;
+}
+
+class ConstantResolver extends Transformer {
+  ConstantResolver(this.evaluator);
+
+  final constantEvaluator.ConstantEvaluator evaluator;
+
+  StaticTypeContext? _context;
+
+  @override
+  TreeNode visitLibrary(Library library) {
+    final oldContext = _context;
+    _context =
+        StaticTypeContext.forAnnotations(library, evaluator.typeEnvironment);
+    final result = super.visitLibrary(library);
+    _context = oldContext;
+    return result;
+  }
+
+  @override
+  TreeNode defaultMember(Member member) {
+    final oldContext = _context;
+    _context = StaticTypeContext(member, evaluator.typeEnvironment);
+    final result = super.defaultMember(member);
+    _context = oldContext;
+    return result;
+  }
+
+  @override
+  TreeNode visitConstantExpression(ConstantExpression node) {
+    final constant = node.constant;
+    if (constant is UnevaluatedConstant) {
+      final expression = constant.expression;
+      final newConstant = evaluator.evaluate(_context!, expression);
+      ConstantExpression result =
+          new ConstantExpression(newConstant, node.getStaticType(_context!))
+            ..fileOffset = node.fileOffset;
+
+      return result;
+    }
+    return node;
+  }
 }
 
 class WasmTarget extends Target {
@@ -59,7 +108,7 @@ class WasmTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  ConstantsBackend get constantsBackend => const ConstantsBackend();
+  ConstantsBackend get constantsBackend => const Dart2WasmConstantsBackend();
 
   @override
   Verification get verification => const WasmVerification();
@@ -137,7 +186,10 @@ class WasmTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('tests/web/wasm') ||
-      importer.isScheme('package') && importer.path == 'js/js.dart';
+      importer.isScheme('package') &&
+          (importer.path == 'js/js.dart' ||
+              importer.path.startsWith('ui/') &&
+                  imported.toString() == 'dart:_wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -166,7 +218,7 @@ class WasmTarget extends Target {
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
         coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
-        isDart2Wasm: true, enableStrictMode: true);
+        isDart2Wasm: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
@@ -216,29 +268,36 @@ class WasmTarget extends Target {
       logger?.call("Transformed JS interop classes");
     }
 
-    final reportError =
-        (LocatedMessage message, [List<LocatedMessage>? context]) {
-      diagnosticReporter.report(message.messageObject, message.charOffset,
-          message.length, message.uri);
-      if (context != null) {
-        for (final m in context) {
-          diagnosticReporter.report(
-              m.messageObject, m.charOffset, m.length, m.uri);
+    // If we are compiling with a null environment, skip constant resolution
+    // and simplification.
+    if (environmentDefines != null) {
+      final reportError =
+          (LocatedMessage message, [List<LocatedMessage>? context]) {
+        diagnosticReporter.report(message.messageObject, message.charOffset,
+            message.length, message.uri);
+        if (context != null) {
+          for (final m in context) {
+            diagnosticReporter.report(
+                m.messageObject, m.charOffset, m.length, m.uri);
+          }
         }
-      }
-    };
+      };
 
-    ConstConditionalSimplifier(
-      dartLibrarySupport,
-      constantsBackend,
-      component,
-      reportError,
-      environmentDefines: environmentDefines ?? {},
-      evaluationMode: constantEvaluator.EvaluationMode.strong,
-      coreTypes: coreTypes,
-      classHierarchy: hierarchy,
-      removeAsserts: removeAsserts,
-    ).run();
+      final simplifier = ConstConditionalSimplifier(
+        dartLibrarySupport,
+        constantsBackend,
+        component,
+        reportError,
+        environmentDefines: environmentDefines,
+        evaluationMode: constantEvaluator.EvaluationMode.strong,
+        coreTypes: coreTypes,
+        classHierarchy: hierarchy,
+        removeAsserts: removeAsserts,
+      );
+      final evaluator = simplifier.constantEvaluator;
+      ConstantResolver(evaluator).transform(component);
+      simplifier.run();
+    }
 
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);

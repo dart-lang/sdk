@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N prefer_collection_literals`
-
 import 'dart:collection';
 
 //ignore_for_file: unused_local_variable
@@ -58,14 +56,16 @@ void main() {
   printIndentedHashSet(0, LinkedHashSet<int>()); // OK
 
   Set<int> ss8 = LinkedHashSet.from([1, 2, 3]); // LINT
-  LinkedHashSet<int> ss9 =  LinkedHashSet.from([1, 2, 3]); // OK
+  LinkedHashSet<int> ss9 = LinkedHashSet.from([1, 2, 3]); // OK
 
   Iterable iter = Iterable.empty(); // OK
   var sss = Set.from(iter); // OK
 
-  LinkedHashSet<String> sss1 = <int, LinkedHashSet<String>>{}.putIfAbsent(3, () => LinkedHashSet<String>()); // OK
+  LinkedHashSet<String> sss1 = <int, LinkedHashSet<String>>{}
+      .putIfAbsent(3, () => LinkedHashSet<String>()); // OK
 
-  var lhs = LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)..addAll({}); // OK
+  var lhs = LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)
+    ..addAll({}); // OK
 
   LinkedHashMap hashMap = LinkedHashMap(); // OK
   Object hashMap2 = LinkedHashMap(); // LINT
@@ -76,7 +76,8 @@ void main() {
   printMap(LinkedHashMap<int, int>()); // LINT
   printHashMap(LinkedHashMap<int, int>()); // OK
 
-  LinkedHashMap<String, String> lhm = <int, LinkedHashMap<String,String>>{}.putIfAbsent(3, () => LinkedHashMap<String, String>()); // OK
+  LinkedHashMap<String, String> lhm = <int, LinkedHashMap<String, String>>{}
+      .putIfAbsent(3, () => LinkedHashMap<String, String>()); // OK
 }
 
 void printObject(Object o) => print('$o');

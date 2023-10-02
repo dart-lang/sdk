@@ -112,6 +112,9 @@ class Driver {
       }
     }
 
+    // Unregister our checks.
+    lints.forEach(Registry.ruleRegistry.unregister);
+
     return failedChecks.toList();
   }
 

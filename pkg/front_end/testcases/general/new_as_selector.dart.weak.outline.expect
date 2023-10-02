@@ -56,7 +56,7 @@ extension E on core::int {
   get new = self::E|get#new;
   set new = self::E|set#new;
   method call = self::E|call;
-  tearoff call = self::E|get#call;
+  method tearoff call = self::E|get#call;
 }
 static field core::int new;
 static field self::C c;

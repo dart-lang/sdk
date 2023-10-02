@@ -88,12 +88,14 @@ static bool IsUint8(intptr_t cid) {
          cid <= kUnmodifiableTypedDataUint8ClampedArrayViewCid;
 }
 
-DEFINE_NATIVE_ENTRY(TypedDataBase_setRange, 0, 5) {
+DEFINE_NATIVE_ENTRY(TypedDataBase_setClampedRange, 0, 5) {
+  // This is called after bounds checking, so the numeric inputs are
+  // guaranteed to be Smis, and the length is guaranteed to be non-zero.
   const TypedDataBase& dst =
       TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Smi& dst_start_smi =
       Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
-  const Smi& dst_end_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Smi& length_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(2));
   const TypedDataBase& src =
       TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(3));
   const Smi& src_start_smi =
@@ -104,52 +106,43 @@ DEFINE_NATIVE_ENTRY(TypedDataBase_setRange, 0, 5) {
 
   const intptr_t dst_start_in_bytes =
       dst_start_smi.Value() * element_size_in_bytes;
-  const intptr_t dst_end_in_bytes = dst_end_smi.Value() * element_size_in_bytes;
+  const intptr_t length_in_bytes = length_smi.Value() * element_size_in_bytes;
   const intptr_t src_start_in_bytes =
       src_start_smi.Value() * element_size_in_bytes;
 
-  const intptr_t length_in_bytes = dst_end_in_bytes - dst_start_in_bytes;
+#if defined(DEBUG)
+  // Verify bounds checks weren't needed.
+  ASSERT(dst_start_in_bytes >= 0);
+  ASSERT(src_start_in_bytes >= 0);
+  // The callers of this native function never call it for a zero-sized copy.
+  ASSERT(length_in_bytes > 0);
 
-  if (!IsClamped(dst.ptr()->GetClassId()) || IsUint8(src.ptr()->GetClassId())) {
-    // We've already performed range checking in _boundsCheckAndMemcpyN prior
-    // to the call to _nativeSetRange, so just perform the memmove.
-    //
-    // TODO(dartbug.com/42072): We do this when the copy length gets large
-    // enough that a native call to invoke memmove is faster than the generated
-    // code from MemoryCopy. Replace the static call to _nativeSetRange with
-    // a CCall() to a memmove leaf runtime entry and remove the possibility of
-    // calling _nativeSetRange except in the clamping case.
-    NoSafepointScope no_safepoint;
-    memmove(dst.DataAddr(dst_start_in_bytes), src.DataAddr(src_start_in_bytes),
-            length_in_bytes);
-    return Object::null();
-  }
-
-  // This is called on the fast path prior to bounds checking, so perform
-  // the bounds check even if the length is 0.
   const intptr_t dst_length_in_bytes = dst.LengthInBytes();
-  RangeCheck(dst_start_in_bytes, length_in_bytes, dst_length_in_bytes,
-             element_size_in_bytes);
+  // Since the length is non-zero, the start can't be the same as the end.
+  ASSERT(dst_start_in_bytes < dst_length_in_bytes);
+  ASSERT(length_in_bytes <= dst_length_in_bytes - dst_start_in_bytes);
 
   const intptr_t src_length_in_bytes = src.LengthInBytes();
-  RangeCheck(src_start_in_bytes, length_in_bytes, src_length_in_bytes,
-             element_size_in_bytes);
+  // Since the length is non-zero, the start can't be the same as the end.
+  ASSERT(src_start_in_bytes < src_length_in_bytes);
+  ASSERT(length_in_bytes <= src_length_in_bytes - src_start_in_bytes);
+#endif
 
   ASSERT_EQUAL(element_size_in_bytes, 1);
+  ASSERT(IsClamped(dst.ptr()->GetClassId()));
+  ASSERT(!IsUint8(src.ptr()->GetClassId()));
 
-  if (length_in_bytes > 0) {
-    NoSafepointScope no_safepoint;
-    uint8_t* dst_data =
-        reinterpret_cast<uint8_t*>(dst.DataAddr(dst_start_in_bytes));
-    int8_t* src_data =
-        reinterpret_cast<int8_t*>(src.DataAddr(src_start_in_bytes));
-    for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
-      int8_t v = *src_data;
-      if (v < 0) v = 0;
-      *dst_data = v;
-      src_data++;
-      dst_data++;
-    }
+  NoSafepointScope no_safepoint;
+  uint8_t* dst_data =
+      reinterpret_cast<uint8_t*>(dst.DataAddr(dst_start_in_bytes));
+  int8_t* src_data =
+      reinterpret_cast<int8_t*>(src.DataAddr(src_start_in_bytes));
+  for (intptr_t ix = 0; ix < length_in_bytes; ix++) {
+    int8_t v = *src_data;
+    if (v < 0) v = 0;
+    *dst_data = v;
+    src_data++;
+    dst_data++;
   }
 
   return Object::null();

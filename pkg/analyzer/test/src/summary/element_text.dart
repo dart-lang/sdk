@@ -53,6 +53,7 @@ class ElementTextConfiguration {
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
   bool withRedirectedConstructors = false;
+  bool withReferences = false;
   bool withSyntheticDartCoreImport = false;
 
   ElementTextConfiguration({
@@ -146,22 +147,8 @@ class _ElementWriter {
   }
 
   void _writeAugmentation(ElementImpl e) {
-    switch (e) {
-      case ClassElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
-      case MixinElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
-      case PropertyAccessorElementImpl e:
-        final augmentation = e.augmentation;
-        if (augmentation != null) {
-          _elementPrinter.writeNamedElement('augmentation', augmentation);
-        }
+    if (e case AugmentableElement(:final augmentation?)) {
+      _elementPrinter.writeNamedElement('augmentation', augmentation);
     }
   }
 
@@ -184,21 +171,11 @@ class _ElementWriter {
   }
 
   void _writeAugmentationTarget(ElementImpl e) {
-    switch (e) {
-      case InterfaceElementImpl e:
-        if (e.isAugmentation) {
-          _elementPrinter.writeNamedElement(
-            'augmentationTarget',
-            e.augmentationTarget,
-          );
-        }
-      case PropertyAccessorElementImpl e:
-        if (e.isAugmentation) {
-          _elementPrinter.writeNamedElement(
-            'augmentationTarget',
-            e.augmentationTarget,
-          );
-        }
+    if (e is AugmentableElement && e.isAugmentation) {
+      _elementPrinter.writeNamedElement(
+        'augmentationTarget',
+        e.augmentationTarget,
+      );
     }
   }
 
@@ -230,6 +207,14 @@ class _ElementWriter {
       _elementPrinter.writeElementList('fields', sorted);
     }
 
+    void writeConstructors() {
+      if (augmented is AugmentedInterfaceElementImpl) {
+        final sorted = augmented.constructors.sortedBy((e) => e.name);
+        expect(sorted, isNotEmpty);
+        _elementPrinter.writeElementList('constructors', sorted);
+      }
+    }
+
     void writeAccessors() {
       final sorted = augmented.accessors.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('accessors', sorted);
@@ -247,6 +232,7 @@ class _ElementWriter {
           _elementPrinter.writeTypeList('mixins', augmented.mixins);
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
           writeFields();
+          writeConstructors();
           writeAccessors();
           writeMethods();
         case AugmentedMixinElement():
@@ -320,6 +306,7 @@ class _ElementWriter {
     }
 
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
@@ -509,10 +496,11 @@ class _ElementWriter {
     }
   }
 
-  void _writeFunctionElement(FunctionElement e) {
+  void _writeFunctionElement(FunctionElementImpl e) {
     expect(e.isStatic, isTrue);
 
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isExternal, 'external ');
       _writeName(e);
       _writeBodyModifiers(e);
@@ -526,6 +514,8 @@ class _ElementWriter {
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
       _writeType('returnType', e.returnType);
+      _writeAugmentationTarget(e);
+      _writeAugmentation(e);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -595,6 +585,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -613,6 +604,8 @@ class _ElementWriter {
 
       if (e is ExtensionTypeElementImpl) {
         _elementPrinter.writeNamedElement('representation', e.representation);
+        _elementPrinter.writeNamedElement(
+            'primaryConstructor', e.primaryConstructor);
         _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
       }
 
@@ -638,9 +631,6 @@ class _ElementWriter {
       if (e is MixinElement) {
         expect(constructors, isEmpty);
       } else if (configuration.withConstructors) {
-        if (!e.isAugmentation) {
-          expect(constructors, isNotEmpty);
-        }
         _writeElements('constructors', constructors, _writeConstructorElement);
       }
 
@@ -670,6 +660,15 @@ class _ElementWriter {
   }
 
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
+    if (e is LibraryAugmentationElementImpl) {
+      if (e.macroGenerated case final macroGenerated?) {
+        _sink.writelnWithIndent('macroGeneratedCode');
+        _sink.writeln('---');
+        _sink.write(macroGenerated.code);
+        _sink.writeln('---');
+      }
+    }
+
     _writeDocumentation(e);
     _writeMetadata(e);
     _writeSinceSdkVersion(e);
@@ -948,6 +947,7 @@ class _ElementWriter {
     }
 
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');
@@ -994,6 +994,19 @@ class _ElementWriter {
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
+  }
+
+  void _writeReference(ElementImpl e) {
+    if (!configuration.withReferences) {
+      return;
+    }
+
+    if (e.reference case final reference?) {
+      _sink.writeIndentedLine(() {
+        _sink.write('reference: ');
+        _elementPrinter.writeReference(reference);
+      });
+    }
   }
 
   void _writeShouldUseTypeForInitializerInference(

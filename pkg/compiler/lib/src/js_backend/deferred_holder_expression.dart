@@ -539,6 +539,7 @@ class DeferredHolderExpressionFinalizerImpl
   /// Generates code to declare holders for a given [resourceName].
   HolderInitCode declareHolders(String resourceName, Iterable<Holder> holders,
       {bool initializeEmptyHolders = false}) {
+    holders = [...holders]..sort((a, b) => a.key.compareTo(b.key));
     // Create holder initialization code. If there are no properties
     // associated with a given holder in this specific [DeferredHolderResource]
     // then it will be omitted. However, in some cases, i.e. the main output

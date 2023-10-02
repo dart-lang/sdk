@@ -236,30 +236,6 @@ abstract class IdentifierContext {
   static const ExpressionIdentifierContext expressionContinuation =
       const ExpressionIdentifierContext.continuation();
 
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration preceded by 'get'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementGetter =
-      const ExtensionShowHideElementIdentifierContext.getter();
-
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration, not preceded by 'get', 'set', or 'operator'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementMemberOrType =
-      const ExtensionShowHideElementIdentifierContext.memberOrType();
-
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration preceded by 'operator'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementOperator =
-      const ExtensionShowHideElementIdentifierContext.operator();
-
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration preceded by 'set'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementSetter =
-      const ExtensionShowHideElementIdentifierContext.setter();
-
   /// Identifier is a reference to a named argument of a function or method
   /// invocation (e.g. `foo` in `f(foo: 0);`.
   static const NamedArgumentReferenceIdentifierContext namedArgumentReference =

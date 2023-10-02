@@ -45,7 +45,16 @@ String getLocalClassName(Class node) => escapeIdentifier(node.name)!;
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped parameter name.
-String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name)!;
+String getTypeParameterName(
+    /* TypeParameter | StructuralParameter */ Object node) {
+  assert(node is TypeParameter || node is StructuralParameter);
+  if (node is TypeParameter) {
+    return escapeIdentifier(node.name)!;
+  } else {
+    node as StructuralParameter;
+    return escapeIdentifier(node.name)!;
+  }
+}
 
 String getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.text;
@@ -299,6 +308,7 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is NeverType ||
       t is NullType ||
       t is RecordType ||
+      t is StructuralParameterType ||
       t is TypeParameterType ||
       t is TypedefType ||
       t is VoidType;
@@ -332,7 +342,7 @@ bool _isDartInternal(Uri uri) =>
 /// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
 /// visited `DartType`.
 class TypeParameterFinder extends RecursiveVisitor<void> {
-  final _found = <TypeParameter>{};
+  final _found = < /* TypeParameter | StructuralParameter */ Object>{};
   static TypeParameterFinder? _instance;
 
   TypeParameterFinder._();
@@ -341,7 +351,7 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
     return TypeParameterFinder._();
   }
 
-  Set<TypeParameter> find(DartType type) {
+  Set< /* TypeParameter | StructuralParameter */ Object> find(DartType type) {
     _found.clear();
     type.accept(this);
     return _found;
@@ -349,6 +359,10 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType node) =>
+      _found.add(node.parameter);
+
+  @override
+  void visitStructuralParameterType(StructuralParameterType node) =>
       _found.add(node.parameter);
 }
 

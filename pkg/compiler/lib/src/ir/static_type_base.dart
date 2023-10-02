@@ -57,7 +57,7 @@ class ExactInterfaceType extends ir.InterfaceType {
 /// expression kind. For instance method invocations whose static type depend
 /// on the static types of the receiver and type arguments and the signature
 /// of the targeted procedure.
-abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
+abstract class StaticTypeBase extends ir.TreeVisitorDefault<ir.DartType> {
   final ir.TypeEnvironment _typeEnvironment;
 
   StaticTypeBase(this._typeEnvironment);

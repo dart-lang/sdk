@@ -339,7 +339,8 @@ class LinkedHashMapCell {
   LinkedHashMapCell(this.hashMapCellKey, this.hashMapCellValue);
 }
 
-class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E> {
+class LinkedHashMapKeyIterable<E> extends EfficientLengthIterable<E>
+    implements HideEfficientLengthIterable<E> {
   final JsLinkedHashMap _map;
   LinkedHashMapKeyIterable(this._map);
 

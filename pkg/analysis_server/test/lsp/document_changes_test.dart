@@ -168,6 +168,91 @@ class Bar {
         equals(content));
   }
 
+  /// Tests that deleting a file does not clear diagnostics while there's an
+  /// overlay, and that removing the overlay later clears the diagnostics.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/53475
+  Future<void> test_documentOpen_fileDeleted_documentClosed() async {
+    const content = 'error';
+    newFile(mainFilePath, content);
+
+    // Track the latest diagnostics as the client would.
+    Map<String, List<Diagnostic>> latestDiagnostics = {};
+    trackDiagnostics(latestDiagnostics);
+
+    // Expect diagnostics after initial analysis because file has invalid
+    // content.
+    await initialize();
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics after opening the file with the same contents.
+    await openFile(mainFileUri, content);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics after deleting the file because the overlay is still
+    // active.
+    deleteFile(mainFilePath);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics to be removed after we close the file (which removes
+    // the overlay).
+    await closeFile(mainFileUri);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isEmpty);
+  }
+
+  /// Tests that deleting and re-creating a file while an overlay is active
+  /// keeps the diagnotics when the overlay is then removed, then removes them
+  /// when the file is deleted.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/53475
+  Future<void>
+      test_documentOpen_fileDeleted_fileCreated_documentClosed_fileDeleted() async {
+    const content = 'error';
+    newFile(mainFilePath, content);
+
+    // Track the latest diagnostics as the client would.
+    Map<String, List<Diagnostic>> latestDiagnostics = {};
+    trackDiagnostics(latestDiagnostics);
+
+    // Expect diagnostics after initial analysis because file has invalid
+    // content.
+    await initialize();
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics after opening the file with the same contents.
+    await openFile(mainFileUri, content);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics after deleting the file because the overlay is still
+    // active.
+    deleteFile(mainFilePath);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics remain after re-creating the file (the overlay is still
+    // active).
+    newFile(mainFilePath, content);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Expect diagnostics remain after we close the file because the file still
+    //exists on disk.
+    await closeFile(mainFileUri);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isNotEmpty);
+
+    // Finally, expect deleteing the file clears the diagnostics.
+    deleteFile(mainFilePath);
+    await pumpEventQueue(times: 5000);
+    expect(latestDiagnostics[mainFilePath], isEmpty);
+  }
+
   Future<void> test_documentOpen_notifiesPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
@@ -225,6 +310,8 @@ class Foo {}
   }
 
   Future<void> test_documentOpen_setsPriorityFileIfEarly() async {
+    setConfigurationSupport();
+
     // When initializing with config support, the server will call back to the client
     // which can delay analysis roots being configured. This can result in files
     // being opened before analysis roots are set which has previously caused the
@@ -237,9 +324,7 @@ class Foo {}
     final completer = Completer<void>();
 
     // Send the initialize request but do not await it.
-    final initResponse = initialize(
-        workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
-            withConfigurationSupport(emptyWorkspaceClientCapabilities)));
+    final initResponse = initialize();
 
     // When asked for config, delay the response until we have sent the openFile notification.
     final config = provideConfig(

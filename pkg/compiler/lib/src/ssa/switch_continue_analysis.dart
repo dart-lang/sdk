@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 /// Helper class that traverses a kernel AST subtree to see if it has any
 /// continue statements in the body of any switch cases (having continue
 /// statements results in a more complex generated code).
-class SwitchContinueAnalysis extends ir.Visitor<bool>
+class SwitchContinueAnalysis extends ir.VisitorDefault<bool>
     with ir.VisitorDefaultValueMixin<bool> {
   SwitchContinueAnalysis._();
 

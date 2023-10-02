@@ -1803,14 +1803,6 @@ HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
-HintCode.DEPRECATED_EXPORT_USE:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to look for a non-deprecated way to import the name and to add a
-    new import for it. It might be possible to remove the old import if all of
-    the names being imported through it are available through the new import.
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
@@ -1830,10 +1822,6 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.UNIGNORABLE_IGNORE:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_IMPORT:
@@ -1859,6 +1847,8 @@ LintCode.always_specify_types:
 LintCode.always_use_package_imports:
   status: hasFix
 LintCode.annotate_overrides:
+  status: hasFix
+LintCode.annotate_redeclares:
   status: hasFix
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
@@ -3190,7 +3180,7 @@ ParserErrorCode.OUT_OF_ORDER_CLAUSES:
     There isn't enough information for a fix. Consider splitting this diagnostic
     so that each variant has enough information.
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
-  status: noFix
+  status: hasFix
 ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
   status: noFix
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
@@ -3446,6 +3436,10 @@ WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
 WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
+WarningCode.DEPRECATED_EXPORT_USE:
+  status: hasFix
+  notes: |-
+    A data driven fix using `replacedBy`.
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
@@ -3458,6 +3452,35 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
+WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
+  status: needsFix
+  notes: |-
+    The fix is to remove the extra arguments.
+WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
+  status: needsFix
+  notes: |-
+    The fix is to remove the unexpected named argument.
+WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+  status: needsFix
+  notes: Add the closing brace at the end of the line.
+WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+  status: needsFix
+  notes: Add the appropriate closing tag, perhaps on the line just following.
+WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG:
+  status: needsFix
+  notes: |-
+    I can think of two: Offer to insert the appropriate starting tag (maybe
+    on the preceding line), and offer to change the end-tag to the start-tag.
+WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_UNKNOWN:
+  status: noFix
 WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
   status: needsFix
 WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
@@ -3723,6 +3746,10 @@ WarningCode.UNDEFINED_REFERENCED_PARAMETER:
     Can try to find the correct parameter name.
 WarningCode.UNDEFINED_SHOWN_NAME:
   status: hasFix
+WarningCode.UNIGNORABLE_IGNORE:
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
 WarningCode.UNNECESSARY_CAST_PATTERN:
   status: needsFix
   notes: |-

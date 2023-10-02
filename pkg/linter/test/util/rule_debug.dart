@@ -15,9 +15,6 @@ import '../test_constants.dart';
 /// Run, for example, like so:
 ///     dart test/util/rule_debug.dart valid_regexps
 ///
-/// To simply *run* a solo test, consider using `dart test -N`:
-///     dart test -N valid_regexps
-///
 void main(List<String> args) {
   var ruleName = args.first;
   var dir = Directory(ruleTestDataDir).absolute;

@@ -6,6 +6,9 @@
 /// flow analysis.  Callers may use the top level methods in this file to create
 /// AST nodes and then feed them to [Harness.run] to run them through flow
 /// analysis testing.
+library;
+
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show
         CascadePropertyTarget,
@@ -17,16 +20,16 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
         SuperPropertyTarget,
         ThisPropertyTarget;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry, NamedType, RecordPatternField, RecordType;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
 
@@ -1634,7 +1637,8 @@ class Harness {
 
   late final Map<String, _PropertyElement?> _members = {
     for (var entry in _coreMemberTypes.entries)
-      entry.key: _PropertyElement(entry.value)
+      entry.key: _PropertyElement(entry.value,
+          isPromotable: false, whyNotPromotable: null)
   };
 
   late final typeAnalyzer = _MiniAstTypeAnalyzer(
@@ -1700,7 +1704,11 @@ class Harness {
   /// [targetType] should result in `null` (no such member) rather than a test
   /// failure.
   void addMember(String targetType, String memberName, String? type,
-      {bool promotable = false}) {
+      {bool promotable = false,
+      PropertyNonPromotabilityReason? whyNotPromotable}) {
+    if (promotable) {
+      assert(whyNotPromotable == null);
+    }
     var query = '$targetType.$memberName';
     if (type == null) {
       if (promotable) {
@@ -1710,11 +1718,8 @@ class Harness {
       _members[query] = null;
       return;
     }
-    var member = _PropertyElement(Type(type));
-    _members[query] = member;
-    if (promotable) {
-      _operations.promotableFields.add(member);
-    }
+    _members[query] = _PropertyElement(Type(type),
+        isPromotable: promotable, whyNotPromotable: whyNotPromotable);
   }
 
   void addPromotionException(String from, String to, String result) {
@@ -2667,8 +2672,6 @@ class MiniAstOperations
   Map<String, bool> _areStructurallyEqualResults =
       Map.of(_coreAreStructurallyEqualResults);
 
-  final Set<_PropertyElement> promotableFields = {};
-
   final TypeSystem _typeSystem = TypeSystem();
 
   @override
@@ -2782,8 +2785,8 @@ class MiniAstOperations
   }
 
   @override
-  bool isPropertyPromotable(Object property) =>
-      promotableFields.contains(property);
+  bool isPropertyPromotable(covariant _PropertyElement property) =>
+      property.isPromotable;
 
   @override
   bool isSameType(Type type1, Type type2) {
@@ -2883,6 +2886,11 @@ class MiniAstOperations
   Type variableType(Var variable) {
     return variable.type;
   }
+
+  @override
+  PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
+          covariant _PropertyElement property) =>
+      property.whyNotPromotable;
 
   Type _lub(Type type1, Type type2) {
     if (isSameType(type1, type2)) {
@@ -5864,7 +5872,26 @@ class _PropertyElement {
   /// The type of the property.
   final Type _type;
 
-  _PropertyElement(this._type);
+  /// Whether the property is promotable.
+  final bool isPromotable;
+
+  /// The reason the property is not promotable, if applicable and relevant to
+  /// the test.
+  ///
+  /// If the propery is promotable ([isPromotable] is `true`), this value is
+  /// always `null`.
+  ///
+  /// Otherwise the value *may* be a reason for the property not being
+  /// promotable, but it may also still be `null` if the reason is not relevant
+  /// to the test.
+  final PropertyNonPromotabilityReason? whyNotPromotable;
+
+  _PropertyElement(this._type,
+      {required this.isPromotable, required this.whyNotPromotable}) {
+    if (isPromotable) {
+      assert(whyNotPromotable == null);
+    }
+  }
 }
 
 class _VariableBinder extends VariableBinder<Node, Var> {

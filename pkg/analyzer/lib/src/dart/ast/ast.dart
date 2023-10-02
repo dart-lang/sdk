@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -2703,6 +2704,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   Token? get abstractKeyword;
 
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
   Token? get augmentKeyword;
 
   /// Return the 'base' keyword, or `null` if the keyword was absent.
@@ -2735,6 +2737,10 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// Returns the left curly bracket.
   Token get leftBracket;
+
+  /// Return the 'macro' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get macroKeyword;
 
   /// Returns the members defined by the class.
   NodeList<ClassMember> get members;
@@ -2769,7 +2775,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   final Token? abstractKeyword;
 
-  /// The 'macro' keyword, or `null` if the keyword was absent.
+  @override
   final Token? macroKeyword;
 
   @override
@@ -3224,6 +3230,9 @@ abstract final class Comment implements AstNode {
   List<MdCodeBlock> get codeBlocks;
 
   @experimental
+  List<DocDirective> get docDirectives;
+
+  @experimental
   List<DocImport> get docImports;
 
   /// Whether this comment has a line beginning with '@nodoc', indicating its
@@ -3283,6 +3292,9 @@ final class CommentImpl extends AstNodeImpl implements Comment {
   final List<DocImport> docImports;
 
   @override
+  final List<DocDirective> docDirectives;
+
+  @override
   final bool hasNodoc;
 
   /// Initialize a newly created comment. The list of [tokens] must contain at
@@ -3295,6 +3307,7 @@ final class CommentImpl extends AstNodeImpl implements Comment {
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
     required this.docImports,
+    required this.docDirectives,
     required this.hasNodoc,
   }) : _type = type {
     _references._initialize(this, references);
@@ -4153,6 +4166,9 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
 abstract final class ConstructorDeclaration implements ClassMember {
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
   /// Return the body of the constructor.
   FunctionBody get body;
 
@@ -4224,6 +4240,9 @@ abstract final class ConstructorDeclaration implements ClassMember {
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
 final class ConstructorDeclarationImpl extends ClassMemberImpl
     implements ConstructorDeclaration {
+  @override
+  final Token? augmentKeyword;
+
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
   @override
@@ -4295,6 +4314,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   ConstructorDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.externalKeyword,
     required this.constKeyword,
     required this.factoryKeyword,
@@ -4373,6 +4393,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('externalKeyword', externalKeyword)
     ..addToken('constKeyword', constKeyword)
     ..addToken('factoryKeyword', factoryKeyword)
@@ -5321,21 +5342,6 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   set element(Element? element) {
     _element = element;
   }
-}
-
-/// A documentation import, found in a doc comment.
-///
-/// Documentation imports are declared with `@docImport` at the start of a line
-/// of a documentation comment, followed by regular import elements (URI,
-/// optional prefix, optional combinators), ending with a semicolon.
-@experimental
-final class DocImport {
-  /// The offset of the starting text, '@docImport'.
-  int offset;
-
-  ImportDirective import;
-
-  DocImport({required this.offset, required this.import});
 }
 
 /// A do statement.
@@ -11973,47 +11979,6 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
     typeArguments?.accept(visitor);
     elements.accept(visitor);
   }
-}
-
-/// A Markdown fenced code block found in a documentation comment.
-@experimental
-final class MdCodeBlock {
-  /// The 'info string'.
-  ///
-  /// This includes any text (trimming whitespace) following the opening
-  /// backticks (for a fenced code block). For example, in a fenced code block
-  /// starting with "```dart", the info string is "dart".
-  ///
-  /// If the code block is an indented code block, or a fenced code block with
-  /// no text following the opening backticks, the info string is `null`.
-  ///
-  /// See CommonMark specification at
-  /// <https://spec.commonmark.org/0.30/#fenced-code-blocks>.
-  final String? infoString;
-
-  /// Information about the comment lines that make up this code block.
-  ///
-  /// For a fenced code block, these lines include the opening and closing
-  /// fence delimiter lines.
-  final List<MdCodeBlockLine> lines;
-
-  MdCodeBlock({
-    required this.infoString,
-    required List<MdCodeBlockLine> lines,
-  }) : lines = List.of(lines, growable: false);
-}
-
-/// A Markdown code block line found in a documentation comment.
-@experimental
-final class MdCodeBlockLine {
-  /// The offset of the start of the code block, from the beginning of the
-  /// compilation unit.
-  final int offset;
-
-  /// The length of the fenced code block.
-  final int length;
-
-  MdCodeBlockLine({required this.offset, required this.length});
 }
 
 /// A method declaration.

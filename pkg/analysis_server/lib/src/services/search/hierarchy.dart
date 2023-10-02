@@ -85,7 +85,7 @@ List<Element> getExtensionMembers(ExtensionElement extension, [String? name]) {
 Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member,
     {OperationPerformanceImpl? performance}) async {
-  performance ??= OperationPerformanceImpl("<root>");
+  performance ??= OperationPerformanceImpl('<root>');
   Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
   var enclosingElement = member.enclosingElement;
@@ -119,7 +119,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
       }
       // check all sub- classes
       await performance.runAsync(
-          "appendAllSubtypes",
+          'appendAllSubtypes',
           (performance) => searchEngine.appendAllSubtypes(
               superClass, subClasses, performance));
       subClasses.add(superClass);

@@ -171,6 +171,13 @@ class AstPrinter {
         : typeParameterNameToString(parameter));
   }
 
+  void writeStructuralParameterName(StructuralParameter parameter) {
+    _sb.write(_strategy.useQualifiedTypeParameterNames
+        ? qualifiedStructuralParameterNameToString(parameter,
+            includeLibraryName: _strategy.includeLibraryNamesInTypes)
+        : structuralParameterNameToString(parameter));
+  }
+
   void newLine() {
     if (_strategy.useMultiline) {
       _sb.writeln();
@@ -300,6 +307,44 @@ class AstPrinter {
       _sb.write("<");
       String comma = "";
       for (TypeParameter typeParameter in typeParameters) {
+        _sb.write(comma);
+        _sb.write(typeParameter.name);
+        DartType bound = typeParameter.bound;
+
+        bool isTopObject(DartType type) {
+          if (type is InterfaceType &&
+              type.classReference.node != null &&
+              type.classNode.name == 'Object') {
+            Uri uri = type.classNode.enclosingLibrary.importUri;
+            return uri.isScheme('dart') &&
+                uri.path == 'core' &&
+                (type.nullability == Nullability.legacy ||
+                    type.nullability == Nullability.nullable);
+          }
+          return false;
+        }
+
+        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType)) {
+          // Include explicit bounds only.
+          _sb.write(' extends ');
+          writeType(bound);
+        }
+        comma = ", ";
+      }
+      _sb.write(">");
+    }
+  }
+
+  /// If [typeParameters] is non-empty, writes [typeParameters] to the printer
+  /// buffer delimited by '<' and '>', and separated by ', '.
+  ///
+  /// The bound of a type parameter is included, as 'T extends Bound', if the
+  /// bound is neither `Object?` nor `Object*`.
+  void writeStructuralParameters(List<StructuralParameter> typeParameters) {
+    if (typeParameters.isNotEmpty) {
+      _sb.write("<");
+      String comma = "";
+      for (StructuralParameter typeParameter in typeParameters) {
         _sb.write(comma);
         _sb.write(typeParameter.name);
         DartType bound = typeParameter.bound;

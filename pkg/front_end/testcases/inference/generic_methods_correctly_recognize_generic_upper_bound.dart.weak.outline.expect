@@ -8,5 +8,5 @@ class Foo<T extends core::Pattern> extends core::Object {
   method method<covariant-by-class U extends self::Foo::T>(self::Foo::method::U u) → self::Foo::method::U
     ;
 }
-static method main() → dynamic
+static method test() → dynamic
   ;

@@ -51,6 +51,13 @@ class ListExtensionTest {
       [4, 2, 0, 5, 3, 1],
     );
   }
+
+  test_withoutLast() {
+    expect([0, 1, 2].withoutLast, [0, 1]);
+    expect([0, 1].withoutLast, [0]);
+    expect([0].withoutLast, <int>[]);
+    expect(<int>[].withoutLast, <int>[]);
+  }
 }
 
 @reflectiveTest

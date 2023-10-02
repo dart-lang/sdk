@@ -209,7 +209,7 @@ class C implements B {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl("<root>"));
+        element, subtypes, OperationPerformanceImpl('<root>'));
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -235,7 +235,7 @@ class C extends B {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl("<root>"));
+        element, subtypes, OperationPerformanceImpl('<root>'));
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -253,7 +253,7 @@ extension type C(int it) implements A {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl("<root>"));
+        element, subtypes, OperationPerformanceImpl('<root>'));
     expect(subtypes, hasLength(2));
     _assertContainsClass(subtypes, 'B');
     _assertContainsClass(subtypes, 'C');
@@ -276,7 +276,7 @@ mixin E implements C {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl("<root>"));
+        element, subtypes, OperationPerformanceImpl('<root>'));
     expect(subtypes, hasLength(5));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');

@@ -1325,6 +1325,32 @@ void Assembler::LoadWordFromPoolIndex(Register dst, intptr_t idx) {
   movq(dst, Address(PP, offset));
 }
 
+void Assembler::LoadInt64FromBoxOrSmi(Register result, Register value) {
+  compiler::Label done;
+#if !defined(DART_COMPRESSED_POINTERS)
+  // Optimistically untag value.
+  SmiUntag(result, value);
+  j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
+  // Undo untagging by multiplying value by 2.
+  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+  movq(result, compiler::Address(result, result, TIMES_1,
+                                 target::Mint::value_offset()));
+#else
+  if (result == value) {
+    ASSERT(TMP != value);
+    MoveRegister(TMP, value);
+    value = TMP;
+  }
+  ASSERT(value != result);
+  // Cannot speculatively untag with value == result because it erases the
+  // upper bits needed to dereference when it is a Mint.
+  SmiUntagAndSignExtend(result, value);
+  j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
+  movq(result, compiler::FieldAddress(value, target::Mint::value_offset()));
+#endif
+  Bind(&done);
+}
+
 void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, target::Thread::isolate_offset()));
 }
@@ -1434,6 +1460,17 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   } else {
     LoadImmediate(TMP, imm);
     movq(dst, TMP);
+  }
+}
+
+void Assembler::LoadSImmediate(FpuRegister dst, float immediate) {
+  int32_t bits = bit_cast<int32_t>(immediate);
+  if (bits == 0) {
+    xorps(dst, dst);
+  } else {
+    intptr_t index = object_pool_builder().FindImmediate(bits);
+    LoadUnboxedSingle(
+        dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
   }
 }
 
@@ -2007,6 +2044,26 @@ LeafRuntimeScope::~LeafRuntimeScope() {
   __ LeaveFrame();
 }
 
+void Assembler::MsanUnpoison(Register base, intptr_t length_in_bytes) {
+  if (base != CallingConventions::kArg1Reg) {
+    movq(CallingConventions::kArg1Reg, base);
+  }
+  LoadImmediate(CallingConventions::kArg2Reg, length_in_bytes);
+  CallCFunction(
+      compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+}
+
+void Assembler::MsanUnpoison(Register base, Register length_in_bytes) {
+  if (base != CallingConventions::kArg1Reg) {
+    movq(CallingConventions::kArg1Reg, base);
+  }
+  if (length_in_bytes != CallingConventions::kArg2Reg) {
+    movq(CallingConventions::kArg2Reg, length_in_bytes);
+  }
+  CallCFunction(
+      compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+}
+
 #if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Address addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
@@ -2305,6 +2362,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential next object start.
     cmpq(instance_reg, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure, distance);
+    CheckAllocationCanary(instance_reg);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movq(Address(THR, target::Thread::top_offset()), instance_reg);
@@ -2343,6 +2401,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // end_address: potential next object start.
     cmpq(end_address, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure);
+    CheckAllocationCanary(instance);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

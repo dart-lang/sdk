@@ -203,6 +203,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameOffset = nameNode.offset;
 
     var element = ConstructorElementImpl(name, nameOffset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.isConst = node.constKeyword != null;
     element.isExternal = node.externalKeyword != null;
     element.isFactory = node.factoryKeyword != null;
@@ -413,6 +414,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
+    // TODO(scheglov) We cannot do this anymore.
+    // Not for class augmentations, not for classes.
     _resolveConstructorFieldFormals(element);
   }
 
@@ -536,6 +539,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       element.hasInitializer = variable.initializer != null;
       element.isAbstract = node.abstractKeyword != null;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isConst = node.fields.isConst;
       element.isCovariant = node.covariantKeyword != null;
       element.isExternal = node.externalKeyword != null;
@@ -647,9 +651,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _buildSyntheticVariable(name: name, accessorElement: element);
     } else {
       var element = FunctionElementImpl(name, nameOffset);
+      element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = true;
       reference = _enclosingContext.addFunction(name, element);
       executableElement = element;
+
+      _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+        if (element.isAugmentation) {
+          target.augmentation = element;
+          element.augmentationTarget = target;
+        }
+      });
     }
 
     executableElement.hasImplicitReturnType = node.returnType == null;
@@ -1230,21 +1242,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    // TODO(scheglov) To it after all augmentations
-    if (!element.isAugmentation && !holder.hasConstructors) {
-      holder.addConstructor(
-        ConstructorElementImpl('', -1)..isSynthetic = true,
-      );
-    }
-
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-
-    // TODO(scheglov) We cannot do this anymore.
-    // Not for class augmentations, not for classes.
-    _resolveConstructorFieldFormals(element);
   }
 
   void _buildExecutableElementChildren({
@@ -1283,11 +1284,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     });
 
     element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-
-    _resolveConstructorFieldFormals(element);
   }
 
   void _buildSyntheticVariable({
@@ -1601,61 +1599,88 @@ class _EnclosingContext {
 
   Reference addClass(String name, ClassElementImpl element) {
     _classes.add(element);
-    return _bindReference('@class', name, element);
+    final containerName =
+        element.isAugmentation ? '@classAugmentation' : '@class';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addConstructor(ConstructorElementImpl element) {
     _constructors.add(element);
 
+    final containerName =
+        element.isAugmentation ? '@constructorAugmentation' : '@constructor';
     final referenceName = element.name.ifNotEmptyOrElse('new');
-    return _bindReference('@constructor', referenceName, element);
+    return _bindReference(containerName, referenceName, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {
     _enums.add(element);
-    return _bindReference('@enum', name, element);
+    final containerName =
+        element.isAugmentation ? '@enumAugmentation' : '@enum';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addExtension(String name, ExtensionElementImpl element) {
     _extensions.add(element);
-    return _bindReference('@extension', name, element);
+    final containerName =
+        element.isAugmentation ? '@extensionAugmentation' : '@extension';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addExtensionType(String name, ExtensionTypeElementImpl element) {
     _extensionTypes.add(element);
-    return _bindReference('@extensionType', name, element);
+    final containerName = element.isAugmentation
+        ? '@extensionTypeAugmentation'
+        : '@extensionType';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {
     _fields.add(element);
-    return _bindReference('@field', name, element);
+    final containerName =
+        element.isAugmentation ? '@fieldAugmentation' : '@field';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addFunction(String name, FunctionElementImpl element) {
     _functions.add(element);
-    return _bindReference('@function', name, element);
+    final containerName =
+        element.isAugmentation ? '@functionAugmentation' : '@function';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addGetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@getter', name, element);
+    final containerName =
+        element.isAugmentation ? '@getterAugmentation' : '@getter';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addMethod(String name, MethodElementImpl element) {
     _methods.add(element);
-    return _bindReference('@method', name, element);
+    final containerName =
+        element.isAugmentation ? '@methodAugmentation' : '@method';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addMixin(String name, MixinElementImpl element) {
     _mixins.add(element);
-    return _bindReference('@mixin', name, element);
+    final containerName =
+        element.isAugmentation ? '@mixinAugmentation' : '@mixin';
+    return _bindReference(containerName, name, element);
   }
 
   void addNonSyntheticField(FieldElementImpl element) {
     var name = element.name;
-    element.createImplicitAccessors(reference, name);
-
     addField(name, element);
+
+    // Augmenting a variable with a variable only alters its initializer.
+    // So, don't create getter and setter.
+    if (element.isAugmentation) {
+      return;
+    }
+
+    element.createImplicitAccessors(reference, name);
 
     var getter = element.getter;
     if (getter is PropertyAccessorElementImpl) {
@@ -1679,13 +1704,17 @@ class _EnclosingContext {
 
   Reference addSetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@setter', name, element);
+    final containerName =
+        element.isAugmentation ? '@setterAugmentation' : '@setter';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
     _topLevelVariables.add(element);
-    return _bindReference('@variable', name, element);
+    final containerName =
+        element.isAugmentation ? '@variableAugmentation' : '@variable';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addTypeAlias(String name, TypeAliasElementImpl element) {
@@ -1696,10 +1725,6 @@ class _EnclosingContext {
   void addTypeParameter(String name, TypeParameterElementImpl element) {
     _typeParameters.add(element);
     this.element.encloseElement(element);
-  }
-
-  Reference getMethod(String name) {
-    return reference.getChild('@method').getChild(name);
   }
 
   Reference _bindReference(

@@ -1,0 +1,12 @@
+x(){}
+---- unknown chunk starts ----
+.
+---- unknown chunk ends ----
+x(){}
+y = 42;
+---- unknown chunk starts ----
+.
+---- unknown chunk ends ----
+main() {}
+void foo() {}
+z = true;

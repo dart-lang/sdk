@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/builder/type_alias_builder.dart';
+import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_loader.dart';

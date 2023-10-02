@@ -155,7 +155,8 @@ class StaticInteropClassEraser extends Transformer {
     'ui',
     'ui_web',
     '_engine',
-    '_skwasm_impl'
+    '_skwasm_impl',
+    '_wasm',
   };
 
   StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,

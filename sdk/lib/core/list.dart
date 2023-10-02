@@ -4,6 +4,11 @@
 
 part of dart.core;
 
+/// Helper interface to hide [EfficientLengthIterable] from the public
+/// declaration of [List].
+abstract class _ListIterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {}
+
 /// An indexable collection of objects with a length.
 ///
 /// Subclasses of this class implement different kinds of lists.
@@ -112,7 +117,7 @@ part of dart.core;
 /// Changing the list's length while it is being iterated, either by iterating it
 /// directly or through iterating an [Iterable] that is backed by the list, will
 /// break the iteration.
-abstract interface class List<E> implements EfficientLengthIterable<E> {
+abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// Creates a list of the given length with [fill] at each position.
   ///
   /// The [length] must be a non-negative integer.

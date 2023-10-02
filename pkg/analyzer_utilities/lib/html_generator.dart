@@ -4,6 +4,7 @@
 
 /// Tools for manipulating HTML during code generation of analyzer and analysis
 /// server.
+library;
 
 import 'html_dom.dart' as dom;
 

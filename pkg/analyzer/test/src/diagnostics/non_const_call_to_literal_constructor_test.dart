@@ -53,6 +53,17 @@ const a = const A();
 ''');
   }
 
+  test_constCreation_extensionType() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type const E(int i) { 
+  @literal
+  const E.zero(): this(0);
+}
+E e = const E.zero();
+''');
+  }
+
   test_namedConstructor() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -100,6 +111,19 @@ class A {
 var a = new A();
 ''', [
       error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW, 77, 7),
+    ]);
+  }
+
+  test_usingNew_extensionType() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type const E(int i) { 
+  @literal
+  const E.zero(): this(0);
+}
+E e = E.zero();
+''', [
+      error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 112, 8),
     ]);
   }
 }

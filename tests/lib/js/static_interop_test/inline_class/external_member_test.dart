@@ -13,7 +13,7 @@ import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
 
 @JS()
-external dynamic eval(String code);
+external void eval(String code);
 
 extension type External<T extends JSAny?, U extends Nested>._(JSObject _) {
   external External();

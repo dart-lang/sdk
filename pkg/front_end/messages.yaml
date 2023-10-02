@@ -5468,9 +5468,126 @@ VariableCouldBeNullDueToWrite:
   problemMessage: "Variable '#name' could not be promoted due to an assignment."
   correctionMessage: "Try null checking the variable after the assignment.  See #string"
 
-FieldNotPromoted:
-  problemMessage: "'#name' refers to a property so it couldn't be promoted."
+FieldNotPromotedBecauseNotEnabled:
+  problemMessage: "'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above."
   correctionMessage: "See #string"
+  script: >
+    // @dart=3.1
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotField:
+  problemMessage: "'#name' refers to a getter so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      int? get _i => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotPrivate:
+  problemMessage: "'#name' refers to a public field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? i;
+      C(this.i);
+    }
+    test(C c) {
+      if (c.i != null) {
+        c.i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseExternal:
+  problemMessage: "'#name' refers to an external field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      external final int? _i;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotFinal:
+  problemMessage: "'#name' refers to a non-final field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      int? _i;
+      C(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingGetter:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting getter in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D {
+      int? get _i => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingField:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D {
+      int? _i;
+      D(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingNsmForwarder:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D implements C {
+      noSuchMethod(invocation) => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
 
 ThisNotPromoted:
   problemMessage: "'this' can't be promoted."
@@ -5669,6 +5786,10 @@ JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
   problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
   correctionMessage: "Try adding a valid bound to the type parameters used in this member."
 
+JsInteropStaticInteropExternalTypeViolation:
+  problemMessage: "Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types."
+  correctionMessage: "Use one of the valid types instead."
+
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."
   correctionMessage: "Use factory constructors instead."
@@ -5725,10 +5846,6 @@ JsInteropStaticInteropWithInvalidJsTypesSupertype:
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
-JsInteropStrictModeViolation:
-  problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
-  correctionMessage: "Use a JS type instead."
 
 JsInteropStrictModeForbiddenLibrary:
   problemMessage: "Library '#name' is forbidden when strict mode is enabled."

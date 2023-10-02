@@ -53,6 +53,7 @@ import 'dart:_internal'
     show
         checkNotNullable,
         EfficientLengthIterable,
+        HideEfficientLengthIterable,
         MappedIterable,
         IterableElementError,
         SubListIterable;
@@ -3375,3 +3376,6 @@ abstract class TrustedGetRuntimeType {}
 /// This should match the global context that non-static interop members use.
 Object get staticInteropGlobalContext =>
     JS('creates:;returns:Object;depends:none;effects:none;gvn:true', 'self');
+
+/// Return a fresh object literal.
+T createObjectLiteral<T>() => JS('PlainJavaScriptObject', '{}');

@@ -14,9 +14,13 @@ import 'dart:io';
 final repoRoot = dirname(dirname(fromUri(Platform.script)));
 
 void main(List<String> args) {
+  final fluteExists =
+      Directory(join(repoRoot, platform('third_party/flute'))).existsSync();
+
   var packageDirs = [
     ...listSubdirectories(platform('pkg')),
     ...listSubdirectories(platform('third_party/pkg')),
+    if (fluteExists) ...listSubdirectories(platform('third_party/flute')),
     platform('pkg/vm_service/test/test_package'),
     platform(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
@@ -46,6 +50,10 @@ void main(List<String> args) {
     platform('pkg/_fe_analyzer_shared/test/inheritance'),
   ];
 
+  var frontendServerPackageDirs = [
+    platform('pkg/frontend_server/test/fixtures'),
+  ];
+
   var pkgVmPackageDirs = [
     platform('pkg/vm/testcases'),
   ];
@@ -72,6 +80,7 @@ void main(List<String> args) {
     ...makePackageConfigs(packageDirs),
     ...makeCfePackageConfigs(cfePackageDirs),
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs),
+    ...makeFrontendServerPackageConfigs(frontendServerPackageDirs),
     ...makePkgVmPackageConfigs(pkgVmPackageDirs),
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
@@ -86,12 +95,6 @@ void main(List<String> args) {
       for (final p in packages)
         if (p.name == name) p
     ];
-    if (name == 'linter' && matches.length > 1) {
-      final oldLinter = matches.firstWhere((p) =>
-          p.rootUri.replaceAll(r'\', '/').endsWith('third_party/pkg/linter'));
-      packages.remove(oldLinter);
-      matches.remove(oldLinter);
-    }
     if (matches.length > 1) {
       print('Duplicates found for package:$name');
       for (var package in matches) {
@@ -180,6 +183,11 @@ Iterable<Package> makeCfePackageConfigs(List<String> packageDirs) =>
 Iterable<Package> makeFeAnalyzerSharedPackageConfigs(
         List<String> packageDirs) =>
     makeSpecialPackageConfigs('_fe_analyzer_shared', packageDirs);
+
+/// Generates package configurations for the special pseudo-packages used by the
+/// frontend_server tests.
+Iterable<Package> makeFrontendServerPackageConfigs(List<String> packageDirs) =>
+    makeSpecialPackageConfigs('frontend_server', packageDirs);
 
 /// Generates package configurations for the special pseudo-packages used by the
 /// pkg/vm unit tests (`pkg/vm/test`).

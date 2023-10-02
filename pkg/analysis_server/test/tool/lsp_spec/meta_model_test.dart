@@ -18,21 +18,21 @@ void main() {
     });
     test('reads an interface', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "SomeOptions",
-            "properties": [
+            'name': 'SomeOptions',
+            'properties': [
               {
-                "name": "options",
-                "type": {
-                  "kind": "array",
-                  "element": {"kind": "reference", "name": "string"}
+                'name': 'options',
+                'type': {
+                  'kind': 'array',
+                  'element': {'kind': 'reference', 'name': 'string'}
                 },
-                "optional": true,
-                "documentation": "Options used by something.",
+                'optional': true,
+                'documentation': 'Options used by something.',
               }
             ],
-            "documentation": "Some options."
+            'documentation': 'Some options.'
           },
         ],
       };
@@ -55,28 +55,28 @@ void main() {
 
     test('reads an interface with a field with an inline/unnamed type', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "Capabilities",
-            "properties": [
+            'name': 'Capabilities',
+            'properties': [
               {
-                "name": "textDoc",
-                "type": {
-                  "kind": "literal",
-                  "value": {
-                    "properties": [
+                'name': 'textDoc',
+                'type': {
+                  'kind': 'literal',
+                  'value': {
+                    'properties': [
                       {
-                        "name": "deprecated",
-                        "type": {"kind": "base", "name": "bool"},
-                        "optional": true,
+                        'name': 'deprecated',
+                        'type': {'kind': 'base', 'name': 'bool'},
+                        'optional': true,
                       }
                     ]
                   }
                 },
-                "optional": true,
+                'optional': true,
               }
             ],
-            "documentation": "Some options."
+            'documentation': 'Some options.'
           },
         ],
       };
@@ -110,19 +110,19 @@ void main() {
 
     test('reads an interface with multiple fields', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "SomeOptions",
-            "properties": [
+            'name': 'SomeOptions',
+            'properties': [
               {
-                "name": "options0",
-                "type": {"kind": "reference", "name": "LSPAny"},
-                "documentation": "Options0 used by something.",
+                'name': 'options0',
+                'type': {'kind': 'reference', 'name': 'LSPAny'},
+                'documentation': 'Options0 used by something.',
               },
               {
-                "name": "options1",
-                "type": {"kind": "reference", "name": "LSPAny"},
-                "documentation": "Options1 used by something.",
+                'name': 'options1',
+                'type': {'kind': 'reference', 'name': 'LSPAny'},
+                'documentation': 'Options1 used by something.',
               }
             ],
           },
@@ -143,18 +143,18 @@ void main() {
 
     test('reads an interface with a map into a MapType', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "WorkspaceEdit",
-            "properties": [
+            'name': 'WorkspaceEdit',
+            'properties': [
               {
-                "name": "changes",
-                "type": {
-                  "kind": "map",
-                  "key": {"kind": "base", "name": "string"},
-                  "value": {
-                    "kind": "array",
-                    "element": {"kind": "reference", "name": "TextEdit"}
+                'name': 'changes',
+                'type': {
+                  'kind': 'map',
+                  'key': {'kind': 'base', 'name': 'string'},
+                  'value': {
+                    'kind': 'array',
+                    'element': {'kind': 'reference', 'name': 'TextEdit'}
                   },
                 },
               }
@@ -176,39 +176,39 @@ void main() {
 
     test('flags nullable undefined values', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "A",
-            "properties": [
+            'name': 'A',
+            'properties': [
               {
-                "name": "canBeBoth",
-                "type": {
-                  "kind": "or",
-                  "items": [
-                    {"kind": "base", "name": "string"},
-                    {"kind": "base", "name": "null"}
+                'name': 'canBeBoth',
+                'type': {
+                  'kind': 'or',
+                  'items': [
+                    {'kind': 'base', 'name': 'string'},
+                    {'kind': 'base', 'name': 'null'}
                   ]
                 },
-                "optional": true,
+                'optional': true,
               },
               {
-                "name": "canBeNeither",
-                "type": {"kind": "base", "name": "string"},
+                'name': 'canBeNeither',
+                'type': {'kind': 'base', 'name': 'string'},
               },
               {
-                "name": "canBeNull",
-                "type": {
-                  "kind": "or",
-                  "items": [
-                    {"kind": "base", "name": "string"},
-                    {"kind": "base", "name": "null"}
+                'name': 'canBeNull',
+                'type': {
+                  'kind': 'or',
+                  'items': [
+                    {'kind': 'base', 'name': 'string'},
+                    {'kind': 'base', 'name': 'null'}
                   ]
                 },
               },
               {
-                "name": "canBeUndefined",
-                "type": {"kind": "base", "name": "string"},
-                "optional": true,
+                'name': 'canBeUndefined',
+                'type': {'kind': 'base', 'name': 'string'},
+                'optional': true,
               },
             ],
           },
@@ -236,11 +236,11 @@ void main() {
 
     test('formats comments correctly', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "A",
-            "properties": [],
-            "documentation": r"""
+            'name': 'A',
+            'properties': [],
+            'documentation': r"""
 Describes the what this class in lots of words that wrap onto multiple lines that will need re-wrapping to format nicely when converted into Dart.
 
 Blank lines should remain in-tact, as should:
@@ -275,12 +275,12 @@ Sometimes after a blank line we'll have a note.
 
     test('reads a type alias', () {
       final input = {
-        "typeAliases": [
+        'typeAliases': [
           {
-            "name": "DocumentSelector",
-            "type": {
-              "kind": "array",
-              "element": {"kind": "reference", "name": "DocumentFilter"}
+            'name': 'DocumentSelector',
+            'type': {
+              'kind': 'array',
+              'element': {'kind': 'reference', 'name': 'DocumentFilter'}
             },
           },
         ],
@@ -295,30 +295,30 @@ Sometimes after a blank line we'll have a note.
 
     test('reads a type alias that is a union of unnamed types', () {
       final input = {
-        "typeAliases": [
+        'typeAliases': [
           {
-            "name": "NameOrLength",
-            "type": {
-              "kind": "or",
-              "items": [
+            'name': 'NameOrLength',
+            'type': {
+              'kind': 'or',
+              'items': [
                 {
-                  "kind": "literal",
-                  "value": {
-                    "properties": [
+                  'kind': 'literal',
+                  'value': {
+                    'properties': [
                       {
-                        "name": "name",
-                        "type": {"kind": "base", "name": "string"}
+                        'name': 'name',
+                        'type': {'kind': 'base', 'name': 'string'}
                       },
                     ]
                   },
                 },
                 {
-                  "kind": "literal",
-                  "value": {
-                    "properties": [
+                  'kind': 'literal',
+                  'value': {
+                    'properties': [
                       {
-                        "name": "length",
-                        "type": {"kind": "base", "name": "number"}
+                        'name': 'length',
+                        'type': {'kind': 'base', 'name': 'number'}
                       },
                     ]
                   },
@@ -359,27 +359,27 @@ Sometimes after a blank line we'll have a note.
 
     test('reads a namespace of constants', () {
       final input = {
-        "enumerations": [
+        'enumerations': [
           {
-            "name": "ResourceOperationKind",
-            "type": {"kind": "base", "name": "string"},
-            "values": [
+            'name': 'ResourceOperationKind',
+            'type': {'kind': 'base', 'name': 'string'},
+            'values': [
               {
-                "name": "Create",
-                "value": "create",
-                "documentation": "Supports creating new files and folders.",
+                'name': 'Create',
+                'value': 'create',
+                'documentation': 'Supports creating new files and folders.',
               },
               {
-                "name": "Delete",
-                "value": "delete",
-                "documentation":
-                    "Supports deleting existing files and folders.",
+                'name': 'Delete',
+                'value': 'delete',
+                'documentation':
+                    'Supports deleting existing files and folders.',
               },
               {
-                "name": "Rename",
-                "value": "rename",
-                "documentation":
-                    "Supports renaming existing files and folders.",
+                'name': 'Rename',
+                'value': 'rename',
+                'documentation':
+                    'Supports renaming existing files and folders.',
               },
             ],
           },
@@ -413,21 +413,21 @@ Sometimes after a blank line we'll have a note.
 
     test('reads a tuple in an array', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "SomeInformation",
-            "properties": [
+            'name': 'SomeInformation',
+            'properties': [
               {
-                "name": "label",
-                "type": {
-                  "kind": "or",
-                  "items": [
-                    {"kind": "base", "name": "string"},
+                'name': 'label',
+                'type': {
+                  'kind': 'or',
+                  'items': [
+                    {'kind': 'base', 'name': 'string'},
                     {
-                      "kind": "tuple",
-                      "items": [
-                        {"kind": "base", "name": "number"},
-                        {"kind": "base", "name": "number"}
+                      'kind': 'tuple',
+                      'items': [
+                        {'kind': 'base', 'name': 'number'},
+                        {'kind': 'base', 'name': 'number'}
                       ]
                     }
                   ]
@@ -454,17 +454,17 @@ Sometimes after a blank line we'll have a note.
 
     test('reads an union including LSPAny into a single type', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "SomeInformation",
-            "properties": [
+            'name': 'SomeInformation',
+            'properties': [
               {
-                "name": "label",
-                "type": {
-                  "kind": "or",
-                  "items": [
-                    {"kind": "base", "name": "string"},
-                    {"kind": "base", "name": "LSPAny"},
+                'name': 'label',
+                'type': {
+                  'kind': 'or',
+                  'items': [
+                    {'kind': 'base', 'name': 'string'},
+                    {'kind': 'base', 'name': 'LSPAny'},
                   ]
                 },
               },
@@ -485,13 +485,13 @@ Sometimes after a blank line we'll have a note.
 
     test('reads literal string values', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "MyType",
-            "properties": [
+            'name': 'MyType',
+            'properties': [
               {
-                "name": "kind",
-                "type": {"kind": "stringLiteral", "value": "one"},
+                'name': 'kind',
+                'type': {'kind': 'stringLiteral', 'value': 'one'},
               },
             ],
           },
@@ -513,17 +513,17 @@ Sometimes after a blank line we'll have a note.
 
     test('reads literal union values', () {
       final input = {
-        "structures": [
+        'structures': [
           {
-            "name": "MyType",
-            "properties": [
+            'name': 'MyType',
+            'properties': [
               {
-                "name": "kind",
-                "type": {
-                  "kind": "or",
-                  "items": [
-                    {"kind": "stringLiteral", "value": "one"},
-                    {"kind": "stringLiteral", "value": "two"},
+                'name': 'kind',
+                'type': {
+                  'kind': 'or',
+                  'items': [
+                    {'kind': 'stringLiteral', 'value': 'one'},
+                    {'kind': 'stringLiteral', 'value': 'two'},
                   ]
                 },
               },

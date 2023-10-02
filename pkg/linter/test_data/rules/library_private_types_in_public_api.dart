@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N library_private_types_in_public_api`
-
 // Top level functions
 
 String f1(int i) => '';

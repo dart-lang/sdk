@@ -223,7 +223,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeByte(constant.value ? 1 : 0);
     } else if (constant is IntConstant) {
       writeByte(ConstantTag.IntConstant);
-      writeInteger(constant.value);
+      writeInteger(constant.value, TreeNode.noOffset);
     } else if (constant is DoubleConstant) {
       writeByte(ConstantTag.DoubleConstant);
       writeDouble(constant.value);
@@ -714,6 +714,39 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
     if (typeParameters != null) {
       _typeParameterIndexer.exit(typeParameters);
+    }
+  }
+
+  @override
+  void enterFunctionTypeScope(
+      {List<StructuralParameter>? typeParameters,
+      bool memberScope = false,
+      bool variableScope = false}) {
+    if (typeParameters != null) {
+      _typeParameterIndexer.enterFunctionType(typeParameters);
+    }
+    if (memberScope) {
+      _variableIndexer = null;
+    }
+    if (variableScope) {
+      _variableIndexer ??= new VariableIndexer();
+      _variableIndexer!.pushScope();
+    }
+  }
+
+  @override
+  void leaveFunctionTypeScope(
+      {List<StructuralParameter>? typeParameters,
+      bool memberScope = false,
+      bool variableScope = false}) {
+    if (variableScope) {
+      _variableIndexer!.popScope();
+    }
+    if (memberScope) {
+      _variableIndexer = null;
+    }
+    if (typeParameters != null) {
+      _typeParameterIndexer.exitFunctionType(typeParameters);
     }
   }
 
@@ -1449,6 +1482,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeNonNullReference(node.fieldReference);
     writeNode(node.value);
   }
@@ -1964,30 +1998,35 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitStringLiteral(StringLiteral node) {
     writeByte(Tag.StringLiteral);
+    writeOffset(node.fileOffset);
     writeStringReference(node.value);
   }
 
   @override
   void visitIntLiteral(IntLiteral node) {
-    writeInteger(node.value);
+    writeInteger(node.value, node.fileOffset);
   }
 
-  void writeInteger(int value) {
+  void writeInteger(int value, int fileOffset) {
     int biasedValue = value + Tag.SpecializedIntLiteralBias;
     if (biasedValue >= 0 &&
         biasedValue & Tag.SpecializedPayloadMask == biasedValue) {
       writeByte(Tag.SpecializedIntLiteral + biasedValue);
+      writeOffset(fileOffset);
     } else if (value.abs() >> 30 == 0) {
       if (value < 0) {
         writeByte(Tag.NegativeIntLiteral);
+        writeOffset(fileOffset);
         writeUInt30(-value);
       } else {
         writeByte(Tag.PositiveIntLiteral);
+        writeOffset(fileOffset);
         writeUInt30(value);
       }
     } else {
       // TODO: Pick a better format for big int literals.
       writeByte(Tag.BigIntLiteral);
+      writeOffset(fileOffset);
       writeStringReference('$value');
     }
   }
@@ -1995,6 +2034,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     writeByte(Tag.DoubleLiteral);
+    writeOffset(node.fileOffset);
     writeDouble(node.value);
   }
 
@@ -2005,28 +2045,33 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitBoolLiteral(BoolLiteral node) {
     writeByte(node.value ? Tag.TrueLiteral : Tag.FalseLiteral);
+    writeOffset(node.fileOffset);
   }
 
   @override
   void visitNullLiteral(NullLiteral node) {
     writeByte(Tag.NullLiteral);
+    writeOffset(node.fileOffset);
   }
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
     writeByte(Tag.SymbolLiteral);
+    writeOffset(node.fileOffset);
     writeStringReference(node.value);
   }
 
   @override
   void visitTypeLiteral(TypeLiteral node) {
     writeByte(Tag.TypeLiteral);
+    writeOffset(node.fileOffset);
     writeNode(node.type);
   }
 
   @override
   void visitThisExpression(ThisExpression node) {
     writeByte(Tag.ThisExpression);
+    writeOffset(node.fileOffset);
   }
 
   @override
@@ -2131,12 +2176,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLoadLibrary(LoadLibrary node) {
     writeByte(Tag.LoadLibrary);
+    writeOffset(node.fileOffset);
     writeLibraryDependencyReference(node.import);
   }
 
   @override
   void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     writeByte(Tag.CheckLibraryIsLoaded);
+    writeOffset(node.fileOffset);
     writeLibraryDependencyReference(node.import);
   }
 
@@ -2195,6 +2242,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     LabelIndexer labelIndexer = _labelIndexer ??= new LabelIndexer();
     labelIndexer.enter(node);
     writeByte(Tag.LabeledStatement);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     labelIndexer.exit();
   }
@@ -2283,6 +2331,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitSwitchCase(SwitchCase node) {
     // Note: there is no tag on SwitchCase.
+    writeOffset(node.fileOffset);
     int length = node.expressions.length;
     writeUInt30(length);
     for (int i = 0; i < length; ++i) {
@@ -2323,6 +2372,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTryCatch(TryCatch node) {
     writeByte(Tag.TryCatch);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     bool needsStackTrace = node.catches.any((Catch c) => c.stackTrace != null);
     writeByte(_encodeTryCatchFlags(needsStackTrace, node.isSynthetic));
@@ -2346,6 +2396,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTryFinally(TryFinally node) {
     writeByte(Tag.TryFinally);
+    writeOffset(node.fileOffset);
     writeNode(node.body);
     writeNode(node.finalizer);
   }
@@ -2488,7 +2539,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else {
       writeByte(Tag.FunctionType);
       writeByte(node.nullability.index);
-      enterScope(typeParameters: node.typeParameters);
+      enterFunctionTypeScope(typeParameters: node.typeParameters);
       writeNodeList(node.typeParameters);
       writeUInt30(node.requiredParameterCount);
       writeUInt30(
@@ -2496,7 +2547,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
       writeNode(node.returnType);
-      leaveScope(typeParameters: node.typeParameters);
+      leaveFunctionTypeScope(typeParameters: node.typeParameters);
     }
   }
 
@@ -2524,6 +2575,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    writeByte(Tag.TypeParameterType);
+    writeByte(node.declaredNullability.index);
+    writeUInt30(_typeParameterIndexer[node.parameter]);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     writeByte(Tag.IntersectionType);
     writeDartType(node.left);
@@ -2544,6 +2602,22 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeAnnotationList(node.annotations);
     if (node.isLegacyCovariant) {
       writeByte(TypeParameter.legacyCovariantSerializationMarker);
+    } else {
+      writeByte(node.variance);
+    }
+    writeStringReference(node.name ?? '');
+    writeNode(node.bound);
+    writeNode(node.defaultType);
+  }
+
+  @override
+  void visitStructuralParameter(StructuralParameter node) {
+    writeByte(node.flags);
+    // TODO(cstefantsova): Eventually remove the annotations from the binary
+    // encoding of [StructuralParameter] objects.
+    writeAnnotationList([]);
+    if (node.isLegacyCovariant) {
+      writeByte(StructuralParameter.legacyCovariantSerializationMarker);
     } else {
       writeByte(node.variance);
     }
@@ -2582,6 +2656,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       assert(descriptor.member.canonicalName != null,
           "No canonical name for ${descriptor}.");
       writeNonNullCanonicalNameReference(descriptor.member);
+      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
     }
   }
 
@@ -2616,6 +2691,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       assert(descriptor.member.canonicalName != null,
           "No canonical name for ${descriptor}.");
       writeNonNullCanonicalNameReference(descriptor.member);
+      assert(
+          descriptor.tearOff == null ||
+              descriptor.tearOff?.canonicalName != null,
+          "No canonical name for ${descriptor} tear-off.");
+      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
     }
   }
 
@@ -2922,69 +3002,27 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   // These are nodes that are never serialized directly.  Reaching one
   // during serialization is an error.
   @override
-  void defaultNode(Node node) {
+  void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        'serialization of generic Node: ${node} (${node.runtimeType})');
+        'serialization of auxiliary DartType: ${node} (${node.runtimeType})');
   }
 
   @override
-  void defaultConstant(Constant node) {
+  void visitAuxiliaryExpression(AuxiliaryExpression node) {
     throw new UnsupportedError(
-        'serialization of generic Constant: ${node} (${node.runtimeType})');
+        'serialization of auxiliary Expression: ${node} (${node.runtimeType})');
   }
 
   @override
-  void defaultBasicLiteral(BasicLiteral node) {
-    throw new UnsupportedError(
-        'serialization of generic BasicLiteral: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultConstantReference(Constant node) {
-    throw new UnsupportedError('serialization of generic Constant reference: '
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    throw new UnsupportedError('serialization of auxiliary Initializer: '
         '${node} (${node.runtimeType})');
   }
 
   @override
-  void defaultDartType(DartType node) {
+  void visitAuxiliaryStatement(AuxiliaryStatement node) {
     throw new UnsupportedError(
-        'serialization of generic DartType: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultExpression(Expression node) {
-    throw new UnsupportedError(
-        'serialization of generic Expression: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultInitializer(Initializer node) {
-    throw new UnsupportedError(
-        'serialization of generic Initializer: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultMember(Member node) {
-    throw new UnsupportedError(
-        'serialization of generic Member: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultMemberReference(Member node) {
-    throw new UnsupportedError('serialization of generic Member reference: '
-        '${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultStatement(Statement node) {
-    throw new UnsupportedError(
-        'serialization of generic Statement: ${node} (${node.runtimeType})');
-  }
-
-  @override
-  void defaultTreeNode(TreeNode node) {
-    throw new UnsupportedError(
-        'serialization of generic TreeNode: ${node} (${node.runtimeType})');
+        'serialization of auxiliary Statement: ${node} (${node.runtimeType})');
   }
 
   @override
@@ -3234,9 +3272,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void defaultPattern(Pattern node) {
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
     throw new UnsupportedError(
-        'serialization of generic Pattern: ${node} (${node.runtimeType})');
+        "serialization of auxiliary constant ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitAuxiliaryConstantReference(AuxiliaryConstant node) {
+    throw new UnsupportedError("serialization of auxiliary constant reference "
+        "${node} (${node.runtimeType}).");
   }
 }
 
@@ -3327,12 +3371,21 @@ class ConstantIndexer extends RecursiveResultVisitor {
 }
 
 class TypeParameterIndexer {
-  final Map<TypeParameter, int> index = <TypeParameter, int>{};
+  final Map< /* TypeParameter | StructuralParameter */ Object, int> index =
+      <Object, int>{};
   int stackHeight = 0;
 
   void enter(List<TypeParameter> typeParameters) {
     for (int i = 0; i < typeParameters.length; ++i) {
       TypeParameter parameter = typeParameters[i];
+      index[parameter] = stackHeight;
+      ++stackHeight;
+    }
+  }
+
+  void enterFunctionType(List<StructuralParameter> structuralParameters) {
+    for (int i = 0; i < structuralParameters.length; ++i) {
+      StructuralParameter parameter = structuralParameters[i];
       index[parameter] = stackHeight;
       ++stackHeight;
     }
@@ -3345,9 +3398,18 @@ class TypeParameterIndexer {
     }
   }
 
-  int operator [](TypeParameter parameter) =>
-      index[parameter] ??
-      (throw new ArgumentError('Type parameter $parameter is not indexed'));
+  void exitFunctionType(List<StructuralParameter> structuralParameters) {
+    stackHeight -= structuralParameters.length;
+    for (int i = 0; i < structuralParameters.length; ++i) {
+      index.remove(structuralParameters[i]);
+    }
+  }
+
+  int operator [](Object parameter) {
+    assert(parameter is TypeParameter || parameter is StructuralParameter);
+    return index[parameter] ??
+        (throw new ArgumentError('Type parameter $parameter is not indexed'));
+  }
 }
 
 class StringIndexer {

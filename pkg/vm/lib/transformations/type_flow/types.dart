@@ -1333,7 +1333,8 @@ class RuntimeType extends Type {
     if (rhs is DynamicType || rhs is VoidType || _type is NeverType) {
       return true;
     }
-    if (rhs is NeverType) return false;
+    if (_type is NullType) return (rhs.nullability == Nullability.nullable);
+    if (rhs is NeverType || rhs is NullType) return false;
     if (_type is DynamicType || _type is VoidType) {
       return (rhs is InterfaceType &&
           rhs.classNode == typeHierarchy.coreTypes.objectClass);

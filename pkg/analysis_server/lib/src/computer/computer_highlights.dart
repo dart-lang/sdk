@@ -21,6 +21,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
@@ -687,6 +688,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.macroKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.sealedKeyword, HighlightRegionType.BUILT_IN);

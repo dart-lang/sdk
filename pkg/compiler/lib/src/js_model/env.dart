@@ -667,7 +667,7 @@ abstract class FunctionData implements JMemberData {
       {bool isNative = false});
 }
 
-abstract class FunctionDataTypeVariablesMixin implements FunctionData {
+mixin FunctionDataTypeVariablesMixin implements FunctionData {
   ir.FunctionNode get functionNode;
   List<TypeVariableType>? _typeVariables;
 
@@ -698,7 +698,7 @@ abstract class FunctionDataTypeVariablesMixin implements FunctionData {
   }
 }
 
-abstract class FunctionDataForEachParameterMixin implements FunctionData {
+mixin FunctionDataForEachParameterMixin implements FunctionData {
   ir.FunctionNode get functionNode;
 
   // TODO(johnniwinther,sigmund): Remove this when it's no longer needed for

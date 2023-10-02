@@ -5,5 +5,5 @@ import "main_lib2.dart" as mai;
 import "org-dartlang-testcase:///main_lib1.dart";
 
 static method main() → dynamic {
-  mai::ExtensionType|(0);
+  mai::ExtensionType|constructor#(0);
 }

@@ -4,6 +4,11 @@
 
 part of dart.core;
 
+/// Helper interface to hide [EfficientLengthIterable] from the public
+/// declaration of [Set].
+abstract class _SetIterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {}
+
 /// A collection of objects in which each object can occur only once.
 ///
 /// That is, for each object of the element type, the object is either considered
@@ -33,7 +38,7 @@ part of dart.core;
 /// It is generally not allowed to modify the equality of elements (and thus not
 /// their hashcode) while they are in the set. Some specialized subtypes may be
 /// more permissive, in which case they should document this behavior.
-abstract interface class Set<E> extends EfficientLengthIterable<E> {
+abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   /// Creates an empty [Set].
   ///
   /// The created [Set] is a plain [LinkedHashSet].

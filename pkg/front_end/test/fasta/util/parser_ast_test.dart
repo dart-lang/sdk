@@ -1,6 +1,6 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
 import 'dart:io';
@@ -347,7 +347,7 @@ List<String> processItem(ParserAstNode item, List<int> data) {
   } else if (item.isMixinDeclaration()) {
     MixinDeclarationEnd mixinDecl = item.asMixinDeclaration();
     return [
-      getCutContent(data, mixinDecl.mixinKeyword.offset,
+      getCutContent(data, mixinDecl.beginToken.offset,
           mixinDecl.endToken.offset + mixinDecl.endToken.length)
     ];
   } else if (item.isNamedMixinDeclaration()) {

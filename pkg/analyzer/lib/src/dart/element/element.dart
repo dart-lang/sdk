@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -24,6 +25,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
@@ -55,6 +57,40 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+/// Shared implementation of `augmentation` and `augmentationTarget`.
+mixin AugmentableElement<T extends ElementImpl> on ElementImpl {
+  T? _augmentation;
+  T? _augmentationTarget;
+
+  T? get augmentation {
+    linkedData?.read(this);
+    return _augmentation;
+  }
+
+  set augmentation(T? value) {
+    _augmentation = value;
+  }
+
+  T? get augmentationTarget {
+    linkedData?.read(this);
+    return _augmentationTarget;
+  }
+
+  set augmentationTarget(T? value) {
+    _augmentationTarget = value;
+  }
+
+  bool get isAugmentation {
+    return hasModifier(Modifier.AUGMENTATION);
+  }
+
+  set isAugmentation(bool value) {
+    setModifier(Modifier.AUGMENTATION, value);
+  }
+
+  ElementLinkedData? get linkedData;
+}
 
 class AugmentationImportElementImpl extends _ExistingElementImpl
     implements AugmentationImportElement {
@@ -191,8 +227,7 @@ abstract class AugmentedInterfaceElementImpl
   List<InterfaceType> mixins = [];
 
   @override
-  // TODO: implement constructors
-  List<ConstructorElement> get constructors => throw UnimplementedError();
+  List<ConstructorElement> constructors = [];
 
   @override
   // TODO: implement declaration
@@ -233,7 +268,7 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
 
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl
-    with _HasAugmentation<ClassElementImpl>
+    with AugmentableElement<ClassElementImpl>
     implements ClassElement {
   late AugmentedClassElement augmentedInternal =
       NotAugmentedClassElementImpl(this);
@@ -994,7 +1029,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
-    with ConstructorElementMixin
+    with AugmentableElement<ConstructorElementImpl>, ConstructorElementMixin
     implements ConstructorElement {
   /// The super-constructor which this constructor is invoking, or `null` if
   /// this constructor is not generative, or is redirecting, or the
@@ -1024,12 +1059,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool isConstantEvaluated = false;
-
-  @override
-  ConstructorElementImpl? augmentation;
-
-  @override
-  ConstructorElementImpl? augmentationTarget;
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
@@ -1063,6 +1092,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   InterfaceElement get enclosingElement =>
       super.enclosingElement as InterfaceElementImpl;
+
+  @override
+  bool get hasLiteral {
+    if (super.hasLiteral) return true;
+    var enclosingElement = this.enclosingElement;
+    if (enclosingElement is! ExtensionTypeElement) return false;
+    return this == enclosingElement.primaryConstructor &&
+        enclosingElement.hasLiteral;
+  }
 
   @override
   bool get isConst {
@@ -1135,6 +1173,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     return _returnType = result;
   }
 
+  @override
   ConstructorElement? get superConstructor {
     linkedData?.read(this);
     return _superConstructor;
@@ -1244,11 +1283,11 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// initializers.
   Expression? constantInitializer;
 
-  EvaluationResultImpl? _evaluationResult;
+  Constant? _evaluationResult;
 
-  EvaluationResultImpl? get evaluationResult => _evaluationResult;
+  Constant? get evaluationResult => _evaluationResult;
 
-  set evaluationResult(EvaluationResultImpl? evaluationResult) {
+  set evaluationResult(Constant? evaluationResult) {
     _evaluationResult = evaluationResult;
   }
 
@@ -1277,7 +1316,11 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-    return evaluationResult?.value;
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
   }
 }
 
@@ -1340,7 +1383,7 @@ class DefaultSuperFormalParameterElementImpl
   }
 
   @override
-  EvaluationResultImpl? get evaluationResult {
+  Constant? get evaluationResult {
     if (constantInitializer != null) {
       return super.evaluationResult;
     }
@@ -1625,15 +1668,41 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The result of evaluating this annotation as a compile-time constant
   /// expression, or `null` if the compilation unit containing the variable has
   /// not been resolved.
-  EvaluationResultImpl? evaluationResult;
+  Constant? evaluationResult;
+
+  /// Any additional errors, other than [evaluationResult] being an
+  /// [InvalidConstant], that came from evaluating the constant expression,
+  /// or `null` if the compilation unit containing the variable has
+  /// not been resolved.
+  ///
+  /// TODO(kallentu): Remove this field once we fix up g3's dependency on
+  /// annotations having a valid result as well as unresolved errors.
+  List<AnalysisError>? additionalErrors;
 
   /// Initialize a newly created annotation. The given [compilationUnit] is the
   /// compilation unit in which the annotation appears.
   ElementAnnotationImpl(this.compilationUnit);
 
   @override
-  List<AnalysisError> get constantEvaluationErrors =>
-      evaluationResult?.errors ?? const <AnalysisError>[];
+  List<AnalysisError> get constantEvaluationErrors {
+    final evaluationResult = this.evaluationResult;
+    final additionalErrors = this.additionalErrors;
+    if (evaluationResult is InvalidConstant) {
+      // When we have an [InvalidConstant], we don't report the additional
+      // errors because this result contains the most relevant error.
+      return [
+        AnalysisError.tmp(
+          source: source,
+          offset: evaluationResult.offset,
+          length: evaluationResult.length,
+          errorCode: evaluationResult.errorCode,
+          arguments: evaluationResult.arguments,
+          contextMessages: evaluationResult.contextMessages,
+        )
+      ];
+    }
+    return additionalErrors ?? const <AnalysisError>[];
+  }
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
@@ -1786,7 +1855,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-    return evaluationResult?.value;
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
   }
 
   @override
@@ -2610,23 +2683,15 @@ class ElementLocationImpl implements ElementLocation {
 }
 
 /// An [InterfaceElementImpl] which is an enum.
-class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
+class EnumElementImpl extends InterfaceElementImpl
+    with AugmentableElement<EnumElementImpl>
+    implements EnumElement {
   late AugmentedEnumElement augmentedInternal =
       NotAugmentedEnumElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
-
-  @override
-  EnumElementImpl? get augmentation {
-    // TODO(scheglov) implement
-    return null;
-  }
-
-  @override
-  // TODO: implement augmentationTarget
-  EnumElementImpl? get augmentationTarget => throw UnimplementedError();
 
   @override
   AugmentedEnumElement? get augmented {
@@ -2665,7 +2730,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData
+    with TypeParameterizedElementMixin
     implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -2725,15 +2790,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// Set whether this executable element's body is asynchronous.
   set isAsynchronous(bool isAsynchronous) {
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
-  }
-
-  @override
-  bool get isAugmentation {
-    return hasModifier(Modifier.AUGMENTATION);
-  }
-
-  set isAugmentation(bool value) {
-    setModifier(Modifier.AUGMENTATION, value);
   }
 
   @override
@@ -2864,7 +2920,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of an [ExtensionElement].
 class ExtensionElementImpl extends InstanceElementImpl
-    with HasCompletionData
+    with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement {
   /// The type being extended.
   DartType? _extendedType;
@@ -2873,16 +2929,6 @@ class ExtensionElementImpl extends InstanceElementImpl
   /// the given [offset] in the file that contains the declaration of this
   /// element.
   ExtensionElementImpl(super.name, super.nameOffset);
-
-  @override
-  ExtensionElementImpl? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
-  // TODO: implement augmentationTarget
-  ExtensionElementImpl? get augmentationTarget => throw UnimplementedError();
 
   @override
   AugmentedExtensionElement? get augmented {
@@ -2989,7 +3035,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 }
 
 class ExtensionTypeElementImpl extends InterfaceElementImpl
-    with _HasAugmentation<ExtensionTypeElementImpl>
+    with AugmentableElement<ExtensionTypeElementImpl>
     implements ExtensionTypeElement {
   late AugmentedExtensionTypeElement augmentedInternal =
       NotAugmentedExtensionTypeElementImpl(this);
@@ -3023,6 +3069,9 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
+  ConstructorElement get primaryConstructor => constructors.first;
+
+  @override
   FieldElementImpl get representation => fields.first;
 
   @override
@@ -3033,7 +3082,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
-    with HasCompletionData
+    with AugmentableElement<FieldElementImpl>
     implements FieldElement {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -3145,13 +3194,8 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
+    with AugmentableElement<FunctionElementImpl>
     implements FunctionElement, FunctionTypedElementImpl {
-  @override
-  FunctionElementImpl? augmentation;
-
-  @override
-  FunctionElementImpl? augmentationTarget;
-
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
   FunctionElementImpl(super.name, super.offset);
@@ -3303,11 +3347,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 }
 
-/// This mixins is added to elements that can have cache completion data.
-mixin HasCompletionData {
-  Object? completionData;
-}
-
 /// A concrete implementation of a [HideElementCombinator].
 class HideElementCombinatorImpl implements HideElementCombinator {
   @override
@@ -3396,15 +3435,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
   }
 
   @override
-  bool get isAugmentation {
-    return hasModifier(Modifier.AUGMENTATION);
-  }
-
-  set isAugmentation(bool value) {
-    setModifier(Modifier.AUGMENTATION, value);
-  }
-
-  @override
   List<ElementAnnotation> get metadata {
     linkedData?.read(this);
     return super.metadata;
@@ -3436,7 +3466,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    with HasCompletionData, MacroTargetElement
+    with MacroTargetElement
     implements InterfaceElement {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -3476,9 +3506,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   InterfaceElementImpl? get augmentationTarget;
 
   @override
-  AugmentedInterfaceElement? get augmented {
-    throw UnimplementedError();
-  }
+  AugmentedInterfaceElement? get augmented;
 
   @override
   List<Element> get children => [
@@ -3953,6 +3981,8 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
     implements LibraryAugmentationElement {
   @override
   final LibraryOrAugmentationElementImpl augmentationTarget;
+
+  MacroGeneratedAugmentationLibrary? macroGenerated;
 
   LibraryAugmentationElementLinkedData? linkedData;
 
@@ -4803,6 +4833,17 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       visitor.visitLocalVariableElement(this);
 }
 
+/// Additional information for a macro generated augmentation library.
+class MacroGeneratedAugmentationLibrary {
+  final String code;
+  final Uint8List informativeBytes;
+
+  MacroGeneratedAugmentationLibrary({
+    required this.code,
+    required this.informativeBytes,
+  });
+}
+
 mixin MacroTargetElement {
   /// Errors registered while applying macros to this element.
   List<MacroApplicationError> macroApplicationErrors = const [];
@@ -4817,7 +4858,7 @@ class MacroTargetElementContainer {}
 
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
-    with _HasAugmentation<MethodElementImpl>
+    with AugmentableElement<MethodElementImpl>
     implements MethodElement {
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
@@ -4893,7 +4934,7 @@ class MethodElementImpl extends ExecutableElementImpl
 
 /// A [ClassElementImpl] representing a mixin declaration.
 class MixinElementImpl extends ClassOrMixinElementImpl
-    with _HasAugmentation<MixinElementImpl>
+    with AugmentableElement<MixinElementImpl>
     implements MixinElement {
   List<InterfaceType> _superclassConstraints = const [];
 
@@ -5937,7 +5978,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
-    with _HasAugmentation<PropertyAccessorElementImpl>
+    with AugmentableElement<PropertyAccessorElementImpl>
     implements PropertyAccessorElement {
   late PropertyInducingElementImpl _variable;
 
@@ -6423,7 +6464,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
 
 /// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    with HasCompletionData
+    with AugmentableElement<TopLevelVariableElementImpl>
     implements TopLevelVariableElement {
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
@@ -6458,7 +6499,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData
+    with TypeParameterizedElementMixin
     implements TypeAliasElement {
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
@@ -6870,11 +6911,11 @@ abstract class VariableElementImpl extends ElementImpl
   /// compile-time constant expression, or `null` if this variable is not a
   /// 'const' variable, if it does not have an initializer, or if the
   /// compilation unit containing the variable has not been resolved.
-  EvaluationResultImpl? get evaluationResult => null;
+  Constant? get evaluationResult => null;
 
   /// Set the result of evaluating this variable's initializer as a compile-time
   /// constant expression to the given [result].
-  set evaluationResult(EvaluationResultImpl? result) {
+  set evaluationResult(Constant? result) {
     throw StateError("Invalid attempt to set a compile-time constant result");
   }
 
@@ -6960,32 +7001,6 @@ abstract class VariableElementImpl extends ElementImpl
 
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
   _ExistingElementImpl(super.name, super.offset, {super.reference});
-}
-
-/// Shared implementation of `augmentation` and `augmentationTarget`.
-mixin _HasAugmentation<T> on ElementImpl {
-  T? _augmentation;
-  T? _augmentationTarget;
-
-  T? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(T? value) {
-    _augmentation = value;
-  }
-
-  T? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
-  }
-
-  set augmentationTarget(T? value) {
-    _augmentationTarget = value;
-  }
-
-  ElementLinkedData? get linkedData;
 }
 
 mixin _HasLibraryMixin on ElementImpl {

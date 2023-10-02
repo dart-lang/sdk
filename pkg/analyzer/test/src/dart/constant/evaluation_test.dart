@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,6 +37,135 @@ const int x = 'foo';
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5),
     ]);
+  }
+
+  /// Enum constants can reference other constants.
+  test_enum_enhanced_constants() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v1(42), v2(v1);
+  final Object? a;
+  const E([this.a]);
+}
+''');
+    assertDartObjectText(_field('v2'), r'''
+E
+  _name: String v2
+  a: E
+    _name: String v1
+    a: int 42
+    index: int 0
+    variable: self::@enum::E::@field::v1
+  index: int 1
+  variable: self::@enum::E::@field::v2
+''');
+  }
+
+  test_enum_enhanced_named() async {
+    await resolveTestCode('''
+enum E<T> {
+  v1<double>.named(10),
+  v2.named(20);
+  final T f;
+  const E.named(this.f);
+}
+
+const x1 = E.v1;
+const x2 = E.v2;
+''');
+    assertDartObjectText(_topLevelVar('x1'), r'''
+E<double>
+  _name: String v1
+  f: double 10.0
+  index: int 0
+  variable: self::@variable::x1
+''');
+    assertDartObjectText(_topLevelVar('x2'), r'''
+E<int>
+  _name: String v2
+  f: int 20
+  index: int 1
+  variable: self::@variable::x2
+''');
+  }
+
+  test_enum_enhanced_unnamed() async {
+    await resolveTestCode('''
+enum E<T> {
+  v1<int>(10),
+  v2(20),
+  v3('abc');
+  final T f;
+  const E(this.f);
+}
+
+const x1 = E.v1;
+const x2 = E.v2;
+const x3 = E.v3;
+''');
+    assertDartObjectText(_topLevelVar('x1'), r'''
+E<int>
+  _name: String v1
+  f: int 10
+  index: int 0
+  variable: self::@variable::x1
+''');
+    assertDartObjectText(_topLevelVar('x2'), r'''
+E<int>
+  _name: String v2
+  f: int 20
+  index: int 1
+  variable: self::@variable::x2
+''');
+    assertDartObjectText(_topLevelVar('x3'), r'''
+E<String>
+  _name: String v3
+  f: String abc
+  index: int 2
+  variable: self::@variable::x3
+''');
+  }
+
+  test_enum_simple() async {
+    await resolveTestCode('''
+enum E { v1, v2 }
+const x1 = E.v1;
+const x2 = E.v2;
+''');
+    assertDartObjectText(_topLevelVar('x1'), r'''
+E
+  _name: String v1
+  index: int 0
+  variable: self::@variable::x1
+''');
+    assertDartObjectText(_topLevelVar('x2'), r'''
+E
+  _name: String v2
+  index: int 1
+  variable: self::@variable::x2
+''');
+  }
+
+  test_equalEqual_bool_bool_false() async {
+    await assertNoErrorsInCode('''
+const v = true == false;
+''');
+    final result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool false
+  variable: self::@variable::v
+''');
+  }
+
+  test_equalEqual_bool_bool_true() async {
+    await assertNoErrorsInCode('''
+const v = true == true;
+''');
+    final result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: self::@variable::v
+''');
   }
 
   test_equalEqual_double_object() async {
@@ -105,6 +237,26 @@ const v = 1 == A();
 bool false
   variable: self::@variable::v
 ''');
+  }
+
+  test_equalEqual_invalidLeft() async {
+    await assertErrorsInCode('''
+const v = a == 1;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
+          1),
+    ]);
+  }
+
+  test_equalEqual_invalidRight() async {
+    await assertErrorsInCode('''
+const v = 1 == a;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 15,
+          1),
+    ]);
   }
 
   test_equalEqual_null_object() async {
@@ -573,6 +725,28 @@ const v2 = v1 + v1;
     _assertNull(result);
   }
 
+  test_visitBinaryExpression_gt_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 2 > 3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_gte_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 2 >= 3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
   test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
     await assertNoErrorsInCode('''
 const c = 0xFFFFFFFF >>> 8;
@@ -681,6 +855,28 @@ const c = 0xFF >>> 0;
     dartObjectPrinterConfiguration.withHexIntegers = true;
     assertDartObjectText(result, r'''
 int 0xff
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_lt_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 2 < 3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_lte_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 2 <= 3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
   variable: self::@variable::c
 ''');
   }
@@ -832,6 +1028,40 @@ class A {
           27,
           5),
     ]);
+  }
+
+  test_visitConstructorReference_generic_named() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C.foo();
+}
+const c = C<int>.foo;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+C<int> Function()
+  element: self::@class::C::@constructor::foo
+  typeArguments
+    int
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitConstructorReference_generic_unnamed() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C();
+}
+const c = C<int>.new;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+C<int> Function()
+  element: self::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: self::@variable::c
+''');
   }
 
   test_visitConstructorReference_identical_aliasIsNotGeneric() async {
@@ -1109,6 +1339,40 @@ bool false
 ''');
   }
 
+  test_visitConstructorReference_nonGeneric_named() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  const C.foo();
+}
+const c = C<int>.foo;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+C<int> Function()
+  element: self::@class::C::@constructor::foo
+  typeArguments
+    int
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitConstructorReference_nonGeneric_unnamed() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  const C();
+}
+const c = C<int>.new;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+C<int> Function()
+  element: self::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: self::@variable::c
+''');
+  }
+
   test_visitFunctionReference_defaultConstructorValue() async {
     await assertErrorsInCode(r'''
 void f<T>(T t) => t;
@@ -1240,7 +1504,6 @@ class C<U> {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           61, 1),
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 61, 1),
     ]);
   }
 
@@ -1476,6 +1739,63 @@ bool true
 ''');
   }
 
+  test_visitInstanceCreationExpression_noArgs() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+const a = A();
+''');
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, r'''
+A
+  variable: self::@variable::a
+''');
+  }
+
+  test_visitInstanceCreationExpression_noConstConstructor() async {
+    await assertErrorsInCode('''
+class A {}
+const a = A();
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 21, 3),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 21,
+          3),
+    ]);
+  }
+
+  test_visitInstanceCreationExpression_simpleArgs() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A(int x);
+}
+const a = A(1);
+''');
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, r'''
+A
+  variable: self::@variable::a
+''');
+  }
+
+  test_visitInstanceCreationExpression_unknown() async {
+    await assertErrorsInCode('''
+class C<T> {
+  const C.named();
+}
+
+const x = C<int>.();
+''', [
+      // TODO(https://github.com/dart-lang/sdk/issues/50441): This should not be
+      // reported.
+      error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+          45, 8),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 45,
+          8),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 52, 1),
+    ]);
+  }
+
   test_visitInterpolationExpression_list() async {
     await assertErrorsInCode(r'''
 const x = '${const [2]}';
@@ -1656,6 +1976,70 @@ const x = [1, if (1) 2 else 3, 4];
     _assertNull(result);
   }
 
+  test_visitListLiteral_listElement_explicitType() async {
+    await assertNoErrorsInCode(r'''
+const x = <String>['a', 'b', 'c'];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+List
+  elementType: String
+  elements
+    String a
+    String b
+    String c
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitListLiteral_listElement_explicitType_functionType() async {
+    await assertNoErrorsInCode(r'''
+const x = <void Function()>[];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+List
+  elementType: void Function()
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitListLiteral_listElement_simple() async {
+    await assertNoErrorsInCode(r'''
+const x = ['a', 'b', 'c'];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+List
+  elementType: String
+  elements
+    String a
+    String b
+    String c
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitListLiteral_listElement_variableElements() async {
+    await assertNoErrorsInCode(r'''
+const a = 0;
+const b = 2;
+const c = [a, 1, b];
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+List
+  elementType: int
+  elements
+    int 0
+      variable: self::@variable::a
+    int 1
+    int 2
+      variable: self::@variable::b
+  variable: self::@variable::c
+''');
+  }
+
   test_visitListLiteral_spreadElement() async {
     await assertErrorsInCode(r'''
 const dynamic a = 5;
@@ -1665,6 +2049,43 @@ const x = <int>[...a];
     ]);
     final result = _topLevelVar('x');
     _assertNull(result);
+  }
+
+  test_visitListLiteral_spreadElement_null() async {
+    await assertNoErrorsInCode('''
+const a = null;
+const List<String> x = [
+  'anotherString',
+  ...?a,
+];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: String
+  elements
+    String anotherString
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitListLiteral_spreadElement_set() async {
+    await assertNoErrorsInCode('''
+const a = {'string'};
+const List<String> x = [
+  'anotherString',
+  ...a,
+];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: String
+  elements
+    String anotherString
+    String string
+  variable: self::@variable::x
+''');
   }
 
   test_visitMethodInvocation_notIdentical() async {
@@ -1778,40 +2199,7 @@ void Function<T>(T)
 ''');
   }
 
-  test_visitPrefixExpression_extensionMethod() async {
-    await assertErrorsInCode('''
-extension on Object {
-  int operator -() => 0;
-}
-
-const Object v1 = 1;
-const v2 = -v1;
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3),
-    ]);
-    final result = _topLevelVar('v2');
-    _assertNull(result);
-  }
-
-  test_visitPropertyAccess_genericFunction_instantiated() async {
-    await assertNoErrorsInCode('''
-import '' as self;
-class C {
-  static void f<T>(T a) {}
-}
-const void Function(int) g = self.C.f;
-''');
-    final result = _topLevelVar('g');
-    assertDartObjectText(result, '''
-void Function(int)
-  element: self::@class::C::@method::f
-  typeArguments
-    int
-  variable: self::@variable::g
-''');
-  }
-
-  test_visitPropertyAccess_length_invalidTarget() async {
+  test_visitPrefixedIdentifier_length_invalidTarget() async {
     await assertErrorsInCode('''
 void main() {
   const RequiresNonEmptyList([1]);
@@ -1834,6 +2222,144 @@ class RequiresNonEmptyList {
     ]);
   }
 
+  test_visitPrefixExpression_bitNot() async {
+    await assertNoErrorsInCode('''
+const c = ~42;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+int -43
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitPrefixExpression_extensionMethod() async {
+    await assertErrorsInCode('''
+extension on Object {
+  int operator -() => 0;
+}
+
+const Object v1 = 1;
+const v2 = -v1;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3),
+    ]);
+    final result = _topLevelVar('v2');
+    _assertNull(result);
+  }
+
+  test_visitPrefixExpression_logicalNot() async {
+    await assertNoErrorsInCode('''
+const c = !true;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitPrefixExpression_negated_bool() async {
+    await assertErrorsInCode('''
+const c = -true;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 10, 1),
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 10, 5),
+    ]);
+  }
+
+  test_visitPrefixExpression_negated_double() async {
+    await assertNoErrorsInCode('''
+const c = -42.3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double -42.3
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitPrefixExpression_negated_int() async {
+    await assertNoErrorsInCode('''
+const c = -42;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+int -42
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitPropertyAccess_genericFunction_instantiated() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class C {
+  static void f<T>(T a) {}
+}
+const void Function(int) g = self.C.f;
+''');
+    final result = _topLevelVar('g');
+    assertDartObjectText(result, '''
+void Function(int)
+  element: self::@class::C::@method::f
+  typeArguments
+    int
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitPropertyAccess_length_complex() async {
+    await assertNoErrorsInCode('''
+const x = ('qwe' + 'rty').length;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+int 6
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitPropertyAccess_length_simple() async {
+    await assertNoErrorsInCode('''
+const x = 'Dvorak'.length;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+int 6
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitRecordLiteral_mixedTypes() async {
+    await assertNoErrorsInCode(r'''
+const x = (0, f1: 10, f2: 2.3);
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+Record(int, {int f1, double f2})
+  positionalFields
+    $1: int 0
+  namedFields
+    f1: int 10
+    f2: double 2.3
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitRecordLiteral_named() async {
+    await assertNoErrorsInCode(r'''
+const x = (f1: 10, f2: -3);
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+Record({int f1, int f2})
+  namedFields
+    f1: int 10
+    f2: int -3
+  variable: self::@variable::x
+''');
+  }
+
   test_visitRecordLiteral_objectField_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
@@ -1854,6 +2380,21 @@ A<int>
 ''');
   }
 
+  test_visitRecordLiteral_positional() async {
+    await assertNoErrorsInCode(r'''
+const x = (20, 0, 7);
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+Record(int, int, int)
+  positionalFields
+    $1: int 20
+    $2: int 0
+    $3: int 7
+  variable: self::@variable::x
+''');
+  }
+
   test_visitRecordLiteral_withoutEnvironment() async {
     await assertNoErrorsInCode(r'''
 const a = (1, 'b', c: false);
@@ -1870,19 +2411,65 @@ Record(int, String, {bool c})
 ''');
   }
 
-  test_visitSetOrMapLiteral_double_zeros() async {
+  test_visitSetOrMapLiteral_ambiguous() async {
+    await assertErrorsInCode(r'''
+const l = [];
+const ambiguous = {...l, 1: 2};
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_ambiguous_either() async {
+    await assertErrorsInCode(r'''
+const int? i = 1;
+const res  = {...?i};
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 31, 7),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_ambiguous_expression() async {
+    await assertErrorsInCode(r'''
+const m = {1: 1};
+const res = {...m, 2};
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 30, 9),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_ambiguous_inList() async {
+    await assertErrorsInCode(r'''
+const l = [];
+const ambiguous = {...l, 1: 2};
+const anotherList = [...ambiguous];
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_map_complexKey() async {
     await assertNoErrorsInCode(r'''
-class C {
-  final double x;
-  const C(this.x);
+class A {
+  final int x;
+  const A(this.x);
 }
-
-const cp0 = C(0.0);
-const cm0 = C(-0.0);
-
-main(){
-  print(const{cp0, cm0});
-}
+void fn() => 2;
+const x = {A(0): 1, fn: 2};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+Map
+  entries
+    entry
+      key: A
+        x: int 0
+      value: int 1
+    entry
+      key: void Function()
+        element: self::@function::fn
+      value: int 2
+  variable: self::@variable::x
 ''');
   }
 
@@ -1921,6 +2508,104 @@ const c = const {if (nonBool) 'a' : 1};
     _assertNull(result);
   }
 
+  test_visitSetOrMapLiteral_map_mapElement() async {
+    await assertNoErrorsInCode(r'''
+const x = {'a' : 'm', 'b' : 'n', 'c' : 'o'};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Map
+  entries
+    entry
+      key: String a
+      value: String m
+    entry
+      key: String b
+      value: String n
+    entry
+      key: String c
+      value: String o
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitSetOrMapLiteral_map_spread() async {
+    await assertNoErrorsInCode('''
+const x = {'string': 1};
+const Map<String, int> alwaysInclude = {
+  'anotherString': 0,
+  ...x,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Map
+  entries
+    entry
+      key: String string
+      value: int 1
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitSetOrMapLiteral_map_spread_notMap() async {
+    await assertErrorsInCode('''
+const x = ['string'];
+const Map<String, int> alwaysInclude = {
+  'anotherString': 0,
+  ...x,
+};
+''', [
+      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 90, 1),
+      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 90, 1),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_map_spread_null() async {
+    await assertNoErrorsInCode('''
+const a = null;
+const Map<String, int> x = {
+  'anotherString': 0,
+  ...?a,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Map
+  entries
+    entry
+      key: String anotherString
+      value: int 0
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitSetOrMapLiteral_set_double_zeros() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final double x;
+  const C(this.x);
+}
+
+const cp0 = C(0.0);
+const cm0 = C(-0.0);
+
+const a = {cp0, cm0};
+''');
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+Set
+  elements
+    C
+      x: double 0.0
+      variable: self::@variable::cp0
+    C
+      x: double -0.0
+      variable: self::@variable::cm0
+  variable: self::@variable::a
+''');
+  }
+
   test_visitSetOrMapLiteral_set_forElement() async {
     await assertErrorsInCode(r'''
 const Set set = {};
@@ -1943,6 +2628,41 @@ const c = const {if (nonBool) 3};
     ]);
     final result = _topLevelVar('c');
     _assertNull(result);
+  }
+
+  test_visitSetOrMapLiteral_set_spread_list() async {
+    await assertNoErrorsInCode('''
+const a = ['string'];
+const Set<String> x = {
+  'anotherString',
+  ...a,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Set
+  elements
+    String anotherString
+    String string
+  variable: self::@variable::x
+''');
+  }
+
+  test_visitSetOrMapLiteral_set_spread_null() async {
+    await assertNoErrorsInCode('''
+const a = null;
+const Set<String> x = {
+  'anotherString',
+  ...?a,
+};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Set
+  elements
+    String anotherString
+  variable: self::@variable::x
+''');
   }
 
   test_visitSimpleIdentifier_className() async {
@@ -2295,6 +3015,17 @@ const c = {1, ...{2, 3}, 4};
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 
+  test_visitAdjacentInterpolation_simple() async {
+    await assertNoErrorsInCode('''
+const c = 'abc' 'def';
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+String abcdef
+  variable: self::@variable::c
+''');
+  }
+
   test_visitAsExpression_instanceOfSameClass() async {
     await resolveTestCode('''
 const a = const A();
@@ -2371,6 +3102,50 @@ class MyClass {
 ''');
   }
 
+  test_visitBinaryExpression_add_double_double() async {
+    await assertNoErrorsInCode('''
+const c = 2.3 + 3.2;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double 5.5
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_add_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 2 + 3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+int 5
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_add_string_string() async {
+    await assertNoErrorsInCode('''
+const c = 'a' + 'b';
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+String ab
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_and_bool_bool() async {
+    await assertNoErrorsInCode('''
+const c = true && false;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
   test_visitBinaryExpression_and_bool_false_invalid() async {
     await assertErrorsInCode('''
 final a = false;
@@ -2426,8 +3201,6 @@ const c = true && a;
 ''', [
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
           9),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
-          1),
     ]);
   }
 
@@ -2451,11 +3224,14 @@ const c = a & b;
   }
 
   test_visitBinaryExpression_and_int() async {
-    await resolveTestCode('''
-const c = 3 & 5;
+    await assertNoErrorsInCode('''
+const c = 74 & 42;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+int 10
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_and_mixed() async {
@@ -2467,6 +3243,125 @@ const c = 3 & false;
     ]);
   }
 
+  test_visitBinaryExpression_divide_double_double() async {
+    await assertNoErrorsInCode('''
+const c = 3.2 / 2.3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double 1.3913043478260871
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_divide_double_double_byZero() async {
+    await assertNoErrorsInCode('''
+const c = 3.2 / 0.0;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double Infinity
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_divide_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 3 / 2;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double 1.5
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_divide_int_int_byZero() async {
+    await assertNoErrorsInCode('''
+const c = 3 / 0;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double Infinity
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_minus_double_double() async {
+    await assertNoErrorsInCode('''
+const c = 3.2 - 2.3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double 0.9000000000000004
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_minus_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 3 - 2;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+int 1
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_notEqual_bool_bool() async {
+    await assertNoErrorsInCode('''
+const c = true != false;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_notEqual_int_int() async {
+    await assertNoErrorsInCode('''
+const c = 2 != 3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_notEqual_invalidLeft() async {
+    await assertErrorsInCode('''
+const c = a != 3;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
+          1),
+    ]);
+  }
+
+  test_visitBinaryExpression_notEqual_invalidRight() async {
+    await assertErrorsInCode('''
+const c = 2 != a;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 15,
+          1),
+    ]);
+  }
+
+  test_visitBinaryExpression_notEqual_string_string() async {
+    await assertNoErrorsInCode('''
+const c = 'a' != 'b';
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
   test_visitBinaryExpression_or_bool_false_invalid() async {
     await assertErrorsInCode('''
 final a = false;
@@ -2474,8 +3369,6 @@ const c = false || a;
 ''', [
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
           10),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 36,
-          1),
     ]);
   }
 
@@ -2552,6 +3445,19 @@ const c = 3 | 5;
 ''');
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.intType);
+  }
+
+  test_visitBinaryExpression_or_known_known() async {
+    await assertErrorsInCode('''
+const c = true || false;
+''', [
+      error(WarningCode.DEAD_CODE, 15, 8),
+    ]);
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_or_mixed() async {
@@ -2650,6 +3556,30 @@ const c = 3 ^ false;
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
     ]);
+  }
+
+  test_visitBoolLiteral_false() async {
+    await assertNoErrorsInCode('''
+const c = false;
+''');
+    final result = _topLevelVar('c');
+    dartObjectPrinterConfiguration.withHexIntegers = true;
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBoolLiteral_true() async {
+    await assertNoErrorsInCode('''
+const c = true;
+''');
+    final result = _topLevelVar('c');
+    dartObjectPrinterConfiguration.withHexIntegers = true;
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
   }
 
   test_visitConditionalExpression_eager_false_int_int() async {
@@ -2797,13 +3727,35 @@ const c = identical(0, 0.0) ? 1 : new Object();
     ]);
   }
 
-  test_visitIntegerLiteral() async {
+  test_visitDoubleLiteral() async {
+    await assertNoErrorsInCode('''
+const c = 3.45;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+double 3.45
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitIntegerLiteral_doubleType() async {
     await resolveTestCode('''
 const double d = 3;
 ''');
     DartObjectImpl result = _evaluateConstant('d');
     expect(result.type, typeProvider.doubleType);
     expect(result.toDoubleValue(), 3.0);
+  }
+
+  test_visitIntegerLiteral_integer() async {
+    await assertNoErrorsInCode('''
+const c = 3;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+int 3
+  variable: self::@variable::c
+''');
   }
 
   test_visitIsExpression_is_functionType_badTypes() async {
@@ -2931,6 +3883,28 @@ bool true
 ''');
   }
 
+  test_visitNullLiteral_null() async {
+    await assertNoErrorsInCode('''
+const c = null;
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+Null null
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitParenthesizedExpression_string() async {
+    await assertNoErrorsInCode('''
+const a = ('a');
+''');
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, r'''
+String a
+  variable: self::@variable::a
+''');
+  }
+
   test_visitPropertyAccess_length_extension() async {
     await assertErrorsInCode('''
 extension ExtObject on Object {
@@ -2978,8 +3952,6 @@ const y = B(x);
       ),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
       error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 72,
-          1),
     ]);
   }
 
@@ -3019,6 +3991,18 @@ int 3
 ''');
   }
 
+  test_visitSimpleIdentifier_variable() async {
+    await assertNoErrorsInCode('''
+const a = 42;
+const b = a;
+''');
+    final result = _topLevelVar('b');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::b
+''');
+  }
+
   test_visitSimpleIdentifier_withoutEnvironment() async {
     await assertNoErrorsInCode(r'''
 const a = b;
@@ -3027,6 +4011,38 @@ const b = 3;''');
     assertDartObjectText(result, r'''
 int 3
   variable: self::@variable::a
+''');
+  }
+
+  test_visitSimpleStringLiteral_valid() async {
+    await assertNoErrorsInCode(r'''
+const c = 'abc';
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+String abc
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitStringInterpolation_invalid() async {
+    await assertErrorsInCode(r'''
+const c = 'a${f()}c';
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 14, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 14,
+          3),
+    ]);
+  }
+
+  test_visitStringInterpolation_valid() async {
+    await assertNoErrorsInCode(r'''
+const c = 'a${3}c';
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+String a3c
+  variable: self::@variable::c
 ''');
   }
 }
@@ -3065,21 +4081,19 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       source,
       isNonNullableByDefault: false,
     );
-
-    // TODO(kallentu): Remove unwrapping of Constant.
-    var expressionConstant = expression.accept(
-      ConstantVisitor(
-        ConstantEvaluationEngine(
-          declaredVariables: DeclaredVariables.fromMap(declaredVariables),
-          isNonNullableByDefault:
-              unit.featureSet.isEnabled(Feature.non_nullable),
-          configuration: ConstantEvaluationConfiguration(),
-        ),
-        this.result.libraryElement as LibraryElementImpl,
-        errorReporter,
-        lexicalEnvironment: lexicalEnvironment,
+    var constantVisitor = ConstantVisitor(
+      ConstantEvaluationEngine(
+        declaredVariables: DeclaredVariables.fromMap(declaredVariables),
+        isNonNullableByDefault: unit.featureSet.isEnabled(Feature.non_nullable),
+        configuration: ConstantEvaluationConfiguration(),
       ),
+      this.result.libraryElement as LibraryElementImpl,
+      errorReporter,
+      lexicalEnvironment: lexicalEnvironment,
     );
+
+    var expressionConstant =
+        constantVisitor.evaluateAndReportInvalidConstant(expression);
     var result =
         expressionConstant is DartObjectImpl ? expressionConstant : null;
     if (errorCodes == null) {
@@ -3092,10 +4106,14 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl? _evaluationResult(ConstVariableElement element) {
     final evaluationResult = element.evaluationResult;
-    if (evaluationResult == null) {
-      fail('Not evaluated: ${element.name}');
+    switch (evaluationResult) {
+      case null:
+        fail('Not evaluated: ${element.name}');
+      case InvalidConstant():
+        return null;
+      case DartObjectImpl():
+        return evaluationResult;
     }
-    return evaluationResult.value;
   }
 
   DartObjectImpl? _field(String variableName) {
@@ -3456,6 +4474,18 @@ A
 ''');
   }
 
+  /// See https://github.com/dart-lang/sdk/issues/50045
+  test_bool_fromEnvironment_dartLibraryJsUtil() async {
+    await resolveTestCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+''');
+
+    assertDartObjectText(_topLevelVar('a'), '''
+<unknown> bool
+  variable: self::@variable::a
+''');
+  }
+
   test_fieldInitializer_functionReference_withTypeParameter() async {
     await assertNoErrorsInCode('''
 void g<U>(U a) {}
@@ -3600,6 +4630,260 @@ const a = const A<int>();
 A<int>
   f: Type int
   variable: self::@variable::a
+''');
+  }
+
+  test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  final int b;
+  const A({required this.a, required this.b});
+}
+
+class B extends A {
+  final int c;
+  const B(this.c, {required super.b}) : super(a: 1);
+}
+
+const x = B(3, b: 2);
+''');
+
+    var result = _topLevelVar('x');
+    assertDartObjectText(result, r'''
+B
+  (super): A
+    a: int 1
+    b: int 2
+  c: int 3
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_explicitSuper_hasNamedArgument_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  final int b;
+  const A(this.a, {required this.b});
+}
+
+class B extends A {
+  final int c;
+  const B(super.a, {required this.c}) : super(b: 2);
+}
+
+const x = B(1, c: 3);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+    b: int 2
+  c: int 3
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_explicitSuper_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B extends A {
+  final int b;
+  const B(this.b, {required super.a}) : super();
+}
+
+const x = B(2, a: 1);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_explicitSuper_requiredNamed_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B<T> extends A {
+  final int b;
+  const B(this.b, {required super.a}) : super();
+}
+
+const x = B<int>(2, a: 1);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_explicitSuper_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B extends A {
+  final int b;
+  const B(super.a, this.b) : super();
+}
+
+const x = B(1, 2);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_explicitSuper_requiredPositional_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B<T> extends A {
+  final int b;
+  const B(super.a, this.b) : super();
+}
+
+const x = B<int>(1, 2);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_implicitSuper_requiredNamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B extends A {
+  final int b;
+  const B(this.b, {required super.a});
+}
+
+const x = B(2, a: 1);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_implicitSuper_requiredNamed_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A({required this.a});
+}
+
+class B<T> extends A {
+  final int b;
+  const B(this.b, {required super.a});
+}
+
+const x = B<int>(2, a: 1);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_implicitSuper_requiredPositional() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B extends A {
+  final int b;
+  const B(super.a, this.b);
+}
+
+const x = B(1, 2);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
+''');
+  }
+
+  test_superInitializer_formalParameter_implicitSuper_requiredPositional_generic() async {
+    await assertNoErrorsInCode('''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+class B<T> extends A {
+  final int b;
+  const B(super.a, this.b);
+}
+
+const x = B<int>(1, 2);
+''');
+
+    var value = _topLevelVar('x');
+    assertDartObjectText(value, r'''
+B<int>
+  (super): A
+    a: int 1
+  b: int 2
+  variable: self::@variable::x
 ''');
   }
 

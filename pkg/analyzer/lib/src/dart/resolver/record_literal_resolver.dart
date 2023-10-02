@@ -65,14 +65,9 @@ class RecordLiteralResolver {
               errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
             }
-          } else {
-            var objectElement = _resolver.typeProvider.objectElement;
-            if (objectElement.getGetter(name) != null ||
-                objectElement.getMethod(name) != null) {
-              errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
-                  nameNode);
-            }
+          } else if (isForbiddenNameForRecordField(name)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameNode);
           }
         }
       }
@@ -156,5 +151,19 @@ class RecordLiteralResolver {
         _resolveField(field, null);
       }
     }
+  }
+
+  /// Returns whether [name] is a name forbidden for record fields because it
+  /// clashes with members from [Object] as specified by
+  /// https://github.com/dart-lang/language/blob/main/accepted/3.0/records/feature-specification.md#record-type-annotations
+  static bool isForbiddenNameForRecordField(String name) {
+    const forbidden = {
+      'hashCode',
+      'runtimeType',
+      'noSuchMethod',
+      'toString',
+    };
+
+    return forbidden.contains(name);
   }
 }

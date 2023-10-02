@@ -13,27 +13,53 @@ import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 
 typedef PerformAnalysisFunction = void Function(
     DiagnosticMessageHandler onDiagnostic, Component component);
 typedef UriFilter = bool Function(Uri uri);
 
+/// Analysis the [entryPoints] using [performAnalysis].
 Future<void> runAnalysis(
     List<Uri> entryPoints, PerformAnalysisFunction performAnalysis) async {
   CompilerOptions options = new CompilerOptions();
   options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
-  options.packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json');
+  await _runAnalysis(options, entryPoints, performAnalysis);
+}
 
+/// Analysis the platform libraries for [target] using [performAnalysis].
+Future<void> runPlatformAnalysis(
+    Target target, PerformAnalysisFunction performAnalysis) async {
+  CompilerOptions options = new CompilerOptions();
+  options.target = target;
+  options.environmentDefines = {};
+  options.librariesSpecificationUri =
+      Uri.base.resolve('sdk/lib/libraries.json');
+  Set<Uri> additionalSources = {};
+  for (String extraRequiredLibrary in target.extraRequiredLibraries) {
+    additionalSources.add(Uri.parse(extraRequiredLibrary));
+  }
+  for (String extraRequiredLibrary in target.extraRequiredLibrariesPlatform) {
+    additionalSources.add(Uri.parse(extraRequiredLibrary));
+  }
+  await _runAnalysis(
+      options, [Uri.parse('dart:core'), ...additionalSources], performAnalysis);
+}
+
+Future<void> _runAnalysis(CompilerOptions options, Iterable<Uri> entryPoints,
+    PerformAnalysisFunction performAnalysis) async {
+  options.packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json');
   options.onDiagnostic = (DiagnosticMessage message) {
     printDiagnosticMessage(message, print);
   };
   InternalCompilerResult compilerResult = await kernelForProgramInternal(
-          entryPoints.first, options,
-          retainDataForTesting: true,
-          requireMain: false,
-          additionalSources: entryPoints.skip(1).toList())
-      as InternalCompilerResult;
+    entryPoints.first,
+    options,
+    retainDataForTesting: true,
+    requireMain: false,
+    additionalSources: entryPoints.take(1).toList(),
+  ) as InternalCompilerResult;
 
   performAnalysis(options.onDiagnostic!, compilerResult.component!);
 }
@@ -308,3 +334,6 @@ bool cfeAndBackends(Uri uri) {
   }
   return false;
 }
+
+/// Filter function used to only analyze platform code.
+bool platformOnly(Uri uri) => uri.isScheme('dart');

@@ -282,7 +282,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInstanceGet(TokenPosition* position);
   Fragment BuildDynamicGet(TokenPosition* position);
   Fragment BuildInstanceTearOff(TokenPosition* position);
-  Fragment BuildFunctionTearOff(TokenPosition* position);
   Fragment BuildInstanceSet(TokenPosition* position);
   Fragment BuildDynamicSet(TokenPosition* position);
   Fragment BuildAllocateInvocationMirrorCall(TokenPosition position,

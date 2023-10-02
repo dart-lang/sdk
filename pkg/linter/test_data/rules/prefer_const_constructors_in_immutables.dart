@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N prefer_const_constructors_in_immutables`
-
 import 'package:meta/meta.dart';
 
 @immutable

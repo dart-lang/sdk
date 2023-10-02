@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N unrelated_type_equality_checks`
-
-import 'package:fixnum/fixnum.dart';
-
 void someFunction() {
   var x = '1';
   if (x == 1) print('someFunction'); // LINT
@@ -96,30 +92,6 @@ void someFunction14(DerivedClass4 instance) {
   var other = new DerivedClass5();
 
   if (other == instance) print('someFunction15'); // LINT
-}
-
-void someFunction15() {
-  var x = new Int32();
-
-  if (x == 0) print('someFunction15'); // OK
-}
-
-void someFunction16() {
-  var x = new Int32();
-
-  if (0 == x) print('someFunction16'); // LINT
-}
-
-void someFunction17() {
-  var x = new Int64();
-
-  if (x == 0) print('someFunction17'); // OK
-}
-
-void someFunction18() {
-  var x = new Int64();
-
-  if (0 == x) print('someFunction18'); // LINT
 }
 
 void someFunction19<A, B>(A a, B b) {

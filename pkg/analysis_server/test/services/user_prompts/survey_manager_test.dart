@@ -153,6 +153,7 @@ class SurveyManagerTest with ResourceProviderMixin {
       samplingRate: 1,
       snoozeForMinutes: 1,
       conditionList: [],
+      excludeDashToolList: [],
     );
   }
 }

@@ -8,12 +8,12 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../kernel/augmentation_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
@@ -254,52 +254,61 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Iterable<Member> get exportedMembers => [procedure];
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
     if (isExtensionMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(_procedure, BuiltMemberKind.ExtensionMethod);
+          f(
+              member: _procedure,
+              tearOff: extensionTearOff,
+              kind: BuiltMemberKind.ExtensionMethod);
           break;
         case ProcedureKind.Getter:
-          f(_procedure, BuiltMemberKind.ExtensionGetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionGetter);
           break;
         case ProcedureKind.Setter:
-          f(_procedure, BuiltMemberKind.ExtensionSetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionSetter);
           break;
         case ProcedureKind.Operator:
-          f(_procedure, BuiltMemberKind.ExtensionOperator);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionOperator);
           break;
         case ProcedureKind.Factory:
           throw new UnsupportedError(
               'Unexpected extension method kind ${kind}');
       }
-      if (extensionTearOff != null) {
-        f(extensionTearOff!, BuiltMemberKind.ExtensionTearOff);
-      }
     } else if (isExtensionTypeMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(_procedure, BuiltMemberKind.ExtensionTypeMethod);
+          f(
+              member: _procedure,
+              tearOff: extensionTearOff,
+              kind: BuiltMemberKind.ExtensionTypeMethod);
           break;
         case ProcedureKind.Getter:
-          f(_procedure, BuiltMemberKind.ExtensionTypeGetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeGetter);
           break;
         case ProcedureKind.Setter:
-          f(_procedure, BuiltMemberKind.ExtensionTypeSetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeSetter);
           break;
         case ProcedureKind.Operator:
-          f(_procedure, BuiltMemberKind.ExtensionTypeOperator);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeOperator);
           break;
         case ProcedureKind.Factory:
-          f(_procedure, BuiltMemberKind.ExtensionTypeFactory);
+          f(
+              member: _procedure,
+              tearOff: extensionTearOff,
+              kind: BuiltMemberKind.ExtensionTypeFactory);
           break;
       }
-      if (extensionTearOff != null) {
-        f(extensionTearOff!, BuiltMemberKind.ExtensionTypeTearOff);
-      }
     } else {
-      f(member, BuiltMemberKind.Method);
+      f(member: member, kind: BuiltMemberKind.Method);
     }
   }
 
@@ -581,7 +590,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       origin._getAugmentSuperTarget(this);
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     List<SourceProcedureBuilder>? patches = _patches;
     if (patches != null) {
       void addAugmentedProcedure(SourceProcedureBuilder builder) {
@@ -593,7 +602,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             ..fileStartOffset = builder.actualProcedure.fileStartOffset
             ..signatureType = builder.actualProcedure.signatureType
             ..flags = builder.actualProcedure.flags;
-          f(augmentedProcedure, BuiltMemberKind.Method);
+          f(member: augmentedProcedure, kind: BuiltMemberKind.Method);
         }
       }
 

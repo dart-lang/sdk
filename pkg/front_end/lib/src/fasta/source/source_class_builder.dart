@@ -22,9 +22,8 @@ import 'package:kernel/type_algebra.dart'
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -32,12 +31,10 @@ import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../fasta_codes.dart';
+import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
@@ -229,9 +226,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         }
       } else if (declaration is SourceMemberBuilder) {
         SourceMemberBuilder memberBuilder = declaration;
-        memberBuilder
-            .buildOutlineNodes((Member member, BuiltMemberKind memberKind) {
-          _addMemberToClass(declaration, member, memberKind);
+        memberBuilder.buildOutlineNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          _addMemberToClass(declaration, member);
+          if (tearOff != null) {
+            _addMemberToClass(declaration, tearOff);
+          }
         });
       } else {
         unhandled("${declaration.runtimeType}", "buildBuilders",
@@ -964,28 +966,29 @@ class SourceClassBuilder extends ClassBuilderImpl
           message = templateInvalidTypeVariableInSupertype.withArguments(
               typeVariables![i].name,
               Variance.keywordString(variance),
-              supertype.name as String);
+              (supertype.name as Identifier).name);
         } else {
           message =
               templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
                   Variance.keywordString(typeVariables![i].variance),
                   typeVariables![i].name,
                   Variance.keywordString(variance),
-                  supertype.name as String);
+                  (supertype.name as Identifier).name);
         }
         libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
       }
     }
     if (message != null) {
-      return new NamedTypeBuilderImpl(
-          supertype.name as String, const NullabilityBuilder.omitted(),
+      return new NamedTypeBuilderImpl((supertype.name as Identifier).name,
+          const NullabilityBuilder.omitted(),
           fileUri: fileUri,
           charOffset: charOffset,
           instanceTypeVariableAccess:
               InstanceTypeVariableAccessState.Unexpected)
         ..bind(
             libraryBuilder,
-            new InvalidTypeDeclarationBuilder(supertype.name as String,
+            new InvalidTypeDeclarationBuilder(
+                (supertype.name as Identifier).name,
                 message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;
@@ -1120,8 +1123,14 @@ class SourceClassBuilder extends ClassBuilderImpl
         return;
       }
       if (builder is SourceMemberBuilder) {
-        count += builder.buildBodyNodes((Member member, BuiltMemberKind kind) {
-          _addMemberToClass(builder, member, kind);
+        count += builder.buildBodyNodes((
+            {required Member member,
+            Member? tearOff,
+            required BuiltMemberKind kind}) {
+          _addMemberToClass(builder, member);
+          if (tearOff != null) {
+            _addMemberToClass(builder, tearOff);
+          }
         });
       }
     }
@@ -1137,8 +1146,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member,
-      BuiltMemberKind memberKind) {
+  void _addMemberToClass(SourceMemberBuilder memberBuilder, Member member) {
     member.parent = cls;
     if (!memberBuilder.isPatch &&
         !memberBuilder.isDuplicate &&

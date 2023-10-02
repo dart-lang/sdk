@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.12.0';
+const String vmServiceVersion = '4.13.0';
 
 /// @optional
 const String optional = 'optional';
@@ -975,6 +975,15 @@ abstract class VmServiceInterface {
   /// filter strings. For example, pass `["package:foo/"]` to only include
   /// scripts from the foo package.
   ///
+  /// The `librariesAlreadyCompiled` parameter overrides the `forceCompilation`
+  /// parameter on a per-library basis, setting it to `false` for any libary in
+  /// this list. This is useful for cases where multiple `getSourceReport` RPCs
+  /// are sent with `forceCompilation` enabled, to avoid recompiling the same
+  /// libraries repeatedly. To use this parameter, enable `forceCompilation`,
+  /// cache the results of each `getSourceReport` RPC, and pass all the
+  /// libraries mentioned in the `SourceReport` to subsequent RPCs in the
+  /// `librariesAlreadyCompiled`.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -991,6 +1000,7 @@ abstract class VmServiceInterface {
     bool? forceCompile,
     bool? reportLines,
     List<String>? libraryFilters,
+    List<String>? librariesAlreadyCompiled,
   });
 
   /// The `getVersion` RPC is used to determine what version of the Service
@@ -1699,6 +1709,7 @@ class VmServerConnection {
             forceCompile: params['forceCompile'],
             reportLines: params['reportLines'],
             libraryFilters: params['libraryFilters'],
+            librariesAlreadyCompiled: params['librariesAlreadyCompiled'],
           );
           break;
         case 'getVersion':
@@ -2286,6 +2297,7 @@ class VmService implements VmServiceInterface {
     bool? forceCompile,
     bool? reportLines,
     List<String>? libraryFilters,
+    List<String>? librariesAlreadyCompiled,
   }) =>
       _call('getSourceReport', {
         'isolateId': isolateId,
@@ -2296,6 +2308,8 @@ class VmService implements VmServiceInterface {
         if (forceCompile != null) 'forceCompile': forceCompile,
         if (reportLines != null) 'reportLines': reportLines,
         if (libraryFilters != null) 'libraryFilters': libraryFilters,
+        if (librariesAlreadyCompiled != null)
+          'librariesAlreadyCompiled': librariesAlreadyCompiled,
       });
 
   @override

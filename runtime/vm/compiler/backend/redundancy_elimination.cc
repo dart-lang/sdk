@@ -2244,6 +2244,11 @@ class LoadOptimizer : public ValueObject {
               const intptr_t pos = alloc->InputForSlot(*slot);
               if (pos != -1) {
                 forward_def = alloc->InputAt(pos)->definition();
+              } else if (slot->is_unboxed()) {
+                // Unboxed fields that are not provided as an input should not
+                // have a tagged null value forwarded for them, similar to
+                // payloads of typed data arrays.
+                continue;
               } else {
                 // Fields not provided as an input to the instruction are
                 // initialized to null during allocation.

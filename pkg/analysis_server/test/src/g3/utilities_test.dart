@@ -77,5 +77,126 @@ Future a;
       expect(result.content, contents);
       expect(result.errors.length, 1);
     });
+    test('keep comments at start', () {
+      var contents = '''
+// File comment
+// This is a very important file.
+
+// ignore_for_file: unused_imports
+
+import 'dart:io';
+import 'dart:async' as async;
+
+Future a;
+''';
+
+      var sortedContents = '''
+// File comment
+// This is a very important file.
+
+// ignore_for_file: unused_imports
+
+import 'dart:async' as async;
+import 'dart:io';
+
+Future a;
+''';
+
+      var result = sortDirectives(contents);
+      expect(result.content, sortedContents);
+      expect(result.errors.isEmpty, true);
+    });
+
+    test('remove duplicates', () {
+      var contents = '''
+import 'dart:io';
+import 'dart:io';
+import 'dart:async' as async;
+
+Future a;
+''';
+
+      var sortedContents = '''
+import 'dart:async' as async;
+import 'dart:io';
+
+Future a;
+''';
+
+      var result = sortDirectives(contents);
+      expect(result.content, sortedContents);
+      expect(result.errors.isEmpty, true);
+    });
+
+    test('with prefix', () {
+      var contents = '''
+import 'dart:io';
+import 'package:a.b/c.dart';
+import 'package:a.b/c.dart' deferred as a;
+
+Future a;
+''';
+
+      var sortedContents = '''
+import 'dart:io';
+
+import 'package:a.b/c.dart' deferred as a;
+import 'package:a.b/c.dart';
+
+Future a;
+''';
+
+      var result = sortDirectives(contents);
+      expect(result.content, sortedContents);
+      expect(result.errors.isEmpty, true);
+    });
+
+    test('with prefix unchanged', () {
+      var contents = '''
+import 'dart:io';
+import 'package:a.b/c.dart' deferred as a;
+import 'package:a.b/c.dart';
+
+Future a;
+''';
+
+      var sortedContents = '''
+import 'dart:io';
+
+import 'package:a.b/c.dart' deferred as a;
+import 'package:a.b/c.dart';
+
+Future a;
+''';
+
+      var result = sortDirectives(contents);
+      expect(result.content, sortedContents);
+      expect(result.errors.isEmpty, true);
+    });
+
+    test('with 2 line directive', () {
+      var contents = '''
+import 'dart:io';
+import 'package:a.b/c.dart' as a;
+import 'package:a.b/c.dart' 
+  hide Hello;
+
+Future a;
+''';
+
+      var sortedContents = '''
+import 'dart:io';
+
+import 'package:a.b/c.dart' 
+  hide Hello;
+import 'package:a.b/c.dart' as a;
+
+Future a;
+''';
+
+      var result = sortDirectives(contents);
+      expect(result.content, sortedContents);
+      expect(result.errors.isEmpty, true);
+    });
   });
 }

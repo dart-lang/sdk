@@ -63,7 +63,7 @@ class D extends core::Object {
 }
 extension E on dynamic {
   method foo = self::E|foo;
-  tearoff foo = self::E|get#foo;
+  method tearoff foo = self::E|get#foo;
 }
 static field core::int? v1;
 static field core::List<void> v2;

@@ -35,7 +35,15 @@ bool useJSType(Position pos, TestMode mode) =>
         (mode == TestMode.jsArgument ||
             mode == TestMode.jsReceiverAndArguments));
 
-List<JSAny?> jsList(List<JSAny?> l) => l.toJS.toDart;
+late bool testProxiedArray;
+
+// We test two types of round-trips from Dart to JS to Dart:
+// - A copy that `toJS` creates that then gets wrapped by JSArrayImpl
+// - A proxy that `toJSProxyOrRef` creates that then gets wrapped by JSArrayImpl
+List<JSAny?> jsList(List<JSAny?> l) {
+  final arr = testProxiedArray ? l.toJS : l.toJSProxyOrRef;
+  return arr.toDart;
+}
 
 String jsString(String s) => s.toJS.toDart;
 
@@ -427,7 +435,7 @@ void nonModedTests() {
   Expect.isTrue(list.contains(4.toJS));
 }
 
-void main() {
+void runAllTests() {
   for (final mode in [
     TestMode.jsReceiver,
     TestMode.jsArgument,
@@ -436,6 +444,13 @@ void main() {
     modedTests(mode);
   }
   nonModedTests();
+}
+
+void main() {
+  testProxiedArray = false;
+  runAllTests();
+  testProxiedArray = true;
+  runAllTests();
 }
 
 // Will swap the first and last items in a list, while leaving the the middle

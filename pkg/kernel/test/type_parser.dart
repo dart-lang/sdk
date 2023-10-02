@@ -41,12 +41,12 @@ class DartTypeParser {
   int index = 0;
   String? tokenText;
   final TypeEnvironment environment;
-  final Map<String, TypeParameter> localTypeParameters =
-      <String, TypeParameter>{};
+  final Map<String, /* TypeParameter | StructuralParameter */ Object>
+      localTypeParameters = <String, Object>{};
 
   DartTypeParser(this.string, this.environment);
 
-  TreeNode? lookupType(String name) {
+  /* TreeNode? | StructuralParameter? */ Object? lookupType(String name) {
     return localTypeParameters[name] ?? environment(name);
   }
 
@@ -191,6 +191,21 @@ class DartTypeParser {
           return promotedBound == null
               ? typeParameterType
               : new IntersectionType(typeParameterType, promotedBound);
+        } else if (target is StructuralParameter) {
+          Nullability? nullability = parseOptionalNullability(null);
+          switch (peekToken()) {
+            case Token.LeftAngle:
+              return fail('Attempt to apply type arguments to a type variable');
+            default:
+              break;
+          }
+          StructuralParameterType typeParameterType =
+              new StructuralParameterType(
+                  target,
+                  nullability ??
+                      StructuralParameterType.computeNullabilityFromBound(
+                          target));
+          return typeParameterType;
         }
         return fail("Unexpected lookup result for $name: $target");
 
@@ -205,14 +220,14 @@ class DartTypeParser {
             namedParameters: namedParameters);
 
       case Token.LeftAngle:
-        var typeParameters = parseAndPushTypeParameterList();
+        var typeParameters = parseAndPushStructuralParameterList();
         List<DartType> parameters = <DartType>[];
         List<NamedType> namedParameters = <NamedType>[];
         parseParameterList(parameters, namedParameters);
         consumeString('=>');
         Nullability nullability = parseOptionalNullability()!;
         var returnType = parseType();
-        popTypeParameters(typeParameters);
+        popStructuralParameters(typeParameters);
         return new FunctionType(parameters, returnType, nullability,
             typeParameters: typeParameters, namedParameters: namedParameters);
 
@@ -280,6 +295,10 @@ class DartTypeParser {
     typeParameters.forEach(localTypeParameters.remove);
   }
 
+  void popStructuralParameters(List<StructuralParameter> typeParameters) {
+    typeParameters.forEach(localTypeParameters.remove);
+  }
+
   List<TypeParameter> parseAndPushTypeParameterList() {
     int token = scanToken();
     assert(token == Token.LeftAngle);
@@ -295,10 +314,44 @@ class DartTypeParser {
     return typeParameters;
   }
 
+  List<StructuralParameter> parseAndPushStructuralParameterList() {
+    int token = scanToken();
+    assert(token == Token.LeftAngle);
+    List<StructuralParameter> typeParameters = <StructuralParameter>[];
+    token = peekToken();
+    while (token != Token.RightAngle) {
+      typeParameters.add(parseAndPushStructuralParameter());
+      token = scanToken();
+      if (token != Token.Comma && token != Token.RightAngle) {
+        throw fail('Unterminated type parameter list');
+      }
+    }
+    return typeParameters;
+  }
+
   TypeParameter parseAndPushTypeParameter() {
     var nameTok = scanToken();
     if (nameTok != Token.Name) return fail('Expected a name');
     var typeParameter = new TypeParameter(tokenText);
+    if (localTypeParameters.containsKey(typeParameter.name)) {
+      return fail('Shadowing a type parameter is not allowed');
+    }
+    localTypeParameters[typeParameter.name!] = typeParameter;
+    var next = peekToken();
+    if (next == Token.Colon) {
+      scanToken();
+      typeParameter.bound = parseType();
+    } else {
+      typeParameter.bound = new InterfaceType(
+          lookupType('Object') as Class, Nullability.nullable);
+    }
+    return typeParameter;
+  }
+
+  StructuralParameter parseAndPushStructuralParameter() {
+    var nameTok = scanToken();
+    if (nameTok != Token.Name) return fail('Expected a name');
+    var typeParameter = new StructuralParameter(tokenText);
     if (localTypeParameters.containsKey(typeParameter.name)) {
       return fail('Shadowing a type parameter is not allowed');
     }

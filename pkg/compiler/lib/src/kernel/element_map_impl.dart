@@ -1234,41 +1234,28 @@ class KernelToElementMap implements IrToElementMap {
         !envIsClosed,
         "Environment of $this is closed. Trying to create "
         "type variable for $node.");
-    final parent = node.parent;
-    if (parent is ir.Class) {
-      ir.Class cls = parent;
-      int index = cls.typeParameters.indexOf(node);
+    final declaration = node.declaration;
+    // TODO(fishythefish): Use exhaustive pattern switch.
+    if (declaration is ir.Class) {
+      int index = declaration.typeParameters.indexOf(node);
       return typeVariables.register(
-          createTypeVariable(getClassInternal(cls), node.name!, index),
+          createTypeVariable(getClassInternal(declaration), node.name!, index),
           KTypeVariableData(node));
-    }
-    if (parent is ir.FunctionNode) {
-      ir.FunctionNode func = parent;
-      int index = func.typeParameters.indexOf(node);
-      final funcParent = func.parent;
-      if (funcParent is ir.Constructor) {
-        ir.Constructor constructor = funcParent;
-        ir.Class cls = constructor.enclosingClass;
+    } else if (declaration is ir.Procedure) {
+      int index = declaration.typeParameters.indexOf(node);
+      if (declaration.kind == ir.ProcedureKind.Factory) {
+        ir.Class cls = declaration.enclosingClass!;
         return getTypeVariableInternal(cls.typeParameters[index]);
-      } else if (funcParent is ir.Procedure) {
-        ir.Procedure procedure = funcParent;
-        if (procedure.kind == ir.ProcedureKind.Factory) {
-          ir.Class cls = procedure.enclosingClass!;
-          return getTypeVariableInternal(cls.typeParameters[index]);
-        } else {
-          return typeVariables.register(
-              createTypeVariable(
-                  getMethodInternal(procedure), node.name!, index),
-              KTypeVariableData(node));
-        }
-      } else if (funcParent is ir.LocalFunction) {
-        // Ensure that local function type variables have been created.
-        getLocalFunction(funcParent);
-        return typeVariableMap[node];
       } else {
-        throw UnsupportedError('Unsupported function type parameter parent '
-            'node ${func.parent}.');
+        return typeVariables.register(
+            createTypeVariable(
+                getMethodInternal(declaration), node.name!, index),
+            KTypeVariableData(node));
       }
+    } else if (declaration is ir.LocalFunction) {
+      // Ensure that local function type variables have been created.
+      getLocalFunction(declaration);
+      return typeVariableMap[node];
     }
     throw UnsupportedError('Unsupported type parameter type node $node.');
   }

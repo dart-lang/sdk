@@ -179,7 +179,7 @@ class DevCompilerTarget extends Target {
       {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
-    _diagnosticReporter ??=
+    _diagnosticReporter =
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>;
     _performTransformations(coreTypes, hierarchy, libraries);
   }

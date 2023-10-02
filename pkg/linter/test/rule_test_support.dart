@@ -159,6 +159,8 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
 class PubPackageResolutionTest extends _ContextResolutionTest {
   final List<String> _lintRules = const [];
 
+  bool get addFixnumPackageDep => false;
+
   bool get addFlutterPackageDep => false;
 
   bool get addJsPackageDep => false;
@@ -384,6 +386,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
       languageVersion: testPackageLanguageVersion,
     );
 
+    if (addFixnumPackageDep) {
+      var fixnumPath = '/packages/fixnum';
+      addFixnumPackageFiles(
+        getFolder(fixnumPath),
+      );
+      configCopy.add(name: 'fixnum', rootPath: fixnumPath);
+    }
+
     if (addFlutterPackageDep) {
       var flutterPath = '/packages/flutter';
       addFlutterPackageFiles(
@@ -447,12 +457,91 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
     return [...listener.errors];
   }
 
+  /// Creates a fake 'fixnum' package that can be used by tests.
+  static void addFixnumPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('fixnum.dart').writeAsStringSync(r'''
+library fixnum;
+
+class Int32 {}
+
+class Int64 {}
+''');
+  }
+
   /// Create a fake 'flutter' package that can be used by tests.
   static void addFlutterPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');
+
+    libFolder.getChildAssumingFile('foundation.dart').writeAsStringSync(r'''
+export 'src/foundation/constants.dart';
+''');
+
+    libFolder
+        .getChildAssumingFolder('src')
+        .getChildAssumingFolder('foundation')
+        .getChildAssumingFile('constants.dart')
+        .writeAsStringSync(r'''
+mixin Diagnosticable {
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
+}
+
+class DiagnosticableTree with Diagnosticable {
+  List<DiagnosticsNode> debugDescribeChildren() => const [];
+}
+
+class DiagnosticPropertiesBuilder {}
+
+class DiagnosticsNode {}
+
+class Key {
+  Key(String value);
+}
+
+const bool kDebugMode = true;
+''');
+
     libFolder.getChildAssumingFile('widgets.dart').writeAsStringSync(r'''
+export 'src/widgets/basic.dart';
 export 'src/widgets/container.dart';
 export 'src/widgets/framework.dart';
+''');
+
+    libFolder
+        .getChildAssumingFolder('src')
+        .getChildAssumingFolder('widgets')
+        .getChildAssumingFile('basic.dart')
+        .writeAsStringSync(r'''
+import 'package:flutter/foundation.dart';
+import 'framework.dart';
+
+class Column implements Widget {
+  Column({
+    Key? key,
+    List<Widget> children = const <Widget>[],
+  });
+}
+
+class RawMaterialButton implements Widget {
+  RawMaterialButton({
+    Key? key,
+    Widget? child,
+    void Function()? onPressed,
+  });
+}
+
+class SizedBox implements Widget {
+  SizedBox({
+    Key? key,
+    double height = 0,
+    double width = 0,
+    Widget? child,
+  });
+}
+
+class Text implements Widget {
+  Text(String data);
+}
 ''');
 
     libFolder
@@ -471,13 +560,16 @@ class Container extends StatelessWidget {
   const Container({
     super.key,
     Color? color,
+    Decoration? decoration,
     double? width,
     double? height,
     Widget? child,
   });
 }
 
-class SizedBox implements Widget {}
+class Decoration with Diagnosticable {}
+
+class BoxDecoration implements Decoration {}
 
 class Row implements Widget {}
 ''');
@@ -487,13 +579,11 @@ class Row implements Widget {}
         .getChildAssumingFolder('widgets')
         .getChildAssumingFile('framework.dart')
         .writeAsStringSync(r'''
+import 'package:flutter/foundation.dart';
+
 abstract class BuildContext {
   Widget get widget;
   bool get mounted;
-}
-
-class Key {
-  Key(String value);
 }
 
 class Navigator {

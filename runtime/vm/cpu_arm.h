@@ -43,10 +43,6 @@ class HostCPUFeatures : public AllStatic {
     DEBUG_ASSERT(initialized_);
     return hardfp_supported_;
   }
-  static intptr_t store_pc_read_offset() {
-    DEBUG_ASSERT(initialized_);
-    return store_pc_read_offset_;
-  }
 
 #if !defined(HOST_ARCH_ARM)
   static void set_integer_division_supported(bool supported) {
@@ -64,7 +60,6 @@ class HostCPUFeatures : public AllStatic {
   static bool integer_division_supported_;
   static bool neon_supported_;
   static bool hardfp_supported_;
-  static intptr_t store_pc_read_offset_;
 #if defined(DEBUG)
   static bool initialized_;
 #endif
@@ -81,9 +76,6 @@ class TargetCPUFeatures : public AllStatic {
   static bool neon_supported() { return HostCPUFeatures::neon_supported(); }
   static bool hardfp_supported() { return HostCPUFeatures::hardfp_supported(); }
   static const char* hardware() { return HostCPUFeatures::hardware(); }
-  static intptr_t store_pc_read_offset() {
-    return HostCPUFeatures::store_pc_read_offset();
-  }
 };
 
 }  // namespace dart

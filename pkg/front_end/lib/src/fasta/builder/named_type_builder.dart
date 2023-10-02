@@ -36,17 +36,12 @@ import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../uris.dart';
 import 'builder.dart';
-import 'builtin_type_declaration_builder.dart';
-import 'class_builder.dart';
+import 'declaration_builders.dart';
 import 'inferable_type_builder.dart';
-import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
-import 'type_alias_builder.dart';
 import 'type_builder.dart';
-import 'type_declaration_builder.dart';
-import 'type_variable_builder.dart';
 import 'void_type_declaration_builder.dart';
 
 /// Enum used to determine how instance type variable access is allowed.
@@ -94,6 +89,8 @@ enum InstanceTypeVariableAccessState {
 }
 
 abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
+  // TODO(johnniwinther): Avoid passing the [Identifier] directly here. We
+  // should have separate fields for name, qualifier and offsets.
   @override
   final Object name;
 
@@ -156,7 +153,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
       bool performTypeCanonicalization = false,
       TypeDeclarationBuilder? declaration})
-      : assert(name is String || name is QualifiedName),
+      : assert(name is String || name is Identifier),
         this._instanceTypeVariableAccess = instanceTypeVariableAccess,
         this._performTypeCanonicalization = performTypeCanonicalization,
         this.hasExplicitTypeArguments = arguments != null,
@@ -207,7 +204,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   int get nameOffset {
     if (name is Identifier) {
       Identifier identifier = name as Identifier;
-      return identifier.charOffset;
+      return identifier.nameOffset;
     }
     return charOffset!;
   }
@@ -230,6 +227,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       if (prefix is PrefixBuilder) {
         member = prefix.lookup(name.name, name.charOffset, fileUri);
       }
+    } else if (name is Identifier) {
+      member = scope.lookup(name.name, charOffset, fileUri);
     } else if (name is String) {
       member = scope.lookup(name, charOffset, fileUri);
     } else {
@@ -301,7 +300,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       library.addProblem(message, typeNameOffset, typeNameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, typeNameOffset, typeNameLength));
-    } else if (_declaration!.isTypeVariable) {
+    } else if (_declaration is TypeVariableBuilder) {
       TypeVariableBuilder typeParameterBuilder =
           _declaration as TypeVariableBuilder;
       if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
@@ -419,7 +418,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? unalias(
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables}) {
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
     if (declaration is TypeAliasBuilder) {
       return (declaration as TypeAliasBuilder).unalias(arguments,
@@ -462,83 +461,93 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   Supertype? buildSupertype(LibraryBuilder library) {
     TypeDeclarationBuilder declaration = this.declaration!;
-    if (declaration is ClassBuilder) {
-      if (declaration.isNullClass) {
-        if (!library.mayImplementRestrictedTypes) {
-          library.addProblem(
-              templateExtendingRestricted.withArguments(declaration.name),
-              charOffset!,
-              noLength,
-              fileUri);
+    switch (declaration) {
+      case ClassBuilder():
+        if (declaration.isNullClass) {
+          if (!library.mayImplementRestrictedTypes) {
+            library.addProblem(
+                templateExtendingRestricted.withArguments(declaration.name),
+                charOffset!,
+                noLength,
+                fileUri);
+          }
         }
-      }
-      DartType type = build(library, TypeUse.superType);
-      if (type is InterfaceType) {
-        if (!library.isNonNullableByDefault) {
-          // This "normalizes" type argument `Never*` to `Null`.
-          type = legacyErasure(type) as InterfaceType;
+        DartType type = build(library, TypeUse.superType);
+        if (type is InterfaceType) {
+          if (!library.isNonNullableByDefault) {
+            // This "normalizes" type argument `Never*` to `Null`.
+            type = legacyErasure(type) as InterfaceType;
+          }
+          return new Supertype(type.classNode, type.typeArguments);
+        } else if (type is FutureOrType) {
+          return new Supertype(declaration.cls, [type.typeArgument]);
+        } else if (type is NullType) {
+          return new Supertype(declaration.cls, []);
         }
-        return new Supertype(type.classNode, type.typeArguments);
-      } else if (type is FutureOrType) {
-        return new Supertype(declaration.cls, [type.typeArgument]);
-      } else if (type is NullType) {
-        return new Supertype(declaration.cls, []);
-      }
-    } else if (declaration is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = declaration;
-      DartType type = build(library, TypeUse.superType);
-      if (type is InterfaceType && type.nullability != Nullability.nullable) {
-        return new Supertype(type.classNode, type.typeArguments);
-      } else if (type is NullType) {
-        // Even though Null is disallowed as a supertype, ClassHierarchyBuilder
-        // still expects it to be built to the respective InterfaceType
-        // referencing the deprecated class.
-        // TODO(cstefantsova): Remove the dependency on the deprecated Null
-        // class from ClassHierarchyBuilder.
-        TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
-        // The following code assumes that the declaration is a TypeAliasBuilder
-        // that through a chain of other TypeAliasBuilders (possibly, the chain
-        // length is 0) references a ClassBuilder of the Null class.  Otherwise,
-        // it won't produce the NullType on the output.
-        while (unaliasedDeclaration is TypeAliasBuilder) {
-          unaliasedDeclaration = unaliasedDeclaration.type.declaration;
-          assert(unaliasedDeclaration != null);
+      case TypeAliasBuilder():
+        TypeAliasBuilder aliasBuilder = declaration;
+        DartType type = build(library, TypeUse.superType);
+        if (type is InterfaceType && type.nullability != Nullability.nullable) {
+          return new Supertype(type.classNode, type.typeArguments);
+        } else if (type is NullType) {
+          // Even though `Null` is disallowed as a supertype,
+          // [ClassHierarchyBuilder] still expects it to be built to the
+          // respective [InterfaceType] referencing the deprecated class.
+          // TODO(cstefantsova): Remove the dependency on the deprecated Null
+          // class from ClassHierarchyBuilder.
+          TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
+          // The following code assumes that the declaration is a
+          // [TypeAliasBuilder] that through a chain of other
+          // [TypeAliasBuilder]s (possibly, the chain length is 0) references a
+          // [ClassBuilder] of the `Null` class. Otherwise, it won't produce the
+          // [NullType] on the output.
+          while (unaliasedDeclaration is TypeAliasBuilder) {
+            unaliasedDeclaration = unaliasedDeclaration.type.declaration;
+            assert(unaliasedDeclaration != null);
+          }
+          assert(unaliasedDeclaration is ClassBuilder &&
+              unaliasedDeclaration.name == "Null");
+          return new Supertype(
+              (unaliasedDeclaration as ClassBuilder).cls, const <DartType>[]);
+        } else if (type is FutureOrType) {
+          // Even though `FutureOr` is disallowed as a supertype,
+          // [ClassHierarchyBuilder] still expects it to be built to the
+          // respective [InterfaceType] referencing the deprecated class. In
+          // contrast with `Null`, it doesn't surface as an error due to
+          // `FutureOr` class not having any inheritable members.
+          // TODO(cstefantsova): Remove the dependency on the deprecated
+          // FutureOr class from ClassHierarchyBuilder.
+          TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
+          // The following code assumes that the declaration is a
+          // [TypeAliasBuilder] that through a chain of other
+          // [TypeAliasBuilder]s (possibly, the chain length is 0) references a
+          // [ClassBuilder] of the `FutureOr` class. Otherwise, it won't produce
+          // the [FutureOrType] on the output.
+          while (unaliasedDeclaration is TypeAliasBuilder) {
+            unaliasedDeclaration = unaliasedDeclaration.type.declaration;
+            assert(unaliasedDeclaration != null);
+          }
+          assert(unaliasedDeclaration is ClassBuilder &&
+              unaliasedDeclaration.name == "FutureOr");
+          return new Supertype((unaliasedDeclaration as ClassBuilder).cls,
+              <DartType>[type.typeArgument]);
         }
-        assert(unaliasedDeclaration is ClassBuilder &&
-            unaliasedDeclaration.name == "Null");
-        return new Supertype(
-            (unaliasedDeclaration as ClassBuilder).cls, const <DartType>[]);
-      } else if (type is FutureOrType) {
-        // Even though FutureOr is disallowed as a supertype,
-        // ClassHierarchyBuilder still expects it to be built to the respective
-        // InterfaceType referencing the deprecated class.  In contrast with
-        // Null, it doesn't surface as an error due to FutureOr class not having
-        // any inheritable members.
-        // TODO(cstefantsova): Remove the dependency on the deprecated FutureOr
-        // class from ClassHierarchyBuilder.
-        TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
-        // The following code assumes that the declaration is a TypeAliasBuilder
-        // that through a chain of other TypeAliasBuilders (possibly, the chain
-        // length is 0) references a ClassBuilder of the FutureOr class.
-        // Otherwise, it won't produce the FutureOrType on the output.
-        while (unaliasedDeclaration is TypeAliasBuilder) {
-          unaliasedDeclaration = unaliasedDeclaration.type.declaration;
-          assert(unaliasedDeclaration != null);
-        }
-        assert(unaliasedDeclaration is ClassBuilder &&
-            unaliasedDeclaration.name == "FutureOr");
-        return new Supertype((unaliasedDeclaration as ClassBuilder).cls,
-            <DartType>[type.typeArgument]);
-      }
-      return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
-    } else if (declaration is InvalidTypeDeclarationBuilder) {
-      library.addProblem(
-          declaration.message.messageObject,
-          declaration.message.charOffset,
-          declaration.message.length,
-          declaration.message.uri,
-          severity: Severity.error);
-      return null;
+        return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
+      case InvalidTypeDeclarationBuilder():
+        library.addProblem(
+            declaration.message.messageObject,
+            declaration.message.charOffset,
+            declaration.message.length,
+            declaration.message.uri,
+            severity: Severity.error);
+        return null;
+      case TypeVariableBuilder():
+      case StructuralVariableBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case ExtensionBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
     }
     return _handleInvalidSupertype(library);
   }
@@ -546,23 +555,31 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
     TypeDeclarationBuilder declaration = this.declaration!;
-    if (declaration is ClassBuilder) {
-      return declaration.buildMixedInType(library, arguments);
-    } else if (declaration is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = declaration;
-      DartType type = build(library, TypeUse.mixedInType);
-      if (type is InterfaceType && type.nullability != Nullability.nullable) {
-        return new Supertype(type.classNode, type.typeArguments);
-      }
-      return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
-    } else if (declaration is InvalidTypeDeclarationBuilder) {
-      library.addProblem(
-          declaration.message.messageObject,
-          declaration.message.charOffset,
-          declaration.message.length,
-          declaration.message.uri,
-          severity: Severity.error);
-      return null;
+    switch (declaration) {
+      case ClassBuilder():
+        return declaration.buildMixedInType(library, arguments);
+      case TypeAliasBuilder():
+        TypeAliasBuilder aliasBuilder = declaration;
+        DartType type = build(library, TypeUse.mixedInType);
+        if (type is InterfaceType && type.nullability != Nullability.nullable) {
+          return new Supertype(type.classNode, type.typeArguments);
+        }
+        return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
+      case InvalidTypeDeclarationBuilder():
+        library.addProblem(
+            declaration.message.messageObject,
+            declaration.message.charOffset,
+            declaration.message.length,
+            declaration.message.uri,
+            severity: Severity.error);
+        return null;
+      case TypeVariableBuilder():
+      case StructuralVariableBuilder():
+      case ExtensionBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
     }
     return _handleInvalidSupertype(library);
   }

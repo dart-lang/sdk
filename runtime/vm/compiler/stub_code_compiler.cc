@@ -1339,6 +1339,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
     __ CompareWithMemoryValue(new_top_reg,
                               Address(THR, target::Thread::end_offset()));
     __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
+    __ CheckAllocationCanary(result_reg);
 
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
@@ -1401,6 +1402,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
       __ Bind(&done);
     }
 
+    __ WriteAllocationCanary(new_top_reg);  // Fix overshoot.
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1808,6 +1810,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
   __ CompareWithMemoryValue(temp_reg,
                             Address(THR, target::Thread::end_offset()));
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_case);
+  __ CheckAllocationCanary(result_reg);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.

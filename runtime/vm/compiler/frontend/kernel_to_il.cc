@@ -925,11 +925,11 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy1:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy2:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy4:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy8:
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy16:
+    case MethodRecognizer::kTypedData_memMove1:
+    case MethodRecognizer::kTypedData_memMove2:
+    case MethodRecognizer::kTypedData_memMove4:
+    case MethodRecognizer::kTypedData_memMove8:
+    case MethodRecognizer::kTypedData_memMove16:
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
     case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
@@ -1138,26 +1138,21 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += TailCall(resume_stub);
       break;
     }
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy1:
+    case MethodRecognizer::kTypedData_memMove1:
       // Pick an appropriate typed data cid based on the element size.
-      body +=
-          BuildTypedDataCheckBoundsAndMemcpy(function, kTypedDataUint8ArrayCid);
+      body += BuildTypedDataMemMove(function, kTypedDataUint8ArrayCid);
       break;
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy2:
-      body += BuildTypedDataCheckBoundsAndMemcpy(function,
-                                                 kTypedDataUint16ArrayCid);
+    case MethodRecognizer::kTypedData_memMove2:
+      body += BuildTypedDataMemMove(function, kTypedDataUint16ArrayCid);
       break;
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy4:
-      body += BuildTypedDataCheckBoundsAndMemcpy(function,
-                                                 kTypedDataUint32ArrayCid);
+    case MethodRecognizer::kTypedData_memMove4:
+      body += BuildTypedDataMemMove(function, kTypedDataUint32ArrayCid);
       break;
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy8:
-      body += BuildTypedDataCheckBoundsAndMemcpy(function,
-                                                 kTypedDataUint64ArrayCid);
+    case MethodRecognizer::kTypedData_memMove8:
+      body += BuildTypedDataMemMove(function, kTypedDataUint64ArrayCid);
       break;
-    case MethodRecognizer::kTypedData_checkBoundsAndMemcpy16:
-      body += BuildTypedDataCheckBoundsAndMemcpy(function,
-                                                 kTypedDataInt32x4ArrayCid);
+    case MethodRecognizer::kTypedData_memMove16:
+      body += BuildTypedDataMemMove(function, kTypedDataInt32x4ArrayCid);
       break;
 #define CASE(name)                                                             \
   case MethodRecognizer::kTypedData_##name##_factory:                          \
@@ -1582,14 +1577,26 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
            (kind == MethodRecognizer::kDoubleFloorToDouble) ||
            (kind == MethodRecognizer::kDoubleCeilToDouble))) {
-        body += DoubleToDouble(kind);
+        switch (kind) {
+          case MethodRecognizer::kDoubleTruncateToDouble:
+            body += UnaryDoubleOp(Token::kTRUNCATE);
+            break;
+          case MethodRecognizer::kDoubleFloorToDouble:
+            body += UnaryDoubleOp(Token::kFLOOR);
+            break;
+          case MethodRecognizer::kDoubleCeilToDouble:
+            body += UnaryDoubleOp(Token::kCEILING);
+            break;
+          default:
+            UNREACHABLE();
+        }
       } else {
         body += InvokeMathCFunction(kind, function.NumParameters());
       }
     } break;
     case MethodRecognizer::kMathSqrt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += MathUnary(MathUnaryInstr::kSqrt);
+      body += UnaryDoubleOp(Token::kSQRT);
     } break;
     case MethodRecognizer::kFinalizerBase_setIsolate:
       ASSERT_EQUAL(function.NumParameters(), 1);
@@ -1758,56 +1765,37 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   return body;
 }
 
-Fragment FlowGraphBuilder::BuildTypedDataCheckBoundsAndMemcpy(
-    const Function& function,
-    intptr_t cid) {
+Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
+                                                 intptr_t cid) {
   ASSERT_EQUAL(parsed_function_->function().NumParameters(), 5);
   LocalVariable* arg_to = parsed_function_->RawParameterVariable(0);
   LocalVariable* arg_to_start = parsed_function_->RawParameterVariable(1);
-  LocalVariable* arg_to_end = parsed_function_->RawParameterVariable(2);
+  LocalVariable* arg_count = parsed_function_->RawParameterVariable(2);
   LocalVariable* arg_from = parsed_function_->RawParameterVariable(3);
   LocalVariable* arg_from_start = parsed_function_->RawParameterVariable(4);
 
-  const Library& lib = Library::Handle(Z, Library::TypedDataLibrary());
-  ASSERT(!lib.IsNull());
-  const Function& check_set_range_args = Function::ZoneHandle(
-      Z, lib.LookupFunctionAllowPrivate(Symbols::_checkSetRangeArguments()));
-  ASSERT(!check_set_range_args.IsNull());
-
   Fragment body;
-  body += LoadLocal(arg_to);
-  body += LoadLocal(arg_to_start);
-  body += LoadLocal(arg_to_end);
-  body += LoadLocal(arg_from);
-  body += LoadLocal(arg_from_start);
-  body += StaticCall(TokenPosition::kNoSource, check_set_range_args, 5,
-                     ICData::kStatic);
-  // The length is guaranteed to be a Smi if bounds checking is successful.
-  LocalVariable* length_to_copy = MakeTemporary("length");
-
-  // If we're copying at least this many elements, calling _nativeSetRange,
-  // which calls memmove via a native call, is faster than using the code
-  // currently emitted by the MemoryCopy instruction.
-  //
-  // TODO(dartbug.com/42072): Improve the code generated by MemoryCopy to
-  // either increase the constants below or remove the need to call out to
-  // memmove() altogether.
-#if defined(TARGET_ARCH_X64) || !defined(TARGET_ARCH_IA32)
-  // On X86, the breakpoint for using a native call instead of generating a
-  // loop via MemoryCopy() is around the same as the largest benchmark
-  // (1048576 elements) on the machines we use.
-  const intptr_t kCopyLengthForNativeCall = 1024 * 1024;
+  // If we're copying at least this many elements, calling memmove via CCall
+  // is faster than using the code currently emitted by MemoryCopy.
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  // On X86, the breakpoint for using CCall instead of generating a loop via
+  // MemoryCopy() is around the same as the largest benchmark (1048576 elements)
+  // on the machines we use.
+  const intptr_t kCopyLengthForCCall = 1024 * 1024;
 #else
-  // On other architectures, the breakpoint is much lower for our benchmarks,
-  // and the overhead of iterating in a tight loop is enough that it's the
-  // number of elements copied, not the amount of memory copied.
-  const intptr_t kCopyLengthForNativeCall = 256;
+  // On other architectures, when the element size is less than a word,
+  // we copy in word-sized chunks when possible to get back some speed without
+  // increasing the number of emitted instructions for MemoryCopy too much, but
+  // memmove is even more aggressive, copying in 64-byte chunks when possible.
+  // Thus, the breakpoint for a call to memmove being faster is much lower for
+  // our benchmarks than for X86.
+  const intptr_t kCopyLengthForCCall = 1024;
 #endif
 
   JoinEntryInstr* done = BuildJoinEntry();
   TargetEntryInstr *is_small_enough, *is_too_large;
-  body += LoadLocal(length_to_copy);
-  body += IntConstant(kCopyLengthForNativeCall);
+  body += LoadLocal(arg_count);
+  body += IntConstant(kCopyLengthForCCall);
   body += SmiRelationalOp(Token::kLT);
   body += BranchIfTrue(&is_small_enough, &is_too_large);
 
@@ -1816,36 +1804,45 @@ Fragment FlowGraphBuilder::BuildTypedDataCheckBoundsAndMemcpy(
   use_instruction += LoadLocal(arg_to);
   use_instruction += LoadLocal(arg_from_start);
   use_instruction += LoadLocal(arg_to_start);
-  use_instruction += LoadLocal(length_to_copy);
+  use_instruction += LoadLocal(arg_count);
   use_instruction += MemoryCopy(cid, cid,
                                 /*unboxed_inputs=*/false, /*can_overlap=*/true);
   use_instruction += Goto(done);
 
-  // TODO(dartbug.com/42072): Instead of doing a static call to a native
-  // method, make a leaf runtime entry for memmove and use CCall.
-  const Class& typed_list_base =
-      Class::Handle(Z, lib.LookupClassAllowPrivate(Symbols::_TypedListBase()));
-  ASSERT(!typed_list_base.IsNull());
-  const auto& error = typed_list_base.EnsureIsFinalized(H.thread());
-  ASSERT(error == Error::null());
-  const Function& native_set_range = Function::ZoneHandle(
-      Z,
-      typed_list_base.LookupFunctionAllowPrivate(Symbols::_nativeSetRange()));
-  ASSERT(!native_set_range.IsNull());
-
-  Fragment call_native(is_too_large);
-  call_native += LoadLocal(arg_to);
-  call_native += LoadLocal(arg_to_start);
-  call_native += LoadLocal(arg_to_end);
-  call_native += LoadLocal(arg_from);
-  call_native += LoadLocal(arg_from_start);
-  call_native += StaticCall(TokenPosition::kNoSource, native_set_range, 5,
-                            ICData::kStatic);
-  call_native += Drop();
-  call_native += Goto(done);
+  const intptr_t element_size = Instance::ElementSizeFor(cid);
+  Fragment call_memmove(is_too_large);
+  call_memmove += LoadLocal(arg_to);
+  call_memmove += LoadUntagged(compiler::target::PointerBase::data_offset());
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += LoadLocal(arg_to_start);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove +=
+      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+  call_memmove += LoadLocal(arg_from);
+  call_memmove += LoadUntagged(compiler::target::PointerBase::data_offset());
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += LoadLocal(arg_from_start);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove +=
+      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+  call_memmove += LoadLocal(arg_count);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove += LoadThread();
+  call_memmove += LoadUntagged(
+      compiler::target::Thread::OffsetFromThread(&kMemoryMoveRuntimeEntry));
+  call_memmove +=
+      ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
+  call_memmove += CCall(3);
+  call_memmove += Drop();
+  call_memmove += Goto(done);
 
   body.current = done;
-  body += DropTemporary(&length_to_copy);
   body += NullConstant();
 
   return body;

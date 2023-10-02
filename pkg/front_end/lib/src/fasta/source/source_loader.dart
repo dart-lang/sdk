@@ -42,11 +42,8 @@ import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/extension_builder.dart';
-import '../builder/extension_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/inferable_type_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
@@ -54,10 +51,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../builder_graph.dart';
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
@@ -1271,21 +1265,35 @@ severity: $severity
 
     Builder parent = libraryBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? cls = dietListener.memberScope
+      Builder? builder = dietListener.memberScope
           .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
-      if (cls is ClassBuilder) {
-        parent = cls;
-        dietListener
-          ..currentDeclaration = cls
-          ..memberScope = cls.scope.copyWithParent(
-              dietListener.memberScope.withTypeVariables(cls.typeVariables),
-              "debugExpression in class $enclosingClassOrExtension");
-      } else if (cls is ExtensionBuilder) {
-        parent = cls;
-        dietListener
-          ..currentDeclaration = cls
-          ..memberScope = cls.scope.copyWithParent(dietListener.memberScope,
-              "debugExpression in extension $enclosingClassOrExtension");
+      if (builder is TypeDeclarationBuilder) {
+        switch (builder) {
+          case ClassBuilder():
+            parent = builder;
+            dietListener
+              ..currentDeclaration = builder
+              ..memberScope = builder.scope.copyWithParent(
+                  dietListener.memberScope
+                      .withTypeVariables(builder.typeVariables),
+                  "debugExpression in class $enclosingClassOrExtension");
+          case ExtensionBuilder():
+            parent = builder;
+            dietListener
+              ..currentDeclaration = builder
+              ..memberScope = builder.scope.copyWithParent(
+                  dietListener.memberScope,
+                  "debugExpression in extension $enclosingClassOrExtension");
+          case ExtensionTypeDeclarationBuilder():
+          // TODO(johnniwinther): Handle this case.
+          case TypeAliasBuilder():
+          case TypeVariableBuilder():
+          case StructuralVariableBuilder():
+          case InvalidTypeDeclarationBuilder():
+          case BuiltinTypeDeclarationBuilder():
+          // TODO(johnniwinther): How should we handle this case?
+          case OmittedTypeDeclarationBuilder():
+        }
       }
     }
     SourceProcedureBuilder builder = new SourceProcedureBuilder(
@@ -1316,6 +1324,7 @@ severity: $severity
         builder,
         dietListener.memberScope,
         thisVariable: extensionThis);
+    builder.procedure.function = parameters..parent = builder.procedure;
     for (VariableDeclaration variable in parameters.positionalParameters) {
       listener.typeInferrer.assignedVariables.declare(variable);
     }
@@ -1846,25 +1855,36 @@ severity: $severity
       ClassBuilder object, TypeBuilder dynamicType) {
     Map<TypeVariableBuilder, SourceLibraryBuilder> unboundTypeVariableBuilders =
         {};
+    Map<StructuralVariableBuilder, SourceLibraryBuilder>
+        unboundFunctionTypeTypeVariableBuilders = {};
     for (SourceLibraryBuilder library in libraryBuilders) {
-      library.collectUnboundTypeVariables(unboundTypeVariableBuilders);
+      library.collectUnboundTypeVariables(
+          unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
     }
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List<TypeVariableBuilder> sortedTypeVariableBuilders =
-        sortTypeVariablesTopologically(unboundTypeVariableBuilders.keys);
-    for (TypeVariableBuilder builder in sortedTypeVariableBuilders) {
-      builder.finish(
-          unboundTypeVariableBuilders[builder]!, object, dynamicType);
+    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+        sortedTypeVariables = sortAllTypeVariablesTopologically([
+      ...unboundFunctionTypeTypeVariableBuilders.keys,
+      ...unboundTypeVariableBuilders.keys
+    ]);
+    for (Object builder in sortedTypeVariables) {
+      if (builder is TypeVariableBuilder) {
+        builder.finish(
+            unboundTypeVariableBuilders[builder]!, object, dynamicType);
+      } else {
+        builder as StructuralVariableBuilder;
+        builder.finish(unboundFunctionTypeTypeVariableBuilders[builder]!,
+            object, dynamicType);
+      }
     }
 
     for (SourceLibraryBuilder library in libraryBuilders) {
       library.processPendingNullabilities();
     }
 
-    ticker.logMs(
-        "Resolved ${sortedTypeVariableBuilders.length} type-variable bounds");
+    ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
   /// Computes variances of type parameters on typedefs in [libraryBuilders].
@@ -3134,7 +3154,7 @@ class List<E> extends Iterable<E> {
   E operator [](int index) => null;
 }
 
-class _GrowableList<E> {
+class _GrowableList<E> implements List<E> {
   factory _GrowableList(int length) => null;
   factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
@@ -3147,6 +3167,10 @@ class _GrowableList<E> {
   factory _GrowableList._literal6(E e0, E e1, E e2, E e3, E e4, E e5) => null;
   factory _GrowableList._literal7(E e0, E e1, E e2, E e3, E e4, E e5, E e6) => null;
   factory _GrowableList._literal8(E e0, E e1, E e2, E e3, E e4, E e5, E e6, E e7) => null;
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
+  Iterator<E> get iterator => null;
+  E operator [](int index) => null;
 }
 
 class _List<E> {

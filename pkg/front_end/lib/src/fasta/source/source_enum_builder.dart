@@ -15,8 +15,8 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -25,8 +25,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
         LocatedMessage,
@@ -286,7 +284,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference,
         isSynthesized: true);
-    members["values"] = valuesBuilder;
+    if (customValuesDeclaration != null) {
+      customValuesDeclaration.next = valuesBuilder;
+    } else {
+      members["values"] = valuesBuilder;
+    }
 
     DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
 
@@ -407,9 +409,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
     scope.forEachLocalMember((name, member) {
-      if (name != "values") {
-        members[name] = member as MemberBuilder;
-      }
+      members[name] = member as MemberBuilder;
     });
     scope.forEachLocalSetter((name, member) {
       setters[name] = member;
@@ -666,9 +666,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
     DartType selfType =
         this.selfType.build(libraryBuilder, TypeUse.enumSelfType);
-    Builder? builder = firstMemberNamed(fieldBuilder.name);
-    if (builder == null || !builder.isField) return selfType;
-    fieldBuilder = builder as SourceFieldBuilder;
     if (!_builtElements.add(fieldBuilder)) return fieldBuilder.fieldType;
 
     if (enumConstantInfos == null) return selfType;

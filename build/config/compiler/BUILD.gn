@@ -133,8 +133,16 @@ config("compiler") {
       ldflags += [ "-fsanitize=thread" ]
     }
     if (is_ubsan) {
-      cflags += [ "-fsanitize=undefined" ]
-      ldflags += [ "-fsanitize=undefined" ]
+      cflags += [
+        "-fsanitize=undefined",
+        "-fsanitize=float-divide-by-zero",
+        "-fsanitize=float-cast-overflow",
+      ]
+      ldflags += [
+        "-fsanitize=undefined",
+        "-fsanitize=float-divide-by-zero",
+        "-fsanitize=float-cast-overflow",
+      ]
     }
 
     if (use_custom_libcxx) {

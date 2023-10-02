@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N prefer_void_to_null`
-
 // TODO(mfairhurst) test void with a prefix, except that causes bugs.
 // TODO(mfairhurst) test defining a class named Null (requires a 2nd file)
 

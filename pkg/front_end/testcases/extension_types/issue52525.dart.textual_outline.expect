@@ -1,4 +1,4 @@
 extension type IC1(int id) {
-factory IC1.f(int id) = IC1;
+  factory IC1.f(int id) = IC1;
 }
 main() {}

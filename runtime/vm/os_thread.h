@@ -281,7 +281,7 @@ class OSThread : public BaseThread {
 #if defined(DEBUG)
   // In DEBUG mode we use this field to ensure that GetCurrentThreadJoinId is
   // only called once per OSThread.
-  ThreadJoinId join_id_;
+  ThreadJoinId join_id_ = kInvalidThreadJoinId;
 #endif
 #ifdef SUPPORT_TIMELINE
   const ThreadId trace_id_;  // Used to interface with tracing tools.
@@ -291,17 +291,19 @@ class OSThread : public BaseThread {
   mutable Mutex timeline_block_lock_;
   // The block that the timeline recorder has permitted this thread to write
   // events to.
-  TimelineEventBlock* timeline_block_;
+  TimelineEventBlock* timeline_block_ = nullptr;
 
   // All |Thread|s are registered in the thread list.
-  OSThread* thread_list_next_;
+  OSThread* thread_list_next_ = nullptr;
 
   RelaxedAtomic<uintptr_t> thread_interrupt_disabled_;
+  bool prepared_for_interrupts_ = false;
+  void* thread_interrupter_state_ = nullptr;
   Log* log_;
-  uword stack_base_;
-  uword stack_limit_;
-  uword stack_headroom_;
-  ThreadState* thread_;
+  uword stack_base_ = 0;
+  uword stack_limit_ = 0;
+  uword stack_headroom_ = 0;
+  ThreadState* thread_ = nullptr;
   // The ThreadPool::Worker which owns this OSThread. If this OSThread was not
   // started by a ThreadPool it will be nullptr. This TLS value is not
   // protected and should only be read/written by the OSThread itself.

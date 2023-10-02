@@ -17,7 +17,7 @@ class Class extends core::Object {
 }
 extension Extension on self2::Class {
   method method = self2::Extension|method;
-  tearoff method = self2::Extension|get#method;
+  method tearoff method = self2::Extension|get#method;
 }
 static extension-member method Extension|method(lowered final self2::Class #this) → dynamic
   ;

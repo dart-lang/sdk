@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -330,6 +330,8 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.EnumMember, lsp.SymbolKind.Enum];
       case server.ElementKind.EXTENSION:
+        return const [lsp.SymbolKind.Namespace];
+      case server.ElementKind.EXTENSION_TYPE:
         return const [lsp.SymbolKind.Namespace];
       case server.ElementKind.FIELD:
         return const [lsp.SymbolKind.Field];

@@ -846,7 +846,8 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode implements FileUriNode, Annotatable {
+class Typedef extends NamedNode
+    implements FileUriNode, Annotatable, GenericDeclaration {
   /// The URI of the source file that contains the declaration of this typedef.
   @override
   Uri fileUri;
@@ -855,7 +856,10 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
   List<Expression> annotations = const <Expression>[];
 
   String name;
+
+  @override
   final List<TypeParameter> typeParameters;
+
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
 
@@ -974,13 +978,26 @@ class DirtifyingList<E> extends ListBase<E> {
   }
 }
 
+/// Declaration that can introduce [TypeParameter]s.
+sealed class GenericDeclaration implements TreeNode {
+  /// The type parameters introduced by this declaration.
+  List<TypeParameter> get typeParameters;
+}
+
+/// Functions that can introduce [TypeParameter]s.
+sealed class GenericFunction implements GenericDeclaration {
+  /// The [FunctionNode] that holds the introduced [typeParameters].
+  FunctionNode get function;
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-class Class extends NamedNode implements Annotatable, FileUriNode {
+class Class extends NamedNode
+    implements Annotatable, FileUriNode, GenericDeclaration {
   /// Start offset of the class in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -1168,6 +1185,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   @override
   Uri fileUri;
 
+  @override
   final List<TypeParameter> typeParameters;
 
   /// The immediate super type, or `null` if this is the root class.
@@ -1517,7 +1535,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 ///
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [Extension] node.
-class Extension extends NamedNode implements Annotatable, FileUriNode {
+class Extension extends NamedNode
+    implements Annotatable, FileUriNode, GenericDeclaration {
   /// Name of the extension.
   ///
   /// If unnamed, the extension will be given a synthesized name by the
@@ -1529,6 +1548,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   Uri fileUri;
 
   /// Type parameters declared on the extension.
+  @override
   final List<TypeParameter> typeParameters;
 
   /// The type in the 'on clause' of the extension declaration.
@@ -1663,7 +1683,6 @@ enum ExtensionMemberKind {
   Getter,
   Setter,
   Operator,
-  TearOff,
 }
 
 /// Information about an member declaration in an extension.
@@ -1704,11 +1723,16 @@ class ExtensionMemberDescriptor {
   /// Reference to the top-level member created for the extension method.
   final Reference member;
 
+  /// Reference to the top-level member created for the extension member tear
+  /// off, if any.
+  final Reference? tearOff;
+
   ExtensionMemberDescriptor(
       {required this.name,
       required this.kind,
       bool isStatic = false,
-      required this.member}) {
+      required this.member,
+      required this.tearOff}) {
     this.isStatic = isStatic;
   }
 
@@ -1731,7 +1755,7 @@ class ExtensionMemberDescriptor {
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [ExtensionTypeDeclaration] node.
 class ExtensionTypeDeclaration extends NamedNode
-    implements Annotatable, FileUriNode {
+    implements Annotatable, FileUriNode, GenericDeclaration {
   /// Name of the extension type declaration.
   String name;
 
@@ -1740,6 +1764,7 @@ class ExtensionTypeDeclaration extends NamedNode
   Uri fileUri;
 
   /// Type parameters declared on the extension.
+  @override
   final List<TypeParameter> typeParameters;
 
   /// The type in the underlying representation of the extension type
@@ -1867,7 +1892,6 @@ enum ExtensionTypeMemberKind {
   Getter,
   Setter,
   Operator,
-  TearOff,
   RedirectingFactory,
 }
 
@@ -1910,11 +1934,16 @@ class ExtensionTypeMemberDescriptor {
   /// declaration member.
   final Reference member;
 
+  /// Reference to the top-level member created for the extension type
+  /// declaration member tear off, if any.
+  final Reference? tearOff;
+
   ExtensionTypeMemberDescriptor(
       {required this.name,
       required this.kind,
       bool isStatic = false,
-      required this.member}) {
+      required this.member,
+      required this.tearOff}) {
     this.isStatic = isStatic;
   }
 
@@ -1929,7 +1958,8 @@ class ExtensionTypeMemberDescriptor {
   @override
   String toString() {
     return 'ExtensionTypeMemberDescriptor($name,$kind,'
-        '${member.toStringInternal()},isStatic=${isStatic})';
+        '${member.toStringInternal()},isStatic=${isStatic},'
+        '${tearOff?.toStringInternal()})';
   }
 }
 
@@ -1937,7 +1967,7 @@ class ExtensionTypeMemberDescriptor {
 //                            MEMBERS
 // ------------------------------------------------------------------------
 
-abstract class Member extends NamedNode implements Annotatable, FileUriNode {
+sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   /// End offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
@@ -2801,7 +2831,7 @@ enum ProcedureStubKind {
 /// For index-getters/setters, this is `[]` and `[]=`.
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
-class Procedure extends Member {
+class Procedure extends Member implements GenericFunction {
   /// Start offset of the function in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -2908,6 +2938,9 @@ class Procedure extends Member {
         "Member signature origin cannot be a member signature "
         "$memberSignatureOrigin for $this.");
   }
+
+  @override
+  List<TypeParameter> get typeParameters => function.typeParameters;
 
   // The function node's body might be lazily loaded, meaning that this value
   // might not be set correctly yet. Make sure the body is loaded before
@@ -3222,7 +3255,7 @@ enum ProcedureKind {
 // ------------------------------------------------------------------------
 
 /// Part of an initializer list in a constructor.
-abstract class Initializer extends TreeNode {
+sealed class Initializer extends TreeNode {
   /// True if this is a synthetic constructor initializer.
   @informative
   bool isSynthetic = false;
@@ -3232,6 +3265,15 @@ abstract class Initializer extends TreeNode {
 
   @override
   R accept1<R, A>(InitializerVisitor1<R, A> v, A arg);
+}
+
+abstract class AuxiliaryInitializer extends Initializer {
+  @override
+  R accept<R>(InitializerVisitor<R> v) => v.visitAuxiliaryInitializer(this);
+
+  @override
+  R accept1<R, A>(InitializerVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryInitializer(this, arg);
 }
 
 /// An initializer with a compile-time error.
@@ -3660,8 +3702,14 @@ class FunctionNode extends TreeNode {
 
   static DartType _getTypeOfVariable(VariableDeclaration node) => node.type;
 
-  static NamedType _getNamedTypeOfVariable(VariableDeclaration node) {
-    return new NamedType(node.name!, node.type, isRequired: node.isRequired);
+  static NamedType _getNamedTypeOfVariable(VariableDeclaration node,
+      [Substitution? substitution]) {
+    return new NamedType(
+        node.name!,
+        substitution != null
+            ? substitution.substituteType(node.type)
+            : node.type,
+        isRequired: node.isRequired);
   }
 
   /// Returns the function type of the node reusing its type parameters.
@@ -3672,35 +3720,62 @@ class FunctionNode extends TreeNode {
   /// is useful in some contexts, especially when reasoning about the function
   /// type of the enclosing generic function and in combination with
   /// [FunctionType.withoutTypeParameters].
-  FunctionType computeThisFunctionType(Nullability nullability) {
+  FunctionType computeThisFunctionType(Nullability nullability,
+      {bool reuseTypeParameters = false}) {
     TreeNode? parent = this.parent;
-    List<NamedType> named;
-    if (namedParameters.isEmpty) {
-      named = const <NamedType>[];
-    } else {
-      named =
-          namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
-      named.sort();
-    }
 
-    List<TypeParameter> typeParametersCopy;
+    List<StructuralParameter> structuralParameters;
     List<TypeParameter> typeParametersToCopy = parent is Constructor
         ? parent.enclosingClass.typeParameters
         : typeParameters;
-    if (typeParametersToCopy.isEmpty) {
-      typeParametersCopy = const <TypeParameter>[];
+    DartType returnType;
+    List<DartType> positionalParameters;
+    List<NamedType> namedParameters;
+    if (typeParametersToCopy.isEmpty || reuseTypeParameters) {
+      structuralParameters = const <StructuralParameter>[];
+      returnType = this.returnType;
+      positionalParameters = this
+          .positionalParameters
+          .map(_getTypeOfVariable)
+          .toList(growable: false);
+      if (this.namedParameters.isEmpty) {
+        namedParameters = const <NamedType>[];
+      } else {
+        namedParameters = this
+            .namedParameters
+            .map(_getNamedTypeOfVariable)
+            .toList(growable: false);
+        namedParameters.sort();
+      }
     } else {
       // We need create a copy of the list of type parameters, otherwise
       // transformations like erasure don't work.
-      typeParametersCopy =
-          new List<TypeParameter>.of(typeParametersToCopy, growable: false);
+      FreshStructuralParametersFromTypeParameters freshStructuralParameters =
+          getFreshStructuralParametersFromTypeParameters(typeParametersToCopy);
+      structuralParameters = freshStructuralParameters.freshTypeParameters;
+      Substitution substitution = freshStructuralParameters.substitution;
+      returnType = substitution.substituteType(this.returnType);
+      positionalParameters = this
+          .positionalParameters
+          .map((VariableDeclaration parameter) =>
+              substitution.substituteType(_getTypeOfVariable(parameter)))
+          .toList(growable: false);
+      if (this.namedParameters.isEmpty) {
+        namedParameters = const <NamedType>[];
+      } else {
+        namedParameters = this
+            .namedParameters
+            .map((VariableDeclaration parameter) =>
+                _getNamedTypeOfVariable(parameter, substitution))
+            .toList(growable: false);
+        namedParameters.sort();
+      }
     }
-    return new FunctionType(
-        positionalParameters.map(_getTypeOfVariable).toList(growable: false),
-        returnType,
-        nullability,
-        namedParameters: named,
-        typeParameters: typeParametersCopy,
+    // TODO(johnniwinther,cstefantsova): Cache the function type here and use
+    // [DartType.withDeclaredNullability] to handle the variants.
+    return new FunctionType(positionalParameters, returnType, nullability,
+        namedParameters: namedParameters,
+        typeParameters: structuralParameters,
         requiredParameterCount: requiredParameterCount);
   }
 
@@ -3712,19 +3787,9 @@ class FunctionNode extends TreeNode {
   /// parameters constructed after those of the class.  In both cases, if the
   /// resulting function type is generic, a fresh set of type parameters is used
   /// in it.
+  // TODO(johnniwinther,cstefantsova): Merge it with [computeThisFunctionType].
   FunctionType computeFunctionType(Nullability nullability) {
-    TreeNode? parent = this.parent;
-    List<TypeParameter> typeParameters;
-    if (parent is Constructor) {
-      assert(this.typeParameters.isEmpty);
-      typeParameters = parent.enclosingClass.typeParameters;
-    } else {
-      typeParameters = this.typeParameters;
-    }
-    return typeParameters.isEmpty
-        ? computeThisFunctionType(nullability)
-        : getFreshTypeParameters(typeParameters)
-            .applyToFunctionType(computeThisFunctionType(nullability));
+    return computeThisFunctionType(nullability);
   }
 
   @override
@@ -3845,7 +3910,7 @@ class RedirectingFactoryTarget {
 //                                EXPRESSIONS
 // ------------------------------------------------------------------------
 
-abstract class Expression extends TreeNode {
+sealed class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
   /// This calls `StaticTypeContext.getExpressionType` which calls
@@ -3942,6 +4007,17 @@ abstract class Expression extends TreeNode {
     printer.writeExpression(this);
     return printer.getText();
   }
+}
+
+/// Abstract subclass of [Expression] that can be used to add [Expression]
+/// subclasses from outside `package:kernel`.
+abstract class AuxiliaryExpression extends Expression {
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitAuxiliaryExpression(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryExpression(this, arg);
 }
 
 /// An expression containing compile-time errors.
@@ -6521,10 +6597,10 @@ class ConstructorInvocation extends InvocationExpression {
     // TODO(cstefantsova): Get raw type from a CoreTypes object if arguments is
     // empty.
     return arguments.types.isEmpty
-        ? new InterfaceType(
-            enclosingClass, Nullability.legacy, const <DartType>[])
-        : new InterfaceType(
-            enclosingClass, Nullability.legacy, arguments.types);
+        ? new InterfaceType(enclosingClass, target.enclosingLibrary.nonNullable,
+            const <DartType>[])
+        : new InterfaceType(enclosingClass, target.enclosingLibrary.nonNullable,
+            arguments.types);
   }
 
   @override
@@ -6562,8 +6638,7 @@ class Instantiation extends Expression {
   DartType getStaticTypeInternal(StaticTypeContext context) {
     DartType type = expression.getStaticType(context);
     if (type is FunctionType) {
-      return Substitution.fromPairs(type.typeParameters, typeArguments)
-          .substituteType(type.withoutTypeParameters);
+      return FunctionTypeInstantiator.instantiate(type, typeArguments);
     }
     assert(type is InvalidType || type is NeverType,
         "Unexpected operand type $type for $expression");
@@ -8412,7 +8487,8 @@ class AwaitExpression extends Expression {
 }
 
 /// Common super-interface for [FunctionExpression] and [FunctionDeclaration].
-abstract class LocalFunction implements TreeNode {
+abstract class LocalFunction implements GenericFunction {
+  @override
   FunctionNode get function;
 }
 
@@ -8426,6 +8502,9 @@ class FunctionExpression extends Expression implements LocalFunction {
   FunctionExpression(this.function) {
     function.parent = this;
   }
+
+  @override
+  List<TypeParameter> get typeParameters => function.typeParameters;
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -8868,12 +8947,12 @@ class TypedefTearOff extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    FreshTypeParameters freshTypeParameters =
-        getFreshTypeParameters(typeParameters);
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(typeParameters);
     FunctionType type = expression.getStaticType(context) as FunctionType;
     type = freshTypeParameters.substitute(
-        Substitution.fromPairs(type.typeParameters, typeArguments)
-            .substituteType(type.withoutTypeParameters)) as FunctionType;
+            FunctionTypeInstantiator.instantiate(type, typeArguments))
+        as FunctionType;
     return new FunctionType(
         type.positionalParameters, type.returnType, type.declaredNullability,
         namedParameters: type.namedParameters,
@@ -8930,7 +9009,7 @@ class TypedefTearOff extends Expression {
 //                              STATEMENTS
 // ------------------------------------------------------------------------
 
-abstract class Statement extends TreeNode {
+sealed class Statement extends TreeNode {
   @override
   R accept<R>(StatementVisitor<R> v);
 
@@ -8945,8 +9024,24 @@ abstract class Statement extends TreeNode {
   }
 }
 
+abstract class AuxiliaryStatement extends Statement {
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitAuxiliaryStatement(this);
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryStatement(this, arg);
+}
+
 class ExpressionStatement extends Statement {
   Expression expression;
+
+  // TODO(johnniwinther): Fix this so set value is not lost. We include this
+  //   getter so offset is consistent before and after serialization.
+  //   ExpressionStatements are common so serializing the offset could
+  //   increase serialized size.
+  @override
+  int get fileOffset => expression.fileOffset;
 
   ExpressionStatement(this.expression) {
     expression.parent = this;
@@ -10608,6 +10703,9 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   }
 
   @override
+  List<TypeParameter> get typeParameters => function.typeParameters;
+
+  @override
   R accept<R>(StatementVisitor<R> v) => v.visitFunctionDeclaration(this);
 
   @override
@@ -10818,7 +10916,7 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-abstract class DartType extends Node {
+sealed class DartType extends Node {
   const DartType();
 
   @override
@@ -10911,6 +11009,17 @@ abstract class DartType extends Node {
 
   @override
   void toTextInternal(AstPrinter printer);
+}
+
+abstract class AuxiliaryType extends DartType {
+  const AuxiliaryType();
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) => v.visitAuxiliaryType(this);
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryType(this, arg);
 }
 
 /// The type arising from invalid type annotations.
@@ -11266,7 +11375,7 @@ class InterfaceType extends DartType {
 
 /// A possibly generic function type.
 class FunctionType extends DartType {
-  final List<TypeParameter> typeParameters;
+  final List<StructuralParameter> typeParameters;
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
@@ -11282,7 +11391,7 @@ class FunctionType extends DartType {
   FunctionType(List<DartType> positionalParameters, this.returnType,
       this.declaredNullability,
       {this.namedParameters = const <NamedType>[],
-      this.typeParameters = const <TypeParameter>[],
+      this.typeParameters = const <StructuralParameter>[],
       int? requiredParameterCount})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
@@ -11324,7 +11433,7 @@ class FunctionType extends DartType {
       if (typeParameters.isNotEmpty) {
         assumptions ??= new Assumptions();
         for (int index = 0; index < typeParameters.length; index++) {
-          assumptions.assume(
+          assumptions.assumeStructuralParameter(
               typeParameters[index], other.typeParameters[index]);
         }
         for (int index = 0; index < typeParameters.length; index++) {
@@ -11353,8 +11462,8 @@ class FunctionType extends DartType {
       }
       if (typeParameters.isNotEmpty) {
         for (int index = 0; index < typeParameters.length; index++) {
-          assumptions!
-              .forget(typeParameters[index], other.typeParameters[index]);
+          assumptions!.forgetStructuralParameter(
+              typeParameters[index], other.typeParameters[index]);
         }
       }
       return true;
@@ -11400,7 +11509,7 @@ class FunctionType extends DartType {
     int hash = 1237;
     hash = 0x3fffffff & (hash * 31 + requiredParameterCount);
     for (int i = 0; i < typeParameters.length; ++i) {
-      TypeParameter parameter = typeParameters[i];
+      StructuralParameter parameter = typeParameters[i];
       hash = 0x3fffffff & (hash * 31 + parameter.bound.hashCode);
     }
     for (int i = 0; i < positionalParameters.length; ++i) {
@@ -11417,13 +11526,11 @@ class FunctionType extends DartType {
   @override
   FunctionType withDeclaredNullability(Nullability declaredNullability) {
     if (declaredNullability == this.declaredNullability) return this;
-    FunctionType result = FunctionType(
+    return new FunctionType(
         positionalParameters, returnType, declaredNullability,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: requiredParameterCount);
-    if (typeParameters.isEmpty) return result;
-    return getFreshTypeParameters(typeParameters).applyToFunctionType(result);
   }
 
   @override
@@ -11435,7 +11542,7 @@ class FunctionType extends DartType {
   void toTextInternal(AstPrinter printer) {
     printer.writeType(returnType);
     printer.write(" Function");
-    printer.writeTypeParameters(typeParameters);
+    printer.writeStructuralParameters(typeParameters);
     printer.write("(");
     for (int i = 0; i < positionalParameters.length; i++) {
       if (i > 0) {
@@ -12214,6 +12321,10 @@ class TypeParameterType extends DartType {
   TypeParameterType.forAlphaRenaming(TypeParameter from, TypeParameter to)
       : this(to, computeNullabilityFromBound(from));
 
+  TypeParameterType.forAlphaRenamingFromStructuralParameters(
+      StructuralParameter from, TypeParameter to)
+      : this(to, StructuralParameterType.computeNullabilityFromBound(from));
+
   /// Creates a type-parameter type with default nullability for the library.
   ///
   /// The nullability is computed as if the programmer omitted the modifier. It
@@ -12247,7 +12358,7 @@ class TypeParameterType extends DartType {
     } else if (other is TypeParameterType) {
       if (nullability != other.nullability) return false;
       if (parameter != other.parameter) {
-        if (parameter.parent == null) {
+        if (parameter.isStructuralParameter) {
           // Function type parameters are also equal by assumption.
           if (assumptions == null) {
             return false;
@@ -12270,7 +12381,7 @@ class TypeParameterType extends DartType {
     // TODO(johnniwinther): Since we use a unification strategy for function
     //  type parameter equality, we have to assume they can end up being
     //  equal. Maybe we should change the equality strategy.
-    int hash = parameter.isFunctionTypeTypeParameter ? 0 : parameter.hashCode;
+    int hash = parameter.isStructuralParameter ? 0 : parameter.hashCode;
     int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
     hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     return hash;
@@ -12282,12 +12393,7 @@ class TypeParameterType extends DartType {
   @override
   Nullability get nullability => declaredNullability;
 
-  /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
-  ///
-  /// In contrast with other types, [TypeParameterType.withDeclaredNullability]
-  /// doesn't set the overall nullability of the returned type but sets that of
-  /// the left-hand side of the intersection type.  In case [promotedBound] is
-  /// null, it is an equivalent of setting the overall nullability.
+  /// Gets a new [TypeParameterType] with given [declaredNullability].
   @override
   TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
     if (declaredNullability == this.declaredNullability) {
@@ -12345,6 +12451,164 @@ class TypeParameterType extends DartType {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeTypeParameterName(parameter);
+    printer.writeNullability(declaredNullability);
+  }
+}
+
+/// Reference to a structural type variable declared by a [FunctionType]
+class StructuralParameterType extends DartType {
+  /// The declared nullability of the structural parameter type.
+  @override
+  Nullability declaredNullability;
+
+  final StructuralParameter parameter;
+
+  StructuralParameterType(this.parameter, this.declaredNullability);
+
+  /// Creates a structural parameter type to be used in alpha-renaming.
+  ///
+  /// The constructed type object is supposed to be used as a value in a
+  /// substitution map created to perform an alpha-renaming from the parameter
+  /// [from] to the parameter [to] on a generic type. The resulting structural
+  /// parameter type is an occurrence of [to] as a type, but the nullability
+  /// property is derived from the bound of [from].
+  StructuralParameterType.forAlphaRenaming(
+      StructuralParameter from, StructuralParameter to)
+      : this(to, computeNullabilityFromBound(from));
+
+  StructuralParameterType.forAlphaRenamingFromTypeParameters(
+      TypeParameter from, StructuralParameter to)
+      : this(to, TypeParameterType.computeNullabilityFromBound(from));
+
+  /// Creates a type-parameter type with default nullability for the library.
+  ///
+  /// The nullability is computed as if the programmer omitted the modifier. It
+  /// means that in the opt-out libraries `Nullability.legacy` will be used, and
+  /// in opt-in libraries either `Nullability.nonNullable` or
+  /// `Nullability.undetermined` will be used, depending on the nullability of
+  /// the bound of [parameter].
+  StructuralParameterType.withDefaultNullabilityForLibrary(
+      this.parameter, Library library)
+      : declaredNullability = library.isNonNullableByDefault
+            ? computeNullabilityFromBound(parameter)
+            : Nullability.legacy;
+
+  @override
+  DartType get resolveTypeParameterType => bound.resolveTypeParameterType;
+
+  @override
+  R accept<R>(DartTypeVisitor<R> v) => v.visitStructuralParameterType(this);
+
+  @override
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitStructuralParameterType(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
+  bool operator ==(Object other) => equals(other, null);
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (identical(this, other)) {
+      return true;
+    } else if (other is StructuralParameterType) {
+      if (nullability != other.nullability) return false;
+      if (parameter != other.parameter) {
+        // Function type parameters are also equal by assumption.
+        if (assumptions == null) {
+          return false;
+        }
+        if (!assumptions.isAssumedStructuralParameter(
+            parameter, other.parameter)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  int get hashCode {
+    // TODO(johnniwinther): Since we use a unification strategy for function
+    //  type parameter equality, we have to assume they can end up being
+    //  equal. Maybe we should change the equality strategy.
+    int hash = 0;
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
+
+  /// A quick access to the bound of the parameter.
+  DartType get bound => parameter.bound;
+
+  @override
+  Nullability get nullability => declaredNullability;
+
+  /// Gets a new [StructuralParameterType] with given [declaredNullability].
+  @override
+  StructuralParameterType withDeclaredNullability(
+      Nullability declaredNullability) {
+    if (declaredNullability == this.declaredNullability) {
+      return this;
+    }
+    return new StructuralParameterType(parameter, declaredNullability);
+  }
+
+  /// Gets the nullability of a structural parameter type based on the bound.
+  ///
+  /// This is a helper function to be used when the bound of the structural
+  /// parameter is changing or is being set for the first time, and the update
+  /// on some structural parameter types is required.
+  static Nullability computeNullabilityFromBound(
+      StructuralParameter structuralParameter) {
+    // If the bound is nullable or 'undetermined', both nullable and
+    // non-nullable types can be passed in for the type parameter, making the
+    // corresponding type parameter types 'undetermined.'  Otherwise, the
+    // nullability matches that of the bound.
+    DartType bound = structuralParameter.bound;
+    if (identical(bound, StructuralParameter.unsetBoundSentinel)) {
+      throw new StateError("Can't compute nullability from an absent bound.");
+    }
+
+    // If a type parameter's nullability depends on itself, it is deemed
+    // 'undetermined'. Currently, it's possible if the type parameter has a
+    // possibly nested FutureOr containing that type parameter.  If there are
+    // other ways for such a dependency to exist, they should be checked here.
+    bool nullabilityDependsOnItself = false;
+    {
+      DartType type = structuralParameter.bound;
+      while (type is FutureOrType) {
+        type = type.typeArgument;
+      }
+      if (type is StructuralParameterType &&
+          type.parameter == structuralParameter) {
+        nullabilityDependsOnItself = true;
+      }
+    }
+    if (nullabilityDependsOnItself) {
+      return Nullability.undetermined;
+    }
+
+    Nullability boundNullability =
+        bound is InvalidType ? Nullability.undetermined : bound.nullability;
+    return boundNullability == Nullability.nullable ||
+            boundNullability == Nullability.undetermined
+        ? Nullability.undetermined
+        : boundNullability;
+  }
+
+  @override
+  String toString() {
+    return "StructuralParameterType(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeStructuralParameterName(parameter);
     printer.writeNullability(declaredNullability);
   }
 }
@@ -12642,6 +12906,46 @@ class TypeParameter extends TreeNode implements Annotatable {
   // Must match serialized bit positions.
   static const int FlagCovariantByClass = 1 << 0;
 
+  @Deprecated("Used TypeParameter.declaration instead.")
+  @override
+  TreeNode? get parent;
+
+  @Deprecated("Used TypeParameter.declaration instead.")
+  @override
+  void set parent(TreeNode? value);
+
+  GenericDeclaration? get declaration {
+    // TODO(johnniwinther): Store the declaration directly when [parent] is
+    // removed.
+    TreeNode? parent = super.parent;
+    if (parent is GenericDeclaration) {
+      return parent;
+    } else if (parent is FunctionNode) {
+      return parent.parent as GenericDeclaration;
+    }
+    assert(
+        parent == null,
+        "Unexpected type parameter parent node "
+        "${parent} (${parent.runtimeType}).");
+    return null;
+  }
+
+  void set declaration(GenericDeclaration? value) {
+    switch (value) {
+      case Typedef():
+      case Class():
+      case Extension():
+      case ExtensionTypeDeclaration():
+        super.parent = value;
+      case Procedure():
+        super.parent = value.function;
+      case LocalFunction():
+        super.parent = value.function;
+      case null:
+        super.parent = null;
+    }
+  }
+
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether the method implementation needs to contain a runtime type check to
   /// deal with generic covariance.
@@ -12703,7 +13007,96 @@ class TypeParameter extends TreeNode implements Annotatable {
     printer.writeTypeParameterName(this);
   }
 
-  bool get isFunctionTypeTypeParameter => parent == null;
+  bool get isStructuralParameter => declaration == null;
+}
+
+/// Declaration of a type variable by a [FunctionType]
+///
+/// [StructuralParameter] objects should not be shared between different
+/// [FunctionType] objects.
+class StructuralParameter extends Node {
+  int flags = 0;
+
+  String? name; // Cosmetic name.
+
+  static const int noOffset = -1;
+
+  /// Offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([noOffset]) if the file offset is
+  /// not available (this is the default if none is specifically set).
+  int fileOffset = noOffset;
+
+  Uri? uri;
+
+  /// Sentinel value used for the [bound] that has not yet been computed.
+  ///
+  /// This is needed to make the [bound] field non-nullable while supporting
+  /// recursive bounds.
+  static final DartType unsetBoundSentinel = new InvalidType();
+
+  /// The bound on the type variable.
+  ///
+  /// This is set to [unsetBoundSentinel] temporarily during IR construction.
+  /// This is set to the `Object?` for type parameters without an explicit
+  /// bound.
+  DartType bound;
+
+  /// Sentinel value used for the [defaultType] that has not yet been computed.
+  ///
+  /// This is needed to make the [defaultType] field non-nullable while
+  /// supporting recursive bounds for which the default type need to be set
+  /// late.
+  static final DartType unsetDefaultTypeSentinel = new InvalidType();
+
+  /// The default value of the type variable.
+  ///
+  /// It is used to provide the corresponding missing type argument in type
+  /// annotations and as the fall-back type value in type inference at compile
+  /// time. At run time, [defaultType] is used by the backends in place of the
+  /// missing type argument of a dynamic invocation of a generic function.
+  DartType defaultType;
+
+  /// Variance of type parameter w.r.t. declaration on which it is defined.
+  int? _variance;
+
+  int get variance => _variance ?? Variance.covariant;
+
+  void set variance(int? newVariance) => _variance = newVariance;
+
+  bool get isLegacyCovariant => _variance == null;
+
+  static const int legacyCovariantSerializationMarker = 4;
+
+  StructuralParameter([this.name, DartType? bound, DartType? defaultType])
+      : bound = bound ?? unsetBoundSentinel,
+        defaultType = defaultType ?? unsetDefaultTypeSentinel;
+
+  @override
+  R accept<R>(Visitor<R> v) => v.visitStructuralParameter(this);
+
+  @override
+  R accept1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitStructuralParameter(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    bound.accept(v);
+    defaultType.accept(v);
+  }
+
+  /// Returns a possibly synthesized name for this type parameter
+  ///
+  /// Consistent with the names used across all [toString] calls.
+  @override
+  String toString() {
+    return "StructuralParameter(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeStructuralParameterName(this);
+  }
 }
 
 class Supertype extends Node {
@@ -12730,7 +13123,8 @@ class Supertype extends Node {
   }
 
   InterfaceType get asInterfaceType {
-    return new InterfaceType(classNode, Nullability.legacy, typeArguments);
+    return new InterfaceType(
+        classNode, classNode.enclosingLibrary.nonNullable, typeArguments);
   }
 
   @override
@@ -12773,7 +13167,7 @@ class Supertype extends Node {
 //                             CONSTANTS
 // ------------------------------------------------------------------------
 
-abstract class Constant extends Node {
+sealed class Constant extends Node {
   /// Calls the `visit*ConstantReference()` method on visitor [v] for all
   /// constants referenced in this constant.
   ///
@@ -12791,10 +13185,10 @@ abstract class Constant extends Node {
   R accept1<R, A>(ConstantVisitor1<R, A> v, A arg);
 
   /// Calls the `visit*ConstantReference()` method on the visitor [v].
-  R acceptReference<R>(Visitor<R> v);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v);
 
   /// Calls the `visit*ConstantReference()` method on the visitor [v].
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg);
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg);
 
   /// The Kernel AST will reference [Constant]s via [ConstantExpression]s.  The
   /// constants are not required to be canonicalized, but they have to be deeply
@@ -12825,7 +13219,24 @@ abstract class Constant extends Node {
   DartType getType(StaticTypeContext context);
 }
 
-abstract class PrimitiveConstant<T> extends Constant {
+abstract class AuxiliaryConstant extends Constant {
+  @override
+  R accept<R>(ConstantVisitor<R> v) => v.visitAuxiliaryConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryConstant(this, arg);
+
+  @override
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitAuxiliaryConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
+      v.visitAuxiliaryConstantReference(this, arg);
+}
+
+sealed class PrimitiveConstant<T> extends Constant {
   final T value;
 
   PrimitiveConstant(this.value);
@@ -12857,10 +13268,11 @@ class NullConstant extends PrimitiveConstant<Null> {
       v.visitNullConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitNullConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitNullConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitNullConstantReference(this, arg);
 
   @override
@@ -12884,10 +13296,11 @@ class BoolConstant extends PrimitiveConstant<bool> {
       v.visitBoolConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitBoolConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitBoolConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitBoolConstantReference(this, arg);
 
   @override
@@ -12913,10 +13326,11 @@ class IntConstant extends PrimitiveConstant<int> {
       v.visitIntConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitIntConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitIntConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitIntConstantReference(this, arg);
 
   @override
@@ -12942,10 +13356,11 @@ class DoubleConstant extends PrimitiveConstant<double> {
       v.visitDoubleConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitDoubleConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitDoubleConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitDoubleConstantReference(this, arg);
 
   @override
@@ -12977,10 +13392,11 @@ class StringConstant extends PrimitiveConstant<String> {
       v.visitStringConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitStringConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitStringConstantReference(this, arg);
 
   @override
@@ -13015,10 +13431,11 @@ class SymbolConstant extends Constant {
       v.visitSymbolConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitSymbolConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitSymbolConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitSymbolConstantReference(this, arg);
 
   @override
@@ -13074,10 +13491,11 @@ class MapConstant extends Constant {
       v.visitMapConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitMapConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitMapConstantReference(this, arg);
 
   @override
@@ -13168,10 +13586,11 @@ class ListConstant extends Constant {
       v.visitListConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitListConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitListConstantReference(this, arg);
 
   @override
@@ -13229,10 +13648,11 @@ class SetConstant extends Constant {
       v.visitSetConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitSetConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitSetConstantReference(this, arg);
 
   @override
@@ -13318,10 +13738,11 @@ class RecordConstant extends Constant {
       v.visitRecordConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitRecordConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitRecordConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitRecordConstantReference(this, arg);
 
   @override
@@ -13397,10 +13818,11 @@ class InstanceConstant extends Constant {
       v.visitInstanceConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
+      v.visitInstanceConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitInstanceConstantReference(this, arg);
 
   @override
@@ -13461,11 +13883,11 @@ class InstantiationConstant extends Constant {
       v.visitInstantiationConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) =>
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
       v.visitInstantiationConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitInstantiationConstantReference(this, arg);
 
   @override
@@ -13491,11 +13913,7 @@ class InstantiationConstant extends Constant {
   @override
   DartType getType(StaticTypeContext context) {
     final FunctionType type = tearOffConstant.getType(context) as FunctionType;
-    final Map<TypeParameter, DartType> mapping = <TypeParameter, DartType>{};
-    for (final TypeParameter parameter in type.typeParameters) {
-      mapping[parameter] = types[mapping.length];
-    }
-    return substitute(type.withoutTypeParameters, mapping);
+    return FunctionTypeInstantiator.instantiate(type, types);
   }
 }
 
@@ -13536,11 +13954,11 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
       v.visitStaticTearOffConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) =>
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
       v.visitStaticTearOffConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitStaticTearOffConstantReference(this, arg);
 
   @override
@@ -13597,11 +14015,11 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
       v.visitConstructorTearOffConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) =>
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
       v.visitConstructorTearOffConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitConstructorTearOffConstantReference(this, arg);
 
   @override
@@ -13658,11 +14076,11 @@ class RedirectingFactoryTearOffConstant extends Constant
       v.visitRedirectingFactoryTearOffConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) =>
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
       v.visitRedirectingFactoryTearOffConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitRedirectingFactoryTearOffConstantReference(this, arg);
 
   @override
@@ -13714,11 +14132,11 @@ class TypedefTearOffConstant extends Constant {
       v.visitTypedefTearOffConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) =>
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
       v.visitTypedefTearOffConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitTypedefTearOffConstantReference(this, arg);
 
   @override
@@ -13773,15 +14191,14 @@ class TypedefTearOffConstant extends Constant {
   @override
   DartType getType(StaticTypeContext context) {
     FunctionType type = tearOffConstant.getType(context) as FunctionType;
-    FreshTypeParameters freshTypeParameters =
-        getFreshTypeParameters(parameters);
-    type = freshTypeParameters.substitute(
-        Substitution.fromPairs(type.typeParameters, types)
-            .substituteType(type.withoutTypeParameters)) as FunctionType;
+    FreshStructuralParametersFromTypeParameters freshStructuralParameters =
+        getFreshStructuralParametersFromTypeParameters(parameters);
+    type = freshStructuralParameters.substitute(
+        FunctionTypeInstantiator.instantiate(type, types)) as FunctionType;
     return new FunctionType(
         type.positionalParameters, type.returnType, type.declaredNullability,
         namedParameters: type.namedParameters,
-        typeParameters: freshTypeParameters.freshTypeParameters,
+        typeParameters: freshStructuralParameters.freshTypeParameters,
         requiredParameterCount: type.requiredParameterCount);
   }
 }
@@ -13804,11 +14221,11 @@ class TypeLiteralConstant extends Constant {
       v.visitTypeLiteralConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) =>
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
       v.visitTypeLiteralConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitTypeLiteralConstantReference(this, arg);
 
   @override
@@ -13852,11 +14269,11 @@ class UnevaluatedConstant extends Constant {
       v.visitUnevaluatedConstant(this, arg);
 
   @override
-  R acceptReference<R>(Visitor<R> v) =>
+  R acceptReference<R>(ConstantReferenceVisitor<R> v) =>
       v.visitUnevaluatedConstantReference(this);
 
   @override
-  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+  R acceptReference1<R, A>(ConstantReferenceVisitor1<R, A> v, A arg) =>
       v.visitUnevaluatedConstantReference(this, arg);
 
   @override
@@ -14146,6 +14563,15 @@ abstract class BinarySink {
       bool variableScope = false});
   void leaveScope(
       {List<TypeParameter> typeParameters,
+      bool memberScope = false,
+      bool variableScope = false});
+
+  void enterFunctionTypeScope(
+      {List<StructuralParameter> typeParameters,
+      bool memberScope = false,
+      bool variableScope = false});
+  void leaveFunctionTypeScope(
+      {List<StructuralParameter> typeParameters,
       bool memberScope = false,
       bool variableScope = false});
 }
@@ -14656,6 +15082,11 @@ final List<NamedType> emptyListOfNamedType =
 final List<TypeParameter> emptyListOfTypeParameter =
     List.filled(0, dummyTypeParameter, growable: false);
 
+/// Almost const <StructuralParameter>[], but not const in an attempt to
+/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<StructuralParameter> emptyListOfStructuralParameter =
+    List.filled(0, dummyStructuralParameter, growable: false);
+
 /// Almost const <Constant>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Constant> emptyListOfConstant =
@@ -14839,7 +15270,8 @@ final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
     new ExtensionMemberDescriptor(
         name: dummyName,
         kind: ExtensionMemberKind.Getter,
-        member: dummyReference);
+        member: dummyReference,
+        tearOff: null);
 
 /// Non-nullable [ExtensionTypeDeclaration] dummy value.
 ///
@@ -14858,7 +15290,8 @@ final ExtensionTypeMemberDescriptor dummyExtensionTypeMemberDescriptor =
     new ExtensionTypeMemberDescriptor(
         name: dummyName,
         kind: ExtensionTypeMemberKind.Getter,
-        member: dummyReference);
+        member: dummyReference,
+        tearOff: null);
 
 /// Non-nullable [ExtensionType] dummy value.
 ///
@@ -14965,6 +15398,13 @@ final VariableDeclaration dummyVariableDeclaration =
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final TypeParameter dummyTypeParameter = new TypeParameter();
+
+/// Non-nullable [StructuralParameter] dummy value.
+///
+/// This is used as the removal sentinel in [RemovingTransformer] and can be
+/// used for instance as a dummy initial value for the `List.filled`
+/// constructor.
+final StructuralParameter dummyStructuralParameter = new StructuralParameter();
 
 /// Non-nullable [MapLiteralEntry] dummy value.
 ///

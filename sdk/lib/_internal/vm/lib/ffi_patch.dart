@@ -92,42 +92,52 @@ external DS _asFunctionInternal<DS extends Function, NS extends Function>(
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt8Array")
 external Int8List _asExternalTypedDataInt8(Pointer<Int8> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt16Array")
 external Int16List _asExternalTypedDataInt16(Pointer<Int16> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt32Array")
 external Int32List _asExternalTypedDataInt32(Pointer<Int32> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalInt64Array")
 external Int64List _asExternalTypedDataInt64(Pointer<Int64> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint8Array")
 external Uint8List _asExternalTypedDataUint8(Pointer<Uint8> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint16Array")
 external Uint16List _asExternalTypedDataUint16(Pointer<Uint16> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint32Array")
 external Uint32List _asExternalTypedDataUint32(Pointer<Uint32> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalUint64Array")
 external Uint64List _asExternalTypedDataUint64(Pointer<Uint64> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalFloat32Array")
 external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
+@pragma("vm:exact-result-type", "dart:typed_data#_ExternalFloat64Array")
 external Float64List _asExternalTypedDataDouble(
     Pointer<Double> ptr, int length);
 
@@ -217,16 +227,34 @@ abstract final class _NativeCallableBase<T extends Function>
   _NativeCallableBase(this._pointer);
 
   @override
-  Pointer<NativeFunction<T>> get nativeFunction => _pointer;
+  Pointer<NativeFunction<T>> get nativeFunction {
+    if (_isClosed) {
+      throw StateError("NativeCallable is already closed.");
+    }
+    return _pointer;
+  }
 
   @override
   void close() {
-    if (_pointer == nullptr) {
-      throw StateError("NativeCallable is already closed.");
+    if (!_isClosed) {
+      _deleteNativeCallable(_pointer);
+      _pointer = nullptr;
     }
-    _deleteNativeCallable(_pointer);
-    _pointer = nullptr;
   }
+
+  @override
+  void set keepIsolateAlive(bool value) {
+    if (!_isClosed) {
+      _setKeepIsolateAlive(value);
+    }
+  }
+
+  @override
+  bool get keepIsolateAlive => _isClosed ? false : _getKeepIsolateAlive();
+
+  void _setKeepIsolateAlive(bool value);
+  bool _getKeepIsolateAlive();
+  bool get _isClosed => _pointer == nullptr;
 }
 
 final class _NativeCallableIsolateLocal<T extends Function>
@@ -242,13 +270,6 @@ final class _NativeCallableIsolateLocal<T extends Function>
   }
 
   @override
-  void set keepIsolateAlive(bool value) {
-    if (_pointer == nullptr) {
-      throw StateError("NativeCallable is already closed.");
-    }
-    _setKeepIsolateAlive(value);
-  }
-
   void _setKeepIsolateAlive(bool value) {
     if (_keepIsolateAlive != value) {
       _keepIsolateAlive = value;
@@ -257,7 +278,7 @@ final class _NativeCallableIsolateLocal<T extends Function>
   }
 
   @override
-  bool get keepIsolateAlive => _keepIsolateAlive;
+  bool _getKeepIsolateAlive() => _keepIsolateAlive;
 }
 
 final class _NativeCallableListener<T extends Function>
@@ -276,12 +297,12 @@ final class _NativeCallableListener<T extends Function>
   }
 
   @override
-  void set keepIsolateAlive(bool value) {
+  void _setKeepIsolateAlive(bool value) {
     _port.keepIsolateAlive = value;
   }
 
   @override
-  bool get keepIsolateAlive => _port.keepIsolateAlive;
+  bool _getKeepIsolateAlive() => _port.keepIsolateAlive;
 }
 
 @patch

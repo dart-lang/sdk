@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method test() → dynamic {
+  core::Map<<unrelated T extends core::Object? = dynamic>() → mai::A<core::int?>, core::bool> m = #C6;
+  core::Map<<unrelated T extends core::Object? = dynamic>() → mai::A<core::int?>, core::bool> n = #C6;
+}
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+typedef C<unrelated T extends core::Object? = dynamic> = mai::A<core::int>;
+typedef D<unrelated T extends core::Object? = dynamic> = mai::A<core::int?>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → mai::A<mai::A::T%>
+    : super core::Object::•()
+    ;
+}
+static const field <unrelated T extends core::Object? = dynamic>() → mai::A<core::int> c = #C2;
+static const field <unrelated T extends core::Object? = dynamic>() → mai::A<core::int?> d = #C4;
+
+constants  {
+  #C1 = constructor-tearoff mai::A::•
+  #C2 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C1<core::int>)
+  #C3 = true
+  #C4 = typedef-tearoff <unrelated T extends core::Object? = dynamic>.(#C1<core::int?>)
+  #C5 = false
+  #C6 = <<unrelated T extends core::Object? = dynamic>() →* mai::A<core::int?>*, core::bool*>{#C2:#C3, #C4:#C5}
+}

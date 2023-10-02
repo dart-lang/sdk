@@ -31,7 +31,7 @@ class Class3 extends core::Object {
 extension Extension1 on self::Class1 {
   get nullable1 = self::Extension1|get#nullable1;
   method nonNullable1Method = self::Extension1|nonNullable1Method;
-  tearoff nonNullable1Method = self::Extension1|get#nonNullable1Method;
+  method tearoff nonNullable1Method = self::Extension1|get#nonNullable1Method;
   operator [] = self::Extension1|[];
   operator []= = self::Extension1|[]=;
   operator + = self::Extension1|+;
@@ -42,7 +42,7 @@ extension Extension1 on self::Class1 {
 }
 extension Extension2 on self::Class2 {
   method nonNullable2Method = self::Extension2|nonNullable2Method;
-  tearoff nonNullable2Method = self::Extension2|get#nonNullable2Method;
+  method tearoff nonNullable2Method = self::Extension2|get#nonNullable2Method;
   operator [] = self::Extension2|[];
   operator []= = self::Extension2|[]=;
   operator + = self::Extension2|+;

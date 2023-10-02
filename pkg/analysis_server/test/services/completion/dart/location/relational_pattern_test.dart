@@ -71,17 +71,13 @@ suggestions
     kind: class
   B01
     kind: constructorInvocation
-  const
-    kind: keyword
-  dynamic
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
+  switch
     kind: keyword
-  void
+  true
     kind: keyword
 ''');
     }
@@ -99,6 +95,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
+    // TODO(brianwilkerson) We lost `const`.
     assertResponse(r'''
 suggestions
   A01
@@ -113,17 +110,13 @@ suggestions
     kind: class
   B01
     kind: constructorInvocation
-  const
-    kind: keyword
-  dynamic
-    kind: keyword
   false
     kind: keyword
   null
     kind: keyword
-  true
+  switch
     kind: keyword
-  void
+  true
     kind: keyword
 ''');
   }

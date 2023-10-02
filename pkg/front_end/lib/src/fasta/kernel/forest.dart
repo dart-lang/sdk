@@ -949,7 +949,7 @@ class Forest {
   }
 }
 
-class _VariablesDeclaration extends Statement {
+class _VariablesDeclaration extends AuxiliaryStatement {
   final List<VariableDeclaration> declarations;
   final Uri uri;
 

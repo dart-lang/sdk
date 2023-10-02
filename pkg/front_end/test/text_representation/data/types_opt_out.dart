@@ -42,11 +42,25 @@ futureOrType(
         /*normal|limited.FutureOr<int*>**/
         /*verbose.FutureOr<dart.core::int*>**/
         o) {}
-typeVariableType1<T>(T /*T**/ o) {}
-typeVariableType2<T extends num>(T /*T**/ o) {}
-typeVariableType3<T extends S, S>(T /*T**/ o, S /*S**/ p) {}
-typeVariableType4<T, S extends T>(T /*T**/ o, S /*S**/ p) {}
-typeVariableType5<T extends Object>(T /*T**/ o) {}
+typeVariableType1<T>(
+    T /*normal|limited.typeVariableType1.T**/ /*verbose.test::typeVariableType1.T**/
+        o) {}
+typeVariableType2<T extends num>(
+    T /*normal|limited.typeVariableType2.T**/ /*verbose.test::typeVariableType2.T**/
+        o) {}
+typeVariableType3<T extends S, S>(
+    T /*normal|limited.typeVariableType3.T**/ /*verbose.test::typeVariableType3.T**/
+        o,
+    S /*normal|limited.typeVariableType3.S**/ /*verbose.test::typeVariableType3.S**/
+        p) {}
+typeVariableType4<T, S extends T>(
+    T /*normal|limited.typeVariableType4.T**/ /*verbose.test::typeVariableType4.T**/
+        o,
+    S /*normal|limited.typeVariableType4.S**/ /*verbose.test::typeVariableType4.S**/
+        p) {}
+typeVariableType5<T extends Object>(
+    T /*normal|limited.typeVariableType5.T**/ /*verbose.test::typeVariableType5.T**/
+        o) {}
 functionType1(void Function() /*void Function()**/ o) {}
 functionType2(
     int Function(int)
