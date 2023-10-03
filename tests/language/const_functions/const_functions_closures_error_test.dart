@@ -34,11 +34,10 @@ int fn3() {
     return x;
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'x' can't be referenced before it is declared.
   }
 
   const x = 0;
-  //    ^
-  // [cfe] Can't declare 'x' because it was already used in this scope.
   return innerFn();
 }
 
@@ -50,10 +49,9 @@ int fn4() {
     return x;
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'x' can't be referenced before it is declared.
   };
   var x = 1;
-  //  ^
-  // [cfe] Can't declare 'x' because it was already used in this scope.
   return a();
 }
 
@@ -62,11 +60,12 @@ const var5 = fn5(1);
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 fn5(a) {
   var a = () => a;
-  //  ^
-  // [cfe] Can't declare 'a' because it was already used in this scope.
   //            ^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  // [cfe] Local variable 'a' can't be referenced before it is declared.
   return a();
+  //      ^
+  // [cfe] Unary 'call' operation is not a constant expression.
 }
 
 const x = 0;

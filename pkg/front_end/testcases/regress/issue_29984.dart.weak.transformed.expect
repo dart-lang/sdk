@@ -6,20 +6,18 @@ library;
 //   for (int i = i;; false) {}
 //                ^
 //
-// pkg/front_end/testcases/regress/issue_29984.dart:6:12: Error: Can't declare 'i' because it was already used in this scope.
-//   for (int i = i;; false) {}
-//            ^
-// pkg/front_end/testcases/regress/issue_29984.dart:6:16: Context: Previous use of 'i'.
+// pkg/front_end/testcases/regress/issue_29984.dart:6:16: Error: Local variable 'i' can't be referenced before it is declared.
 //   for (int i = i;; false) {}
 //                ^
+// pkg/front_end/testcases/regress/issue_29984.dart:6:12: Context: This is the declaration of the variable 'i'.
+//   for (int i = i;; false) {}
+//            ^
 //
 import self as self;
 import "dart:core" as core;
 
 static method bad() → dynamic {
-  for (core::int i = invalid-expression "pkg/front_end/testcases/regress/issue_29984.dart:6:12: Error: Can't declare 'i' because it was already used in this scope.
-  for (int i = i;; false) {}
-           ^" in invalid-expression "pkg/front_end/testcases/regress/issue_29984.dart:6:16: Error: Undefined name 'i'.
+  for (core::int i = invalid-expression "pkg/front_end/testcases/regress/issue_29984.dart:6:16: Error: Undefined name 'i'.
   for (int i = i;; false) {}
                ^"; ; false) {
   }

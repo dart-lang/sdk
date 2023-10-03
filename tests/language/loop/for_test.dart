@@ -87,6 +87,6 @@ main() {
 void testShadowLocal() {
   List<int> x = [1, 2, 3];
   for (var x = x;;) break;
-  //       ^
-  // [cfe] Can't declare 'x' because it was already used in this scope.
+  //           ^
+  // [cfe] Local variable 'x' can't be referenced before it is declared.
 }

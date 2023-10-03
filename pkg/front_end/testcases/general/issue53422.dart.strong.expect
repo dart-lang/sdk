@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue53422.dart:6:7: Error: Local variable 'x' can't be referenced before it is declared.
+//   y = x;
+//       ^
+// pkg/front_end/testcases/general/issue53422.dart:7:11: Context: This is the declaration of the variable 'x'.
+//   dynamic x;
+//           ^
+//
+import self as self;
+
+static method foo(dynamic x, dynamic y) → dynamic {
+  y = x;
+  dynamic x;
+}
