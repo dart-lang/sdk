@@ -3152,6 +3152,8 @@ class List<E> extends Iterable<E> {
   void add(E element) {}
   void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
+  int get length => 0;
+  List<E> sublist(int start, [int? end]) => this;
 }
 
 class _GrowableList<E> implements List<E> {
@@ -3254,6 +3256,8 @@ class int extends num {
 
 class num {
   num operator -() => this;
+  num operator -(num other) => this;
+  bool operator >=(num other) => false;
 }
 
 class Function {}

@@ -70,7 +70,9 @@ import '../fasta_codes.dart'
         noLength,
         templateDuplicatedRecordLiteralFieldName,
         templateDuplicatedRecordLiteralFieldNameContext,
-        templateExperimentNotEnabledOffByDefault;
+        templateExperimentNotEnabledOffByDefault,
+        templateLocalVariableUsedBeforeDeclared,
+        templateLocalVariableUsedBeforeDeclaredContext;
 import '../identifiers.dart'
     show
         Identifier,
@@ -746,17 +748,25 @@ class BodyBuilder extends StackListenerImpl
     if (isGuardScope(scope)) {
       (declaredInCurrentGuard ??= {}).add(variable);
     }
-    LocatedMessage? context = scope.declare(
-        variable.name!, new VariableBuilderImpl(variable, uri), uri);
-    if (context != null) {
+    String variableName = variable.name!;
+    List<int>? previousOffsets = scope.declare(
+        variableName, new VariableBuilderImpl(variable, uri), uri);
+    if (previousOffsets != null && previousOffsets.isNotEmpty) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
       // }}`. In this case, we want two errors, the `x` in `print(x)` and the
       // second (or innermost declaration) of `x`.
-      wrapVariableInitializerInError(
-          variable,
-          fasta.templateDuplicatedNamePreviouslyUsed,
-          <LocatedMessage>[context]);
+      for (int previousOffset in previousOffsets) {
+        addProblem(
+            templateLocalVariableUsedBeforeDeclared.withArguments(variableName),
+            previousOffset,
+            variableName.length,
+            context: <LocatedMessage>[
+              templateLocalVariableUsedBeforeDeclaredContext
+                  .withArguments(variableName)
+                  .withLocation(uri, variable.fileOffset, variableName.length)
+            ]);
+      }
     }
   }
 
@@ -8114,7 +8124,7 @@ class BodyBuilder extends StackListenerImpl
             scope.kind == ScopeKind.jointVariables,
         "Expected the current scope to be of kind '${ScopeKind.switchCase}' "
         "or '${ScopeKind.jointVariables}', but got '${scope.kind}.");
-    Map<String, int>? usedNamesOffsets = scope.usedNames;
+    Map<String, List<int>>? usedNamesOffsets = scope.usedNames;
 
     bool hasDefaultOrLabels = defaultKeyword != null || labelCount > 0;
 
@@ -8124,10 +8134,9 @@ class BodyBuilder extends StackListenerImpl
       usedJointPatternVariables = [];
       Map<VariableDeclaration, int> firstUseOffsets = {};
       for (VariableDeclaration variable in jointPatternVariables) {
-        int? firstUseOffset = usedNamesOffsets?[variable.name!];
-        if (firstUseOffset != null) {
+        if (usedNamesOffsets?[variable.name!] case [int offset, ...]) {
           usedJointPatternVariables.add(variable);
-          firstUseOffsets[variable] = firstUseOffset;
+          firstUseOffsets[variable] = offset;
         }
       }
       if (jointPatternVariablesWithMismatchingFinality != null ||
@@ -8190,8 +8199,7 @@ class BodyBuilder extends StackListenerImpl
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
           String variableName = variable.name!;
-          int? offset = usedNamesOffsets[variableName];
-          if (offset != null) {
+          if (usedNamesOffsets[variableName] case [int offset, ...]) {
             addProblem(
                 fasta.templateJointPatternVariableWithLabelDefault
                     .withArguments(variableName),

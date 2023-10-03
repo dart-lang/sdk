@@ -2895,55 +2895,6 @@ Message _withArgumentsDuplicatedModifier(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            name)> templateDuplicatedNamePreviouslyUsed = const Template<
-        Message Function(String name)>("DuplicatedNamePreviouslyUsed",
-    problemMessageTemplate:
-        r"""Can't declare '#name' because it was already used in this scope.""",
-    withArguments: _withArgumentsDuplicatedNamePreviouslyUsed);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedNamePreviouslyUsed =
-    const Code<Message Function(String name)>("DuplicatedNamePreviouslyUsed",
-        analyzerCodes: <String>["REFERENCED_BEFORE_DECLARATION"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedNamePreviouslyUsed(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedNamePreviouslyUsed,
-      problemMessage:
-          """Can't declare '${name}' because it was already used in this scope.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateDuplicatedNamePreviouslyUsedCause =
-    const Template<Message Function(String name)>(
-        "DuplicatedNamePreviouslyUsedCause",
-        problemMessageTemplate: r"""Previous use of '#name'.""",
-        withArguments: _withArgumentsDuplicatedNamePreviouslyUsedCause);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeDuplicatedNamePreviouslyUsedCause =
-    const Code<Message Function(String name)>(
-        "DuplicatedNamePreviouslyUsedCause",
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedNamePreviouslyUsedCause(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedNamePreviouslyUsedCause,
-      problemMessage: """Previous use of '${name}'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedNamedArgument =
     const Template<Message Function(String name)>("DuplicatedNamedArgument",
         problemMessageTemplate: r"""Duplicated named argument '#name'.""",
@@ -9266,6 +9217,56 @@ const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
     analyzerCodes: <String>["LOAD_LIBRARY_TAKES_NO_ARGUMENTS"],
     problemMessage: r"""'loadLibrary' takes no arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateLocalVariableUsedBeforeDeclared = const Template<
+        Message Function(String name)>("LocalVariableUsedBeforeDeclared",
+    problemMessageTemplate:
+        r"""Local variable '#name' can't be referenced before it is declared.""",
+    withArguments: _withArgumentsLocalVariableUsedBeforeDeclared);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeLocalVariableUsedBeforeDeclared =
+    const Code<Message Function(String name)>("LocalVariableUsedBeforeDeclared",
+        analyzerCodes: <String>["REFERENCED_BEFORE_DECLARATION"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLocalVariableUsedBeforeDeclared(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeLocalVariableUsedBeforeDeclared,
+      problemMessage:
+          """Local variable '${name}' can't be referenced before it is declared.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateLocalVariableUsedBeforeDeclaredContext =
+    const Template<Message Function(String name)>(
+        "LocalVariableUsedBeforeDeclaredContext",
+        problemMessageTemplate:
+            r"""This is the declaration of the variable '#name'.""",
+        withArguments: _withArgumentsLocalVariableUsedBeforeDeclaredContext);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeLocalVariableUsedBeforeDeclaredContext =
+    const Code<Message Function(String name)>(
+        "LocalVariableUsedBeforeDeclaredContext",
+        severity: Severity.context);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLocalVariableUsedBeforeDeclaredContext(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeLocalVariableUsedBeforeDeclaredContext,
+      problemMessage: """This is the declaration of the variable '${name}'.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

@@ -1133,10 +1133,10 @@ abstract class TypeConstraintGatherer {
       freshTypeVariablesAsTypes.add(variableFresh);
       DartType bound1 = new FunctionTypeInstantiator.fromIterables(
               params1.sublist(0, i + 1), freshTypeVariablesAsTypes)
-          .visit(params1[i].bound);
+          .substitute(params1[i].bound);
       DartType bound2 = new FunctionTypeInstantiator.fromIterables(
               params2.sublist(0, i + 1), freshTypeVariablesAsTypes)
-          .visit(params2[i].bound);
+          .substitute(params2[i].bound);
       pFresh.bound = bound2;
       if (!_isNullabilityObliviousSubtypeMatch(bound2, bound1)) return false;
     }

@@ -9,21 +9,27 @@ main() {
   Expect.isTrue(2 is int);
   //                 ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
+  // [cfe] Local variable 'int' can't be referenced before it is declared.
   Expect.equals(2, 2 as int);
   //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
+  // [cfe] Local variable 'int' can't be referenced before it is declared.
   Expect.isTrue(-2 is int);
   //                  ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
+  // [cfe] Local variable 'int' can't be referenced before it is declared.
   Expect.equals(-2, -2 as int);
   //                      ^^^
   // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
+  // [cfe] Local variable 'int' can't be referenced before it is declared.
   Expect.isTrue(0x10 is int);
   //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
+  // [cfe] Local variable 'int' can't be referenced before it is declared.
   Expect.isTrue(-0x10 is int);
   //                     ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
+  // [cfe] Local variable 'int' can't be referenced before it is declared.
 
   // "a" will be part of hex literal, the following "s" is an error.
   0x10as int;
@@ -33,8 +39,6 @@ main() {
 //     ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 's' isn't a type.
-//       ^
-// [cfe] Can't declare 'int' because it was already used in this scope.
   0x;
 //^
 // [cfe] A hex digit (0-9 or A-F) must follow '0x'.

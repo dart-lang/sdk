@@ -250,7 +250,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (!hasOmittedBound(typeParam)) {
         extendsConstraint = new FunctionTypeInstantiator.fromIterables(
                 typeParametersToInfer, inferredTypes)
-            .visit(typeParamBound);
+            .substitute(typeParamBound);
       }
 
       TypeConstraint constraint = constraints[typeParam]!;

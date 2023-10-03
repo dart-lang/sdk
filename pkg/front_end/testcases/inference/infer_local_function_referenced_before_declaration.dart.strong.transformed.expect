@@ -6,12 +6,12 @@ library test;
 //   /*@returnType=invalid-type*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
 //                                                                               ^
 //
-// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:14:3: Error: Can't declare 'g' because it was already used in this scope.
-//   g() => 0;
-//   ^
-// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:79: Context: Previous use of 'g'.
+// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:79: Error: Local variable 'g' can't be referenced before it is declared.
 //   /*@returnType=invalid-type*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
 //                                                                               ^
+// pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:14:3: Context: This is the declaration of the variable 'g'.
+//   g() => 0;
+//   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -21,13 +21,8 @@ static method test() → dynamic {
     return invalid-expression "pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:9:79: Error: Method not found: 'g'.
   /*@returnType=invalid-type*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
                                                                               ^";
-  {
-    invalid-expression "pkg/front_end/testcases/inference/infer_local_function_referenced_before_declaration.dart:14:3: Error: Can't declare 'g' because it was already used in this scope.
-  g() => 0;
-  ^";
-    function g() → core::int
-      return 0;
-  }
+  function g() → core::int
+    return 0;
   () → invalid-type v = f;
 }
 static method main() → dynamic {}

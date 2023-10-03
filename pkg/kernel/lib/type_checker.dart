@@ -390,7 +390,8 @@ class TypeCheckingVisitor
             methodType, methodTypeArguments);
     for (int i = 0; i < methodTypeArguments.length; ++i) {
       DartType argument = methodTypeArguments[i];
-      DartType bound = instantiator.visit(methodType.typeParameters[i].bound);
+      DartType bound =
+          instantiator.substitute(methodType.typeParameters[i].bound);
       checkAssignable(where, argument, bound);
     }
     return FunctionTypeInstantiator.instantiate(

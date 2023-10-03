@@ -745,7 +745,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
-        DartType resultType = instantiator.visit(new FunctionType(
+        DartType resultType = instantiator.substitute(new FunctionType(
             functionType.positionalParameters.skip(1).toList(),
             functionType.returnType,
             base.libraryBuilder.nonNullable,
@@ -768,7 +768,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
-        DartType resultType = instantiator.visit(functionType.returnType);
+        DartType resultType = instantiator.substitute(functionType.returnType);
         if (!base.isNonNullableByDefault) {
           resultType = legacyErasure(resultType);
         }
@@ -793,7 +793,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
         DartType setterType =
-            instantiator.visit(functionType.positionalParameters[1]);
+            instantiator.substitute(functionType.positionalParameters[1]);
         if (!base.isNonNullableByDefault) {
           setterType = legacyErasure(setterType);
         }
@@ -818,7 +818,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
             FunctionTypeInstantiator instantiator =
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
-            keyType = instantiator.visit(keyType);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);
@@ -846,7 +846,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
             FunctionTypeInstantiator instantiator =
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
-            indexType = instantiator.visit(indexType);
+            indexType = instantiator.substitute(indexType);
           }
           if (!base.isNonNullableByDefault) {
             indexType = legacyErasure(indexType);
@@ -875,7 +875,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
           FunctionTypeInstantiator instantiator =
               new FunctionTypeInstantiator.fromIterables(
                   functionType.typeParameters, receiverTypeArguments);
-          returnType = instantiator.visit(returnType);
+          returnType = instantiator.substitute(returnType);
         }
         if (!base.isNonNullableByDefault) {
           returnType = legacyErasure(returnType);
@@ -900,7 +900,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
             FunctionTypeInstantiator instantiator =
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
-            keyType = instantiator.visit(keyType);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);
@@ -1159,7 +1159,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
-        DartType resultType = instantiator.visit(new FunctionType(
+        DartType resultType = instantiator.substitute(new FunctionType(
             functionType.positionalParameters.skip(1).toList(),
             functionType.returnType,
             base.libraryBuilder.nonNullable,
@@ -1182,7 +1182,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
-        DartType resultType = instantiator.visit(functionType.returnType);
+        DartType resultType = instantiator.substitute(functionType.returnType);
         if (!base.isNonNullableByDefault) {
           resultType = legacyErasure(resultType);
         }
@@ -1207,7 +1207,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
             new FunctionTypeInstantiator.fromIterables(
                 extensionTypeParameters, receiverTypeArguments);
         DartType setterType =
-            instantiator.visit(functionType.positionalParameters[1]);
+            instantiator.substitute(functionType.positionalParameters[1]);
         if (!base.isNonNullableByDefault) {
           setterType = legacyErasure(setterType);
         }
@@ -1232,7 +1232,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
             FunctionTypeInstantiator instantiator =
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
-            keyType = instantiator.visit(keyType);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);
@@ -1260,7 +1260,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
             FunctionTypeInstantiator instantiator =
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
-            indexType = instantiator.visit(indexType);
+            indexType = instantiator.substitute(indexType);
           }
           if (!base.isNonNullableByDefault) {
             indexType = legacyErasure(indexType);
@@ -1289,7 +1289,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
           FunctionTypeInstantiator instantiator =
               new FunctionTypeInstantiator.fromIterables(
                   functionType.typeParameters, receiverTypeArguments);
-          returnType = instantiator.visit(returnType);
+          returnType = instantiator.substitute(returnType);
         }
         if (!base.isNonNullableByDefault) {
           returnType = legacyErasure(returnType);
@@ -1314,7 +1314,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
             FunctionTypeInstantiator instantiator =
                 new FunctionTypeInstantiator.fromIterables(
                     functionType.typeParameters, receiverTypeArguments);
-            keyType = instantiator.visit(keyType);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);

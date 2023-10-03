@@ -3517,16 +3517,6 @@ DuplicatedDeclarationUse:
       lib2.dart: |
         class C {}
 
-DuplicatedNamePreviouslyUsed:
-  problemMessage: "Can't declare '#name' because it was already used in this scope."
-  analyzerCode: REFERENCED_BEFORE_DECLARATION
-  script:
-    - "main(arguments) { arguments; var arguments; }"
-
-DuplicatedNamePreviouslyUsedCause:
-  problemMessage: "Previous use of '#name'."
-  severity: CONTEXT
-
 DuplicatedNamedArgument:
   problemMessage: "Duplicated named argument '#name'."
   analyzerCode: DUPLICATE_NAMED_ARGUMENT
@@ -7341,3 +7331,13 @@ ExtensionTypeWith:
   script: |
     extension type F(int i) {}
     extension type E(int i) with F {}
+
+LocalVariableUsedBeforeDeclared:
+  problemMessage: "Local variable '#name' can't be referenced before it is declared."
+  analyzerCode: REFERENCED_BEFORE_DECLARATION
+  script: |
+    foo(dynamic x, dynamic y) { y = x; dynamic x; }
+
+LocalVariableUsedBeforeDeclaredContext:
+  problemMessage: "This is the declaration of the variable '#name'."
+  severity: CONTEXT
