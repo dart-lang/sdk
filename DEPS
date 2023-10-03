@@ -646,7 +646,7 @@ Var("dart_root") + "/third_party/pkg/tar":
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts/fuchsia",
-      "version": "version:2@0d97902a72c9bc224f64630177cf95cd632604a2",
+      "version": "version:2@30ecdcc6666ac09845a2e2d4fe7d8d5714230fba",
       }
     ],
     "condition":
@@ -807,7 +807,7 @@ hooks = [
       'python3',
       'sdk/build/fuchsia/with_envs.py',
       'sdk/third_party/fuchsia/test_scripts/update_product_bundles.py',
-      'terminal.qemu-x64',
+      'terminal.x64',
     ],
     'condition': 'download_fuchsia_deps'
   },
