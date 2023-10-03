@@ -913,12 +913,17 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
+    if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
+      return false;
+    }
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
     if (target.isInitializerReference) return true;
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
-    if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
+    if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
+      return true;
+    }
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
@@ -935,13 +940,17 @@ class Translator with KernelNodes {
             if (nameConstant is StringConstant && nameConstant.value == name) {
               Constant? value =
                   constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
+              if (value == null || value is NullConstant) {
+                return defaultValue;
+              }
               if (value is PrimitiveConstant<T>) {
                 return value.value;
               }
-              if (value is NullConstant) {
-                return defaultValue;
+              if (value is! T) {
+                throw ArgumentError("$name pragma argument has unexpected type "
+                    "${value.runtimeType} (expected $T)");
               }
-              return value as T? ?? defaultValue;
+              return value as T;
             }
           }
         }
