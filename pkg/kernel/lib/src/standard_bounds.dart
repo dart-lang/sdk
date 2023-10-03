@@ -1145,12 +1145,12 @@ mixin StandardBounds {
           // equality should be used instead.
           if (!areMutualSubtypes(
               f.typeParameters[i].bound,
-              instantiator.visit(g.typeParameters[i].bound),
+              instantiator.substitute(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
         }
-        g = instantiator.visit(g.withoutTypeParameters) as FunctionType;
+        g = instantiator.substitute(g.withoutTypeParameters) as FunctionType;
       }
     }
     if (!boundsMatch) return fallbackResult;
@@ -1397,7 +1397,7 @@ mixin StandardBounds {
           // equality should be used instead.
           if (!areMutualSubtypes(
               f.typeParameters[i].bound,
-              instantiator.visit(g.typeParameters[i].bound),
+              instantiator.substitute(g.typeParameters[i].bound),
               SubtypeCheckMode.withNullabilities)) {
             boundsMatch = false;
           }
@@ -1416,7 +1416,7 @@ mixin StandardBounds {
       positionalParameters[i] = _getNullabilityAwareStandardLowerBound(
           f.positionalParameters[i],
           instantiator != null
-              ? instantiator.visit(g.positionalParameters[i])
+              ? instantiator.substitute(g.positionalParameters[i])
               : g.positionalParameters[i],
           isNonNullableByDefault: isNonNullableByDefault);
     }
@@ -1441,7 +1441,7 @@ mixin StandardBounds {
               _getNullabilityAwareStandardLowerBound(
                   named1.type,
                   instantiator != null
-                      ? instantiator.visit(named2.type)
+                      ? instantiator.substitute(named2.type)
                       : named2.type,
                   isNonNullableByDefault: isNonNullableByDefault),
               isRequired: named1.isRequired || named2.isRequired));
@@ -1451,8 +1451,11 @@ mixin StandardBounds {
       }
     }
 
-    DartType returnType = _getNullabilityAwareStandardUpperBound(f.returnType,
-        instantiator != null ? instantiator.visit(g.returnType) : g.returnType,
+    DartType returnType = _getNullabilityAwareStandardUpperBound(
+        f.returnType,
+        instantiator != null
+            ? instantiator.substitute(g.returnType)
+            : g.returnType,
         isNonNullableByDefault: isNonNullableByDefault);
 
     return new FunctionType(positionalParameters, returnType,

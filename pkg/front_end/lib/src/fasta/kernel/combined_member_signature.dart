@@ -446,7 +446,7 @@ abstract class CombinedMemberSignatureBase<T> {
       for (int i = 0; i < typeParameterCount; i++) {
         DartType typeParameterBound = typeParameters[i].bound;
         DartType signatureTypeParameterBound =
-            instantiator.visit(signatureTypeParameters[i].bound);
+            instantiator.substitute(signatureTypeParameters[i].bound);
         if (!_types
             .performNullabilityAwareMutualSubtypesCheck(
                 typeParameterBound, signatureTypeParameterBound)
@@ -454,7 +454,7 @@ abstract class CombinedMemberSignatureBase<T> {
           return null;
         }
       }
-      return instantiator.visit(type.withoutTypeParameters);
+      return instantiator.substitute(type.withoutTypeParameters);
     } else if (typeParameterCount != 0) {
       return null;
     }

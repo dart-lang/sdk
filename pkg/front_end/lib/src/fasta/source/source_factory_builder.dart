@@ -638,7 +638,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
         StructuralParameter typeParameter =
             targetFunctionType.typeParameters[i];
-        DartType typeParameterBound = instantiator.visit(typeParameter.bound);
+        DartType typeParameterBound =
+            instantiator.substitute(typeParameter.bound);
         DartType typeArgument = typeArguments[i];
         // Check whether the [typeArgument] respects the bounds of
         // [typeParameter].
@@ -688,7 +689,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // Substitute if necessary.
     targetFunctionType = instantiator == null
         ? targetFunctionType
-        : (instantiator.visit(targetFunctionType.withoutTypeParameters)
+        : (instantiator.substitute(targetFunctionType.withoutTypeParameters)
             as FunctionType);
 
     return hasProblem ? null : targetFunctionType;

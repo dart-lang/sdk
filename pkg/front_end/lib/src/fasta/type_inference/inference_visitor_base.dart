@@ -1612,7 +1612,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         namedParameters: calleeType.namedParameters,
         typeParameters: targetTypeParameters);
     targetFunctionType =
-        extensionInstantiator.visit(targetFunctionType) as FunctionType;
+        extensionInstantiator.substitute(targetFunctionType) as FunctionType;
     ArgumentsImpl targetArguments = new ArgumentsImpl(
         arguments.positional.skip(1).toList(),
         named: arguments.named,
@@ -1672,10 +1672,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // type parameters for the callee (see dartbug.com/31759).
       // TODO(paulberry): is it possible to find a narrower set of circumstances
       // in which me must do this, to avoid a performance regression?
-      FreshStructuralParameters fresh =
-          getFreshStructuralParameters(calleeTypeParameters);
-      calleeType = fresh.applyToFunctionType(calleeType);
-      calleeTypeParameters = fresh.freshTypeParameters;
+      if (calleeTypeParameters.isNotEmpty) {
+        FreshStructuralParameters fresh =
+            getFreshStructuralParameters(calleeTypeParameters);
+        calleeType = fresh.applyToFunctionType(calleeType);
+        calleeTypeParameters = fresh.freshTypeParameters;
+      } else {
+        calleeTypeParameters = const <StructuralParameter>[];
+      }
     }
 
     List<DartType>? explicitTypeArguments = getExplicitTypeArguments(arguments);
@@ -1777,8 +1781,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ExpressionInferenceResult inferArgument(
         DartType formalType, Expression argumentExpression,
         {required bool isNamed}) {
-      DartType inferredFormalType =
-          instantiator != null ? instantiator.visit(formalType) : formalType;
+      DartType inferredFormalType = instantiator != null
+          ? instantiator.substitute(formalType)
+          : formalType;
       if (!isNamed) {
         if (isSpecialCasedBinaryOperator) {
           inferredFormalType =
@@ -2037,7 +2042,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         for (int i = 0; i < formalTypes.length; i++) {
           DartType formalType = formalTypes[i];
           DartType expectedType = instantiator != null
-              ? instantiator.visit(formalType)
+              ? instantiator.substitute(formalType)
               : formalType;
           DartType actualType = actualTypes[i];
           Expression expression;
@@ -2078,8 +2083,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     DartType inferredType;
     if (instantiator != null) {
-      calleeType =
-          instantiator.visit(calleeType.withoutTypeParameters) as FunctionType;
+      calleeType = instantiator.substitute(calleeType.withoutTypeParameters)
+          as FunctionType;
     }
     inferredType = calleeType.returnType;
     assert(
@@ -2193,7 +2198,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
           inferredType = computeGreatestClosure2(
-              instantiator?.visit(formalTypesFromContext[i]!) ??
+              instantiator?.substitute(formalTypesFromContext[i]!) ??
                   formalTypesFromContext[i]!);
           if (typeSchemaEnvironment.isSubtypeOf(
               inferredType,
@@ -2255,7 +2260,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // accordingly if the closure is declared with `async`, `async*`, or
     // `sync*`.
     if (returnContext is! UnknownType) {
-      returnContext = instantiator?.visit(returnContext) ?? returnContext;
+      returnContext = instantiator?.substitute(returnContext) ?? returnContext;
     }
 
     // Apply type inference to `B` in return context `N’`, with any references
@@ -3565,7 +3570,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         FunctionTypeInstantiator instantiator =
             new FunctionTypeInstantiator.fromIterables(
                 typeParameters, inferredTypes);
-        tearoffType = instantiator.visit(instantiatedType);
+        tearoffType = instantiator.substitute(instantiatedType);
         return new ImplicitInstantiation(
             inferredTypes, functionType, tearoffType);
       }

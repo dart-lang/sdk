@@ -638,13 +638,14 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
           StructuralParameter sTypeVariable = sTypeVariables[i];
           StructuralParameter tTypeVariable = tTypeVariables[i];
           result = result.and(types.performNullabilityAwareMutualSubtypesCheck(
-              instantiator.visit(sTypeVariable.bound), tTypeVariable.bound));
+              instantiator.substitute(sTypeVariable.bound),
+              tTypeVariable.bound));
           if (!result.isSubtypeWhenIgnoringNullabilities()) {
             return const IsSubtypeOf.never();
           }
         }
       }
-      s = instantiator.visit(s.withoutTypeParameters) as FunctionType;
+      s = instantiator.substitute(s.withoutTypeParameters) as FunctionType;
     }
     result = result.and(
         types.performNullabilityAwareSubtypeCheck(s.returnType, t.returnType));

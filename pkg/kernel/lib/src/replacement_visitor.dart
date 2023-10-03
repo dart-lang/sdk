@@ -47,7 +47,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
           FunctionTypeInstantiator.fromInstantiation(node, typeParameterTypes);
       for (int i = 0; i < newTypeParameters.length; i++) {
         newTypeParameters[i].bound =
-            instantiator.visit(newTypeParameters[i].bound);
+            instantiator.substitute(newTypeParameters[i].bound);
       }
     }
 
@@ -55,7 +55,7 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
       if (type == null) return null;
       DartType? result = type.accept1(this, variance);
       if (instantiator != null) {
-        result = instantiator.visit(result ?? type);
+        result = instantiator.substitute(result ?? type);
       }
       return result;
     }
