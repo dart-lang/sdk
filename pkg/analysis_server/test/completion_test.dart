@@ -2021,7 +2021,7 @@ class X {
           '3+true',
           '4+toString'
         ],
-        failingTests: '123');
+        failingTests: '12');
 
     // conditions & operators
     buildTests(
