@@ -250,7 +250,10 @@ class KeywordHelper {
       }
       if (node is Expression) {
         return !node.inConstantContext;
-      } else if (node is ExpressionStatement || node is IfStatement) {
+      } else if (node is Block ||
+          node is EmptyStatement ||
+          node is ExpressionStatement ||
+          node is IfStatement) {
         return true;
       } else if (node is PatternVariableDeclaration) {
         return true;
@@ -263,6 +266,8 @@ class KeywordHelper {
         return true;
       } else if (node is VariableDeclaration) {
         return !node.isConst;
+      } else if (node is VariableDeclarationStatement) {
+        return !node.variables.isConst;
       } else if (node is WhenClause) {
         return true;
       }
@@ -274,7 +279,7 @@ class KeywordHelper {
       if (node is CollectionElement && node is! Expression) {
         node = node.parent;
       }
-      if (node is SwitchPatternCase) {
+      if (node is SwitchPatternCase && offset <= node.colon.offset) {
         return false;
       }
       return true;
@@ -291,7 +296,8 @@ class KeywordHelper {
         addKeyword(Keyword.SUPER);
         addKeyword(Keyword.THIS);
       }
-      if (node.inAsyncMethodOrFunction) {
+      if (node.inAsyncMethodOrFunction ||
+          node.inAsyncStarOrSyncStarMethodOrFunction) {
         addKeyword(Keyword.AWAIT);
       }
       if (switchIsValid(node) && featureSet.isEnabled(Feature.patterns)) {
@@ -520,10 +526,6 @@ class KeywordHelper {
   /// beginning of a statement. The [node] provides context to determine which
   /// keywords to include.
   void addStatementKeywords(AstNode node) {
-    if (node.inClassMemberBody) {
-      addKeyword(Keyword.SUPER);
-      addKeyword(Keyword.THIS);
-    }
     if (node.inAsyncMethodOrFunction) {
       addKeyword(Keyword.AWAIT);
     } else if (node.inAsyncStarOrSyncStarMethodOrFunction) {
@@ -538,22 +540,28 @@ class KeywordHelper {
     if (node.inSwitch) {
       addKeyword(Keyword.BREAK);
     }
-    // TODO(brianwilkerson) Add `else` when after an `if` statement, similar to
-    //  the way `addCollectionElementKeywords` works.
     addKeyword(Keyword.ASSERT);
-    addKeyword(Keyword.CONST);
     addKeyword(Keyword.DO);
     addKeyword(Keyword.DYNAMIC);
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.FOR);
     addKeyword(Keyword.IF);
     addKeyword(Keyword.RETURN);
-    addKeyword(Keyword.SWITCH);
+    if (!featureSet.isEnabled(Feature.patterns)) {
+      // We don't suggest `switch` when patterns is enabled because `switch`
+      // will be suggested by `addExpressionKeywords`, which should always be
+      // called in conjunction with this method.
+      addKeyword(Keyword.SWITCH);
+    }
     addKeyword(Keyword.THROW);
     addKeyword(Keyword.TRY);
     addKeyword(Keyword.VAR);
     addKeyword(Keyword.VOID);
     addKeyword(Keyword.WHILE);
+    if (node.inAsyncStarOrSyncStarMethodOrFunction) {
+      addKeyword(Keyword.YIELD);
+      addKeywordFromText(Keyword.YIELD, '*');
+    }
     if (featureSet.isEnabled(Feature.non_nullable)) {
       addKeyword(Keyword.LATE);
     }

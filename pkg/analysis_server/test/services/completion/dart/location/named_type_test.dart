@@ -63,6 +63,8 @@ void f() sync* {n^ foo}
 replacement
   left: 1
 suggestions
+  null
+    kind: keyword
 ''');
     } else {
       assertResponse(r'''
@@ -79,6 +81,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   for
@@ -87,11 +91,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword

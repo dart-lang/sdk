@@ -1204,11 +1204,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         keywordHelper.addKeyword(Keyword.WHEN);
       }
     } else {
-      if (node.statements.isEmpty) {
+      if (node.statements.isEmpty || offset <= node.statements.first.offset) {
         keywordHelper.addKeyword(Keyword.CASE);
         keywordHelper.addKeywordFromText(Keyword.DEFAULT, ':');
       }
-      keywordHelper.addStatementKeywords(node);
+      _forStatement(node);
     }
   }
 
@@ -1418,7 +1418,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _forIncompletePrecedingStatement(node);
+    if (_forIncompletePrecedingStatement(node)) {
+      return;
+    }
     if (offset <= node.beginToken.end) {
       _forStatement(node);
     }
@@ -1515,7 +1517,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     keywordHelper.addExtensionMemberKeywords(isStatic: false);
   }
 
-  /// Return `true` if the preceding member is incomplete.
+  /// Return `true` if the preceding member is incomplete and no other
+  /// suggestions should be offered.
   ///
   /// If the completion offset is within the first token of the given [member],
   /// then check to see whether the preceding member is incomplete. If it is,
@@ -1544,6 +1547,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return false;
   }
 
+  /// Return `true` if the preceding statement is incomplete and no other
+  /// suggestions should be offered.
+  ///
   /// If the completion offset is within the first token of the given
   /// [statement], then check to see whether the preceding statement is
   /// incomplete. If it is, then the user might be attempting to complete the
@@ -1568,7 +1574,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         case TryStatement declaration:
           if (declaration.finallyBlock == null) {
             visitTryStatement(declaration);
-            return true;
+            return declaration.catchClauses.isEmpty;
           }
         case _:
       }
@@ -1592,6 +1598,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a statement. The [node] provides context to determine which
   /// keywords to include.
   void _forStatement(AstNode node) {
+    _forExpression(node);
     keywordHelper.addStatementKeywords(node);
   }
 
