@@ -7920,6 +7920,24 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     case MethodRecognizer::kFloat64x2Sub:
       op = new (zone) SimdOpInstr(KindForOperator(kind), call->deopt_id());
       break;
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+    case MethodRecognizer::kFloat32x4GreaterThan:
+      // cmppsgt does not exist, cmppsnlt gives wrong NaN result, need to flip
+      // at the IL level to get the right SameAsFirstInput.
+      op = new (zone)
+          SimdOpInstr(SimdOpInstr::kFloat32x4LessThan, call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
+    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+      // cmppsge does not exist, cmppsnle gives wrong NaN result, need to flip
+      // at the IL level to get the right SameAsFirstInput.
+      op = new (zone)
+          SimdOpInstr(SimdOpInstr::kFloat32x4LessThanOrEqual, call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
+#endif
     default:
       op = new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
       break;
@@ -7935,6 +7953,7 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     op->set_mask(mask);
   }
   ASSERT(call->ArgumentCount() == (op->InputCount() + (op->HasMask() ? 1 : 0)));
+
   return op;
 }
 

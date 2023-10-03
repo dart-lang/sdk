@@ -4052,8 +4052,6 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   V(Int32x4BitXor, xorps)                                                      \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
-  V(Float32x4GreaterThan, cmppsnle)                                            \
-  V(Float32x4GreaterThanOrEqual, cmppsnlt)                                     \
   V(Float32x4LessThan, cmppslt)                                                \
   V(Float32x4LessThanOrEqual, cmppsle)
 
@@ -4423,6 +4421,8 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kFloat32x4GreaterThan:
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
       UNREACHABLE();
       break;
@@ -4442,6 +4442,8 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kFloat32x4GreaterThan:
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
       UNREACHABLE();
       break;
