@@ -6375,6 +6375,19 @@ abstract class PropertyInducingElementImpl
     setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, true);
   }
 
+  /// Return `true` if this variable needs the setter.
+  bool get hasSetter {
+    if (isConst) {
+      return false;
+    }
+
+    if (isLate) {
+      return !isFinal || !hasInitializer;
+    }
+
+    return !isFinal;
+  }
+
   @override
   bool get isConstantEvaluated => true;
 
@@ -6450,36 +6463,26 @@ abstract class PropertyInducingElementImpl
     return _type!;
   }
 
-  /// Return `true` if this variable needs the setter.
-  bool get _hasSetter {
-    if (isConst) {
-      return false;
-    }
-
-    if (isLate) {
-      return !isFinal || !hasInitializer;
-    }
-
-    return !isFinal;
-  }
-
   void bindReference(Reference reference) {
     this.reference = reference;
     reference.element = this;
   }
 
-  void createImplicitAccessors(Reference enclosingRef, String name) {
-    getter = PropertyAccessorElementImpl_ImplicitGetter(
+  PropertyAccessorElementImpl createImplicitGetter(Reference reference) {
+    assert(getter == null);
+    return getter = PropertyAccessorElementImpl_ImplicitGetter(
       this,
-      reference: enclosingRef.getChild('@getter').getChild(name),
+      reference: reference,
     );
+  }
 
-    if (_hasSetter) {
-      setter = PropertyAccessorElementImpl_ImplicitSetter(
-        this,
-        reference: enclosingRef.getChild('@setter').getChild(name),
-      );
-    }
+  PropertyAccessorElementImpl createImplicitSetter(Reference reference) {
+    assert(hasSetter);
+    assert(setter == null);
+    return setter = PropertyAccessorElementImpl_ImplicitSetter(
+      this,
+      reference: reference,
+    );
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {

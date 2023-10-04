@@ -296,13 +296,6 @@ class _ElementWriter {
     var reference = e.reference;
     if (reference == null) {
       fail('Every constructor must have a reference.');
-    } else {
-      var classReference = reference.parent!.parent!;
-      // We need this `if` for duplicate declarations.
-      // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement)) {
-        expect(reference.element, same(e));
-      }
     }
 
     _sink.writeIndentedLine(() {
@@ -316,6 +309,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -712,7 +706,7 @@ class _ElementWriter {
     }
   }
 
-  void _writeMethodElement(MethodElement e) {
+  void _writeMethodElement(MethodElementImpl e) {
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
@@ -725,6 +719,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -757,7 +752,7 @@ class _ElementWriter {
     }
   }
 
-  void _writeMethods(List<MethodElement> elements) {
+  void _writeMethods(List<MethodElementImpl> elements) {
     _writeElements('methods', elements, _writeMethodElement);
   }
 
@@ -809,6 +804,8 @@ class _ElementWriter {
   }
 
   void _writeParameterElement(ParameterElement e) {
+    e as ParameterElementImpl;
+
     _sink.writeIndentedLine(() {
       if (e.isRequiredPositional) {
         _sink.write('requiredPositional ');
@@ -838,6 +835,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeType('type', e.type);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
