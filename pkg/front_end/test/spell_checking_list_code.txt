@@ -15,9 +15,11 @@ abc
 abcdef
 abs
 accepting
+accompany
 accounting
 accounts
 accumulated
+accumulates
 accumulating
 accumulation
 accumulator
@@ -65,7 +67,9 @@ app
 apparently
 applicable
 approximation
+arbiter
 architectures
+area
 arg
 args
 arise
@@ -117,6 +121,7 @@ balance
 bang
 bar
 basically
+basis
 batch
 baz
 bazel
@@ -208,6 +213,7 @@ ce
 ceil
 cfe
 ch
+chaining
 channel
 char
 charcode
@@ -267,6 +273,7 @@ complement
 complementary
 completers
 completes
+complexity
 complicated
 complicating
 component's
@@ -286,6 +293,7 @@ condensed
 config
 configs
 configured
+confusing
 connecting
 connectivity
 consecutive
@@ -436,6 +444,7 @@ dispatched
 dispose
 disposed
 disposes
+distinguished
 distribute
 diverged
 divided
@@ -446,6 +455,7 @@ doc
 docs
 doesn\'t
 dom
+dominator
 dont
 doubles
 downcasts
@@ -607,6 +617,7 @@ forcing
 foreign
 formed
 former
+forming
 fortunately
 fourth
 framework
@@ -627,6 +638,7 @@ futured
 futureor
 fvar
 g
+garbage
 gardening
 garner
 gathers
@@ -739,6 +751,7 @@ inc
 incomparable
 inconsistency
 increased
+increasing
 incremented
 incrementing
 independently
@@ -780,6 +793,8 @@ intentionally
 interacts
 interested
 interfere
+interfered
+interfering
 interim
 interior
 interleaved
@@ -889,6 +904,7 @@ linter
 linux
 listenable
 listening
+listing
 lives
 ll
 llub
@@ -997,6 +1013,7 @@ nk
 nm
 nnbd
 node's
+noisy
 nomenclature
 nominality
 nonetheless
@@ -1236,6 +1253,7 @@ realign
 realise
 reapplies
 reapply
+reapplying
 reasonably
 reassigned
 reassigns
@@ -1252,6 +1270,7 @@ recalls
 received
 receivers
 recheck
+reclaimed
 recognizing
 recompile
 recompiled
@@ -1317,6 +1336,7 @@ replaces
 replicated
 repo
 repositories
+reproduces
 repurposed
 repurposing
 requesting
@@ -1336,8 +1356,10 @@ ret
 retrieval
 reusage
 reversible
+rewinding
 rewinds
 rework
+rewound
 rewrites
 rewrote
 rf
@@ -1440,6 +1462,7 @@ silenced
 simplifier
 simplify
 singleton
+singly
 sinker
 site
 six
@@ -1552,6 +1575,7 @@ subtracted
 subtracting
 subtraction
 subtracts
+successive
 suffixed
 suffixing
 sugared
@@ -1717,6 +1741,7 @@ unifiable
 unification
 unifier
 unifies
+uniform
 unify
 uninferable
 uninhabited
@@ -1761,6 +1786,7 @@ unwritten
 unzip
 upcast
 updatable
+upgraded
 ur
 uri's
 url

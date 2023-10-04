@@ -1,6 +1,6 @@
 # Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Status file for the textual_outline_suite.dart test suite. This is testing
 # the textual outline used for better incremental compilation.
@@ -20,3 +20,9 @@ regress/issue_35900: EmptyOutput
 regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
+
+general/bad_import: UnknownChunk # Test has parser errors
+general/error_recovery/issue_39058_prime.crash: UnknownChunk # Test has parser errors
+general/error_recovery/issue_39202.crash: UnknownChunk # Test has parser errors
+regress/ambiguous_builder_01: UnknownChunk # Test has parser errors
+regress/issue_34850: UnknownChunk # Test has parser errors

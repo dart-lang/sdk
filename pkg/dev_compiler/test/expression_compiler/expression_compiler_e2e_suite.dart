@@ -184,12 +184,14 @@ class ExpressionEvaluationTestDriver {
   var sound = ${setup.soundNullSafety};
   var sdk = dart_library.import('dart_sdk');
 
-  if (!sound) {
+  if (sound) {
+    sdk.dart.nativeNonNullAsserts(true);
+  } else {
     sdk.dart.weakNullSafetyWarnings(false);
     sdk.dart.weakNullSafetyErrors(false);
+    sdk.dart.nonNullAsserts(true);
   }
-  sdk.dart.nonNullAsserts(true);
-  sdk.dart.nativeNonNullAsserts(true);
+
   sdk._debugger.registerDevtoolsFormatter();
   dart_library.start('$appName', '$uuid', '$moduleName', '$mainLibraryName',
     false);
@@ -235,12 +237,14 @@ class ExpressionEvaluationTestDriver {
         function(sdk, app) {
     'use strict';
 
-    if (!sound) {
-    sdk.dart.weakNullSafetyWarnings(false);
-    sdk.dart.weakNullSafetyErrors(false);
+    if (sound) {
+      sdk.dart.nativeNonNullAsserts(true);
+    } else {
+      sdk.dart.weakNullSafetyWarnings(false);
+      sdk.dart.weakNullSafetyErrors(false);
+      sdk.dart.nonNullAsserts(true);
     }
-    sdk.dart.nonNullAsserts(true);
-    sdk.dart.nativeNonNullAsserts(true);
+
     sdk._debugger.registerDevtoolsFormatter();
     app.$mainLibraryName.main([]);
   });
@@ -479,14 +483,36 @@ class ExpressionEvaluationTestDriver {
   /// only primitive values, lists or maps, etc.
   ///
   /// TODO(annagrin): Add recursive check for nested objects.
-  Future<void> checkRuntime({
+  Future<void> checkRuntimeInFrame({
     required String breakpointId,
     required String expression,
-    required dynamic expectedResult,
+    dynamic expectedError,
+    dynamic expectedResult,
   }) async {
+    assert(expectedError == null || expectedResult == null,
+        'Cannot expect both an error and result.');
+
     return await _onBreakpoint(breakpointId, onPause: (event) async {
-      var actual = await _evaluateJsExpression(event, expression);
-      expect(actual.json, expectedResult);
+      var evalResult = await _evaluateJsExpression(event, expression);
+
+      var error = evalResult.json['error'];
+      if (error != null) {
+        expect(
+          expectedError,
+          isNotNull,
+          reason: 'Unexpected expression evaluation failure:\n$error',
+        );
+        expect(error, _matches(expectedError!));
+      } else {
+        expect(
+          expectedResult,
+          isNotNull,
+          reason:
+              'Unexpected expression evaluation success:\n${evalResult.json}',
+        );
+        var actual = evalResult.value;
+        expect(actual, _matches(equals(expectedResult!)));
+      }
     });
   }
 
@@ -577,24 +603,23 @@ class ExpressionEvaluationTestDriver {
     var frame = event.getCallFrames().first;
 
     var jsExpression = '''
-        (function () {
-          try {
-            var sdk = ${setup.loadModule}('dart_sdk');
-            var dart = sdk.dart;
-            var interceptors = sdk._interceptors;
-            return $expression;
-          } catch (error) {
-            return "Runtime API call failed: " + error.name +
-              ": " + error.message + ": " + error.stack;
-          }
-        })()
+      (function () {
+        var sdk = ${setup.loadModule}('dart_sdk');
+        var dart = sdk.dart;
+        var interceptors = sdk._interceptors;
+        return $expression;
+      })()
       ''';
 
-    return await debugger.evaluateOnCallFrame(
-      frame.callFrameId,
-      jsExpression,
-      returnByValue: returnByValue,
-    );
+    try {
+      return await debugger.evaluateOnCallFrame(
+        frame.callFrameId,
+        jsExpression,
+        returnByValue: returnByValue,
+      );
+    } on wip.ExceptionDetails catch (e) {
+      return _createRuntimeError(e);
+    }
   }
 
   Future<TestCompilationResult> _compileDartExpressionInFrame(
@@ -705,15 +730,20 @@ class ExpressionEvaluationTestDriver {
         if (obj.subtype == 'null') {
           return 'null';
         }
-        var properties =
-            await connection.runtime.getProperties(obj, ownProperties: true);
-        var filteredProps = <String, String?>{};
-        for (var prop in properties) {
-          if (prop.value != null && prop.name != '__proto__') {
-            filteredProps[prop.name] = await stringifyRemoteObject(prop.value!);
+        try {
+          var properties =
+              await connection.runtime.getProperties(obj, ownProperties: true);
+          var filteredProps = <String, String?>{};
+          for (var prop in properties) {
+            if (prop.value != null && prop.name != '__proto__') {
+              filteredProps[prop.name] =
+                  await stringifyRemoteObject(prop.value!);
+            }
           }
+          str = '${obj.description} $filteredProps';
+        } catch (e, s) {
+          throw StateError('Failed to stringify remote object $obj: $e:$s');
         }
-        str = '${obj.description} $filteredProps';
         break;
       default:
         str = '${obj.value}';
@@ -734,8 +764,8 @@ class ExpressionEvaluationTestDriver {
           .getProperties(scope.object, ownProperties: true);
       for (var prop in response) {
         var propKey = prop.name;
-        var propValue = '${prop.value!.value}';
-        if (prop.value!.type == 'string') {
+        var propValue = '${prop.value?.value}';
+        if (prop.value?.type == 'string') {
           propValue = "'$propValue'";
         } else if (propValue == 'null') {
           propValue = propKey;

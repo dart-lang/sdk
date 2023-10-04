@@ -86,11 +86,16 @@ Page* Page::Allocate(intptr_t size, uword flags) {
   }
 
   if ((flags & kNew) != 0) {
-#if defined(DEBUG)
-    memset(memory->address(), Heap::kZapByte, size);
-#endif
     // Initialized by generated code.
     MSAN_UNPOISON(memory->address(), size);
+
+#if defined(DEBUG)
+    uword* cursor = reinterpret_cast<uword*>(memory->address());
+    uword* end = reinterpret_cast<uword*>(memory->end());
+    while (cursor < end) {
+      *cursor++ = kAllocationCanary;
+    }
+#endif
   } else {
     // We don't zap old-gen because we rely on implicit zero-initialization
     // of large typed data arrays.

@@ -1876,6 +1876,315 @@ void f(TextTheme theme) {
   }
 
   Future<void>
+      test_material_ThemeData_colorSchemeBackground_deprecated() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  @deprecated
+  final Color  backgroundColor;
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.backgroundColor;
+  print(color);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.colorScheme.background;
+  print(color);
+}
+''');
+  }
+
+  Future<void>
+      test_material_ThemeData_colorSchemeBackground_deprecated_noFix() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  @deprecated
+  final Color  backgroundColor;
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+
+class ElevatedButton {
+   Color? color;
+
+  ElevatedButton(this.color);
+
+  static  ElevatedButton styleFrom({Color? backgroundColor}) {
+    return ElevatedButton(backgroundColor);
+  }
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var a = ElevatedButton.styleFrom(backgroundColor: backgroundColor);
+  print(a);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void>
+      test_material_ThemeData_colorSchemeBackground_deprecated_noFix2() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  @deprecated
+  final Color  backgroundColor;
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+
+class ElevatedButton {
+   Color? color;
+
+  ElevatedButton(this.color);
+
+  static  ElevatedButton styleFrom({Color? backgroundColor}) {
+    return ElevatedButton(backgroundColor);
+  }
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class E {
+  void m() {
+    var a = ElevatedButton.styleFrom(backgroundColor: backgroundColor);
+    print(a);
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_material_ThemeData_colorSchemeBackground_removed() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.backgroundColor;
+  print(color);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var themeData = ThemeData(Colors.black);
+  var color = themeData.colorScheme.background;
+  print(color);
+}
+''');
+  }
+
+  Future<void> test_material_ThemeData_colorSchemeBackground_removed2() async {
+    setPackageContent('''
+
+class ThemeData {
+
+  final ColorScheme colorScheme;
+  ThemeData(this.backgroundColor): colorScheme = ColorScheme(backgroundColor){}
+}
+
+class Color {
+  Color(int value) {}
+}
+
+class Colors {
+  Colors._();
+
+  static Color black = Color(0xFF000000);
+  static Color white = Color(0xFFFFFFFF);
+}
+
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title:  "Migrate to 'ColorScheme.background'"
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      field: 'backgroundColor'
+      inClass: 'ThemeData'
+    changes:
+      - kind: 'rename'
+        newName: 'colorScheme.background'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+class T extends ThemeData {
+  T(Color color) : super(color);
+
+  void f() {
+    var color = backgroundColor;
+    print(color);
+  }
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class T extends ThemeData {
+  T(Color color) : super(color);
+
+  void f() {
+    var color = colorScheme.background;
+    print(color);
+  }
+}
+''');
+  }
+
+  Future<void>
       test_material_ThemeData_toggleableActiveColor_deprecated_1() async {
     setPackageContent('''
 

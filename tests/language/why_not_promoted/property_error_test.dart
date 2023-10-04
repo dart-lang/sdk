@@ -5,18 +5,18 @@
 class C {
   int? get i => null;
   //       ^
-  // [context 1] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 2] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 3] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 4] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 5] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 6] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 7] 'i' refers to a property so it couldn't be promoted.
-  // [context 8] 'i' refers to a property so it couldn't be promoted.
-  // [context 9] 'i' refers to a property so it couldn't be promoted.
-  // [context 10] 'i' refers to a property so it couldn't be promoted.
-  // [context 11] 'i' refers to a property so it couldn't be promoted.
-  // [context 12] 'i' refers to a property so it couldn't be promoted.
+  // [context 1] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 2] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 3] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 4] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 5] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 6] 'i' refers to a getter so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-field
+  // [context 7] 'i' refers to a getter so it couldn't be promoted.
+  // [context 8] 'i' refers to a getter so it couldn't be promoted.
+  // [context 9] 'i' refers to a getter so it couldn't be promoted.
+  // [context 10] 'i' refers to a getter so it couldn't be promoted.
+  // [context 11] 'i' refers to a getter so it couldn't be promoted.
+  // [context 12] 'i' refers to a getter so it couldn't be promoted.
   int? get j => null;
 
   get_property_via_explicit_this() {
@@ -31,7 +31,7 @@ class C {
     if ((this).i == null) return;
     (this).i.isEven;
 //           ^^^^^^
-// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 8] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 
@@ -39,7 +39,7 @@ class C {
     if (i == null) return;
     i.isEven;
 //    ^^^^^^
-// [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 9] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 }
@@ -49,7 +49,7 @@ class D extends C {
     if (super.i == null) return;
     super.i.isEven;
 //          ^^^^^^
-// [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 4] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 10] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 
@@ -66,7 +66,7 @@ get_property_via_prefixed_identifier(C c) {
   if (c.i == null) return;
   c.i.isEven;
 //    ^^^^^^
-// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 12] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 }
 

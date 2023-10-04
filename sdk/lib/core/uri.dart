@@ -4206,7 +4206,7 @@ List<Uint8List> _createTables() {
   }
 
   // Create the transitions for each state.
-  var b;
+  Uint8List b;
 
   // Validate as path, if it is a scheme, we handle it later.
   b = build(_uriStart, schemeOrPath | notSimple);

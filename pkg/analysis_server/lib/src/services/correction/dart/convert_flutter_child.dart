@@ -33,6 +33,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
             utils.getLinePrefix,
             utils.getIndent,
             utils.getText,
+            utils.replaceSourceIndent,
             range.node);
       });
       return;

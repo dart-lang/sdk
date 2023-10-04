@@ -42,8 +42,9 @@ class PositionSourceInformation extends SourceInformation {
         () => SourceLocation.readFromDataSource(source));
     SourceLocation? innerPosition = source.readCachedOrNull<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    List<FrameContext>? inliningContext =
-        source.readListOrNull(() => FrameContext.readFromDataSource(source));
+    List<FrameContext>? inliningContext = source
+        .readCachedOrNull<List<FrameContext>?>(() => source.readListOrNull(() =>
+            source.readCached(() => FrameContext.readFromDataSource(source))));
     source.end(tag);
     return PositionSourceInformation(
         startPosition, innerPosition, inliningContext);
@@ -59,9 +60,13 @@ class PositionSourceInformation extends SourceInformation {
         innerPosition,
         (SourceLocation sourceLocation) =>
             SourceLocation.writeToDataSink(sink, sourceLocation));
-    sink.writeList(inliningContext,
-        (FrameContext context) => context.writeToDataSink(sink),
-        allowNull: true);
+    sink.writeCached(
+        inliningContext,
+        (_) => sink.writeList(
+            inliningContext,
+            (FrameContext context) =>
+                sink.writeCached(context, (_) => context.writeToDataSink(sink)),
+            allowNull: true));
     sink.end(tag);
   }
 

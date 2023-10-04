@@ -652,7 +652,7 @@ void foo(BuildContext context) async {
   if (1 == 2) {
     await Future.value();
   } else {
-    if (!mounted) return;
+    if (!context.mounted) return;
   }
   context /* ref */;
 }
@@ -746,9 +746,9 @@ void foo(BuildContext context) async {
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context) async {
   if (1 == 2) {
-    if (!mounted) return;
+    if (!context.mounted) return;
   } else {
-    if (!mounted) return;
+    if (!context.mounted) return;
   }
   context /* ref */;
 }
@@ -845,7 +845,7 @@ void foo(BuildContext context) async {
 ''');
     var ifStatement = findNode.ifStatement('if ');
     var reference = findNode.block('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), isNull);
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
   }
 
   test_ifStatement_referenceInThen_asyncInAssignmentInCondition() async {
@@ -1708,6 +1708,47 @@ Future<void> c() async {}
     ]);
   }
 
+  test_async_thenMountedCheck_thenSwitchWithReferenceToContext() async {
+    // Assignment statement-expression with mounted check, then use of
+    // BuildContext in if-then statement, is REPORTED.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  if (!context.mounted) return;
+  switch (1) {
+    case 1:
+      Navigator.of(context);
+      break;
+  }
+}
+
+Future<void> c() async {}
+''');
+  }
+
+  test_async_thenSwitchWithReferenceToContext() async {
+    // Assignment statement-expression with mounted check, then use of
+    // BuildContext in if-then statement, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await c();
+  switch (1) {
+    case 1:
+      Navigator.of(context);
+      break;
+  }
+}
+
+Future<void> c() async {}
+''', [
+      lint(125, 21),
+    ]);
+  }
+
   test_await_afterReferenceToContext() async {
     // Use of BuildContext, then await, in statement block is OK.
     await assertNoDiagnostics(r'''
@@ -1770,6 +1811,22 @@ Future<void> f() async {}
 ''', [
       lint(95, 22),
     ]);
+  }
+
+  test_await_thenNotMountedCheckInBinaryOr_thenReferenceToContext() async {
+    // Await, then a mounted check via early return with a binary or condition,
+    // then use of BuildContext, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  if (1 == 2 || !context.mounted) return;
+  Navigator.of(context);
+}
+
+Future<void> f() async {}
+''');
   }
 
   test_awaitBeforeForBody_referenceToContext_thenMountedGuard() async {

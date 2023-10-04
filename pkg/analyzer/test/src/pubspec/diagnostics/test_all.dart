@@ -14,6 +14,7 @@ import 'deprecated_field_test.dart' as deprecated_field;
 import 'flutter_field_not_map_test.dart' as flutter_field_not_map;
 import 'invalid_dependency_test.dart' as invalid_dependency;
 import 'invalid_platforms_field_test.dart' as platforms_field_test;
+import 'missing_dependency_test.dart' as missing_dependency_test;
 import 'missing_name_test.dart' as missing_name;
 import 'name_not_string_test.dart' as name_not_string;
 import 'path_does_not_exist_test.dart' as path_does_not_exist;
@@ -33,6 +34,7 @@ main() {
     deprecated_field.main();
     flutter_field_not_map.main();
     invalid_dependency.main();
+    missing_dependency_test.main();
     missing_name.main();
     name_not_string.main();
     path_does_not_exist.main();

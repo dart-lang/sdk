@@ -8,6 +8,7 @@ import '../fasta/builder/declaration_builders.dart';
 import '../fasta/builder/library_builder.dart';
 import '../fasta/builder/member_builder.dart';
 import '../fasta/builder/type_builder.dart';
+import '../fasta/identifiers.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';
@@ -529,6 +530,12 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     sb.write('Unevaluated()');
   }
+
+  @override
+  bool visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
 }
 
 class DartTypeToTextVisitor implements DartTypeVisitor<void> {
@@ -557,8 +564,10 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType node) => throw new UnimplementedError(
-      'Unexpected type $node (${node.runtimeType})');
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
 
   @override
   void visitInvalidType(InvalidType node) {
@@ -623,7 +632,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
             sb.write(' ');
           }
         }
-        TypeParameter typeParameter = node.typeParameters[i];
+        StructuralParameter typeParameter = node.typeParameters[i];
         sb.write(typeParameter.name);
         DartType bound = typeParameter.bound;
         if (!(bound is InterfaceType && bound.classNode.name == 'Object')) {
@@ -701,6 +710,12 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    sb.write(node.parameter.name);
+    sb.write(nullabilityToText(node.nullability, typeRepresentation));
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     visit(node.left);
     sb.write(' & ');
@@ -759,7 +774,8 @@ String typeBuilderToText(TypeBuilder type) {
 
 void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
   if (type is NamedTypeBuilder) {
-    sb.write(type.name);
+    Object name = type.name;
+    sb.write(name is Identifier ? name.name : name);
     if (type.arguments != null && type.arguments!.isNotEmpty) {
       sb.write('<');
       _typeBuildersToText(type.arguments!, sb);

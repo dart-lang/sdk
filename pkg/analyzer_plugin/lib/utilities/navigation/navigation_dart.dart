@@ -407,6 +407,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     computer._addRegionForToken(node.name, node.constructorElement);
 

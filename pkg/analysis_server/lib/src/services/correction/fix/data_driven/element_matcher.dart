@@ -4,11 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show ExtensionElement, InterfaceElement, PrefixElement;
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// An object that can be used to determine whether an element is appropriate
 /// for a given reference.
@@ -26,13 +26,19 @@ class ElementMatcher {
   /// kinds.
   final List<ElementKind> validKinds;
 
+  /// The AST node to be matched with. The node is provided in cases where the
+  /// element in question cannot be resolved and relevant information cannot be
+  /// extracted as components.
+  final AstNode? node;
+
   /// Initialize a newly created matcher representing a reference to an element
   /// whose name matches the given [components] and element [kinds] in a library
   /// that imports the [importedUris].
   ElementMatcher(
       {required this.importedUris,
       required this.components,
-      required List<ElementKind> kinds})
+      required List<ElementKind> kinds,
+      this.node})
       : assert(components.isNotEmpty),
         validKinds = kinds;
 
@@ -67,11 +73,29 @@ class ElementMatcher {
       } else {
         // The node has fewer components, which can happen, for example, when we
         // can't figure out the class that used to define a field. We treat the
-        // missing components as wildcards and match the rest.
+        // missing components as wildcards and match the rest. If node is
+        // available, we further match against it.
         for (var i = 0; i < nodeComponentCount; i++) {
           if (elementComponents[i] != components[i]) {
             return false;
           }
+        }
+        if (node != null) {
+          var parent = node?.parent;
+          while (parent != null && parent.parent is! CompilationUnit) {
+            parent = parent.parent;
+          }
+          var element = (parent as CompilationUnitMember).declaredElement;
+          if (element is! InterfaceElement) {
+            return false;
+          }
+          var types = element.allSupertypes.map((e) => e.element.name);
+          for (var t in types) {
+            if (elementComponents.contains(t)) {
+              return true;
+            }
+          }
+          return false;
         }
       }
     } else {
@@ -189,9 +213,14 @@ class _MatcherBuilder {
   }
 
   void _addMatcher(
-      {required List<String> components, required List<ElementKind> kinds}) {
+      {required List<String> components,
+      required List<ElementKind> kinds,
+      AstNode? node}) {
     matchers.add(ElementMatcher(
-        importedUris: importedUris, components: components, kinds: kinds));
+        importedUris: importedUris,
+        components: components,
+        kinds: kinds,
+        node: node));
   }
 
   /// Build a matcher for the element being invoked.
@@ -494,7 +523,13 @@ class _MatcherBuilder {
       _buildFromPropertyAccess(parent);
     } else {
       // TODO(brianwilkerson) See whether the list of kinds can be specified.
-      _addMatcher(components: [node.name], kinds: []);
+      // If we cannot resolve the element. add the parent/target information,
+      // where it should have been declared.
+      if (node.staticType is InvalidType) {
+        _addMatcher(components: [node.name], kinds: [], node: node);
+      } else {
+        _addMatcher(components: [node.name], kinds: []);
+      }
     }
   }
 

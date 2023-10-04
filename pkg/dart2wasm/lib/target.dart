@@ -186,7 +186,10 @@ class WasmTarget extends Target {
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('tests/web/wasm') ||
-      importer.isScheme('package') && importer.path == 'js/js.dart';
+      importer.isScheme('package') &&
+          (importer.path == 'js/js.dart' ||
+              importer.path.startsWith('ui/') &&
+                  imported.toString() == 'dart:_wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -215,7 +218,7 @@ class WasmTarget extends Target {
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
         coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
-        isDart2Wasm: true, enableStrictMode: true);
+        isDart2Wasm: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);

@@ -1,6 +1,6 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/assumptions.dart';
@@ -48,7 +48,7 @@ class TypeSchemaPrinter extends Printer {
 ///
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
-class UnknownType extends DartType {
+class UnknownType extends AuxiliaryType {
   const UnknownType();
 
   @override
@@ -66,15 +66,6 @@ class UnknownType extends DartType {
     // equal.
     return other is UnknownType;
   }
-
-  @override
-  R accept<R>(DartTypeVisitor<R> v) {
-    return v.defaultDartType(this);
-  }
-
-  @override
-  R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) =>
-      v.defaultDartType(this, arg);
 
   @override
   void visitChildren(Visitor<dynamic> v) {}
@@ -101,5 +92,5 @@ class _HasUnknownVisitor extends FindTypeVisitor {
   const _HasUnknownVisitor();
 
   @override
-  bool defaultDartType(DartType node) => node is UnknownType;
+  bool visitAuxiliaryType(AuxiliaryType node) => node is UnknownType;
 }

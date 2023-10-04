@@ -19,9 +19,9 @@ From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-this-when-n
 **BAD:**
 ```dart
 class Box {
-  var value;
-  void update(new_value) {
-    this.value = new_value;
+  int value;
+  void update(int newValue) {
+    this.value = newValue;
   }
 }
 ```
@@ -29,9 +29,9 @@ class Box {
 **GOOD:**
 ```dart
 class Box {
-  var value;
-  void update(new_value) {
-    value = new_value;
+  int value;
+  void update(int newValue) {
+    value = newValue;
   }
 }
 ```
@@ -39,8 +39,8 @@ class Box {
 **GOOD:**
 ```dart
 class Box {
-  var value;
-  void update(value) {
+  int value;
+  void update(int value) {
     this.value = value;
   }
 }

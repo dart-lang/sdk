@@ -1165,11 +1165,11 @@ abstract interface class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// A return value of the size of [buffer] indicates that a request to
   /// transmit the datagram was made to the operating system. It does not
   /// indicate that the operating system successfully sent the datagram. If a
-  /// local failure to send the datagram occurs then a an error event will be
+  /// local failure to send the datagram occurs then an error event will be
   /// added to the [Stream]. If a networking or remote failure occurs then it
   /// will not be reported.
   ///
-  /// The maximum size of a UDP datagram is 65535 byes (including both data
+  /// The maximum size of a UDP datagram is 65535 bytes (including both data
   /// and headers) but the practical maximum size is likely to be much lower
   /// due to operating system limits and the network's maximum transmission
   /// unit (MTU).

@@ -100,9 +100,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType type) {}
-
-  @override
   void visitTypedefType(TypedefType node) {
     Typedef typedefNode = node.typedefNode;
     result.add(nameForEntity(
@@ -169,6 +166,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    result.add(node.parameter.name ?? "T#${identityHashCode(node.parameter)}");
+    addNullability(node.declaredNullability);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     return node.left.accept(this);
   }
@@ -180,7 +183,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     if (node.typeParameters.isNotEmpty) {
       result.add("<");
       bool first = true;
-      for (TypeParameter param in node.typeParameters) {
+      for (StructuralParameter param in node.typeParameters) {
         if (!first) result.add(", ");
         result.add(param.name ?? '');
         if (isObject(param.bound) && param.defaultType is DynamicType) {
@@ -525,6 +528,18 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   @override
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     unsupported('printing unevaluated constants', -1, null);
+  }
+
+  @override
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 }
 

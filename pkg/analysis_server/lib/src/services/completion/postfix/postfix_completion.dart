@@ -349,8 +349,8 @@ class PostfixCompletionProcessor {
         builder.write(indent);
         builder.write('try {');
         builder.write(eol);
-        builder.write(src.replaceAll(RegExp('^$indent', multiLine: true),
-            '$indent${utils.getIndent(1)}'));
+        builder.write(utils.replaceSourceIndent(
+            src, indent, '$indent${utils.getIndent(1)}'));
         builder.selectHere();
         builder.write(indent);
         builder.write('}');

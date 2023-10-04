@@ -26,10 +26,10 @@ import 'package:meta/meta.dart';
 /// There is only one reference object per [Element].
 class Reference {
   /// The parent of this reference, or `null` if the root.
-  final Reference? parent;
+  Reference? parent;
 
   /// The simple name of the reference in its [parent].
-  final String name;
+  String name;
 
   /// The corresponding [Element], or `null` if a named container.
   Element? element;
@@ -54,6 +54,19 @@ class Reference {
   @visibleForTesting
   Object? get childrenUnionForTesting => _childrenUnion;
 
+  /// The name of the element that this reference represents.
+  ///
+  /// Normally, this is [name]. But in case of duplicate declarations, such
+  /// as augmentations (which is allowed by the specification), or invalid
+  /// code, the actual name is the name of the parent of the duplicates
+  /// container `@def`.
+  String get elementName {
+    if (parent?.name == '@def') {
+      return parent!.parent!.name;
+    }
+    return name;
+  }
+
   bool get isLibrary => parent?.isRoot == true;
 
   bool get isPrefix => parent?.name == '@prefix';
@@ -73,6 +86,38 @@ class Reference {
       return null;
     }
     return (childrenUnion as Map<String, Reference>)[name];
+  }
+
+  /// Adds a new child with the given [name].
+  ///
+  /// This method should be used when a new declaration of an element with
+  /// this name is processed. If there is no existing child with this name,
+  /// this method works exactly as [getChild]. If there is a duplicate, which
+  /// should happen rarely, an intermediate `@def` container is added, the
+  /// existing child is transferred to it and renamed to `0`, then a new child
+  /// is added with name `1`. Additional duplicate children get names `2`, etc.
+  Reference addChild(String name) {
+    final existing = this[name];
+
+    // If not a duplicate.
+    if (existing == null) {
+      return getChild(name);
+    }
+
+    var def = existing['@def'];
+
+    // If no duplicates container yet.
+    if (def == null) {
+      removeChild(name); // existing
+      def = getChild(name).getChild('@def');
+      def._addChild('0', existing);
+      existing.parent = def;
+      existing.name = '0';
+    }
+
+    // Add a new child to the duplicates container.
+    final indexStr = '${def.children.length}';
+    return def.getChild(indexStr);
   }
 
   /// Return the child with the given name, create if does not exist yet.
@@ -120,6 +165,25 @@ class Reference {
 
   @override
   String toString() => parent == null ? 'root' : '$parent::$name';
+
+  void _addChild(String name, Reference child) {
+    name = _rewriteDartUi(name);
+
+    final childrenUnion = _childrenUnion;
+    if (childrenUnion == null) {
+      // 0 -> 1 children.
+      _childrenUnion = child;
+      return;
+    }
+    if (childrenUnion is Reference) {
+      // 1 -> 2 children.
+      final childrenUnionAsMap = _childrenUnion = <String, Reference>{};
+      childrenUnionAsMap[childrenUnion.name] = childrenUnion;
+      childrenUnionAsMap[name] = child;
+      return;
+    }
+    (childrenUnion as Map<String, Reference>)[name] ??= child;
+  }
 
   /// TODO(scheglov) Remove it, once when the actual issue is fixed.
   /// https://buganizer.corp.google.com/issues/203423390

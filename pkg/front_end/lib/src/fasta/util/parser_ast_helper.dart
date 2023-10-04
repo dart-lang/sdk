@@ -237,9 +237,10 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
+        beginToken: beginToken,
         augmentToken: augmentToken,
         baseToken: baseToken,
         mixinKeyword: mixinKeyword,
@@ -269,9 +270,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     MixinDeclarationEnd data = new MixinDeclarationEnd(ParserAstType.END,
-        mixinKeyword: mixinKeyword, endToken: endToken);
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
@@ -301,10 +302,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
     ExtensionDeclarationEnd data = new ExtensionDeclarationEnd(
         ParserAstType.END,
+        beginToken: beginToken,
         extensionKeyword: extensionKeyword,
         onKeyword: onKeyword,
         endToken: endToken);
@@ -321,10 +323,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
     ExtensionTypeDeclarationEnd data = new ExtensionTypeDeclarationEnd(
         ParserAstType.END,
+        beginToken: beginToken,
         extensionKeyword: extensionKeyword,
         typeKeyword: typeKeyword,
         endToken: endToken);
@@ -474,11 +477,14 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     EnumEnd data = new EnumEnd(ParserAstType.END,
+        beginToken: beginToken,
         enumKeyword: enumKeyword,
         leftBrace: leftBrace,
-        memberCount: memberCount);
+        memberCount: memberCount,
+        endToken: endToken);
     seen(data);
   }
 
@@ -1045,7 +1051,7 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin,
+      Token beginToken,
       Token? abstractToken,
       Token? macroToken,
       Token? sealedToken,
@@ -1057,7 +1063,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
-        begin: begin,
+        beginToken: beginToken,
         abstractToken: abstractToken,
         macroToken: macroToken,
         sealedToken: sealedToken,
@@ -2438,15 +2444,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    ShowHideIdentifierHandle data = new ShowHideIdentifierHandle(
-        ParserAstType.HANDLE,
-        modifier: modifier,
-        identifier: identifier);
-    seen(data);
-  }
-
-  @override
   void handleIndexedExpression(
       Token? question, Token openSquareBracket, Token closeSquareBracket) {
     IndexedExpressionHandle data = new IndexedExpressionHandle(
@@ -3470,13 +3467,15 @@ class ClassDeclarationEnd extends ParserAstNode {
 }
 
 class MixinDeclarationBegin extends ParserAstNode {
+  final Token beginToken;
   final Token? augmentToken;
   final Token? baseToken;
   final Token mixinKeyword;
   final Token name;
 
   MixinDeclarationBegin(ParserAstType type,
-      {this.augmentToken,
+      {required this.beginToken,
+      this.augmentToken,
       this.baseToken,
       required this.mixinKeyword,
       required this.name})
@@ -3484,6 +3483,7 @@ class MixinDeclarationBegin extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
         "augmentToken": augmentToken,
         "baseToken": baseToken,
         "mixinKeyword": mixinKeyword,
@@ -3526,16 +3526,16 @@ class RecoverMixinHeaderHandle extends ParserAstNode {
 }
 
 class MixinDeclarationEnd extends ParserAstNode {
-  final Token mixinKeyword;
+  final Token beginToken;
   final Token endToken;
 
   MixinDeclarationEnd(ParserAstType type,
-      {required this.mixinKeyword, required this.endToken})
+      {required this.beginToken, required this.endToken})
       : super("MixinDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "mixinKeyword": mixinKeyword,
+        "beginToken": beginToken,
         "endToken": endToken,
       };
 }
@@ -3582,18 +3582,21 @@ class ExtensionDeclarationBegin extends ParserAstNode {
 }
 
 class ExtensionDeclarationEnd extends ParserAstNode {
+  final Token beginToken;
   final Token extensionKeyword;
   final Token onKeyword;
   final Token endToken;
 
   ExtensionDeclarationEnd(ParserAstType type,
-      {required this.extensionKeyword,
+      {required this.beginToken,
+      required this.extensionKeyword,
       required this.onKeyword,
       required this.endToken})
       : super("ExtensionDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
         "extensionKeyword": extensionKeyword,
         "onKeyword": onKeyword,
         "endToken": endToken,
@@ -3616,18 +3619,21 @@ class ExtensionTypeDeclarationBegin extends ParserAstNode {
 }
 
 class ExtensionTypeDeclarationEnd extends ParserAstNode {
+  final Token beginToken;
   final Token extensionKeyword;
   final Token typeKeyword;
   final Token endToken;
 
   ExtensionTypeDeclarationEnd(ParserAstType type,
-      {required this.extensionKeyword,
+      {required this.beginToken,
+      required this.extensionKeyword,
       required this.typeKeyword,
       required this.endToken})
       : super("ExtensionTypeDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
         "extensionKeyword": extensionKeyword,
         "typeKeyword": typeKeyword,
         "endToken": endToken,
@@ -3888,21 +3894,27 @@ class EnumBegin extends ParserAstNode {
 }
 
 class EnumEnd extends ParserAstNode {
+  final Token beginToken;
   final Token enumKeyword;
   final Token leftBrace;
   final int memberCount;
+  final Token endToken;
 
   EnumEnd(ParserAstType type,
-      {required this.enumKeyword,
+      {required this.beginToken,
+      required this.enumKeyword,
       required this.leftBrace,
-      required this.memberCount})
+      required this.memberCount,
+      required this.endToken})
       : super("Enum", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
         "enumKeyword": enumKeyword,
         "leftBrace": leftBrace,
         "memberCount": memberCount,
+        "endToken": endToken,
       };
 }
 
@@ -4903,7 +4915,7 @@ class MixinWithClauseHandle extends ParserAstNode {
 }
 
 class NamedMixinApplicationBegin extends ParserAstNode {
-  final Token begin;
+  final Token beginToken;
   final Token? abstractToken;
   final Token? macroToken;
   final Token? sealedToken;
@@ -4915,7 +4927,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token name;
 
   NamedMixinApplicationBegin(ParserAstType type,
-      {required this.begin,
+      {required this.beginToken,
       this.abstractToken,
       this.macroToken,
       this.sealedToken,
@@ -4929,7 +4941,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-        "begin": begin,
+        "beginToken": beginToken,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
         "sealedToken": sealedToken,
@@ -7407,21 +7419,6 @@ class IdentifierHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
-      };
-}
-
-class ShowHideIdentifierHandle extends ParserAstNode {
-  final Token? modifier;
-  final Token identifier;
-
-  ShowHideIdentifierHandle(ParserAstType type,
-      {this.modifier, required this.identifier})
-      : super("ShowHideIdentifier", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-        "modifier": modifier,
-        "identifier": identifier,
       };
 }
 

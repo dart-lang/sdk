@@ -248,7 +248,7 @@ extension on int? {
 ''');
   }
 
-  test_extensionType_interfaceType_isUsed_typeName_typeArgument() async {
+  test_extensionType_isUsed_typeName_typeArgument() async {
     await assertNoErrorsInCode(r'''
 extension type _E(int i) {}
 
@@ -256,14 +256,6 @@ void f() {
   Map<_E, int>();
 }
 ''');
-  }
-
-  test_extensionType_interfaceType_notUsed() async {
-    await assertErrorsInCode(r'''
-extension type _E(int i) {}
-''', [
-      error(WarningCode.UNUSED_ELEMENT, 15, 2),
-    ]);
   }
 
   test_extensionType_member_notUsed() async {
@@ -276,9 +268,18 @@ extension type E(int i) {
     ]);
   }
 
+  test_extensionType_notUsed() async {
+    await assertErrorsInCode(r'''
+extension type _E(int i) {}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 2),
+    ]);
+  }
+
   test_extensionType_notUsed_variableDeclaration() async {
     await assertErrorsInCode('''
 extension type _E(int i) {}
+
 void f() {
   _E? v;
   print(v);
@@ -291,7 +292,8 @@ void f() {
   test_extensionType_notUsed_variableDeclaration_typeArgument() async {
     await assertErrorsInCode('''
 extension type _E(int i) {}
-main() {
+
+void f() {
   List<_E>? v;
   print(v);
 }

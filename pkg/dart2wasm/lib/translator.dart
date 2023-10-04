@@ -43,7 +43,7 @@ class TranslatorOptions {
   bool jsCompatibility = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
-  List<int>? watchPoints = null;
+  List<int> watchPoints = [];
 }
 
 /// The main entry point for the translation from kernel to Wasm and the hub for
@@ -91,6 +91,7 @@ class Translator with KernelNodes {
   final Map<Field, w.Table> declaredTables = {};
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
+  final Map<Reference, Closures> constructorClosures = {};
   final List<_FunctionGenerator> _pendingFunctions = [];
   late final Procedure mainFunction;
   late final w.ModuleBuilder m;
@@ -347,11 +348,18 @@ class Translator with KernelNodes {
         print(codeGen.function.body.trace);
       }
 
-      for (Lambda lambda in codeGen.closures.lambdas.values) {
-        w.BaseFunction lambdaFunction = CodeGenerator.forFunction(
-                this, lambda.functionNode, lambda.function, reference)
-            .generateLambda(lambda, codeGen.closures);
-        _printFunction(lambdaFunction, "$canonicalName (closure)");
+      // The constructor allocator, initializer, and body functions all
+      // share the same Closures, which will contain all the lambdas in the
+      // constructor initializer and body. But, we only want to generate
+      // the lambda functions once, so we only generate lambdas when the
+      // constructor initializer methods are generated.
+      if (member is! Constructor || reference.isInitializerReference) {
+        for (Lambda lambda in codeGen.closures.lambdas.values) {
+          w.BaseFunction lambdaFunction = CodeGenerator.forFunction(
+                  this, lambda.functionNode, lambda.function, reference)
+              .generateLambda(lambda, codeGen.closures);
+          _printFunction(lambdaFunction, "$canonicalName (closure)");
+        }
       }
 
       // Use an indexed loop to handle pending closure trampolines, since new
@@ -362,6 +370,7 @@ class Translator with KernelNodes {
       _pendingFunctions.clear();
     }
 
+    constructorClosures.clear();
     dispatchTable.output();
     initFunction.body.end();
 
@@ -904,11 +913,17 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
+    if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
+      return false;
+    }
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
+    if (target.isInitializerReference) return true;
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
-    if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
+    if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
+      return true;
+    }
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
@@ -925,13 +940,17 @@ class Translator with KernelNodes {
             if (nameConstant is StringConstant && nameConstant.value == name) {
               Constant? value =
                   constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
+              if (value == null || value is NullConstant) {
+                return defaultValue;
+              }
               if (value is PrimitiveConstant<T>) {
                 return value.value;
               }
-              if (value is NullConstant) {
-                return defaultValue;
+              if (value is! T) {
+                throw ArgumentError("$name pragma argument has unexpected type "
+                    "${value.runtimeType} (expected $T)");
               }
-              return value as T? ?? defaultValue;
+              return value as T;
             }
           }
         }

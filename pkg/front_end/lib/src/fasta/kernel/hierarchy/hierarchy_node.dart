@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart';
 
 import '../../../testing/id_testing_utils.dart' show typeToText;
 import '../../builder/builder.dart';
@@ -282,13 +282,17 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) {
       return mixinNode;
     }
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(
+            mixedInType.classNode.typeParameters);
     new BuilderMixinInferrer(
             _classBuilder,
             _hierarchy.coreTypes,
             new TypeBuilderConstraintGatherer(
-                _hierarchy, mixedInType.classNode.typeParameters,
+                _hierarchy, freshTypeParameters.freshTypeParameters,
                 isNonNullableByDefault:
-                    cls.enclosingLibrary.isNonNullableByDefault))
+                    cls.enclosingLibrary.isNonNullableByDefault),
+            freshTypeParameters.substitutionMap)
         .infer(cls);
     List<TypeBuilder> inferredArguments = new List<TypeBuilder>.generate(
         typeArguments.length,

@@ -290,7 +290,6 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
           47, 1),
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
     ]);
   }
 
@@ -397,7 +396,6 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
           47, 1),
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 47, 1),
     ]);
   }
 
@@ -442,7 +440,6 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
           50, 1),
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 50, 1),
     ]);
   }
 

@@ -30,6 +30,7 @@ import 'package:analysis_server/src/services/correction/dart/add_missing_switch_
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
+import 'package:analysis_server/src/services/correction/dart/add_redeclare.dart';
 import 'package:analysis_server/src/services/correction/dart/add_reopen.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
@@ -179,6 +180,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_label
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_var.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_var_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_method_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
@@ -441,6 +443,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.annotate_overrides: [
       AddOverride.new,
+    ],
+    LintNames.annotate_redeclares: [
+      AddRedeclare.new,
     ],
     LintNames.avoid_annotating_with_dynamic: [
       RemoveTypeAnnotation.other,
@@ -1499,6 +1504,9 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR: [
       RemoveConstructor.new,
+    ],
+    ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE: [
+      RemoveVarKeyword.new,
     ],
     ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
       AddTrailingComma.new,

@@ -27,7 +27,6 @@ import '../js_model/js_world.dart';
 import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../options.dart';
-import '../util/sink_adapter.dart';
 import 'deferrable.dart';
 import 'serialization.dart';
 
@@ -74,11 +73,10 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing dill to ${_options.outputUri}');
       api.BinaryOutputSink dillOutput =
           _outputProvider.createBinarySink(_options.outputUri!);
-      BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
       ir.BinaryPrinter printer =
-          ir.BinaryPrinter(irSink, includeSourceBytes: includeSourceBytes);
+          ir.BinaryPrinter(dillOutput, includeSourceBytes: includeSourceBytes);
       printer.writeComponentFile(component);
-      irSink.close();
+      dillOutput.close();
     });
   }
 
@@ -127,12 +125,11 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize transformed dill', () {
       _reporter.log('Writing dill to ${_options.outputUri}');
       var dillOutput = _outputProvider.createBinarySink(_options.outputUri!);
-      var irSink = BinaryOutputSinkAdapter(dillOutput);
-      ir.BinaryPrinter printer = ir.BinaryPrinter(irSink,
+      ir.BinaryPrinter printer = ir.BinaryPrinter(dillOutput,
           libraryFilter: (ir.Library l) =>
               includedLibraries.contains(l.importUri));
       printer.writeComponentFile(component);
-      irSink.close();
+      dillOutput.close();
     });
 
     measureSubtask('serialize module data', () {
@@ -141,8 +138,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to $outputUri');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(outputUri);
-      DataSinkWriter sink = DataSinkWriter(
-          BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
+      DataSinkWriter sink =
+          DataSinkWriter(BinaryDataSink(dataOutput), _options);
       data.toDataSink(sink);
       sink.close();
     });
@@ -196,8 +193,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing closed world to $outputUri');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(outputUri);
-      DataSinkWriter sink = DataSinkWriter(
-          BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options);
+      DataSinkWriter sink =
+          DataSinkWriter(BinaryDataSink(dataOutput), _options);
       serializeClosedWorldToSink(closedWorld, sink);
     });
   }
@@ -231,8 +228,7 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to $outputUri');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(outputUri);
-      DataSinkWriter sink = DataSinkWriter(
-          BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
+      DataSinkWriter sink = DataSinkWriter(BinaryDataSink(dataOutput), _options,
           importedIndices: indices);
       serializeGlobalTypeInferenceResultsToSink(results, sink);
     });
@@ -291,8 +287,7 @@ class SerializationTask extends CompilerTask {
           _options.dataOutputUriForStage(Dart2JSStage.codegenSharded);
       Uri uri = Uri.parse('$outputUri$shard');
       api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
-      DataSinkWriter sink = DataSinkWriter(
-          BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
+      DataSinkWriter sink = DataSinkWriter(BinaryDataSink(dataOutput), _options,
           importedIndices: indices);
       _reporter.log('Writing data to ${uri}');
       sink.registerEntityWriter(entityWriter);
@@ -375,8 +370,7 @@ class SerializationTask extends CompilerTask {
     final outputUri = _options.dumpInfoWriteUri!;
     api.BinaryOutputSink dataOutput =
         _outputProvider.createBinarySink(outputUri);
-    final sink = DataSinkWriter(
-        BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
+    final sink = DataSinkWriter(BinaryDataSink(dataOutput), _options,
         importedIndices: importedIndices);
     EntityWriter entityWriter = backendStrategy.forEachCodegenMember((_) {});
     sink.registerEntityWriter(entityWriter);

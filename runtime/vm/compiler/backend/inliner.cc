@@ -80,6 +80,7 @@ DEFINE_FLAG(int,
             "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
 
+DECLARE_FLAG(bool, enable_simd_inline);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -3750,6 +3751,585 @@ static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
   return true;
 }
 
+class SimdLowering : public ValueObject {
+ public:
+  SimdLowering(FlowGraph* flow_graph,
+               Instruction* call,
+               GraphEntryInstr* graph_entry,
+               FunctionEntryInstr** entry,
+               Instruction** last,
+               Definition** result)
+      : flow_graph_(flow_graph),
+        call_(call),
+        graph_entry_(graph_entry),
+        entry_(entry),
+        last_(last),
+        result_(result) {
+    *entry_ = new (zone())
+        FunctionEntryInstr(graph_entry_, flow_graph_->allocate_block_id(),
+                           call_->GetBlock()->try_index(), call_->deopt_id());
+    *last = *entry_;
+  }
+
+  bool TryInline(MethodRecognizer::Kind kind) {
+    switch (kind) {
+      // ==== Int32x4 ====
+      case MethodRecognizer::kInt32x4FromInts:
+        UnboxScalar(0, kUnboxedInt32, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        UnboxScalar(2, kUnboxedInt32, 4);
+        UnboxScalar(3, kUnboxedInt32, 4);
+        Gather(4);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4FromBools:
+        UnboxBool(0, 4);
+        UnboxBool(1, 4);
+        UnboxBool(2, 4);
+        UnboxBool(3, 4);
+        Gather(4);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(0);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(1);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(2);
+        return true;
+      case MethodRecognizer::kInt32x4GetFlagW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        IntToBool();
+        Return(3);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(0);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(1);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(2);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithFlagW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxBool(1, 4);
+        With(3);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4Shuffle: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        Shuffle(mask);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      }
+      case MethodRecognizer::kInt32x4ShuffleMix: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxVector(1, kUnboxedInt32, kMintCid, 4);
+        ShuffleMix(mask);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      }
+      case MethodRecognizer::kInt32x4GetSignMask:
+      case MethodRecognizer::kInt32x4Select:
+        // TODO(riscv)
+        return false;
+
+      // ==== Float32x4 ====
+      case MethodRecognizer::kFloat32x4Abs:
+        Float32x4Unary(Token::kABS);
+        return true;
+      case MethodRecognizer::kFloat32x4Negate:
+        Float32x4Unary(Token::kNEGATE);
+        return true;
+      case MethodRecognizer::kFloat32x4Sqrt:
+        Float32x4Unary(Token::kSQRT);
+        return true;
+      case MethodRecognizer::kFloat32x4Reciprocal:
+        Float32x4Unary(Token::kRECIPROCAL);
+        return true;
+      case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+        Float32x4Unary(Token::kRECIPROCAL_SQRT);
+        return true;
+      case MethodRecognizer::kFloat32x4GetSignMask:
+        // TODO(riscv)
+        return false;
+      case MethodRecognizer::kFloat32x4Equal:
+        Float32x4Compare(Token::kEQ);
+        return true;
+      case MethodRecognizer::kFloat32x4GreaterThan:
+        Float32x4Compare(Token::kGT);
+        return true;
+      case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+        Float32x4Compare(Token::kGTE);
+        return true;
+      case MethodRecognizer::kFloat32x4LessThan:
+        Float32x4Compare(Token::kLT);
+        return true;
+      case MethodRecognizer::kFloat32x4LessThanOrEqual:
+        Float32x4Compare(Token::kLTE);
+        return true;
+      case MethodRecognizer::kFloat32x4Add:
+        Float32x4Binary(Token::kADD);
+        return true;
+      case MethodRecognizer::kFloat32x4Sub:
+        Float32x4Binary(Token::kSUB);
+        return true;
+      case MethodRecognizer::kFloat32x4Mul:
+        Float32x4Binary(Token::kMUL);
+        return true;
+      case MethodRecognizer::kFloat32x4Div:
+        Float32x4Binary(Token::kDIV);
+        return true;
+      case MethodRecognizer::kFloat32x4Min:
+        Float32x4Binary(Token::kMIN);
+        return true;
+      case MethodRecognizer::kFloat32x4Max:
+        Float32x4Binary(Token::kMAX);
+        return true;
+      case MethodRecognizer::kFloat32x4Scale:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        BinaryDoubleOp(Token::kMUL, kUnboxedFloat, 4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4Splat:
+        UnboxScalar(0, kUnboxedFloat, 4);
+        Splat(4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithX:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(0);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithY:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(1);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithZ:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(2);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4WithW:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        With(3);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4Zero:
+        UnboxDoubleZero(kUnboxedFloat, 4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4FromDoubles:
+        UnboxScalar(0, kUnboxedFloat, 4);
+        UnboxScalar(1, kUnboxedFloat, 4);
+        UnboxScalar(2, kUnboxedFloat, 4);
+        UnboxScalar(3, kUnboxedFloat, 4);
+        Gather(4);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4GetX:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(0, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4GetY:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(1, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4GetZ:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(2, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4GetW:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        BoxScalar(3, kUnboxedFloat);
+        return true;
+      case MethodRecognizer::kFloat32x4Shuffle: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        Shuffle(mask);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      }
+      case MethodRecognizer::kFloat32x4ShuffleMix: {
+        Definition* mask_definition =
+            call_->ArgumentAt(call_->ArgumentCount() - 1);
+        intptr_t mask = 0;
+        if (!CheckMask(mask_definition, &mask)) {
+          return false;
+        }
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+        UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
+        ShuffleMix(mask);
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      }
+
+      // ==== Float64x2 ====
+      case MethodRecognizer::kFloat64x2Abs:
+        Float64x2Unary(Token::kABS);
+        return true;
+      case MethodRecognizer::kFloat64x2Negate:
+        Float64x2Unary(Token::kNEGATE);
+        return true;
+      case MethodRecognizer::kFloat64x2Sqrt:
+        Float64x2Unary(Token::kSQRT);
+        return true;
+      case MethodRecognizer::kFloat64x2Add:
+        Float64x2Binary(Token::kADD);
+        return true;
+      case MethodRecognizer::kFloat64x2Sub:
+        Float64x2Binary(Token::kSUB);
+        return true;
+      case MethodRecognizer::kFloat64x2Mul:
+        Float64x2Binary(Token::kMUL);
+        return true;
+      case MethodRecognizer::kFloat64x2Div:
+        Float64x2Binary(Token::kDIV);
+        return true;
+      case MethodRecognizer::kFloat64x2Min:
+        Float64x2Binary(Token::kMIN);
+        return true;
+      case MethodRecognizer::kFloat64x2Max:
+        Float64x2Binary(Token::kMAX);
+        return true;
+      case MethodRecognizer::kFloat64x2Scale:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        BinaryDoubleOp(Token::kMUL, kUnboxedDouble, 2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2Splat:
+        UnboxScalar(0, kUnboxedDouble, 2);
+        Splat(2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2WithX:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        With(0);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2WithY:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        With(1);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2Zero:
+        UnboxDoubleZero(kUnboxedDouble, 2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2FromDoubles:
+        UnboxScalar(0, kUnboxedDouble, 2);
+        UnboxScalar(1, kUnboxedDouble, 2);
+        Gather(2);
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2GetX:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        BoxScalar(0, kUnboxedDouble);
+        return true;
+      case MethodRecognizer::kFloat64x2GetY:
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+        BoxScalar(1, kUnboxedDouble);
+        return true;
+
+      // Mixed
+      case MethodRecognizer::kFloat32x4ToFloat64x2: {
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4, 1);
+        Float32x4ToFloat64x2();
+        BoxVector(kUnboxedDouble, 2);
+        return true;
+      }
+      case MethodRecognizer::kFloat64x2ToFloat32x4: {
+        UnboxVector(0, kUnboxedDouble, kDoubleCid, 2, 1);
+        Float64x2ToFloat32x4();
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      }
+      case MethodRecognizer::kInt32x4ToFloat32x4:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4, 1);
+        Int32x4ToFloat32x4();
+        BoxVector(kUnboxedFloat, 4);
+        return true;
+      case MethodRecognizer::kFloat32x4ToInt32x4:
+        UnboxVector(0, kUnboxedFloat, kDoubleCid, 4, 1);
+        Float32x4ToInt32x4();
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      default:
+        return false;
+    }
+  }
+
+ private:
+  void Float32x4Unary(Token::Kind op) {
+    UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+    UnaryDoubleOp(op, kUnboxedFloat, 4);
+    BoxVector(kUnboxedFloat, 4);
+  }
+  void Float32x4Binary(Token::Kind op) {
+    UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+    UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
+    BinaryDoubleOp(op, kUnboxedFloat, 4);
+    BoxVector(kUnboxedFloat, 4);
+  }
+  void Float32x4Compare(Token::Kind op) {
+    UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
+    UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
+    FloatCompare(op);
+    BoxVector(kUnboxedInt32, 4);
+  }
+  void Float64x2Unary(Token::Kind op) {
+    UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+    UnaryDoubleOp(op, kUnboxedDouble, 2);
+    BoxVector(kUnboxedDouble, 2);
+  }
+  void Float64x2Binary(Token::Kind op) {
+    UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
+    UnboxVector(1, kUnboxedDouble, kDoubleCid, 2);
+    BinaryDoubleOp(op, kUnboxedDouble, 2);
+    BoxVector(kUnboxedDouble, 2);
+  }
+
+  void UnboxVector(intptr_t i,
+                   Representation rep,
+                   intptr_t cid,
+                   intptr_t n,
+                   intptr_t type_args = 0) {
+    Definition* arg = call_->ArgumentAt(i + type_args);
+    if (CompilerState::Current().is_aot()) {
+      // Add null-checks in case of the arguments are known to be compatible
+      // but they are possibly nullable.
+      // By inserting the null-check, we can allow the unbox instruction later
+      // inserted to be non-speculative.
+      arg = AddDefinition(new (zone()) CheckNullInstr(
+          new (zone()) Value(arg), Symbols::SecondArg(), call_->deopt_id(),
+          call_->source(), CheckNullInstr::kArgumentError));
+    }
+    for (intptr_t lane = 0; lane < n; lane++) {
+      in_[i][lane] = AddDefinition(
+          new (zone()) UnboxLaneInstr(new (zone()) Value(arg), lane, rep, cid));
+    }
+  }
+
+  void UnboxScalar(intptr_t i,
+                   Representation rep,
+                   intptr_t n,
+                   intptr_t type_args = 0) {
+    Definition* arg = call_->ArgumentAt(i + type_args);
+    if (CompilerState::Current().is_aot()) {
+      // Add null-checks in case of the arguments are known to be compatible
+      // but they are possibly nullable.
+      // By inserting the null-check, we can allow the unbox instruction later
+      // inserted to be non-speculative.
+      arg = AddDefinition(new (zone()) CheckNullInstr(
+          new (zone()) Value(arg), Symbols::SecondArg(), call_->deopt_id(),
+          call_->source(), CheckNullInstr::kArgumentError));
+    }
+    Definition* unbox = AddDefinition(
+        UnboxInstr::Create(rep, new (zone()) Value(arg), DeoptId::kNone,
+                           Instruction::kNotSpeculative));
+    for (intptr_t lane = 0; lane < n; lane++) {
+      in_[i][lane] = unbox;
+    }
+  }
+
+  void UnboxBool(intptr_t i, intptr_t n) {
+    Definition* unbox = AddDefinition(new (zone()) BoolToIntInstr(
+        call_->ArgumentValueAt(i)->CopyWithType(zone())));
+    for (intptr_t lane = 0; lane < n; lane++) {
+      in_[i][lane] = unbox;
+    }
+  }
+
+  void UnboxDoubleZero(Representation rep, intptr_t n) {
+    Definition* zero = flow_graph_->GetConstant(
+        Double::ZoneHandle(Double::NewCanonical(0.0)), rep);
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = zero;
+    }
+  }
+
+  void UnaryDoubleOp(Token::Kind op, Representation rep, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) UnaryDoubleOpInstr(
+          op, new (zone()) Value(in_[0][lane]), call_->deopt_id(),
+          Instruction::kNotSpeculative, rep));
+    }
+  }
+
+  void BinaryDoubleOp(Token::Kind op, Representation rep, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) BinaryDoubleOpInstr(
+          op, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
+          Instruction::kNotSpeculative, rep));
+    }
+  }
+
+  void FloatCompare(Token::Kind op) {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(
+          new (zone()) FloatCompareInstr(op, new (zone()) Value(in_[0][lane]),
+                                         new (zone()) Value(in_[1][lane])));
+    }
+  }
+
+  void With(intptr_t i) {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = in_[0][lane];
+    }
+    op_[i] = in_[1][0];
+  }
+  void Splat(intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = in_[0][0];
+    }
+  }
+  void Gather(intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = in_[lane][0];
+    }
+  }
+  void Shuffle(intptr_t mask) {
+    op_[0] = in_[0][(mask >> 0) & 3];
+    op_[1] = in_[0][(mask >> 2) & 3];
+    op_[2] = in_[0][(mask >> 4) & 3];
+    op_[3] = in_[0][(mask >> 6) & 3];
+  }
+  void ShuffleMix(intptr_t mask) {
+    op_[0] = in_[0][(mask >> 0) & 3];
+    op_[1] = in_[0][(mask >> 2) & 3];
+    op_[2] = in_[1][(mask >> 4) & 3];
+    op_[3] = in_[1][(mask >> 6) & 3];
+  }
+  void Float32x4ToFloat64x2() {
+    for (intptr_t lane = 0; lane < 2; lane++) {
+      op_[lane] = AddDefinition(new (zone()) FloatToDoubleInstr(
+          new (zone()) Value(in_[0][lane]), DeoptId::kNone));
+    }
+  }
+  void Float64x2ToFloat32x4() {
+    for (intptr_t lane = 0; lane < 2; lane++) {
+      op_[lane] = AddDefinition(new (zone()) DoubleToFloatInstr(
+          new (zone()) Value(in_[0][lane]), DeoptId::kNone));
+    }
+    Definition* zero = flow_graph_->GetConstant(
+        Double::ZoneHandle(Double::NewCanonical(0.0)), kUnboxedFloat);
+    op_[2] = zero;
+    op_[3] = zero;
+  }
+  void Int32x4ToFloat32x4() {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(new (zone()) BitCastInstr(
+          kUnboxedInt32, kUnboxedFloat, new (zone()) Value(in_[0][lane])));
+    }
+  }
+  void Float32x4ToInt32x4() {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(new (zone()) BitCastInstr(
+          kUnboxedFloat, kUnboxedInt32, new (zone()) Value(in_[0][lane])));
+    }
+  }
+  void IntToBool() {
+    for (intptr_t lane = 0; lane < 4; lane++) {
+      op_[lane] = AddDefinition(
+          new (zone()) IntToBoolInstr(new (zone()) Value(in_[0][lane])));
+    }
+  }
+
+  void BoxVector(Representation rep, intptr_t n) {
+    Definition* box;
+    if (n == 2) {
+      box = new (zone()) BoxLanesInstr(rep, new (zone()) Value(op_[0]),
+                                       new (zone()) Value(op_[1]));
+    } else {
+      ASSERT(n == 4);
+      box = new (zone()) BoxLanesInstr(
+          rep, new (zone()) Value(op_[0]), new (zone()) Value(op_[1]),
+          new (zone()) Value(op_[2]), new (zone()) Value(op_[3]));
+    }
+    Done(AddDefinition(box));
+  }
+
+  void BoxScalar(intptr_t lane, Representation rep) {
+    Definition* box = BoxInstr::Create(rep, new (zone()) Value(in_[0][lane]));
+    Done(AddDefinition(box));
+  }
+
+  void Return(intptr_t lane) { Done(op_[lane]); }
+
+  void Done(Definition* result) {
+    // InheritDeoptTarget also inherits environment (which may add 'entry' into
+    // env_use_list()), so InheritDeoptTarget should be done only after decided
+    // to inline.
+    (*entry_)->InheritDeoptTarget(zone(), call_);
+    *result_ = result;
+  }
+
+  Definition* AddDefinition(Definition* def) {
+    *last_ = flow_graph_->AppendTo(
+        *last_, def, call_->deopt_id() != DeoptId::kNone ? call_->env() : NULL,
+        FlowGraph::kValue);
+    return def;
+  }
+  Zone* zone() { return flow_graph_->zone(); }
+
+  FlowGraph* flow_graph_;
+  Instruction* call_;
+  GraphEntryInstr* graph_entry_;
+  FunctionEntryInstr** entry_;
+  Instruction** last_;
+  Definition** result_;
+
+  // First index is the argment number, second index is the lane number.
+  Definition* in_[4][4];
+  // Index is the lane number.
+  Definition* op_[4];
+};
+
 static bool InlineSimdOp(FlowGraph* flow_graph,
                          bool is_dynamic_call,
                          Instruction* call,
@@ -3759,9 +4339,6 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
                          FunctionEntryInstr** entry,
                          Instruction** last,
                          Definition** result) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
   if (is_dynamic_call && call->ArgumentCount() > 1) {
     // Issue(dartbug.com/37737): Dynamic invocation forwarders have the
     // same recognized kind as the method they are forwarding to.
@@ -3774,6 +4351,19 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     // correct. Though for user-implementable types, like
     // operator+(Float32x4 other), this is not safe and we therefore bailout.
     return false;
+  }
+
+  if (!FLAG_enable_simd_inline) {
+    return false;
+  }
+
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    SimdLowering lowering(flow_graph, call, graph_entry, entry, last, result);
+    return lowering.TryInline(kind);
+#else
+    return false;
+#endif
   }
 
   *entry =
@@ -4002,6 +4592,73 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kUint64ArrayGetIndexed:
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt8:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt8ArrayCid, graph_entry, entry,
+                                     last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint8:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint8ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt16:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt16ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint16:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint16ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt32:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt32ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint32:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint32ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt64:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt64ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetUint64:
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataUint64ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat32:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat32ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat64:
+      if (!CanUnboxDouble()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat64ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat32x4ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat64x2ArrayCid, graph_entry,
+                                     entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetInt32x4:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataInt32x4ArrayCid, graph_entry,
+                                     entry, last, result);
     case MethodRecognizer::kClassIDgetID:
       return InlineLoadClassId(flow_graph, call, graph_entry, entry, last,
                                result);
@@ -4082,73 +4739,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
                               value_check, exactness, graph_entry, entry, last,
                               result);
     }
-    case MethodRecognizer::kByteArrayBaseGetInt8:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt8ArrayCid, graph_entry, entry,
-                                     last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint8:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint8ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt16:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt16ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint16:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint16ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt32:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint32:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt64:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetUint64:
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataUint64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat32:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat64:
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat64ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat32x4ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataFloat64x2ArrayCid, graph_entry,
-                                     entry, last, result);
-    case MethodRecognizer::kByteArrayBaseGetInt32x4:
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
-                                     kTypedDataInt32x4ArrayCid, graph_entry,
-                                     entry, last, result);
     case MethodRecognizer::kByteArrayBaseSetInt8:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataInt8ArrayCid,

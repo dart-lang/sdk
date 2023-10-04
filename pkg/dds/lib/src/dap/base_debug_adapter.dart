@@ -182,7 +182,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   Future<void> pauseRequest(
     Request request,
     PauseArguments args,
-    void Function(PauseResponseBody) sendResponse,
+    void Function() sendResponse,
+  );
+
+  Future<void> restartFrameRequest(
+    Request request,
+    RestartFrameArguments args,
+    void Function() sendResponse,
   );
 
   Future<void> restartRequest(
@@ -376,7 +382,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
     } else if (request.command == 'pause') {
       handle(
         request,
-        pauseRequest,
+        _withVoidResponse(pauseRequest),
         PauseArguments.fromJson,
         responseWriter,
       );
@@ -406,6 +412,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
         request,
         _withVoidResponse(stepOutRequest),
         StepOutArguments.fromJson,
+        responseWriter,
+      );
+    } else if (request.command == 'restartFrame') {
+      handle(
+        request,
+        _withVoidResponse(restartFrameRequest),
+        RestartFrameArguments.fromJson,
         responseWriter,
       );
     } else if (request.command == 'threads') {

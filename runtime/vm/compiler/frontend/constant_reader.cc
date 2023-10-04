@@ -256,22 +256,26 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       Tag integer_tag = reader.ReadTag(&payload);  // read tag.
       switch (integer_tag) {
         case kBigIntLiteral: {
+          reader.ReadPosition();
           const String& value = H.DartString(reader.ReadStringReference());
           instance = Integer::New(value, Heap::kOld);
           break;
         }
         case kSpecializedIntLiteral: {
+          reader.ReadPosition();
           const int64_t value =
               static_cast<int32_t>(payload) - SpecializedIntLiteralBias;
           instance = Integer::New(value, Heap::kOld);
           break;
         }
         case kNegativeIntLiteral: {
+          reader.ReadPosition();
           const int64_t value = -static_cast<int64_t>(reader.ReadUInt());
           instance = Integer::New(value, Heap::kOld);
           break;
         }
         case kPositiveIntLiteral: {
+          reader.ReadPosition();
           const int64_t value = reader.ReadUInt();
           instance = Integer::New(value, Heap::kOld);
           break;

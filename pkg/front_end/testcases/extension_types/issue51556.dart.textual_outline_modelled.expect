@@ -1,6 +1,3 @@
----- unknown chunk starts ----
-extension type JSAny(Object value) {} extension type JSObject(Object value) implements JSAny {} extension type JSArray(List<JSAny?> value) implements JSObject {} extension type JSExportedDartObject(Object value) implements JSObject {} extension type JSNumber(double value) implements JSAny {}
----- unknown chunk ends ----
 extension DoubleToJSNumber on double {
   JSNumber get toJS => JSNumber(this);
 }
@@ -10,4 +7,9 @@ extension ListToJSArray on List<JSAny?> {
 extension ObjectToJSExportedDartObject on Object {
   JSExportedDartObject get toJS => JSExportedDartObject(this);
 }
+extension type JSAny(Object value) {}
+extension type JSArray(List<JSAny?> value) implements JSObject {}
+extension type JSExportedDartObject(Object value) implements JSObject {}
+extension type JSNumber(double value) implements JSAny {}
+extension type JSObject(Object value) implements JSAny {}
 void main() {}

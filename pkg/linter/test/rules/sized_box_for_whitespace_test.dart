@@ -104,6 +104,7 @@ Widget f() {
 
   test_hasWidthAndHeight_andKey_noChild() async {
     await assertDiagnostics(r'''
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 Widget f() {
@@ -114,7 +115,7 @@ Widget f() {
   );
 }
 ''', [
-      lint(62, 9),
+      lint(104, 9),
     ]);
   }
 

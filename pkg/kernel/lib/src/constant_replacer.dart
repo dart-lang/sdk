@@ -1,6 +1,6 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import '../ast.dart';
 
@@ -225,5 +225,11 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
     } else {
       return UnevaluatedConstant(expression);
     }
+  }
+
+  @override
+  Constant? visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
   }
 }

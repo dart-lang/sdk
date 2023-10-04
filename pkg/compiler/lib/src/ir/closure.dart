@@ -329,7 +329,7 @@ class VariableUse {
       'instantiation=$instantiation)';
 }
 
-enum TypeVariableKind { cls, method, local, function }
+enum TypeVariableKind { cls, method, local }
 
 /// A fake ir.Node that holds the TypeParameterType as well as the context in
 /// which it occurs.
@@ -346,10 +346,7 @@ class TypeVariableTypeWithContext implements ir.Node {
     TypeVariableKind kind;
     ir.GenericDeclaration? typeDeclaration = type.parameter.declaration;
     // TODO(fishythefish): Use exhaustive pattern switch.
-    if (typeDeclaration == null) {
-      // We have a function type variable, like `T` in `void Function<T>(int)`.
-      kind = TypeVariableKind.function;
-    } else if (typeDeclaration is ir.Class) {
+    if (typeDeclaration is ir.Class) {
       // We have a class type variable, like `T` in `class Class<T> { ... }`.
       kind = TypeVariableKind.cls;
     } else if (typeDeclaration is ir.Procedure) {

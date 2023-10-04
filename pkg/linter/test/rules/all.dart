@@ -5,8 +5,10 @@
 import 'always_specify_types_test.dart' as always_specify_types;
 import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'annotate_overrides_test.dart' as annotate_overrides;
+import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
+import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
@@ -16,6 +18,7 @@ import 'avoid_function_literals_in_foreach_calls_test.dart'
 import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
 import 'avoid_positional_boolean_parameters_test.dart'
     as avoid_positional_boolean_parameters;
+import 'avoid_print_test.dart' as avoid_print;
 import 'avoid_private_typedef_functions_test.dart'
     as avoid_private_typedef_functions;
 import 'avoid_redundant_argument_values_test.dart'
@@ -38,15 +41,19 @@ import 'avoid_types_as_parameter_names_test.dart'
     as avoid_types_as_parameter_names;
 import 'avoid_types_on_closure_parameters_test.dart'
     as avoid_types_on_closure_parameters;
+import 'avoid_unnecessary_containers_test.dart' as avoid_unnecessary_containers;
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
+import 'avoid_web_libraries_in_flutter_test.dart'
+    as avoid_web_libraries_in_flutter;
 import 'await_only_futures_test.dart' as await_only_futures;
 import 'camel_case_extensions_test.dart' as camel_case_extensions;
 import 'camel_case_types_test.dart' as camel_case_types;
 import 'cancel_subscriptions_test.dart' as cancel_subscriptions;
 import 'cast_nullable_to_non_nullable_test.dart'
     as cast_nullable_to_non_nullable;
+import 'close_sinks_test.dart' as close_sinks;
 import 'collection_methods_unrelated_type_test.dart'
     as collection_methods_unrelated_type;
 import 'comment_references_test.dart' as comment_references;
@@ -60,6 +67,8 @@ import 'depend_on_referenced_packages_test.dart'
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
 import 'deprecated_member_use_from_same_package_test.dart'
     as deprecated_member_use_from_same_package;
+import 'diagnostic_describe_all_properties_test.dart'
+    as diagnostic_describe_all_properties;
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'do_not_use_environment_test.dart' as do_not_use_environment;
@@ -159,6 +168,7 @@ import 'secure_pubspec_urls_test.dart' as secure_pubspec_urls;
 import 'sized_box_for_whitespace_test.dart' as sized_box_for_whitespace;
 import 'sized_box_shrink_expand_test.dart' as sized_box_shrink_expand;
 import 'slash_for_doc_comments_test.dart' as slash_for_doc_comments;
+import 'sort_child_properties_last_test.dart' as sort_child_properties_last;
 import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
 import 'sort_unnamed_constructors_first_test.dart'
@@ -211,6 +221,7 @@ import 'unsafe_html_test.dart' as unsafe_html;
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
 import 'use_colored_box_test.dart' as use_colored_box;
+import 'use_decorated_box_test.dart' as use_decorated_box;
 import 'use_enums_test.dart' as use_enums;
 import 'use_full_hex_values_for_flutter_colors_test.dart'
     as use_full_hex_values_for_flutter_colors;
@@ -240,13 +251,16 @@ void main() {
   always_specify_types.main();
   always_use_package_imports.main();
   annotate_overrides.main();
+  annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
+  avoid_catching_errors.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();
   avoid_positional_boolean_parameters.main();
+  avoid_print.main();
   avoid_private_typedef_functions.main();
   avoid_redundant_argument_values.main();
   avoid_relative_lib_imports.main();
@@ -260,13 +274,16 @@ void main() {
   avoid_slow_async_io.main();
   avoid_types_as_parameter_names.main();
   avoid_types_on_closure_parameters.main();
+  avoid_unnecessary_containers.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
+  avoid_web_libraries_in_flutter.main();
   await_only_futures.main();
   camel_case_extensions.main();
   camel_case_types.main();
   cancel_subscriptions.main();
   cast_nullable_to_non_nullable.main();
+  close_sinks.main();
   collection_methods_unrelated_type.main();
   comment_references.main();
   conditional_uri_does_not_exist.main();
@@ -275,6 +292,7 @@ void main() {
   depend_on_referenced_packages.main();
   deprecated_consistency.main();
   deprecated_member_use_from_same_package.main();
+  diagnostic_describe_all_properties.main();
   directives_ordering.main();
   discarded_futures.main();
   do_not_use_environment.main();
@@ -351,6 +369,7 @@ void main() {
   sized_box_for_whitespace.main();
   sized_box_shrink_expand.main();
   slash_for_doc_comments.main();
+  sort_child_properties_last.main();
   sort_constructors_first.main();
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
@@ -390,6 +409,7 @@ void main() {
   unsafe_html.main();
   use_build_context_synchronously.main();
   use_colored_box.main();
+  use_decorated_box.main();
   use_enums.main();
   use_full_hex_values_for_flutter_colors.main();
   use_function_type_syntax_for_parameters.main();

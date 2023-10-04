@@ -136,6 +136,9 @@ abstract class ContextResolutionTest
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
+  AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
+      AnalyzerStatePrinterConfiguration();
+
   final IdProvider _idProvider = IdProvider();
 
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
@@ -195,11 +198,7 @@ abstract class ContextResolutionTest
     expect(workspace, TypeMatcher<BlazeWorkspace>());
   }
 
-  void assertDriverStateString(
-    File file,
-    String expected, {
-    bool omitSdkFiles = true,
-  }) {
+  void assertDriverStateString(File file, String expected) {
     final analysisDriver = driverFor(file);
 
     final buffer = StringBuffer();
@@ -209,7 +208,7 @@ abstract class ContextResolutionTest
           analysisDriver.fsState.unlinkedUnitStore as UnlinkedUnitStoreImpl,
       idProvider: _idProvider,
       libraryContext: analysisDriver.libraryContext,
-      omitSdkFiles: omitSdkFiles,
+      configuration: analyzerStatePrinterConfiguration,
       resourceProvider: resourceProvider,
       sink: buffer,
       withKeysGetPut: false,

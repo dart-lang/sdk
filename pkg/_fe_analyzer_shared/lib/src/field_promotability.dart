@@ -5,19 +5,67 @@
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart';
 
 /// Information about a [Class] that is necessary for computing the set of
-/// private `noSuchMethod` getters the compiler will generate.
+/// private `noSuchMethod` forwarding getters the compiler will generate.
+///
+/// The type parameter [Class] has the same meaning as in [FieldPromotability].
 class ClassInfo<Class extends Object> {
-  /// The [_InterfaceNode] for the [Class].
   final _InterfaceNode<Class> _interfaceNode;
 
-  /// The [_ImplementedNode] for the [Class].
   final _ImplementedNode<Class> _implementedNode;
 
   ClassInfo(this._interfaceNode, this._implementedNode);
+
+  Class get _class => _interfaceNode._class;
+}
+
+/// Reasons why property accesses having a given field name are non-promotable.
+///
+/// This class is part of the data structure output by
+/// [FieldPromotability.computeNonPromotabilityInfo].
+///
+/// The type parameters [Class], [Field], and [Getter] have the same meaning as
+/// in [FieldPromotability].
+class FieldNameNonPromotabilityInfo<Class extends Object, Field, Getter> {
+  /// The fields with the given name that are not promotable (either because
+  /// they are not final or because they are external).
+  ///
+  /// (This list is initially empty and
+  /// [FieldPromotability.computeNonPromotabilityInfo] accumulates entries into
+  /// it.)
+  final List<Field> conflictingFields = [];
+
+  /// The explicit concrete getters with the given name.
+  ///
+  /// (This list is initially empty and
+  /// [FieldPromotability.computeNonPromotabilityInfo] accumulates entries into
+  /// it.)
+  final List<Getter> conflictingGetters = [];
+
+  /// The classes that implicitly forward a getter with the given name to
+  /// `noSuchMethod`.
+  ///
+  /// The purpose of this list is so that the client can generate error messages
+  /// that clarify to the user that field promotion was not possible due to
+  /// `noSuchMethod` forwarding getters. It is a list of [Class] rather than
+  /// [Getter] because `noSuchMethod` forwarding getters are always implicit;
+  /// hence the error messages should be associated with the class.
+  ///
+  /// (This list is initially empty and
+  /// [FieldPromotability.computeNonPromotabilityInfo] accumulates entries into
+  /// it.)
+  final List<Class> conflictingNsmClasses = [];
+
+  FieldNameNonPromotabilityInfo._();
 }
 
 /// This class examines all the [Class]es in a library and determines which
 /// fields are promotable within that library.
+///
+/// The type parameters [Class], [Field] and [Getter] should be the data
+/// structures used by the client to represent classes, fields, and getters in
+/// the user's program. This class treats these types abstractly, so that each
+/// concrete Dart implementation can use their own representation of the user's
+/// code.
 ///
 /// Note: the term [Class] is used in a general sense here; it can represent any
 /// class, mixin, or enum declared in the user's program.
@@ -91,10 +139,12 @@ class ClassInfo<Class extends Object> {
 /// stable in the sense of always being identical, they will nonetheless always
 /// have the same runtime type. Hence, we can completely ignore methods when
 /// computing which fields in the library are promotable.
-abstract class FieldPromotability<Class extends Object> {
-  /// The set of field names in the library that have been determined to be
-  /// unsafe to promote.
-  final Set<String> _unpromotableFieldNames = {};
+abstract class FieldPromotability<Class extends Object, Field, Getter> {
+  /// Map whose keys are the field names in the library that have been
+  /// determined to be unsafe to promote, and whose values are an instance of
+  /// `FieldNameNonPromotabilityInfo` describing why.
+  final Map<String, FieldNameNonPromotabilityInfo<Class, Field, Getter>>
+      _nonPromotabilityInfo = {};
 
   /// Map from a [Class] object to the [_ImplementedNode] that records the names
   /// of concrete fields and getters declared in or inherited by the [Class].
@@ -125,24 +175,25 @@ abstract class FieldPromotability<Class extends Object> {
     return classInfo;
   }
 
-  /// Records that the [Class] described by [classInfo] contains a non-synthetic
-  /// instance field with the given [name].
+  /// Records that the [Class] described by [classInfo] contains non-synthetic
+  /// instance [field] with the given [name].
   ///
   /// [isFinal] indicates whether the field is a final field. [isAbstract]
   /// indicates whether the field is abstract. [isExternal] indicates whether
   /// the field is external.
   ///
-  /// A return value of `true` indicates that this field *might* wind up being
-  /// promotable; a return value of `false` indicates that it *definitely* isn't
-  /// promotable.
-  bool addField(ClassInfo<Class> classInfo, String name,
+  /// A return value of `null` indicates that this field *might* wind up being
+  /// promotable; any other return value indicates the reason why it
+  /// *definitely* isn't promotable.
+  PropertyNonPromotabilityReason? addField(
+      ClassInfo<Class> classInfo, Field field, String name,
       {required bool isFinal,
       required bool isAbstract,
       required bool isExternal}) {
     // Public fields are never promotable, so we may safely ignore fields with
     // public names.
     if (!name.startsWith('_')) {
-      return false;
+      return PropertyNonPromotabilityReason.isNotPrivate;
     }
 
     // Record the field name for later use in computation of `noSuchMethod`
@@ -155,20 +206,27 @@ abstract class FieldPromotability<Class extends Object> {
     if (isExternal || !isFinal) {
       // The field isn't promotable, nor is any other field in the library with
       // the same name.
-      _unpromotableFieldNames.add(name);
-      return false;
+      _fieldNonPromoInfo(name).conflictingFields.add(field);
+      return isExternal
+          ? PropertyNonPromotabilityReason.isExternal
+          : PropertyNonPromotabilityReason.isNotFinal;
     }
 
     // The field is final and not external, so it might wind up being
     // promotable.
-    return true;
+    return null;
   }
 
   /// Records that the [Class] described by [classInfo] contains a non-synthetic
-  /// instance getter with the given [name].
+  /// instance [getter] with the given [name].
   ///
   /// [isAbstract] indicates whether the getter is abstract.
-  void addGetter(ClassInfo<Class> classInfo, String name,
+  ///
+  /// Note that unlike [addField], this method does not return a
+  /// [PropertyNonPromotabilityReason]. The caller may safely assume that the
+  /// reason that getters are not promotable is
+  /// [PropertyNonPromotabilityReason.isNotField].
+  void addGetter(ClassInfo<Class> classInfo, Getter getter, String name,
       {required bool isAbstract}) {
     // Public fields are never promotable, so we may safely ignore getters with
     // public names.
@@ -183,16 +241,17 @@ abstract class FieldPromotability<Class extends Object> {
       classInfo._implementedNode._directNames.add(name);
 
       // The getter is concrete, so no fields with the same name are promotable.
-      _unpromotableFieldNames.add(name);
+      _fieldNonPromoInfo(name).conflictingGetters.add(getter);
     }
   }
 
   /// Computes the set of private field names which are not safe to promote in
-  /// the library.
+  /// the library, along with the reasons why.
   ///
   /// The client should call this method once after all [Class]es, fields, and
   /// getters have been recorded using [addClass], [addField], and [addGetter].
-  Set<String> computeUnpromotablePrivateFieldNames() {
+  Map<String, FieldNameNonPromotabilityInfo<Class, Field, Getter>>
+      computeNonPromotabilityInfo() {
     // The names of private non-final fields and private getters have already
     // been added to [_unpromotableFieldNames] by [addField] and [addGetter]. So
     // all that remains to do is figure out which field names are unpromotable
@@ -217,17 +276,17 @@ abstract class FieldPromotability<Class extends Object> {
       implementedWalker.walk(implementedNode);
       Set<String> implementedNames = implementedNode._transitiveNames!;
 
-      // `noSuchMethod` getters will be generated for getters that are in the
-      // interface, but not actually implemented; consequently, fields with
-      // these names are not safe to promote.
+      // `noSuchMethod`-forwarding getters will be generated for getters that
+      // are in the interface, but not actually implemented; consequently,
+      // fields with these names are not safe to promote.
       for (String name in interfaceNames) {
         if (!implementedNames.contains(name)) {
-          _unpromotableFieldNames.add(name);
+          _fieldNonPromoInfo(name).conflictingNsmClasses.add(info._class);
         }
       }
     }
 
-    return _unpromotableFieldNames;
+    return _nonPromotabilityInfo;
   }
 
   /// Returns an iterable of the direct superclasses of [class_]. If
@@ -244,6 +303,12 @@ abstract class FieldPromotability<Class extends Object> {
   Iterable<Class> getSuperclasses(Class class_,
       {required bool ignoreImplements});
 
+  /// Gets the [FieldNameNonPromotabilityInfo] object corresponding to [name]
+  /// from [_nonPromotabilityInfo], creating it if necessary.
+  FieldNameNonPromotabilityInfo<Class, Field, Getter> _fieldNonPromoInfo(
+          String name) =>
+      _nonPromotabilityInfo.putIfAbsent(name, FieldNameNonPromotabilityInfo._);
+
   /// Gets or creates the [_ImplementedNode] for [class_].
   _ImplementedNode<Class> _getImplementedNode(Class class_) =>
       _implementedNodes[class_] ??= new _ImplementedNode<Class>(this, class_);
@@ -251,6 +316,29 @@ abstract class FieldPromotability<Class extends Object> {
   /// Gets or creates the [_InterfaceNode] for [class_].
   _InterfaceNode<Class> _getInterfaceNode(Class class_) =>
       _interfaceNodes[class_] ??= new _InterfaceNode<Class>(this, class_);
+}
+
+/// Possible reasons why a field property may not be promotable.
+///
+/// Some of these reasons are distinguished by [FieldPromotability.addField];
+/// others must be distinguished by the client.
+enum PropertyNonPromotabilityReason {
+  /// The property is not promotable because field promotion is not enabled for
+  /// the enclosing library.
+  isNotEnabled,
+
+  /// The property is not promotable because it's not a field (it's either a
+  /// getter or a tear-off of a method).
+  isNotField,
+
+  /// The property is not promotable because its name is public.
+  isNotPrivate,
+
+  /// The property is not promotable because it's an external field.
+  isExternal,
+
+  /// The property is not promotable because it's a non-final field.
+  isNotFinal,
 }
 
 /// Dependency walker that traverses the graph of a class's type hierarchy,
@@ -339,7 +427,7 @@ class _InterfaceNode<Class extends Object> extends _Node<Class> {
 /// getters the compiler will generate.
 abstract class _Node<Class extends Object> extends Node<_Node<Class>> {
   /// A reference back to the [FieldPromotability] object.
-  final FieldPromotability<Class> _fieldPromotability;
+  final FieldPromotability<Class, Object?, Object?> _fieldPromotability;
 
   /// The [Class] represented by this node.
   final Class _class;

@@ -1,8 +1,4 @@
----- unknown chunk starts ----
 extension type IC1(int id) {
----- unknown chunk ends ----
-factory IC1.f(int id) = IC1;
----- unknown chunk starts ----
+  factory IC1.f(int id) = IC1;
 }
----- unknown chunk ends ----
 main() {}

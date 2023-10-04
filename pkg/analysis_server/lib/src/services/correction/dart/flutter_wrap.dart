@@ -230,7 +230,13 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
         builder.write('children: [');
         builder.write(eol);
 
-        var newSrc = replaceSourceIndent(src, indentOld, indentNew2);
+        var newSrc = utils.replaceSourceIndent(
+          src,
+          indentOld,
+          indentNew2,
+          includeLeading: false,
+          includeTrailingNewline: false,
+        );
         builder.write(indentNew2);
         builder.write(newSrc);
 
@@ -304,8 +310,13 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
 
           builder.write(eol);
           builder.write(indentNew);
-          widgetSrc = widgetSrc.replaceAll(
-              RegExp('^$indentOld', multiLine: true), indentNew);
+          widgetSrc = utils.replaceSourceIndent(
+            widgetSrc,
+            indentOld,
+            indentNew,
+            includeLeading: false,
+            includeTrailingNewline: false,
+          );
           widgetSrc += ',$eol$indentOld';
         }
         if (parentClassElement == null) {

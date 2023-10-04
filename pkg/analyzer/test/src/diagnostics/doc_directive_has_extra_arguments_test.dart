@@ -49,25 +49,25 @@ class C {}
 
   test_youtube_hasExtraArgument() async {
     await assertErrorsInCode('''
-/// {@youtube 600 400 http://google.com foo}
+/// {@youtube 600 400 https://www.youtube.com/watch?v=123 foo}
 class C {}
 ''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 40, 3),
+      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 58, 3),
     ]);
   }
 
   test_youtube_hasExtraArgument_trailingWhitespace() async {
     await assertErrorsInCode('''
-/// {@youtube 600 400 http://google.com foo }
+/// {@youtube 600 400 https://www.youtube.com/watch?v=123 foo }
 class C {}
 ''', [
-      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 40, 3),
+      error(WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS, 58, 3),
     ]);
   }
 
   test_youtube_noExtraArguments() async {
     await assertNoErrorsInCode('''
-/// {@youtube 600 400 http://google.com}
+/// {@youtube 600 400 https://www.youtube.com/watch?v=123}
 class C {}
 ''');
   }

@@ -2298,17 +2298,14 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
   }
 }
 
-// TODO(fishythefish): Remove default mixin.
 class TypeInformationConstantVisitor
-    extends ir.ComputeOnceConstantVisitor<TypeInformation>
-    with ir.OnceConstantVisitorDefaultMixin<TypeInformation> {
+    extends ir.ComputeOnceConstantVisitor<TypeInformation> {
   final KernelTypeGraphBuilder builder;
   final ir.ConstantExpression expression;
 
   TypeInformationConstantVisitor(this.builder, this.expression);
 
-  @override
-  TypeInformation defaultConstant(ir.Constant node) {
+  static Never _unexpectedConstant(ir.Constant node) {
     throw UnsupportedError("Unexpected constant: "
         "${node} (${node.runtimeType})");
   }
@@ -2413,6 +2410,23 @@ class TypeInformationConstantVisitor
     assert(false, "Unexpected unevaluated constant: $node");
     return builder._types.dynamicType;
   }
+
+  @override
+  Never visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitRedirectingFactoryTearOffConstant(
+          ir.RedirectingFactoryTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitTypedefTearOffConstant(ir.TypedefTearOffConstant node) =>
+      _unexpectedConstant(node);
+
+  @override
+  Never visitAuxiliaryConstant(ir.AuxiliaryConstant node) =>
+      _unexpectedConstant(node);
 }
 
 class Refinement {

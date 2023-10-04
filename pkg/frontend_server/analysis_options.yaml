@@ -6,3 +6,7 @@ linter:
     - directives_ordering
     - sort_pub_dependencies
     - unawaited_futures
+
+analyzer:
+  exclude:
+    - test/fixtures/**

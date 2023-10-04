@@ -48,6 +48,7 @@ group("runtime") {
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/vm:kernel_platform_files($host_toolchain)",
+    "samples/ffi/http:fake_http",
     "utils/dartdev:dartdev",
     "utils/dds:dds",
     "utils/kernel-service:kernel-service",
@@ -133,11 +134,6 @@ group("dart2wasm_benchmark") {
 
 group("dartanalyzer") {
   deps = [ "utils/dartanalyzer" ]
-}
-
-# TODO(nshahan): Delete after updating the Flutter engine build.
-group("dartdevc") {
-  deps = [ "utils/dartdevc:dartdevc_files_stamp" ]
 }
 
 group("ddc") {

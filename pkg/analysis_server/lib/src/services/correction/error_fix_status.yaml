@@ -217,6 +217,12 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
+  status: needsFix
+  notes: |-
+    The fix is to add `import augment`.
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
+  status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
   status: needsFix
   notes: |-
@@ -1848,6 +1854,8 @@ LintCode.always_use_package_imports:
   status: hasFix
 LintCode.annotate_overrides:
   status: hasFix
+LintCode.annotate_redeclares:
+  status: hasFix
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
 LintCode.avoid_as:
@@ -3178,7 +3186,7 @@ ParserErrorCode.OUT_OF_ORDER_CLAUSES:
     There isn't enough information for a fix. Consider splitting this diagnostic
     so that each variant has enough information.
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
-  status: noFix
+  status: hasFix
 ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
   status: noFix
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
@@ -3208,6 +3216,10 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
 ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
   status: needsFix
   notes: Remove it.
+ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
+  status: needsFix
+  notes: |-
+    Remove the comma.
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
@@ -3350,6 +3362,8 @@ PubspecWarningCode.INVALID_DEPENDENCY:
   status: noFix
 PubspecWarningCode.INVALID_PLATFORMS_FIELD:
   status: needsEvaluation
+PubspecWarningCode.MISSING_DEPENDENCY:
+  status: noFix
 PubspecWarningCode.MISSING_NAME:
   status: noFix
   since: ~2.15
@@ -3450,21 +3464,34 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
+WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+  status: noFix
 WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
   status: needsFix
   notes: |-
-    The fix is to remove the extra arguments..
+    The fix is to remove the extra arguments.
 WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
   status: needsFix
   notes: |-
     The fix is to remove the unexpected named argument.
 WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
-  status: needsEvaluation
+  status: needsFix
+  notes: Add the closing brace at the end of the line.
+WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+  status: needsFix
+  notes: Add the appropriate closing tag, perhaps on the line just following.
 WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
   status: noFix
+WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG:
+  status: needsFix
+  notes: |-
+    I can think of two: Offer to insert the appropriate starting tag (maybe
+    on the preceding line), and offer to change the end-tag to the start-tag.
 WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
   status: noFix
 WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_UNKNOWN:
   status: noFix
 WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
   status: needsFix

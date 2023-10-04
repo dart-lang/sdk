@@ -8,38 +8,29 @@ library;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
 
-/// A documentation directive, found in a doc comment.
+/// A block doc directive, denoted by an opening tag, and a closing tag.
 ///
-/// Documentation directives are declared with `{@` at the start of a line of a
-/// documentation comment, followed the name of a doc directive, arguments, and
-/// finally a right curly brace (`}`).
-///
-/// Arguments are separated from the directive name, and from each other, by
-/// whitespace. There are two types of arguments: positional and named. Named
-/// arguments are written as `NAME=VALUE`, without any internal whitespace.
-/// Named arguments can be optional.
+/// The text in between the two tags is not explicitly called out. It can be
+/// read from the original compilation unit, between the offsets of the opening
+/// and closing tags.
 @experimental
-final class DocDirective {
-  /// The offset of the starting text, '@docImport'.
-  final int offset;
-  final int end;
-  final int nameOffset;
-  final int nameEnd;
+final class BlockDocDirective implements DocDirective {
+  final DocDirectiveTag openingTag;
+  final DocDirectiveTag? closingTag;
 
-  final DocDirectiveType type;
+  BlockDocDirective(this.openingTag, this.closingTag);
 
-  final List<DocDirectiveArgument> positionalArguments;
-  final List<DocDirectiveNamedArgument> namedArguments;
+  @override
+  DocDirectiveType get type => openingTag.type;
+}
 
-  DocDirective({
-    required this.offset,
-    required this.end,
-    required this.nameOffset,
-    required this.nameEnd,
-    required this.type,
-    required this.positionalArguments,
-    required this.namedArguments,
-  });
+/// An instance of a [DocDirectiveType] in the text of a doc comment, either
+/// as a [SimpleDocDirective], represented by a single [DocDirectiveTag], or a
+/// [BlockDocDirective], represented by an opening [DocDirectiveTag] and a
+/// closing one (in well-formed text).
+@experimental
+sealed class DocDirective {
+  DocDirectiveType get type;
 }
 
 /// An argument in a doc directive. See [DocDirective] for their syntax.
@@ -77,6 +68,39 @@ final class DocDirectiveNamedArgument extends DocDirectiveArgument {
   });
 }
 
+/// A parameter in a doc directive, with it's expected format, if it has one.
+@experimental
+final class DocDirectiveParameter {
+  final String name;
+  final DocDirectiveParameterFormat expectedFormat;
+
+  const DocDirectiveParameter(this.name, this.expectedFormat);
+}
+
+/// The expected format of a doc directive parameter, which indicates some
+/// minimal validation that can produce diagnostics.
+@experimental
+enum DocDirectiveParameterFormat {
+  /// A format indicating that arguments are not validated.
+  any('any'),
+
+  /// A format indicating that an argument must be parsable as an integer.
+  integer('an integer'),
+
+  /// A format indicating that an argument must be parsable as a URI.
+  uri('a URI'),
+
+  /// A format indicating that an argument must be parsable as a URI, and be in
+  /// the format of a YouTube video URL.
+  youtubeUrl("a YouTube URL, starting with '$youtubeUrlPrefix'");
+
+  static const youtubeUrlPrefix = 'https://www.youtube.com/watch?v=';
+
+  final String displayString;
+
+  const DocDirectiveParameterFormat(this.displayString);
+}
+
 /// A positional argument in a doc directive. See [DocDirective] for their
 /// syntax.
 @experimental
@@ -85,6 +109,40 @@ final class DocDirectivePositionalArgument extends DocDirectiveArgument {
     required super.offset,
     required super.end,
     required super.value,
+  });
+}
+
+/// A documentation directive, found in a doc comment.
+///
+/// Documentation directives are declared with `{@` at the start of a line of a
+/// documentation comment, followed the name of a doc directive, arguments, and
+/// finally a right curly brace (`}`).
+///
+/// Arguments are separated from the directive name, and from each other, by
+/// whitespace. There are two types of arguments: positional and named. Named
+/// arguments are written as `NAME=VALUE`, without any internal whitespace.
+/// Named arguments can be optional.
+@experimental
+final class DocDirectiveTag {
+  /// The offset of the starting text; for example: '@animation'.
+  final int offset;
+  final int end;
+  final int nameOffset;
+  final int nameEnd;
+
+  final DocDirectiveType type;
+
+  final List<DocDirectiveArgument> positionalArguments;
+  final List<DocDirectiveNamedArgument> namedArguments;
+
+  DocDirectiveTag({
+    required this.offset,
+    required this.end,
+    required this.nameOffset,
+    required this.nameEnd,
+    required this.type,
+    required this.positionalArguments,
+    required this.namedArguments,
   });
 }
 
@@ -101,8 +159,14 @@ enum DocDirectiveType {
   /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#animations.
   animation(
     'animation',
-    positionalParameters: ['width', 'height', 'url'],
-    namedParameters: ['id'],
+    positionalParameters: [
+      DocDirectiveParameter('width', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('height', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('url', DocDirectiveParameterFormat.uri),
+    ],
+    namedParameters: [
+      DocDirectiveParameter('id', DocDirectiveParameterFormat.any),
+    ],
   ),
 
   /// A [DocDirective] declaring the associated library is the "canonical"
@@ -122,7 +186,9 @@ enum DocDirectiveType {
     // directive name is a rare departure from that style. Migrate users to use
     // 'canonical-for'.
     'canonicalFor',
-    positionalParameters: ['element'],
+    positionalParameters: [
+      DocDirectiveParameter('element', DocDirectiveParameterFormat.any),
+    ],
   ),
 
   /// A [DocDirective] declaring a categorization into a named category.
@@ -141,6 +207,27 @@ enum DocDirectiveType {
     restParametersAllowed: true,
   ),
 
+  /// The end tag for the [DocDirectiveType.injectHtml] tag.
+  ///
+  /// This tag should not really constitute a "type" of doc directive, but this
+  /// implementation is a one-to-one mapping of "types" and "tags", so end tags
+  /// are included. This also allows us to parse (erroneous) dangling end tags.
+  endInjectHtml.end('end-inject-html', openingTag: 'inject-html'),
+
+  /// The end tag for the [DocDirectiveType.tool] tag.
+  ///
+  /// This tag should not really constitute a "type" of doc directive, but this
+  /// implementation is a one-to-one mapping of "types" and "tags", so end tags
+  /// are included. This also allows us to parse (erroneous) dangling end tags.
+  endTool.end('end-tool', openingTag: 'tool'),
+
+  /// The end tag for the [DocDirectiveType.template] tag.
+  ///
+  /// This tag should not really constitute a "type" of doc directive, but this
+  /// implementation is a one-to-one mapping of "types" and "tags", so end tags
+  /// are included. This also allows us to parse (erroneous) dangling end tags.
+  endTemplate.end('endtemplate', openingTag: 'template'),
+
   /// A [DocDirective] declaring an example file.
   ///
   /// This directive has one required argument: the path. A named 'region'
@@ -152,16 +239,37 @@ enum DocDirectiveType {
   /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#examples.
   example(
     'example',
-    positionalParameters: ['path'],
-    namedParameters: ['region', 'lang'],
+    positionalParameters: [
+      DocDirectiveParameter('path', DocDirectiveParameterFormat.any)
+    ],
+    namedParameters: [
+      DocDirectiveParameter('region', DocDirectiveParameterFormat.any),
+      DocDirectiveParameter('lang', DocDirectiveParameterFormat.any),
+    ],
   ),
+
+  /// A [DocDirective] indicating that constants should not have their own
+  /// pages or implementations displayed.
+  hideConstantImplementations('hideConstantImplementations'),
+
+  /// A [DocDirective] declaring a block of HTML content which is to be inserted
+  /// after all other processing, including Markdown parsing.
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#injected-html.
+  injectHtml.block('inject-html', 'end-inject-html'),
 
   /// A [DocDirective] declaring amacro application.
   ///
   /// This directive has one required argument: the name. For example:
   ///
   /// `{@macro some-macro}`
-  macro('macro', positionalParameters: ['name']),
+  macro(
+    'macro',
+    positionalParameters: [
+      DocDirectiveParameter('name', DocDirectiveParameterFormat.any),
+    ],
+  ),
 
   /// A [DocDirective] declaring a categorization into a named sub-category.
   ///
@@ -178,6 +286,41 @@ enum DocDirectiveType {
     restParametersAllowed: true,
   ),
 
+  /// A [DocDirective] declaring a template of text which can be applied to
+  /// other doc comments with a macro.
+  ///
+  /// A template can contain any recognized doc comment content between the
+  /// opening and closing tags, like Markdown text, comment references, and
+  /// simple doc directives.
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#templates-and-macros.
+  // TODO(srawlins): Migrate users to use 'end-template'.
+  template.block(
+    'template',
+    'endtemplate',
+    positionalParameters: [
+      DocDirectiveParameter('name', DocDirectiveParameterFormat.any),
+    ],
+  ),
+
+  /// A [DocDirective] declaring a tool.
+  ///
+  /// A tool directive invokes an external tool, with the text between the
+  /// opening and closing tags as stdin, and replaces the directive with the
+  /// output of the tool.
+  ///
+  /// See documentation at
+  /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#external-tools.
+  tool.block(
+    'tool',
+    'end-tool',
+    positionalParameters: [
+      DocDirectiveParameter('name', DocDirectiveParameterFormat.any),
+    ],
+    restParametersAllowed: true,
+  ),
+
   /// A [DocDirective] declaring an embedded YouTube video.
   ///
   /// This directive has three required arguments: the width, the height, and
@@ -187,16 +330,35 @@ enum DocDirectiveType {
   ///
   /// See documentation at
   /// https://github.com/dart-lang/dartdoc/wiki/Doc-comment-directives#youtube-videos.
-  youtube('youtube', positionalParameters: ['width', 'height', 'url']);
+  youtube(
+    'youtube',
+    positionalParameters: [
+      DocDirectiveParameter('width', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('height', DocDirectiveParameterFormat.integer),
+      DocDirectiveParameter('url', DocDirectiveParameterFormat.youtubeUrl),
+    ],
+  );
+
+  /// Whether this starts a block directive, which must be closed by a specific
+  /// closing directive.
+  ///
+  /// For example, the 'inject-html' directive begins with `{@inject-html}` and
+  /// ends with `{@end-inject-html}`.
+  final bool isBlock;
 
   /// The name of the directive, as written in a doc comment.
   final String name;
 
-  /// The positional parameter names, which are each required.
-  final List<String> positionalParameters;
+  /// The name of the directive that ends this one, in the case of a block
+  /// directive's opening tag, the name of the directive that starts this one,
+  /// in the case of a block directive's closing tag, and `null` otherwise.
+  final String? opposingName;
 
-  /// The named parameter names, which are each optional.
-  final List<String> namedParameters;
+  /// The positional parameters, which are each required.
+  final List<DocDirectiveParameter> positionalParameters;
+
+  /// The named parameters, which are each optional.
+  final List<DocDirectiveParameter> namedParameters;
 
   /// Whether "rest" parameters are allowed.
   ///
@@ -206,10 +368,28 @@ enum DocDirectiveType {
 
   const DocDirectiveType(
     this.name, {
-    this.positionalParameters = const <String>[],
-    this.namedParameters = const <String>[],
+    this.positionalParameters = const <DocDirectiveParameter>[],
+    this.namedParameters = const <DocDirectiveParameter>[],
     this.restParametersAllowed = false,
-  });
+  })  : isBlock = false,
+        opposingName = null;
+
+  const DocDirectiveType.block(
+    this.name,
+    this.opposingName, {
+    this.positionalParameters = const <DocDirectiveParameter>[],
+    this.restParametersAllowed = false,
+  })  : isBlock = true,
+        namedParameters = const <DocDirectiveParameter>[];
+
+  const DocDirectiveType.end(
+    this.name, {
+    required String openingTag,
+  })  : opposingName = openingTag,
+        isBlock = false,
+        positionalParameters = const <DocDirectiveParameter>[],
+        namedParameters = const <DocDirectiveParameter>[],
+        restParametersAllowed = false;
 }
 
 /// A documentation import, found in a doc comment.
@@ -266,4 +446,14 @@ final class MdCodeBlockLine {
   final int length;
 
   MdCodeBlockLine({required this.offset, required this.length});
+}
+
+@experimental
+final class SimpleDocDirective implements DocDirective {
+  final DocDirectiveTag tag;
+
+  SimpleDocDirective(this.tag);
+
+  @override
+  DocDirectiveType get type => tag.type;
 }

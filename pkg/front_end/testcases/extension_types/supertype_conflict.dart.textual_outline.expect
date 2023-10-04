@@ -1,2 +1,5 @@
 class A<T> {}
-extension type B<T>(A<T> it) implements A<T> {} extension type C<T>(A<T> it) implements C<T> {} extension type D(A<Never> it) implements A<int>, B<String> {} extension type E(A<Never> it) implements B<int>, C<String> {}
+extension type B<T>(A<T> it) implements A<T> {}
+extension type C<T>(A<T> it) implements C<T> {}
+extension type D(A<Never> it) implements A<int>, B<String> {}
+extension type E(A<Never> it) implements B<int>, C<String> {}

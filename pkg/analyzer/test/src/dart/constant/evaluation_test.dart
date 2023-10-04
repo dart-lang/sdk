@@ -1504,7 +1504,6 @@ class C<U> {
       error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           61, 1),
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 61, 1),
     ]);
   }
 
@@ -1791,6 +1790,8 @@ const x = C<int>.();
       // reported.
       error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
           45, 8),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 45,
+          8),
       error(ParserErrorCode.MISSING_IDENTIFIER, 52, 1),
     ]);
   }
@@ -2425,6 +2426,15 @@ const int? i = 1;
 const res  = {...?i};
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 31, 7),
+    ]);
+  }
+
+  test_visitSetOrMapLiteral_ambiguous_expression() async {
+    await assertErrorsInCode(r'''
+const m = {1: 1};
+const res = {...m, 2};
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 30, 9),
     ]);
   }
 
@@ -3191,8 +3201,6 @@ const c = true && a;
 ''', [
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
           9),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
-          1),
     ]);
   }
 
@@ -3361,8 +3369,6 @@ const c = false || a;
 ''', [
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
           10),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 36,
-          1),
     ]);
   }
 
@@ -3946,8 +3952,6 @@ const y = B(x);
       ),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
       error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 72,
-          1),
     ]);
   }
 
@@ -4077,21 +4081,19 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
       source,
       isNonNullableByDefault: false,
     );
-
-    // TODO(kallentu): Remove unwrapping of Constant.
-    var expressionConstant = expression.accept(
-      ConstantVisitor(
-        ConstantEvaluationEngine(
-          declaredVariables: DeclaredVariables.fromMap(declaredVariables),
-          isNonNullableByDefault:
-              unit.featureSet.isEnabled(Feature.non_nullable),
-          configuration: ConstantEvaluationConfiguration(),
-        ),
-        this.result.libraryElement as LibraryElementImpl,
-        errorReporter,
-        lexicalEnvironment: lexicalEnvironment,
+    var constantVisitor = ConstantVisitor(
+      ConstantEvaluationEngine(
+        declaredVariables: DeclaredVariables.fromMap(declaredVariables),
+        isNonNullableByDefault: unit.featureSet.isEnabled(Feature.non_nullable),
+        configuration: ConstantEvaluationConfiguration(),
       ),
+      this.result.libraryElement as LibraryElementImpl,
+      errorReporter,
+      lexicalEnvironment: lexicalEnvironment,
     );
+
+    var expressionConstant =
+        constantVisitor.evaluateAndReportInvalidConstant(expression);
     var result =
         expressionConstant is DartObjectImpl ? expressionConstant : null;
     if (errorCodes == null) {
@@ -4104,10 +4106,14 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl? _evaluationResult(ConstVariableElement element) {
     final evaluationResult = element.evaluationResult;
-    if (evaluationResult == null) {
-      fail('Not evaluated: ${element.name}');
+    switch (evaluationResult) {
+      case null:
+        fail('Not evaluated: ${element.name}');
+      case InvalidConstant():
+        return null;
+      case DartObjectImpl():
+        return evaluationResult;
     }
-    return evaluationResult.value;
   }
 
   DartObjectImpl? _field(String variableName) {

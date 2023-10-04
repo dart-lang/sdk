@@ -10,13 +10,13 @@ library;
 //   factory E.f4() = E; // Error.
 //                    ^
 //
-// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
+// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.
 //   three.f(), // Error.
-//        ^
+//         ^
 //
-// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
+// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:8: Error: Couldn't find constructor 'E.f2'.
 //   four.f2(); // Error.
-//       ^^
+//        ^^
 //
 // pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:28:29: Error: The constructor function type 'E Function()' isn't a subtype of 'E Function(int)'.
 //  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/constructor_calls.dart'.
@@ -30,12 +30,12 @@ class E extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two, self::E::three, self::E::four];
   enum-element static const field self::E one = const self::E::•(0, "one");
   enum-element static const field self::E two = const self::E::named(1, "two");
-  enum-element static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
+  enum-element static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.
   three.f(), // Error.
-       ^";
-  enum-element static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
+        ^";
+  enum-element static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:8: Error: Couldn't find constructor 'E.f2'.
   four.f2(); // Error.
-      ^^";
+       ^^";
   const constructor •(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;

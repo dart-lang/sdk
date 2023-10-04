@@ -40,7 +40,7 @@ Try correcting the name to the name of an existing method, or defining a method 
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   x.call();
     ^^^^" in x{<unresolved>}.call();
-  f.call;
+  f;
   f(5, 2);
 }
 static method main() → dynamic {}

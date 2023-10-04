@@ -11,6 +11,11 @@ class PubspecFixKind {
     PubspecFixKindPriority.DEFAULT,
     "Add 'name' key",
   );
+  static const addDependency = FixKind(
+    'pubspec.fix.add.dependency',
+    PubspecFixKindPriority.DEFAULT,
+    'Update pubspec with the missing dependencies',
+  );
 
   /// Prevent the creation of instances of this class.
   PubspecFixKind._();

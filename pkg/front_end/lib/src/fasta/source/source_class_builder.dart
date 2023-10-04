@@ -34,6 +34,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../fasta_codes.dart';
+import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
@@ -965,28 +966,29 @@ class SourceClassBuilder extends ClassBuilderImpl
           message = templateInvalidTypeVariableInSupertype.withArguments(
               typeVariables![i].name,
               Variance.keywordString(variance),
-              supertype.name as String);
+              (supertype.name as Identifier).name);
         } else {
           message =
               templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
                   Variance.keywordString(typeVariables![i].variance),
                   typeVariables![i].name,
                   Variance.keywordString(variance),
-                  supertype.name as String);
+                  (supertype.name as Identifier).name);
         }
         libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
       }
     }
     if (message != null) {
-      return new NamedTypeBuilderImpl(
-          supertype.name as String, const NullabilityBuilder.omitted(),
+      return new NamedTypeBuilderImpl((supertype.name as Identifier).name,
+          const NullabilityBuilder.omitted(),
           fileUri: fileUri,
           charOffset: charOffset,
           instanceTypeVariableAccess:
               InstanceTypeVariableAccessState.Unexpected)
         ..bind(
             libraryBuilder,
-            new InvalidTypeDeclarationBuilder(supertype.name as String,
+            new InvalidTypeDeclarationBuilder(
+                (supertype.name as Identifier).name,
                 message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;

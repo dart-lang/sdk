@@ -140,7 +140,17 @@ namespace dart {
   TOK(kSCRIPTTAG, "#!", 0, kNoAttribute)                                       \
                                                                                \
   /* Support for optimized code */                                             \
-  TOK(kREM, "", 0, kNoAttribute)
+  TOK(kREM, "rem", 0, kNoAttribute)                                            \
+  TOK(kABS, "abs", 0, kNoAttribute)                                            \
+  TOK(kSQRT, "sqrt", 0, kNoAttribute)                                          \
+  TOK(kMIN, "min", 0, kNoAttribute)                                            \
+  TOK(kMAX, "max", 0, kNoAttribute)                                            \
+  TOK(kRECIPROCAL, "reciprocal", 0, kNoAttribute)                              \
+  TOK(kRECIPROCAL_SQRT, "reciprocal-sqrt", 0, kNoAttribute)                    \
+  TOK(kSQUARE, "square", 0, kNoAttribute)                                      \
+  TOK(kTRUNCATE, "truncate", 0, kNoAttribute)                                  \
+  TOK(kFLOOR, "floor", 0, kNoAttribute)                                        \
+  TOK(kCEILING, "ceiling", 0, kNoAttribute)
 
 // List of keywords. The list must be alphabetically ordered. The
 // keyword recognition code depends on the ordering.

@@ -108,39 +108,27 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   DartAttachRequestArguments({
     this.vmServiceUri,
     this.vmServiceInfoFile,
-    Object? restart,
-    String? name,
-    String? cwd,
-    List<String>? additionalProjectPaths,
-    bool? debugSdkLibraries,
-    bool? debugExternalPackageLibraries,
-    bool? showGettersInDebugViews,
-    bool? evaluateGettersInDebugViews,
-    bool? evaluateToStringInDebugViews,
-    bool? sendLogsToClient,
-    bool? sendCustomProgressEvents,
-    bool? allowAnsiColorOutput,
+    super.restart,
+    super.name,
+    super.cwd,
+    super.additionalProjectPaths,
+    super.debugSdkLibraries,
+    super.debugExternalPackageLibraries,
+    super.showGettersInDebugViews,
+    super.evaluateGettersInDebugViews,
+    super.evaluateToStringInDebugViews,
+    super.sendLogsToClient,
+    super.sendCustomProgressEvents = null,
+    super.allowAnsiColorOutput,
   }) : super(
-          name: name,
-          cwd: cwd,
           // env is not supported for Dart attach because we don't spawn a process.
           env: null,
-          restart: restart,
-          additionalProjectPaths: additionalProjectPaths,
-          debugSdkLibraries: debugSdkLibraries,
-          debugExternalPackageLibraries: debugExternalPackageLibraries,
-          showGettersInDebugViews: showGettersInDebugViews,
-          evaluateGettersInDebugViews: evaluateGettersInDebugViews,
-          evaluateToStringInDebugViews: evaluateToStringInDebugViews,
-          sendLogsToClient: sendLogsToClient,
-          sendCustomProgressEvents: sendCustomProgressEvents,
-          allowAnsiColorOutput: allowAnsiColorOutput,
         );
 
-  DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
+  DartAttachRequestArguments.fromMap(super.obj)
       : vmServiceUri = arg.read<String?>(obj, 'vmServiceUri'),
         vmServiceInfoFile = arg.read<String?>(obj, 'vmServiceInfoFile'),
-        super.fromMap(obj);
+        super.fromMap();
 
   @override
   Map<String, Object?> toJson() => {
@@ -1174,8 +1162,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       supportsValueFormattingOptions: true,
       supportsLogPoints: true,
       supportsRestartRequest: supportsRestartRequest,
-      // TODO(dantup): All of these...
-      // supportsRestartFrame: true,
+      supportsRestartFrame: true,
       supportsTerminateRequest: true,
     ));
 
@@ -1286,10 +1273,35 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   Future<void> pauseRequest(
     Request request,
     PauseArguments args,
-    void Function(PauseResponseBody) sendResponse,
+    void Function() sendResponse,
   ) async {
     await isolateManager.pauseThread(args.threadId);
-    sendResponse(PauseResponseBody());
+    sendResponse();
+  }
+
+  /// Handles the clients "restartFrame" request for the frame in
+  /// [args.frameId].
+  @override
+  Future<void> restartFrameRequest(
+    Request request,
+    RestartFrameArguments args,
+    void Function() sendResponse,
+  ) async {
+    final data = isolateManager.getStoredData(args.frameId);
+    if (data == null) {
+      // Thread/frame is no longer valid.
+      return;
+    }
+
+    final thread = data.thread;
+    final frame = data.data;
+    final frameIndex = frame is vm.Frame ? frame.index : null;
+    if (frameIndex == null) {
+      return;
+    }
+
+    await isolateManager.rewindThread(thread.threadId, frameIndex: frameIndex);
+    sendResponse();
   }
 
   /// restart is called by the client when the user invokes a restart (for
@@ -1691,9 +1703,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // up until the first async boundary (e.g. rewind) since we're showing
         // the user async frames which are out-of-sync with the real frames
         // past that point.
-        final firstAsyncMarkerIndex = frames.indexWhere(
+        int? firstAsyncMarkerIndex = frames.indexWhere(
           (frame) => frame.kind == vm.FrameKind.kAsyncSuspensionMarker,
         );
+        // indexWhere returns -1 if not found, we treat that as no marker (we
+        // can rewind for all frames in the stack).
+        if (firstAsyncMarkerIndex == -1) {
+          firstAsyncMarkerIndex = null;
+        }
 
         // Pre-resolve all URIs in batch so the call below does not trigger
         // many requests to the server.
@@ -2709,36 +2726,22 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     this.console,
     this.customTool,
     this.customToolReplacesArgs,
-    Object? restart,
-    String? name,
-    String? cwd,
-    Map<String, String>? env,
-    List<String>? additionalProjectPaths,
-    bool? debugSdkLibraries,
-    bool? debugExternalPackageLibraries,
-    bool? showGettersInDebugViews,
-    bool? evaluateGettersInDebugViews,
-    bool? evaluateToStringInDebugViews,
-    bool? sendLogsToClient,
-    bool? sendCustomProgressEvents,
-    bool? allowAnsiColorOutput,
-  }) : super(
-          restart: restart,
-          name: name,
-          cwd: cwd,
-          env: env,
-          additionalProjectPaths: additionalProjectPaths,
-          debugSdkLibraries: debugSdkLibraries,
-          debugExternalPackageLibraries: debugExternalPackageLibraries,
-          showGettersInDebugViews: showGettersInDebugViews,
-          evaluateGettersInDebugViews: evaluateGettersInDebugViews,
-          evaluateToStringInDebugViews: evaluateToStringInDebugViews,
-          sendLogsToClient: sendLogsToClient,
-          sendCustomProgressEvents: sendCustomProgressEvents,
-          allowAnsiColorOutput: allowAnsiColorOutput,
-        );
+    super.restart,
+    super.name,
+    super.cwd,
+    super.env,
+    super.additionalProjectPaths,
+    super.debugSdkLibraries,
+    super.debugExternalPackageLibraries,
+    super.showGettersInDebugViews,
+    super.evaluateGettersInDebugViews,
+    super.evaluateToStringInDebugViews,
+    super.sendLogsToClient,
+    super.sendCustomProgressEvents = null,
+    super.allowAnsiColorOutput,
+  });
 
-  DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)
+  DartLaunchRequestArguments.fromMap(super.obj)
       : noDebug = arg.read<bool?>(obj, 'noDebug'),
         program = arg.read<String>(obj, 'program'),
         args = arg.readOptionalList<String>(obj, 'args'),
@@ -2749,7 +2752,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         console = arg.read<String?>(obj, 'console'),
         customTool = arg.read<String?>(obj, 'customTool'),
         customToolReplacesArgs = arg.read<int?>(obj, 'customToolReplacesArgs'),
-        super.fromMap(obj);
+        super.fromMap();
 
   @override
   Map<String, Object?> toJson() => {

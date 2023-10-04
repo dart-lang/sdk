@@ -90,21 +90,25 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
   return nullptr;
 }
 
-bool NativeEntry::ReturnValueIsError(NativeArguments* arguments) {
-  ObjectPtr retval = arguments->ReturnValue();
-  return (retval->IsHeapObject() && IsErrorClassId(retval->GetClassId()));
-}
-
-void NativeEntry::PropagateErrors(NativeArguments* arguments) {
+void NativeEntry::MaybePropagateError(NativeArguments* arguments) {
   Thread* thread = arguments->thread();
-  thread->UnwindScopes(thread->top_exit_frame_info());
-  TransitionNativeToVM transition(thread);
 
-  // The thread->zone() is different here than before we unwound.
-  const Object& error =
-      Object::Handle(thread->zone(), arguments->ReturnValue());
-  Exceptions::PropagateError(Error::Cast(error));
-  UNREACHABLE();
+  // We must not access NativeArguments or the result's header under
+  // the kThreadInNative state.
+  ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
+  ObjectPtr retval = arguments->ReturnValue();
+  if (UNLIKELY(retval->IsHeapObject() &&
+               IsErrorClassId(retval->GetClassId()))) {
+    thread->UnwindScopes(thread->top_exit_frame_info());
+
+    TransitionGeneratedToVM transition(thread);
+
+    // The thread->zone() is different here than before we unwound.
+    const Object& error =
+        Object::Handle(thread->zone(), arguments->ReturnValue());
+    Exceptions::PropagateError(Error::Cast(error));
+    UNREACHABLE();
+  }
 }
 
 uword NativeEntry::BootstrapNativeCallWrapperEntry() {
@@ -174,10 +178,8 @@ void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
   {
     TransitionGeneratedToNative transition(thread);
     func(args);
-    if (ReturnValueIsError(arguments)) {
-      PropagateErrors(arguments);
-    }
   }
+  MaybePropagateError(arguments);
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
 }
 
@@ -215,10 +217,8 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     {
       TransitionGeneratedToNative transition(thread);
       func(args);
-      if (ReturnValueIsError(arguments)) {
-        PropagateErrors(arguments);
-      }
     }
+    MaybePropagateError(arguments);
     thread->ExitApiScope();
     DEOPTIMIZE_ALOT;
   }

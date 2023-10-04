@@ -1,6 +1,6 @@
 # Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # A field has 2 references. Both should be passed when creating a new field
 # for references to both set and get to work. And both should be put in the

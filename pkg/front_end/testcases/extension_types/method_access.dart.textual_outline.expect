@@ -3,15 +3,15 @@ extension on Object {
   void set getter(int value) {}
 }
 extension type InlineClass(int it) {
-test() {}
-int operator +(int other) => 42;
-int operator -() => 87;
-int operator [](int index) => 123;
-void operator []=(int index, int value) {}
-int get getter => 42;
-int method() => 42;
-void set setter(int value) {}
-T genericMethod<T>(T t) => t;
-int call() => 321;
+  test() {}
+  int operator +(int other) => 42;
+  int operator -() => 87;
+  int operator [](int index) => 123;
+  void operator []=(int index, int value) {}
+  int get getter => 42;
+  int method() => 42;
+  void set setter(int value) {}
+  T genericMethod<T>(T t) => t;
+  int call() => 321;
 }
 test(InlineClass ic) {}

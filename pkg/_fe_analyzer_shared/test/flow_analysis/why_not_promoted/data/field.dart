@@ -10,19 +10,19 @@ class C {
     if (this.i == null) return;
     this
         .i
-        . /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
+        . /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
   }
 
   get_field_via_explicit_this_parenthesized() {
     if ((this).i == null) return;
     (this)
         .i
-        . /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
+        . /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
   }
 
   get_field_by_implicit_this() {
     if (i == null) return;
-    i. /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
+    i. /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
   }
 }
 
@@ -31,18 +31,18 @@ class D extends C {
     if (super.i == null) return;
     super
         .i
-        . /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
+        . /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
   }
 
   get_field_by_implicit_super() {
     if (i == null) return;
-    i. /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
+    i. /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
   }
 }
 
 get_field_via_prefixed_identifier(C c) {
   if (c.i == null) return;
-  c.i. /*notPromoted(propertyNotPromoted(target: member:C.i, type: int?))*/ isEven;
+  c.i. /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.i, type: int?))*/ isEven;
 }
 
 get_field_via_prefixed_identifier_mismatched_target(C c1, C c2) {

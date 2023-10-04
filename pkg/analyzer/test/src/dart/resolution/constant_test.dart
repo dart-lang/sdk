@@ -397,7 +397,7 @@ class B extends A {
     assertErrorsInResolvedUnit(result, []);
 
     var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
-    var bValue = bElement.evaluationResult!.value!;
+    var bValue = bElement.evaluationResult as DartObjectImpl;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
     expect(superFields!.getField('f1')!.toBoolValue(), false);
   }

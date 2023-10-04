@@ -10,45 +10,94 @@ main() {
   test('final private field is promotable', () {
     var f = Field('_f', isFinal: true);
     var c = Class(fields: [f]);
-    check(_TestFieldPromotability().run([c])).unorderedEquals({});
-    check(f.isPossiblyPromotable).isTrue();
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
+    check(nonPromotabilityInfo).isEmpty();
+    check(f.nonPromotabilityReason).equals(null);
   });
 
   test('final public field is not promotable', () {
     var f = Field('f', isFinal: true);
     var c = Class(fields: [f]);
-    // Note that the set returned by `_TestFieldPromotability.run` is just the
-    // set of *private* field names that are unpromotable, so even though `f`
-    // is not promotable, the returned set is empty.
-    check(_TestFieldPromotability().run([c])).unorderedEquals({});
-    check(f.isPossiblyPromotable).isFalse();
+    // Note that the map returned by `_TestFieldPromotability.run` is just the
+    // map of *private* field names that are unpromotable, so even though `f`
+    // is not promotable, the returned map is empty.
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
+    check(nonPromotabilityInfo).isEmpty();
+    check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isNotPrivate);
   });
 
   test('non-final private field is not promotable', () {
     var f = Field('_f');
     var c = Class(fields: [f]);
-    check(_TestFieldPromotability().run([c])).unorderedEquals({'_f'});
-    check(f.isPossiblyPromotable).isFalse();
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
+    check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+    check(nonPromotabilityInfo['_f']!.conflictingFields).unorderedEquals([f]);
+    check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isNotFinal);
+  });
+
+  test('public dominates non-final', () {
+    // If a field is both public and non-final, the fact that it is public is
+    // used as the non-promotability reason.
+    var f = Field('f');
+    var c = Class(fields: [f]);
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
+    check(nonPromotabilityInfo.keys).isEmpty;
+    check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isNotPrivate);
   });
 
   test('external private final field is not promotable', () {
     var f = Field('_f', isFinal: true, isExternal: true);
     var c = Class(fields: [f]);
-    check(_TestFieldPromotability().run([c])).unorderedEquals({'_f'});
-    check(f.isPossiblyPromotable).isFalse();
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
+    check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+    check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isExternal);
+  });
+
+  test('public dominates external', () {
+    // If a field is both public and external, the fact that it is public is
+    // used as the non-promotability reason.
+    var f = Field('f', isFinal: true, isExternal: true);
+    var c = Class(fields: [f]);
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
+    check(nonPromotabilityInfo.keys).isEmpty;
+    check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isNotPrivate);
+  });
+
+  test('external dominates non-final', () {
+    // If a field is both external and non-final, the fact that it is external
+    // is used as the non-promotability reason.
+    var f = Field('_f', isFinal: false, isExternal: true);
+    var c = Class(fields: [f]);
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
+    check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+    check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isExternal);
   });
 
   group('concrete getter renders a private field non-promotable:', () {
     test('in a concrete class', () {
       var c = Class(fields: [Field('_f', isFinal: true)]);
-      var d = Class(getters: [Getter('_f')]);
-      check(_TestFieldPromotability().run([c, d])).unorderedEquals({'_f'});
+      var getter = Getter('_f');
+      var d = Class(getters: [getter]);
+      var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
+      check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+      check(nonPromotabilityInfo['_f']!.conflictingGetters)
+          .unorderedEquals([getter]);
     });
 
     test('in an abstract class', () {
       var c = Class(fields: [Field('_f', isFinal: true)]);
-      var d = Class(isAbstract: true, getters: [Getter('_f')]);
-      check(_TestFieldPromotability().run([c, d])).unorderedEquals({'_f'});
+      var getter = Getter('_f');
+      var d = Class(isAbstract: true, getters: [getter]);
+      var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
+      check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+      check(nonPromotabilityInfo['_f']!.conflictingGetters)
+          .unorderedEquals([getter]);
     });
   });
 
@@ -56,8 +105,9 @@ main() {
     var f = Field('_f', isFinal: true);
     var c = Class(fields: [f]);
     var d = Class(isAbstract: true, getters: [Getter('_f', isAbstract: true)]);
-    check(_TestFieldPromotability().run([c, d])).unorderedEquals({});
-    check(f.isPossiblyPromotable).isTrue();
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
+    check(nonPromotabilityInfo).isEmpty();
+    check(f.nonPromotabilityReason).equals(null);
   });
 
   test('public concrete getter is ignored', () {
@@ -66,9 +116,11 @@ main() {
     var f = Field('f', isFinal: true);
     var c = Class(fields: [f]);
     var d = Class(getters: [Getter('f')]);
-    // Therefore the set returned by `_TestFieldPromotability.run` is empty.
-    check(_TestFieldPromotability().run([c, d])).unorderedEquals({});
-    check(f.isPossiblyPromotable).isFalse();
+    // Therefore the map returned by `_TestFieldPromotability.run` is empty.
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
+    check(nonPromotabilityInfo).isEmpty();
+    check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isNotPrivate);
   });
 
   group('unimplemented getter renders a field non-promotable:', () {
@@ -78,7 +130,10 @@ main() {
       var d =
           Class(isAbstract: true, getters: [Getter('_f', isAbstract: true)]);
       var e = Class(implements: [d]);
-      check(_TestFieldPromotability().run([c, d, e])).unorderedEquals({'_f'});
+      var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
+      check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+      check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
+          .unorderedEquals([e]);
     });
 
     test('induced by field', () {
@@ -86,7 +141,10 @@ main() {
       var c = Class(fields: [f]);
       var d = Class(isAbstract: true, fields: [Field('_f', isFinal: true)]);
       var e = Class(implements: [d]);
-      check(_TestFieldPromotability().run([c, d, e])).unorderedEquals({'_f'});
+      var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
+      check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+      check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
+          .unorderedEquals([e]);
     });
   });
 
@@ -95,8 +153,9 @@ main() {
     var c = Class(fields: [f]);
     var d = Class(isAbstract: true, getters: [Getter('_f', isAbstract: true)]);
     var e = Class(isAbstract: true, implements: [d]);
-    check(_TestFieldPromotability().run([c, d, e])).unorderedEquals({});
-    check(f.isPossiblyPromotable).isTrue();
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
+    check(nonPromotabilityInfo).isEmpty();
+    check(f.nonPromotabilityReason).equals(null);
   });
 
   test('unimplemented abstract field renders a field non-promotable:', () {
@@ -106,7 +165,10 @@ main() {
         isAbstract: true,
         fields: [Field('_f', isAbstract: true, isFinal: true)]);
     var e = Class(extendsOrMixesIn: [d]);
-    check(_TestFieldPromotability().run([c, d, e])).unorderedEquals({'_f'});
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
+    check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+    check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
+        .unorderedEquals([e]);
   });
 
   test('implementations are inherited transitively', () {
@@ -116,8 +178,9 @@ main() {
     var c = Class(fields: [f]);
     var d = Class(extendsOrMixesIn: [c]);
     var e = Class(extendsOrMixesIn: [d], implements: [c]);
-    check(_TestFieldPromotability().run([c, d, e])).unorderedEquals({});
-    check(f.isPossiblyPromotable).isTrue();
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
+    check(nonPromotabilityInfo).isEmpty();
+    check(f.nonPromotabilityReason).equals(null);
   });
 
   test('interfaces are inherited transitively', () {
@@ -127,7 +190,10 @@ main() {
     var c = Class(fields: [f]);
     var d = Class(isAbstract: true, implements: [c]);
     var e = Class(implements: [d]);
-    check(_TestFieldPromotability().run([c, d, e])).unorderedEquals({'_f'});
+    var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
+    check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
+    check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
+        .unorderedEquals([e]);
   });
 
   test('class hierarchy circularities are handled', () {
@@ -162,7 +228,7 @@ class Field {
   final bool isFinal;
   final bool isAbstract;
   final bool isExternal;
-  late final bool isPossiblyPromotable;
+  late final PropertyNonPromotabilityReason? nonPromotabilityReason;
 
   Field(this.name,
       {this.isFinal = false, this.isAbstract = false, this.isExternal = false});
@@ -175,7 +241,7 @@ class Getter {
   Getter(this.name, {this.isAbstract = false});
 }
 
-class _TestFieldPromotability extends FieldPromotability<Class> {
+class _TestFieldPromotability extends FieldPromotability<Class, Field, Getter> {
   @override
   Iterable<Class> getSuperclasses(Class class_,
       {required bool ignoreImplements}) {
@@ -186,23 +252,25 @@ class _TestFieldPromotability extends FieldPromotability<Class> {
     }
   }
 
-  Set<String> run(Iterable<Class> classes) {
+  Map<String, FieldNameNonPromotabilityInfo<Class, Field, Getter>> run(
+      Iterable<Class> classes) {
     // Iterate through all the classes, enums, and mixins in the library,
     // recording the non-synthetic instance fields and getters of each.
     for (var class_ in classes) {
       var classInfo = addClass(class_, isAbstract: class_.isAbstract);
       for (var field in class_.fields) {
-        field.isPossiblyPromotable = addField(classInfo, field.name,
+        field.nonPromotabilityReason = addField(classInfo, field, field.name,
             isFinal: field.isFinal,
             isAbstract: field.isAbstract,
             isExternal: field.isExternal);
       }
       for (var getter in class_.getters) {
-        addGetter(classInfo, getter.name, isAbstract: getter.isAbstract);
+        addGetter(classInfo, getter, getter.name,
+            isAbstract: getter.isAbstract);
       }
     }
 
-    // Compute the set of field names that are not promotable.
-    return computeUnpromotablePrivateFieldNames();
+    // Compute field non-promotability info.
+    return computeNonPromotabilityInfo();
   }
 }

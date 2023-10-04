@@ -3620,12 +3620,12 @@ static void GetInstancesAsList(Thread* thread, JSONStream* js) {
   instances.PrintJSON(js, /*ref=*/true);
 }
 
-static intptr_t ParseJSONArray(Thread* thread,
-                               const char* str,
-                               const GrowableObjectArray& elements) {
+template <typename Adder>
+static intptr_t ParseJSONCollection(Thread* thread,
+                                    const char* str,
+                                    const Adder& add) {
   ASSERT(str != nullptr);
   ASSERT(thread != nullptr);
-  Zone* zone = thread->zone();
   intptr_t n = strlen(str);
   if (n < 2) {
     return -1;
@@ -3640,14 +3640,36 @@ static intptr_t ParseJSONArray(Thread* thread,
       // Empty element
       break;
     }
-    String& element = String::Handle(
-        zone, String::FromUTF8(reinterpret_cast<const uint8_t*>(&str[start]),
-                               end - start + 1));
-    elements.Add(element);
+    add(&str[start], end - start + 1);
     start = end + 3;
   }
   return 0;
 }
+
+static intptr_t ParseJSONArray(Thread* thread,
+                               const char* str,
+                               const GrowableObjectArray& elements) {
+  Zone* zone = thread->zone();
+  return ParseJSONCollection(
+      thread, str, [zone, &elements](const char* start, intptr_t length) {
+        String& element = String::Handle(
+            zone,
+            String::FromUTF8(reinterpret_cast<const uint8_t*>(start), length));
+        elements.Add(element);
+      });
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static intptr_t ParseJSONSet(Thread* thread,
+                             const char* str,
+                             ZoneCStringSet* elements) {
+  Zone* zone = thread->zone();
+  return ParseJSONCollection(
+      thread, str, [zone, elements](const char* start, intptr_t length) {
+        elements->Insert(zone->MakeCopyOfStringN(start, length));
+      });
+}
+#endif
 
 static const MethodParameter* const get_ports_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
@@ -3778,7 +3800,22 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
     }
   }
 
-  SourceReport report(report_set, library_filters, compile_mode, report_lines);
+  const char* libraries_already_compiled_param =
+      js->LookupParam("librariesAlreadyCompiled");
+  Zone* zone = thread->zone();
+  ZoneCStringSet* libraries_already_compiled = nullptr;
+  if (libraries_already_compiled_param != nullptr) {
+    libraries_already_compiled = new (zone) ZoneCStringSet(zone);
+    intptr_t libraries_already_compiled_length = ParseJSONSet(
+        thread, libraries_already_compiled_param, libraries_already_compiled);
+    if (libraries_already_compiled_length < 0) {
+      PrintInvalidParamError(js, "libraries_already_compiled");
+      return;
+    }
+  }
+
+  SourceReport report(report_set, library_filters, libraries_already_compiled,
+                      compile_mode, report_lines);
   report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
                    TokenPosition::Deserialize(end_pos));
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4723,13 +4760,20 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
 
       IsolateGroup::ForEach([&vm_children,
                              &vm_size](IsolateGroup* isolate_group) {
-        // Note: new_space()->CapacityInWords() includes memory that hasn't been
-        // allocated from the OS yet.
         int64_t capacity =
-            (isolate_group->heap()->new_space()->UsedInWords() +
+            (isolate_group->heap()->new_space()->CapacityInWords() +
              isolate_group->heap()->old_space()->CapacityInWords()) *
             kWordSize;
-        int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+        // The more precise UsedInWords for new-space iterates pages and
+        // potentially accesses Thread::top_/end_, which is not thread-safe
+        // here. CapacityInWords is similar enough for purposes of service stats
+        // for new-space, differing only up to the as-yet-unused portion of
+        // active TLABs, unlike old-space where it can differ greatly in a
+        // highly fragmented heap.
+        int64_t used = (isolate_group->heap()->new_space()->CapacityInWords() +
+                        isolate_group->heap()->old_space()->UsedInWords()) *
+                       kWordSize;
+
         int64_t free = capacity - used;
 
         JSONObject group(&vm_children);

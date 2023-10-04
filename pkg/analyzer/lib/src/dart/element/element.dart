@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -24,7 +25,9 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -270,6 +273,12 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     implements ClassElement {
   late AugmentedClassElement augmentedInternal =
       NotAugmentedClassElementImpl(this);
+
+  @override
+  InterfaceType? _nonNullableInstance;
+
+  @override
+  InterfaceType? _nullableInstance;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -1281,11 +1290,11 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// initializers.
   Expression? constantInitializer;
 
-  EvaluationResultImpl? _evaluationResult;
+  Constant? _evaluationResult;
 
-  EvaluationResultImpl? get evaluationResult => _evaluationResult;
+  Constant? get evaluationResult => _evaluationResult;
 
-  set evaluationResult(EvaluationResultImpl? evaluationResult) {
+  set evaluationResult(Constant? evaluationResult) {
     _evaluationResult = evaluationResult;
   }
 
@@ -1314,7 +1323,11 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-    return evaluationResult?.value;
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
   }
 }
 
@@ -1377,7 +1390,7 @@ class DefaultSuperFormalParameterElementImpl
   }
 
   @override
-  EvaluationResultImpl? get evaluationResult {
+  Constant? get evaluationResult {
     if (constantInitializer != null) {
       return super.evaluationResult;
     }
@@ -1662,15 +1675,41 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The result of evaluating this annotation as a compile-time constant
   /// expression, or `null` if the compilation unit containing the variable has
   /// not been resolved.
-  EvaluationResultImpl? evaluationResult;
+  Constant? evaluationResult;
+
+  /// Any additional errors, other than [evaluationResult] being an
+  /// [InvalidConstant], that came from evaluating the constant expression,
+  /// or `null` if the compilation unit containing the variable has
+  /// not been resolved.
+  ///
+  /// TODO(kallentu): Remove this field once we fix up g3's dependency on
+  /// annotations having a valid result as well as unresolved errors.
+  List<AnalysisError>? additionalErrors;
 
   /// Initialize a newly created annotation. The given [compilationUnit] is the
   /// compilation unit in which the annotation appears.
   ElementAnnotationImpl(this.compilationUnit);
 
   @override
-  List<AnalysisError> get constantEvaluationErrors =>
-      evaluationResult?.errors ?? const <AnalysisError>[];
+  List<AnalysisError> get constantEvaluationErrors {
+    final evaluationResult = this.evaluationResult;
+    final additionalErrors = this.additionalErrors;
+    if (evaluationResult is InvalidConstant) {
+      // When we have an [InvalidConstant], we don't report the additional
+      // errors because this result contains the most relevant error.
+      return [
+        AnalysisError.tmp(
+          source: source,
+          offset: evaluationResult.offset,
+          length: evaluationResult.length,
+          errorCode: evaluationResult.errorCode,
+          arguments: evaluationResult.arguments,
+          contextMessages: evaluationResult.contextMessages,
+        )
+      ];
+    }
+    return additionalErrors ?? const <AnalysisError>[];
+  }
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
@@ -1823,7 +1862,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
         configuration: ConstantEvaluationConfiguration(),
       );
     }
-    return evaluationResult?.value;
+
+    if (evaluationResult case DartObjectImpl result) {
+      return result;
+    }
+    return null;
   }
 
   @override
@@ -2682,6 +2725,18 @@ class EnumElementImpl extends InterfaceElementImpl
   }
 
   @override
+  InterfaceType? get _nonNullableInstance => null;
+
+  @override
+  set _nonNullableInstance(InterfaceType? newValue) {}
+
+  @override
+  InterfaceType? get _nullableInstance => null;
+
+  @override
+  set _nullableInstance(InterfaceType? newValue) {}
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitEnumElement(this);
   }
@@ -2694,7 +2749,7 @@ class EnumElementImpl extends InterfaceElementImpl
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData
+    with TypeParameterizedElementMixin
     implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -2884,7 +2939,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of an [ExtensionElement].
 class ExtensionElementImpl extends InstanceElementImpl
-    with AugmentableElement<ExtensionElementImpl>, HasCompletionData
+    with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement {
   /// The type being extended.
   DartType? _extendedType;
@@ -3039,6 +3094,18 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   FieldElementImpl get representation => fields.first;
 
   @override
+  InterfaceType? get _nonNullableInstance => null;
+
+  @override
+  set _nonNullableInstance(InterfaceType? newValue) {}
+
+  @override
+  InterfaceType? get _nullableInstance => null;
+
+  @override
+  set _nullableInstance(InterfaceType? newValue) {}
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitExtensionTypeElement(this);
   }
@@ -3046,7 +3113,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
-    with AugmentableElement<FieldElementImpl>, HasCompletionData
+    with AugmentableElement<FieldElementImpl>
     implements FieldElement {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -3311,11 +3378,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 }
 
-/// This mixins is added to elements that can have cache completion data.
-mixin HasCompletionData {
-  Object? completionData;
-}
-
 /// A concrete implementation of a [HideElementCombinator].
 class HideElementCombinatorImpl implements HideElementCombinator {
   @override
@@ -3435,7 +3497,7 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    with HasCompletionData, MacroTargetElement
+    with MacroTargetElement
     implements InterfaceElement {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -3608,6 +3670,26 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     }
   }
 
+  /// Potential cache of a non-nullable instance of the InterfaceType representing
+  /// this element. Should only be used for types with no type arguments and no
+  /// alias.
+  InterfaceType? get _nonNullableInstance;
+
+  /// Potential cache of a non-nullable instance of the InterfaceType representing
+  /// this element. Should only be used for types with no type arguments and no
+  /// alias.
+  set _nonNullableInstance(InterfaceType? newValue);
+
+  /// Potential cache of a nullable instance of the InterfaceType representing
+  /// this element. Should only be used for types with no type arguments and no
+  /// alias.
+  InterfaceType? get _nullableInstance;
+
+  /// Potential cache of a nullable instance of the InterfaceType representing
+  /// this element. Should only be used for types with no type arguments and no
+  /// alias.
+  set _nullableInstance(InterfaceType? newValue);
+
   @override
   FieldElement? getField(String name) {
     return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
@@ -3643,11 +3725,28 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return InterfaceTypeImpl(
+    if (typeArguments.isEmpty) {
+      InterfaceType? lookup;
+      if (nullabilitySuffix == NullabilitySuffix.none) {
+        lookup = _nonNullableInstance;
+      } else if (nullabilitySuffix == NullabilitySuffix.question) {
+        lookup = _nullableInstance;
+      }
+      if (lookup != null) return lookup;
+    }
+    final result = InterfaceTypeImpl(
       element: this,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
+    if (typeArguments.isEmpty) {
+      if (nullabilitySuffix == NullabilitySuffix.none) {
+        _nonNullableInstance = result;
+      } else if (nullabilitySuffix == NullabilitySuffix.question) {
+        _nullableInstance = result;
+      }
+    }
+    return result;
   }
 
   @override
@@ -3951,6 +4050,8 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   @override
   final LibraryOrAugmentationElementImpl augmentationTarget;
 
+  MacroGeneratedAugmentationLibrary? macroGenerated;
+
   LibraryAugmentationElementLinkedData? linkedData;
 
   LibraryAugmentationElementImpl({
@@ -4077,6 +4178,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// The macro executor for the bundle to which this library belongs.
   BundleMacroExecutor? bundleMacroExecutor;
 
+  /// Information about why non-promotable private fields in the library are not
+  /// promotable, or `null` if field promotion is not enabled in this library.
+  /// See [fieldNameNonPromotabilityInfo].
+  Map<String, FieldNameNonPromotabilityInfo>? _fieldNameNonPromotabilityInfo;
+
   /// All augmentations of this library, in the depth-first pre-order order.
   late final List<LibraryAugmentationElementImpl> augmentations =
       _computeAugmentations();
@@ -4146,6 +4252,35 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   set exportNamespace(Namespace exportNamespace) {
     _exportNamespace = exportNamespace;
+  }
+
+  /// Information about why non-promotable private fields in the library are not
+  /// promotable, or `null` if field promotion is not enabled in this library.
+  ///
+  /// There are two ways an access to a private property name might not be
+  /// promotable: the property might be non-promotable for a reason inherent to
+  /// itself (e.g. it's declared as a concrete getter rather than a field, or
+  /// it's a non-final field), or the property might have the same name as an
+  /// inherently non-promotable property elsewhere in the same library (in which
+  /// case the inherently non-promotable property is said to be "conflicting").
+  ///
+  /// When a compile-time error occurs because a property is non-promotable due
+  /// conflicting properties elsewhere in the library, the analyzer needs to be
+  /// able to find the conflicting properties in order to generate context
+  /// messages. This data structure allows that, by mapping each non-promotable
+  /// private name to the set of conflicting declarations.
+  ///
+  /// If a field in the library has a private name and that name does not appear
+  /// as a key in this map, the field is promotable.
+  Map<String, FieldNameNonPromotabilityInfo>?
+      get fieldNameNonPromotabilityInfo {
+    _readLinkedData();
+    return _fieldNameNonPromotabilityInfo;
+  }
+
+  set fieldNameNonPromotabilityInfo(
+      Map<String, FieldNameNonPromotabilityInfo>? value) {
+    _fieldNameNonPromotabilityInfo = value;
   }
 
   bool get hasPartOfDirective {
@@ -4800,6 +4935,17 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       visitor.visitLocalVariableElement(this);
 }
 
+/// Additional information for a macro generated augmentation library.
+class MacroGeneratedAugmentationLibrary {
+  final String code;
+  final Uint8List informativeBytes;
+
+  MacroGeneratedAugmentationLibrary({
+    required this.code,
+    required this.informativeBytes,
+  });
+}
+
 mixin MacroTargetElement {
   /// Errors registered while applying macros to this element.
   List<MacroApplicationError> macroApplicationErrors = const [];
@@ -4946,6 +5092,18 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   set supertype(InterfaceType? supertype) {
     throw StateError('Attempt to set a supertype for a mixin declaration.');
   }
+
+  @override
+  InterfaceType? get _nonNullableInstance => null;
+
+  @override
+  set _nonNullableInstance(InterfaceType? newValue) {}
+
+  @override
+  InterfaceType? get _nullableInstance => null;
+
+  @override
+  set _nullableInstance(InterfaceType? newValue) {}
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
@@ -6217,6 +6375,19 @@ abstract class PropertyInducingElementImpl
     setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, true);
   }
 
+  /// Return `true` if this variable needs the setter.
+  bool get hasSetter {
+    if (isConst) {
+      return false;
+    }
+
+    if (isLate) {
+      return !isFinal || !hasInitializer;
+    }
+
+    return !isFinal;
+  }
+
   @override
   bool get isConstantEvaluated => true;
 
@@ -6292,36 +6463,26 @@ abstract class PropertyInducingElementImpl
     return _type!;
   }
 
-  /// Return `true` if this variable needs the setter.
-  bool get _hasSetter {
-    if (isConst) {
-      return false;
-    }
-
-    if (isLate) {
-      return !isFinal || !hasInitializer;
-    }
-
-    return !isFinal;
-  }
-
   void bindReference(Reference reference) {
     this.reference = reference;
     reference.element = this;
   }
 
-  void createImplicitAccessors(Reference enclosingRef, String name) {
-    getter = PropertyAccessorElementImpl_ImplicitGetter(
+  PropertyAccessorElementImpl createImplicitGetter(Reference reference) {
+    assert(getter == null);
+    return getter = PropertyAccessorElementImpl_ImplicitGetter(
       this,
-      reference: enclosingRef.getChild('@getter').getChild(name),
+      reference: reference,
     );
+  }
 
-    if (_hasSetter) {
-      setter = PropertyAccessorElementImpl_ImplicitSetter(
-        this,
-        reference: enclosingRef.getChild('@setter').getChild(name),
-      );
-    }
+  PropertyAccessorElementImpl createImplicitSetter(Reference reference) {
+    assert(hasSetter);
+    assert(setter == null);
+    return setter = PropertyAccessorElementImpl_ImplicitSetter(
+      this,
+      reference: reference,
+    );
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -6420,7 +6581,7 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
 
 /// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    with AugmentableElement<TopLevelVariableElementImpl>, HasCompletionData
+    with AugmentableElement<TopLevelVariableElementImpl>
     implements TopLevelVariableElement {
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
@@ -6455,7 +6616,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData
+    with TypeParameterizedElementMixin
     implements TypeAliasElement {
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
@@ -6867,11 +7028,11 @@ abstract class VariableElementImpl extends ElementImpl
   /// compile-time constant expression, or `null` if this variable is not a
   /// 'const' variable, if it does not have an initializer, or if the
   /// compilation unit containing the variable has not been resolved.
-  EvaluationResultImpl? get evaluationResult => null;
+  Constant? get evaluationResult => null;
 
   /// Set the result of evaluating this variable's initializer as a compile-time
   /// constant expression to the given [result].
-  set evaluationResult(EvaluationResultImpl? result) {
+  set evaluationResult(Constant? result) {
     throw StateError("Invalid attempt to set a compile-time constant result");
   }
 

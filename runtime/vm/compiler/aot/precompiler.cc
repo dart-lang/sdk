@@ -1409,6 +1409,7 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
 
 void Precompiler::AddFunction(const Function& function,
                               const char* retain_reason) {
+  ASSERT(!function.is_abstract());
   if (is_tracing()) {
     tracer_->WriteFunctionRef(function);
   }
@@ -1587,8 +1588,10 @@ void Precompiler::AddAnnotatedRoots() {
           if (type == EntryPointPragma::kAlways ||
               type == EntryPointPragma::kCallOnly) {
             functions_with_entry_point_pragmas_.Insert(function);
-            AddFunction(function, RetainReasons::kEntryPointPragma);
             AddApiUse(function);
+            if (!function.is_abstract()) {
+              AddFunction(function, RetainReasons::kEntryPointPragma);
+            }
           }
 
           if ((type == EntryPointPragma::kAlways ||

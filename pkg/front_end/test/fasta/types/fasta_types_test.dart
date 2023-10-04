@@ -84,7 +84,10 @@ class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   }
 
   @override
-  TypeParserEnvironment extend(String? typeParameters) {
-    return environment.extendWithTypeParameters(typeParameters);
+  TypeParserEnvironment extend(
+      {String? typeParameters, String? functionTypeTypeParameters}) {
+    return environment
+        .extendWithTypeParameters(typeParameters)
+        .extendWithStructuralParameters(functionTypeTypeParameters);
   }
 }

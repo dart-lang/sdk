@@ -569,6 +569,19 @@ Never nnn() => throw '';
     assertHasRegion(HighlightRegionType.CLASS, 'Never nnn');
   }
 
+  Future<void> test_class_augmentKeyword() async {
+    final testCode = TestCode.parse(r'''
+augment class A {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |augment| BUILT_IN
+8 + 5 |class| KEYWORD
+14 + 1 |A| CLASS
+''');
+  }
+
   Future<void> test_class_constructor_fieldFormalParameter() async {
     var testCode = TestCode.parse(r'''
 class A {
@@ -587,6 +600,19 @@ class A {
 29 + 1 |A| CLASS
 31 + 4 |this| KEYWORD
 36 + 3 |foo| INSTANCE_FIELD_REFERENCE
+''');
+  }
+
+  Future<void> test_class_macroKeyword() async {
+    final testCode = TestCode.parse(r'''
+macro class A {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 5 |macro| BUILT_IN
+6 + 5 |class| KEYWORD
+12 + 1 |A| CLASS
 ''');
   }
 

@@ -204,7 +204,6 @@ class A<U> {
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           65, 1),
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 65, 1),
     ]);
   }
 
@@ -220,7 +219,6 @@ class A<U> {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           60, 1),
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 60, 1),
     ]);
   }
 
@@ -239,7 +237,6 @@ class A<U> {
           5),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           58, 1),
-      error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 58, 1),
     ]);
   }
 

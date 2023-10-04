@@ -33,7 +33,11 @@ config("sanitizer_options_link_helper") {
     ldflags += [ "-fsanitize=thread" ]
   }
   if (is_ubsan) {
-    ldflags += [ "-fsanitize=undefined" ]
+    ldflags += [
+      "-fsanitize=undefined",
+      "-fsanitize=float-divide-by-zero",
+      "-fsanitize=float-cast-overflow",
+    ]
   }
 }
 

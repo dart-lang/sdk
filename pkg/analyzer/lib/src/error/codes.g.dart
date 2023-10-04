@@ -209,6 +209,22 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_IMPORT =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_IMPORT',
+    "The library does not import this augmentation.",
+    correctionMessage:
+        "Try updating the augmented library to import this augmentation.",
+  );
+
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_LIBRARY =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_LIBRARY',
+    "The URI does not resolve to a library.",
+    correctionMessage:
+        "Try updating the URI to reference the augmented library",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER =
       CompileTimeErrorCode(
@@ -6056,6 +6072,15 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the doc directive argument
+  ///  1: the expected format
+  static const WarningCode DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT = WarningCode(
+    'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+    "The '{0}' argument must be formatted as {1}.",
+    correctionMessage: "Try formatting '{0}' as {1}.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the doc directive
   ///  1: the actual number of arguments
   ///  2: the expected number of arguments
@@ -6082,6 +6107,15 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+    "Doc directive is missing a closing tag.",
+    correctionMessage:
+        "Try closing the directive with the appropriate closing tag, '{0}'.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the doc directive
   ///  1: the name of the missing argument
   static const WarningCode DOC_DIRECTIVE_MISSING_ONE_ARGUMENT = WarningCode(
@@ -6089,6 +6123,15 @@ class WarningCode extends AnalyzerErrorCode {
     "The '{0}' directive is missing a '{1}' argument.",
     correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_OPENING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_OPENING_TAG',
+    "Doc directive is missing an opening tag.",
+    correctionMessage:
+        "Try opening the directive with the appropriate opening tag, '{0}'.",
   );
 
   ///  Parameters:
@@ -6114,6 +6157,14 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try adding the missing arguments before the closing '}'.",
     uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the unknown doc directive.
+  static const WarningCode DOC_DIRECTIVE_UNKNOWN = WarningCode(
+    'DOC_DIRECTIVE_UNKNOWN',
+    "Doc directive '{0}' is unknown.",
+    correctionMessage: "Try using one of the supported doc directives.",
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(

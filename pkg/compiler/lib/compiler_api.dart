@@ -156,20 +156,24 @@ enum OutputType {
 }
 
 /// Sink interface used for generating output from the compiler.
-abstract class OutputSink {
+abstract class OutputSink implements Sink<String> {
   /// Adds [text] to the sink.
+  @override
   void add(String text);
 
   /// Closes the sink.
+  @override
   void close();
 }
 
 /// Sink interface used for generating binary data from the compiler.
-abstract class BinaryOutputSink {
+abstract class BinaryOutputSink implements Sink<List<int>> {
   /// Writes indices [start] to [end] of [buffer] to the sink.
-  void write(List<int> buffer, [int start = 0, int? end]);
+  @override
+  void add(List<int> buffer, [int start = 0, int? end]);
 
   /// Closes the sink.
+  @override
   void close();
 }
 

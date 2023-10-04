@@ -11,9 +11,7 @@ import 'ast.dart';
 abstract class ExpressionVisitor<R> {
   const ExpressionVisitor();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultExpression(Expression node);
-
+  R visitAuxiliaryExpression(AuxiliaryExpression node);
   R visitInvalidExpression(InvalidExpression node);
   R visitVariableGet(VariableGet node);
   R visitVariableSet(VariableSet node);
@@ -87,10 +85,12 @@ abstract class ExpressionVisitor<R> {
 /// Helper mixin for [ExpressionVisitor] that implements visit methods by
 /// delegating to the [defaultBasicLiteral] and [defaultExpression] methods.
 mixin ExpressionVisitorDefaultMixin<R> implements ExpressionVisitor<R> {
-  @override
   R defaultExpression(Expression node);
   R defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
 
+  @override
+  R visitAuxiliaryExpression(AuxiliaryExpression node) =>
+      defaultExpression(node);
   @override
   R visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
   @override
@@ -305,9 +305,7 @@ mixin PatternVisitorDefaultMixin<R> implements PatternVisitor<R> {
 abstract class StatementVisitor<R> {
   const StatementVisitor();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultStatement(Statement node);
-
+  R visitAuxiliaryStatement(AuxiliaryStatement node);
   R visitExpressionStatement(ExpressionStatement node);
   R visitBlock(Block node);
   R visitAssertBlock(AssertBlock node);
@@ -336,9 +334,10 @@ abstract class StatementVisitor<R> {
 /// Helper mixin for [StatementVisitor] that implements visit methods by
 /// delegating to the [defaultStatement] method.
 mixin StatementVisitorDefaultMixin<R> implements StatementVisitor<R> {
-  @override
   R defaultStatement(Statement node);
 
+  @override
+  R visitAuxiliaryStatement(AuxiliaryStatement node) => defaultStatement(node);
   @override
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
@@ -438,9 +437,7 @@ mixin MemberVisitor1DefaultMixin<R, A> implements MemberVisitor1<R, A> {
 abstract class InitializerVisitor<R> {
   const InitializerVisitor();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultInitializer(Initializer node);
-
+  R visitAuxiliaryInitializer(AuxiliaryInitializer node);
   R visitInvalidInitializer(InvalidInitializer node);
   R visitFieldInitializer(FieldInitializer node);
   R visitSuperInitializer(SuperInitializer node);
@@ -452,9 +449,11 @@ abstract class InitializerVisitor<R> {
 /// Helper mixin for [InitializerVisitor] that implements visit methods by
 /// delegating to the [defaultInitializer] method.
 mixin InitializerVisitorDefaultMixin<R> implements InitializerVisitor<R> {
-  @override
   R defaultInitializer(Initializer node);
 
+  @override
+  R visitAuxiliaryInitializer(AuxiliaryInitializer node) =>
+      defaultInitializer(node);
   @override
   R visitInvalidInitializer(InvalidInitializer node) =>
       defaultInitializer(node);
@@ -474,9 +473,7 @@ mixin InitializerVisitorDefaultMixin<R> implements InitializerVisitor<R> {
 abstract class InitializerVisitor1<R, A> {
   const InitializerVisitor1();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultInitializer(Initializer node, A arg);
-
+  R visitAuxiliaryInitializer(AuxiliaryInitializer node, A arg);
   R visitInvalidInitializer(InvalidInitializer node, A arg);
   R visitFieldInitializer(FieldInitializer node, A arg);
   R visitSuperInitializer(SuperInitializer node, A arg);
@@ -489,9 +486,11 @@ abstract class InitializerVisitor1<R, A> {
 /// delegating to the [defaultInitializer] method.
 mixin InitializerVisitor1DefaultMixin<R, A>
     implements InitializerVisitor1<R, A> {
-  @override
   R defaultInitializer(Initializer node, A arg);
 
+  @override
+  R visitAuxiliaryInitializer(AuxiliaryInitializer node, A arg) =>
+      defaultInitializer(node, arg);
   @override
   R visitInvalidInitializer(InvalidInitializer node, A arg) =>
       defaultInitializer(node, arg);
@@ -520,9 +519,6 @@ abstract class TreeVisitor<R>
         MemberVisitor<R>,
         InitializerVisitor<R> {
   const TreeVisitor();
-
-  // TODO(johnniwinther): Remove this.
-  R defaultTreeNode(TreeNode node);
 
   // Classes
   R visitClass(Class node);
@@ -553,7 +549,6 @@ abstract class TreeVisitor<R>
 /// Helper mixin for [TreeVisitor] that implements visit methods by delegating
 /// to the [defaultTreeNode] method.
 mixin TreeVisitorDefaultMixin<R> implements TreeVisitor<R> {
-  @override
   R defaultTreeNode(TreeNode node);
 
   // Classes
@@ -640,9 +635,6 @@ abstract class TreeVisitor1<R, A>
         InitializerVisitor1<R, A> {
   const TreeVisitor1();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultTreeNode(TreeNode node, A arg);
-
   // Classes
   R visitClass(Class node, A arg);
   R visitExtension(Extension node, A arg);
@@ -672,7 +664,6 @@ abstract class TreeVisitor1<R, A>
 /// Helper mixin for [TreeVisitor1] that implements visit methods by delegating
 /// to the [defaultTreeNode] method.
 mixin TreeVisitor1DefaultMixin<R, A> implements TreeVisitor1<R, A> {
-  @override
   R defaultTreeNode(TreeNode node, A arg);
 
   // Classes
@@ -756,12 +747,13 @@ abstract class TreeVisitor1Default<R, A>
   R defaultMember(Member node, A arg) => defaultTreeNode(node, arg);
 }
 
+typedef DartTypeVisitorAuxiliaryFunction<R> = R Function(
+    AuxiliaryType node, R Function(AuxiliaryType node) recursor);
+
 abstract class DartTypeVisitor<R> {
   const DartTypeVisitor();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultDartType(DartType node);
-
+  R visitAuxiliaryType(AuxiliaryType node);
   R visitInvalidType(InvalidType node);
   R visitDynamicType(DynamicType node);
   R visitVoidType(VoidType node);
@@ -769,6 +761,7 @@ abstract class DartTypeVisitor<R> {
   R visitFutureOrType(FutureOrType node);
   R visitFunctionType(FunctionType node);
   R visitTypeParameterType(TypeParameterType node);
+  R visitStructuralParameterType(StructuralParameterType node);
   R visitTypedefType(TypedefType node);
   R visitNeverType(NeverType node);
   R visitNullType(NullType node);
@@ -780,9 +773,10 @@ abstract class DartTypeVisitor<R> {
 /// Helper mixin for [DartTypeVisitor] that implements visit methods by
 /// delegating to the [defaultDartType] method.
 mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
-  @override
   R defaultDartType(DartType node);
 
+  @override
+  R visitAuxiliaryType(AuxiliaryType node) => defaultDartType(node);
   @override
   R visitInvalidType(InvalidType node) => defaultDartType(node);
   @override
@@ -798,6 +792,9 @@ mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
   @override
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   @override
+  R visitStructuralParameterType(StructuralParameterType node) =>
+      defaultDartType(node);
+  @override
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   @override
   R visitNeverType(NeverType node) => defaultDartType(node);
@@ -811,12 +808,13 @@ mixin DartTypeVisitorDefaultMixin<R> implements DartTypeVisitor<R> {
   R visitRecordType(RecordType node) => defaultDartType(node);
 }
 
+typedef DartTypeVisitor1AuxiliaryFunction<R, A> = R Function(
+    AuxiliaryType node, A arg, R Function(AuxiliaryType node, A arg) recursor);
+
 abstract class DartTypeVisitor1<R, A> {
   const DartTypeVisitor1();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultDartType(DartType node, A arg);
-
+  R visitAuxiliaryType(AuxiliaryType node, A arg);
   R visitInvalidType(InvalidType node, A arg);
   R visitDynamicType(DynamicType node, A arg);
   R visitVoidType(VoidType node, A arg);
@@ -824,6 +822,7 @@ abstract class DartTypeVisitor1<R, A> {
   R visitFutureOrType(FutureOrType node, A arg);
   R visitFunctionType(FunctionType node, A arg);
   R visitTypeParameterType(TypeParameterType node, A arg);
+  R visitStructuralParameterType(StructuralParameterType node, A arg);
   R visitTypedefType(TypedefType node, A arg);
   R visitNeverType(NeverType node, A arg);
   R visitNullType(NullType node, A arg);
@@ -835,9 +834,10 @@ abstract class DartTypeVisitor1<R, A> {
 /// Helper mixin for [DartTypeVisitor1] that implements visit methods by
 /// delegating to the [defaultDartType] method.
 mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
-  @override
   R defaultDartType(DartType node, A arg);
 
+  @override
+  R visitAuxiliaryType(AuxiliaryType node, A arg) => defaultDartType(node, arg);
   @override
   R visitInvalidType(InvalidType node, A arg) => defaultDartType(node, arg);
   @override
@@ -852,6 +852,9 @@ mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
   R visitFunctionType(FunctionType node, A arg) => defaultDartType(node, arg);
   @override
   R visitTypeParameterType(TypeParameterType node, A arg) =>
+      defaultDartType(node, arg);
+  @override
+  R visitStructuralParameterType(StructuralParameterType node, A arg) =>
       defaultDartType(node, arg);
   @override
   R visitTypedefType(TypedefType node, A arg) => defaultDartType(node, arg);
@@ -879,6 +882,7 @@ mixin DartTypeVisitor1DefaultMixin<R, A> implements DartTypeVisitor1<R, A> {
 abstract class ConstantVisitor<R> {
   const ConstantVisitor();
 
+  R visitAuxiliaryConstant(AuxiliaryConstant node);
   R visitNullConstant(NullConstant node);
   R visitBoolConstant(BoolConstant node);
   R visitIntConstant(IntConstant node);
@@ -905,6 +909,8 @@ abstract class ConstantVisitor<R> {
 mixin ConstantVisitorDefaultMixin<R> implements ConstantVisitor<R> {
   R defaultConstant(Constant node);
 
+  @override
+  R visitAuxiliaryConstant(AuxiliaryConstant node) => defaultConstant(node);
   @override
   R visitNullConstant(NullConstant node) => defaultConstant(node);
   @override
@@ -952,6 +958,7 @@ mixin ConstantVisitorDefaultMixin<R> implements ConstantVisitor<R> {
 abstract class ConstantVisitor1<R, A> {
   const ConstantVisitor1();
 
+  R visitAuxiliaryConstant(AuxiliaryConstant node, A arg);
   R visitNullConstant(NullConstant node, A arg);
   R visitBoolConstant(BoolConstant node, A arg);
   R visitIntConstant(IntConstant node, A arg);
@@ -978,6 +985,9 @@ abstract class ConstantVisitor1<R, A> {
 mixin ConstantVisitor1DefaultMixin<R, A> implements ConstantVisitor1<R, A> {
   R defaultConstant(Constant node, A arg);
 
+  @override
+  R visitAuxiliaryConstant(AuxiliaryConstant node, A arg) =>
+      defaultConstant(node, arg);
   @override
   R visitNullConstant(NullConstant node, A arg) => defaultConstant(node, arg);
   @override
@@ -1030,6 +1040,7 @@ mixin ConstantVisitor1DefaultMixin<R, A> implements ConstantVisitor1<R, A> {
 }
 
 abstract class ConstantReferenceVisitor<R> {
+  R visitAuxiliaryConstantReference(AuxiliaryConstant node);
   R visitNullConstantReference(NullConstant node);
   R visitBoolConstantReference(BoolConstant node);
   R visitIntConstantReference(IntConstant node);
@@ -1057,6 +1068,9 @@ mixin ConstantReferenceVisitorDefaultMixin<R>
     implements ConstantReferenceVisitor<R> {
   R defaultConstantReference(Constant node);
 
+  @override
+  R visitAuxiliaryConstantReference(AuxiliaryConstant node) =>
+      defaultConstantReference(node);
   @override
   R visitNullConstantReference(NullConstant node) =>
       defaultConstantReference(node);
@@ -1115,6 +1129,7 @@ mixin ConstantReferenceVisitorDefaultMixin<R>
 }
 
 abstract class ConstantReferenceVisitor1<R, A> {
+  R visitAuxiliaryConstantReference(AuxiliaryConstant node, A arg);
   R visitNullConstantReference(NullConstant node, A arg);
   R visitBoolConstantReference(BoolConstant node, A arg);
   R visitIntConstantReference(IntConstant node, A arg);
@@ -1143,6 +1158,9 @@ mixin ConstantReferenceVisitor1DefaultMixin<R, A>
     implements ConstantReferenceVisitor1<R, A> {
   R defaultConstantReference(Constant node, A arg);
 
+  @override
+  R visitAuxiliaryConstantReference(AuxiliaryConstant node, A arg) =>
+      defaultConstantReference(node, arg);
   @override
   R visitNullConstantReference(NullConstant node, A arg) =>
       defaultConstantReference(node, arg);
@@ -1202,6 +1220,7 @@ mixin ConstantReferenceVisitor1DefaultMixin<R, A>
 }
 
 abstract class _ConstantCallback<R> {
+  R visitAuxiliaryConstant(AuxiliaryConstant node);
   R visitNullConstant(NullConstant node);
   R visitBoolConstant(BoolConstant node);
   R visitIntConstant(IntConstant node);
@@ -1294,6 +1313,10 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 
   @override
   R visitNullConstant(NullConstant node) => _callback.visitNullConstant(node);
+
+  @override
+  R visitAuxiliaryConstant(AuxiliaryConstant node) =>
+      _callback.visitAuxiliaryConstant(node);
 }
 
 /// Helper mixin for [ComputeOnceConstantVisitor] and [VisitOnceConstantVisitor]
@@ -1302,6 +1325,8 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 mixin OnceConstantVisitorDefaultMixin<R> implements _ConstantCallback<R> {
   R defaultConstant(Constant node);
 
+  @override
+  R visitAuxiliaryConstant(AuxiliaryConstant node) => defaultConstant(node);
   @override
   R visitNullConstant(NullConstant node) => defaultConstant(node);
   @override
@@ -1463,6 +1488,7 @@ abstract class Visitor<R>
   R visitName(Name node);
   R visitSupertype(Supertype node);
   R visitNamedType(NamedType node);
+  R visitStructuralParameter(StructuralParameter node);
 }
 
 mixin VisitorDefaultMixin<R> implements Visitor<R> {
@@ -1475,6 +1501,8 @@ mixin VisitorDefaultMixin<R> implements Visitor<R> {
   R visitSupertype(Supertype node) => defaultNode(node);
   @override
   R visitNamedType(NamedType node) => defaultNode(node);
+  @override
+  R visitStructuralParameter(StructuralParameter node) => defaultNode(node);
 }
 
 /// Base class for implementing [Visitor] that implements visit methods mixing
@@ -1517,6 +1545,7 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   R visitName(Name node, A arg);
   R visitSupertype(Supertype node, A arg);
   R visitNamedType(NamedType node, A arg);
+  R visitStructuralParameter(StructuralParameter node, A arg);
 }
 
 mixin Visitor1DefaultMixin<R, A> implements Visitor1<R, A> {
@@ -1531,6 +1560,10 @@ mixin Visitor1DefaultMixin<R, A> implements Visitor1<R, A> {
 
   @override
   R visitNamedType(NamedType node, A arg) => defaultNode(node, arg);
+
+  @override
+  R visitStructuralParameter(StructuralParameter node, A arg) =>
+      defaultNode(node, arg);
 }
 
 /// Base class for implementing [Visitor1] that implements visit methods mixing
@@ -2138,9 +2171,7 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
 abstract class ExpressionVisitor1<R, A> {
   const ExpressionVisitor1();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultExpression(Expression node, A arg);
-
+  R visitAuxiliaryExpression(AuxiliaryExpression node, A arg);
   R visitInvalidExpression(InvalidExpression node, A arg);
   R visitVariableGet(VariableGet node, A arg);
   R visitVariableSet(VariableSet node, A arg);
@@ -2215,9 +2246,12 @@ abstract class ExpressionVisitor1<R, A> {
 /// Helper mixin for [ExpressionVisitor1] that implements visit methods by
 /// delegating to the [defaultBasicLiteral] and [defaultExpression] methods.
 mixin ExpressionVisitor1DefaultMixin<R, A> implements ExpressionVisitor1<R, A> {
-  @override
   R defaultExpression(Expression node, A arg);
   R defaultBasicLiteral(BasicLiteral node, A arg) =>
+      defaultExpression(node, arg);
+
+  @override
+  R visitAuxiliaryExpression(AuxiliaryExpression node, A arg) =>
       defaultExpression(node, arg);
   @override
   R visitInvalidExpression(InvalidExpression node, A arg) =>
@@ -2473,9 +2507,7 @@ mixin PatternVisitor1DefaultMixin<R, A> implements PatternVisitor1<R, A> {
 abstract class StatementVisitor1<R, A> {
   const StatementVisitor1();
 
-  // TODO(johnniwinther): Remove this.
-  R defaultStatement(Statement node, A arg);
-
+  R visitAuxiliaryStatement(AuxiliaryStatement node, A arg);
   R visitExpressionStatement(ExpressionStatement node, A arg);
   R visitBlock(Block node, A arg);
   R visitAssertBlock(AssertBlock node, A arg);
@@ -2504,9 +2536,11 @@ abstract class StatementVisitor1<R, A> {
 /// Helper mixin for [StatementVisitor1] that implements visit methods by
 /// delegating to the [defaultStatement] method.
 mixin StatementVisitor1DefaultMixin<R, A> implements StatementVisitor1<R, A> {
-  @override
   R defaultStatement(Statement node, A arg);
 
+  @override
+  R visitAuxiliaryStatement(AuxiliaryStatement node, A arg) =>
+      defaultStatement(node, arg);
   @override
   R visitExpressionStatement(ExpressionStatement node, A arg) =>
       defaultStatement(node, arg);

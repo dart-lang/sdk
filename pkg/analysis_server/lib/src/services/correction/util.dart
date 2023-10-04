@@ -1235,8 +1235,16 @@ class CorrectionUtils {
 
   /// Returns the source with indentation changed from [oldIndent] to
   /// [newIndent], keeping indentation of lines relative to each other.
-  String replaceSourceIndent(
-      String source, String oldIndent, String newIndent) {
+  ///
+  /// If [includeLeading] is `false`, indentation on the first line will not be
+  /// altered. This should be used if the provided string is a substring of code
+  /// that does not begin and end at line boundaries and [oldIndent] may be
+  /// an empty string.
+  ///
+  /// Unless [includeTrailingNewline] is `false`, a newline will be added to
+  /// the end of the returned code.
+  String replaceSourceIndent(String source, String oldIndent, String newIndent,
+      {bool includeLeading = true, bool includeTrailingNewline = true}) {
     // prepare STRING token ranges
     var lineRanges = <SourceRange>[];
     {
@@ -1254,6 +1262,8 @@ class CorrectionUtils {
     var lineOffset = 0;
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
+      var doReplaceWhitespace = i != 0 || includeLeading;
+      var doAppendEol = i != lines.length - 1 || includeTrailingNewline;
       // last line, stop if empty
       if (i == lines.length - 1 && isEmpty(line)) {
         break;
@@ -1270,12 +1280,14 @@ class CorrectionUtils {
       }
       lineOffset += line.length + eol.length;
       // update line indent
-      if (!inString) {
+      if (!inString && doReplaceWhitespace) {
         line = '$newIndent${removeStart(line, oldIndent)}';
       }
       // append line
       sb.write(line);
-      sb.write(eol);
+      if (doAppendEol) {
+        sb.write(eol);
+      }
     }
     return sb.toString();
   }

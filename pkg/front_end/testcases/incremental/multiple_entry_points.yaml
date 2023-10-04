@@ -1,6 +1,6 @@
 # Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Use multiple entry points, try for force the class hierarchy not to contain
 # all the entry point libraries, then try to force using it via expression

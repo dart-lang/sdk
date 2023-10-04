@@ -114,11 +114,17 @@ suggestions
     kind: keyword
   break
     kind: keyword
+  case
+    kind: keyword
   const
+    kind: keyword
+  default:
     kind: keyword
   do
     kind: keyword
   dynamic
+    kind: keyword
+  false
     kind: keyword
   final
     kind: keyword
@@ -128,11 +134,15 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   return
     kind: keyword
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword

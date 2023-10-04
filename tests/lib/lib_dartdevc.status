@@ -28,27 +28,6 @@ mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 typed_data/int64_list_load_store_test: SkipByDesign # ddc does not support Int64List
 typed_data/typed_data_hierarchy_int64_test: SkipByDesign # ddc does not support Int64List
 
-[ $builder_tag == canary && $compiler == ddc ]
-async/catch_errors11_test: Skip # Issue 50666
-async/catch_errors12_test: Skip # Issue 50666
-async/catch_errors15_test: Skip # Issue 50666
-async/catch_errors17_test: Skip # Issue 50666
-async/catch_errors20_test: Skip # Issue 50666
-async/catch_errors21_test: Skip # Issue 50666
-async/catch_errors23_test: Skip # Issue 50666
-async/catch_errors24_test: Skip # Issue 50666
-async/catch_errors26_test: Skip # Issue 50666
-async/catch_errors27_test: Skip # Issue 50666
-async/catch_errors5_test: Skip # Issue 50666
-async/catch_errors7_test: Skip # Issue 50666
-async/catch_errors8_test: Skip # Issue 50666
-async/stream_iterator_test: Skip # Issue 50666
-async/stream_periodic5_test: Skip # Issue 50666
-async/stream_zones_test: Skip # Issue 50666
-convert/streamed_conversion_utf8_decode_test: Skip # Issue 50666
-convert/streamed_conversion_utf8_encode_test: Skip # Issue 50666
-html/canvasrendering/draw_image_video_element_test: Skip # Issue 50666
-
 [ $compiler == ddc && $runtime == chrome ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 

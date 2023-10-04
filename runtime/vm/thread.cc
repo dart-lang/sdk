@@ -561,7 +561,7 @@ void Thread::ResumeThreadInternal(Thread* thread) {
   thread->set_os_thread(os_thread);
   os_thread->set_thread(thread);
   Thread::SetCurrent(thread);
-  os_thread->EnableThreadInterrupts();
+  NOT_IN_PRODUCT(os_thread->EnableThreadInterrupts());
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().Initialize();
@@ -577,7 +577,7 @@ void Thread::SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag) {
 
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  os_thread->DisableThreadInterrupts();
+  NOT_IN_PRODUCT(os_thread->DisableThreadInterrupts());
   os_thread->set_thread(nullptr);
   OSThread::SetCurrent(os_thread);
   thread->set_os_thread(nullptr);
@@ -1389,6 +1389,7 @@ void Thread::ResetDartMutatorState(Isolate* isolate) {
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
 }
 
+#if !defined(PRODUCT)
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     : StackResource(thread) {
   if (thread != nullptr) {
@@ -1405,6 +1406,7 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
     os_thread->EnableThreadInterrupts();
   }
 }
+#endif
 
 NoReloadScope::NoReloadScope(Thread* thread) : ThreadStackResource(thread) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

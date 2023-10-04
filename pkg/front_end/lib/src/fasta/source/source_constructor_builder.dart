@@ -493,7 +493,7 @@ class DeclaredSourceConstructorBuilder
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(
-            tearOff: _constructorTearOff!,
+            tearOff: _constructorTearOff,
             declarationConstructor: constructor,
             implementationConstructor: _constructor,
             enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
@@ -720,7 +720,7 @@ class DeclaredSourceConstructorBuilder
             libraryBuilder: libraryBuilder));
         if (_constructorTearOff != null) {
           delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-              superTarget, _constructorTearOff!, substitution,
+              superTarget, _constructorTearOff, substitution,
               positionalSuperParameters:
                   positionalSuperParameters ?? const <int>[],
               namedSuperParameters: namedSuperParameters ?? const <String>[],
@@ -822,12 +822,12 @@ class DeclaredSourceConstructorBuilder
   @override
   VariableDeclaration? getTearOffParameter(int index) {
     if (_constructorTearOff != null) {
-      if (index < _constructorTearOff!.function.positionalParameters.length) {
-        return _constructorTearOff!.function.positionalParameters[index];
+      if (index < _constructorTearOff.function.positionalParameters.length) {
+        return _constructorTearOff.function.positionalParameters[index];
       } else {
-        index -= _constructorTearOff!.function.positionalParameters.length;
-        if (index < _constructorTearOff!.function.namedParameters.length) {
-          return _constructorTearOff!.function.namedParameters[index];
+        index -= _constructorTearOff.function.positionalParameters.length;
+        if (index < _constructorTearOff.function.namedParameters.length) {
+          return _constructorTearOff.function.namedParameters[index];
         }
       }
     }
@@ -838,7 +838,7 @@ class DeclaredSourceConstructorBuilder
     finishConstructorPatch(origin.constructor, _constructor);
 
     if (_constructorTearOff != null) {
-      finishProcedurePatch(origin._constructorTearOff!, _constructorTearOff!);
+      finishProcedurePatch(origin._constructorTearOff!, _constructorTearOff);
     }
   }
 
@@ -1219,7 +1219,7 @@ class SourceExtensionTypeConstructorBuilder
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(
-            tearOff: _constructorTearOff!,
+            tearOff: _constructorTearOff,
             declarationConstructor: _constructor,
             implementationConstructor: _constructor,
             libraryBuilder: libraryBuilder);
@@ -1326,7 +1326,7 @@ class ExtensionTypeInitializerToStatementConverter
       this.statements, this.thisVariable);
 
   @override
-  void defaultInitializer(Initializer node) {
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
     if (node is ExtensionTypeRedirectingInitializer) {
       statements.add(new ExpressionStatement(
           new VariableSet(

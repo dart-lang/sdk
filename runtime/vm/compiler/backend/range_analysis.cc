@@ -222,17 +222,17 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
 }
 
 void RangeAnalysis::ConstrainValueAfterCheckBound(Value* use,
-                                                  CheckBoundBase* check,
+                                                  CheckBoundBaseInstr* check,
                                                   Definition* defn) {
   const intptr_t use_index = use->use_index();
 
   Range* constraint_range = nullptr;
-  if (use_index == CheckBoundBase::kIndexPos) {
+  if (use_index == CheckBoundBaseInstr::kIndexPos) {
     Definition* length = check->length()->definition();
     constraint_range = new (Z) Range(RangeBoundary::FromConstant(0),
                                      RangeBoundary::FromDefinition(length, -1));
   } else {
-    ASSERT(use_index == CheckBoundBase::kLengthPos);
+    ASSERT(use_index == CheckBoundBaseInstr::kLengthPos);
     Definition* index = check->index()->definition();
     constraint_range = new (Z)
         Range(RangeBoundary::FromDefinition(index, 1), RangeBoundary::MaxSmi());
@@ -1349,7 +1349,7 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
         !CompilerState::Current().is_aot() &&
         !function.ProhibitsBoundsCheckGeneralization();
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
-    for (CheckBoundBase* check : bounds_checks_) {
+    for (CheckBoundBaseInstr* check : bounds_checks_) {
       if (check->IsRedundant(/*use_loops=*/true)) {
         check->ReplaceUsesWith(check->index()->definition());
         check->RemoveFromGraph();
@@ -2575,7 +2575,7 @@ void Definition::InferRange(RangeAnalysis* analysis, Range* range) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   } else {
     // Only Smi and Mint supported.
-    UNREACHABLE();
+    FATAL("Unsupported type in: %s", ToCString());
   }
 }
 
@@ -2916,6 +2916,43 @@ void LoadIndexedInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
+void LoadClassIdInstr::InferRange(uword* lower, uword* upper) {
+  ASSERT(kIllegalCid == 0);
+  *lower = 1;
+  *upper = kClassIdTagMax;
+
+  CompileType* ctype = object()->Type();
+  intptr_t cid = ctype->ToCid();
+  if (cid != kDynamicCid) {
+    *lower = *upper = cid;
+  } else if (CompilerState::Current().is_aot()) {
+    *upper = IsolateGroup::Current()->class_table()->NumCids();
+
+    HierarchyInfo* hi = Thread::Current()->hierarchy_info();
+    if (hi != nullptr) {
+      const auto& type = *ctype->ToAbstractType();
+      if (type.IsType() && !type.IsFutureOrType() &&
+          !Instance::NullIsAssignableTo(type)) {
+        const auto& type_class = Class::Handle(type.type_class());
+        const auto& ranges =
+            hi->SubtypeRangesForClass(type_class, /*include_abstract=*/false,
+                                      /*exclude_null=*/true);
+        if (ranges.length() > 0) {
+          *lower = ranges[0].cid_start;
+          *upper = ranges[ranges.length() - 1].cid_end;
+        }
+      }
+    }
+  }
+}
+
+void LoadClassIdInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  uword lower, upper;
+  InferRange(&lower, &upper);
+  *range = Range(RangeBoundary::FromConstant(lower),
+                 RangeBoundary::FromConstant(upper));
+}
+
 void LoadCodeUnitsInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(IsStringClassId(class_id()));
   RangeBoundary zero = RangeBoundary::FromConstant(0);
@@ -3131,17 +3168,19 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   }
 
   // Range of the index is unknown can't decide if the check is redundant.
-  Range* index_range = index->definition()->range();
+  Definition* index_defn = index->definition();
+  Range* index_range = index_defn->range();
   if (index_range == nullptr) {
-    if (!(index->BindsToConstant() &&
-          compiler::target::IsSmi(index->BoundConstant()))) {
+    if (!index->BindsToSmiConstant()) {
       return false;
     }
+    // index_defn itself is not necessarily the constant.
+    index_defn = index_defn->OriginalDefinition();
     Range range;
-    index->definition()->InferRange(nullptr, &range);
+    index_defn->InferRange(nullptr, &range);
     ASSERT(!Range::IsUnknown(&range));
-    index->definition()->set_range(range);
-    index_range = index->definition()->range();
+    index_defn->set_range(range);
+    index_range = index_defn->range();
   }
 
   // Range of the index is not positive. Check can't be redundant.
@@ -3149,7 +3188,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
     return false;
   }
 
-  RangeBoundary max = RangeBoundary::FromDefinition(index->definition());
+  RangeBoundary max = RangeBoundary::FromDefinition(index_defn);
   RangeBoundary max_upper = max.UpperBound();
   RangeBoundary array_length =
       RangeBoundary::FromDefinition(length->definition());
@@ -3181,7 +3220,7 @@ static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   return false;
 }
 
-bool CheckBoundBase::IsRedundant(bool use_loops) {
+bool CheckBoundBaseInstr::IsRedundant(bool use_loops) {
   // First, try to prove redundancy with the results of range analysis.
   if (IsRedundantBasedOnRangeInformation(index(), length())) {
     return true;

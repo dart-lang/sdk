@@ -252,12 +252,12 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       Set.unmodifiable(_visitedJsInteropTypes);
 
   @override
-  String defaultDartType(DartType node) =>
-      throw UnimplementedError('Unknown DartType: $node');
+  String visitAuxiliaryType(AuxiliaryType node) =>
+      throwUnsupportedAuxiliaryType(node);
 
   @override
-  String visitInvalidType(DartType node) =>
-      throw UnimplementedError('Unknown DartType: $node');
+  String visitInvalidType(InvalidType node) =>
+      throwUnsupportedInvalidType(node);
 
   @override
   String visitDynamicType(DynamicType node) => Recipe.pushDynamicString;
@@ -409,7 +409,26 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   }
 
   @override
-  String visitTypedefType(TypedefType node) => defaultDartType(node);
+  String visitTypedefType(TypedefType node) =>
+      throw UnimplementedError('Unknown DartType: $node');
+
+  @override
+  String visitStructuralParameterType(StructuralParameterType node) {
+    var i = _unboundTypeParameters.indexOf(node.parameter.name!);
+    if (i >= 0) {
+      return '$i'
+          '${Recipe.genericFunctionTypeParameterIndexString}'
+          '${_nullabilityRecipe(node)}';
+    }
+    i = _typeEnvironment.recipeIndexOf(node.parameter);
+    if (i < 0) {
+      throw UnsupportedError(
+          'Type parameter $node was not found in the environment '
+          '$_typeEnvironment or in the unbound parameters '
+          '$_unboundTypeParameters.');
+    }
+    return '$i${_nullabilityRecipe(node)}';
+  }
 
   @override
   String visitNeverType(NeverType node) =>
@@ -439,7 +458,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   String _nullabilityRecipe(DartType type) {
     switch (type.declaredNullability) {
       case Nullability.undetermined:
-        if (type is TypeParameterType) {
+        if (type is TypeParameterType || type is StructuralParameterType) {
           // Type parameters are expected to appear with undetermined
           // nullability since they could be instantiated with nullable type.
           // In this case we allow the type to flow without adding any

@@ -246,6 +246,18 @@ void f(Widget widget) {
     expect(_flutter.identifyWidgetExpression(expression), expression);
   }
 
+  Future<void> test_identifyWidgetExpression_node_switchExpression() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+Widget f() => switch (1) {
+  _ => Container(),
+};
+''');
+    var expression = findNode.instanceCreation('Container');
+    expect(_flutter.identifyWidgetExpression(expression), expression);
+  }
+
   Future<void> test_identifyWidgetExpression_null() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';

@@ -67,6 +67,7 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
   @override
   api.Input<List<int>>? getUtf8SourceFile(Uri resourceUri) {
     var source = memorySourceFiles[resourceUri.path];
+    if (source == null) return null;
     return source is String
         ? StringSourceFile.fromUri(resourceUri, source)
         : Utf8BytesSourceFile(resourceUri, source);

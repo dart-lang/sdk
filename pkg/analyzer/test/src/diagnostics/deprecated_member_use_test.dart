@@ -174,6 +174,68 @@ enum E {
     );
   }
 
+  test_instanceCreation_deprecatedClass_deprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  @deprecated
+  A();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+      // todo(pq): consider deduplicating.
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+    ]);
+  }
+
+  test_instanceCreation_deprecatedClass_undeprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  A();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+    ]);
+  }
+
+  test_instanceCreation_deprecatedClass_undeprecatedNamedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  A.a();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A.a();
+}
+''', [
+      // https://github.com/dart-lang/linter/issues/4752
+      // Highlights `A`.
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+    ]);
+  }
+
   test_instanceCreation_namedParameter_fromLegacy() async {
     noSoundNullSafety = false;
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
@@ -191,6 +253,25 @@ void f() {
 }
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE, 60, 1),
+    ]);
+  }
+
+  test_instanceCreation_undeprecatedClass_deprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @deprecated
+  A();
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
     ]);
   }
 

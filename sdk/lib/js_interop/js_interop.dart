@@ -20,6 +20,7 @@
 library dart.js_interop;
 
 import 'dart:_js_types' as js_types;
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 /// Allow use of `@staticInterop` classes with JS types as well as export
@@ -146,21 +147,38 @@ typedef JSBigInt = js_types.JSBigInt;
 /// lowering.
 external JSObject get globalContext;
 
-/// `JSUndefined` and `JSNull` are actual reified types on some backends, but
-/// not others. Instead, users should use nullable types for any type that could
-/// contain `JSUndefined` or `JSNull`. However, instead of trying to determine
-/// the nullability of a JS type in Dart, i.e. using `?`, `!`, `!= null` or `==
-/// null`, users should use the provided helpers below to determine if it is
-/// safe to downcast a potentially `JSNullable` or `JSUndefineable` object to a
-/// defined and non-null JS type.
-// TODO(joshualitt): Investigate whether or not it will be possible to reify
-// `JSUndefined` and `JSNull` on all backends.
+/// JS `undefined` and JS `null` are internalized differently based on the
+/// backends. In the JS backends, Dart `null` can actually be JS `undefined` or
+/// JS `null`. In dart2wasm, that's not the case: there's only one Wasm value
+/// `null` can be. Therefore, when we get back JS `null` or JS `undefined`, we
+/// internalize both as Dart `null` in dart2wasm, and when we pass Dart `null`
+/// to an interop API, we pass JS `null`. In the JS backends, Dart `null`
+/// retains its original value when passed back to an interop API. Be wary of
+/// writing code where this distinction between `null` and `undefined` matters.
+// TODO(srujzs): Investigate what it takes to allow users to distinguish between
+// the two "nullish" values. An annotation-based model where users annotate
+// interop APIs to internalize `undefined` differently seems promising, but does
+// not handle some cases like converting a `JSArray` with `undefined`s in it to
+// `List<JSAny?>`. In this case, the implementation of the list wrapper needs to
+// make the decision, not the user.
 extension NullableUndefineableJSAnyExtension on JSAny? {
+  /// Determine if this value corresponds to JS `undefined`.
+  ///
+  /// **WARNING**: Currently, there isn't a way to distinguish between JS
+  /// `undefined` and JS `null` in dart2wasm. As such, this should only be used
+  /// for code that compiles to JS and will throw on dart2wasm.
   external bool get isUndefined;
+
+  /// Determine if this value corresponds to JS `null`.
+  ///
+  /// **WARNING**: Currently, there isn't a way to distinguish between JS
+  /// `undefined` and JS `null` in dart2wasm. As such, this should only be used
+  /// for code that compiles to JS and will throw on dart2wasm.
   external bool get isNull;
-  bool get isUndefinedOrNull => isUndefined || isNull;
+
+  bool get isUndefinedOrNull => this == null;
   bool get isDefinedAndNotNull => !isUndefinedOrNull;
-  external JSBoolean typeofEquals(JSString typeString);
+  external bool typeofEquals(String typeString);
 
   /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
   /// and converts it to a Dart based object. Only JS primitives, arrays, or
@@ -177,7 +195,14 @@ extension NullableObjectUtilExtension on Object? {
 
 /// Utility extensions for [JSObject].
 extension JSObjectUtilExtension on JSObject {
-  external JSBoolean instanceof(JSFunction constructor);
+  external bool instanceof(JSFunction constructor);
+
+  /// Like [instanceof], but only takes a [String] for the constructor name,
+  /// which is then looked up in the [globalContext].
+  bool instanceOfString(String constructorName) {
+    final constructor = globalContext[constructorName] as JSFunction?;
+    return constructor != null && instanceof(constructor);
+  }
 }
 
 /// The type of `JSUndefined` when returned from functions. Unlike pure JS,
@@ -198,6 +223,20 @@ extension FunctionToJSExportedDartFunction on Function {
   external JSExportedDartFunction get toJS;
 }
 
+/// Utility extensions for [JSFunction].
+extension JSFunctionUtilExtension on JSFunction {
+  // Take at most 4 args for consistency with other APIs and relative brevity.
+  // If more are needed, you can declare your own external member. We rename
+  // this function since declaring a `call` member makes a class callable in
+  // Dart. This is convenient, but unlike Dart functions, JS functions
+  // explicitly take a `this` argument (which users can provide `null` for in
+  // the case where the function doesn't need it), which may lead to confusion.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
+  @JS('call')
+  external JSAny? callAsFunction(
+      [JSAny? thisArg, JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+}
+
 /// [JSBoxedDartObject] <-> [Object]
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   external Object get toDart;
@@ -212,9 +251,64 @@ extension JSPromiseToFuture on JSPromise {
   external Future<JSAny?> get toDart;
 }
 
-// TODO(joshualitt): On Wasm backends List / Array conversion methods will
-// copy, and on JS backends they will not. We should find a path towards
-// consistent semantics.
+extension FutureOfJSAnyToJSPromise on Future<JSAny?> {
+  JSPromise get toJS {
+    return JSPromise((JSFunction resolve, JSFunction reject) {
+      this.then((JSAny? value) {
+        resolve.callAsFunction(resolve, value);
+        return value;
+      }, onError: (Object error, StackTrace stackTrace) {
+        // TODO(srujzs): Can we do something better here? This is pretty much
+        // useless to the user unless they call a Dart callback that consumes
+        // this value and unboxes.
+        final errorConstructor = globalContext['Error'] as JSFunction;
+        final wrapper = errorConstructor.callAsConstructor<JSObject>(
+            "Dart exception thrown from converted Future. Use the properties "
+                    "'error' to fetch the boxed error and 'stack' to recover "
+                    "the stack trace."
+                .toJS);
+        wrapper['error'] = error.toJSBox;
+        wrapper['stack'] = stackTrace.toString().toJS;
+        reject.callAsFunction(reject, wrapper);
+        return wrapper;
+      });
+    }.toJS);
+  }
+}
+
+extension FutureOfVoidToJSPromise on Future<void> {
+  JSPromise get toJS {
+    return JSPromise((JSFunction resolve, JSFunction reject) {
+      this.then((_) => resolve.callAsFunction(resolve),
+          onError: (Object error, StackTrace stackTrace) {
+        // TODO(srujzs): Can we do something better here? This is pretty much
+        // useless to the user unless they call a Dart callback that consumes
+        // this value and unboxes.
+        final errorConstructor = globalContext['Error'] as JSFunction;
+        final wrapper = errorConstructor.callAsConstructor<JSObject>(
+            "Dart exception thrown from converted Future. Use the properties "
+                    "'error' to fetch the boxed error and 'stack' to recover "
+                    "the stack trace."
+                .toJS);
+        wrapper['error'] = error.toJSBox;
+        wrapper['stack'] = stackTrace.toString().toJS;
+        reject.callAsFunction(reject, wrapper);
+      });
+    }.toJS);
+  }
+}
+
+// **WARNING**:
+// Currently, the `toJS` getters on `dart:typed_data` types have inconsistent
+// semantics today between dart2wasm and the JS compilers. dart2wasm copies the
+// contents over, while the JS compilers passes the typed arrays by reference as
+// they are JS typed arrays under the hood. Do not rely on modifications to the
+// Dart type to affect the JS type.
+//
+// All the `toDart` getters on the JS typed arrays will introduce a wrapper
+// around the JS typed array, however. So modifying the Dart type will modify
+// the JS type and vice versa in that case.
+
 /// [JSArrayBuffer] <-> [ByteBuffer]
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   external ByteBuffer get toDart;
@@ -317,6 +411,8 @@ extension Float64ListToJSFloat64Array on Float64List {
 /// [JSArray] <-> [List]
 extension JSArrayToList on JSArray {
   /// Returns a list wrapper of the JS array.
+  ///
+  /// Modifying the JS array will modify the returned list and vice versa.
   external List<JSAny?> get toDart;
 }
 

@@ -48,7 +48,7 @@ class TemporaryId extends Identifier {
   @override
   set sourceInformation(Object? obj) {}
 
-  TemporaryId(String name) : super(name);
+  TemporaryId(super.name);
 }
 
 /// Creates a qualified identifier, without determining for sure if it needs to

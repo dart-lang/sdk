@@ -4,11 +4,9 @@
 
 import 'package:kernel/ast.dart';
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/legacy_erasure.dart';
@@ -26,11 +24,13 @@ import 'hierarchy/members_builder.dart';
 import 'member_covariance.dart';
 
 /// Class used for computing and inspecting the combined member signature for
-/// a set of overridden/inherited members.
-abstract class CombinedMemberSignatureBase<T> {
-  ClassHierarchyBase get hierarchy;
+/// a set of overridden/inherited [ClassMember]s.
+class CombinedClassMemberSignature {
+  /// The class members builder used for building this class.
+  final ClassMembersBuilder membersBuilder;
 
-  Name get name;
+  /// The list of the members inherited into or overridden in [classBuilder].
+  final List<ClassMember> members;
 
   /// The target class for the combined member signature.
   ///
@@ -40,9 +40,6 @@ abstract class CombinedMemberSignatureBase<T> {
   /// [classBuilder] is also used for determining whether the combined member
   /// signature should be computed using nnbd or legacy semantics.
   final SourceClassBuilder classBuilder;
-
-  /// The list of members from which the combined member signature is computed.
-  List<T> get members;
 
   /// If `true` the combined member signature is for the setter aspect of the
   /// members. Otherwise it is for the getter/method aspect of the members.
@@ -68,8 +65,6 @@ abstract class CombinedMemberSignatureBase<T> {
 
   /// Cache for the types of [members] as inherited into [classBuilder].
   List<DartType?>? _memberTypes;
-
-  List<Covariance?>? _memberCovariances;
 
   /// Cache for the this type of [classBuilder].
   InterfaceType? _thisType;
@@ -103,8 +98,9 @@ abstract class CombinedMemberSignatureBase<T> {
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
-  CombinedMemberSignatureBase.internal(
-      this.classBuilder, this._canonicalMemberIndex, this.forSetter);
+  CombinedClassMemberSignature.internal(this.membersBuilder, this.classBuilder,
+      this._canonicalMemberIndex, this.members,
+      {required this.forSetter});
 
   /// Creates a [CombinedClassMemberSignature] for [members] inherited into
   /// [classBuilder].
@@ -112,7 +108,9 @@ abstract class CombinedMemberSignatureBase<T> {
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedMemberSignatureBase(this.classBuilder, {required this.forSetter}) {
+  CombinedClassMemberSignature(
+      this.membersBuilder, this.classBuilder, this.members,
+      {required this.forSetter}) {
     int? bestSoFarIndex;
     if (members.length == 1) {
       bestSoFarIndex = 0;
@@ -182,7 +180,7 @@ abstract class CombinedMemberSignatureBase<T> {
   /// For the nnbd computation, this is one of the members whose type define
   /// the combined member signature, and the indices of the all members whose
   /// type define the combined member signature are in [mutualSubtypeIndices].
-  T? get canonicalMember =>
+  ClassMember? get canonicalMember =>
       _canonicalMemberIndex != null ? members[_canonicalMemberIndex!] : null;
 
   /// The index within [members] for the member whose type is the most specific
@@ -203,11 +201,18 @@ abstract class CombinedMemberSignatureBase<T> {
   /// If there is only one most specific member type, this is `null`.
   Set<int>? get mutualSubtypeIndices => _mutualSubtypes?.values.toSet();
 
-  Member _getMember(int index);
+  ClassHierarchyBuilder get hierarchy => membersBuilder.hierarchyBuilder;
 
   CoreTypes get _coreTypes => hierarchy.coreTypes;
 
-  Types get _types;
+  Types get _types => hierarchy.types;
+
+  Name get name => members.first.name;
+
+  Member _getMember(int index) {
+    ClassMember candidate = members[index];
+    return candidate.getMember(membersBuilder);
+  }
 
   /// Returns `true` if legacy erasure was needed to compute the combined
   /// member signature type.
@@ -372,7 +377,10 @@ abstract class CombinedMemberSignatureBase<T> {
     return _combinedMemberSignatureType;
   }
 
-  Covariance _getMemberCovariance(int index);
+  Covariance _getMemberCovariance(int index) {
+    ClassMember candidate = members[index];
+    return candidate.getCovariance(membersBuilder);
+  }
 
   void _ensureCombinedMemberSignatureCovariance() {
     if (!_isCombinedMemberSignatureCovarianceComputed) {
@@ -426,7 +434,7 @@ abstract class CombinedMemberSignatureBase<T> {
     }
     int typeParameterCount = typeParameters.length;
     if (type is FunctionType) {
-      List<TypeParameter> signatureTypeParameters = type.typeParameters;
+      List<StructuralParameter> signatureTypeParameters = type.typeParameters;
       if (typeParameterCount != signatureTypeParameters.length) {
         return null;
       }
@@ -436,15 +444,17 @@ abstract class CombinedMemberSignatureBase<T> {
       List<DartType> types =
           new List<DartType>.filled(typeParameterCount, dummyDartType);
       for (int i = 0; i < typeParameterCount; i++) {
-        types[i] = new TypeParameterType.forAlphaRenaming(
-            signatureTypeParameters[i], typeParameters[i]);
+        types[i] =
+            new TypeParameterType.forAlphaRenamingFromStructuralParameters(
+                signatureTypeParameters[i], typeParameters[i]);
       }
-      Substitution substitution =
-          Substitution.fromPairs(signatureTypeParameters, types);
+      FunctionTypeInstantiator instantiator =
+          new FunctionTypeInstantiator.fromIterables(
+              signatureTypeParameters, types);
       for (int i = 0; i < typeParameterCount; i++) {
         DartType typeParameterBound = typeParameters[i].bound;
         DartType signatureTypeParameterBound =
-            substitution.substituteType(signatureTypeParameters[i].bound);
+            instantiator.substitute(signatureTypeParameters[i].bound);
         if (!_types
             .performNullabilityAwareMutualSubtypesCheck(
                 typeParameterBound, signatureTypeParameterBound)
@@ -452,7 +462,7 @@ abstract class CombinedMemberSignatureBase<T> {
           return null;
         }
       }
-      return substitution.substituteType(type.withoutTypeParameters);
+      return instantiator.substitute(type.withoutTypeParameters);
     } else if (typeParameterCount != 0) {
       return null;
     }
@@ -621,9 +631,13 @@ abstract class CombinedMemberSignatureBase<T> {
     }
     FunctionNode function = procedure.function;
     List<VariableDeclaration> positionalParameters = [];
+    FreshTypeParametersFromStructuralParameters freshTypeParameters =
+        getFreshTypeParametersFromStructuralParameters(
+            functionType.typeParameters);
     for (int i = 0; i < function.positionalParameters.length; i++) {
       VariableDeclaration parameter = function.positionalParameters[i];
-      DartType parameterType = functionType.positionalParameters[i];
+      DartType parameterType =
+          freshTypeParameters.substitute(functionType.positionalParameters[i]);
       positionalParameters.add(new VariableDeclaration(parameter.name,
           type: parameterType,
           isCovariantByDeclaration: parameter.isCovariantByDeclaration)
@@ -636,7 +650,7 @@ abstract class CombinedMemberSignatureBase<T> {
       NamedType namedType = functionType.namedParameters.first;
       VariableDeclaration parameter = function.namedParameters.first;
       namedParameters.add(new VariableDeclaration(parameter.name,
-          type: namedType.type,
+          type: freshTypeParameters.substitute(namedType.type),
           isRequired: namedType.isRequired,
           isCovariantByDeclaration: parameter.isCovariantByDeclaration)
         ..isCovariantByClass = parameter.isCovariantByClass
@@ -650,7 +664,7 @@ abstract class CombinedMemberSignatureBase<T> {
         VariableDeclaration parameter = function.namedParameters[i];
         NamedType namedParameterType = namedTypes[parameter.name]!;
         namedParameters.add(new VariableDeclaration(parameter.name,
-            type: namedParameterType.type,
+            type: freshTypeParameters.substitute(namedParameterType.type),
             isRequired: namedParameterType.isRequired,
             isCovariantByDeclaration: parameter.isCovariantByDeclaration)
           ..isCovariantByClass = parameter.isCovariantByClass
@@ -661,8 +675,8 @@ abstract class CombinedMemberSignatureBase<T> {
       procedure.name,
       procedure.kind,
       new FunctionNode(null,
-          typeParameters: functionType.typeParameters,
-          returnType: functionType.returnType,
+          typeParameters: freshTypeParameters.freshTypeParameters,
+          returnType: freshTypeParameters.substitute(functionType.returnType),
           positionalParameters: positionalParameters,
           namedParameters: namedParameters,
           requiredParameterCount: function.requiredParameterCount),
@@ -700,15 +714,11 @@ abstract class CombinedMemberSignatureBase<T> {
     if (member.enclosingClass!.typeParameters.isEmpty) {
       return type;
     }
-    InterfaceType? instance = hierarchy.getTypeAsInstanceOf(
+    InterfaceType instance = hierarchy.getTypeAsInstanceOf(
         thisType, member.enclosingClass!,
         isNonNullableByDefault:
             classBuilder.libraryBuilder.isNonNullableByDefault);
-    assert(
-        instance != null,
-        "No instance of $thisType as ${member.enclosingClass} found for "
-        "$member.");
-    return Substitution.fromInterfaceType(instance!).substituteType(type);
+    return Substitution.fromInterfaceType(instance).substituteType(type);
   }
 
   bool _isMoreSpecific(DartType a, DartType b, bool forSetter) {
@@ -717,93 +727,5 @@ abstract class CombinedMemberSignatureBase<T> {
     } else {
       return _types.isSubtypeOf(a, b, SubtypeCheckMode.withNullabilities);
     }
-  }
-}
-
-/// Class used for computing and inspecting the combined member signature for
-/// a set of overridden/inherited [ClassMember]s.
-class CombinedClassMemberSignature
-    extends CombinedMemberSignatureBase<ClassMember> {
-  /// The class members builder used for building this class.
-  final ClassMembersBuilder membersBuilder;
-
-  @override
-  ClassHierarchyBuilder get hierarchy => membersBuilder.hierarchyBuilder;
-
-  /// The list of the members inherited into or overridden in [classBuilder].
-  @override
-  final List<ClassMember> members;
-
-  /// Creates a [CombinedClassMemberSignature] whose canonical member is already
-  /// defined.
-  CombinedClassMemberSignature.internal(this.membersBuilder,
-      SourceClassBuilder classBuilder, int canonicalMemberIndex, this.members,
-      {required bool forSetter})
-      : super.internal(classBuilder, canonicalMemberIndex, forSetter);
-
-  /// Creates a [CombinedClassMemberSignature] for [members] inherited into
-  /// [classBuilder].
-  ///
-  /// If [forSetter] is `true`, contravariance of the setter types is used to
-  /// compute the most specific member type. Otherwise covariance of the getter
-  /// types or function types is used.
-  CombinedClassMemberSignature(
-      this.membersBuilder, SourceClassBuilder classBuilder, this.members,
-      {required bool forSetter})
-      : super(classBuilder, forSetter: forSetter);
-
-  @override
-  Name get name => members.first.name;
-
-  @override
-  Types get _types => hierarchy.types;
-
-  @override
-  Member _getMember(int index) {
-    ClassMember candidate = members[index];
-    return candidate.getMember(membersBuilder);
-  }
-
-  @override
-  Covariance _getMemberCovariance(int index) {
-    ClassMember candidate = members[index];
-    return candidate.getCovariance(membersBuilder);
-  }
-}
-
-/// Class used for computing and inspecting the combined member signature for
-/// a set of overridden/inherited [Member]s.
-class CombinedMemberSignatureBuilder
-    extends CombinedMemberSignatureBase<Member> {
-  @override
-  final ClassHierarchyBase hierarchy;
-
-  @override
-  final Types _types;
-
-  @override
-  final List<Member> members;
-
-  CombinedMemberSignatureBuilder(
-      this.hierarchy, SourceClassBuilder classBuilder, this.members,
-      {required bool forSetter})
-      : _types = new Types(hierarchy),
-        super(classBuilder, forSetter: forSetter);
-
-  @override
-  Name get name => members.first.name;
-
-  @override
-  Member _getMember(int index) => members[index];
-
-  @override
-  Covariance _getMemberCovariance(int index) {
-    _memberCovariances ??= new List<Covariance?>.filled(members.length, null);
-    Covariance? covariance = _memberCovariances![index];
-    if (covariance == null) {
-      _memberCovariances![index] = covariance =
-          new Covariance.fromMember(members[index], forSetter: forSetter);
-    }
-    return covariance;
   }
 }

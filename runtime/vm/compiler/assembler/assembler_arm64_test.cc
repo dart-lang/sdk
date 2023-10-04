@@ -1125,9 +1125,9 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore32, assembler) {
   __ movz(R1, Immediate(42), 0);
 
   __ ldxr(R0, SP, kFourBytes);
-  __ clrex();                   // Simulate a context switch.
+  __ clrex();                        // Simulate a context switch.
   __ stxr(TMP, R1, SP, kFourBytes);  // IP == 1, failure
-  __ Pop(R0);                   // 40
+  __ Pop(R0);                        // 40
   __ add(R0, R0, Operand(TMP));
   __ RestoreCSP();
   __ ret();
@@ -3692,7 +3692,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0x89, 0xAB, 0xCD, 0xEF,
+      0x89,
+      0xAB,
+      0xCD,
+      0xEF,
   };
 
   EXPECT_EQ(
@@ -3719,7 +3722,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*LoadHalfWordUnsignedUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0x89, 0xAB, 0xCD, 0xEF,
+      0x89,
+      0xAB,
+      0xCD,
+      0xEF,
   };
 
   EXPECT_EQ(0xAB89, EXECUTE_TEST_CODE_INTPTR_INTPTR(
@@ -3745,7 +3751,10 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT(test != nullptr);
   typedef intptr_t (*StoreHalfWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[4] = {
-      0, 0, 0, 0,
+      0,
+      0,
+      0,
+      0,
   };
 
   EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
@@ -3853,7 +3862,8 @@ ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
       "ret\n");
 }
 
-static void EnterTestFrame(Assembler* assembler) {
+void EnterTestFrame(Assembler* assembler) {
+  __ SetupDartSP();
   __ EnterFrame(0);
   __ Push(CODE_REG);
   __ Push(THR);
@@ -3866,22 +3876,21 @@ static void EnterTestFrame(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 }
 
-static void LeaveTestFrame(Assembler* assembler) {
+void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
   __ Pop(NULL_REG);
   __ Pop(HEAP_BITS);
   __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
+  __ RestoreCSP();
 }
 
 // Loading immediate values with the object pool.
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 42);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3890,11 +3899,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0xf1234123);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3903,11 +3910,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x4321f1234124);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3916,11 +3921,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadImmediate(R0, 0x9287436598237465);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3931,11 +3934,9 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Object::null_object());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3946,12 +3947,10 @@ ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
 
 // PushObject null.
 ASSEMBLER_TEST_GENERATE(PushObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ PushObject(Object::null_object());
   __ Pop(R0);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3962,7 +3961,6 @@ ASSEMBLER_TEST_RUN(PushObjectNull, test) {
 
 // CompareObject null.
 ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Object::bool_true());
   __ LoadObject(R1, Object::bool_false());
@@ -3970,7 +3968,6 @@ ASSEMBLER_TEST_GENERATE(CompareObjectNull, assembler) {
   __ CompareObject(R2, Object::null_object());
   __ csel(R0, R0, R1, EQ);
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3980,11 +3977,9 @@ ASSEMBLER_TEST_RUN(CompareObjectNull, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Bool::True());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 
@@ -3994,11 +3989,9 @@ ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
-  __ SetupDartSP();
   EnterTestFrame(assembler);
   __ LoadObject(R0, Bool::False());
   LeaveTestFrame(assembler);
-  __ RestoreCSP();
   __ ret();
 }
 

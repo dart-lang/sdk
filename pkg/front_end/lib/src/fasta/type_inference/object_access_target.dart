@@ -1,6 +1,6 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -738,13 +738,14 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
       case ProcedureKind.Operator:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        List<TypeParameter> extensionTypeParameters = functionType
+        List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
             .toList();
-        Substitution substitution = Substitution.fromPairs(
-            extensionTypeParameters, receiverTypeArguments);
-        DartType resultType = substitution.substituteType(new FunctionType(
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                extensionTypeParameters, receiverTypeArguments);
+        DartType resultType = instantiator.substitute(new FunctionType(
             functionType.positionalParameters.skip(1).toList(),
             functionType.returnType,
             base.libraryBuilder.nonNullable,
@@ -760,14 +761,14 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
       case ProcedureKind.Getter:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        List<TypeParameter> extensionTypeParameters = functionType
+        List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
             .toList();
-        Substitution substitution = Substitution.fromPairs(
-            extensionTypeParameters, receiverTypeArguments);
-        DartType resultType =
-            substitution.substituteType(functionType.returnType);
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                extensionTypeParameters, receiverTypeArguments);
+        DartType resultType = instantiator.substitute(functionType.returnType);
         if (!base.isNonNullableByDefault) {
           resultType = legacyErasure(resultType);
         }
@@ -784,14 +785,15 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
       case ProcedureKind.Setter:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        List<TypeParameter> extensionTypeParameters = functionType
+        List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
             .toList();
-        Substitution substitution = Substitution.fromPairs(
-            extensionTypeParameters, receiverTypeArguments);
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                extensionTypeParameters, receiverTypeArguments);
         DartType setterType =
-            substitution.substituteType(functionType.positionalParameters[1]);
+            instantiator.substitute(functionType.positionalParameters[1]);
         if (!base.isNonNullableByDefault) {
           setterType = legacyErasure(setterType);
         }
@@ -813,9 +815,10 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
         if (functionType.positionalParameters.length >= 2) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
-            Substitution substitution = Substitution.fromPairs(
-                functionType.typeParameters, receiverTypeArguments);
-            keyType = substitution.substituteType(keyType);
+            FunctionTypeInstantiator instantiator =
+                new FunctionTypeInstantiator.fromIterables(
+                    functionType.typeParameters, receiverTypeArguments);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);
@@ -840,9 +843,10 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
         if (functionType.positionalParameters.length >= 3) {
           DartType indexType = functionType.positionalParameters[2];
           if (functionType.typeParameters.isNotEmpty) {
-            Substitution substitution = Substitution.fromPairs(
-                functionType.typeParameters, receiverTypeArguments);
-            indexType = substitution.substituteType(indexType);
+            FunctionTypeInstantiator instantiator =
+                new FunctionTypeInstantiator.fromIterables(
+                    functionType.typeParameters, receiverTypeArguments);
+            indexType = instantiator.substitute(indexType);
           }
           if (!base.isNonNullableByDefault) {
             indexType = legacyErasure(indexType);
@@ -868,9 +872,10 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
             .computeFunctionType(base.libraryBuilder.nonNullable);
         DartType returnType = functionType.returnType;
         if (functionType.typeParameters.isNotEmpty) {
-          Substitution substitution = Substitution.fromPairs(
-              functionType.typeParameters, receiverTypeArguments);
-          returnType = substitution.substituteType(returnType);
+          FunctionTypeInstantiator instantiator =
+              new FunctionTypeInstantiator.fromIterables(
+                  functionType.typeParameters, receiverTypeArguments);
+          returnType = instantiator.substitute(returnType);
         }
         if (!base.isNonNullableByDefault) {
           returnType = legacyErasure(returnType);
@@ -892,9 +897,10 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
         if (functionType.positionalParameters.length > 1) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
-            Substitution substitution = Substitution.fromPairs(
-                functionType.typeParameters, receiverTypeArguments);
-            keyType = substitution.substituteType(keyType);
+            FunctionTypeInstantiator instantiator =
+                new FunctionTypeInstantiator.fromIterables(
+                    functionType.typeParameters, receiverTypeArguments);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);
@@ -1146,13 +1152,14 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
       case ProcedureKind.Operator:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        List<TypeParameter> extensionTypeParameters = functionType
+        List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
             .toList();
-        Substitution substitution = Substitution.fromPairs(
-            extensionTypeParameters, receiverTypeArguments);
-        DartType resultType = substitution.substituteType(new FunctionType(
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                extensionTypeParameters, receiverTypeArguments);
+        DartType resultType = instantiator.substitute(new FunctionType(
             functionType.positionalParameters.skip(1).toList(),
             functionType.returnType,
             base.libraryBuilder.nonNullable,
@@ -1168,14 +1175,14 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
       case ProcedureKind.Getter:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        List<TypeParameter> extensionTypeParameters = functionType
+        List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
             .toList();
-        Substitution substitution = Substitution.fromPairs(
-            extensionTypeParameters, receiverTypeArguments);
-        DartType resultType =
-            substitution.substituteType(functionType.returnType);
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                extensionTypeParameters, receiverTypeArguments);
+        DartType resultType = instantiator.substitute(functionType.returnType);
         if (!base.isNonNullableByDefault) {
           resultType = legacyErasure(resultType);
         }
@@ -1192,14 +1199,15 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
       case ProcedureKind.Setter:
         FunctionType functionType = member.function!
             .computeFunctionType(base.libraryBuilder.nonNullable);
-        List<TypeParameter> extensionTypeParameters = functionType
+        List<StructuralParameter> extensionTypeParameters = functionType
             .typeParameters
             .take(receiverTypeArguments.length)
             .toList();
-        Substitution substitution = Substitution.fromPairs(
-            extensionTypeParameters, receiverTypeArguments);
+        FunctionTypeInstantiator instantiator =
+            new FunctionTypeInstantiator.fromIterables(
+                extensionTypeParameters, receiverTypeArguments);
         DartType setterType =
-            substitution.substituteType(functionType.positionalParameters[1]);
+            instantiator.substitute(functionType.positionalParameters[1]);
         if (!base.isNonNullableByDefault) {
           setterType = legacyErasure(setterType);
         }
@@ -1221,9 +1229,10 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
         if (functionType.positionalParameters.length >= 2) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
-            Substitution substitution = Substitution.fromPairs(
-                functionType.typeParameters, receiverTypeArguments);
-            keyType = substitution.substituteType(keyType);
+            FunctionTypeInstantiator instantiator =
+                new FunctionTypeInstantiator.fromIterables(
+                    functionType.typeParameters, receiverTypeArguments);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);
@@ -1248,9 +1257,10 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
         if (functionType.positionalParameters.length >= 3) {
           DartType indexType = functionType.positionalParameters[2];
           if (functionType.typeParameters.isNotEmpty) {
-            Substitution substitution = Substitution.fromPairs(
-                functionType.typeParameters, receiverTypeArguments);
-            indexType = substitution.substituteType(indexType);
+            FunctionTypeInstantiator instantiator =
+                new FunctionTypeInstantiator.fromIterables(
+                    functionType.typeParameters, receiverTypeArguments);
+            indexType = instantiator.substitute(indexType);
           }
           if (!base.isNonNullableByDefault) {
             indexType = legacyErasure(indexType);
@@ -1276,9 +1286,10 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
             .computeFunctionType(base.libraryBuilder.nonNullable);
         DartType returnType = functionType.returnType;
         if (functionType.typeParameters.isNotEmpty) {
-          Substitution substitution = Substitution.fromPairs(
-              functionType.typeParameters, receiverTypeArguments);
-          returnType = substitution.substituteType(returnType);
+          FunctionTypeInstantiator instantiator =
+              new FunctionTypeInstantiator.fromIterables(
+                  functionType.typeParameters, receiverTypeArguments);
+          returnType = instantiator.substitute(returnType);
         }
         if (!base.isNonNullableByDefault) {
           returnType = legacyErasure(returnType);
@@ -1300,9 +1311,10 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
         if (functionType.positionalParameters.length > 1) {
           DartType keyType = functionType.positionalParameters[1];
           if (functionType.typeParameters.isNotEmpty) {
-            Substitution substitution = Substitution.fromPairs(
-                functionType.typeParameters, receiverTypeArguments);
-            keyType = substitution.substituteType(keyType);
+            FunctionTypeInstantiator instantiator =
+                new FunctionTypeInstantiator.fromIterables(
+                    functionType.typeParameters, receiverTypeArguments);
+            keyType = instantiator.substitute(keyType);
           }
           if (!base.isNonNullableByDefault) {
             keyType = legacyErasure(keyType);

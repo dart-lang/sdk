@@ -320,12 +320,12 @@ sealed class TypeBuilder {
   // [NamedTypeBuilder]s that are orphaned.
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
       {List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables}) {
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
     if (substitution.isEmpty) {
       return this;
     }
     List<TypeBuilder> unboundTypesInternal = unboundTypes ?? [];
-    List<TypeVariableBuilder> unboundTypeVariablesInternal =
+    List<StructuralVariableBuilder> unboundTypeVariablesInternal =
         unboundTypeVariables ?? [];
     TypeBuilder result = substitute(this, substitution,
         unboundTypes: unboundTypesInternal,
@@ -426,7 +426,7 @@ sealed class TypeBuilder {
   TypeBuilder? unalias(
           {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
           List<TypeBuilder>? unboundTypes,
-          List<TypeVariableBuilder>? unboundTypeVariables}) =>
+          List<StructuralVariableBuilder>? unboundTypeVariables}) =>
       this;
 }
 
@@ -443,7 +443,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   int get charOffset;
   TypeBuilder get returnType;
   List<ParameterBuilder>? get formals;
-  List<TypeVariableBuilder>? get typeVariables;
+  List<StructuralVariableBuilder>? get typeVariables;
 }
 
 abstract class InvalidTypeBuilder extends TypeBuilder {}

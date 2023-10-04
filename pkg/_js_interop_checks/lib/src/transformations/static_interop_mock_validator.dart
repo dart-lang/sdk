@@ -367,6 +367,12 @@ class TypeParameterResolver extends ReplacementVisitor {
     return node.resolveTypeParameterType;
   }
 
+  @override
+  DartType? visitStructuralParameterType(
+      StructuralParameterType node, int variance) {
+    return node.resolveTypeParameterType;
+  }
+
   DartType resolve(DartType node) {
     return node.accept1(this, Variance.unrelated) ?? node;
   }

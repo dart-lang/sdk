@@ -662,6 +662,20 @@ void Assembler::LoadImmediate(Register reg, int64_t imm) {
   }
 }
 
+void Assembler::LoadSImmediate(VRegister vd, float imms) {
+  int32_t imm32 = bit_cast<int32_t, float>(imms);
+  if (imm32 == 0) {
+    veor(vd, vd, vd);
+  } else if (constant_pool_allowed()) {
+    intptr_t index = object_pool_builder().FindImmediate(imm32);
+    intptr_t offset = target::ObjectPool::element_offset(index);
+    LoadSFromOffset(vd, PP, offset);
+  } else {
+    LoadImmediate(TMP, imm32);
+    fmovsr(vd, TMP);
+  }
+}
+
 void Assembler::LoadDImmediate(VRegister vd, double immd) {
   if (fmovdi(vd, immd)) return;
 
@@ -2037,6 +2051,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // fail if heap end unsigned less than or equal to new heap top.
     cmp(temp_reg, Operand(instance_reg));
     b(failure, LS);
+    CheckAllocationCanary(instance_reg, temp_reg);
 
     // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
@@ -2077,6 +2092,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     ldr(temp2, Address(THR, target::Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
+    CheckAllocationCanary(instance, temp2);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

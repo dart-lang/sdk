@@ -105,6 +105,9 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - All `NativeCallable` constructors can now accept closures. Previously
   `NativeCallable`s had the same restrictions as `Pointer.fromFunction`, and
   could only create callbacks for static functions.
+- **Breaking change** [#53311][]: `NativeCallable.nativeFunction` now throws an
+  error if is called after the `NativeCallable` has already been `close`d. Calls
+  to `close` after the first are now ignored.
 
 #### `dart:io`
 
@@ -125,7 +128,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 #### `dart:js_interop`
 
-- **JSNumber.toDart and Object.toJS**:
+- **Breaking Change on JSNumber.toDart and Object.toJS**:
   `JSNumber.toDart` is removed in favor of `toDartDouble` and `toDartInt` to
   make the type explicit. `Object.toJS` is also removed in favor of
   `Object.toJSBox`. Previously, this function would allow Dart objects to flow
@@ -157,6 +160,24 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   number of cases, like when using older browser versions. `dart:js_interop`'s
   `globalJSObject` is also renamed to `globalContext` and returns the global
   context used in the lowerings.
+- **Breaking Change on Types of `dart:js_interop` External APIs**:
+  External JS interop APIs when using `dart:js_interop` are restricted to a set
+  of allowed types. Namely, this include the primitive types like `String`, JS
+  types from `dart:js_interop`, and other static interop types (either through
+  `@staticInterop` or extension types).
+- **Breaking Change on `dart:js_interop` `isNull` and `isUndefined`**:
+  `null` and `undefined` can only be discerned in the JS backends. dart2wasm
+  conflates the two values and treats them both as Dart null. Therefore, these
+  two helper methods should not be used on dart2wasm and will throw to avoid
+  potentially erroneous code.
+- **Breaking Change on `dart:js_interop` `typeofEquals` and `instanceof`**:
+  Both APIs now return a `bool` instead of a `JSBoolean`. `typeofEquals` also
+  now takes in a `String` instead of a `JSString`.
+- **Breaking Change on `dart:js_interop` `JSAny` and `JSObject`**:
+  These types can only be implemented, and no longer extended, by user
+  `@staticInterop` types.
+- **Breaking Change on `dart:js_interop` `JSArray.withLength`**:
+  This API now takes in an `int` instead of `JSNumber`.
 
 ### Tools
 
@@ -201,7 +222,38 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   changed between direct, dev and transitive dependency.
 - The command `dart pub upgrade` no longer shows unchanged dependencies.
 
-## 3.1.0
+## 3.1.2 - 2023-09-13
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which crashed the compiler when a typed record pattern
+  was used outside the scope of a function body, such as in a field initializer.
+  For example `final x = { for (var (int a,) in someList) a: a };`
+  (issue [#53449])
+
+- Fixes an expedient issue of users seeing an unhandled
+  exception pause in the debugger, please see
+  https://github.com/dart-lang/sdk/issues/53450 for more
+  details.
+  The fix uses try/catch in lookupAddresses instead of
+  Future error so that we don't see an unhandled exception
+  pause in the debugger (issue [#53450])
+
+[#53449]: https://github.com/dart-lang/sdk/issues/53449
+[#53450]: https://github.com/dart-lang/sdk/issues/53450
+
+## 3.1.1 - 2023-09-07
+
+This is a patch release that:
+
+- Fixes a bug in the parser which prevented a record pattern from containing a
+  nested record pattern, where the nested record pattern uses record
+  destructuring shorthand syntax, for example `final ((:a, :b), c) = record;`
+  (issue [#53352]).
+
+[#53352]: https://github.com/dart-lang/sdk/issues/53352
+
+## 3.1.0 - 2023-08-16
 
 ### Libraries
 

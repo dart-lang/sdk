@@ -458,6 +458,9 @@ sealed abstract class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   abstractKeyword: abstract
   sealedKeyword: sealed
   classKeyword: class

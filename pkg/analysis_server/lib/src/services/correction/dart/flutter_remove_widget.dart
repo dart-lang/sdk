@@ -104,7 +104,13 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       var childText = utils.getRangeText(range.startEnd(firstChild, lastChild));
       var indentOld = utils.getLinePrefix(firstChild.offset);
       var indentNew = utils.getLinePrefix(widgetCreation.offset);
-      childText = replaceSourceIndent(childText, indentOld, indentNew);
+      childText = utils.replaceSourceIndent(
+        childText,
+        indentOld,
+        indentNew,
+        includeLeading: false,
+        includeTrailingNewline: false,
+      );
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
   }
@@ -118,7 +124,13 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       var childText = utils.getNodeText(expression);
       var indentOld = utils.getLinePrefix(expression.offset);
       var indentNew = utils.getLinePrefix(widgetCreation.offset);
-      childText = replaceSourceIndent(childText, indentOld, indentNew);
+      childText = utils.replaceSourceIndent(
+        childText,
+        indentOld,
+        indentNew,
+        includeLeading: false,
+        includeTrailingNewline: false,
+      );
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
   }

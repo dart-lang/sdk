@@ -682,9 +682,9 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipInterfaceMemberNameReference();
       return;
     case kFunctionTearOff:
-      helper_.ReadPosition();  // read position.
-      VisitExpression();       // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       helper_.ReadByte();      // read kind.
       helper_.ReadPosition();  // read position.
@@ -843,10 +843,12 @@ void ScopeBuilder::VisitExpression() {
       VisitDartType();         // read type.
       return;
     case kTypeLiteral:
-      VisitDartType();  // read type.
+      helper_.ReadPosition();  // read file offset.
+      VisitDartType();         // read type.
       return;
     case kThisExpression:
       HandleLoadReceiver();
+      helper_.ReadPosition();  // read file offset.
       return;
     case kRethrow:
       helper_.ReadPosition();  // read position.
@@ -932,27 +934,36 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kBigIntLiteral:
+      helper_.ReadPosition();         // read position.
       helper_.SkipStringReference();  // read string reference.
       return;
     case kStringLiteral:
+      helper_.ReadPosition();         // read position.
       helper_.SkipStringReference();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
-      helper_.ReadUInt();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read value.
       return;
     case kPositiveIntLiteral:
-      helper_.ReadUInt();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read value.
       return;
     case kDoubleLiteral:
-      helper_.ReadDouble();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadDouble();    // read value.
       return;
     case kTrueLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kConstantExpression:
       helper_.ReadPosition();
@@ -976,7 +987,8 @@ void ScopeBuilder::VisitExpression() {
     }
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
-      helper_.ReadUInt();  // library index
+      helper_.ReadPosition();  // read file offset.
+      helper_.ReadUInt();      // library index
       break;
     case kAwaitExpression:
       helper_.ReadPosition();  // read position.
@@ -1075,7 +1087,8 @@ void ScopeBuilder::VisitStatement() {
       }
       return;
     case kLabeledStatement:
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
       return;
     case kBreakStatement:
       helper_.ReadPosition();  // read position.
@@ -1129,6 +1142,7 @@ void ScopeBuilder::VisitStatement() {
       helper_.SkipOptionalDartType();             // read expression type.
       int case_count = helper_.ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
+        helper_.ReadPosition();  // read file offset.
         int expression_count =
             helper_.ReadListLength();  // read number of expressions.
         for (intptr_t j = 0; j < expression_count; ++j) {
@@ -1171,7 +1185,8 @@ void ScopeBuilder::VisitStatement() {
     case kTryCatch: {
       ++depth_.try_;
       AddTryVariables();
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
       --depth_.try_;
 
       ++depth_.catch_;
@@ -1212,7 +1227,8 @@ void ScopeBuilder::VisitStatement() {
       ++depth_.finally_;
       AddTryVariables();
 
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
 
       --depth_.finally_;
       --depth_.try_;

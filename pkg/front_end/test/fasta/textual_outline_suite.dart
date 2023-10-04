@@ -1,6 +1,6 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 library fasta.test.textual_outline_test;
 
@@ -37,6 +37,10 @@ const List<Map<String, String>> EXPECTATIONS = [
   },
   {
     "name": "EmptyOutput",
+    "group": "Fail",
+  },
+  {
+    "name": "UnknownChunk",
     "group": "Fail",
   },
   {
@@ -155,6 +159,11 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           await context.match<TestDescription>(
               filename, result!, description.uri, description);
       if (expectMatch.outcome != Expectation.pass) return expectMatch;
+
+      if (containsUnknownChunk) {
+        return new Result(
+            null, context.expectationSet["UnknownChunk"], description.uri);
+      }
 
       if (formatterException != null) {
         bool hasUnreleasedExperiment = false;

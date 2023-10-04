@@ -844,9 +844,6 @@ class _ExpressionTransformer extends Transformer {
   TreeNode visitInstanceTearOff(InstanceTearOff expr) => unary(expr);
 
   @override
-  TreeNode visitFunctionTearOff(FunctionTearOff expr) => unary(expr);
-
-  @override
   TreeNode visitSuperPropertySet(SuperPropertySet expr) => unary(expr);
 
   @override

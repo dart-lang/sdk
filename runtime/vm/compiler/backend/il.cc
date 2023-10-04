@@ -548,7 +548,7 @@ Value* AssertBooleanInstr::RedefinedValue() const {
   return value();
 }
 
-Value* CheckBoundBase::RedefinedValue() const {
+Value* CheckBoundBaseInstr::RedefinedValue() const {
   return index();
 }
 
@@ -565,7 +565,8 @@ Definition* Definition::OriginalDefinitionIgnoreBoxingAndConstraints() {
   while (true) {
     Definition* orig;
     if (def->IsConstraint() || def->IsBox() || def->IsUnbox() ||
-        def->IsIntConverter()) {
+        def->IsIntConverter() || def->IsFloatToDouble() ||
+        def->IsDoubleToFloat()) {
       orig = def->InputAt(0)->definition();
     } else {
       orig = def->OriginalDefinition();
@@ -2121,32 +2122,26 @@ static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
 }
 
 Definition* DoubleToFloatInstr::Canonicalize(FlowGraph* flow_graph) {
-#ifdef DEBUG
-  // Must only be used in Float32 StoreIndexedInstr, FloatToDoubleInstr,
-  // Phis introduce by load forwarding, or MaterializeObject for
-  // eliminated Float32 array.
-  ASSERT(env_use_list() == nullptr);
-  for (Value* use = input_use_list(); use != nullptr; use = use->next_use()) {
-    ASSERT(use->instruction()->IsPhi() ||
-           use->instruction()->IsFloatToDouble() ||
-           (use->instruction()->IsStoreIndexed() &&
-            (use->instruction()->AsStoreIndexed()->class_id() ==
-             kTypedDataFloat32ArrayCid)) ||
-           (use->instruction()->IsMaterializeObject() &&
-            (use->instruction()->AsMaterializeObject()->cls().id() ==
-             kTypedDataFloat32ArrayCid)));
-  }
-#endif
   if (!HasUses()) return nullptr;
   if (value()->definition()->IsFloatToDouble()) {
     // F2D(D2F(v)) == v.
     return value()->definition()->AsFloatToDouble()->value()->definition();
   }
+  if (value()->BindsToConstant()) {
+    double narrowed_val =
+        static_cast<float>(Double::Cast(value()->BoundConstant()).value());
+    return flow_graph->GetConstant(
+        Double::ZoneHandle(Double::NewCanonical(narrowed_val)), kUnboxedFloat);
+  }
   return this;
 }
 
 Definition* FloatToDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : nullptr;
+  if (!HasUses()) return nullptr;
+  if (value()->BindsToConstant()) {
+    return flow_graph->GetConstant(value()->BoundConstant(), kUnboxedDouble);
+  }
+  return this;
 }
 
 Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -2166,11 +2161,11 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
 
   if ((op_kind() == Token::kMUL) &&
       (left()->definition() == right()->definition())) {
-    MathUnaryInstr* math_unary = new MathUnaryInstr(
-        MathUnaryInstr::kDoubleSquare, new Value(left()->definition()),
-        DeoptimizationTarget());
-    flow_graph->InsertBefore(this, math_unary, env(), FlowGraph::kValue);
-    return math_unary;
+    UnaryDoubleOpInstr* square = new UnaryDoubleOpInstr(
+        Token::kSQUARE, new Value(left()->definition()), DeoptimizationTarget(),
+        speculative_mode_, representation());
+    flow_graph->InsertBefore(this, square, env(), FlowGraph::kValue);
+    return square;
   }
 
   return this;
@@ -2201,6 +2196,7 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
                                                Token::Kind op_kind,
                                                Value* value,
                                                intptr_t deopt_id,
+                                               SpeculativeMode speculative_mode,
                                                Range* range) {
   UnaryIntegerOpInstr* op = nullptr;
   switch (representation) {
@@ -2213,7 +2209,7 @@ UnaryIntegerOpInstr* UnaryIntegerOpInstr::Make(Representation representation,
       op = new UnaryUint32OpInstr(op_kind, value, deopt_id);
       break;
     case kUnboxedInt64:
-      op = new UnaryInt64OpInstr(op_kind, value, deopt_id);
+      op = new UnaryInt64OpInstr(op_kind, value, deopt_id, speculative_mode);
       break;
     default:
       UNREACHABLE();
@@ -2292,7 +2288,8 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
                                                 right_range);
         }
       } else {
-        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
+        op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id,
+                                    speculative_mode);
       }
       break;
     default:
@@ -2433,7 +2430,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if (rhs == RepresentationMask(representation())) {
         UnaryIntegerOpInstr* bit_not = UnaryIntegerOpInstr::Make(
             representation(), Token::kBIT_NOT, left()->CopyWithType(),
-            GetDeoptId(), range());
+            GetDeoptId(), SpeculativeModeOfInputs(), range());
         if (bit_not != nullptr) {
           flow_graph->InsertBefore(this, bit_not, env(), FlowGraph::kValue);
           return bit_not;
@@ -2453,7 +2450,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       } else if (rhs == -1) {
         UnaryIntegerOpInstr* negation = UnaryIntegerOpInstr::Make(
             representation(), Token::kNEGATE, left()->CopyWithType(),
-            GetDeoptId(), range());
+            GetDeoptId(), SpeculativeModeOfInputs(), range());
         if (negation != nullptr) {
           flow_graph->InsertBefore(this, negation, env(), FlowGraph::kValue);
           return negation;
@@ -2634,13 +2631,6 @@ bool LoadFieldInstr::IsUnmodifiableTypedDataViewFactory(
 
 Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : nullptr;
-}
-
-// A math unary instruction has a side effect (exception
-// thrown) if the argument is not a number.
-// TODO(srdjan): eliminate if has no uses and input is guaranteed to be number.
-Definition* MathUnaryInstr::Canonicalize(FlowGraph* flow_graph) {
-  return this;
 }
 
 bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
@@ -2901,7 +2891,8 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     StoreFieldInstr* initializing_store = nullptr;
     for (auto use : instance()->definition()->input_uses()) {
       if (auto store = use->instruction()->AsStoreField()) {
-        if (store->slot().IsIdentical(slot())) {
+        if ((use->use_index() == StoreFieldInstr::kInstancePos) &&
+            store->slot().IsIdentical(slot())) {
           if (initializing_store == nullptr) {
             initializing_store = store;
           } else {
@@ -3080,7 +3071,25 @@ Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((unbox_defn != nullptr) &&
       (unbox_defn->representation() == from_representation()) &&
       (unbox_defn->value()->Type()->ToCid() == Type()->ToCid())) {
+    if (from_representation() == kUnboxedFloat) {
+      // This is a narrowing conversion.
+      return this;
+    }
     return unbox_defn->value()->definition();
+  }
+
+  return this;
+}
+
+Definition* BoxLanesInstr::Canonicalize(FlowGraph* flow_graph) {
+  return HasUses() ? this : NULL;
+}
+
+Definition* UnboxLaneInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
+  if (BoxLanesInstr* box = value()->definition()->AsBoxLanes()) {
+    return box->InputAt(lane())->definition();
   }
 
   return this;
@@ -3154,11 +3163,28 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
     return value_defn;
   }
 
-  // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
-  if ((box_defn != nullptr) &&
-      (box_defn->from_representation() == representation())) {
-    return box_defn->value()->definition();
+  if (box_defn != nullptr) {
+    // Fold away Unbox<rep>(Box<rep>(v)).
+    if (box_defn->from_representation() == representation()) {
+      return box_defn->value()->definition();
+    }
+
+    if ((box_defn->from_representation() == kUnboxedDouble) &&
+        (representation() == kUnboxedFloat)) {
+      Definition* replacement = new DoubleToFloatInstr(
+          box_defn->value()->CopyWithType(), DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
+      return replacement;
+    }
+
+    if ((box_defn->from_representation() == kUnboxedFloat) &&
+        (representation() == kUnboxedDouble)) {
+      Definition* replacement = new FloatToDoubleInstr(
+          box_defn->value()->CopyWithType(), DeoptId::kNone);
+      flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
+      return replacement;
+    }
   }
 
   if (representation() == kUnboxedDouble && value()->BindsToConstant()) {
@@ -3170,6 +3196,22 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
       return flow_graph->GetConstant(double_val, kUnboxedDouble);
     } else if (val.IsDouble()) {
       return flow_graph->GetConstant(val, kUnboxedDouble);
+    }
+  }
+
+  if (representation() == kUnboxedFloat && value()->BindsToConstant()) {
+    const Object& val = value()->BoundConstant();
+    if (val.IsInteger()) {
+      double narrowed_val =
+          static_cast<float>(Integer::Cast(val).AsDoubleValue());
+      return flow_graph->GetConstant(
+          Double::ZoneHandle(Double::NewCanonical(narrowed_val)),
+          kUnboxedFloat);
+    } else if (val.IsDouble()) {
+      double narrowed_val = static_cast<float>(Double::Cast(val).value());
+      return flow_graph->GetConstant(
+          Double::ZoneHandle(Double::NewCanonical(narrowed_val)),
+          kUnboxedFloat);
     }
   }
 
@@ -3367,7 +3409,8 @@ static bool MayBeNumber(CompileType* type) {
   // Note that type 'Number' is a subtype of itself.
   return unwrapped_type.IsTopTypeForSubtyping() ||
          unwrapped_type.IsObjectType() || unwrapped_type.IsTypeParameter() ||
-         unwrapped_type.IsSubtypeOf(Type::Handle(Type::Number()), Heap::kOld);
+         unwrapped_type.IsSubtypeOf(Type::Handle(Type::NullableNumber()),
+                                    Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has
@@ -3699,6 +3742,27 @@ Definition* TestRangeInstr::Canonicalize(FlowGraph* flow_graph) {
     return flow_graph->GetConstant(
         Bool::Get(in_range == (kind() == Token::kIS)));
   }
+
+  const Range* range = value()->definition()->range();
+  if (range != nullptr) {
+    if (range->IsWithin(lower_, upper_)) {
+      return flow_graph->GetConstant(Bool::Get(kind() == Token::kIS));
+    }
+    if (!range->Overlaps(lower_, upper_)) {
+      return flow_graph->GetConstant(Bool::Get(kind() != Token::kIS));
+    }
+  }
+
+  if (LoadClassIdInstr* load_cid = value()->definition()->AsLoadClassId()) {
+    uword lower, upper;
+    load_cid->InferRange(&lower, &upper);
+    if (lower >= lower_ && upper <= upper_) {
+      return flow_graph->GetConstant(Bool::Get(kind() == Token::kIS));
+    } else if (lower > upper_ || upper < lower_) {
+      return flow_graph->GetConstant(Bool::Get(kind() != Token::kIS));
+    }
+  }
+
   return this;
 }
 
@@ -6481,7 +6545,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Definition* CheckBoundBase::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckBoundBaseInstr::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant() ? index()->definition() : this;
 }
 
@@ -6791,8 +6855,12 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // additionally verify here that there is an actual overlap. Instead, only
     // do that when we need to calculate the end address of the regions in
     // the loop case.
-    __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards,
-                compiler::Assembler::kNearJump);
+#if defined(USING_MEMORY_SANITIZER)
+    const auto jump_distance = compiler::Assembler::kFarJump;
+#else
+    const auto jump_distance = compiler::Assembler::kNearJump;
+#endif
+    __ BranchIf(UNSIGNED_LESS_EQUAL, &copy_forwards, jump_distance);
     __ Comment("Copying backwards");
     if (constant_length) {
       EmitUnrolledCopy(compiler, dest_reg, src_reg, num_elements,
@@ -6801,7 +6869,7 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitLoopCopy(compiler, dest_reg, src_reg, length_reg, &done,
                    &copy_forwards);
     }
-    __ Jump(&done, compiler::Assembler::kNearJump);
+    __ Jump(&done, jump_distance);
     __ Comment("Copying forwards");
   }
   __ Bind(&copy_forwards);
@@ -6889,6 +6957,14 @@ void MemoryCopyInstr::EmitUnrolledCopy(FlowGraphCompiler* compiler,
         UNREACHABLE();
     }
   }
+
+#if defined(USING_MEMORY_SANITIZER) && defined(TARGET_ARCH_X64)
+  RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
+                                   CallingConventions::kVolatileXmmRegisters);
+  __ PushRegisters(kVolatileRegisterSet);
+  __ MsanUnpoison(dest_reg, num_bytes);
+  __ PopRegisters(kVolatileRegisterSet);
+#endif
 }
 #endif
 
@@ -6969,19 +7045,6 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       UNREACHABLE();
   }
   return kLibcPowRuntimeEntry;
-}
-
-const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
-  switch (kind) {
-    case kIllegal:
-      return "illegal";
-    case kSqrt:
-      return "sqrt";
-    case kDoubleSquare:
-      return "double-square";
-  }
-  UNREACHABLE();
-  return "";
 }
 
 TruncDivModInstr::TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id)
@@ -7857,6 +7920,24 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     case MethodRecognizer::kFloat64x2Sub:
       op = new (zone) SimdOpInstr(KindForOperator(kind), call->deopt_id());
       break;
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+    case MethodRecognizer::kFloat32x4GreaterThan:
+      // cmppsgt does not exist, cmppsnlt gives wrong NaN result, need to flip
+      // at the IL level to get the right SameAsFirstInput.
+      op = new (zone)
+          SimdOpInstr(SimdOpInstr::kFloat32x4LessThan, call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
+    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+      // cmppsge does not exist, cmppsnle gives wrong NaN result, need to flip
+      // at the IL level to get the right SameAsFirstInput.
+      op = new (zone)
+          SimdOpInstr(SimdOpInstr::kFloat32x4LessThanOrEqual, call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
+#endif
     default:
       op = new (zone) SimdOpInstr(KindForMethod(kind), call->deopt_id());
       break;
@@ -7872,6 +7953,7 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     op->set_mask(mask);
   }
   ASSERT(call->ArgumentCount() == (op->InputCount() + (op->HasMask() ? 1 : 0)));
+
   return op;
 }
 

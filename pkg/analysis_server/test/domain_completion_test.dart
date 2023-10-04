@@ -2131,7 +2131,11 @@ class A {
     await getTestCodeSuggestions('void f(int a, {int b = 0}) {}'
         'void g() { f(2, ^3); }');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
-    expect(suggestions, hasLength(1));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
     // Ensure we don't try to replace the following arg.
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
@@ -2142,7 +2146,11 @@ class A {
     await getTestCodeSuggestions('void f(int a, {int b = 0}) {}'
         'void g() { f(2, ^ 3); }');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
-    expect(suggestions, hasLength(1));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
     // Ensure we don't try to replace the following arg.
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
@@ -2153,11 +2161,15 @@ class A {
     await getTestCodeSuggestions('void f(int a, {int b = 0}) {}'
         'var foo = 1;'
         'void g() { f(2, ^foo); }');
-    expect(suggestions, hasLength(1));
 
     // The named arg "b: " should not replace anything.
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ',
         replacementOffset: null, replacementLength: 0);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
   }
 
   Future<void>
@@ -2166,7 +2178,11 @@ class A {
         'var foo = 1;'
         'void g() { f(2, ^ foo); }');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'b: ');
-    expect(suggestions, hasLength(1));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
     // Ensure we don't try to replace the following arg.
     expect(replacementOffset, equals(completionOffset));
     expect(replacementLength, equals(0));
@@ -2183,7 +2199,13 @@ class A {
     }
     ''');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'secondString: ');
-    expect(suggestions, hasLength(1));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'this');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
     // Ensure we replace the correct section.
     expect(replacementOffset, equals(completionOffset - 2));
     expect(replacementLength, equals(2));
@@ -2193,21 +2215,33 @@ class A {
     await getTestCodeSuggestions('void f() { int.parse("16", ^);}');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ');
-    expect(suggestions, hasLength(2));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
   }
 
   Future<void> test_ArgumentList_imported_function_named_param1() async {
     await getTestCodeSuggestions('void f() { foo(o^);} foo({one, two}) {}');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
-    expect(suggestions, hasLength(2));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
   }
 
   Future<void> test_ArgumentList_imported_function_named_param2() async {
     await getTestCodeSuggestions('void f() {A a = new A(); a.foo(one: 7, ^);}'
         'class A { foo({one, two}) {} }');
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ');
-    expect(suggestions, hasLength(1));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'const');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'false');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'null');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'true');
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'switch');
   }
 
   Future<void> test_ArgumentList_imported_function_named_param_label1() async {

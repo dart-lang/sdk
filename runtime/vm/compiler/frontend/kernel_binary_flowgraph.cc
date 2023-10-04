@@ -1055,7 +1055,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kInstanceTearOff:
       return BuildInstanceTearOff(position);
     case kFunctionTearOff:
-      return BuildFunctionTearOff(position);
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       return BuildInstanceSet(position);
     case kDynamicSet:
@@ -2299,40 +2301,6 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceTearOff(TokenPosition* p) {
                                  kTypeArgsLen, 1, Array::null_array(),
                                  kNumArgsChecked, Function::null_function(),
                                  tearoff_interface_target, &result_type);
-  }
-
-  return instructions;
-}
-
-Fragment StreamingFlowGraphBuilder::BuildFunctionTearOff(TokenPosition* p) {
-  const intptr_t offset = ReaderOffset() - 1;     // Include the tag.
-  const TokenPosition position = ReadPosition();  // read position.
-  if (p != nullptr) *p = position;
-
-  const DirectCallMetadata direct_call =
-      direct_call_metadata_helper_.GetDirectTargetForPropertyGet(offset);
-  const InferredTypeMetadata result_type =
-      inferred_type_metadata_helper_.GetInferredType(offset);
-
-  Fragment instructions = BuildExpression();  // read receiver.
-
-  if (direct_call.check_receiver_for_null_) {
-    const auto receiver = MakeTemporary();
-    instructions += CheckNull(position, receiver, Symbols::GetCall());
-  }
-
-  if (!direct_call.target_.IsNull()) {
-    ASSERT(CompilerState::Current().is_aot());
-    instructions +=
-        StaticCall(position, direct_call.target_, 1, Array::null_array(),
-                   ICData::kNoRebind, &result_type);
-  } else {
-    const intptr_t kTypeArgsLen = 0;
-    const intptr_t kNumArgsChecked = 1;
-    instructions += InstanceCall(position, Symbols::GetCall(), Token::kGET,
-                                 kTypeArgsLen, 1, Array::null_array(),
-                                 kNumArgsChecked, Function::null_function(),
-                                 Function::null_function(), &result_type);
   }
 
   return instructions;
@@ -3728,6 +3696,7 @@ void StreamingFlowGraphBuilder::FlattenStringConcatenation(
     switch (PeekTag()) {
       case kStringLiteral: {
         ReadTag();
+        ReadPosition();
         const String& s = H.DartSymbolPlain(ReadStringReference());
         // Skip empty strings.
         if (!s.Equals("")) {
@@ -3983,7 +3952,8 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildTypeLiteral(TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+  TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
 
   const AbstractType& type = T.BuildType();  // read type.
   Fragment instructions;
@@ -4007,6 +3977,7 @@ Fragment StreamingFlowGraphBuilder::BuildTypeLiteral(TokenPosition* position) {
 
 Fragment StreamingFlowGraphBuilder::BuildThisExpression(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return LoadLocal(parsed_function()->receiver_var());
@@ -4285,6 +4256,7 @@ Fragment StreamingFlowGraphBuilder::BuildBlockExpression() {
 
 Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   const String& value =
@@ -4301,6 +4273,7 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
 
 Fragment StreamingFlowGraphBuilder::BuildStringLiteral(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return Constant(H.DartSymbolPlain(
@@ -4309,6 +4282,7 @@ Fragment StreamingFlowGraphBuilder::BuildStringLiteral(
 
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload,
                                                     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   int64_t value = static_cast<int32_t>(payload) - SpecializedIntLiteralBias;
@@ -4317,6 +4291,7 @@ Fragment StreamingFlowGraphBuilder::BuildIntLiteral(uint8_t payload,
 
 Fragment StreamingFlowGraphBuilder::BuildIntLiteral(bool is_negative,
                                                     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   int64_t value = is_negative ? -static_cast<int64_t>(ReadUInt())
@@ -4326,6 +4301,7 @@ Fragment StreamingFlowGraphBuilder::BuildIntLiteral(bool is_negative,
 
 Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
     TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   Double& constant = Double::ZoneHandle(
@@ -4335,12 +4311,14 @@ Fragment StreamingFlowGraphBuilder::BuildDoubleLiteral(
 
 Fragment StreamingFlowGraphBuilder::BuildBoolLiteral(bool value,
                                                      TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return Constant(Bool::Get(value));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildNullLiteral(TokenPosition* position) {
+  ReadPosition();  // ignore file offset.
   if (position != nullptr) *position = TokenPosition::kNoSource;
 
   return Constant(Instance::ZoneHandle(Z, Instance::null()));
@@ -4456,6 +4434,9 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
     TokenPosition* position,
     const String& selector) {
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
   const intptr_t dependency_index = ReadUInt();
   const Library& current_library = Library::Handle(
       Z, Class::Handle(Z, parsed_function()->function().Owner()).library());
@@ -4468,8 +4449,7 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
   ASSERT(!function.IsNull());
   Fragment instructions;
   instructions += Constant(prefix);
-  instructions +=
-      StaticCall(TokenPosition::kNoSource, function, 1, ICData::kStatic);
+  instructions += StaticCall(pos, function, 1, ICData::kStatic);
   return instructions;
 }
 
@@ -4646,6 +4626,9 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
 
 Fragment StreamingFlowGraphBuilder::BuildLabeledStatement(
     TokenPosition* position) {
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
   // There can be several cases:
   //
   //   * the body contains a break
@@ -4896,6 +4879,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchCase(SwitchHelper* helper,
   //
   // Also collect switch expressions into helper.
 
+  ReadPosition();                                 // read file offset.
   const int expression_count = ReadListLength();  // read number of expressions.
   for (intptr_t j = 0; j < expression_count; ++j) {
     const TokenPosition pos = ReadPosition();  // read jth position.
@@ -5491,6 +5475,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
   ASSERT(block_expression_depth() == 0);  // no try-catch in block-expr
   InlineBailout("kernel::FlowgraphBuilder::VisitTryCatch");
 
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
   intptr_t try_handler_index = AllocateTryIndex();
   Fragment try_body = TryCatch(try_handler_index);
   JoinEntryInstr* after_try = BuildJoinEntry();
@@ -5615,6 +5602,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
   // AST node isn't a problem.
 
   InlineBailout("kernel::FlowgraphBuilder::VisitTryFinally");
+
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
 
   // There are 5 different cases where we need to execute the finally block:
   //

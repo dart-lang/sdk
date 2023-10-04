@@ -101,24 +101,22 @@ class Serializer {
     }
   }
 
-  void writeData(Serializer chunk, [List<int>? watchPoints]) {
+  void writeData(Serializer chunk, [List<int> watchPoints = const []]) {
     if (traceEnabled) debugTrace(chunk);
-    if (watchPoints != null) {
-      for (int watchPoint in watchPoints) {
-        if (_index <= watchPoint && watchPoint < _index + chunk.data.length) {
-          int byteValue = chunk.data[watchPoint - _index];
-          Object trace = this;
-          int offset = watchPoint;
-          while (trace is Serializer) {
-            int keyOffset = trace._traces.containsKey(offset)
-                ? offset
-                : trace._traces.lastKeyBefore(offset)!;
-            trace = trace._traces[keyOffset]!;
-            offset -= keyOffset;
-          }
-          String byte = byteValue.toRadixString(16).padLeft(2, '0');
-          print("Watch $watchPoint: 0x$byte\n$trace");
+    for (int watchPoint in watchPoints) {
+      if (_index <= watchPoint && watchPoint < _index + chunk.data.length) {
+        int byteValue = chunk.data[watchPoint - _index];
+        Object trace = this;
+        int offset = watchPoint;
+        while (trace is Serializer) {
+          int keyOffset = trace._traces.containsKey(offset)
+              ? offset
+              : trace._traces.lastKeyBefore(offset)!;
+          trace = trace._traces[keyOffset]!;
+          offset -= keyOffset;
         }
+        String byte = byteValue.toRadixString(16).padLeft(2, '0');
+        print("Watch $watchPoint: 0x$byte\n$trace");
       }
     }
     writeBytes(chunk.data);

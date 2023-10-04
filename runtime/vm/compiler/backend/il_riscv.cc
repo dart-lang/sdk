@@ -783,7 +783,12 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsFpuRegister()) {
     const FRegister dst = destination.fpu_reg();
-    __ LoadDImmediate(dst, Double::Cast(value_).value());
+    if (representation() == kUnboxedFloat) {
+      __ LoadSImmediate(dst, Double::Cast(value_).value());
+    } else {
+      ASSERT(representation() == kUnboxedDouble);
+      __ LoadDImmediate(dst, Double::Cast(value_).value());
+    }
   } else if (destination.IsDoubleStackSlot()) {
     const intptr_t dest_offset = destination.ToStackSlotOffset();
 #if XLEN == 32
@@ -2574,6 +2579,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+
+#if defined(USING_MEMORY_SANITIZER)
+  UNIMPLEMENTED();
+#endif
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,
@@ -3982,6 +3991,16 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
     }
 #endif
 
+    case kUnboxedFloat: {
+      const FRegister result = locs()->out(0).fpu_reg();
+      __ SmiUntag(TMP, box);
+#if XLEN == 32
+      __ fcvtsw(result, TMP);
+#elif XLEN == 64
+      __ fcvtsl(result, TMP);
+#endif
+      break;
+    }
     case kUnboxedDouble: {
       const FRegister result = locs()->out(0).fpu_reg();
       __ SmiUntag(TMP, box);
@@ -4002,13 +4021,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value != result);
-  compiler::Label done;
-  __ SmiUntag(result, value);
-  __ BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
-  __ LoadFieldFromOffset(result, value, Mint::value_offset(),
-                         compiler::kFourBytes);
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
@@ -4026,12 +4039,7 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
 #else
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value != result);
-  compiler::Label done;
-  __ SmiUntag(result, value);
-  __ BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
-  __ LoadFieldFromOffset(result, value, Mint::value_offset());
-  __ Bind(&done);
+  __ LoadInt64FromBoxOrSmi(result, value);
 #endif
 }
 
@@ -4356,21 +4364,53 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const FRegister left = locs()->in(0).fpu_reg();
   const FRegister right = locs()->in(1).fpu_reg();
   const FRegister result = locs()->out(0).fpu_reg();
-  switch (op_kind()) {
-    case Token::kADD:
-      __ faddd(result, left, right);
-      break;
-    case Token::kSUB:
-      __ fsubd(result, left, right);
-      break;
-    case Token::kMUL:
-      __ fmuld(result, left, right);
-      break;
-    case Token::kDIV:
-      __ fdivd(result, left, right);
-      break;
-    default:
-      UNREACHABLE();
+  if (representation() == kUnboxedDouble) {
+    switch (op_kind()) {
+      case Token::kADD:
+        __ faddd(result, left, right);
+        break;
+      case Token::kSUB:
+        __ fsubd(result, left, right);
+        break;
+      case Token::kMUL:
+        __ fmuld(result, left, right);
+        break;
+      case Token::kDIV:
+        __ fdivd(result, left, right);
+        break;
+      case Token::kMIN:
+        __ fmind(result, left, right);
+        break;
+      case Token::kMAX:
+        __ fmaxd(result, left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    ASSERT(representation() == kUnboxedFloat);
+    switch (op_kind()) {
+      case Token::kADD:
+        __ fadds(result, left, right);
+        break;
+      case Token::kSUB:
+        __ fsubs(result, left, right);
+        break;
+      case Token::kMUL:
+        __ fmuls(result, left, right);
+        break;
+      case Token::kDIV:
+        __ fdivs(result, left, right);
+        break;
+      case Token::kMIN:
+        __ fmins(result, left, right);
+        break;
+      case Token::kMAX:
+        __ fmaxs(result, left, right);
+        break;
+      default:
+        UNREACHABLE();
+    }
   }
 }
 
@@ -4401,259 +4441,13 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   return kind() == Token::kEQ ? NOT_ZERO : ZERO;
 }
 
-// SIMD
-
-#define DEFINE_EMIT(Name, Args)                                                \
-  static void Emit##Name(FlowGraphCompiler* compiler, SimdOpInstr* instr,      \
-                         PP_APPLY(PP_UNPACK, Args))
-
-#define SIMD_OP_FLOAT_ARITH(V, Name, op)                                       \
-  V(Float32x4##Name, op##s)                                                    \
-  V(Float64x2##Name, op##d)
-
-#define SIMD_OP_SIMPLE_BINARY(V)                                               \
-  SIMD_OP_FLOAT_ARITH(V, Add, vadd)                                            \
-  SIMD_OP_FLOAT_ARITH(V, Sub, vsub)                                            \
-  SIMD_OP_FLOAT_ARITH(V, Mul, vmul)                                            \
-  SIMD_OP_FLOAT_ARITH(V, Div, vdiv)                                            \
-  SIMD_OP_FLOAT_ARITH(V, Min, vmin)                                            \
-  SIMD_OP_FLOAT_ARITH(V, Max, vmax)                                            \
-  V(Int32x4Add, vaddw)                                                         \
-  V(Int32x4Sub, vsubw)                                                         \
-  V(Int32x4BitAnd, vand)                                                       \
-  V(Int32x4BitOr, vorr)                                                        \
-  V(Int32x4BitXor, veor)                                                       \
-  V(Float32x4Equal, vceqs)                                                     \
-  V(Float32x4GreaterThan, vcgts)                                               \
-  V(Float32x4GreaterThanOrEqual, vcges)
-
-DEFINE_EMIT(SimdBinaryOp, (FRegister result, FRegister left, FRegister right)) {
-  UNIMPLEMENTED();
-}
-
-#define SIMD_OP_SIMPLE_UNARY(V)                                                \
-  SIMD_OP_FLOAT_ARITH(V, Sqrt, vsqrt)                                          \
-  SIMD_OP_FLOAT_ARITH(V, Negate, vneg)                                         \
-  SIMD_OP_FLOAT_ARITH(V, Abs, vabs)                                            \
-  V(Float32x4Reciprocal, VRecps)                                               \
-  V(Float32x4ReciprocalSqrt, VRSqrts)
-
-DEFINE_EMIT(SimdUnaryOp, (FRegister result, FRegister value)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Simd32x4GetSignMask,
-            (Register out, FRegister value, Temp<Register> temp)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(
-    Float32x4FromDoubles,
-    (FRegister r, FRegister v0, FRegister v1, FRegister v2, FRegister v3)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(
-    Float32x4Clamp,
-    (FRegister result, FRegister value, FRegister lower, FRegister upper)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(
-    Float64x2Clamp,
-    (FRegister result, FRegister value, FRegister lower, FRegister upper)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Float32x4With,
-            (FRegister result, FRegister replacement, FRegister value)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Simd32x4ToSimd32x4, (SameAsFirstInput, FRegister value)) {
-  // TODO(dartbug.com/30949) these operations are essentially nop and should
-  // not generate any code. They should be removed from the graph before
-  // code generation.
-}
-
-DEFINE_EMIT(SimdZero, (FRegister v)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Float64x2GetSignMask, (Register out, FRegister value)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Float64x2With,
-            (SameAsFirstInput, FRegister left, FRegister right)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(
-    Int32x4FromInts,
-    (FRegister result, Register v0, Register v1, Register v2, Register v3)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Int32x4FromBools,
-            (FRegister result,
-             Register v0,
-             Register v1,
-             Register v2,
-             Register v3,
-             Temp<Register> temp)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Int32x4GetFlag, (Register result, FRegister value)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Int32x4Select,
-            (FRegister out,
-             FRegister mask,
-             FRegister trueValue,
-             FRegister falseValue,
-             Temp<FRegister> temp)) {
-  UNIMPLEMENTED();
-}
-
-DEFINE_EMIT(Int32x4WithFlag,
-            (SameAsFirstInput, FRegister mask, Register flag)) {
-  UNIMPLEMENTED();
-}
-
-// Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
-// format:
-//
-//     CASE(OpA) CASE(OpB) ____(Emitter) - Emitter is used to emit OpA and OpB.
-//     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
-//
-#define SIMD_OP_VARIANTS(CASE, ____)                                           \
-  SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
-  CASE(Float32x4ShuffleMix)                                                    \
-  CASE(Int32x4ShuffleMix)                                                      \
-  CASE(Float32x4NotEqual)                                                      \
-  CASE(Float32x4LessThan)                                                      \
-  CASE(Float32x4LessThanOrEqual)                                               \
-  CASE(Float32x4Scale)                                                         \
-  CASE(Float64x2FromDoubles)                                                   \
-  CASE(Float64x2Scale)                                                         \
-  ____(SimdBinaryOp)                                                           \
-  SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
-  CASE(Float32x4GetX)                                                          \
-  CASE(Float32x4GetY)                                                          \
-  CASE(Float32x4GetZ)                                                          \
-  CASE(Float32x4GetW)                                                          \
-  CASE(Int32x4Shuffle)                                                         \
-  CASE(Float32x4Shuffle)                                                       \
-  CASE(Float32x4Splat)                                                         \
-  CASE(Float64x2GetX)                                                          \
-  CASE(Float64x2GetY)                                                          \
-  CASE(Float64x2Splat)                                                         \
-  CASE(Float64x2ToFloat32x4)                                                   \
-  CASE(Float32x4ToFloat64x2)                                                   \
-  ____(SimdUnaryOp)                                                            \
-  CASE(Float32x4GetSignMask)                                                   \
-  CASE(Int32x4GetSignMask)                                                     \
-  ____(Simd32x4GetSignMask)                                                    \
-  CASE(Float32x4FromDoubles)                                                   \
-  ____(Float32x4FromDoubles)                                                   \
-  CASE(Float32x4Zero)                                                          \
-  CASE(Float64x2Zero)                                                          \
-  ____(SimdZero)                                                               \
-  CASE(Float32x4Clamp)                                                         \
-  ____(Float32x4Clamp)                                                         \
-  CASE(Float64x2Clamp)                                                         \
-  ____(Float64x2Clamp)                                                         \
-  CASE(Float32x4WithX)                                                         \
-  CASE(Float32x4WithY)                                                         \
-  CASE(Float32x4WithZ)                                                         \
-  CASE(Float32x4WithW)                                                         \
-  ____(Float32x4With)                                                          \
-  CASE(Float32x4ToInt32x4)                                                     \
-  CASE(Int32x4ToFloat32x4)                                                     \
-  ____(Simd32x4ToSimd32x4)                                                     \
-  CASE(Float64x2GetSignMask)                                                   \
-  ____(Float64x2GetSignMask)                                                   \
-  CASE(Float64x2WithX)                                                         \
-  CASE(Float64x2WithY)                                                         \
-  ____(Float64x2With)                                                          \
-  CASE(Int32x4FromInts)                                                        \
-  ____(Int32x4FromInts)                                                        \
-  CASE(Int32x4FromBools)                                                       \
-  ____(Int32x4FromBools)                                                       \
-  CASE(Int32x4GetFlagX)                                                        \
-  CASE(Int32x4GetFlagY)                                                        \
-  CASE(Int32x4GetFlagZ)                                                        \
-  CASE(Int32x4GetFlagW)                                                        \
-  ____(Int32x4GetFlag)                                                         \
-  CASE(Int32x4Select)                                                          \
-  ____(Int32x4Select)                                                          \
-  CASE(Int32x4WithFlagX)                                                       \
-  CASE(Int32x4WithFlagY)                                                       \
-  CASE(Int32x4WithFlagZ)                                                       \
-  CASE(Int32x4WithFlagW)                                                       \
-  ____(Int32x4WithFlag)
-
 LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  switch (kind()) {
-#define CASE(Name, ...) case k##Name:
-#define EMIT(Name)                                                             \
-  return MakeLocationSummaryFromEmitter(zone, this, &Emit##Name);
-    SIMD_OP_VARIANTS(CASE, EMIT)
-#undef CASE
-#undef EMIT
-    case kIllegalSimdOp:
-      UNREACHABLE();
-      break;
-  }
   UNREACHABLE();
   return nullptr;
 }
 
 void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  switch (kind()) {
-#define CASE(Name, ...) case k##Name:
-#define EMIT(Name)                                                             \
-  InvokeEmitter(compiler, this, &Emit##Name);                                  \
-  break;
-    SIMD_OP_VARIANTS(CASE, EMIT)
-#undef CASE
-#undef EMIT
-    case kIllegalSimdOp:
-      UNREACHABLE();
-      break;
-  }
-}
-
-#undef DEFINE_EMIT
-
-LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
-                                                     bool opt) const {
-  ASSERT((kind() == MathUnaryInstr::kSqrt) ||
-         (kind() == MathUnaryInstr::kDoubleSquare));
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
-  return summary;
-}
-
-void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (kind() == MathUnaryInstr::kSqrt) {
-    const FRegister val = locs()->in(0).fpu_reg();
-    const FRegister result = locs()->out(0).fpu_reg();
-    __ fsqrtd(result, val);
-  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
-    const FRegister val = locs()->in(0).fpu_reg();
-    const FRegister result = locs()->out(0).fpu_reg();
-    __ fmuld(result, val, val);
-  } else {
-    UNREACHABLE();
-  }
+  UNREACHABLE();
 }
 
 LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
@@ -4797,7 +4591,53 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const FRegister result = locs()->out(0).fpu_reg();
   const FRegister value = locs()->in(0).fpu_reg();
-  __ fnegd(result, value);
+  if (representation() == kUnboxedDouble) {
+    switch (op_kind()) {
+      case Token::kABS:
+        __ fabsd(result, value);
+        break;
+      case Token::kNEGATE:
+        __ fnegd(result, value);
+        break;
+      case Token::kSQRT:
+        __ fsqrtd(result, value);
+        break;
+      case Token::kSQUARE:
+        __ fmuld(result, value, value);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    ASSERT(representation() == kUnboxedFloat);
+    switch (op_kind()) {
+      case Token::kABS:
+        __ fabss(result, value);
+        break;
+      case Token::kNEGATE:
+        __ fnegs(result, value);
+        break;
+      case Token::kRECIPROCAL:
+        __ li(TMP, 1);
+        __ fcvtsw(FTMP, TMP);
+        __ fdivs(result, FTMP, value);
+        break;
+      case Token::kRECIPROCAL_SQRT:
+        __ li(TMP, 1);
+        __ fcvtsw(FTMP, TMP);
+        __ fdivs(result, FTMP, value);
+        __ fsqrts(result, result);
+        break;
+      case Token::kSQRT:
+        __ fsqrts(result, value);
+        break;
+      case Token::kSQUARE:
+        __ fmuls(result, value, value);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
 }
 
 LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Zone* zone,
@@ -4945,16 +4785,6 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ bne(TMP, TMP2, deopt);
 }
 
-LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(Zone* zone,
-                                                          bool opt) const {
-  UNIMPLEMENTED();
-  return nullptr;
-}
-
-void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
 LocationSummary* DoubleToFloatInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4987,6 +4817,45 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const FRegister value = locs()->in(0).fpu_reg();
   const FRegister result = locs()->out(0).fpu_reg();
   __ fcvtds(result, value);
+}
+
+LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_in(1, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresRegister());
+  return result;
+}
+
+void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const FRegister lhs = locs()->in(0).fpu_reg();
+  const FRegister rhs = locs()->in(1).fpu_reg();
+  const Register result = locs()->out(0).reg();
+
+  switch (op_kind()) {
+    case Token::kEQ:
+      __ feqs(result, lhs, rhs);  // lhs op rhs ? 1 : 0
+      break;
+    case Token::kLT:
+      __ flts(result, lhs, rhs);
+      break;
+    case Token::kLTE:
+      __ fles(result, lhs, rhs);
+      break;
+    case Token::kGT:
+      __ fgts(result, lhs, rhs);
+      break;
+    case Token::kGTE:
+      __ fges(result, lhs, rhs);
+      break;
+    default:
+      UNREACHABLE();
+  }
+  __ neg(result, result);  // lhs op rhs ? -1 : 0
 }
 
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
@@ -5067,6 +4936,119 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register out = locs()->out(0).reg();
     const Register in = in_loc.reg();
     __ mv(out, in);
+  }
+}
+
+LocationSummary* UnboxLaneInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  const intptr_t kNumInputs = 1;
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, kNumInputs, 0, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  switch (representation()) {
+    case kUnboxedDouble:
+    case kUnboxedFloat:
+      summary->set_out(0, Location::RequiresFpuRegister());
+      break;
+    case kUnboxedInt32:
+      summary->set_out(0, Location::RequiresRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+  return summary;
+}
+
+void UnboxLaneInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register in = locs()->in(0).reg();
+  switch (representation()) {
+    case kUnboxedDouble:
+      __ fld(locs()->out(0).fpu_reg(),
+             compiler::FieldAddress(
+                 in, compiler::target::Float64x2::value_offset() +
+                         lane() * sizeof(double)));
+      break;
+    case kUnboxedFloat:
+      __ flw(locs()->out(0).fpu_reg(),
+             compiler::FieldAddress(
+                 in, compiler::target::Float32x4::value_offset() +
+                         lane() * sizeof(float)));
+      break;
+    case kUnboxedInt32:
+      __ lw(
+          locs()->out(0).reg(),
+          compiler::FieldAddress(in, compiler::target::Int32x4::value_offset() +
+                                         lane() * sizeof(int32_t)));
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+LocationSummary* BoxLanesInstr::MakeLocationSummary(Zone* zone,
+                                                    bool opt) const {
+  const intptr_t kNumInputs = InputCount();
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, 0, LocationSummary::kCallOnSlowPath);
+  switch (from_representation()) {
+    case kUnboxedDouble:
+      summary->set_in(0, Location::RequiresFpuRegister());
+      summary->set_in(1, Location::RequiresFpuRegister());
+      break;
+    case kUnboxedFloat:
+      summary->set_in(0, Location::RequiresFpuRegister());
+      summary->set_in(1, Location::RequiresFpuRegister());
+      summary->set_in(2, Location::RequiresFpuRegister());
+      summary->set_in(3, Location::RequiresFpuRegister());
+      break;
+    case kUnboxedInt32:
+      summary->set_in(0, Location::RequiresRegister());
+      summary->set_in(1, Location::RequiresRegister());
+      summary->set_in(2, Location::RequiresRegister());
+      summary->set_in(3, Location::RequiresRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void BoxLanesInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out(0).reg();
+  switch (from_representation()) {
+    case kUnboxedDouble:
+      BoxAllocationSlowPath::Allocate(compiler, this,
+                                      compiler->float64x2_class(), result, TMP);
+      for (intptr_t i = 0; i < 2; i++) {
+        __ fsd(locs()->in(i).fpu_reg(),
+               compiler::FieldAddress(
+                   result, compiler::target::Float64x2::value_offset() +
+                               i * sizeof(double)));
+      }
+      break;
+    case kUnboxedFloat:
+      BoxAllocationSlowPath::Allocate(compiler, this,
+                                      compiler->float32x4_class(), result, TMP);
+      for (intptr_t i = 0; i < 4; i++) {
+        __ fsw(locs()->in(i).fpu_reg(),
+               compiler::FieldAddress(
+                   result, compiler::target::Float32x4::value_offset() +
+                               i * sizeof(float)));
+      }
+      break;
+    case kUnboxedInt32:
+      BoxAllocationSlowPath::Allocate(compiler, this, compiler->int32x4_class(),
+                                      result, TMP);
+      for (intptr_t i = 0; i < 4; i++) {
+        __ sw(locs()->in(i).reg(),
+              compiler::FieldAddress(result,
+                                     compiler::target::Int32x4::value_offset() +
+                                         i * sizeof(int32_t)));
+      }
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -7391,6 +7373,36 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register input = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   __ xori(result, input, compiler::target::ObjectAlignment::kBoolValueMask);
+}
+
+LocationSummary* BoolToIntInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  return LocationSummary::Make(zone, 1, Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+void BoolToIntInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register input = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ LoadObject(TMP, Bool::True());
+  __ xor_(TMP, TMP, input);
+  __ seqz(TMP, TMP);
+  __ neg(result, TMP);
+}
+
+LocationSummary* IntToBoolInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  return LocationSummary::Make(zone, 1, Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+void IntToBoolInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register input = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ seqz(result, input);
+  __ slli(result, result, kBoolValueBitPosition);
+  __ add(result, result, NULL_REG);
+  __ addi(result, result, kTrueOffsetFromNull);
 }
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,

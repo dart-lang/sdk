@@ -681,7 +681,7 @@ class DataSinkWriter {
   }
 
   void _writeDartTypeNode(
-      ir.DartType? value, List<ir.TypeParameter> functionTypeVariables,
+      ir.DartType? value, List<ir.StructuralParameter> functionTypeVariables,
       {bool allowNull = false}) {
     if (value == null) {
       if (!allowNull) {

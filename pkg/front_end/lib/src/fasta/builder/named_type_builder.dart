@@ -89,6 +89,8 @@ enum InstanceTypeVariableAccessState {
 }
 
 abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
+  // TODO(johnniwinther): Avoid passing the [Identifier] directly here. We
+  // should have separate fields for name, qualifier and offsets.
   @override
   final Object name;
 
@@ -151,7 +153,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
       bool performTypeCanonicalization = false,
       TypeDeclarationBuilder? declaration})
-      : assert(name is String || name is QualifiedName),
+      : assert(name is String || name is Identifier),
         this._instanceTypeVariableAccess = instanceTypeVariableAccess,
         this._performTypeCanonicalization = performTypeCanonicalization,
         this.hasExplicitTypeArguments = arguments != null,
@@ -202,7 +204,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   int get nameOffset {
     if (name is Identifier) {
       Identifier identifier = name as Identifier;
-      return identifier.charOffset;
+      return identifier.nameOffset;
     }
     return charOffset!;
   }
@@ -225,6 +227,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       if (prefix is PrefixBuilder) {
         member = prefix.lookup(name.name, name.charOffset, fileUri);
       }
+    } else if (name is Identifier) {
+      member = scope.lookup(name.name, charOffset, fileUri);
     } else if (name is String) {
       member = scope.lookup(name, charOffset, fileUri);
     } else {
@@ -296,7 +300,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       library.addProblem(message, typeNameOffset, typeNameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, typeNameOffset, typeNameLength));
-    } else if (_declaration!.isTypeVariable) {
+    } else if (_declaration is TypeVariableBuilder) {
       TypeVariableBuilder typeParameterBuilder =
           _declaration as TypeVariableBuilder;
       if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
@@ -414,7 +418,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? unalias(
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
-      List<TypeVariableBuilder>? unboundTypeVariables}) {
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
     if (declaration is TypeAliasBuilder) {
       return (declaration as TypeAliasBuilder).unalias(arguments,
@@ -538,6 +542,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             severity: Severity.error);
         return null;
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionTypeDeclarationBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
@@ -569,6 +574,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             severity: Severity.error);
         return null;
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
       case BuiltinTypeDeclarationBuilder():

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
@@ -761,8 +762,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var whyNotPromotedVisitor = _WhyNotPromotedVisitor(
             source, errorEntity, flowAnalysis.dataForTesting);
         if (typeSystem.isPotentiallyNullable(entry.key)) continue;
-        var message = entry.value.accept(whyNotPromotedVisitor);
-        if (message != null) {
+        messages = entry.value.accept(whyNotPromotedVisitor);
+        // `messages` will be passed to the ErrorReporter, which might add
+        // additional entries. So make sure that it's not a `const []`.
+        assert(_isModifiableList(messages));
+        if (messages.isNotEmpty) {
           if (flowAnalysis.dataForTesting != null) {
             var nonPromotionReasonText = entry.value.shortName;
             var args = <String>[];
@@ -784,7 +788,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             flowAnalysis.dataForTesting!.nonPromotionReasons[errorEntity] =
                 nonPromotionReasonText;
           }
-          messages = [message];
         }
         break;
       }
@@ -4030,6 +4033,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return resolvedParameters;
   }
 
+  /// Debug-only: verifies that [list] is a modifiable list by setting its
+  /// length to itself.
+  ///
+  /// For a normal list this is a no-op; for an unmodifiable (i.e. const) list,
+  /// this will cause an exception to be thrown.
+  static bool _isModifiableList(List<Object?> list) {
+    try {
+      list.length = list.length;
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
   /// Report [CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS] or one of
   /// its derivatives at the specified [token], considering the name of the
   /// [nameNode].
@@ -5318,7 +5335,7 @@ class SwitchExhaustiveness {
 
 class _WhyNotPromotedVisitor
     implements
-        NonPromotionReasonVisitor<DiagnosticMessage?, AstNode,
+        NonPromotionReasonVisitor<List<DiagnosticMessage>, AstNode,
             PromotableElement, DartType> {
   final Source source;
 
@@ -5333,7 +5350,7 @@ class _WhyNotPromotedVisitor
   _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
 
   @override
-  DiagnosticMessage visitDemoteViaExplicitWrite(
+  List<DiagnosticMessage> visitDemoteViaExplicitWrite(
       DemoteViaExplicitWrite<PromotableElement> reason) {
     var node = reason.node as AstNode;
     if (node is ForEachPartsWithIdentifier) {
@@ -5343,56 +5360,141 @@ class _WhyNotPromotedVisitor
       _dataForTesting!.nonPromotionReasonTargets[node] = reason.shortName;
     }
     var variableName = reason.variable.name;
-    return _contextMessageForWrite(variableName, node, reason);
+    return [_contextMessageForWrite(variableName, node, reason)];
   }
 
   @override
-  DiagnosticMessage? visitPropertyNotPromoted(
-      PropertyNotPromoted<DartType> reason) {
+  List<DiagnosticMessage> visitPropertyNotPromotedDueToConflict(
+      PropertyNotPromotedDueToConflict<DartType> reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
-      propertyReference = receiverElement;
+      var property = propertyReference = receiverElement;
       propertyType = reason.staticType;
-      return _contextMessageForProperty(
-          receiverElement, reason.propertyName, reason);
+      var propertyName = reason.propertyName;
+      var library = receiverElement.library as LibraryElementImpl;
+      var fieldNonPromotabilityInfo = library.fieldNameNonPromotabilityInfo;
+      assert(
+          fieldNonPromotabilityInfo != null,
+          'should not be null unless field promotion is disabled, '
+          'in which case the non-promotion would not be due to conflict');
+      var fieldNameInfo = fieldNonPromotabilityInfo?[reason.propertyName];
+      assert(fieldNameInfo != null,
+          'every non-promotable field name should have an entry');
+      if (fieldNameInfo == null) {
+        // In the unlikely event that non-promotability info is unavailable,
+        // recover by not generating a context message.
+        return [];
+      }
+      var messages = <DiagnosticMessage>[];
+      for (var field in fieldNameInfo.conflictingFields) {
+        var className = field.enclosingElement.name;
+        var message = "'$propertyName' couldn't be promoted because there is a "
+            "conflicting non-promotable field in class '$className'";
+        messages.add(DiagnosticMessageImpl(
+            filePath: field.source!.fullName,
+            message: message,
+            offset: field.nonSynthetic.nameOffset,
+            length: property.nameLength,
+            url: NonPromotionDocumentationLink
+                .conflictingNonPromotableField.url));
+      }
+      for (var getter in fieldNameInfo.conflictingGetters) {
+        var className = getter.enclosingElement.name;
+        var message = "'$propertyName' couldn't be promoted because there is a "
+            "conflicting getter in class '$className'";
+        messages.add(DiagnosticMessageImpl(
+            filePath: getter.source.fullName,
+            message: message,
+            offset: getter.nonSynthetic.nameOffset,
+            length: property.nameLength,
+            url: NonPromotionDocumentationLink.conflictingGetter.url));
+      }
+      for (var nsmClass in fieldNameInfo.conflictingNsmClasses) {
+        var className = nsmClass.name;
+        var message = "'$propertyName' couldn't be promoted because there is a "
+            "conflicting noSuchMethod forwarder in class '$className'";
+        messages.add(DiagnosticMessageImpl(
+            filePath: nsmClass.source.fullName,
+            message: message,
+            offset: nsmClass.nonSynthetic.nameOffset,
+            length: className.length,
+            url: NonPromotionDocumentationLink
+                .conflictingNoSuchMethodForwarder.url));
+      }
+      return messages;
     } else {
       assert(receiverElement == null,
           'Unrecognized property element: ${receiverElement.runtimeType}');
-      return null;
+      return [];
     }
   }
 
   @override
-  DiagnosticMessage? visitThisNotPromoted(ThisNotPromoted reason) {
-    return DiagnosticMessageImpl(
-        filePath: source.fullName,
-        message: "'this' can't be promoted",
-        offset: _errorEntity.offset,
-        length: _errorEntity.length,
-        url: reason.documentationLink);
+  List<DiagnosticMessage> visitPropertyNotPromotedForInherentReason(
+      PropertyNotPromotedForInherentReason<DartType> reason) {
+    var receiverElement = reason.propertyMember;
+    if (receiverElement is PropertyAccessorElement) {
+      var property = propertyReference = receiverElement;
+      propertyType = reason.staticType;
+      var propertyName = reason.propertyName;
+      String message;
+      switch (reason.whyNotPromotable) {
+        case PropertyNonPromotabilityReason.isNotEnabled:
+          message =
+              "'$propertyName' refers to a field. It couldn't be promoted "
+              "because field promotion is only available in Dart 3.2 and "
+              "above.";
+        case PropertyNonPromotabilityReason.isNotField:
+          message =
+              "'$propertyName' refers to a getter so it couldn't be promoted.";
+        case PropertyNonPromotabilityReason.isNotPrivate:
+          message =
+              "'$propertyName' refers to a public field so it couldn't be "
+              "promoted.";
+        case PropertyNonPromotabilityReason.isExternal:
+          message =
+              "'$propertyName' refers to an external field so it couldn't be "
+              "promoted.";
+        case PropertyNonPromotabilityReason.isNotFinal:
+          message =
+              "'$propertyName' refers to a non-final field so it couldn't be "
+              "promoted.";
+      }
+      return [
+        DiagnosticMessageImpl(
+            filePath: property.source.fullName,
+            message: message,
+            offset: property.nonSynthetic.nameOffset,
+            length: property.nameLength,
+            url: reason.documentationLink.url)
+      ];
+    } else {
+      assert(receiverElement == null,
+          'Unrecognized property element: ${receiverElement.runtimeType}');
+      return [];
+    }
   }
 
-  DiagnosticMessageImpl _contextMessageForProperty(
-      PropertyAccessorElement property,
-      String propertyName,
-      NonPromotionReason reason) {
-    return DiagnosticMessageImpl(
-        filePath: property.source.fullName,
-        message:
-            "'$propertyName' refers to a property so it couldn't be promoted",
-        offset: property.nonSynthetic.nameOffset,
-        length: property.nameLength,
-        url: reason.documentationLink);
+  @override
+  List<DiagnosticMessage> visitThisNotPromoted(ThisNotPromoted reason) {
+    return [
+      DiagnosticMessageImpl(
+          filePath: source.fullName,
+          message: "'this' can't be promoted",
+          offset: _errorEntity.offset,
+          length: _errorEntity.length,
+          url: reason.documentationLink.url)
+    ];
   }
 
-  DiagnosticMessageImpl _contextMessageForWrite(
-      String variableName, AstNode node, NonPromotionReason reason) {
+  DiagnosticMessageImpl _contextMessageForWrite(String variableName,
+      AstNode node, DemoteViaExplicitWrite<PromotableElement> reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "Variable '$variableName' could not be promoted due to an "
             "assignment",
         offset: node.offset,
         length: node.length,
-        url: reason.documentationLink);
+        url: reason.documentationLink.url);
   }
 }

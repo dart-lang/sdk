@@ -1112,6 +1112,12 @@ CompileTimeErrorCode:
         }
       }
       ```
+  AUGMENTATION_WITHOUT_IMPORT:
+    problemMessage: The library does not import this augmentation.
+    correctionMessage: Try updating the augmented library to import this augmentation.
+  AUGMENTATION_WITHOUT_LIBRARY:
+    problemMessage: The URI does not resolve to a library.
+    correctionMessage: Try updating the URI to reference the augmented library
   AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
     problemMessage: "The 'await' expression can't be used in a 'late' local variable's initializer."
     correctionMessage: "Try removing the 'late' modifier, or rewriting the initializer without using the 'await' expression."
@@ -8382,8 +8388,8 @@ CompileTimeErrorCode:
 
       The analyzer produces this diagnostic when `this` is used outside of an
       instance method or a generative constructor. The reserved word `this` is
-      only defined in the context of an instance method or a generative
-      constructor.
+      only defined in the context of an instance method, a generative
+      constructor, or the initializer of a late instance field declaration.
 
       #### Example
 
@@ -9171,7 +9177,7 @@ CompileTimeErrorCode:
       entry even though it's a set literal:
 
       ```dart
-      const collection = <String>{[!'a' : 'b'!]};
+      var collection = <String>{[!'a' : 'b'!]};
       ```
 
       #### Common fixes
@@ -9181,7 +9187,7 @@ CompileTimeErrorCode:
       another type argument:
 
       ```dart
-      const collection = <String, String>{'a' : 'b'};
+      var collection = <String, String>{'a' : 'b'};
       ```
 
       In other cases, you might need to change the explicit type from `Set` to
@@ -9192,7 +9198,7 @@ CompileTimeErrorCode:
       included in the set:
 
       ```dart
-      const collection = <String>{'a', 'b'};
+      var collection = <String>{'a', 'b'};
       ```
   MAP_KEY_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
@@ -20474,6 +20480,9 @@ ParserErrorCode:
   REPRESENTATION_FIELD_MODIFIER:
     problemMessage: "Representation fields can't have modifiers."
     correctionMessage: Try removing the modifier.
+  REPRESENTATION_FIELD_TRAILING_COMMA:
+    problemMessage: The representation field can't have a trailing comma.
+    correctionMessage: Try removing the trailing comma.
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
@@ -20984,6 +20993,45 @@ PubspecWarningCode:
       name: example
       dependencies:
         meta: ^1.0.2
+      ```
+  MISSING_DEPENDENCY:
+    problemMessage: "Missing a dependency on imported package '{0}'."
+    correctionMessage: "Try adding {0}."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the list of packages missing from the dependencies and the list of
+      packages missing from the dev_dependencies (if any) in the pubspec file.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when there's a package that has been
+      imported in the source but is not listed in the dependency of the
+      importing package.
+
+      #### Example
+
+      The following code produces this diagnostic because the package `path` is
+      not listed in the dependencies, while there is an import statement
+      with package `path` in the source code of package example:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      dependencies:
+        meta: ^1.0.2
+      ```
+
+      #### Common fixes
+
+      Add the missing package 'path' to the `dependencies` field:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      dependencies:
+        meta: ^1.0.2
+        path: any
       ```
   NAME_NOT_STRING:
     problemMessage: "The value of the 'name' field is required to be a string."
@@ -22116,14 +22164,6 @@ WarningCode:
         C.c();
       }
       ```
-  DOC_IMPORT_CANNOT_BE_DEFERRED:
-    problemMessage: "Doc imports can't be deferred."
-    correctionMessage: Try removing the 'deferred' keyword.
-    hasPublishedDocs: false
-  DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
-    problemMessage: "Doc imports can't have configurations."
-    correctionMessage: Try removing the configurations.
-    hasPublishedDocs: false
   DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
     problemMessage: "The '{0}' directive has '{1}' arguments, but only '{2}' are expected."
     correctionMessage: Try removing the extra arguments.
@@ -22145,6 +22185,13 @@ WarningCode:
     problemMessage: "Doc directive is missing a closing curly brace ('}')."
     correctionMessage: "Try closing the directive with a curly brace."
     hasPublishedDocs: false
+  DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+    problemMessage: "Doc directive is missing a closing tag."
+    correctionMessage: "Try closing the directive with the appropriate closing tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
   DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
     sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
     problemMessage: "The '{0}' directive is missing a '{1}' argument."
@@ -22154,6 +22201,21 @@ WarningCode:
       Parameters:
       0: the name of the doc directive
       1: the name of the missing argument
+  DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+    problemMessage: "The '{0}' argument must be formatted as {1}."
+    correctionMessage: "Try formatting '{0}' as {1}."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive argument
+      1: the expected format
+  DOC_DIRECTIVE_MISSING_OPENING_TAG:
+    problemMessage: "Doc directive is missing an opening tag."
+    correctionMessage: "Try opening the directive with the appropriate opening tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
   DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
     sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
     problemMessage: "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument."
@@ -22175,6 +22237,21 @@ WarningCode:
      0: the name of the doc directive
      1: the name of the first missing argument
      2: the name of the second missing argument
+  DOC_DIRECTIVE_UNKNOWN:
+    problemMessage: "Doc directive '{0}' is unknown."
+    correctionMessage: 'Try using one of the supported doc directives.'
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the unknown doc directive.
+  DOC_IMPORT_CANNOT_BE_DEFERRED:
+    problemMessage: "Doc imports can't be deferred."
+    correctionMessage: Try removing the 'deferred' keyword.
+    hasPublishedDocs: false
+  DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+    problemMessage: "Doc imports can't have configurations."
+    correctionMessage: Try removing the configurations.
+    hasPublishedDocs: false
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.

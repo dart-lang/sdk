@@ -129,6 +129,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
+  Set<StructuralParameter> structuralParametersInScope =
+      new Set<StructuralParameter>();
   Set<VariableDeclaration> variableDeclarationsInScope =
       new Set<VariableDeclaration>();
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
@@ -313,8 +315,30 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  void declareStructuralParameters(List<StructuralParameter> parameters) {
+    for (int i = 0; i < parameters.length; ++i) {
+      StructuralParameter parameter = parameters[i];
+      if (identical(parameter.bound, StructuralParameter.unsetBoundSentinel)) {
+        problem(
+            currentParent, "Missing bound for type parameter '$parameter'.");
+      }
+      if (identical(parameter.defaultType,
+          StructuralParameter.unsetDefaultTypeSentinel)) {
+        problem(currentParent,
+            "Missing default type for type parameter '$parameter'.");
+      }
+      if (!structuralParametersInScope.add(parameter)) {
+        problem(currentParent, "Type parameter '$parameter' redeclared.");
+      }
+    }
+  }
+
   void undeclareTypeParameters(List<TypeParameter> parameters) {
     typeParametersInScope.removeAll(parameters);
+  }
+
+  void undeclareStructuralParameters(List<StructuralParameter> parameters) {
+    structuralParametersInScope.removeAll(parameters);
   }
 
   void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
@@ -770,34 +794,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitFunctionType(FunctionType node) {
-    if (node.typeParameters.isNotEmpty) {
-      for (TypeParameter typeParameter in node.typeParameters) {
-        if (typeParameter.declaration != null) {
-          problem(
-              localContext,
-              "Type parameters of function types shouldn't have parents: "
-              "$node.");
-        }
-      }
-    }
     for (int i = 1; i < node.namedParameters.length; ++i) {
       if (node.namedParameters[i - 1].compareTo(node.namedParameters[i]) >= 0) {
         problem(currentParent,
             "Named parameters are not sorted on function type ($node).");
       }
     }
-    declareTypeParameters(node.typeParameters);
-    for (TypeParameter typeParameter in node.typeParameters) {
-      typeParameter.bound.accept(this);
-      if (typeParameter.annotations.isNotEmpty) {
-        problem(
-            typeParameter, "Annotation on type parameter in function type.");
-      }
-    }
+    declareStructuralParameters(node.typeParameters);
     visitList(node.positionalParameters, this);
     visitList(node.namedParameters, this);
     node.returnType.accept(this);
-    undeclareTypeParameters(node.typeParameters);
+    undeclareStructuralParameters(node.typeParameters);
   }
 
   @override
@@ -1001,13 +1008,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "StaticInvocation of '${node.target}' that's an instance member.");
     }
     if (node.isConst &&
-        (!node.target.isConst ||
-            !node.target.isExternal ||
-            node.target.kind != ProcedureKind.Factory)) {
+        !(node.target.isConst &&
+            node.target.isExternal &&
+            node.target.kind == ProcedureKind.Factory) &&
+        !(node.target.isConst && node.target.isExtensionTypeMember)) {
       problem(
           node,
           "Constant StaticInvocation of '${node.target}' that isn't"
-          " a const external factory.");
+          " a const external factory or a const extension type constructor.");
     }
     if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Constant StaticInvocation.");
@@ -1801,7 +1809,7 @@ class KnownTypes implements DartTypeVisitor<bool> {
   const KnownTypes();
 
   @override
-  bool defaultDartType(DartType node) => false;
+  bool visitAuxiliaryType(AuxiliaryType node) => false;
 
   @override
   bool visitDynamicType(DynamicType node) => true;
@@ -1835,6 +1843,9 @@ class KnownTypes implements DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) => true;
+
+  @override
+  bool visitStructuralParameterType(StructuralParameterType node) => true;
 
   @override
   bool visitTypedefType(TypedefType node) => true;

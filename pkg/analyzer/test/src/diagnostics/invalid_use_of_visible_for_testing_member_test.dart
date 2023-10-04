@@ -285,6 +285,46 @@ class B {
     ]);
   }
 
+  test_methodInExtensionType() async {
+    newFile('$testPackageRootPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+extension type E(int i) {
+  @visibleForTesting
+  int m() => 1;
+}
+''');
+    newFile('$testPackageRootPath/lib2.dart', r'''
+import 'lib1.dart';
+void main() {
+  E(1).m();
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/lib2.dart', [
+      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 41, 1),
+    ]);
+  }
+
+  test_methodInExtensionType_fromTestDirectory() async {
+    newFile('$testPackageRootPath/lib1.dart', r'''
+import 'package:meta/meta.dart';
+extension type E(int i) {
+  @visibleForTesting
+  int m() => 1;
+}
+''');
+    newFile('$testPackageRootPath/test/test.dart', r'''
+import 'lib1.dart';
+void main() {
+  E(1).m();
+}
+''');
+
+    await _resolveFile('$testPackageRootPath/lib1.dart');
+    await _resolveFile('$testPackageRootPath/lib2.dart');
+  }
+
   test_mixin() async {
     newFile('$testPackageRootPath/lib1.dart', r'''
 import 'package:meta/meta.dart';

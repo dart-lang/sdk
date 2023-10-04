@@ -165,6 +165,13 @@ class AnalyzerSealedClassOperations
             continue outer;
           }
         }
+        if (declaration is MixinElement) {
+          for (final type in declaration.superclassConstraints) {
+            if (checkType(type)) {
+              continue outer;
+            }
+          }
+        }
       }
     }
     return subclasses;

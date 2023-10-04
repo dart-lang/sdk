@@ -53,6 +53,7 @@ class ElementTextConfiguration {
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
   bool withRedirectedConstructors = false;
+  bool withReferences = false;
   bool withSyntheticDartCoreImport = false;
 
   ElementTextConfiguration({
@@ -295,13 +296,6 @@ class _ElementWriter {
     var reference = e.reference;
     if (reference == null) {
       fail('Every constructor must have a reference.');
-    } else {
-      var classReference = reference.parent!.parent!;
-      // We need this `if` for duplicate declarations.
-      // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement)) {
-        expect(reference.element, same(e));
-      }
     }
 
     _sink.writeIndentedLine(() {
@@ -315,6 +309,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -461,12 +456,13 @@ class _ElementWriter {
     }
   }
 
-  void _writeExtensionElement(ExtensionElement e) {
+  void _writeExtensionElement(ExtensionElementImpl e) {
     _sink.writeIndentedLine(() {
       _writeName(e);
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -506,6 +502,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -584,6 +581,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -658,6 +656,15 @@ class _ElementWriter {
   }
 
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
+    if (e is LibraryAugmentationElementImpl) {
+      if (e.macroGenerated case final macroGenerated?) {
+        _sink.writelnWithIndent('macroGeneratedCode');
+        _sink.writeln('---');
+        _sink.write(macroGenerated.code);
+        _sink.writeln('---');
+      }
+    }
+
     _writeDocumentation(e);
     _writeMetadata(e);
     _writeSinceSdkVersion(e);
@@ -699,7 +706,7 @@ class _ElementWriter {
     }
   }
 
-  void _writeMethodElement(MethodElement e) {
+  void _writeMethodElement(MethodElementImpl e) {
     _sink.writeIndentedLine(() {
       _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
@@ -712,6 +719,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -744,7 +752,7 @@ class _ElementWriter {
     }
   }
 
-  void _writeMethods(List<MethodElement> elements) {
+  void _writeMethods(List<MethodElementImpl> elements) {
     _writeElements('methods', elements, _writeMethodElement);
   }
 
@@ -796,6 +804,8 @@ class _ElementWriter {
   }
 
   void _writeParameterElement(ParameterElement e) {
+    e as ParameterElementImpl;
+
     _sink.writeIndentedLine(() {
       if (e.isRequiredPositional) {
         _sink.write('requiredPositional ');
@@ -825,6 +835,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeType('type', e.type);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -903,6 +914,7 @@ class _ElementWriter {
     }
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -927,7 +939,9 @@ class _ElementWriter {
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
-      expect(e.getter, isNotNull);
+      if (!e.isAugmentation) {
+        expect(e.getter, isNotNull);
+      }
 
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -970,6 +984,7 @@ class _ElementWriter {
     }
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -983,6 +998,19 @@ class _ElementWriter {
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
+  }
+
+  void _writeReference(ElementImpl e) {
+    if (!configuration.withReferences) {
+      return;
+    }
+
+    if (e.reference case final reference?) {
+      _sink.writeIndentedLine(() {
+        _sink.write('reference: ');
+        _elementPrinter.writeReference(reference);
+      });
+    }
   }
 
   void _writeShouldUseTypeForInitializerInference(
@@ -1040,6 +1068,7 @@ class _ElementWriter {
     });
 
     _sink.withIndent(() {
+      _writeReference(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);

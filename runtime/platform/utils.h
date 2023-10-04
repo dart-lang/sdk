@@ -474,6 +474,21 @@ class Utils {
            (static_cast<Unsigned>(value) << ((width - rotate) & (width - 1)));
   }
 
+#ifdef __GNUC__
+  __attribute__((no_sanitize("float-divide-by-zero")))
+#endif
+  static inline float
+  DivideAllowZero(float a, float b) {
+    return a / b;
+  }
+#ifdef __GNUC__
+  __attribute__((no_sanitize("float-divide-by-zero")))
+#endif
+  static inline double
+  DivideAllowZero(double a, double b) {
+    return a / b;
+  }
+
   // Utility functions for converting values from host endianness to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);

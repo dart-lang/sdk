@@ -56,9 +56,8 @@ def FormatVersionString(version,
                         version_file=None,
                         git_revision_file=None,
                         git_timestamp_file=None):
-    semantic_sdk_version = utils.GetSemanticSDKVersion(no_git_hash,
-                                                       version_file,
-                                                       git_revision_file)
+    semantic_sdk_version = utils.GetVersion(no_git_hash, version_file,
+                                            git_revision_file)
     semantic_version_format = GetSemanticVersionFormat(no_git_hash)
     version_str = (semantic_sdk_version
                    if version_file else semantic_version_format)

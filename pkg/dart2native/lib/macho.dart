@@ -309,7 +309,7 @@ abstract class MachOLoadCommand {
 class MachOGenericLoadCommand extends MachOLoadCommand {
   final Uint8List contents;
 
-  MachOGenericLoadCommand(cmd, cmdsize, this.contents) : super(cmd, cmdsize);
+  MachOGenericLoadCommand(super.cmd, super.cmdsize, this.contents);
 
   @override
   MachOLoadCommand adjust(OffsetsAdjuster adjuster) => this;
@@ -509,8 +509,8 @@ class MachOSegmentCommand extends MachOLoadCommand {
   final List<MachOSection> sections;
 
   MachOSegmentCommand(
-    int code,
-    int size,
+    super.code,
+    super.size,
     this.name,
     this.memoryAddress,
     this.memorySize,
@@ -520,7 +520,7 @@ class MachOSegmentCommand extends MachOLoadCommand {
     this.initialProtection,
     this.flags,
     this.sections,
-  ) : super(code, size);
+  );
 
   static const _nameLength = 16;
 
@@ -810,13 +810,13 @@ class MachOSymtabCommand extends MachOLoadCommand {
   final int stringTableSize;
 
   MachOSymtabCommand(
-    int code,
-    int size,
+    super.code,
+    super.size,
     this.fileOffset,
     this.symbolsCount,
     this.stringTableFileOffset,
     this.stringTableSize,
-  ) : super(code, size);
+  );
 
   static MachOSymtabCommand fromStream(int code, int size, MachOReader stream) {
     final fileOffset = stream.readUint32();
@@ -939,8 +939,8 @@ class MachODysymtabCommand extends MachOLoadCommand {
   final int localRelocationsCount;
 
   MachODysymtabCommand(
-      int code,
-      int size,
+      super.code,
+      super.size,
       this.localSymbolsIndex,
       this.localSymbolsCount,
       this.externalSymbolsIndex,
@@ -958,8 +958,7 @@ class MachODysymtabCommand extends MachOLoadCommand {
       this.externalRelocationsFileOffset,
       this.externalRelocationsCount,
       this.localRelocationsFileOffset,
-      this.localRelocationsCount)
-      : super(code, size);
+      this.localRelocationsCount);
 
   static MachODysymtabCommand fromStream(
       int code, int size, MachOReader stream) {
@@ -1066,11 +1065,11 @@ class MachOLinkeditDataCommand extends MachOLoadCommand {
   final int dataSize;
 
   MachOLinkeditDataCommand(
-    int code,
-    int size,
+    super.code,
+    super.size,
     this.dataFileOffset,
     this.dataSize,
-  ) : super(code, size);
+  );
 
   static MachOLinkeditDataCommand fromStream(
       int code, final int size, MachOReader stream) {
@@ -1116,9 +1115,8 @@ class MachOEncryptionInfoCommand extends MachOLoadCommand {
   /// `uint32_t pad` for `encryption_info_command_64` in the C headers.
   final int? padding;
 
-  MachOEncryptionInfoCommand(int code, int size, this.fileOffset, this.fileSize,
-      this.encryptionSystem, this.padding)
-      : super(code, size);
+  MachOEncryptionInfoCommand(super.code, super.size, this.fileOffset,
+      this.fileSize, this.encryptionSystem, this.padding);
 
   static MachOEncryptionInfoCommand fromStream(
       int code, final int size, MachOReader stream) {
@@ -1208,8 +1206,8 @@ class MachODyldInfoCommand extends MachOLoadCommand {
   final int exportSize;
 
   MachODyldInfoCommand(
-      int code,
-      int size,
+      super.code,
+      super.size,
       this.rebaseOffset,
       this.rebaseSize,
       this.bindingOffset,
@@ -1219,8 +1217,7 @@ class MachODyldInfoCommand extends MachOLoadCommand {
       this.lazyBindingOffset,
       this.lazyBindingSize,
       this.exportOffset,
-      this.exportSize)
-      : super(code, size);
+      this.exportSize);
 
   static MachODyldInfoCommand fromStream(
       int code, int size, MachOReader stream) {
@@ -1293,8 +1290,8 @@ class MachOEntryPointCommand extends MachOLoadCommand {
   /// `uint64_t stacksize` in the C headers.
   final int stackSize;
 
-  MachOEntryPointCommand(int code, int size, this.entryOffset, this.stackSize)
-      : super(code, size);
+  MachOEntryPointCommand(
+      super.code, super.size, this.entryOffset, this.stackSize);
 
   static MachOEntryPointCommand fromStream(
       int code, int size, MachOReader stream) {
@@ -1335,12 +1332,12 @@ class MachODataInCodeEntry extends MachOLoadCommand {
   final int kind;
 
   MachODataInCodeEntry(
-    int code,
-    int size,
+    super.code,
+    super.size,
     this.offset,
     this.length,
     this.kind,
-  ) : super(code, size);
+  );
 
   static MachODataInCodeEntry fromStream(
       int code, int size, MachOReader stream) {
@@ -1380,8 +1377,7 @@ class MachONoteCommand extends MachOLoadCommand {
   final int fileSize;
 
   MachONoteCommand(
-      int code, int size, this.dataOwner, this.fileOffset, this.fileSize)
-      : super(code, size);
+      super.code, super.size, this.dataOwner, this.fileOffset, this.fileSize);
 
   static MachONoteCommand fromStream(int code, int size, MachOReader stream) {
     final dataOwner =
@@ -1440,9 +1436,8 @@ class MachOFileSetEntryCommand extends MachOLoadCommand {
   /// `uint32_t reserved` in the C headers.
   final int reserved;
 
-  MachOFileSetEntryCommand(int code, int size, this.memoryAddress,
-      this.fileOffset, this.entryId, this.reserved)
-      : super(code, size);
+  MachOFileSetEntryCommand(super.code, super.size, this.memoryAddress,
+      this.fileOffset, this.entryId, this.reserved);
 
   static MachOFileSetEntryCommand fromStream(
       int code, int size, MachOReader stream) {

@@ -4110,6 +4110,38 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropStaticInteropExternalTypeViolation = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        "JsInteropStaticInteropExternalTypeViolation",
+        problemMessageTemplate:
+            r"""Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.""",
+        correctionMessageTemplate: r"""Use one of the valid types instead.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropExternalTypeViolation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropStaticInteropExternalTypeViolation =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropStaticInteropExternalTypeViolation",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropExternalTypeViolation(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropStaticInteropExternalTypeViolation,
+      problemMessage:
+          """Type '${type}' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.""" +
+              labeler.originMessages,
+      correctionMessage: """Use one of the valid types instead.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStaticInteropMockNotStaticInteropType = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         "JsInteropStaticInteropMockNotStaticInteropType",
@@ -4170,37 +4202,6 @@ Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed(
           """Type argument '${type}' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""" +
               labeler.originMessages,
       correctionMessage: """Remove the type parameter in the type argument or replace it with its bound.""",
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
-    templateJsInteropStrictModeViolation = const Template<
-            Message Function(DartType _type, bool isNonNullableByDefault)>(
-        "JsInteropStrictModeViolation",
-        problemMessageTemplate:
-            r"""JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`.""",
-        correctionMessageTemplate: r"""Use a JS type instead.""",
-        withArguments: _withArgumentsJsInteropStrictModeViolation);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
-    codeJsInteropStrictModeViolation =
-    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
-  "JsInteropStrictModeViolation",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStrictModeViolation(
-    DartType _type, bool isNonNullableByDefault) {
-  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeJsInteropStrictModeViolation,
-      problemMessage:
-          """JS interop requires JS types when strict mode is enabled, but Type '${type}' is not a type or subtype of a type from `dart:js_interop`.""" +
-              labeler.originMessages,
-      correctionMessage: """Use a JS type instead.""",
       arguments: {'type': _type});
 }
 

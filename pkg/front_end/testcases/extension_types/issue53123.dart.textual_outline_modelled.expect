@@ -1,4 +1,2 @@
----- unknown chunk starts ----
 extension type V<T extends V<T>>(T id) {}
----- unknown chunk ends ----
 test(V v) {}

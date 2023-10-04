@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
@@ -160,9 +159,9 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
-        var lhsResult = _getConstantBooleanValue(lhsCondition);
+        var lhsResult = _constantBooleanValue(lhsCondition);
         if (lhsResult != null) {
-          var value = lhsResult.value?.toBoolValue();
+          var value = lhsResult.toBoolValue();
           // Report error on "else" block: true || !e!
           // or on "if" block: false && !e!
           if (value == true && isBarBar || value == false && isAmpAmp) {
@@ -213,9 +212,9 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     Expression conditionExpression = node.condition;
     conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      var result = _getConstantBooleanValue(conditionExpression);
+      var result = _constantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value?.toBoolValue() == true) {
+        if (result.toBoolValue() == true) {
           // Report error on "else" block: true ? 1 : !2!
           _errorReporter.reportErrorForNode(
               WarningCode.DEAD_CODE, node.elseExpression);
@@ -238,9 +237,9 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     Expression conditionExpression = node.expression;
     conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      var result = _getConstantBooleanValue(conditionExpression);
+      var result = _constantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value?.toBoolValue() == true) {
+        if (result.toBoolValue() == true) {
           // Report error on else block: if(true) {} else {!}
           var elseElement = node.elseElement;
           if (elseElement != null) {
@@ -266,9 +265,9 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     Expression conditionExpression = node.expression;
     conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      var result = _getConstantBooleanValue(conditionExpression);
+      var result = _constantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value?.toBoolValue() == true) {
+        if (result.toBoolValue() == true) {
           // Report error on else block: if(true) {} else {!}
           var elseStatement = node.elseStatement;
           if (elseStatement != null) {
@@ -334,9 +333,9 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     Expression conditionExpression = node.condition;
     conditionExpression.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
-      var result = _getConstantBooleanValue(conditionExpression);
+      var result = _constantBooleanValue(conditionExpression);
       if (result != null) {
-        if (result.value?.toBoolValue() == false) {
+        if (result.toBoolValue() == false) {
           // Report error on while block: while (false) {!}
           _errorReporter.reportErrorForNode(WarningCode.DEAD_CODE, node.body);
           return;
@@ -387,17 +386,15 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Given some [expression], return [ValidResult.RESULT_TRUE] if it is `true`,
-  /// [ValidResult.RESULT_FALSE] if it is `false`, or `null` if the expression
-  /// is not a constant boolean value.
-  EvaluationResultImpl? _getConstantBooleanValue(Expression expression) {
+  /// A boolean [DartObjectImpl] from evaluating [expression].
+  ///
+  /// Is `null` if [expression] does not evaluate to a boolean value.
+  DartObjectImpl? _constantBooleanValue(Expression expression) {
     if (expression is BooleanLiteral) {
-      return EvaluationResultImpl(
-        DartObjectImpl(
-          _typeSystem,
-          _typeSystem.typeProvider.boolType,
-          BoolState.from(expression.value),
-        ),
+      return DartObjectImpl(
+        _typeSystem,
+        _typeSystem.typeProvider.boolType,
+        BoolState.from(expression.value),
       );
     }
 

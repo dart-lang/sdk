@@ -14,7 +14,6 @@ class StringInterpolation1NegativeTest {
   static const DOLLAR = const A("$");
   //                              ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
   static testMain() {

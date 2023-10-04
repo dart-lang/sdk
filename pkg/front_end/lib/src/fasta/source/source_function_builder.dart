@@ -277,7 +277,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.name == identifier.name &&
-            formal.charOffset == identifier.charOffset) {
+            formal.charOffset == identifier.nameOffset) {
           return formal;
         }
       }

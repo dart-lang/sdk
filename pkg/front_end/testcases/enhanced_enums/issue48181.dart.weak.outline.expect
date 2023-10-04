@@ -2,17 +2,17 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:6: Error: Couldn't find constructor 'F.foo'.
 //   f3.foo();
-//     ^
+//      ^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:3: Error: Couldn't find constructor 'F'.
 //   f1,
-//     ^
+//   ^
 //
-// pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:5: Error: Couldn't find constructor 'F'.
+// pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:3: Error: Couldn't find constructor 'F'.
 //   f2(42),
-//     ^
+//   ^
 //
 import self as self;
 import "dart:core" as core;
@@ -31,15 +31,15 @@ class E extends core::_Enum /*isEnum*/  {
 }
 class F extends core::_Enum /*isEnum*/  {
   static const field core::List<self::F> values = const <self::F>[self::F::f1, self::F::f2, self::F::f3];
-  enum-element static const field self::F f1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:5: Error: Couldn't find constructor 'F'.
+  enum-element static const field self::F f1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:12:3: Error: Couldn't find constructor 'F'.
   f1,
-    ^";
-  enum-element static const field self::F f2 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:5: Error: Couldn't find constructor 'F'.
+  ^";
+  enum-element static const field self::F f2 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:13:3: Error: Couldn't find constructor 'F'.
   f2(42),
-    ^";
-  enum-element static const field self::F f3 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:5: Error: Couldn't find constructor 'F.foo'.
+  ^";
+  enum-element static const field self::F f3 = invalid-expression "pkg/front_end/testcases/enhanced_enums/issue48181.dart:14:6: Error: Couldn't find constructor 'F.foo'.
   f3.foo();
-    ^^^";
+     ^^^";
   method _enumToString() → core::String
     return "F.${this.{core::_Enum::_name}{core::String}}";
   static factory •(core::int i) → self::F

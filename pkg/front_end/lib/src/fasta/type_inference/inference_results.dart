@@ -1,6 +1,6 @@
 // Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
@@ -248,7 +248,7 @@ abstract class InitializerInferenceResult {
           .fromSuccessfulInferenceResult(invocationInferenceResult);
     } else {
       return new WrapInProblemInitializerInferenceResult
-              .fromWrapInProblemInferenceResult(
+          .fromWrapInProblemInferenceResult(
           invocationInferenceResult as WrapInProblemInferenceResult);
     }
   }
@@ -318,6 +318,13 @@ class PropertyGetInferenceResult {
   final Member? member;
 
   PropertyGetInferenceResult(this.expressionInferenceResult, this.member);
+
+  @override
+  String toString() {
+    return "PropertyGetInferenceResult("
+        "expressionInferenceResult=${expressionInferenceResult}, "
+        "member=${member})";
+  }
 }
 
 /// The result of an expression inference.

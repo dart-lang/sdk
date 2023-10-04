@@ -9,6 +9,8 @@ class A {
 //^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   static const field = const B();
+  //                   ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                         ^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Can't access 'this' in a field initializer to read 'B'.

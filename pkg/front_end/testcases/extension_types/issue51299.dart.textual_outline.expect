@@ -1,4 +1,4 @@
 extension type I(int _i) {
-int get i => 0;
-set i(int val) {}
+  int get i => 0;
+  set i(int val) {}
 }

@@ -1,15 +1,16 @@
 extension type Class._(int it) {
-void instanceMethod() {}
-int get instanceGetter => 42;
-void instanceMethod2(String s, [int i = 42]) {}
-S genericInstanceMethod<S>(S s) => s;
-static void staticMethod() {}
-static S genericStaticMethod<S>(S s) => s;
-} extension type GenericClass<T>._(T it) {
-void instanceMethod() {}
-T get instanceGetter => throw '';
-void instanceMethod2(String s, {int i = 42}) {}
-S genericInstanceMethod<S>(S s) => s;
-static void staticMethod() {}
-static S genericStaticMethod<S>(S s) => s;
+  void instanceMethod() {}
+  int get instanceGetter => 42;
+  void instanceMethod2(String s, [int i = 42]) {}
+  S genericInstanceMethod<S>(S s) => s;
+  static void staticMethod() {}
+  static S genericStaticMethod<S>(S s) => s;
+}
+extension type GenericClass<T>._(T it) {
+  void instanceMethod() {}
+  T get instanceGetter => throw '';
+  void instanceMethod2(String s, {int i = 42}) {}
+  S genericInstanceMethod<S>(S s) => s;
+  static void staticMethod() {}
+  static S genericStaticMethod<S>(S s) => s;
 }

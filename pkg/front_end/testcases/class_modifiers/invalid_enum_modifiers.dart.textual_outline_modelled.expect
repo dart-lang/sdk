@@ -1,16 +1,4 @@
----- unknown chunk starts ----
-base
----- unknown chunk ends ----
-enum Base { v }
----- unknown chunk starts ----
-final
----- unknown chunk ends ----
-enum Final { v }
----- unknown chunk starts ----
-interface
----- unknown chunk ends ----
-enum Interface { v }
----- unknown chunk starts ----
-sealed
----- unknown chunk ends ----
-enum Sealed { v }
+base enum Base { v }
+final enum Final { v }
+interface enum Interface { v }
+sealed enum Sealed { v }

@@ -56,11 +56,6 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Map<TypeParameter, TypeVariableBuilder> functionTypeParameters = {};
 
   @override
-  TypeBuilder defaultDartType(DartType node) {
-    throw "Unsupported";
-  }
-
-  @override
   TypeBuilder visitInvalidType(InvalidType node) {
     return new FixedTypeBuilderImpl(
         node, /* fileUri = */ null, /* charOffset = */ null);
@@ -138,7 +133,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     TypeBuilder returnType = node.returnType.accept(this);
     // We could compute the type variables here. However, the current
     // implementation of [visitTypeParameterType] is sufficient.
-    List<TypeVariableBuilder>? typeVariables = null;
+    List<StructuralVariableBuilder>? typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
     List<ParameterBuilder> formals = new List<ParameterBuilder>.filled(
@@ -183,6 +178,16 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   @override
+  TypeBuilder visitStructuralParameterType(StructuralParameterType node) {
+    StructuralParameter parameter = node.parameter;
+    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+        new StructuralVariableBuilder.fromKernel(parameter),
+        new NullabilityBuilder.fromNullability(node.nullability),
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
+        type: node);
+  }
+
+  @override
   TypeBuilder visitIntersectionType(IntersectionType node) {
     throw "Not implemented";
   }
@@ -220,5 +225,11 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         new NullabilityBuilder.fromNullability(node.nullability),
         missingUri,
         TreeNode.noOffset);
+  }
+
+  @override
+  TypeBuilder visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 }

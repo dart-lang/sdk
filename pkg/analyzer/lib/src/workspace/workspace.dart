@@ -9,6 +9,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// Abstract superclass of classes that provide information about the workspace
@@ -73,6 +74,17 @@ abstract class WorkspacePackage {
   String get root;
 
   Workspace get workspace;
+
+  /// Return `true` if this compilation unit [node] is not within the `lib` and
+  /// `bin` directories in the given [package]'s directory tree, and hence the
+  /// import's can be listed in the dev_dependencies section of the pubspec.yaml
+  /// file.
+  bool canBeDevDependency(Source source) {
+    var cuPath = source.fullName;
+    var libDir = path.join(root, 'lib');
+    var binDir = path.join(root, 'bin');
+    return !(path.isWithin(libDir, cuPath) || path.isWithin(binDir, cuPath));
+  }
 
   bool contains(Source source);
 

@@ -59,7 +59,7 @@ static method foo<X extends core::Object? = dynamic>(core::bool not, self::foo::
   }
   self::St|get#st<self::foo::X%>(bc)<(self::foo::X%) → self::foo::X%>;
   self::St|get#st<self::foo::X%>(bc)<(self::foo::X%) → self::foo::X%>;
-  (new self::Rt::•<self::foo::X%>(bc).{self::Rt::rt}{<covariant-by-class T2 extends (self::foo::X%) → self::foo::X%>() → void} as{TypeError,CovarianceCheck} <covariant-by-class T2 extends (self::foo::X%) → self::foo::X%>() → void)<(self::foo::X%) → self::foo::X%>;
+  (new self::Rt::•<self::foo::X%>(bc).{self::Rt::rt}{<T2 extends (self::foo::X%) → self::foo::X%>() → void} as{TypeError,CovarianceCheck} <T2 extends (self::foo::X%) → self::foo::X%>() → void)<(self::foo::X%) → self::foo::X%>;
 }
 static extension-member method St|st<T extends core::Object? = dynamic, T2 extends (self::St|st::T%) → self::St|st::T% = (dynamic) → dynamic>(lowered final self::St|st::T% #this) → void {}
 static extension-member method St|get#st<T extends core::Object? = dynamic>(lowered final self::St|get#st::T% #this) → <T2 extends (self::St|get#st::T%) → self::St|get#st::T% = (dynamic) → dynamic>() → void

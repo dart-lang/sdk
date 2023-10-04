@@ -389,10 +389,9 @@ class LinterContextImpl implements LinterContext {
       errorReporter,
     );
 
-    // TODO(kallentu): Remove unwrapping of Constant
-    var constant = node.accept(visitor);
-    var value = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult(value, errorListener.errors);
+    var constant = visitor.evaluateAndReportInvalidConstant(node);
+    var dartObject = constant is DartObjectImpl ? constant : null;
+    return LinterConstantEvaluationResult(dartObject, errorListener.errors);
   }
 
   @override

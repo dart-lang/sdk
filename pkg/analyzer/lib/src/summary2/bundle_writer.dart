@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -84,6 +85,9 @@ class BundleWriter {
       _sink._writeStringReference(library.uriStr);
       _sink.writeUInt30(library.offset);
       _sink.writeUint30List(library.classMembersOffsets);
+      _sink.writeOptionalObject(library.macroGenerated, (it) {
+        _sink.writeStringUtf8(it.code);
+      });
     });
 
     var referencesOffset = _sink.offset;
@@ -120,6 +124,8 @@ class BundleWriter {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
     _resolutionSink.writeElement(libraryElement.entryPoint);
+    _writeFieldNameNonPromotabilityInfo(
+        libraryElement.fieldNameNonPromotabilityInfo);
     LibraryElementFlags.write(_sink, libraryElement);
     _writeUnitElement(libraryElement.definingCompilationUnit);
     _writeList(libraryElement.parts, _writePartElement);
@@ -130,16 +136,24 @@ class BundleWriter {
 
     _writePropertyAccessorAugmentations();
 
+    final lastAugmentation = libraryElement.augmentations.lastOrNull;
+    final macroGenerated = lastAugmentation?.macroGenerated;
+
     _libraries.add(
       _Library(
         uriStr: '${libraryElement.source.uri}',
         offset: libraryOffset,
         classMembersOffsets: _classMembersLengths,
+        macroGenerated: macroGenerated,
       ),
     );
   }
 
   void _writeAugmentationElement(LibraryAugmentationElementImpl augmentation) {
+    _sink.writeOptionalObject(augmentation.macroGenerated, (macroGenerated) {
+      _sink.writeStringUtf8(macroGenerated.code);
+      _sink.writeUint8List(macroGenerated.informativeBytes);
+    });
     _writeUnitElement(augmentation.definingCompilationUnit);
     // The offset where resolution for the augmentation starts.
     // We need it to skip resolution information from the unit.
@@ -155,7 +169,7 @@ class BundleWriter {
   void _writeClassElement(ClassElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     ClassElementFlags.write(_sink, element);
 
     _sink.writeList<MacroApplicationError>(
@@ -205,7 +219,7 @@ class BundleWriter {
 
   void _writeConstructorElement(ConstructorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -259,7 +273,7 @@ class BundleWriter {
 
   void _writeEnumElement(EnumElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     EnumElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -313,8 +327,8 @@ class BundleWriter {
   void _writeExtensionElement(ExtensionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeOptionalStringReference(element.name);
-    _sink._writeStringReference(element.reference!.name);
+    _writeReference(element);
+    _sink.writeBool(element.name != null);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -335,8 +349,7 @@ class BundleWriter {
 
   void _writeExtensionTypeElement(ExtensionTypeElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     ExtensionTypeElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -364,7 +377,9 @@ class BundleWriter {
 
   void _writeFieldElement(FieldElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
+    _writeOptionalReference(element.getter);
+    _writeOptionalReference(element.setter);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -379,9 +394,35 @@ class BundleWriter {
     _resolutionSink._writeOptionalNode(element.constantInitializer);
   }
 
+  void _writeFieldNameNonPromotabilityInfo(
+      Map<String, FieldNameNonPromotabilityInfo>? info) {
+    // The summary format for `LibraryElementImpl.fieldNameNonPromotabilityInfo`
+    // is as follows:
+    // - bool: `true` if field name non-promotability information is present,
+    //   `false` if not.
+    // - If information is present:
+    //   - Uint30: number of entries in the map.
+    //   - For each map entry:
+    //     - String reference: key
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingFields`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingGetters`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingNsmClasses`
+    _resolutionSink.writeBool(info != null);
+    if (info == null) {
+      return;
+    }
+    _resolutionSink.writeUInt30(info.length);
+    for (var MapEntry(:key, :value) in info.entries) {
+      _resolutionSink._writeStringReference(key);
+      _resolutionSink._writeElementList(value.conflictingFields);
+      _resolutionSink._writeElementList(value.conflictingGetters);
+      _resolutionSink._writeElementList(value.conflictingNsmClasses);
+    }
+  }
+
   void _writeFunctionElement(FunctionElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     FunctionElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -450,7 +491,7 @@ class BundleWriter {
 
   void _writeMethodElement(MethodElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -467,7 +508,7 @@ class BundleWriter {
   void _writeMixinElement(MixinElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -520,6 +561,13 @@ class BundleWriter {
     }
   }
 
+  /// Write the reference of a non-local element.
+  void _writeOptionalReference(ElementImpl? element) {
+    _sink.writeOptionalObject(element, (element) {
+      _writeReference(element);
+    });
+  }
+
   /// TODO(scheglov) Deduplicate parameter writing implementation.
   void _writeParameterElement(ParameterElement element) {
     element as ParameterElementImpl;
@@ -527,6 +575,7 @@ class BundleWriter {
     _sink.writeBool(element is ConstVariableElement);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
+    _writeReference(element);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 
@@ -561,7 +610,7 @@ class BundleWriter {
 
   void _writePropertyAccessorElement(PropertyAccessorElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.displayName);
+    _writeReference(element);
     PropertyAccessorElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
@@ -574,9 +623,18 @@ class BundleWriter {
     }
   }
 
+  /// Write the reference of a non-local element.
+  void _writeReference(ElementImpl element) {
+    final reference = element.reference;
+    final index = _references._indexOfReference(reference);
+    _sink.writeUInt30(index);
+  }
+
   void _writeTopLevelVariableElement(TopLevelVariableElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
+    _writeOptionalReference(element.getter);
+    _writeOptionalReference(element.setter);
     _sink.writeBool(element.isConst);
     TopLevelVariableElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -588,7 +646,7 @@ class BundleWriter {
   void _writeTypeAliasElement(TypeAliasElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
-    _sink._writeStringReference(element.name);
+    _writeReference(element);
     _sink.writeBool(element.isFunctionTypeAliasBased);
     TypeAliasElementFlags.write(_sink, element);
 
@@ -1125,10 +1183,14 @@ class _Library {
   final int offset;
   final List<int> classMembersOffsets;
 
+  /// The only (if any) macro generated augmentation.
+  final MacroGeneratedAugmentationLibrary? macroGenerated;
+
   _Library({
     required this.uriStr,
     required this.offset,
     required this.classMembersOffsets,
+    required this.macroGenerated,
   });
 }
 

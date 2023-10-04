@@ -1,6 +1,6 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
 
@@ -21,7 +21,8 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   const _InvalidTypeFinder();
 
   @override
-  bool defaultDartType(DartType node, Set<TypedefType> visitedTypedefs) {
+  bool visitAuxiliaryType(
+      AuxiliaryType node, Set<TypedefType> visitedTypedefs) {
     if (node is UnknownType) {
       return false;
     } else {
@@ -73,7 +74,7 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   bool visitFunctionType(FunctionType node, Set<TypedefType> visitedTypedefs) {
     if (node.returnType.accept1(this, visitedTypedefs)) return true;
-    for (TypeParameter typeParameter in node.typeParameters) {
+    for (StructuralParameter typeParameter in node.typeParameters) {
       if (typeParameter.bound.accept1(this, visitedTypedefs)) return true;
       // TODO(cstefantsova): Check defaultTypes as well if they cause cascading
       // errors.
@@ -102,6 +103,15 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   bool visitTypeParameterType(
       TypeParameterType node, Set<TypedefType> visitedTypedefs) {
+    // node.parameter.bound is not checked because such a bound doesn't
+    // automatically means that the potential errors related to the occurrences
+    // of the type-parameter type itself are reported.
+    return false;
+  }
+
+  @override
+  bool visitStructuralParameterType(
+      StructuralParameterType node, Set<TypedefType> visitedTypedefs) {
     // node.parameter.bound is not checked because such a bound doesn't
     // automatically means that the potential errors related to the occurrences
     // of the type-parameter type itself are reported.

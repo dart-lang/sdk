@@ -9,8 +9,8 @@
 class C1 {
   C2? bad;
   //  ^^^
-  // [context 3] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 7] 'bad' refers to a property so it couldn't be promoted.
+  // [context 1] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 7] 'bad' refers to a public field so it couldn't be promoted.
 }
 
 class C2 {
@@ -21,7 +21,7 @@ instance_method_invocation(C1 c) {
   if (c.bad == null) return;
   c.bad();
 //^^^^^
-// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //     ^
 // [cfe 7] Can't use an expression of type 'C2?' as a function because it's potentially null.
 }
@@ -30,8 +30,8 @@ class C3 {
   C4? ok;
   C5? bad;
   //  ^^^
-  // [context 1] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 8] 'bad' refers to a property so it couldn't be promoted.
+  // [context 2] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 8] 'bad' refers to a public field so it couldn't be promoted.
 }
 
 class C4 {}
@@ -52,7 +52,7 @@ extension_invocation_method(C3 c) {
   if (c.bad == null) return;
   c.bad();
 //^^^^^
-// [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //     ^
 // [cfe 8] Can't use an expression of type 'C5?' as a function because it's potentially null.
 }
@@ -60,8 +60,8 @@ extension_invocation_method(C3 c) {
 class C6 {
   C7? bad;
   //  ^^^
-  // [context 6] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 9] 'bad' refers to a property so it couldn't be promoted.
+  // [context 3] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 9] 'bad' refers to a public field so it couldn't be promoted.
 }
 
 class C7 {
@@ -73,7 +73,7 @@ instance_getter_invocation(C6 c) {
   c.bad();
 //^^^^^
 // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-// [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 //     ^
 // [cfe 9] Can't use an expression of type 'C7?' as a function because it's potentially null.
 }
@@ -81,8 +81,8 @@ instance_getter_invocation(C6 c) {
 class C8 {
   C10? bad;
   //   ^^^
-  // [context 4] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 10] 'bad' refers to a property so it couldn't be promoted.
+  // [context 4] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 10] 'bad' refers to a public field so it couldn't be promoted.
 }
 
 class C10 {}
@@ -103,8 +103,8 @@ extension_invocation_getter(C8 c) {
 class C11 {
   void Function()? bad;
   //               ^^^
-  // [context 5] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 11] 'bad' refers to a property so it couldn't be promoted.
+  // [context 5] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 11] 'bad' refers to a public field so it couldn't be promoted.
 }
 
 function_invocation(C11 c) {
@@ -119,8 +119,8 @@ function_invocation(C11 c) {
 class C12 {
   C13? bad;
   //   ^^^
-  // [context 2] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 12] 'bad' refers to a property so it couldn't be promoted.
+  // [context 6] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 12] 'bad' refers to a public field so it couldn't be promoted.
 }
 
 class C13 {
@@ -134,6 +134,6 @@ instance_field_invocation(C12 c) {
   // https://github.com/dart-lang/sdk/issues/45552
   c.bad.foo();
 //      ^^^
-// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 6] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 12] Can't use an expression of type 'C13?' as a function because it's potentially null.
 }

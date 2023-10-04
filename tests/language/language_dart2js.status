@@ -7,6 +7,7 @@
 async_star/async_star_await_for_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/51086
 external_abstract_fields/external_fields_test: SkipByDesign # Non-JS-interop external members are not supported
 inference_update_2/external_field_test: SkipByDesign # Non-JS-interop external members are not supported
+inference_update_2/why_not_promoted_external_error_test: SkipByDesign # Non-JS-interop external members are not supported
 mixin_method_override_test/G5: Skip # Issue 34354
 number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics
 vm/*: SkipByDesign # Tests for the VM.

@@ -66,7 +66,7 @@ DEFINE_NATIVE_ENTRY(Double_div, 0, 2) {
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Double_div %f / %f\n", left, right);
   }
-  return Double::New(left / right);
+  return Double::New(Utils::DivideAllowZero(left, right));
 }
 
 DEFINE_NATIVE_ENTRY(Double_modulo, 0, 2) {

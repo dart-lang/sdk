@@ -4,9 +4,6 @@
 
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-// TODO(joshualitt): Once we reify JS types on JS backends, we can add a
-// constructor to [JSObject].
-import 'dart:js_util' show newObject;
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
@@ -15,7 +12,7 @@ import 'package:expect/expect.dart';
 external void eval(String code);
 
 void createObjectTest() {
-  JSObject o = newObject<JSObject>();
+  JSObject o = JSObject();
   Expect.isFalse(o.hasProperty('foo'.toJS).toDart);
   o['foo'] = 'bar'.toJS;
   Expect.isTrue(o.hasProperty('foo'.toJS).toDart);
@@ -25,8 +22,8 @@ void createObjectTest() {
 void equalTest() {
   // Different objects aren't equal.
   {
-    JSObject o1 = newObject<JSObject>();
-    JSObject o2 = newObject<JSObject>();
+    JSObject o1 = JSObject();
+    JSObject o2 = JSObject();
     Expect.notEquals(o1, o2);
   }
 
@@ -82,11 +79,10 @@ void typeofTest() {
     'symbol'
   };
   void test(String property, String expectedType) {
-    Expect.isTrue(
-        globalContext[property]?.typeofEquals(expectedType.toJS).toDart);
+    Expect.isTrue(globalContext[property]?.typeofEquals(expectedType));
     for (final type in types) {
       if (type != expectedType) {
-        Expect.isFalse(globalContext[property]?.typeofEquals(type.toJS).toDart);
+        Expect.isFalse(globalContext[property]?.typeofEquals(type));
       }
     }
   }
@@ -112,8 +108,10 @@ void instanceOfTest() {
   JSObject obj = gc['obj'] as JSObject;
   JSFunction jsClass1Constructor = gc['JSClass1'] as JSFunction;
   JSFunction jsClass2Constructor = gc['JSClass2'] as JSFunction;
-  Expect.isTrue(obj.instanceof(jsClass1Constructor).toDart);
-  Expect.isFalse(obj.instanceof(jsClass2Constructor).toDart);
+  Expect.isTrue(obj.instanceof(jsClass1Constructor));
+  Expect.isFalse(obj.instanceof(jsClass2Constructor));
+  Expect.isTrue(obj.instanceOfString('JSClass1'));
+  Expect.isFalse(obj.instanceOfString('JSClass2'));
 }
 
 void _expectIterableEquals(Iterable<Object?> l, Iterable<Object?> r) {

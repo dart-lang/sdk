@@ -1,11 +1,9 @@
----- unknown chunk starts ----
-extension type V<X1 extends num, X2 extends Object>(X1 id) {}
----- unknown chunk ends ----
 V<int, int> foo<T extends V<num, Object>>(T t) => t as V<int, int>;
 class C<T extends V<num, Object>> {
   Foo<T> f = foo<V<int, int>>;
 }
 expect(expected, actual) {}
+extension type V<X1 extends num, X2 extends Object>(X1 id) {}
 main() {}
 typedef IntNumV = V<int, num>;
 typedef V<int, int> Foo<T extends V<num, Object>>(V<int, int> v);

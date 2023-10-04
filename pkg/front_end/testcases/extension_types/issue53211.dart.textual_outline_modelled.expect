@@ -1,8 +1,11 @@
----- unknown chunk starts ----
-extension type ET1(int id) {} extension type ET2<T>(T id) {} extension type ET3.new(int id) {} extension type ET4<T>.new(T id) {} extension type ET5.n(int id) {} extension type ET6<T>.n(T id) {}
----- unknown chunk ends ----
 extension StaticType<T> on T {
   T expectStaticType<R extends Exactly<T>>() {}
 }
+extension type ET1(int id) {}
+extension type ET2<T>(T id) {}
+extension type ET3.new(int id) {}
+extension type ET4<T>.new(T id) {}
+extension type ET5.n(int id) {}
+extension type ET6<T>.n(T id) {}
 main() {}
 typedef Exactly<T> = T Function(T);

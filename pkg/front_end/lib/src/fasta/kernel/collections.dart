@@ -25,7 +25,7 @@ import 'internal_ast.dart';
 /// appear in arbitrary expression contexts in the Kernel program.  They can
 /// only appear as elements in list or set literals.  They are translated into
 /// a lower-level representation and never serialized to .dill files.
-mixin ControlFlowElement on Expression {
+mixin ControlFlowElement on AuxiliaryExpression {
   /// Spread and control-flow elements are not expressions and do not have a
   /// static type.
   @override
@@ -39,11 +39,11 @@ mixin ControlFlowElement on Expression {
   }
 
   @override
-  R accept<R>(ExpressionVisitor<R> v) => v.defaultExpression(this);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitAuxiliaryExpression(this);
 
   @override
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
-      v.defaultExpression(this, arg);
+      v.visitAuxiliaryExpression(this, arg);
 
   /// Returns this control flow element as a [MapLiteralEntry], or `null` if
   /// this control flow element cannot be converted into a [MapLiteralEntry].
@@ -57,7 +57,7 @@ mixin ControlFlowElement on Expression {
 }
 
 /// A spread element in a list or set literal.
-class SpreadElement extends Expression with ControlFlowElement {
+class SpreadElement extends AuxiliaryExpression with ControlFlowElement {
   Expression expression;
   bool isNullAware;
 
@@ -111,7 +111,7 @@ class SpreadElement extends Expression with ControlFlowElement {
 }
 
 /// An 'if' element in a list or set literal.
-class IfElement extends Expression with ControlFlowElement {
+class IfElement extends AuxiliaryExpression with ControlFlowElement {
   Expression condition;
   Expression then;
   Expression? otherwise;
@@ -197,7 +197,7 @@ class IfElement extends Expression with ControlFlowElement {
 }
 
 /// A 'for' element in a list or set literal.
-class ForElement extends Expression with ControlFlowElement {
+class ForElement extends AuxiliaryExpression with ControlFlowElement {
   final List<VariableDeclaration> variables; // May be empty, but not null.
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -286,7 +286,7 @@ class ForElement extends Expression with ControlFlowElement {
 }
 
 /// A 'for-in' element in a list or set literal.
-class ForInElement extends Expression with ControlFlowElement {
+class ForInElement extends AuxiliaryExpression with ControlFlowElement {
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Expression? syntheticAssignment; // May be null.
@@ -415,10 +415,11 @@ mixin ControlFlowMapEntry implements MapLiteralEntry {
   }
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.defaultTreeNode(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitMapLiteralEntry(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.defaultTreeNode(this, arg);
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) =>
+      v.visitMapLiteralEntry(this, arg);
 
   @override
   String toStringInternal() => toText(defaultAstTextStrategy);

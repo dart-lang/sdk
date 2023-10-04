@@ -70,9 +70,16 @@ import '../fasta_codes.dart'
         noLength,
         templateDuplicatedRecordLiteralFieldName,
         templateDuplicatedRecordLiteralFieldNameContext,
-        templateExperimentNotEnabledOffByDefault;
+        templateExperimentNotEnabledOffByDefault,
+        templateLocalVariableUsedBeforeDeclared,
+        templateLocalVariableUsedBeforeDeclaredContext;
 import '../identifiers.dart'
-    show Identifier, InitializedIdentifier, QualifiedName, flattenName;
+    show
+        Identifier,
+        InitializedIdentifier,
+        QualifiedName,
+        SimpleIdentifier,
+        flattenName;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
 import '../names.dart' show emptyName, minusName, plusName;
@@ -741,17 +748,25 @@ class BodyBuilder extends StackListenerImpl
     if (isGuardScope(scope)) {
       (declaredInCurrentGuard ??= {}).add(variable);
     }
-    LocatedMessage? context = scope.declare(
-        variable.name!, new VariableBuilderImpl(variable, uri), uri);
-    if (context != null) {
+    String variableName = variable.name!;
+    List<int>? previousOffsets = scope.declare(
+        variableName, new VariableBuilderImpl(variable, uri), uri);
+    if (previousOffsets != null && previousOffsets.isNotEmpty) {
       // This case is different from the above error. In this case, the problem
       // is using `x` before it's declared: `{ var x; { print(x); var x;
       // }}`. In this case, we want two errors, the `x` in `print(x)` and the
       // second (or innermost declaration) of `x`.
-      wrapVariableInitializerInError(
-          variable,
-          fasta.templateDuplicatedNamePreviouslyUsed,
-          <LocatedMessage>[context]);
+      for (int previousOffset in previousOffsets) {
+        addProblem(
+            templateLocalVariableUsedBeforeDeclared.withArguments(variableName),
+            previousOffset,
+            variableName.length,
+            context: <LocatedMessage>[
+              templateLocalVariableUsedBeforeDeclaredContext
+                  .withArguments(variableName)
+                  .withLocation(uri, variable.fileOffset, variableName.length)
+            ]);
+      }
     }
   }
 
@@ -924,7 +939,7 @@ class BodyBuilder extends StackListenerImpl
       Identifier identifier = pop() as Identifier;
       String name = identifier.name;
       Builder declaration = _context.lookupLocalMember(name, required: true)!;
-      int fileOffset = identifier.charOffset;
+      int fileOffset = identifier.nameOffset;
       while (declaration.next != null) {
         // If we have duplicates, we try to find the right declaration.
         if (declaration.fileUri == uri &&
@@ -3178,7 +3193,7 @@ class BodyBuilder extends StackListenerImpl
       if (token.isSynthetic) {
         push(new ParserRecovery(offsetForToken(token)));
       } else {
-        push(new Identifier(token));
+        push(new SimpleIdentifier(token));
       }
     }
     assert(checkState(token, [
@@ -3422,7 +3437,16 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleQualified(Token period) {
-    debugEvent("Qualified");
+    debugEvent("handleQualified");
+    assert(checkState(period, [
+      /* suffix */ ValueKinds.IdentifierOrParserRecovery,
+      /* prefix */ unionOfKinds([
+        ValueKinds.IdentifierOrParserRecovery,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+    ]));
+
     Object? node = pop();
     Object? qualifier = pop();
     if (qualifier is ParserRecovery) {
@@ -3443,7 +3467,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   void handleStringPart(Token token) {
-    debugEvent("StringPart");
+    debugEvent("handleStringPart");
     push(token);
   }
 
@@ -3767,7 +3791,7 @@ class BodyBuilder extends StackListenerImpl
         isStaticLate: libraryBuilder.isNonNullableByDefault &&
             isFinal &&
             initializer == null)
-      ..fileOffset = identifier.charOffset
+      ..fileOffset = identifier.nameOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer.assignedVariables.declare(variable);
     push(variable);
@@ -5079,7 +5103,7 @@ class BodyBuilder extends StackListenerImpl
             ? new InvalidTypeBuilderImpl(uri, type.charOffset)
             : type as TypeBuilder,
         name is Identifier ? name.name : null,
-        name is Identifier ? name.charOffset : TreeNode.noOffset));
+        name is Identifier ? name.nameOffset : TreeNode.noOffset));
   }
 
   @override
@@ -5117,10 +5141,11 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
+
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
-        typeVariables);
+        libraryBuilder.convertNominalToStructuralTypeVariables(typeVariables));
     exitLocalScope();
     push(type);
   }
@@ -5433,7 +5458,7 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(question != null),
-        typeVariables);
+        libraryBuilder.convertNominalToStructuralTypeVariables(typeVariables));
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -5833,7 +5858,7 @@ class BodyBuilder extends StackListenerImpl
         if (typeArguments != null) {
           // TODO(ahe): Point to the type arguments instead.
           addProblem(fasta.messageConstructorWithTypeArguments,
-              identifier.charOffset, identifier.name.length);
+              identifier.nameOffset, identifier.name.length);
         }
       } else if (qualifier is Generator) {
         if (constructorReferenceContext !=
@@ -6140,7 +6165,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     List<Object> types = forest.argumentsTypeArguments(arguments);
-    List<TypeParameter> typeParameters = function.typeParameters;
+    List<StructuralParameter> typeParameters = function.typeParameters;
     if (typeParameters.length != types.length && types.length != 0) {
       // A wrong (non-zero) amount of type arguments given. That's an error.
       // TODO(jensj): Position should be on type arguments instead.
@@ -6428,6 +6453,7 @@ class BodyBuilder extends StackListenerImpl
             // TODO(johnniwinther): Handle this case.
             case TypeAliasBuilder():
             case TypeVariableBuilder():
+            case StructuralVariableBuilder():
             case ExtensionBuilder():
             case BuiltinTypeDeclarationBuilder():
             // TODO(johnniwinther): How should we handle this case?
@@ -6468,6 +6494,7 @@ class BodyBuilder extends StackListenerImpl
             // TODO(johnniwinther): Handle this case.
             case TypeAliasBuilder():
             case TypeVariableBuilder():
+            case StructuralVariableBuilder():
             case ExtensionBuilder():
             case InvalidTypeDeclarationBuilder():
             case BuiltinTypeDeclarationBuilder():
@@ -6551,6 +6578,7 @@ class BodyBuilder extends StackListenerImpl
         // TODO(johnniwinther): Handle this case.
         case TypeAliasBuilder():
         case TypeVariableBuilder():
+        case StructuralVariableBuilder():
         case ExtensionBuilder():
         case InvalidTypeDeclarationBuilder():
         case BuiltinTypeDeclarationBuilder():
@@ -6641,6 +6669,7 @@ class BodyBuilder extends StackListenerImpl
                 nameToken.lexeme.length));
       case TypeAliasBuilder():
       case TypeVariableBuilder():
+      case StructuralVariableBuilder():
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
       // TODO(johnniwinther): How should we handle this case?
@@ -7007,7 +7036,7 @@ class BodyBuilder extends StackListenerImpl
     Object? identifier = pop();
     if (identifier is Identifier) {
       push(new NamedExpression(identifier.name, value)
-        ..fileOffset = identifier.charOffset);
+        ..fileOffset = identifier.nameOffset);
     } else {
       assert(
           identifier is ParserRecovery,
@@ -7030,12 +7059,12 @@ class BodyBuilder extends StackListenerImpl
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
         isLocalFunction: true)
-      ..fileOffset = name.charOffset;
+      ..fileOffset = name.nameOffset;
     // TODO(ahe): Why are we looking up in local scope, but declaring in parent
     // scope?
     Builder? existing = scope.lookupLocalMember(name.name, setter: false);
     if (existing != null) {
-      reportDuplicatedDeclaration(existing, name.name, name.charOffset);
+      reportDuplicatedDeclaration(existing, name.name, name.nameOffset);
     }
     push(new FunctionDeclarationImpl(
         variable,
@@ -7580,7 +7609,7 @@ class BodyBuilder extends StackListenerImpl
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop() as Identifier;
-    push(new Label(identifier.name, identifier.charOffset));
+    push(new Label(identifier.name, identifier.nameOffset));
   }
 
   @override
@@ -8095,7 +8124,7 @@ class BodyBuilder extends StackListenerImpl
             scope.kind == ScopeKind.jointVariables,
         "Expected the current scope to be of kind '${ScopeKind.switchCase}' "
         "or '${ScopeKind.jointVariables}', but got '${scope.kind}.");
-    Map<String, int>? usedNamesOffsets = scope.usedNames;
+    Map<String, List<int>>? usedNamesOffsets = scope.usedNames;
 
     bool hasDefaultOrLabels = defaultKeyword != null || labelCount > 0;
 
@@ -8105,10 +8134,9 @@ class BodyBuilder extends StackListenerImpl
       usedJointPatternVariables = [];
       Map<VariableDeclaration, int> firstUseOffsets = {};
       for (VariableDeclaration variable in jointPatternVariables) {
-        int? firstUseOffset = usedNamesOffsets?[variable.name!];
-        if (firstUseOffset != null) {
+        if (usedNamesOffsets?[variable.name!] case [int offset, ...]) {
           usedJointPatternVariables.add(variable);
-          firstUseOffsets[variable] = firstUseOffset;
+          firstUseOffsets[variable] = offset;
         }
       }
       if (jointPatternVariablesWithMismatchingFinality != null ||
@@ -8171,8 +8199,7 @@ class BodyBuilder extends StackListenerImpl
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
           String variableName = variable.name!;
-          int? offset = usedNamesOffsets[variableName];
-          if (offset != null) {
+          if (usedNamesOffsets[variableName] case [int offset, ...]) {
             addProblem(
                 fasta.templateJointPatternVariableWithLabelDefault
                     .withArguments(variableName),
@@ -8551,7 +8578,7 @@ class BodyBuilder extends StackListenerImpl
           return;
         }
         switchScope!.forwardDeclareLabel(
-            identifier.name, target = createGotoTarget(identifier.charOffset));
+            identifier.name, target = createGotoTarget(identifier.nameOffset));
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
@@ -8596,7 +8623,7 @@ class BodyBuilder extends StackListenerImpl
     int typeVariableCharOffset;
     if (name is Identifier) {
       typeVariableName = name.name;
-      typeVariableCharOffset = name.charOffset;
+      typeVariableCharOffset = name.nameOffset;
     } else if (name is ParserRecovery) {
       typeVariableName = TypeVariableBuilder.noNameSentinel;
       typeVariableCharOffset = name.charOffset;
@@ -8654,7 +8681,7 @@ class BodyBuilder extends StackListenerImpl
         peek() as List<TypeVariableBuilder>;
 
     List<TypeBuilder> unboundTypes = [];
-    List<TypeVariableBuilder> unboundTypeVariables = [];
+    List<StructuralVariableBuilder> unboundTypeVariables = [];
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeVariables,
         libraryBuilder.loader.target.dynamicType,
@@ -8966,7 +8993,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
-    push(new Identifier(token));
+    push(new SimpleIdentifier(token));
   }
 
   @override
@@ -9033,7 +9060,8 @@ class BodyBuilder extends StackListenerImpl
           :TypeDeclarationBuilder? declaration,
           :List<TypeBuilder>? arguments
         ):
-        if (declaration!.isTypeVariable) {
+        if (declaration!.isTypeVariable &&
+            builder.declaration is TypeVariableBuilder) {
           TypeVariableBuilder typeParameterBuilder =
               declaration as TypeVariableBuilder;
           TypeParameter typeParameter = typeParameterBuilder.parameter;
@@ -9063,12 +9091,12 @@ class BodyBuilder extends StackListenerImpl
           }
         }
       case FunctionTypeBuilder(
-          :List<TypeVariableBuilder>? typeVariables,
+          :List<StructuralVariableBuilder>? typeVariables,
           :List<ParameterBuilder>? formals,
           :TypeBuilder returnType
         ):
         if (typeVariables != null) {
-          for (TypeVariableBuilder typeVariable in typeVariables) {
+          for (StructuralVariableBuilder typeVariable in typeVariables) {
             _validateTypeVariableUseInternal(typeVariable.bound,
                 allowPotentiallyConstantType: allowPotentiallyConstantType);
             _validateTypeVariableUseInternal(typeVariable.defaultType,
@@ -9898,9 +9926,27 @@ class FormalParameters {
 
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      [List<TypeVariableBuilder>? typeParameters]) {
-    return new FunctionTypeBuilderImpl(returnType, typeParameters, parameters,
-        nullabilityBuilder, uri, charOffset);
+      [FreshStructuralVariableBuildersFromNominalVariableBuilders?
+          freshStructuralParameters]) {
+    if (freshStructuralParameters != null) {
+      if (parameters != null) {
+        for (FormalParameterBuilder formal in parameters!) {
+          formal.type =
+              formal.type.subst(freshStructuralParameters.substitutionMap);
+        }
+      }
+      returnType = returnType.subst(freshStructuralParameters.substitutionMap);
+      return new FunctionTypeBuilderImpl(
+          returnType,
+          freshStructuralParameters.freshStructuralVariableBuilders,
+          parameters,
+          nullabilityBuilder,
+          uri,
+          charOffset);
+    } else {
+      return new FunctionTypeBuilderImpl(
+          returnType, null, parameters, nullabilityBuilder, uri, charOffset);
+    }
   }
 
   Scope computeFormalParameterScope(

@@ -623,7 +623,7 @@ class While extends Loop {
 class Do extends Loop {
   final Expression condition;
 
-  Do(Statement body, this.condition) : super(body);
+  Do(super.body, this.condition);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDo(this);
@@ -817,7 +817,7 @@ class Case extends SwitchClause {
 }
 
 class Default extends SwitchClause {
-  Default(Block body) : super(body);
+  Default(super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitDefault(this);
@@ -1140,7 +1140,7 @@ class SimpleBindingPattern extends BindingPattern {
 }
 
 class ObjectBindingPattern extends BindingPattern {
-  ObjectBindingPattern(List<DestructuredVariable> variables) : super(variables);
+  ObjectBindingPattern(super.variables);
   @override
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitObjectBindingPattern(this);
@@ -1153,7 +1153,7 @@ class ObjectBindingPattern extends BindingPattern {
 }
 
 class ArrayBindingPattern extends BindingPattern {
-  ArrayBindingPattern(List<DestructuredVariable> variables) : super(variables);
+  ArrayBindingPattern(super.variables);
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayBindingPattern(this);
 
@@ -1213,7 +1213,7 @@ class Call extends Expression {
 }
 
 class New extends Call {
-  New(Expression cls, List<Expression> arguments) : super(cls, arguments);
+  New(super.cls, super.arguments);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitNew(this);

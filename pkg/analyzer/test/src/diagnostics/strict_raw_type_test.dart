@@ -85,6 +85,31 @@ void g(C a) {}
 ''');
   }
 
+  test_genericTypeArgument_extensionType_missingTypeArg() async {
+    await assertErrorsInCode(r'''
+extension type E<T>(int i) {}
+
+void f() {
+  var e = <List<E>>[];
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+      error(WarningCode.STRICT_RAW_TYPE, 58, 1),
+    ]);
+  }
+
+  test_genericTypeArgument_extensionType_withTypeArg() async {
+    await assertErrorsInCode(r'''
+extension type E<T>(int i) {}
+
+void f() {
+  var e = <List<E<int>>>[];
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
+  }
+
   test_genericTypeArgument_missingTypeArg() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -122,6 +147,31 @@ void f(dynamic x) {
   print(x is List<List>);
 }
 ''');
+  }
+
+  test_localVariable_extensionType_missingTypeArg() async {
+    await assertErrorsInCode(r'''
+extension type E<T>(int i) {}
+    
+void f() {
+  E e = E(1);
+}
+''', [
+      error(WarningCode.STRICT_RAW_TYPE, 48, 1),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+    ]);
+  }
+
+  test_localVariable_extensionType_withTypeArg() async {
+    await assertErrorsInCode(r'''
+extension type E<T>(int i) {}
+    
+void f() {
+  E<int> e = E<int>(1);
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+    ]);
   }
 
   test_localVariable_missingTypeArg() async {

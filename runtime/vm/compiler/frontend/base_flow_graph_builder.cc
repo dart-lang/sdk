@@ -1263,15 +1263,6 @@ Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::DoubleToDouble(
-    MethodRecognizer::Kind recognized_kind) {
-  Value* value = Pop();
-  auto* instr =
-      new (Z) DoubleToDoubleInstr(value, recognized_kind, GetNextDeoptId());
-  Push(instr);
-  return Fragment(instr);
-}
-
 Fragment BaseFlowGraphBuilder::DoubleToInteger(
     MethodRecognizer::Kind recognized_kind) {
   Value* value = Pop();
@@ -1281,9 +1272,10 @@ Fragment BaseFlowGraphBuilder::DoubleToInteger(
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
+Fragment BaseFlowGraphBuilder::UnaryDoubleOp(Token::Kind op) {
   Value* value = Pop();
-  auto* instr = new (Z) MathUnaryInstr(kind, value, GetNextDeoptId());
+  auto* instr = new (Z) UnaryDoubleOpInstr(op, value, GetNextDeoptId(),
+                                           Instruction::kNotSpeculative);
   Push(instr);
   return Fragment(instr);
 }

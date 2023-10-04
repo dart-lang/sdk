@@ -1018,8 +1018,7 @@ abstract class ExpressionCompilerWorkerTestDriver {
 }
 
 class StandardFileSystemTestDriver extends ExpressionCompilerWorkerTestDriver {
-  StandardFileSystemTestDriver(SetupCompilerOptions setup, bool verbose)
-      : super(setup, verbose);
+  StandardFileSystemTestDriver(super.setup, super.verbose);
 
   @override
   Future<void> start() async {
@@ -1029,8 +1028,7 @@ class StandardFileSystemTestDriver extends ExpressionCompilerWorkerTestDriver {
 }
 
 class MultiRootFileSystemTestDriver extends ExpressionCompilerWorkerTestDriver {
-  MultiRootFileSystemTestDriver(SetupCompilerOptions setup, bool verbose)
-      : super(setup, verbose);
+  MultiRootFileSystemTestDriver(super.setup, super.verbose);
 
   @override
   Future<void> start() async {
@@ -1045,8 +1043,7 @@ class AssetFileSystemTestDriver extends ExpressionCompilerWorkerTestDriver {
   late TestAssetServer server;
   late int port;
 
-  AssetFileSystemTestDriver(SetupCompilerOptions setup, bool verbose)
-      : super(setup, verbose);
+  AssetFileSystemTestDriver(super.setup, super.verbose);
 
   @override
   Future<void> start() async {

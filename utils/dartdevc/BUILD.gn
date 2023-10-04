@@ -1,9 +1,0 @@
-# TODO(nshahan): Delete after updating the Flutter engine build.
-group("dartdevc_files_stamp") {
-  deps = [ "../ddc:ddc_files_stamp" ]
-}
-
-# TODO(nshahan): Delete after updating the Flutter engine build.
-group("dartdevc_sdk_patch_stamp") {
-  deps = [ "../ddc:ddc_sdk_patch_stamp" ]
-}

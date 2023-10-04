@@ -6,7 +6,7 @@ library fasta.constructor_reference_builder;
 
 import '../messages.dart' show noLength, templateConstructorNotFound;
 
-import '../identifiers.dart' show QualifiedName, flattenName;
+import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
 
 import '../scope.dart';
 
@@ -43,7 +43,7 @@ class ConstructorReferenceBuilder {
     final Object name = this.name;
     Builder? declaration;
     if (name is QualifiedName) {
-      String prefix = name.qualifier as String;
+      String prefix = (name.qualifier as Identifier).name;
       String middle = name.name;
       declaration = scope.lookup(prefix, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
@@ -60,6 +60,12 @@ class ConstructorReferenceBuilder {
           target = declaration;
           return;
         }
+      }
+    } else if (name is Identifier) {
+      declaration = scope.lookup(name.name, charOffset, fileUri);
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
     } else {
       declaration = scope.lookup(name as String, charOffset, fileUri);

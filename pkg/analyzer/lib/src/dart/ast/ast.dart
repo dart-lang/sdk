@@ -2704,6 +2704,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   Token? get abstractKeyword;
 
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  @experimental
   Token? get augmentKeyword;
 
   /// Return the 'base' keyword, or `null` if the keyword was absent.
@@ -2736,6 +2737,10 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
 
   /// Returns the left curly bracket.
   Token get leftBracket;
+
+  /// Return the 'macro' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get macroKeyword;
 
   /// Returns the members defined by the class.
   NodeList<ClassMember> get members;
@@ -2770,7 +2775,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   final Token? abstractKeyword;
 
-  /// The 'macro' keyword, or `null` if the keyword was absent.
+  @override
   final Token? macroKeyword;
 
   @override

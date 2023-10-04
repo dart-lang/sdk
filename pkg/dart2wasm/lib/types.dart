@@ -111,7 +111,7 @@ class Types {
 
   /// Index value for function type parameter types, indexing into the type
   /// parameter index range of their corresponding function type.
-  Map<TypeParameter, int> functionTypeParameterIndex = Map.identity();
+  Map<StructuralParameter, int> functionTypeParameterIndex = Map.identity();
 
   /// An `i8` array of type category values, indexed by class ID.
   late final w.Global typeCategoryTable = _buildTypeCategoryTable();
@@ -333,9 +333,6 @@ class Types {
     return global;
   }
 
-  bool isFunctionTypeParameter(TypeParameterType type) =>
-      type.parameter.declaration == null;
-
   bool _isTypeConstant(DartType type) {
     return type is DynamicType ||
         type is VoidType ||
@@ -351,7 +348,7 @@ class Types {
         (type is RecordType &&
             type.positional.every(_isTypeConstant) &&
             type.named.every((n) => _isTypeConstant(n.type))) ||
-        type is TypeParameterType && isFunctionTypeParameter(type) ||
+        type is StructuralParameterType ||
         type is ExtensionType && _isTypeConstant(type.typeErasure);
   }
 
@@ -380,11 +377,9 @@ class Types {
     } else if (type is FunctionType) {
       return translator.functionTypeClass;
     } else if (type is TypeParameterType) {
-      if (isFunctionTypeParameter(type)) {
-        return translator.functionTypeParameterTypeClass;
-      } else {
-        return translator.interfaceTypeParameterTypeClass;
-      }
+      return translator.interfaceTypeParameterTypeClass;
+    } else if (type is StructuralParameterType) {
+      return translator.functionTypeParameterTypeClass;
     } else if (type is ExtensionType) {
       return classForType(type.typeErasure);
     } else if (type is RecordType) {
@@ -570,7 +565,6 @@ class Types {
         type is FunctionType ||
         type is RecordType);
     if (type is TypeParameterType) {
-      assert(!isFunctionTypeParameter(type));
       codeGen.instantiateTypeParameter(type.parameter);
       if (type.declaredNullability == Nullability.nullable) {
         codeGen.call(translator.typeAsNullable.reference);
@@ -623,7 +617,7 @@ class Types {
 
   /// Get the index value for a function type parameter, indexing into the
   /// type parameter index range of its corresponding function type.
-  int getFunctionTypeParameterIndex(TypeParameter type) {
+  int getFunctionTypeParameterIndex(StructuralParameter type) {
     assert(functionTypeParameterIndex.containsKey(type),
         "Type parameter offset has not been computed for function type");
     return functionTypeParameterIndex[type]!;
@@ -743,7 +737,7 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
 
   final List<FunctionType> _functionStack = [];
   final List<Set<FunctionType>> _functionsContainingParameters = [];
-  final Map<TypeParameter, int> _functionForParameter = {};
+  final Map<StructuralParameter, int> _functionForParameter = {};
 
   _FunctionTypeParameterOffsetCollector(this.types);
 
@@ -754,7 +748,7 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
     _functionsContainingParameters.add({});
 
     for (int i = 0; i < node.typeParameters.length; i++) {
-      TypeParameter parameter = node.typeParameters[i];
+      StructuralParameter parameter = node.typeParameters[i];
       _functionForParameter[parameter] = slot;
     }
 
@@ -770,7 +764,7 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
     types.functionTypeParameterOffset[node] = offset;
 
     for (int i = 0; i < node.typeParameters.length; i++) {
-      TypeParameter parameter = node.typeParameters[i];
+      StructuralParameter parameter = node.typeParameters[i];
       types.functionTypeParameterIndex[parameter] = offset + i;
     }
 
@@ -779,12 +773,10 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
   }
 
   @override
-  void visitTypeParameterType(TypeParameterType node) {
-    if (types.isFunctionTypeParameter(node)) {
-      int slot = _functionForParameter[node.parameter]!;
-      for (int inner = slot + 1; inner < _functionStack.length; inner++) {
-        _functionsContainingParameters[slot].add(_functionStack[inner]);
-      }
+  void visitStructuralParameterType(StructuralParameterType node) {
+    int slot = _functionForParameter[node.parameter]!;
+    for (int inner = slot + 1; inner < _functionStack.length; inner++) {
+      _functionsContainingParameters[slot].add(_functionStack[inner]);
     }
   }
 }

@@ -1,6 +1,6 @@
 # Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
@@ -423,6 +423,30 @@ FieldNonNullableWithoutInitializerWarning/analyzerCode: Fail
 FieldNonNullableWithoutInitializerWarning/example: Fail
 FieldNotPromoted/analyzerCode: Fail
 FieldNotPromoted/example: Fail
+FieldNotPromotedBecauseConflictingField/analyzerCode: Fail
+FieldNotPromotedBecauseConflictingField/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingField/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingGetter/analyzerCode: Fail
+FieldNotPromotedBecauseConflictingGetter/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingGetter/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingNsmForwarder/analyzerCode: Fail
+FieldNotPromotedBecauseConflictingNsmForwarder/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingNsmForwarder/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseExternal/analyzerCode: Fail
+FieldNotPromotedBecauseExternal/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseExternal/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotEnabled/analyzerCode: Fail
+FieldNotPromotedBecauseNotEnabled/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotEnabled/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotField/analyzerCode: Fail
+FieldNotPromotedBecauseNotField/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotField/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotFinal/analyzerCode: Fail
+FieldNotPromotedBecauseNotFinal/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotFinal/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotPrivate/analyzerCode: Fail
+FieldNotPromotedBecauseNotPrivate/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotPrivate/script: Fail # https://github.com/dart-lang/sdk/issues/53634
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalClassExtendedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
@@ -624,6 +648,8 @@ JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: Fail # Web c
 JsInteropObjectLiteralConstructorPositionalParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
@@ -654,8 +680,6 @@ JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler s
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
-JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
-JsInteropStrictModeViolation/example: Fail # Web compiler specific
 JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
 JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail

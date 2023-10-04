@@ -1288,6 +1288,7 @@ severity: $severity
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
           case TypeVariableBuilder():
+          case StructuralVariableBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
           // TODO(johnniwinther): How should we handle this case?
@@ -1854,25 +1855,36 @@ severity: $severity
       ClassBuilder object, TypeBuilder dynamicType) {
     Map<TypeVariableBuilder, SourceLibraryBuilder> unboundTypeVariableBuilders =
         {};
+    Map<StructuralVariableBuilder, SourceLibraryBuilder>
+        unboundFunctionTypeTypeVariableBuilders = {};
     for (SourceLibraryBuilder library in libraryBuilders) {
-      library.collectUnboundTypeVariables(unboundTypeVariableBuilders);
+      library.collectUnboundTypeVariables(
+          unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
     }
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List<TypeVariableBuilder> sortedTypeVariableBuilders =
-        sortTypeVariablesTopologically(unboundTypeVariableBuilders.keys);
-    for (TypeVariableBuilder builder in sortedTypeVariableBuilders) {
-      builder.finish(
-          unboundTypeVariableBuilders[builder]!, object, dynamicType);
+    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+        sortedTypeVariables = sortAllTypeVariablesTopologically([
+      ...unboundFunctionTypeTypeVariableBuilders.keys,
+      ...unboundTypeVariableBuilders.keys
+    ]);
+    for (Object builder in sortedTypeVariables) {
+      if (builder is TypeVariableBuilder) {
+        builder.finish(
+            unboundTypeVariableBuilders[builder]!, object, dynamicType);
+      } else {
+        builder as StructuralVariableBuilder;
+        builder.finish(unboundFunctionTypeTypeVariableBuilders[builder]!,
+            object, dynamicType);
+      }
     }
 
     for (SourceLibraryBuilder library in libraryBuilders) {
       library.processPendingNullabilities();
     }
 
-    ticker.logMs(
-        "Resolved ${sortedTypeVariableBuilders.length} type-variable bounds");
+    ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
   /// Computes variances of type parameters on typedefs in [libraryBuilders].
@@ -3140,9 +3152,11 @@ class List<E> extends Iterable<E> {
   void add(E element) {}
   void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
+  int get length => 0;
+  List<E> sublist(int start, [int? end]) => this;
 }
 
-class _GrowableList<E> {
+class _GrowableList<E> implements List<E> {
   factory _GrowableList(int length) => null;
   factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
@@ -3155,6 +3169,10 @@ class _GrowableList<E> {
   factory _GrowableList._literal6(E e0, E e1, E e2, E e3, E e4, E e5) => null;
   factory _GrowableList._literal7(E e0, E e1, E e2, E e3, E e4, E e5, E e6) => null;
   factory _GrowableList._literal8(E e0, E e1, E e2, E e3, E e4, E e5, E e6, E e7) => null;
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
+  Iterator<E> get iterator => null;
+  E operator [](int index) => null;
 }
 
 class _List<E> {
@@ -3238,6 +3256,8 @@ class int extends num {
 
 class num {
   num operator -() => this;
+  num operator -(num other) => this;
+  bool operator >=(num other) => false;
 }
 
 class Function {}

@@ -338,7 +338,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, errorNode);
       }
 
-      var ffiParameterTypes = ffiSignature.normalParameterTypes;
+      var ffiParameterTypes =
+          ffiSignature.normalParameterTypes.flattenVarArgs();
       var ffiParameters = ffiSignature.parameters;
 
       if ((declarationElement is MethodElement ||
@@ -346,11 +347,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           !declarationElement.isStatic) {
         // Instance methods must have the receiver as an extra parameter in the
         // FfiNative annotation.
-        if (formalParameters.length + 1 != ffiSignature.parameters.length) {
+        if (formalParameters.length + 1 != ffiParameterTypes.length) {
           _errorReporter.reportErrorForNode(
               FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
               errorNode,
-              [formalParameters.length + 1, ffiSignature.parameters.length]);
+              [formalParameters.length + 1, ffiParameterTypes.length]);
           return;
         }
 
@@ -371,11 +372,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else {
         // Number of parameters in the FfiNative annotation must match the
         // annotated declaration.
-        if (formalParameters.length != ffiSignature.parameters.length) {
+        if (formalParameters.length != ffiParameterTypes.length) {
           _errorReporter.reportErrorForNode(
               FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS,
               errorNode,
-              [ffiSignature.parameters.length, formalParameters.length]);
+              [ffiParameterTypes.length, formalParameters.length]);
           return;
         }
       }

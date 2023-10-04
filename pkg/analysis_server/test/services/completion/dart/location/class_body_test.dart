@@ -374,15 +374,11 @@ suggestions
 ${keywords.asKeywordSuggestions}
 ''', where: context.where);
         } else {
-          // TODO(scheglov) This is wrong.
           final keywords = {
-            Keyword.ABSTRACT,
             Keyword.CONST,
-            Keyword.COVARIANT,
             Keyword.DYNAMIC,
             Keyword.EXTERNAL,
             Keyword.FINAL,
-            Keyword.LATE,
             Keyword.VAR,
             Keyword.VOID,
           };
@@ -407,8 +403,12 @@ ${keywords.asKeywordSuggestions}
         _printKeywordsOrClass();
 
         final keywords = {
+          Keyword.CONST,
           Keyword.DYNAMIC,
+          Keyword.EXTERNAL,
           Keyword.FINAL,
+          Keyword.VAR,
+          Keyword.VOID,
         };
 
         assertResponse('''
@@ -430,8 +430,10 @@ ${keywords.asKeywordSuggestions}
         final keywords = {
           Keyword.CONST,
           Keyword.DYNAMIC,
+          Keyword.EXTERNAL,
           Keyword.FINAL,
-          Keyword.LATE,
+          Keyword.VAR,
+          Keyword.VOID,
         };
 
         assertResponse('''
@@ -451,17 +453,13 @@ ${keywords.asKeywordSuggestions}
         _printKeywordsOrClass();
 
         final keywords = {
-          // TODO(scheglov) This does not look right.
-          Keyword.ABSTRACT,
           Keyword.CONST,
-          // TODO(scheglov) This does not look right.
-          Keyword.COVARIANT,
           Keyword.DYNAMIC,
           // TODO(scheglov) This does not look right.
           Keyword.EXTERNAL,
           Keyword.FINAL,
-          Keyword.LATE,
           Keyword.VAR,
+          Keyword.VOID,
         };
 
         assertResponse('''

@@ -213,11 +213,17 @@ class IlTestPrinter : public AllStatic {
 
     void WriteAttribute(intptr_t value) { writer_->PrintValue(value); }
 
+    void WriteAttribute(bool value) { writer_->PrintValueBool(value); }
+
     void WriteAttribute(Token::Kind kind) {
       writer_->PrintValue(Token::Str(kind));
     }
 
     void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
+
+    void WriteAttribute(const Function* function) {
+      writer_->PrintValue(function->QualifiedUserVisibleNameCString());
+    }
 
     void WriteAttribute(const Object* obj) {
       if (obj->IsNull()) {
@@ -241,8 +247,9 @@ class IlTestPrinter : public AllStatic {
 
     template <typename... Ts>
     void WriteTuple(const std::tuple<Ts...>& tuple) {
-      std::apply([&](Ts const&... elements) { WriteAttribute(elements...); },
-                 tuple);
+      std::apply(
+          [&](Ts const&... elements) { (WriteAttribute(elements), ...); },
+          tuple);
     }
 
     template <typename T,
@@ -257,12 +264,47 @@ class IlTestPrinter : public AllStatic {
       // Default, do nothing.
     }
 
+    void WriteAttributeName(const char* str) {
+      ASSERT(str != nullptr);
+      // To simplify the declaring side, we assume the string might be directly
+      // stringized from one of the following expression forms:
+      //
+      // * &name()
+      // * name()
+      // * name_
+      //
+      // Remove the non-name parts of the above before printing.
+      const intptr_t start = str[0] == '&' ? 1 : 0;
+      intptr_t end = strlen(str);
+      switch (str[end - 1]) {
+        case ')':
+          ASSERT(end >= 2);
+          ASSERT_EQUAL(str[end - 2], '(');
+          end -= 2;
+          break;
+        case '_':
+          // Strip off the final _ from a direct private field access.
+          end -= 1;
+          break;
+        default:
+          break;
+      }
+      writer_->PrintValue(str + start, end - start);
+    }
+
+    template <typename... Ts>
+    void WriteAttributeNames(const std::tuple<Ts...>& tuple) {
+      std::apply(
+          [&](Ts const&... elements) { (WriteAttributeName(elements), ...); },
+          tuple);
+    }
+
     template <typename T>
     void WriteDescriptor(
         const char* name,
         typename std::enable_if_t<HasGetAttributes<T>::value>* = nullptr) {
       writer_->OpenArray(name);
-      WriteTuple(T::GetAttributeNames());
+      WriteAttributeNames(T::GetAttributeNames());
       writer_->CloseArray();
     }
 
@@ -567,7 +609,9 @@ void Definition::PrintTo(BaseTextBuffer* f) const {
     range_->PrintTo(f);
   }
 
-  if (type_ != nullptr) {
+  if (representation() != kNoRepresentation && representation() != kTagged) {
+    f->Printf(" %s", RepresentationToCString(representation()));
+  } else if (type_ != nullptr) {
     f->AddString(" ");
     type_->PrintTo(f);
   }
@@ -635,10 +679,6 @@ void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     strncpy(buffer, cstr, pos);
     buffer[pos] = '\0';
     f->Printf("#%s\\n...", buffer);
-  }
-
-  if (representation() != kNoRepresentation && representation() != kTagged) {
-    f->Printf(" %s", RepresentationToCString(representation()));
   }
 }
 
@@ -1002,17 +1042,21 @@ void AllocateUninitializedContextInstr::PrintOperandsTo(
   TemplateAllocation::PrintOperandsTo(f);
 }
 
-void MathUnaryInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  f->Printf("'%s', ", MathUnaryInstr::KindToCString(kind()));
-  value()->PrintTo(f);
-}
-
 void TruncDivModInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 
 void ExtractNthOutputInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("Extract %" Pd " from ", index());
+  Definition::PrintOperandsTo(f);
+}
+
+void UnboxLaneInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  Definition::PrintOperandsTo(f);
+  f->Printf(", lane %" Pd, lane());
+}
+
+void BoxLanesInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 

@@ -9,7 +9,7 @@ class Foo<T extends Pattern> {
   U method<U extends T>(U u) => u;
 }
 
-main() {
+test() {
 /*!!!
   String s;
   var a = new Foo().method<String>("str");

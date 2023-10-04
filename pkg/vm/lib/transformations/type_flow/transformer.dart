@@ -624,12 +624,6 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitFunctionTearOff(FunctionTearOff node) {
-    _annotateCallSite(node, null);
-    super.visitFunctionTearOff(node);
-  }
-
-  @override
   visitDynamicGet(DynamicGet node) {
     _annotateCallSite(node, null);
     super.visitDynamicGet(node);
@@ -1369,17 +1363,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitFunctionTearOff(
-      FunctionTearOff node, TreeNode? removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver]);
-    } else {
-      return node;
-    }
-  }
-
-  @override
   TreeNode visitInstanceSet(InstanceSet node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
@@ -2086,8 +2069,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
   }
 }
 
-class _TreeShakerConstantVisitor extends ConstantVisitor<Null>
-    with ConstantVisitorDefaultMixin<Null> {
+class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
   final TreeShaker shaker;
   final _TreeShakerTypeVisitor typeVisitor;
   final Set<Constant> constants = new Set<Constant>();
@@ -2099,11 +2081,6 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null>
     if (constants.add(constant)) {
       constant.accept(this);
     }
-  }
-
-  @override
-  defaultConstant(Constant constant) {
-    throw 'There is no support for constant "$constant" in TFA yet!';
   }
 
   @override
@@ -2200,5 +2177,21 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null>
   @override
   visitTypeLiteralConstant(TypeLiteralConstant constant) {
     constant.type.accept(typeVisitor);
+  }
+
+  @override
+  visitTypedefTearOffConstant(TypedefTearOffConstant constant) =>
+      throw 'TypedefTearOffConstant is not supported '
+          '(should be constant evaluated).';
+
+  @override
+  visitUnevaluatedConstant(UnevaluatedConstant constant) =>
+      throw 'UnevaluatedConstant is not supported '
+          '(should be constant evaluated).';
+
+  @override
+  visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    throw new UnsupportedError("Unsupported auxiliary constant "
+        "${constant} (${constant.runtimeType}).");
   }
 }

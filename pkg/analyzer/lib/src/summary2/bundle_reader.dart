@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -68,6 +69,9 @@ class BundleReader {
         uri: uriCache.parse(_reader.readStringReference()),
         offset: _reader.readUInt30(),
         classMembersLengths: _reader.readUInt30List(),
+        macroGeneratedCode: _reader.readOptionalObject((reader) {
+          return _reader.readStringUtf8();
+        }),
       );
     });
 
@@ -77,6 +81,7 @@ class BundleReader {
       libraryMap[uri] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
+        uri: uri,
         unitsInformativeBytes: _unitsInformativeBytes,
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
@@ -84,6 +89,7 @@ class BundleReader {
         offset: libraryHeader.offset,
         classMembersLengths: libraryHeader.classMembersLengths,
         infoDeclarationStore: _infoDeclarationStore,
+        macroGeneratedCode: libraryHeader.macroGeneratedCode,
       );
     }
   }
@@ -380,11 +386,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     final augmentationTarget = reader.readElement();
     if (augmentationTarget is FieldElementImpl) {
       augmentationTarget.augmentation = element;
-      augmentationTarget.getter?.variable = element;
-      augmentationTarget.setter?.variable = element;
       element.augmentationTarget = augmentationTarget;
-      element.getter = augmentationTarget.getter;
-      element.setter = augmentationTarget.setter;
     }
 
     if (element is ConstFieldElementImpl) {
@@ -477,7 +479,35 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
     element.entryPoint = reader.readElement() as FunctionElement?;
 
+    element.fieldNameNonPromotabilityInfo =
+        _readFieldNameNonPromotabilityInfo(reader);
+
     applyConstantOffsets?.perform();
+  }
+
+  Map<String, FieldNameNonPromotabilityInfo>?
+      _readFieldNameNonPromotabilityInfo(ResolutionReader reader) {
+    // The summary format for `LibraryElementImpl.fieldNameNonPromotabilityInfo`
+    // is as follows:
+    // - bool: `true` if field name non-promotability information is present,
+    //   `false` if not.
+    // - If information is present:
+    //   - Uint30: number of entries in the map.
+    //   - For each map entry:
+    //     - String reference: key
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingFields`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingGetters`
+    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingNsmClasses`
+    if (!reader.readBool()) return null;
+    int length = reader.readUInt30();
+    if (length == 0) return const {};
+    return {
+      for (int i = 0; i < length; i++)
+        reader.readStringReference(): FieldNameNonPromotabilityInfo(
+            conflictingFields: reader.readElementList(),
+            conflictingGetters: reader.readElementList(),
+            conflictingNsmClasses: reader.readElementList())
+    };
   }
 
   void _readLibraryOrAugmentation(
@@ -527,12 +557,14 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 class LibraryReader {
   final LinkedElementFactory _elementFactory;
   final SummaryDataReader _reader;
+  final Uri uri;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
   final int _baseResolutionOffset;
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
   final InfoDeclarationStore _deserializedDataStore;
+  final String? macroGeneratedCode;
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -540,6 +572,7 @@ class LibraryReader {
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
+    required this.uri,
     required Map<Uri, Uint8List> unitsInformativeBytes,
     required int baseResolutionOffset,
     required _ReferenceReader referenceReader,
@@ -547,6 +580,7 @@ class LibraryReader {
     required int offset,
     required Uint32List classMembersLengths,
     required InfoDeclarationStore infoDeclarationStore,
+    required this.macroGeneratedCode,
   })  : _elementFactory = elementFactory,
         _reader = reader,
         _unitsInformativeBytes = unitsInformativeBytes,
@@ -633,6 +667,13 @@ class LibraryReader {
     required LibraryOrAugmentationElementImpl augmentationTarget,
     required Source unitSource,
   }) {
+    final macroGenerated = _reader.readOptionalObject((reader) {
+      return MacroGeneratedAugmentationLibrary(
+        code: _reader.readStringUtf8(),
+        informativeBytes: _reader.readUint8List(),
+      );
+    });
+
     final definingUnit = _readUnitElement(
       containerSource: unitSource,
       unitSource: unitSource,
@@ -645,6 +686,7 @@ class LibraryReader {
     );
     augmentation.definingCompilationUnit = definingUnit;
     augmentation.reference = definingUnit.reference!;
+    augmentation.macroGenerated = macroGenerated;
 
     final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     _readLibraryOrAugmentationElement(augmentation);
@@ -673,8 +715,9 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@class').getChild(name);
+
+    final reference = _readReference();
+    final name = reference.elementName;
 
     var element = ClassElementImpl(name, -1);
 
@@ -744,12 +787,10 @@ class LibraryReader {
     InterfaceElementImpl classElement,
     Reference classReference,
   ) {
-    var containerRef = classReference.getChild('@constructor');
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-      var name = _reader.readStringReference();
-      var referenceName = name.ifNotEmptyOrElse('new');
-      var reference = containerRef.getChild(referenceName);
+      final reference = _readReference();
+      final name = reference.elementName.ifEqualThen('new', '');
       var element = ConstructorElementImpl(name, -1);
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
@@ -853,8 +894,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@enum').getChild(name);
+    final reference = _readReference();
+    final name = reference.elementName;
 
     var element = EnumElementImpl(name, -1);
 
@@ -937,9 +978,9 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readOptionalStringReference();
-    var refName = _reader.readStringReference();
-    var reference = unitReference.getChild('@extension').getChild(refName);
+
+    final reference = _readReference();
+    final name = _reader.readBool() ? reference.elementName : null;
 
     var element = ExtensionElementImpl(name, -1);
     element.setLinkedData(
@@ -981,9 +1022,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    final name = _reader.readStringReference();
-    final containerRef = unitReference.getChild('@extensionType');
-    final reference = containerRef.getChild(name);
+    final reference = _readReference();
+    final name = reference.elementName;
 
     final element = ExtensionTypeElementImpl(name, -1);
     element.setLinkedData(
@@ -1031,12 +1071,15 @@ class LibraryReader {
     CompilationUnitElementImpl unitElement,
     ElementImpl classElement,
     Reference classReference,
-    Reference containerRef,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
+
+    final reference = _readReference();
+    final getterReference = _readOptionalReference();
+    final setterReference = _readOptionalReference();
+
+    final name = reference.elementName;
     var isConstElement = _reader.readBool();
-    var reference = containerRef.getChild(name);
 
     FieldElementImpl element;
     if (isConstElement) {
@@ -1057,7 +1100,12 @@ class LibraryReader {
     element.typeInferenceError = _readTopLevelInferenceError();
 
     if (!element.isAugmentation) {
-      element.createImplicitAccessors(classReference, name);
+      if (getterReference != null) {
+        element.createImplicitGetter(getterReference);
+      }
+      if (element.hasSetter && setterReference != null) {
+        element.createImplicitSetter(setterReference);
+      }
     }
 
     return element;
@@ -1070,12 +1118,11 @@ class LibraryReader {
     List<PropertyAccessorElement> accessors,
     List<FieldElement> variables,
   ) {
-    var containerRef = classReference.getChild('@field');
     var createdElements = <FieldElement>[];
     var variableElementCount = _reader.readUInt30();
     for (var i = 0; i < variableElementCount; i++) {
-      var variable = _readFieldElement(
-          unitElement, classElement, classReference, containerRef);
+      var variable =
+          _readFieldElement(unitElement, classElement, classReference);
       createdElements.add(variable);
       variables.add(variable);
 
@@ -1097,8 +1144,8 @@ class LibraryReader {
   ) {
     unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-      var name = _reader.readStringReference();
-      var reference = unitReference.getChild('@function').getChild(name);
+      final reference = _readReference();
+      final name = reference.elementName;
 
       var element = FunctionElementImpl(name, -1);
 
@@ -1217,11 +1264,10 @@ class LibraryReader {
     ElementImpl enclosingElement,
     Reference enclosingReference,
   ) {
-    var containerRef = enclosingReference.getChild('@method');
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-      var name = _reader.readStringReference();
-      var reference = containerRef.getChild(name);
+      final reference = _readReference();
+      final name = reference.elementName;
       var element = MethodElementImpl(name, -1);
       var linkedData = MethodElementLinkedData(
         reference: reference,
@@ -1243,8 +1289,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@mixin').getChild(name);
+    final reference = _readReference();
+    final name = reference.elementName;
 
     var element = MixinElementImpl(name, -1);
 
@@ -1298,18 +1344,24 @@ class LibraryReader {
     }
   }
 
+  /// Read the reference of a non-local element.
+  Reference? _readOptionalReference() {
+    return _reader.readOptionalObject(
+      (reader) => _readReference(),
+    );
+  }
+
   /// TODO(scheglov) Deduplicate parameter reading implementation.
   List<ParameterElementImpl> _readParameters(
     ElementImpl enclosingElement,
     Reference enclosingReference,
   ) {
-    var containerRef = enclosingReference.getChild('@parameter');
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
       var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
-      var reference = containerRef.getChild(name);
+      var reference = _readReference();
 
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
@@ -1407,14 +1459,12 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
-    var name = _reader.readStringReference();
+    final reference = _readReference();
+    final name = reference.elementName;
 
     var element = PropertyAccessorElementImpl(name, -1);
     PropertyAccessorElementFlags.read(_reader, element);
 
-    var reference = classReference
-        .getChild(element.isGetter ? '@getter' : '@setter')
-        .getChild(name);
     var linkedData = PropertyAccessorElementLinkedData(
       reference: reference,
       libraryReader: this,
@@ -1499,6 +1549,12 @@ class LibraryReader {
     }
   }
 
+  /// Read the reference of a non-local element.
+  Reference _readReference() {
+    final referenceIndex = _reader.readUInt30();
+    return _referenceReader.referenceOfIndex(referenceIndex);
+  }
+
   TopLevelInferenceError? _readTopLevelInferenceError() {
     var kindIndex = _reader.readByte();
     var kind = TopLevelInferenceErrorKind.values[kindIndex];
@@ -1516,9 +1572,13 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
+
+    final reference = _readReference();
+    final getterReference = _readOptionalReference();
+    final setterReference = _readOptionalReference();
+
+    final name = reference.elementName;
     var isConst = _reader.readBool();
-    var reference = unitReference.getChild('@variable').getChild(name);
 
     TopLevelVariableElementImpl element;
     if (isConst) {
@@ -1538,7 +1598,13 @@ class LibraryReader {
     element.isConst = isConst;
     TopLevelVariableElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
-    element.createImplicitAccessors(unitReference, name);
+
+    if (getterReference != null) {
+      element.createImplicitGetter(getterReference);
+    }
+    if (element.hasSetter && setterReference != null) {
+      element.createImplicitSetter(setterReference);
+    }
 
     return element;
   }
@@ -1571,8 +1637,8 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@typeAlias').getChild(name);
+    final reference = _readReference();
+    final name = reference.elementName;
 
     var isFunctionTypeAliasBased = _reader.readBool();
 
@@ -1770,11 +1836,6 @@ class PropertyAccessorElementLinkedData
     final augmentationTarget = reader.readElement();
     if (augmentationTarget is PropertyAccessorElementImpl) {
       augmentationTarget.augmentation = element;
-      if (element.isGetter) {
-        augmentationTarget.variable.getter = element;
-      } else {
-        augmentationTarget.variable.setter = element;
-      }
       element.augmentationTarget = augmentationTarget;
       element.variable = augmentationTarget.variable;
     }
@@ -1911,16 +1972,13 @@ class ResolutionReader {
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_none) {
       var element = readElement() as InterfaceElement;
-      var type = InterfaceTypeImpl(
-        element: element,
-        typeArguments: const <DartType>[],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      var type = element.instantiate(
+          typeArguments: const <DartType>[],
+          nullabilitySuffix: NullabilitySuffix.none);
       return _readAliasElementArguments(type);
     } else if (tag == Tag.InterfaceType_noTypeArguments_question) {
       var element = readElement() as InterfaceElement;
-      var type = InterfaceTypeImpl(
-        element: element,
+      var type = element.instantiate(
         typeArguments: const <DartType>[],
         nullabilitySuffix: NullabilitySuffix.question,
       );
@@ -2327,10 +2385,14 @@ class _LibraryHeader {
   /// we need to know how much data to skip for each class.
   final Uint32List classMembersLengths;
 
+  /// The only (if any) macro generated augmentation code.
+  final String? macroGeneratedCode;
+
   _LibraryHeader({
     required this.uri,
     required this.offset,
     required this.classMembersLengths,
+    required this.macroGeneratedCode,
   });
 }
 

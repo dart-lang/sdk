@@ -483,7 +483,7 @@ class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
       : output = File.fromUri(uri).openSync(mode: FileMode.write);
 
   @override
-  void write(List<int> buffer, [int start = 0, int? end]) {
+  void add(List<int> buffer, [int start = 0, int? end]) {
     output.writeFromSync(buffer, start, end);
   }
 
@@ -513,7 +513,7 @@ class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
   _BinaryOutputSinkWrapper(this.onWrite, this.onClose);
 
   @override
-  void write(List<int> data, [int start = 0, int? end]) =>
+  void add(List<int> data, [int start = 0, int? end]) =>
       onWrite(data, start, end);
 
   @override

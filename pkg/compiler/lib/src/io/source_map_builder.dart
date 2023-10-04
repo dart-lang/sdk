@@ -12,7 +12,7 @@ import '../util/output_util.dart';
 import '../util/util.dart';
 import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
-import 'source_information.dart' show SourceLocation, FrameEntry;
+import 'source_information.dart' show FrameEntry, SourceLocation;
 
 class SourceMapBuilder {
   final String version;
@@ -71,15 +71,13 @@ class SourceMapBuilder {
       int column = kernelLocation.column - 1;
       lineColumnMap.add(line, column, sourceMapEntry);
 
-      SourceLocation? location = sourceMapEntry.sourceLocation;
-      if (location != null) {
-        if (location.sourceUri != null) {
-          LineColumnMap<SourceMapEntry> sourceLineColumnMap =
-              sourceLocationMap.putIfAbsent(
-                  location.sourceUri!, () => LineColumnMap<SourceMapEntry>());
-          sourceLineColumnMap.add(
-              location.line - 1, location.column - 1, sourceMapEntry);
-        }
+      SourceLocation location = sourceMapEntry.sourceLocation;
+      if (location.sourceUri != null) {
+        LineColumnMap<SourceMapEntry> sourceLineColumnMap =
+            sourceLocationMap.putIfAbsent(
+                location.sourceUri!, () => LineColumnMap<SourceMapEntry>());
+        sourceLineColumnMap.add(
+            location.line - 1, location.column - 1, sourceMapEntry);
       }
     });
 
@@ -105,14 +103,17 @@ class SourceMapBuilder {
       registerLocation(entry.sourceLocation);
     });
 
-    minifiedGlobalNames.values.forEach(nameMap.register);
-    minifiedInstanceNames.values.forEach(nameMap.register);
+    (List.of(minifiedGlobalNames.values)..sort()).forEach(nameMap.register);
+    (List.of(minifiedInstanceNames.values)..sort()).forEach(nameMap.register);
+
+    final inlinedNames = <String>[];
     sourceLocations.forEachFrameMarker((_, frame) {
       registerLocation(frame.pushLocation);
       if (frame.inlinedMethodName != null) {
-        nameMap.register(frame.inlinedMethodName!);
+        inlinedNames.add(frame.inlinedMethodName!);
       }
     });
+    (inlinedNames..sort()).forEach(nameMap.register);
 
     outputSink.write('{\n');
     outputSink.write('  "version": 3,\n');
@@ -161,7 +162,7 @@ class SourceMapBuilder {
     DeltaEncoder sourceNameIndexEncoder = DeltaEncoder();
 
     entries.forEach((int targetLine, int targetColumn, SourceMapEntry entry) {
-      SourceLocation? sourceLocation = entry.sourceLocation;
+      SourceLocation sourceLocation = entry.sourceLocation;
       if (sourceLocation == previousSourceLocation) {
         return;
       }
@@ -183,10 +184,6 @@ class SourceMapBuilder {
 
       targetColumnEncoder.encode(outputSink, targetColumn);
 
-      if (sourceLocation == null) {
-        return;
-      }
-
       Uri? sourceUri = sourceLocation.sourceUri;
       if (sourceUri != null) {
         sourceUriIndexEncoder.encode(outputSink, uriMap[sourceUri]!);
@@ -207,14 +204,15 @@ class SourceMapBuilder {
       Map<String, String> minifiedNames, IndexMap<String> nameMap) {
     bool first = true;
     outputSink.write('"');
-    minifiedNames.forEach((String minifiedName, String name) {
+    for (final minifiedName in List.of(minifiedNames.keys)..sort()) {
+      final name = minifiedNames[minifiedName]!;
       if (!first) outputSink.write(',');
       // minifiedNames are valid JS identifiers so they don't need to be escaped
       outputSink.write(minifiedName);
       outputSink.write(',');
       outputSink.write(nameMap[name]);
       first = false;
-    });
+    }
     outputSink.write('"');
   }
 
@@ -350,7 +348,7 @@ class DeltaEncoder {
 }
 
 class SourceMapEntry {
-  SourceLocation? sourceLocation;
+  SourceLocation sourceLocation;
   int targetOffset;
 
   SourceMapEntry(this.sourceLocation, this.targetOffset);

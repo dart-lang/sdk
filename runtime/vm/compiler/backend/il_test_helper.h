@@ -81,6 +81,7 @@ class TestPipeline : public ValueObject {
                         mode == CompilerPass::PipelineMode::kAOT,
                         is_optimizing,
                         CompilerState::ShouldTrace(function)),
+        hierarchy_info_(thread_),
         speculative_policy_(std::unique_ptr<SpeculativeInliningPolicy>(
             new SpeculativeInliningPolicy(/*enable_suppresson=*/false))),
         mode_(mode) {}
@@ -103,6 +104,7 @@ class TestPipeline : public ValueObject {
   const Function& function_;
   Thread* thread_;
   CompilerState compiler_state_;
+  HierarchyInfo hierarchy_info_;
   std::unique_ptr<SpeculativeInliningPolicy> speculative_policy_;
   CompilerPass::PipelineMode mode_;
   ZoneGrowableArray<const ICData*>* ic_data_array_ = nullptr;
@@ -118,6 +120,7 @@ enum MatchOpCode {
   kMatch##Instruction, kMatchAndMove##Instruction,                             \
       kMatchAndMoveOptional##Instruction,
   FOR_EACH_INSTRUCTION(DEFINE_MATCH_OPCODES)
+      FOR_EACH_ABSTRACT_INSTRUCTION(DEFINE_MATCH_OPCODES)
 #undef DEFINE_MATCH_OPCODES
 
   // Matches a branch and moves left.
@@ -161,6 +164,7 @@ class MatchCode {
     RELEASE_ASSERT(opcode == kMatch##Type || opcode == kMatchAndMove##Type);   \
   }
   FOR_EACH_INSTRUCTION(DEFINE_TYPED_CONSTRUCTOR)
+  FOR_EACH_ABSTRACT_INSTRUCTION(DEFINE_TYPED_CONSTRUCTOR)
 #undef DEFINE_TYPED_CONSTRUCTOR
 
   MatchOpCode opcode() { return opcode_; }

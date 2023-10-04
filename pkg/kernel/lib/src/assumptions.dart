@@ -12,9 +12,19 @@ class Assumptions {
   Map<TypeParameter, TypeParameter> _assumptionMap =
       new Map<TypeParameter, TypeParameter>.identity();
 
+  Map<StructuralParameter, StructuralParameter>
+      _structuralParameterAssumptionMap =
+      new Map<StructuralParameter, StructuralParameter>.identity();
+
   void _addAssumption(TypeParameter a, TypeParameter b) {
     assert(!_assumptionMap.containsKey(a));
     _assumptionMap[a] = b;
+  }
+
+  void _addStructuralParameterAssumption(
+      StructuralParameter a, StructuralParameter b) {
+    assert(!_structuralParameterAssumptionMap.containsKey(a));
+    _structuralParameterAssumptionMap[a] = b;
   }
 
   /// Assume that [a] and [b] are equivalent.
@@ -22,8 +32,20 @@ class Assumptions {
     _addAssumption(a, b);
   }
 
+  /// Assume that [a] and [b] are equivalent.
+  void assumeStructuralParameter(StructuralParameter a, StructuralParameter b) {
+    _addStructuralParameterAssumption(a, b);
+  }
+
   void _removeAssumption(TypeParameter a, TypeParameter b) {
     TypeParameter? assumption = _assumptionMap.remove(a);
+    assert(identical(assumption, b));
+  }
+
+  void _removeStructuralParameterAssumption(
+      StructuralParameter a, StructuralParameter b) {
+    StructuralParameter? assumption =
+        _structuralParameterAssumptionMap.remove(a);
     assert(identical(assumption, b));
   }
 
@@ -32,9 +54,22 @@ class Assumptions {
     _removeAssumption(a, b);
   }
 
+  /// Remove the assumption that [a] and [b] are equivalent.
+  // TODO(cstefantsova): Is this method needed?
+  void forgetStructuralParameter(StructuralParameter a, StructuralParameter b) {
+    _removeStructuralParameterAssumption(a, b);
+  }
+
   /// Returns `true` if [a] and [b] are assumed to be equivalent.
   bool isAssumed(TypeParameter a, TypeParameter b) {
     return identical(_assumptionMap[a], b);
+  }
+
+  /// Returns `true` if [a] and [b] are assumed to be equivalent.
+  // TODO(cstefantsova): Is this method needed?
+  bool isAssumedStructuralParameter(
+      StructuralParameter a, StructuralParameter b) {
+    return identical(_structuralParameterAssumptionMap[a], b);
   }
 
   @override

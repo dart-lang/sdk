@@ -6,11 +6,13 @@ library test;
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   dynamic c = /*error:COULD_NOT_INFER*/ /*@ typeArgs=dynamic */ max(x, y);
 //                                                                 ^
+// sdk/lib/_internal/vm/lib/math_patch.dart: Context: This is the type variable whose bound isn't conformed to.
 //
 // pkg/front_end/testcases/inference/downward_inference_fixes_no_upwards_errors.dart:19:81: Error: Inferred type argument 'dynamic' doesn't conform to the bound 'num' of the type variable 'T' on 'max'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 //   var /*@ type=dynamic */ d = /*error:COULD_NOT_INFER*/ /*@ typeArgs=dynamic */ max(
 //                                                                                 ^
+// sdk/lib/_internal/vm/lib/math_patch.dart: Context: This is the type variable whose bound isn't conformed to.
 //
 import self as self;
 import "dart:core" as core;

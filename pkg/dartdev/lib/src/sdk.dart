@@ -52,6 +52,13 @@ class Sdk {
         'dds.dart.snapshot',
       );
 
+  String get ddsAotSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dds_aot.dart.snapshot',
+      );
+
   String get frontendServerSnapshot => path.absolute(
         sdkPath,
         'bin',

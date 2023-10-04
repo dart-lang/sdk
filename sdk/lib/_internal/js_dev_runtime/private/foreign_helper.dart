@@ -112,6 +112,7 @@ import 'dart:_rti' show Rti;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
+@pragma('ddc:trust-inline')
 external T JS<T extends Object?>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
@@ -227,6 +228,7 @@ external String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG();
 external String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG();
 
 /// Returns the JS name for [name] from the Namer.
+@pragma('ddc:trust-inline')
 external String JS_GET_NAME(JsGetName name);
 
 /// Returns the state of a flag that is determined by the state of the compiler
@@ -286,6 +288,7 @@ dynamic spread(args) {
 ///
 /// The [name] should be a constant defined in the `_js_shared_embedded_names`
 /// library.
+@pragma('ddc:trust-inline')
 external JS_EMBEDDED_GLOBAL(String typeDescription, String name);
 
 /// Instructs the compiler to execute the [builtinName] action at the call-site.
@@ -318,18 +321,20 @@ Object getJSArrayInteropRti() => TYPE_REF<JSArray>();
 /// A valid example of where this can be used is as the second argument
 /// to V8's Error.captureStackTrace. See
 /// https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
-// TODO(nshahan) Replace calls at compile time?
 external RAW_DART_FUNCTION_REF(Function function);
 
-/// Returns a TypeReference to [T].
-// TODO(nshahan) Replace calls at compile time?
+/// Returns a reference to the internal value that represents [T].
+///
+/// Static calls to this function are inserted directly by the compiler.
 external Rti TYPE_REF<T>();
 
-/// Returns a TypeReference to [T]*.
-// TODO(nshahan) Replace calls at compile time?
+/// Returns a reference to the internal value that represents [T]*.
+///
+/// Static calls to this function are inserted directly by the compiler.
 external Rti LEGACY_TYPE_REF<T>();
 
 /// JavaScript string concatenation. Inputs must be Strings.
+@pragma('ddc:trust-inline')
 external String JS_STRING_CONCAT(String a, String b);
 
 /// Identifier used to access the JavaScript class definition for [type].

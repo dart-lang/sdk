@@ -523,7 +523,7 @@ List<int> jsIntTypedArrayToDartIntTypedData(
 
 JSArray toJSArray(List<JSAny?> list) {
   int length = list.length;
-  JSArray result = JSArray.withLength(length.toJS);
+  JSArray result = JSArray.withLength(length);
   for (int i = 0; i < length; i++) {
     result[i.toJS] = list[i];
   }

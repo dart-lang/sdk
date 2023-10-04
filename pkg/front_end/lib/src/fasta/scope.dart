@@ -167,7 +167,7 @@ class Scope extends MutableScope {
 
   Map<String, JumpTarget>? forwardDeclaredLabels;
 
-  Map<String, int>? usedNames;
+  Map<String, List<int>>? usedNames;
 
   Scope(
       {required ScopeKind kind,
@@ -461,6 +461,17 @@ class Scope extends MutableScope {
     return newScope;
   }
 
+  Scope withStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables) {
+    if (typeVariables == null) return this;
+    Scope newScope = new Scope.nested(this, "type variables",
+        isModifiable: false, kind: ScopeKind.typeParameters);
+    for (StructuralVariableBuilder t in typeVariables) {
+      (newScope._local ??= {})[t.name] = t;
+    }
+    return newScope;
+  }
+
   /// Create a special scope for use by labeled statements. This scope doesn't
   /// introduce a new scope for local variables, only for labels. This deals
   /// with corner cases like this:
@@ -485,10 +496,10 @@ class Scope extends MutableScope {
 
   void recordUse(String name, int charOffset) {
     if (isModifiable) {
-      usedNames ??= <String, int>{};
+      usedNames ??= <String, List<int>>{};
       // Don't use putIfAbsent to avoid the context allocation needed
       // for the closure.
-      usedNames![name] ??= charOffset;
+      (usedNames![name] ??= []).add(charOffset);
     }
   }
 
@@ -635,13 +646,11 @@ class Scope extends MutableScope {
   /// that can be used as context for reporting a compile-time error about
   /// [name] being used before its declared. [fileUri] is used to bind the
   /// location of this message.
-  LocatedMessage? declare(String name, Builder builder, Uri fileUri) {
+  List<int>? declare(String name, Builder builder, Uri fileUri) {
     if (isModifiable) {
-      int? offset = usedNames?[name];
-      if (offset != null) {
-        return templateDuplicatedNamePreviouslyUsedCause
-            .withArguments(name)
-            .withLocation(fileUri, offset, name.length);
+      List<int>? previousOffsets = usedNames?[name];
+      if (previousOffsets != null && previousOffsets.isNotEmpty) {
+        return previousOffsets;
       }
       (_local ??= {})[name] = builder;
     } else {

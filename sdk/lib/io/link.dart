@@ -34,6 +34,9 @@ abstract interface class Link implements FileSystemEntity {
 
   /// Creates a symbolic link in the file system.
   ///
+  /// The created link will point to the path at [target], whether that path
+  /// exists or not.
+  ///
   /// Returns a `Future<Link>` that completes with
   /// the link when it has been created. If the link path already exists,
   /// the future will complete with an error.
@@ -45,9 +48,14 @@ abstract interface class Link implements FileSystemEntity {
   /// not affected, unless they are also in [path].
   ///
   /// On the Windows platform, this call will create a true symbolic link
-  /// instead of a Junction. In order to create a symbolic link on Windows, Dart
-  /// must be run in Administrator mode or the system must have Developer Mode
-  /// enabled, otherwise a [FileSystemException] will be raised with
+  /// instead of a junction. The link represents a file or directory and
+  /// does not change its type after creation. If [target] exists then
+  /// the type of the link will match the type [target], otherwise a file
+  /// symlink is created.
+  ///
+  /// In order to create a symbolic link on Windows, Dart must be run in
+  /// Administrator mode or the system must have Developer Mode enabled,
+  /// otherwise a [FileSystemException] will be raised with
   /// `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
   ///
   /// On other platforms, the POSIX `symlink()` call is used to make a symbolic
@@ -95,18 +103,18 @@ abstract interface class Link implements FileSystemEntity {
   /// Returns a `Future<Link>` that completes with a [Link]
   /// for the renamed link.
   ///
-  /// If [newPath] identifies an existing link, that link is
-  /// removed first. If [newPath] identifies an existing file or directory,
-  /// the operation fails and the future completes with an exception.
+  /// If [newPath] identifies an existing file or link, that entity is removed
+  /// first. If [newPath] identifies an existing directory then the future
+  /// completes with a [FileSystemException].
   Future<Link> rename(String newPath);
 
   /// Synchronously renames this link.
   ///
   /// Returns a [Link] instance for the renamed link.
   ///
-  /// If [newPath] identifies an existing link, that link is
-  /// removed first. If [newPath] identifies an existing file or directory
-  /// the operation fails and an exception is thrown.
+  /// If [newPath] identifies an existing file or link, that entity is removed
+  /// first. If [newPath] identifies an existing directory then
+  /// [FileSystemException] is thrown.
   Link renameSync(String newPath);
 
   /// A [Link] instance whose path is the absolute path to [this].

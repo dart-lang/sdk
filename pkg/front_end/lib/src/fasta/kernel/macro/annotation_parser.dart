@@ -810,8 +810,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -1136,7 +1136,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     _unexpected();
   }
 
@@ -1185,8 +1186,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
     _unexpected();
   }
 
@@ -1400,7 +1401,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     _unexpected();
   }
 
@@ -2155,11 +2156,6 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    _unexpected();
-  }
-
-  @override
   void handleSpreadExpression(Token spreadToken) {
     _unsupported();
   }
@@ -2304,8 +2300,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endExtensionTypeDeclaration(
-      Token extensionKeyword, Token? typeKeyword, Token endToken) {
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token? typeKeyword, Token endToken) {
     _unsupported();
   }
 

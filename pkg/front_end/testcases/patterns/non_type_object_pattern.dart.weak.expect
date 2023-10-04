@@ -10,12 +10,19 @@ library;
 //   final Unresolved(:o) = o;
 //         ^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:13:21: Error: Can't declare 'o' because it was already used in this scope.
-//   final Unresolved(:o) = o;
-//                     ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:12:32: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:12:32: Error: Local variable 'o' can't be referenced before it is declared.
 //   var Unresolved(:int field) = o;
 //                                ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:13:21: Context: This is the declaration of the variable 'o'.
+//   final Unresolved(:o) = o;
+//                     ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:13:26: Error: Local variable 'o' can't be referenced before it is declared.
+//   final Unresolved(:o) = o;
+//                          ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:13:21: Context: This is the declaration of the variable 'o'.
+//   final Unresolved(:o) = o;
+//                     ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:15:14: Error: 'Unresolved' isn't a type.
 //   if (o case Unresolved(:var field)) {}
@@ -37,12 +44,19 @@ library;
 //   final NonType(:o) = o;
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:29:18: Error: Can't declare 'o' because it was already used in this scope.
-//   final NonType(:o) = o;
-//                  ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:28:29: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:28:29: Error: Local variable 'o' can't be referenced before it is declared.
 //   var NonType(:int field) = o;
 //                             ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:29:18: Context: This is the declaration of the variable 'o'.
+//   final NonType(:o) = o;
+//                  ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:29:23: Error: Local variable 'o' can't be referenced before it is declared.
+//   final NonType(:o) = o;
+//                       ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:29:18: Context: This is the declaration of the variable 'o'.
+//   final NonType(:o) = o;
+//                  ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:31:14: Error: 'NonType' isn't a type.
 //   if (o case NonType(:var field)) {}
@@ -64,12 +78,19 @@ library;
 //   final Extension(:o) = o;
 //         ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:20: Error: Can't declare 'o' because it was already used in this scope.
-//   final Extension(:o) = o;
-//                    ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:44:31: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:44:31: Error: Local variable 'o' can't be referenced before it is declared.
 //   var Extension(:int field) = o;
 //                               ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:20: Context: This is the declaration of the variable 'o'.
+//   final Extension(:o) = o;
+//                    ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:25: Error: Local variable 'o' can't be referenced before it is declared.
+//   final Extension(:o) = o;
+//                         ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:20: Context: This is the declaration of the variable 'o'.
+//   final Extension(:o) = o;
+//                    ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:47:14: Error: 'Extension' isn't a type.
 //   if (o case Extension(:var field)) {}
@@ -91,12 +112,19 @@ library;
 //   final prefix.Unresolved(:o) = o;
 //                ^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:61:28: Error: Can't declare 'o' because it was already used in this scope.
-//   final prefix.Unresolved(:o) = o;
-//                            ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:60:39: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:60:39: Error: Local variable 'o' can't be referenced before it is declared.
 //   var prefix.Unresolved(:int field) = o;
 //                                       ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:61:28: Context: This is the declaration of the variable 'o'.
+//   final prefix.Unresolved(:o) = o;
+//                            ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:61:33: Error: Local variable 'o' can't be referenced before it is declared.
+//   final prefix.Unresolved(:o) = o;
+//                                 ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:61:28: Context: This is the declaration of the variable 'o'.
+//   final prefix.Unresolved(:o) = o;
+//                            ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:63:21: Error: 'Unresolved' isn't a type.
 //   if (o case prefix.Unresolved(:var field)) {}
@@ -118,12 +146,19 @@ library;
 //   final prefix.NonType(:o) = o;
 //                ^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:77:25: Error: Can't declare 'o' because it was already used in this scope.
-//   final prefix.NonType(:o) = o;
-//                         ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:76:36: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:76:36: Error: Local variable 'o' can't be referenced before it is declared.
 //   var prefix.NonType(:int field) = o;
 //                                    ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:77:25: Context: This is the declaration of the variable 'o'.
+//   final prefix.NonType(:o) = o;
+//                         ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:77:30: Error: Local variable 'o' can't be referenced before it is declared.
+//   final prefix.NonType(:o) = o;
+//                              ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:77:25: Context: This is the declaration of the variable 'o'.
+//   final prefix.NonType(:o) = o;
+//                         ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:79:21: Error: 'NonType' isn't a type.
 //   if (o case prefix.NonType(:var field)) {}
@@ -145,12 +180,19 @@ library;
 //   final prefix.Extension(:o) = o;
 //                ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:27: Error: Can't declare 'o' because it was already used in this scope.
-//   final prefix.Extension(:o) = o;
-//                           ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:92:38: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:92:38: Error: Local variable 'o' can't be referenced before it is declared.
 //   var prefix.Extension(:int field) = o;
 //                                      ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:27: Context: This is the declaration of the variable 'o'.
+//   final prefix.Extension(:o) = o;
+//                           ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:32: Error: Local variable 'o' can't be referenced before it is declared.
+//   final prefix.Extension(:o) = o;
+//                                ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:27: Context: This is the declaration of the variable 'o'.
+//   final prefix.Extension(:o) = o;
+//                           ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:95:21: Error: 'Extension' isn't a type.
 //   if (o case prefix.Extension(:var field)) {}
@@ -172,12 +214,19 @@ library;
 //   final unresolved.Type(:o) = o;
 //         ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:26: Error: Can't declare 'o' because it was already used in this scope.
-//   final unresolved.Type(:o) = o;
-//                          ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:108:37: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:108:37: Error: Local variable 'o' can't be referenced before it is declared.
 //   var unresolved.Type(:int field) = o;
 //                                     ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:26: Context: This is the declaration of the variable 'o'.
+//   final unresolved.Type(:o) = o;
+//                          ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:31: Error: Local variable 'o' can't be referenced before it is declared.
+//   final unresolved.Type(:o) = o;
+//                               ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:26: Context: This is the declaration of the variable 'o'.
+//   final unresolved.Type(:o) = o;
+//                          ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:111:14: Error: 'unresolved.Type' can't be used as a type because 'unresolved' isn't defined.
 //   if (o case unresolved.Type(:var field)) {}
@@ -199,12 +248,19 @@ library;
 //   final NonType.hashCode(:o) = o;
 //         ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:125:27: Error: Can't declare 'o' because it was already used in this scope.
-//   final NonType.hashCode(:o) = o;
-//                           ^
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:124:38: Context: Previous use of 'o'.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:124:38: Error: Local variable 'o' can't be referenced before it is declared.
 //   var NonType.hashCode(:int field) = o;
 //                                      ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:125:27: Context: This is the declaration of the variable 'o'.
+//   final NonType.hashCode(:o) = o;
+//                           ^
+//
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:125:32: Error: Local variable 'o' can't be referenced before it is declared.
+//   final NonType.hashCode(:o) = o;
+//                                ^
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:125:27: Context: This is the declaration of the variable 'o'.
+//   final NonType.hashCode(:o) = o;
+//                           ^
 //
 // pkg/front_end/testcases/patterns/non_type_object_pattern.dart:127:14: Error: 'NonType.hashCode' can't be used as a type because 'NonType' doesn't refer to an import prefix.
 //   if (o case NonType.hashCode(:var field)) {}
@@ -235,9 +291,7 @@ static method testUnresolved(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t1 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:13:21: Error: Can't declare 'o' because it was already used in this scope.
-  final Unresolved(:o) = o;
-                    ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t2 = o = #1#0{invalid-type}{<invalid>}.o in true)))
@@ -291,9 +345,7 @@ static method testNonType(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t7 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:29:18: Error: Can't declare 'o' because it was already used in this scope.
-  final NonType(:o) = o;
-                 ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t8 = o = #1#0{invalid-type}{<invalid>}.o in true)))
@@ -347,9 +399,7 @@ static method testExtension(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t13 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:20: Error: Can't declare 'o' because it was already used in this scope.
-  final Extension(:o) = o;
-                   ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t14 = o = #1#0{invalid-type}{<invalid>}.o in true)))
@@ -403,9 +453,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t19 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:61:28: Error: Can't declare 'o' because it was already used in this scope.
-  final prefix.Unresolved(:o) = o;
-                           ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t20 = o = #1#0{invalid-type}{<invalid>}.o in true)))
@@ -459,9 +507,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t25 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:77:25: Error: Can't declare 'o' because it was already used in this scope.
-  final prefix.NonType(:o) = o;
-                        ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t26 = o = #1#0{invalid-type}{<invalid>}.o in true)))
@@ -515,9 +561,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t31 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:27: Error: Can't declare 'o' because it was already used in this scope.
-  final prefix.Extension(:o) = o;
-                          ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t32 = o = #1#0{invalid-type}{<invalid>}.o in true)))
@@ -571,9 +615,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t37 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:26: Error: Can't declare 'o' because it was already used in this scope.
-  final unresolved.Type(:o) = o;
-                         ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t38 = o = #1#0{invalid-type}{<invalid>}.o in true)))
@@ -627,9 +669,7 @@ static method testMemberAccess(dynamic o) → dynamic {
     if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t43 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
-  final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:125:27: Error: Can't declare 'o' because it was already used in this scope.
-  final NonType.hashCode(:o) = o;
-                          ^";
+  final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
     if(!(#1#0 is invalid-type && (let final dynamic #t44 = o = #1#0{invalid-type}{<invalid>}.o in true)))

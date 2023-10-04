@@ -1,0 +1,42 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:22:56: Error: Inferred type argument 'NotA' doesn't conform to the bound 'A' of the type variable 'T' on 'C'.
+//  - 'NotA' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       new /*error:COULD_NOT_INFER*/ /*@typeArgs=NotA*/ C(myF);
+//                                                        ^
+// pkg/front_end/testcases/inference/constructors_infer_from_arguments_argument_not_assignable.dart:12:9: Context: This is the type variable whose bound isn't conformed to.
+// class C<T extends A> {
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object? = dynamic> = () → T%;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class C<T extends self::A> extends core::Object {
+  constructor •(() → self::C::T f) → self::C<self::C::T>
+    : super core::Object::•()
+    ;
+}
+class NotA extends core::Object {
+  synthetic constructor •() → self::NotA
+    : super core::Object::•()
+    ;
+}
+static method myF() → self::NotA
+  return throw "";
+static method test() → dynamic {
+  self::C<self::NotA> x = new self::C::•<self::NotA>(#C1);
+}
+
+constants  {
+  #C1 = static-tearoff self::myF
+}

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
@@ -522,6 +523,33 @@ class TypeSystemOperations
   @override
   DartType variableType(PromotableElement variable) {
     return variable.type;
+  }
+
+  @override
+  PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
+      covariant ExecutableElement property) {
+    if (!property.library.featureSet.isEnabled(Feature.inference_update_2)) {
+      return PropertyNonPromotabilityReason.isNotEnabled;
+    }
+    if (property is! PropertyAccessorElement) {
+      return PropertyNonPromotabilityReason.isNotField;
+    }
+    var field = property.variable;
+    if (field is! FieldElement) {
+      return PropertyNonPromotabilityReason.isNotField;
+    }
+    if (field.isSynthetic && !property.isSynthetic) {
+      // The field is synthetic but not the property; this means that what was
+      // declared by the user was the property (the getter).
+      return PropertyNonPromotabilityReason.isNotField;
+    }
+    if (field.isPromotable) return null;
+    if (field.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
+    if (field.isExternal) return PropertyNonPromotabilityReason.isExternal;
+    if (!field.isFinal) return PropertyNonPromotabilityReason.isNotFinal;
+    // Non-promotion reason must be due to a conflict with some other
+    // declaration.
+    return null;
   }
 }
 

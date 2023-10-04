@@ -12,7 +12,7 @@ import 'protocol_custom_generated.dart';
 
 const jsonRpcVersion = '2.0';
 
-const NullJsonHandler = LspJsonHandler<Null>(_alwaysTrue, _alwaysNull);
+const NullJsonHandler = LspJsonHandler<void>(_alwaysTrue, _alwaysNull);
 
 ErrorOr<R> cancelled<R>() =>
     error(ErrorCodes.RequestCancelled, 'Request was cancelled', null);
@@ -58,7 +58,7 @@ Object? specToJson(Object? obj) {
 
 ErrorOr<R> success<R>(R t) => ErrorOr<R>.success(t);
 
-Null _alwaysNull(_, [__]) => null;
+void _alwaysNull(_, [__]) {}
 
 bool _alwaysTrue(_, [__]) => true;
 

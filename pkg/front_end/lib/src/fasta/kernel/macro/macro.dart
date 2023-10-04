@@ -430,6 +430,7 @@ class MacroApplications {
           return getClassDeclaration(typeDeclarationBuilder);
         case TypeAliasBuilder():
         case TypeVariableBuilder():
+        case StructuralVariableBuilder():
         case ExtensionBuilder():
         case ExtensionTypeDeclarationBuilder():
         case InvalidTypeDeclarationBuilder():
@@ -990,7 +991,8 @@ class MacroApplications {
     List<List<macro.ParameterDeclarationImpl>> parameters =
         _createParameters(builder, builder.formals);
     macro.ParameterizedTypeDeclaration definingClass =
-        getClassDeclaration(builder.classBuilder);
+        // TODO(johnniwinther): Support extension type factories.
+        getClassDeclaration(builder.classBuilder!);
 
     return new macro.ConstructorDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -1153,8 +1155,18 @@ class MacroApplications {
                   name: name),
               typeArguments: typeArguments,
               isNullable: isNullable);
+        } else if (name is Identifier) {
+          return new macro.NamedTypeAnnotationImpl(
+              id: macro.RemoteInstance.uniqueId,
+              identifier: new TypeBuilderIdentifier(
+                  typeBuilder: typeBuilder,
+                  libraryBuilder: libraryBuilder,
+                  id: macro.RemoteInstance.uniqueId,
+                  name: name.name),
+              typeArguments: typeArguments,
+              isNullable: isNullable);
         } else if (name is QualifiedName) {
-          assert(name.qualifier is String);
+          assert(name.qualifier is Identifier);
           return new macro.NamedTypeAnnotationImpl(
               id: macro.RemoteInstance.uniqueId,
               identifier: new TypeBuilderIdentifier(

@@ -397,10 +397,7 @@
     "group": "errors",
     "state": "stable",
     "incompatible": [],
-    "sets": [
-      "recommended",
-      "flutter"
-    ],
+    "sets": [],
     "fixStatus": "hasFix",
     "details": "**DON'T** use the type Null where void would work.\n\n**BAD:**\n```dart\nNull f() {}\nFuture<Null> f() {}\nStream<Null> f() {}\nf(Null x) {}\n```\n\n**GOOD:**\n```dart\nvoid f() {}\nFuture<void> f() {}\nStream<void> f() {}\nf(void x) {}\n```\n\nSome exceptions include formulating special function types:\n\n```dart\nNull Function(Null, Null);\n```\n\nand for making empty literals which are safe to pass into read-only locations\nfor any type of map or list:\n\n```dart\n<Null>[];\n<int, Null>{};\n```\n",
     "sinceDartSdk": "2.1.0"
@@ -540,7 +537,11 @@
     "group": "pub",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "noFix",
     "details": "**DO** Use secure urls in `pubspec.yaml`.\n\nUse `https` instead of `http` or `git:`.\n\n**BAD:**\n```yaml\nrepository: http://github.com/dart-lang/example\n```\n\n```yaml\ngit:\n  url: git://github.com/dart-lang/example/example.git\n```\n\n**GOOD:**\n```yaml\nrepository: https://github.com/dart-lang/example\n```\n\n",
     "sinceDartSdk": "2.16.0"
@@ -627,6 +628,17 @@
     "fixStatus": "hasFix",
     "details": "**DO** annotate overridden methods and fields.\n\nThis practice improves code readability and helps protect against\nunintentionally overriding superclass members.\n\n**BAD:**\n```dart\nclass Cat {\n  int get lives => 9;\n}\n\nclass Lucky extends Cat {\n  final int lives = 14;\n}\n```\n\n**GOOD:**\n```dart\nabstract class Dog {\n  String get breed;\n  void bark() {}\n}\n\nclass Husky extends Dog {\n  @override\n  final String breed = 'Husky';\n  @override\n  void bark() {}\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
+  },
+  {
+    "name": "annotate_redeclares",
+    "description": "Annotate redeclared members.",
+    "group": "style",
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DO** annotate redeclared members.\n\nThis practice improves code readability and helps protect against\nunintentionally redeclaring members or being surprised when a member ceases to\nredeclare (due for example to a rename refactoring).\n\n**BAD:**\n```dart\nclass C {\n  void f() { }\n}\n\nextension type E(C c) implements C {\n  void f() {\n    ...\n  }\n}\n```\n\n**GOOD:**\n```dart\nimport 'package:meta/meta.dart';\n\nclass C {\n  void f() { }\n}\n\nextension type E(C c) implements C {\n  @redeclare\n  void f() {\n    ...\n  }\n}\n```\n",
+    "sinceDartSdk": "3.2.0"
   },
   {
     "name": "avoid_annotating_with_dynamic",
@@ -1135,7 +1147,11 @@
     "group": "style",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "hasFix",
     "details": "Attach library doc comments (with `///`) to library directives, rather than\nleaving them dangling near the top of a library.\n\n**BAD:**\n```dart\n/// This is a great library.\nimport 'package:math';\n```\n\n```dart\n/// This is a great library.\n\nclass C {}\n```\n\n**GOOD:**\n```dart\n/// This is a great library.\nlibrary;\n\nimport 'package:math';\n\nclass C {}\n```\n\n**NOTE:** An unnamed library, like `library;` above, is only supported in Dart\n2.19 and later. Code which might run in earlier versions of Dart will need to\nprovide a name in the `library` directive.\n",
     "sinceDartSdk": "2.19.0"
@@ -1774,10 +1790,7 @@
     "group": "style",
     "state": "removed",
     "incompatible": [],
-    "sets": [
-      "recommended",
-      "flutter"
-    ],
+    "sets": [],
     "fixStatus": "noFix",
     "details": "**DO** use `=` to separate a named parameter from its default value.\n\n**BAD:**\n```dart\nm({a: 1})\n```\n\n**GOOD:**\n```dart\nm({a = 1})\n```\n",
     "sinceDartSdk": "2.0.0"
@@ -2291,7 +2304,11 @@
     "group": "style",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "hasFix",
     "details": "If you meant to test if the object has type `Foo`, instead write `Foo _`.\n\n**BAD:**\n```dart\nvoid f(Object? x) {\n  if (x case num) {\n    print('int or double');\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid f(Object? x) {\n  if (x case num _) {\n    print('int or double');\n  }\n}\n```\n\nIf you do mean to test that the matched value (which you expect to have the\ntype `Type`) is equal to the type literal `Foo`, then this lint can be\nsilenced using `const (Foo)`.\n\n**BAD:**\n```dart\nvoid f(Object? x) {\n  if (x case int) {\n    print('int');\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid f(Object? x) {\n  if (x case const (int)) {\n    print('int');\n  }\n}\n```\n",
     "sinceDartSdk": "3.0.0"
@@ -2589,7 +2606,7 @@
       "flutter"
     ],
     "fixStatus": "hasFix",
-    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-this-when-not-needed-to-avoid-shadowing):\n\n**DON'T** use `this` when not needed to avoid shadowing.\n\n**BAD:**\n```dart\nclass Box {\n  var value;\n  void update(new_value) {\n    this.value = new_value;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  var value;\n  void update(new_value) {\n    value = new_value;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  var value;\n  void update(value) {\n    this.value = value;\n  }\n}\n```\n\n",
+    "details": "From [Effective Dart](https://dart.dev/effective-dart/usage#dont-use-this-when-not-needed-to-avoid-shadowing):\n\n**DON'T** use `this` when not needed to avoid shadowing.\n\n**BAD:**\n```dart\nclass Box {\n  int value;\n  void update(int newValue) {\n    this.value = newValue;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  int value;\n  void update(int newValue) {\n    value = newValue;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass Box {\n  int value;\n  void update(int value) {\n    this.value = value;\n  }\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -2598,7 +2615,10 @@
     "group": "style",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "hasFix",
     "details": "Unnecessary `toList()` in spreads.\n\n**BAD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)).toList(),\n]\n```\n\n**GOOD:**\n```dart\nchildren: <Widget>[\n  ...['foo', 'bar', 'baz'].map((String s) => Text(s)),\n]\n```\n\n",
     "sinceDartSdk": "2.18.0"
@@ -2786,7 +2806,10 @@
     "group": "style",
     "state": "experimental",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "hasFix",
     "details": "\"Forwarding constructor\"s, that do nothing except forward parameters to their \nsuperclass constructors should take advantage of super-initializer parameters \nrather than repeating the names of parameters when passing them to the \nsuperclass constructors.  This makes the code more concise and easier to read\nand maintain.\n\n**DO** use super-initializer parameters where possible.\n\n**BAD:**\n```dart\nclass A {\n  A({int? x, int? y});\n}\nclass B extends A {\n  B({int? x, int? y}) : super(x: x, y: y);\n}\n```\n\n**GOOD:**\n```dart\nclass A {\n  A({int? x, int? y});\n}\nclass B extends A {\n  B({super.x, super.y});\n}\n```\n",
     "sinceDartSdk": "2.17.0"

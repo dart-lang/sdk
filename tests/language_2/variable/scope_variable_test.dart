@@ -37,11 +37,10 @@ int testShadowingAfterUse() {
     var c = a; // Use of 'a' prior to its shadow declaration below.
     //      ^
     // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'a' can't be referenced before it is declared.
     var d = b + c;
     // Shadow declaration of 'a'.
     var a = 5;
-    //  ^
-    // [cfe] Can't declare 'a' because it was already used in this scope.
     return d + a;
   }
 }

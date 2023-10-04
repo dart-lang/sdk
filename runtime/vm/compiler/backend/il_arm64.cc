@@ -714,6 +714,12 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
   } else if (destination.IsFpuRegister()) {
     const VRegister dst = destination.fpu_reg();
     __ LoadDImmediate(dst, Double::Cast(value_).value());
+    if (representation() == kUnboxedFloat) {
+      __ LoadSImmediate(dst, Double::Cast(value_).value());
+    } else {
+      ASSERT(representation() == kUnboxedDouble);
+      __ LoadDImmediate(dst, Double::Cast(value_).value());
+    }
   } else if (destination.IsDoubleStackSlot()) {
     const intptr_t dest_offset = destination.ToStackSlotOffset();
     if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
@@ -3630,25 +3636,13 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value != result);
-  compiler::Label done;
-  __ sbfx(result, value, kSmiTagSize,
-          Utils::Minimum(static_cast<intptr_t>(32), kSmiBits));
-  __ BranchIfSmi(value, &done);
-  __ LoadFieldFromOffset(result, value, Mint::value_offset(),
-                         compiler::kFourBytes);
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  ASSERT(value != result);
-  compiler::Label done;
-  __ SmiUntag(result, value);
-  __ BranchIfSmi(value, &done);
-  __ LoadFieldFromOffset(result, value, Mint::value_offset());
-  __ Bind(&done);
+  __ LoadInt64FromBoxOrSmi(result, value);
 }
 
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
@@ -4397,33 +4391,6 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #undef DEFINE_EMIT
 
-LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
-                                                     bool opt) const {
-  ASSERT((kind() == MathUnaryInstr::kSqrt) ||
-         (kind() == MathUnaryInstr::kDoubleSquare));
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
-  return summary;
-}
-
-void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (kind() == MathUnaryInstr::kSqrt) {
-    const VRegister val = locs()->in(0).fpu_reg();
-    const VRegister result = locs()->out(0).fpu_reg();
-    __ fsqrtd(result, val);
-  } else if (kind() == MathUnaryInstr::kDoubleSquare) {
-    const VRegister val = locs()->in(0).fpu_reg();
-    const VRegister result = locs()->out(0).fpu_reg();
-    __ fmuld(result, val, val);
-  } else {
-    UNREACHABLE();
-  }
-}
-
 LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -4576,9 +4543,22 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(representation() == kUnboxedDouble);
   const VRegister result = locs()->out(0).fpu_reg();
   const VRegister value = locs()->in(0).fpu_reg();
-  __ fnegd(result, value);
+  switch (op_kind()) {
+    case Token::kNEGATE:
+      __ fnegd(result, value);
+      break;
+    case Token::kSQRT:
+      __ fsqrtd(result, value);
+      break;
+    case Token::kSQUARE:
+      __ fmuld(result, value, value);
+      break;
+    default:
+      UNREACHABLE();
+  }
 }
 
 LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Zone* zone,
@@ -4727,16 +4707,6 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(result);
 }
 
-LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(Zone* zone,
-                                                          bool opt) const {
-  UNIMPLEMENTED();
-  return nullptr;
-}
-
-void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
 LocationSummary* DoubleToFloatInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -4769,6 +4739,16 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister value = locs()->in(0).fpu_reg();
   const VRegister result = locs()->out(0).fpu_reg();
   __ fcvtds(result, value);
+}
+
+LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
@@ -4971,6 +4951,26 @@ void ExtractNthOutputInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register in = in_loc.reg();
     __ mov(out, in);
   }
+}
+
+LocationSummary* UnboxLaneInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+void UnboxLaneInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+LocationSummary* BoxLanesInstr::MakeLocationSummary(Zone* zone,
+                                                    bool opt) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+void BoxLanesInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 LocationSummary* TruncDivModInstr::MakeLocationSummary(Zone* zone,
@@ -6379,6 +6379,26 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ eori(
       result, input,
       compiler::Immediate(compiler::target::ObjectAlignment::kBoolValueMask));
+}
+
+LocationSummary* BoolToIntInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+void BoolToIntInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+LocationSummary* IntToBoolInstr::MakeLocationSummary(Zone* zone,
+                                                     bool opt) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+void IntToBoolInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,

@@ -115,6 +115,31 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_error_trailingComma() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(int it,) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA, 23, 1),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_featureNotEnabled() {
     final parseResult = parseStringWithErrors(r'''
 // @dart = 3.1

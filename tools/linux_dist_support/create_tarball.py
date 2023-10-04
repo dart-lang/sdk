@@ -42,7 +42,6 @@ versiondir = ''
 ignoredPaths = [
     'buildtools/linux-x64/go',
     'buildtools/linux-x64/rust',
-    'samples',
     'third_party/7zip',
     'third_party/android_tools',
     'third_party/clang',
@@ -173,8 +172,8 @@ def CreateTarball(tarfilename):
             GenerateEmpty(empty)
             tar.add(empty, arcname='%s/dart/.git/logs/HEAD' % versiondir)
 
-            # For bleeding_edge add the GIT_REVISION file.
-            if utils.GetChannel() == 'be':
+            # For main, add the GIT_REVISION file.
+            if utils.GetChannel() in ['main', 'be']:
                 git_revision = join(temp_dir, 'GIT_REVISION')
                 GenerateGitRevision(git_revision, utils.GetGitRevision())
                 tar.add(git_revision,

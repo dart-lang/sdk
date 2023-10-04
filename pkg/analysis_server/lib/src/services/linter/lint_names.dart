@@ -15,6 +15,7 @@ class LintNames {
   static const String always_specify_types = 'always_specify_types';
   static const String always_use_package_imports = 'always_use_package_imports';
   static const String annotate_overrides = 'annotate_overrides';
+  static const String annotate_redeclares = 'annotate_redeclares';
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';

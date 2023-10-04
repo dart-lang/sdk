@@ -3921,6 +3921,17 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kMintCid, result);
 }
 
+void EnterTestFrame(Assembler* assembler) {
+  __ EnterFrame(1 << THR | 1 << PP | 1 << CODE_REG, 0);
+  __ MoveRegister(CODE_REG, R0);
+  __ MoveRegister(THR, R1);
+  __ LoadPoolPointer(PP);
+}
+
+void LeaveTestFrame(Assembler* assembler) {
+  __ LeaveFrame(1 << THR | 1 << PP | 1 << CODE_REG);
+}
+
 }  // namespace compiler
 }  // namespace dart
 

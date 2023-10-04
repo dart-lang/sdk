@@ -10,6 +10,6 @@ main() {
 }
 
 @pragma('dart2js:noInline')
-test() async /*2:test*/ {
-  /*4:test*/ throw '>ExceptionMarker<';
+test() async {
+  /*2:test*/ /*4:test*/ throw '>ExceptionMarker<';
 }

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show operatorFromString;
+import 'package:front_end/src/api_unstable/dart2js.dart' show Operator;
 import 'package:front_end/src/api_prototype/static_weak_references.dart' as ir
     show StaticWeakReferences;
 import 'package:kernel/ast.dart' as ir;
@@ -694,9 +693,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         typeArguments =
             functionType.typeParameters.map((t) => t.defaultType).toList();
       }
-      return ir.Substitution.fromPairs(
-              functionType.typeParameters, typeArguments)
-          .substituteType(functionType.withoutTypeParameters);
+      return ir.FunctionTypeInstantiator.instantiate(
+          functionType, typeArguments);
     }
     return functionType;
   }
@@ -728,8 +726,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .toList();
       }
       getterType =
-          ir.Substitution.fromPairs(functionType.typeParameters, typeArguments)
-              .substituteType(functionType.withoutTypeParameters);
+          ir.FunctionTypeInstantiator.instantiate(functionType, typeArguments);
     }
     if (isSpecialCasedBinaryOperator(interfaceTarget)) {
       ir.DartType argumentType = argumentTypes.positional[0];
@@ -756,9 +753,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         if (receiverType.typeParameters.length != node.arguments.types.length) {
           return const ir.NeverType.nonNullable();
         }
-        return ir.Substitution.fromPairs(
-                receiverType.typeParameters, node.arguments.types)
-            .substituteType(receiverType.returnType);
+        return ir.FunctionTypeInstantiator.instantiate(
+                receiverType, node.arguments.types)
+            .returnType;
       }
     }
     if (node.name.text == '==') {
@@ -937,7 +934,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           _computeDynamicInvocationReturnType(node, receiverType);
       _staticTypeCache._expressionTypes[node] = returnType;
       handleDynamicInvocation(node, receiverType, argumentTypes, returnType);
-      if (operatorFromString(node.name.text) == null &&
+      if (Operator.fromText(node.name.text) == null &&
           receiverType is ir.DynamicType) {
         // We might implicitly call a getter that returns a function.
         handleFunctionInvocation(
@@ -1272,9 +1269,8 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
 
   ir.DartType _computeInstantiationType(
       ir.Instantiation node, ir.FunctionType expressionType) {
-    return ir.Substitution.fromPairs(
-            expressionType.typeParameters, node.typeArguments)
-        .substituteType(expressionType.withoutTypeParameters);
+    return ir.FunctionTypeInstantiator.instantiate(
+        expressionType, node.typeArguments);
   }
 
   void handleInstantiation(ir.Instantiation node,

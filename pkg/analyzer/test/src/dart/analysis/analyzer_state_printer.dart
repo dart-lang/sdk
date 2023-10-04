@@ -15,11 +15,16 @@ import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
+  static const String _macroApiUriStr =
+      'package:_fe_analyzer_shared/src/macros/api.dart';
+
+  static const String _macroApiUriRewrite = 'package:macro/api.dart';
+
   final MemoryByteStore byteStore;
   final UnlinkedUnitStoreImpl unlinkedUnitStore;
   final IdProvider idProvider;
   final LibraryContext libraryContext;
-  final bool omitSdkFiles;
+  final AnalyzerStatePrinterConfiguration configuration;
   final ResourceProvider resourceProvider;
   final StringSink sink;
   final bool withKeysGetPut;
@@ -32,7 +37,7 @@ class AnalyzerStatePrinter {
     required this.unlinkedUnitStore,
     required this.idProvider,
     required this.libraryContext,
-    required this.omitSdkFiles,
+    required this.configuration,
     required this.resourceProvider,
     required this.sink,
     required this.withKeysGetPut,
@@ -67,7 +72,7 @@ class AnalyzerStatePrinter {
   }
 
   String _stringOfLibraryCycle(LibraryCycle cycle) {
-    if (omitSdkFiles) {
+    if (configuration.omitSdkFiles) {
       final isSdkLibrary = cycle.libraries.any((library) {
         return library.file.uri.isScheme('dart');
       });
@@ -79,6 +84,9 @@ class AnalyzerStatePrinter {
         }
       }
     }
+    if (cycle.libraries.any((e) => e.file.uriStr == _macroApiUriStr)) {
+      return _macroApiUriRewrite;
+    }
     return idProvider.libraryCycle(cycle);
   }
 
@@ -88,6 +96,18 @@ class AnalyzerStatePrinter {
     } else {
       return uriStr;
     }
+  }
+
+  void _verifyKnownFiles() {
+    final uriFiles = fileSystemState.test.uriToFile.values.toSet();
+    final pathFiles = fileSystemState.test.uriToFile.values.toSet();
+
+    expect(pathFiles.difference(uriFiles), isEmpty);
+    expect(uriFiles.difference(pathFiles), isEmpty);
+
+    final knownFilesNotInUriFiles = fileSystemState.knownFiles.toSet();
+    knownFilesNotInUriFiles.removeAll(uriFiles);
+    expect(knownFilesNotInUriFiles, isEmpty);
   }
 
   void _withIndent(void Function() f) {
@@ -171,10 +191,17 @@ class AnalyzerStatePrinter {
   void _writeFile(FileState file) {
     _withIndent(() {
       _writelnWithIndent('id: ${idProvider.fileState(file)}');
+      _writeFileContent(file);
       _writeFileKind(file);
       _writeReferencingFiles(file);
       _writeFileUnlinkedKey(file);
     });
+  }
+
+  void _writeFileContent(FileState file) {
+    if (configuration.filesToPrintContent.any((e) => e.path == file.path)) {
+      _writelnWithIndent('content\n---\n${file.content}---');
+    }
   }
 
   void _writeFileKind(FileState file) {
@@ -205,7 +232,21 @@ class AnalyzerStatePrinter {
       });
     } else if (kind is AugmentationUnknownFileKind) {
       _withIndent(() {
-        _writelnWithIndent('uri: ${kind.unlinked.uri}');
+        final uri = kind.uri;
+        if (uri is DirectiveUriWithoutString) {
+          _writelnWithIndent('noUriStr');
+        } else if (uri is DirectiveUriWithInSummarySource) {
+          throw UnimplementedError('${uri.runtimeType}');
+        } else if (uri is DirectiveUriWithUri) {
+          sink.write(_indent);
+          sink.write('uri: ${uri.relativeUri}');
+          sink.writeln();
+        } else if (uri is DirectiveUriWithString) {
+          final uriStr = _stringOfUriStr(uri.relativeUriStr);
+          sink.write(_indent);
+          sink.write('uriStr: $uriStr');
+          sink.writeln();
+        }
       });
     } else if (kind is LibraryFileKind) {
       expect(kind.library, same(kind));
@@ -265,6 +306,15 @@ class AnalyzerStatePrinter {
   void _writeFiles(FileSystemTestData testData) {
     fileSystemState.pullReferencedFiles();
 
+    if (configuration.discardPartialMacroAugmentationFiles) {
+      final pattern = RegExp(r'^.*\.macro\d+\.dart$');
+      testData.files.removeWhere((file, value) {
+        return pattern.hasMatch(file.path);
+      });
+    }
+
+    _verifyKnownFiles();
+
     // Discover libraries for parts.
     // This is required for consistency checking.
     for (final fileData in testData.files.values.toList()) {
@@ -295,7 +345,7 @@ class AnalyzerStatePrinter {
     fileDataList.sort((first, second) {
       final firstPath = first.file.path;
       final secondPath = second.file.path;
-      if (omitSdkFiles) {
+      if (configuration.omitSdkFiles) {
         final firstUri = first.uri;
         final secondUri = second.uri;
         final firstIsSdk = firstUri.isScheme('dart');
@@ -333,7 +383,10 @@ class AnalyzerStatePrinter {
     _writelnWithIndent('files');
     _withIndent(() {
       for (final fileData in fileDataList) {
-        if (omitSdkFiles && fileData.uri.isScheme('dart')) {
+        if (configuration.omitSdkFiles && fileData.uri.isScheme('dart')) {
+          continue;
+        }
+        if (_isMacroApiUri(fileData.uri)) {
           continue;
         }
         final file = fileData.file;
@@ -368,7 +421,11 @@ class AnalyzerStatePrinter {
     _withIndent(() {
       final cyclesToPrint = <_LibraryCycleToPrint>[];
       for (final entry in testData.libraryCycles.entries) {
-        if (omitSdkFiles && entry.key.any((e) => e.uri.isScheme('dart'))) {
+        if (configuration.omitSdkFiles &&
+            entry.key.any((e) => e.uri.isScheme('dart'))) {
+          continue;
+        }
+        if (entry.key.any((e) => _isMacroApiUri(e.uri))) {
           continue;
         }
         cyclesToPrint.add(
@@ -469,7 +526,7 @@ class AnalyzerStatePrinter {
             sink.write('notLibrary ${idProvider.fileState(file)}');
           }
 
-          if (omitSdkFiles && file.uri.isScheme('dart')) {
+          if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
             sink.write(' ${file.uri}');
           }
           sink.writeln();
@@ -514,8 +571,11 @@ class AnalyzerStatePrinter {
             sink.write('notLibrary ${idProvider.fileState(file)}');
           }
 
-          if (omitSdkFiles && file.uri.isScheme('dart')) {
+          if (configuration.omitSdkFiles && file.uri.isScheme('dart')) {
             sink.write(' ${file.uri}');
+          }
+          if (file.uriStr == _macroApiUriStr) {
+            sink.write(' $_macroApiUriRewrite');
           }
 
           if (import.isSyntheticDartCore) {
@@ -617,7 +677,10 @@ class AnalyzerStatePrinter {
   void _writeUriList(String name, Iterable<Uri> uriIterable) {
     final uriStrList = <String>[];
     for (final uri in uriIterable) {
-      if (omitSdkFiles && uri.isScheme('dart')) {
+      if (configuration.omitSdkFiles && uri.isScheme('dart')) {
+        continue;
+      }
+      if ('$uri' == _macroApiUriStr) {
         continue;
       }
       uriStrList.add('$uri');
@@ -633,6 +696,18 @@ class AnalyzerStatePrinter {
       });
     }
   }
+
+  static bool _isMacroApiUri(Uri uri) {
+    return '$uri'.startsWith('package:_fe_analyzer_shared');
+  }
+}
+
+class AnalyzerStatePrinterConfiguration {
+  bool discardPartialMacroAugmentationFiles = true;
+
+  Set<File> filesToPrintContent = {};
+
+  bool omitSdkFiles = true;
 }
 
 /// Encoder of object identifies into short identifiers.

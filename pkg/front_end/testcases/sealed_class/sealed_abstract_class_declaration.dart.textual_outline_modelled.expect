@@ -1,5 +1,2 @@
 abstract sealed class A {}
----- unknown chunk starts ----
-sealed
----- unknown chunk ends ----
-abstract class A {}
+sealed abstract class B {}

@@ -70,7 +70,7 @@ import "dart:core" as core;
     }
   } =>[-1] [-1] #t1;
 [711]static method testMain() → dynamic {
-[753]  [726] [726] self::calculateArea [739]([740] new self::Circle::• [746]([747] -123.0));
+[726]  [726] [726] self::calculateArea [739]([740] new self::Circle::• [746]([747] -123.0));
 }
 
 constants  {

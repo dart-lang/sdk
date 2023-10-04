@@ -50,6 +50,7 @@ class SimpleExpressionConverter {
     Tag tag = helper_->ReadTag(&payload);  // read tag.
     switch (tag) {
       case kBigIntLiteral: {
+        helper_->ReadPosition();
         const String& literal_str =
             H.DartString(helper_->ReadStringReference(),
                          Heap::kOld);  // read index into string table.
@@ -63,10 +64,12 @@ class SimpleExpressionConverter {
         return true;
       }
       case kStringLiteral:
+        helper_->ReadPosition();
         simple_value_ = &H.DartSymbolPlain(
             helper_->ReadStringReference());  // read index into string table.
         return true;
       case kSpecializedIntLiteral:
+        helper_->ReadPosition();
         simple_value_ =
             &Integer::ZoneHandle(Z, Integer::New(static_cast<int32_t>(payload) -
                                                      SpecializedIntLiteralBias,
@@ -74,29 +77,35 @@ class SimpleExpressionConverter {
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kNegativeIntLiteral:
+        helper_->ReadPosition();
         simple_value_ = &Integer::ZoneHandle(
             Z, Integer::New(-static_cast<int64_t>(helper_->ReadUInt()),
                             Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kPositiveIntLiteral:
+        helper_->ReadPosition();
         simple_value_ = &Integer::ZoneHandle(
             Z, Integer::New(static_cast<int64_t>(helper_->ReadUInt()),
                             Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kDoubleLiteral:
+        helper_->ReadPosition();
         simple_value_ = &Double::ZoneHandle(
             Z, Double::New(helper_->ReadDouble(), Heap::kOld));  // read value.
         *simple_value_ = H.Canonicalize(*simple_value_);
         return true;
       case kTrueLiteral:
+        helper_->ReadPosition();
         simple_value_ = &Bool::Handle(Z, Bool::Get(true).ptr());
         return true;
       case kFalseLiteral:
+        helper_->ReadPosition();
         simple_value_ = &Bool::Handle(Z, Bool::Get(false).ptr());
         return true;
       case kNullLiteral:
+        helper_->ReadPosition();
         simple_value_ = &Instance::ZoneHandle(Z, Instance::null());
         return true;
       default:

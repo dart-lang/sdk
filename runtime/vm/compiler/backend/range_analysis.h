@@ -632,7 +632,7 @@ class RangeAnalysis : public ValueObject {
 
   bool ConstrainValueAfterBranch(Value* use, Definition* defn);
   void ConstrainValueAfterCheckBound(Value* use,
-                                     CheckBoundBase* check,
+                                     CheckBoundBaseInstr* check,
                                      Definition* defn);
 
   // Infer ranges for integer (smi or mint) definitions.
@@ -679,7 +679,7 @@ class RangeAnalysis : public ValueObject {
   GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
 
   // All CheckArrayBound/GenericCheckBound instructions.
-  GrowableArray<CheckBoundBase*> bounds_checks_;
+  GrowableArray<CheckBoundBaseInstr*> bounds_checks_;
 
   // All Constraints inserted during InsertConstraints phase. They are treated
   // as smi values.

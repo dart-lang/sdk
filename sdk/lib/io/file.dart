@@ -270,9 +270,9 @@ abstract interface class File implements FileSystemEntity {
   /// different file systems. If that is the case, instead [copy] the
   /// file to the new location and then remove the original.
   ///
-  /// If [newPath] identifies an existing file, that file is
+  /// If [newPath] identifies an existing file or link, that entity is
   /// removed first. If [newPath] identifies an existing directory, the
-  /// operation fails and the future completes with an exception.
+  /// operation fails and the future completes with a [FileSystemException].
   Future<File> rename(String newPath);
 
   /// Synchronously renames this file.
@@ -297,9 +297,9 @@ abstract interface class File implements FileSystemEntity {
   /// different file systems. If that is the case, instead [copySync] the
   /// file to the new location and then [deleteSync] the original.
   ///
-  /// If [newPath] identifies an existing file, that file is
+  /// If [newPath] identifies an existing file or link, that entity is
   /// removed first. If [newPath] identifies an existing directory the
-  /// operation fails and an exception is thrown.
+  /// operation throws a [FileSystemException].
   File renameSync(String newPath);
 
   /// Copies this file.
@@ -631,9 +631,23 @@ abstract interface class RandomAccessFile {
   int readByteSync();
 
   /// Reads up to [count] bytes from a file.
+  ///
+  /// May return fewer than [count] bytes. This can happen, for example, when
+  /// reading past the end of a file or when reading from a pipe that does not
+  /// currently contain additional data.
+  ///
+  /// An empty [Uint8List] will only be returned when reading past the end of
+  /// the file or when [count] is `0`.
   Future<Uint8List> read(int count);
 
   /// Synchronously reads up to [count] bytes from a file
+  ///
+  /// May return fewer than [count] bytes. This can happen, for example, when
+  /// reading past the end of a file or when reading from a pipe that does not
+  /// currently contain additional data.
+  ///
+  /// An empty [Uint8List] will only be returned when reading past the end of
+  /// the file or when [count] is `0`.
   ///
   /// Throws a [FileSystemException] if the operation fails.
   Uint8List readSync(int count);

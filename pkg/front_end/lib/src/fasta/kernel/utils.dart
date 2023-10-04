@@ -237,7 +237,7 @@ List<Combinator>? toKernelCombinators(
 }
 
 final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
-final Identifier dummyIdentifier = new Identifier(dummyToken);
+final Identifier dummyIdentifier = new SimpleIdentifier(dummyToken);
 final CombinatorBuilder dummyCombinator =
     new CombinatorBuilder(false, {}, -1, dummyUri);
 final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
@@ -250,8 +250,12 @@ final FormalParameterBuilder dummyFormalParameterBuilder =
 final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
     TypeVariableBuilder.noNameSentinel, null, -1, null,
     kind: TypeVariableKind.function);
+final StructuralVariableBuilder dummyStructuralVariableBuilder =
+    new StructuralVariableBuilder(
+        StructuralVariableBuilder.noNameSentinel, null, -1, null);
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);
-final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
+final FieldInfo dummyFieldInfo =
+    new FieldInfo(dummyIdentifier, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');

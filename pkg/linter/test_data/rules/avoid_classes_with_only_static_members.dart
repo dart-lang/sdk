@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// test w/ `dart test -N avoid_classes_with_only_static_members`
-
 class Bad // LINT
 {
   static int a = 0;

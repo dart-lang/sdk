@@ -89,10 +89,15 @@ testNativeCallableDoubleCloseError() {
   final callback = NativeCallable<CallbackNativeType>.listener(simpleFunction);
   Expect.notEquals(nullptr, callback.nativeFunction);
   callback.close();
-  Expect.equals(nullptr, callback.nativeFunction);
+
   Expect.throwsStateError(() {
-    callback.close();
+    final _ = callback.nativeFunction;
   });
+
+  // Expect that these do not throw.
+  callback.close();
+  callback.keepIsolateAlive = true;
+  Expect.isFalse(callback.keepIsolateAlive);
 }
 
 Future<void> testNativeCallableUseAfterFree() async {
@@ -129,7 +134,9 @@ Future<void> testNativeCallableNestedCloseCall() async {
   Expect.equals(1123, await simpleFunctionResult.future);
 
   // The callback is already closed.
-  Expect.equals(nullptr, simpleFunctionAndCloseSelf_callable!.nativeFunction);
+  Expect.throwsStateError(() {
+    final _ = simpleFunctionAndCloseSelf_callable!.nativeFunction;
+  });
 }
 
 void simpleFunctionThrows(int a, int b) {

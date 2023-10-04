@@ -232,6 +232,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kInt32x4:
     case DeoptInstr::kFloat64x2:
     case DeoptInstr::kWord:
+    case DeoptInstr::kFloat:
     case DeoptInstr::kDouble:
     case DeoptInstr::kMint:
     case DeoptInstr::kMintPair:
@@ -667,6 +668,12 @@ class DeoptFpuInstr : public DeoptInstr {
   DISALLOW_COPY_AND_ASSIGN(DeoptFpuInstr);
 };
 
+typedef DeoptFpuInstr<DeoptInstr::kFloat,
+                      CatchEntryMove::SourceKind::kFloatSlot,
+                      float,
+                      DoublePtr>
+    DeoptFloatInstr;
+
 typedef DeoptFpuInstr<DeoptInstr::kDouble,
                       CatchEntryMove::SourceKind::kDoubleSlot,
                       double,
@@ -898,6 +905,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
   switch (kind) {
     case kWord:
       return new DeoptWordInstr(source_index);
+    case kFloat:
+      return new DeoptFloatInstr(source_index);
     case kDouble:
       return new DeoptDoubleInstr(source_index);
     case kMint:
@@ -941,6 +950,8 @@ const char* DeoptInstr::KindToCString(Kind kind) {
   switch (kind) {
     case kWord:
       return "word";
+    case kFloat:
+      return "float";
     case kDouble:
       return "double";
     case kMint:
@@ -1123,6 +1134,9 @@ void DeoptInfoBuilder::AddCopy(Value* value,
             new (zone()) DeoptUint32Instr(ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedFloat:
+        deopt_instr = new (zone()) DeoptFloatInstr(
+            ToFpuRegisterSource(source_loc, Location::kDoubleStackSlot));
+        break;
       case kUnboxedDouble:
         deopt_instr = new (zone()) DeoptDoubleInstr(
             ToFpuRegisterSource(source_loc, Location::kDoubleStackSlot));

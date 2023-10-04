@@ -1,3 +1,6 @@
+# 1.6.1
+- Updated `vm_service` version to `^12.0.0`
+
 ## 1.6.0
 - Made DAP extensions methods accessible in lib.
 

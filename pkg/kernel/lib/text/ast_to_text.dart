@@ -202,6 +202,8 @@ class NameSystem {
   final Namer<Library> libraries = new NormalNamer<Library>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
+  final Namer<StructuralParameter> structuralParameters =
+      new NormalNamer<StructuralParameter>('#T');
   final Namer<TreeNode> labels = new NormalNamer<TreeNode>('#L');
   final Namer<Constant> constants = new ConstantNamer('#C');
   final Disambiguator<Reference, CanonicalName> prefixes =
@@ -212,6 +214,8 @@ class NameSystem {
   String nameExtension(Extension node) => extensions.getName(node);
   String nameLibrary(Library node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
+  String nameStructuralParameter(StructuralParameter node) =>
+      structuralParameters.getName(node);
   String nameSwitchCase(SwitchCase node) => labels.getName(node);
   String nameLabeledStatement(LabeledStatement node) => labels.getName(node);
   String nameConstant(Constant node) => constants.getName(node);
@@ -400,6 +404,10 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     return node.name ?? syntheticNames.nameTypeParameter(node);
   }
 
+  String getStructuralParameterName(StructuralParameter node) {
+    return node.name ?? syntheticNames.nameStructuralParameter(node);
+  }
+
   String getTypeParameterReference(TypeParameter node) {
     String name = getTypeParameterName(node);
     GenericDeclaration? declaration = node.declaration;
@@ -418,6 +426,10 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       case null:
         return name; // Bound inside a function type.
     }
+  }
+
+  String getStructuralParameterReference(StructuralParameter node) {
+    return getStructuralParameterName(node);
   }
 
   void writeComponentProblems(Component component) {
@@ -854,7 +866,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (state == WORD) {
       ensureSpace();
     }
-    writeTypeParameterList(node.typeParameters);
+    writeStructuralParameterList(node.typeParameters);
     writeSymbol('(');
     List<DartType> positional = node.positionalParameters;
 
@@ -906,6 +918,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void writeTypeParameterList(List<TypeParameter> typeParameters) {
+    if (typeParameters.isEmpty) return;
+    writeSymbol('<');
+    writeList(typeParameters, writeNode);
+    writeSymbol('>');
+    state = WORD; // Ensure space if not followed by another symbol.
+  }
+
+  void writeStructuralParameterList(List<StructuralParameter> typeParameters) {
     if (typeParameters.isEmpty) return;
     writeSymbol('<');
     writeList(typeParameters, writeNode);
@@ -1058,6 +1078,10 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   void writeTypeParameterReference(TypeParameter node) {
     writeWord(getTypeParameterReference(node));
+  }
+
+  void writeStructuralParameterReference(StructuralParameter node) {
+    writeWord(getStructuralParameterReference(node));
   }
 
   void writeExpression(Expression node, [int? minimumPrecedence]) {
@@ -2734,6 +2758,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    writeStructuralParameterReference(node.parameter);
+    writeNullability(node.declaredNullability);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     writeType(node.left);
     writeSpaced('&');
@@ -2761,6 +2791,25 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       ][node.variance]);
     }
     writeWord(getTypeParameterName(node));
+    writeSpaced('extends');
+    writeType(node.bound);
+    if (node.defaultType != node.bound) {
+      writeSpaced('=');
+      writeType(node.defaultType);
+    }
+  }
+
+  @override
+  void visitStructuralParameter(StructuralParameter node) {
+    if (node.variance != Variance.covariant) {
+      writeWord(const <String>[
+        "unrelated",
+        "covariant",
+        "contravariant",
+        "invariant"
+      ][node.variance]);
+    }
+    writeWord(getStructuralParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
     if (node.defaultType != node.bound) {
@@ -3078,7 +3127,7 @@ class Precedence implements ExpressionVisitor<int> {
   }
 
   @override
-  int defaultExpression(Expression node) => EXPRESSION;
+  int visitAuxiliaryExpression(AuxiliaryExpression node) => EXPRESSION;
 
   @override
   int visitInvalidExpression(InvalidExpression node) => CALLEE;

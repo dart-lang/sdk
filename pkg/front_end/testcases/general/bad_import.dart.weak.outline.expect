@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bad_import.dart:5:29: Error: Expected an identifier, but got '28'.
+// Try inserting an identifier before '28'.
+// import "syntax_lib.dart" as 28digits;
+//                             ^^
+//
+// pkg/front_end/testcases/general/bad_import.dart:5:29: Error: Expected ';' after this.
+// import "syntax_lib.dart" as 28digits;
+//                             ^^
+//
+import self as self;
+
+static field dynamic digits;

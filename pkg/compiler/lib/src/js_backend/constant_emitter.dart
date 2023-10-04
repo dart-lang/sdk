@@ -140,7 +140,9 @@ class ModularConstantEmitter
         return js("!1");
       }
     } else {
-      return constant is TrueConstantValue ? js('true') : js('false');
+      return constant is TrueConstantValue
+          ? jsAst.LiteralBool(true)
+          : jsAst.LiteralBool(false);
     }
   }
 

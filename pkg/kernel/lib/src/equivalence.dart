@@ -26,11 +26,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   EquivalenceVisitor({this.strategy = const EquivalenceStrategy()});
 
   @override
-  bool defaultTreeNode(TreeNode node, Node other) {
-    return false;
-  }
-
-  @override
   bool visitLibrary(Library node, Node other) {
     return strategy.checkLibrary(this, node, other);
   }
@@ -87,8 +82,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultInitializer(Initializer node, Node other) {
-    return false;
+  bool visitAuxiliaryInitializer(AuxiliaryInitializer node, Node other) {
+    return strategy.checkAuxiliaryInitializer(this, node, other);
   }
 
   @override
@@ -127,8 +122,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultExpression(Expression node, Node other) {
-    return false;
+  bool visitAuxiliaryExpression(AuxiliaryExpression node, Node other) {
+    return strategy.checkAuxiliaryExpression(this, node, other);
   }
 
   @override
@@ -492,8 +487,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultStatement(Statement node, Node other) {
-    return false;
+  bool visitAuxiliaryStatement(AuxiliaryStatement node, Node other) {
+    return strategy.checkAuxiliaryStatement(this, node, other);
   }
 
   @override
@@ -748,8 +743,8 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool defaultDartType(DartType node, Node other) {
-    return false;
+  bool visitAuxiliaryType(AuxiliaryType node, Node other) {
+    return strategy.checkAuxiliaryType(this, node, other);
   }
 
   @override
@@ -813,6 +808,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitStructuralParameterType(StructuralParameterType node, Node other) {
+    return strategy.checkStructuralParameterType(this, node, other);
+  }
+
+  @override
   bool visitRecordType(RecordType node, Node other) {
     return strategy.checkRecordType(this, node, other);
   }
@@ -823,8 +823,18 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitStructuralParameter(StructuralParameter node, Node other) {
+    return strategy.checkStructuralParameter(this, node, other);
+  }
+
+  @override
   bool visitSupertype(Supertype node, Node other) {
     return strategy.checkSupertype(this, node, other);
+  }
+
+  @override
+  bool visitAuxiliaryConstant(AuxiliaryConstant node, Node other) {
+    return strategy.checkAuxiliaryConstant(this, node, other);
   }
 
   @override
@@ -952,6 +962,11 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
 
   @override
   bool visitProcedureReference(Procedure node, Node other) {
+    return false;
+  }
+
+  @override
+  bool visitAuxiliaryConstantReference(AuxiliaryConstant node, Node other) {
     return false;
   }
 
@@ -1226,6 +1241,9 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     }
     if (a is TypeParameter) {
       return b is TypeParameter && a.name == b.name;
+    }
+    if (a is StructuralParameter) {
+      return b is StructuralParameter && a.name == b.name;
     }
     return false;
   }
@@ -2042,6 +2060,23 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkAuxiliaryInitializer(
+      EquivalenceVisitor visitor, AuxiliaryInitializer? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! AuxiliaryInitializer) return false;
+    if (other is! AuxiliaryInitializer) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkAuxiliaryInitializer_isSynthetic(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkAuxiliaryInitializer_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkInvalidInitializer(
       EquivalenceVisitor visitor, InvalidInitializer? node, Object? other) {
     if (identical(node, other)) return true;
@@ -2230,6 +2265,20 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkAuxiliaryExpression(
+      EquivalenceVisitor visitor, AuxiliaryExpression? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! AuxiliaryExpression) return false;
+    if (other is! AuxiliaryExpression) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkAuxiliaryExpression_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -3754,6 +3803,20 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkAuxiliaryStatement(
+      EquivalenceVisitor visitor, AuxiliaryStatement? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! AuxiliaryStatement) return false;
+    if (other is! AuxiliaryStatement) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkAuxiliaryStatement_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkExpressionStatement(
       EquivalenceVisitor visitor, ExpressionStatement? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5049,6 +5112,17 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkAuxiliaryType(
+      EquivalenceVisitor visitor, AuxiliaryType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! AuxiliaryType) return false;
+    if (other is! AuxiliaryType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    visitor.popState();
+    return result;
+  }
+
   bool checkInvalidType(
       EquivalenceVisitor visitor, InvalidType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5248,6 +5322,24 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkStructuralParameterType(EquivalenceVisitor visitor,
+      StructuralParameterType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! StructuralParameterType) return false;
+    if (other is! StructuralParameterType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkStructuralParameterType_declaredNullability(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkStructuralParameterType_parameter(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkRecordType(
       EquivalenceVisitor visitor, RecordType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5288,6 +5380,41 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkStructuralParameter(
+      EquivalenceVisitor visitor, StructuralParameter? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! StructuralParameter) return false;
+    if (other is! StructuralParameter) return false;
+    if (!visitor.checkDeclarations(node, other, '')) {
+      return false;
+    }
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkStructuralParameter_flags(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkStructuralParameter_name(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkStructuralParameter_fileOffset(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkStructuralParameter_uri(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkStructuralParameter_bound(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkStructuralParameter_defaultType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkStructuralParameter_variance(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkSupertype(
       EquivalenceVisitor visitor, Supertype? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5301,6 +5428,17 @@ class EquivalenceStrategy {
     if (!checkSupertype_typeArguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkAuxiliaryConstant(
+      EquivalenceVisitor visitor, AuxiliaryConstant? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! AuxiliaryConstant) return false;
+    if (other is! AuxiliaryConstant) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
     visitor.popState();
     return result;
   }
@@ -6319,14 +6457,24 @@ class EquivalenceStrategy {
         node.isSynthetic, other.isSynthetic, 'isSynthetic');
   }
 
-  bool checkInvalidInitializer_isSynthetic(EquivalenceVisitor visitor,
-      InvalidInitializer node, InvalidInitializer other) {
+  bool checkAuxiliaryInitializer_isSynthetic(EquivalenceVisitor visitor,
+      AuxiliaryInitializer node, AuxiliaryInitializer other) {
     return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkInitializer_fileOffset(
       EquivalenceVisitor visitor, Initializer node, Initializer other) {
     return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkAuxiliaryInitializer_fileOffset(EquivalenceVisitor visitor,
+      AuxiliaryInitializer node, AuxiliaryInitializer other) {
+    return checkInitializer_fileOffset(visitor, node, other);
+  }
+
+  bool checkInvalidInitializer_isSynthetic(EquivalenceVisitor visitor,
+      InvalidInitializer node, InvalidInitializer other) {
+    return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkInvalidInitializer_fileOffset(EquivalenceVisitor visitor,
@@ -6521,6 +6669,16 @@ class EquivalenceStrategy {
     return checkTreeNode_fileOffset(visitor, node, other);
   }
 
+  bool checkExpression_fileOffset(
+      EquivalenceVisitor visitor, Expression node, Expression other) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkAuxiliaryExpression_fileOffset(EquivalenceVisitor visitor,
+      AuxiliaryExpression node, AuxiliaryExpression other) {
+    return checkExpression_fileOffset(visitor, node, other);
+  }
+
   bool checkInvalidExpression_message(EquivalenceVisitor visitor,
       InvalidExpression node, InvalidExpression other) {
     return visitor.checkValues(node.message, other.message, 'message');
@@ -6529,11 +6687,6 @@ class EquivalenceStrategy {
   bool checkInvalidExpression_expression(EquivalenceVisitor visitor,
       InvalidExpression node, InvalidExpression other) {
     return visitor.checkNodes(node.expression, other.expression, 'expression');
-  }
-
-  bool checkExpression_fileOffset(
-      EquivalenceVisitor visitor, Expression node, Expression other) {
-    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkInvalidExpression_fileOffset(EquivalenceVisitor visitor,
@@ -7840,14 +7993,19 @@ class EquivalenceStrategy {
     return checkTreeNode_fileOffset(visitor, node, other);
   }
 
-  bool checkExpressionStatement_expression(EquivalenceVisitor visitor,
-      ExpressionStatement node, ExpressionStatement other) {
-    return visitor.checkNodes(node.expression, other.expression, 'expression');
-  }
-
   bool checkStatement_fileOffset(
       EquivalenceVisitor visitor, Statement node, Statement other) {
     return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
+  bool checkAuxiliaryStatement_fileOffset(EquivalenceVisitor visitor,
+      AuxiliaryStatement node, AuxiliaryStatement other) {
+    return checkStatement_fileOffset(visitor, node, other);
+  }
+
+  bool checkExpressionStatement_expression(EquivalenceVisitor visitor,
+      ExpressionStatement node, ExpressionStatement other) {
+    return visitor.checkNodes(node.expression, other.expression, 'expression');
   }
 
   bool checkExpressionStatement_fileOffset(EquivalenceVisitor visitor,
@@ -9288,6 +9446,20 @@ class EquivalenceStrategy {
         node.parameter, other.parameter, 'parameter');
   }
 
+  bool checkStructuralParameterType_declaredNullability(
+      EquivalenceVisitor visitor,
+      StructuralParameterType node,
+      StructuralParameterType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
+  }
+
+  bool checkStructuralParameterType_parameter(EquivalenceVisitor visitor,
+      StructuralParameterType node, StructuralParameterType other) {
+    return visitor.checkDeclarations(
+        node.parameter, other.parameter, 'parameter');
+  }
+
   bool checkRecordType_positional(
       EquivalenceVisitor visitor, RecordType node, RecordType other) {
     return visitor.checkLists(
@@ -9319,6 +9491,42 @@ class EquivalenceStrategy {
   bool checkNamedType_isRequired(
       EquivalenceVisitor visitor, NamedType node, NamedType other) {
     return visitor.checkValues(node.isRequired, other.isRequired, 'isRequired');
+  }
+
+  bool checkStructuralParameter_flags(EquivalenceVisitor visitor,
+      StructuralParameter node, StructuralParameter other) {
+    return visitor.checkValues(node.flags, other.flags, 'flags');
+  }
+
+  bool checkStructuralParameter_name(EquivalenceVisitor visitor,
+      StructuralParameter node, StructuralParameter other) {
+    return visitor.checkValues(node.name, other.name, 'name');
+  }
+
+  bool checkStructuralParameter_fileOffset(EquivalenceVisitor visitor,
+      StructuralParameter node, StructuralParameter other) {
+    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+  }
+
+  bool checkStructuralParameter_uri(EquivalenceVisitor visitor,
+      StructuralParameter node, StructuralParameter other) {
+    return visitor.checkValues(node.uri, other.uri, 'uri');
+  }
+
+  bool checkStructuralParameter_bound(EquivalenceVisitor visitor,
+      StructuralParameter node, StructuralParameter other) {
+    return visitor.checkNodes(node.bound, other.bound, 'bound');
+  }
+
+  bool checkStructuralParameter_defaultType(EquivalenceVisitor visitor,
+      StructuralParameter node, StructuralParameter other) {
+    return visitor.checkNodes(
+        node.defaultType, other.defaultType, 'defaultType');
+  }
+
+  bool checkStructuralParameter_variance(EquivalenceVisitor visitor,
+      StructuralParameter node, StructuralParameter other) {
+    return visitor.checkValues(node.variance, other.variance, 'variance');
   }
 
   bool checkSupertype_className(

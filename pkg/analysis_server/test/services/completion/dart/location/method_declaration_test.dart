@@ -475,8 +475,6 @@ suggestions
     kind: keyword
   covariant
     kind: keyword
-  dynamic
-    kind: keyword
   external
     kind: keyword
   final
@@ -488,8 +486,6 @@ suggestions
   sync*
     kind: keyword
   var
-    kind: keyword
-  void
     kind: keyword
 ''');
     }

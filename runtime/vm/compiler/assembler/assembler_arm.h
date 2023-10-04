@@ -1372,6 +1372,20 @@ class Assembler : public AssemblerBase {
     b(label, NE);
   }
 
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value, &done);
+    LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset());
+    Bind(&done);
+  }
+
   // For ARM, the near argument is ignored.
   void BranchIfSmi(Register reg,
                    Label* label,
@@ -1550,6 +1564,24 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp1,
                         Register temp2);
+
+  void CheckAllocationCanary(Register top, Register tmp = TMP) {
+#if defined(DEBUG)
+    Label okay;
+    ldr(tmp, Address(top, 0));
+    cmp(tmp, Operand(kAllocationCanary));
+    b(&okay, EQUAL);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    ASSERT(top != TMP);
+    LoadImmediate(TMP, kAllocationCanary);
+    str(TMP, Address(top, 0));
+#endif
+  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

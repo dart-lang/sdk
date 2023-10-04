@@ -2517,9 +2517,9 @@ void KernelReaderHelper::SkipExpression() {
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kFunctionTearOff:
-      ReadPosition();    // read position.
-      SkipExpression();  // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       ReadByte();                          // read kind.
       ReadPosition();                      // read position.
@@ -2663,9 +2663,11 @@ void KernelReaderHelper::SkipExpression() {
       SkipDartType();    // read type.
       return;
     case kTypeLiteral:
+      ReadPosition();  // read position.
       SkipDartType();  // read type.
       return;
     case kThisExpression:
+      ReadPosition();  // read position.
       return;
     case kRethrow:
       ReadPosition();  // read position.
@@ -2731,27 +2733,36 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfDartTypes();  // read type arguments.
       return;
     case kBigIntLiteral:
+      ReadPosition();         // read position.
       SkipStringReference();  // read string reference.
       return;
     case kStringLiteral:
+      ReadPosition();         // read position.
       SkipStringReference();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
-      ReadUInt();  // read value.
+      ReadPosition();  // read position.
+      ReadUInt();      // read value.
       return;
     case kPositiveIntLiteral:
-      ReadUInt();  // read value.
+      ReadPosition();  // read position.
+      ReadUInt();      // read value.
       return;
     case kDoubleLiteral:
-      ReadDouble();  // read value.
+      ReadPosition();  // read position.
+      ReadDouble();    // read value.
       return;
     case kTrueLiteral:
+      ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      ReadPosition();  // read position.
       return;
     case kConstantExpression:
       ReadPosition();  // read position.
@@ -2766,7 +2777,8 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
-      ReadUInt();  // skip library index
+      ReadPosition();  // read file offset.
+      ReadUInt();      // skip library index
       return;
     case kAwaitExpression:
       ReadPosition();    // read position.
@@ -2826,6 +2838,7 @@ void KernelReaderHelper::SkipStatement() {
       }
       return;
     case kLabeledStatement:
+      ReadPosition();   // read position.
       SkipStatement();  // read body.
       return;
     case kBreakStatement:
@@ -2860,6 +2873,7 @@ void KernelReaderHelper::SkipStatement() {
       SkipOptionalDartType();             // read expression type
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
+        ReadPosition();                           // read file offset.
         int expression_count = ReadListLength();  // read number of expressions.
         for (intptr_t j = 0; j < expression_count; ++j) {
           ReadPosition();    // read jth position.
@@ -2889,6 +2903,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     }
     case kTryCatch: {
+      ReadPosition();                           // read position
       SkipStatement();                          // read body.
       ReadByte();                               // read flags
       intptr_t catch_count = ReadListLength();  // read number of catches.
@@ -2908,6 +2923,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     }
     case kTryFinally:
+      ReadPosition();   // read position
       SkipStatement();  // read body.
       SkipStatement();  // read finalizer.
       return;

@@ -157,36 +157,37 @@ void main() {
       namedParameters: [new NamedType("obj", object)]);
   check({funFooNamedObjectVoid: "void Function(Foo, {Object obj})"}, 2);
 
-  TypeParameter t = new TypeParameter("T", object, dynamicType);
+  StructuralParameter t = new StructuralParameter("T", object, dynamicType);
   DartType funGeneric = new FunctionType(
-      [new TypeParameterType(t, Nullability.legacy)],
-      new TypeParameterType(t, Nullability.legacy),
+      [new StructuralParameterType(t, Nullability.legacy)],
+      new StructuralParameterType(t, Nullability.legacy),
       Nullability.legacy,
       typeParameters: [t]);
   check({funGeneric: "T Function<T>(T)"}, 0);
 
-  TypeParameter tObject = new TypeParameter("T", object, object);
+  StructuralParameter tObject = new StructuralParameter("T", object, object);
   DartType funGenericObject = new FunctionType(
-      [new TypeParameterType(tObject, Nullability.legacy)],
-      new TypeParameterType(tObject, Nullability.legacy),
+      [new StructuralParameterType(tObject, Nullability.legacy)],
+      new StructuralParameterType(tObject, Nullability.legacy),
       Nullability.legacy,
       typeParameters: [tObject]);
   check({funGenericObject: "T Function<T extends Object>(T)"}, 1);
 
-  TypeParameter tFoo = new TypeParameter("T", foo, dynamicType);
+  StructuralParameter tFoo = new StructuralParameter("T", foo, dynamicType);
   DartType funGenericFoo = new FunctionType(
-      [new TypeParameterType(tFoo, Nullability.legacy)],
-      new TypeParameterType(tFoo, Nullability.legacy),
+      [new StructuralParameterType(tFoo, Nullability.legacy)],
+      new StructuralParameterType(tFoo, Nullability.legacy),
       Nullability.legacy,
       typeParameters: [tFoo]);
   check({funGenericFoo: "T Function<T extends Foo>(T)"}, 1);
 
-  TypeParameter tBar = new TypeParameter("T", dynamicType, dynamicType);
+  StructuralParameter tBar =
+      new StructuralParameter("T", dynamicType, dynamicType);
   tBar.bound = new InterfaceType(barClass, Nullability.legacy,
-      [new TypeParameterType(tBar, Nullability.legacy)]);
+      [new StructuralParameterType(tBar, Nullability.legacy)]);
   DartType funGenericBar = new FunctionType(
-      [new TypeParameterType(tBar, Nullability.legacy)],
-      new TypeParameterType(tBar, Nullability.legacy),
+      [new StructuralParameterType(tBar, Nullability.legacy)],
+      new StructuralParameterType(tBar, Nullability.legacy),
       Nullability.legacy,
       typeParameters: [tBar]);
   check({funGenericBar: "T Function<T extends Bar<T>>(T)"}, 1);

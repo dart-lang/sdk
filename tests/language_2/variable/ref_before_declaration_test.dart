@@ -22,9 +22,8 @@ class C {
     use(f); // Refers to instance field f.
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'f' can't be referenced before it is declared.
     var f = 'A shut mouth gathers no foot.';
-    //  ^
-    // [cfe] Can't declare 'f' because it was already used in this scope.
   }
 
   void test2() {
@@ -32,11 +31,10 @@ class C {
       use(f); // Refers to instance field f.
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'f' can't be referenced before it is declared.
     }
 
     var f = 'When chemists die, they barium.';
-    //  ^
-    // [cfe] Can't declare 'f' because it was already used in this scope.
     if (true) {
       var f = 1; // ok, shadows outer f and instance field f.
     }
@@ -47,16 +45,14 @@ class C {
       use(x); // Refers to top-level x.
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'x' can't be referenced before it is declared.
       use(y); // Refers to top-level y.
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      // [cfe] Local variable 'y' can't be referenced before it is declared.
     }
     final x = "I have not yet begun to procrastinate.";
-    //    ^
-    // [cfe] Can't declare 'x' because it was already used in this scope.
     const y = "Honk if you like peace and quiet!";
-    //    ^
-    // [cfe] Can't declare 'y' because it was already used in this scope.
   }
 
   void test4() {
@@ -64,21 +60,18 @@ class C {
       P(); // Refers to non-existing top-level function P
 //    ^
 // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+// [cfe] Local variable 'P' can't be referenced before it is declared.
 // [cfe] The method 'P' isn't defined for the class 'C'.
     }
     void P() {
-    //   ^
-    // [cfe] Can't declare 'P' because it was already used in this scope.
       Q();
     }
 
     Function f = () {x = f;};
-    //       ^
-    // [cfe] Can't declare 'f' because it was already used in this scope.
-    //                   ^
-    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
     //                   ^
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+    // [cfe] Local variable 'f' can't be referenced before it is declared.
   }
 
   test() {
@@ -93,18 +86,16 @@ void testTypeRef() {
   String s = 'Can vegetarians eat animal crackers?';
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+// [cfe] Local variable 'String' can't be referenced before it is declared.
   var String = "I distinctly remember forgetting that.";
-  //  ^
-  // [cfe] Can't declare 'String' because it was already used in this scope.
 }
 
 void testLibPrefix() {
   var pie = math.pi;
   //        ^^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  // [cfe] Local variable 'math' can't be referenced before it is declared.
   final math = 0;
-  //    ^
-  // [cfe] Can't declare 'math' because it was already used in this scope.
 }
 
 void noErrorsExpected() {

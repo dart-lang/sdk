@@ -3345,7 +3345,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
       "ret\n");
 }
 
-static void EnterTestFrame(Assembler* assembler) {
+void EnterTestFrame(Assembler* assembler) {
   COMPILE_ASSERT(THR != CallingConventions::kArg1Reg);
   COMPILE_ASSERT(CODE_REG != CallingConventions::kArg2Reg);
   __ EnterFrame(0);
@@ -3357,7 +3357,7 @@ static void EnterTestFrame(Assembler* assembler) {
   __ LoadPoolPointer(PP);
 }
 
-static void LeaveTestFrame(Assembler* assembler) {
+void LeaveTestFrame(Assembler* assembler) {
   __ popq(THR);
   __ popq(PP);
   __ popq(CODE_REG);

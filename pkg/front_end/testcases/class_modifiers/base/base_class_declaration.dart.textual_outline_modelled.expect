@@ -1,7 +1,6 @@
 abstract base class B {}
+
 base class A {}
----- unknown chunk starts ----
-base
----- unknown chunk ends ----
+
 base class C = Object with M;
-mixin M {}
+base mixin M {}

@@ -39,17 +39,55 @@ replacement
 suggestions
   catch
     kind: keyword
+  const
+    kind: keyword
 ''');
     } else {
       assertResponse(r'''
 replacement
   left: 1
 suggestions
+  assert
+    kind: keyword
   catch
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
     kind: keyword
   finally
     kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
   on
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
     kind: keyword
 ''');
     }
@@ -66,17 +104,55 @@ replacement
 suggestions
   catch
     kind: keyword
+  const
+    kind: keyword
 ''');
     } else {
       assertResponse(r'''
 replacement
   left: 1
 suggestions
+  assert
+    kind: keyword
   catch
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  final
     kind: keyword
   finally
     kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
   on
+    kind: keyword
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
     kind: keyword
 ''');
     }
@@ -98,6 +174,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -108,6 +186,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -115,6 +195,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -143,6 +225,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -153,6 +237,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -160,6 +246,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -188,6 +276,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -198,6 +288,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -205,6 +297,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -233,6 +327,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -243,6 +339,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -250,6 +348,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -278,6 +378,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -288,6 +390,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -295,6 +399,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -324,6 +430,8 @@ suggestions
     kind: keyword
   dynamic
     kind: keyword
+  false
+    kind: keyword
   final
     kind: keyword
   finally
@@ -334,6 +442,8 @@ suggestions
     kind: keyword
   late
     kind: keyword
+  null
+    kind: keyword
   on
     kind: keyword
   return
@@ -341,6 +451,8 @@ suggestions
   switch
     kind: keyword
   throw
+    kind: keyword
+  true
     kind: keyword
   try
     kind: keyword
@@ -489,8 +601,11 @@ suggestions
   }
 
   Future<void> test_afterTryBlock_beforeOn_partial() async {
-    // This is an odd test because the `catch` belongs after the `on` clause,
-    // which makes it hard to know what the user might be trying to type.
+    // What the user is likely trying to do is add a new clause before the `on`,
+    // in which case we shouldn't be suggesting `finally`, but the parser
+    // produces a try statement with no clauses, followed by a variable
+    // declaration statement (`c on;`), so we can't see that there's already a
+    // `catch` clause.
     await computeSuggestions('''
 void f() {try {} c^ on SomeException {}}
 ''');
@@ -501,49 +616,17 @@ replacement
 suggestions
   catch
     kind: keyword
-  const
-    kind: keyword
 ''');
     } else {
       assertResponse(r'''
 replacement
   left: 1
 suggestions
-  assert
-    kind: keyword
   catch
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
     kind: keyword
   finally
     kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
   on
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
     kind: keyword
 ''');
     }

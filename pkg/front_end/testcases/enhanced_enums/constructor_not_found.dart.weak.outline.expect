@@ -2,22 +2,22 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:6:4: Error: Couldn't find constructor 'T'.
+// pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:6:3: Error: Couldn't find constructor 'T'.
 //   t;
-//    ^
+//   ^
 //
-// pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:12:4: Error: Couldn't find constructor 'S.named'.
+// pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:12:5: Error: Couldn't find constructor 'S.named'.
 //   s.named();
-//    ^
+//     ^
 //
 import self as self;
 import "dart:core" as core;
 
 class T extends core::_Enum /*isEnum*/  {
   static const field core::List<self::T> values = const <self::T>[self::T::t];
-  enum-element static const field self::T t = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:6:4: Error: Couldn't find constructor 'T'.
+  enum-element static const field self::T t = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:6:3: Error: Couldn't find constructor 'T'.
   t;
-   ^";
+  ^";
   const constructor named(core::int #index, core::String #name) → self::T
     : super core::_Enum::•(#index, #name)
     ;
@@ -26,9 +26,9 @@ class T extends core::_Enum /*isEnum*/  {
 }
 class S extends core::_Enum /*isEnum*/  {
   static const field core::List<self::S> values = const <self::S>[self::S::s];
-  enum-element static const field self::S s = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:12:4: Error: Couldn't find constructor 'S.named'.
+  enum-element static const field self::S s = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_not_found.dart:12:5: Error: Couldn't find constructor 'S.named'.
   s.named();
-   ^^^^^";
+    ^^^^^";
   const constructor •(core::int #index, core::String #name) → self::S
     : super core::_Enum::•(#index, #name)
     ;

@@ -1173,23 +1173,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element.hasImplicitType = true;
       }
 
-      element.createImplicitAccessors(enclosingRef, name);
+      {
+        final ref = enclosingRef.getChild('@getter').addChild(name);
+        final getter = element.createImplicitGetter(ref);
+        _enclosingContext.addPropertyAccessorSynthetic(getter);
+        _libraryBuilder.declare(name, ref);
+      }
+
+      if (element.hasSetter) {
+        final ref = enclosingRef.getChild('@setter').addChild(name);
+        final setter = element.createImplicitSetter(ref);
+        _enclosingContext.addPropertyAccessorSynthetic(setter);
+        _libraryBuilder.declare('$name=', ref);
+      }
 
       _linker.elementNodes[element] = variable;
       _enclosingContext.addTopLevelVariable(name, element);
       variable.declaredElement = element;
-
-      var getter = element.getter;
-      if (getter is PropertyAccessorElementImpl) {
-        _enclosingContext.addGetter(name, getter);
-        _libraryBuilder.declare(name, getter.reference!);
-      }
-
-      var setter = element.setter;
-      if (setter is PropertyAccessorElementImpl) {
-        _enclosingContext.addSetter(name, setter);
-        _libraryBuilder.declare('$name=', setter.reference!);
-      }
     }
 
     _buildType(node.variables.type);
@@ -1313,7 +1313,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       } else {
         final variable = property = TopLevelVariableElementImpl(name, -1)
           ..isSynthetic = true;
-        _enclosingContext.addTopLevelVariable(name, variable);
+        _enclosingContext.addTopLevelVariableSynthetic(reference, variable);
       }
     } else {
       final reference = enclosingRef.getChild('@field').getChild(name);
@@ -1324,7 +1324,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         final field = property = FieldElementImpl(name, -1)
           ..isStatic = accessorElement.isStatic
           ..isSynthetic = true;
-        _enclosingContext.addField(name, field);
+        _enclosingContext.addFieldSynthetic(reference, field);
       }
     }
 
@@ -1599,54 +1599,80 @@ class _EnclosingContext {
 
   Reference addClass(String name, ClassElementImpl element) {
     _classes.add(element);
-    return _bindReference('@class', name, element);
+    final containerName =
+        element.isAugmentation ? '@classAugmentation' : '@class';
+    return _addReference(containerName, name, element);
   }
 
   Reference addConstructor(ConstructorElementImpl element) {
     _constructors.add(element);
 
+    final containerName =
+        element.isAugmentation ? '@constructorAugmentation' : '@constructor';
     final referenceName = element.name.ifNotEmptyOrElse('new');
-    return _bindReference('@constructor', referenceName, element);
+    return _addReference(containerName, referenceName, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {
     _enums.add(element);
-    return _bindReference('@enum', name, element);
+    final containerName =
+        element.isAugmentation ? '@enumAugmentation' : '@enum';
+    return _addReference(containerName, name, element);
   }
 
   Reference addExtension(String name, ExtensionElementImpl element) {
     _extensions.add(element);
-    return _bindReference('@extension', name, element);
+    final containerName =
+        element.isAugmentation ? '@extensionAugmentation' : '@extension';
+    return _addReference(containerName, name, element);
   }
 
   Reference addExtensionType(String name, ExtensionTypeElementImpl element) {
     _extensionTypes.add(element);
-    return _bindReference('@extensionType', name, element);
+    final containerName = element.isAugmentation
+        ? '@extensionTypeAugmentation'
+        : '@extensionType';
+    return _addReference(containerName, name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {
     _fields.add(element);
-    return _bindReference('@field', name, element);
+    final containerName =
+        element.isAugmentation ? '@fieldAugmentation' : '@field';
+    return _addReference(containerName, name, element);
+  }
+
+  void addFieldSynthetic(Reference reference, FieldElementImpl element) {
+    _fields.add(element);
+    _bindReference(reference, element);
   }
 
   Reference addFunction(String name, FunctionElementImpl element) {
     _functions.add(element);
-    return _bindReference('@function', name, element);
+    final containerName =
+        element.isAugmentation ? '@functionAugmentation' : '@function';
+    return _addReference(containerName, name, element);
   }
 
   Reference addGetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@getter', name, element);
+    final containerName =
+        element.isAugmentation ? '@getterAugmentation' : '@getter';
+    return _addReference(containerName, name, element);
   }
 
   Reference addMethod(String name, MethodElementImpl element) {
     _methods.add(element);
-    return _bindReference('@method', name, element);
+    final containerName =
+        element.isAugmentation ? '@methodAugmentation' : '@method';
+    return _addReference(containerName, name, element);
   }
 
   Reference addMixin(String name, MixinElementImpl element) {
     _mixins.add(element);
-    return _bindReference('@mixin', name, element);
+    final containerName =
+        element.isAugmentation ? '@mixinAugmentation' : '@mixin';
+    return _addReference(containerName, name, element);
   }
 
   void addNonSyntheticField(FieldElementImpl element) {
@@ -1659,16 +1685,16 @@ class _EnclosingContext {
       return;
     }
 
-    element.createImplicitAccessors(reference, name);
-
-    var getter = element.getter;
-    if (getter is PropertyAccessorElementImpl) {
-      addGetter(name, getter);
+    {
+      final getterRef = reference.getChild('@getter').addChild(name);
+      final getter = element.createImplicitGetter(getterRef);
+      _propertyAccessors.add(getter);
     }
 
-    var setter = element.setter;
-    if (setter is PropertyAccessorElementImpl) {
-      addSetter(name, setter);
+    if (element.hasSetter) {
+      final setterRef = reference.getChild('@setter').addChild(name);
+      final setter = element.createImplicitSetter(setterRef);
+      _propertyAccessors.add(setter);
     }
   }
 
@@ -1677,24 +1703,38 @@ class _EnclosingContext {
     if (name == null) {
       return null;
     } else {
-      return _bindReference('@parameter', name, element);
+      return _addReference('@parameter', name, element);
     }
+  }
+
+  void addPropertyAccessorSynthetic(PropertyAccessorElementImpl element) {
+    _propertyAccessors.add(element);
   }
 
   Reference addSetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@setter', name, element);
+    final containerName =
+        element.isAugmentation ? '@setterAugmentation' : '@setter';
+    return _addReference(containerName, name, element);
   }
 
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
     _topLevelVariables.add(element);
-    return _bindReference('@variable', name, element);
+    final containerName =
+        element.isAugmentation ? '@variableAugmentation' : '@variable';
+    return _addReference(containerName, name, element);
+  }
+
+  void addTopLevelVariableSynthetic(
+      Reference reference, TopLevelVariableElementImpl element) {
+    _topLevelVariables.add(element);
+    _bindReference(reference, element);
   }
 
   Reference addTypeAlias(String name, TypeAliasElementImpl element) {
     _typeAliases.add(element);
-    return _bindReference('@typeAlias', name, element);
+    return _addReference('@typeAlias', name, element);
   }
 
   void addTypeParameter(String name, TypeParameterElementImpl element) {
@@ -1702,20 +1742,20 @@ class _EnclosingContext {
     this.element.encloseElement(element);
   }
 
-  Reference getMethod(String name) {
-    return reference.getChild('@method').getChild(name);
-  }
-
-  Reference _bindReference(
+  Reference _addReference(
     String containerName,
     String name,
     ElementImpl element,
   ) {
     var containerRef = this.reference.getChild(containerName);
-    var reference = containerRef.getChild(name);
+    var reference = containerRef.addChild(name);
+    _bindReference(reference, element);
+    return reference;
+  }
+
+  void _bindReference(Reference reference, ElementImpl element) {
     reference.element = element;
     element.reference = reference;
     this.element.encloseElement(element);
-    return reference;
   }
 }

@@ -1392,6 +1392,12 @@ void f(Object? x) {
     await prepareNavigation();
 
     assertHasRegionTarget('foo))', 'foo =>');
+
+    // Ensure the declared variable is a target even if it has no references.
+    // Previously it would only be recorded via references and not from the
+    // declaration itself.
+    // https://github.com/dart-lang/sdk/issues/53554
+    assertHasTarget('foo))');
   }
 
   Future<void> test_objectPattern_patternField_notResolved() async {

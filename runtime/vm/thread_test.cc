@@ -33,6 +33,7 @@ VM_UNIT_TEST_CASE(Mutex) {
   delete mutex;
 }
 
+#if !defined(PRODUCT)
 VM_UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   TestCase::CreateTestIsolate();
@@ -77,6 +78,7 @@ VM_UNIT_TEST_CASE(Monitor) {
   Dart_ShutdownIsolate();
   delete monitor;
 }
+#endif
 
 class ObjectCounter : public ObjectPointerVisitor {
  public:

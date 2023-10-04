@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A lightweight HTML parser.
+library;
 
 // ignore: implementation_imports
 import 'package:analyzer/src/manifest/manifest_validator.dart';
@@ -18,8 +19,9 @@ Document parse(String htmlContents, Uri uri) {
     var element = Element.tag(xmlElement.name);
 
     // attributes
-    for (var key in xmlElement.attributes.keys) {
-      element.attributes[key] = xmlElement.attributes[key]!.value;
+    for (var MapEntry(:key, value: attribute)
+        in xmlElement.attributes.entries) {
+      element.attributes[key] = attribute.value;
     }
 
     // From the immediate children, determine where the text between the tags is
@@ -65,9 +67,9 @@ Document parse(String htmlContents, Uri uri) {
   var result = parser.parseXmlTag();
 
   while (result.parseResult != ParseTagResult.eof.parseResult) {
-    if (result.element != null) {
+    if (result.element case var element?) {
       var document = Document();
-      document.append(createElement(result.element!));
+      document.append(createElement(element));
       return document;
     }
 

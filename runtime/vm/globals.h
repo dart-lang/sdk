@@ -178,6 +178,7 @@ static constexpr uword kZapUninitializedWord = 0xabababab;
 #else
 static constexpr uword kZapUninitializedWord = 0xabababababababab;
 #endif
+static constexpr intptr_t kAllocationCanary = 123;
 
 // Macros to get the contents of the fp register.
 #if defined(DART_HOST_OS_WINDOWS)

@@ -88,6 +88,27 @@ class BasicWorkspacePackageTest extends WorkspacePackageTest {
     expect(package, isNull);
   }
 
+  void test_isDevDependency_bin() {
+    newFile('/workspace/bin/file.dart', '');
+    var package = findPackage('/workspace/lib/code.dart')!;
+    var testSource = TestSource(convertPath('/workspace/bin/file.dart'));
+    expect(package.canBeDevDependency(testSource), false);
+  }
+
+  void test_isDevDependency_lib() {
+    newFile('/workspace/lib/src/file.dart', '');
+    var package = findPackage('/workspace/lib/code.dart')!;
+    var testSource = TestSource(convertPath('/workspace/lib/src/file.dart'));
+    expect(package.canBeDevDependency(testSource), false);
+  }
+
+  void test_isDevDependency_true() {
+    newFile('/workspace/test/file.dart', '');
+    var package = findPackage('/workspace/lib/code.dart')!;
+    var testSource = TestSource(convertPath('/workspace/test/file.dart'));
+    expect(package.canBeDevDependency(testSource), true);
+  }
+
   void test_packagesAvailableTo() {
     var libraryPath = convertPath('/workspace/lib/test.dart');
     var package = findPackage(libraryPath)!;

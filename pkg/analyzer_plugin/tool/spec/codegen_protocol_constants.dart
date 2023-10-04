@@ -17,7 +17,7 @@ final GeneratedFile target = GeneratedFile(
 /// A visitor that produces Dart code defining constants associated with the
 /// API.
 class CodegenVisitor extends DartCodegenVisitor with CodeGenerator {
-  CodegenVisitor(Api api) : super(api) {
+  CodegenVisitor(super.api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';
@@ -71,7 +71,7 @@ class _ConstantVisitor extends HierarchicalApiVisitor {
   List<_Constant> constants = <_Constant>[];
 
   /// Initialize a newly created visitor to visit the given [api].
-  _ConstantVisitor(Api api) : super(api);
+  _ConstantVisitor(super.api);
 
   @override
   void visitNotification(Notification notification) {

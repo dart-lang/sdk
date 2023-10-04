@@ -35,9 +35,12 @@ class CallbackSpecializer {
       if (_extensionIndex.isStaticInteropType(callbackParameterType) &&
           boxExternRef) {
         expression = _createJSValue(v);
+        if (callbackParameterType.isPotentiallyNonNullable) {
+          expression = NullCheck(expression);
+        }
       } else {
-        expression = AsExpression(
-            invokeOneArg(_util.dartifyRawTarget, v), callbackParameterType);
+        expression = _util.convertAndCast(
+            callbackParameterType, invokeOneArg(_util.dartifyRawTarget, v));
       }
       callbackArguments.add(expression);
     }
@@ -236,7 +239,7 @@ class CallbackSpecializer {
   }
 
   Expression _createJSValue(Expression value) =>
-      ConstructorInvocation(_util.jsValueConstructor, Arguments([value]));
+      StaticInvocation(_util.jsValueBoxTarget, Arguments([value]));
 
   /// Lowers an invocation of `<Function>.toJS` to:
   ///

@@ -4,6 +4,7 @@
 # Sections in this file should contain "$compiler == dart2wasm".
 
 [ $compiler == dart2wasm ]
+inference_update_2/why_not_promoted_external_error_test: SkipByDesign # Non-JS-interop external members are not supported
 number/web_int_literals_test: SkipByDesign # WASM has real integers.
 vm/*: SkipByDesign # Tests for the VM.
 

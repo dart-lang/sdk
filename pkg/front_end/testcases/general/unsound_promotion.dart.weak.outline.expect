@@ -41,3 +41,5 @@ static method f<S extends core::Object* = dynamic>(self::f::S* s) → core::List
   ;
 static method main() → dynamic
   ;
+static method expectThrows(() →* dynamic f) → dynamic
+  ;

@@ -29,7 +29,7 @@ int fn2() {
 
 const var3 = const A(1).y;
 //           ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_PROPERTY_ACCESS
 
 class B extends A {
   const B(int x) : super(x);
