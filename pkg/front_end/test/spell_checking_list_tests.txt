@@ -659,6 +659,7 @@ sidebar
 sigint
 signalled
 sigwinch
+silence
 slashes
 slight
 sliver
