@@ -299,6 +299,12 @@ class ElementDisplayStringBuilder {
   }
 
   void writeVariableElement(VariableElement element) {
+    switch (element) {
+      case FieldElement(isAugmentation: true):
+      case TopLevelVariableElement(isAugmentation: true):
+        _write('augment ');
+    }
+
     _writeType(element.type);
     _write(' ');
     _write(element.displayName);

@@ -717,7 +717,7 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     final reference = _readReference();
-    final name = reference.name;
+    final name = reference.elementName;
 
     var element = ClassElementImpl(name, -1);
 
@@ -790,7 +790,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       final reference = _readReference();
-      final name = reference.name.ifEqualThen('new', '');
+      final name = reference.elementName.ifEqualThen('new', '');
       var element = ConstructorElementImpl(name, -1);
       var linkedData = ConstructorElementLinkedData(
         reference: reference,
@@ -895,7 +895,7 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     final reference = _readReference();
-    final name = reference.name;
+    final name = reference.elementName;
 
     var element = EnumElementImpl(name, -1);
 
@@ -980,7 +980,7 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     final reference = _readReference();
-    final name = _reader.readBool() ? reference.name : null;
+    final name = _reader.readBool() ? reference.elementName : null;
 
     var element = ExtensionElementImpl(name, -1);
     element.setLinkedData(
@@ -1023,7 +1023,7 @@ class LibraryReader {
   ) {
     final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     final reference = _readReference();
-    final name = reference.name;
+    final name = reference.elementName;
 
     final element = ExtensionTypeElementImpl(name, -1);
     element.setLinkedData(
@@ -1073,8 +1073,12 @@ class LibraryReader {
     Reference classReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+
     final reference = _readReference();
-    final name = reference.name;
+    final getterReference = _readOptionalReference();
+    final setterReference = _readOptionalReference();
+
+    final name = reference.elementName;
     var isConstElement = _reader.readBool();
 
     FieldElementImpl element;
@@ -1096,7 +1100,12 @@ class LibraryReader {
     element.typeInferenceError = _readTopLevelInferenceError();
 
     if (!element.isAugmentation) {
-      element.createImplicitAccessors(classReference, name);
+      if (getterReference != null) {
+        element.createImplicitGetter(getterReference);
+      }
+      if (element.hasSetter && setterReference != null) {
+        element.createImplicitSetter(setterReference);
+      }
     }
 
     return element;
@@ -1136,7 +1145,7 @@ class LibraryReader {
     unitElement.functions = _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       final reference = _readReference();
-      final name = reference.name;
+      final name = reference.elementName;
 
       var element = FunctionElementImpl(name, -1);
 
@@ -1258,7 +1267,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
       final reference = _readReference();
-      final name = reference.name;
+      final name = reference.elementName;
       var element = MethodElementImpl(name, -1);
       var linkedData = MethodElementLinkedData(
         reference: reference,
@@ -1281,7 +1290,7 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     final reference = _readReference();
-    final name = reference.name;
+    final name = reference.elementName;
 
     var element = MixinElementImpl(name, -1);
 
@@ -1335,18 +1344,24 @@ class LibraryReader {
     }
   }
 
+  /// Read the reference of a non-local element.
+  Reference? _readOptionalReference() {
+    return _reader.readOptionalObject(
+      (reader) => _readReference(),
+    );
+  }
+
   /// TODO(scheglov) Deduplicate parameter reading implementation.
   List<ParameterElementImpl> _readParameters(
     ElementImpl enclosingElement,
     Reference enclosingReference,
   ) {
-    var containerRef = enclosingReference.getChild('@parameter');
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
       var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
-      var reference = containerRef.getChild(name);
+      var reference = _readReference();
 
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
@@ -1445,7 +1460,7 @@ class LibraryReader {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
     final reference = _readReference();
-    final name = reference.name;
+    final name = reference.elementName;
 
     var element = PropertyAccessorElementImpl(name, -1);
     PropertyAccessorElementFlags.read(_reader, element);
@@ -1557,8 +1572,12 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+
     final reference = _readReference();
-    final name = reference.name;
+    final getterReference = _readOptionalReference();
+    final setterReference = _readOptionalReference();
+
+    final name = reference.elementName;
     var isConst = _reader.readBool();
 
     TopLevelVariableElementImpl element;
@@ -1579,7 +1598,13 @@ class LibraryReader {
     element.isConst = isConst;
     TopLevelVariableElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
-    element.createImplicitAccessors(unitReference, name);
+
+    if (getterReference != null) {
+      element.createImplicitGetter(getterReference);
+    }
+    if (element.hasSetter && setterReference != null) {
+      element.createImplicitSetter(setterReference);
+    }
 
     return element;
   }
@@ -1613,7 +1638,7 @@ class LibraryReader {
   ) {
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     final reference = _readReference();
-    final name = reference.name;
+    final name = reference.elementName;
 
     var isFunctionTypeAliasBased = _reader.readBool();
 
