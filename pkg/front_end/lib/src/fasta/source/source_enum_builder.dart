@@ -150,7 +150,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
     NamedTypeBuilder intType = new NamedTypeBuilderImpl(
-        "int", const NullabilityBuilder.omitted(),
+        const PredefinedTypeName("int"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess:
             // If "int" resolves to an instance type variable then that we would
             // allowed (the types that we are adding are in instance context
@@ -163,13 +163,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
             // variables.
             InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
-        "String", const NullabilityBuilder.omitted(),
+        const PredefinedTypeName("String"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
-        "Object", const NullabilityBuilder.omitted(),
+        const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     supertypeBuilder ??= new NamedTypeBuilderImpl(
-        "_Enum", const NullabilityBuilder.omitted(),
+        const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Class cls = new Class(
         name: name,
@@ -182,12 +182,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     List<SourceFieldBuilder> elementBuilders = <SourceFieldBuilder>[];
     NamedTypeBuilder selfType = new NamedTypeBuilderImpl(
-        name, const NullabilityBuilder.omitted(),
+        new SyntheticTypeName(name, charOffset),
+        const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,
         fileUri: fileUri,
         charOffset: charOffset);
     NamedTypeBuilder listType = new NamedTypeBuilderImpl(
-        "List", const NullabilityBuilder.omitted(),
+        const PredefinedTypeName("List"), const NullabilityBuilder.omitted(),
         arguments: <TypeBuilder>[selfType],
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
@@ -601,7 +602,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         enumType = supertypeBuilder;
       }
     }
-    assert(enumType is NamedTypeBuilder && enumType.name == "_Enum");
+    assert(enumType is NamedTypeBuilder && enumType.typeName.name == "_Enum");
     return enumType;
   }
 

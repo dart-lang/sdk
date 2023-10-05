@@ -71,7 +71,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
-  String? get name => null;
+  TypeName? get typeName => null;
 
   @override
   String get debugName => "Function";

@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 import 'package:front_end/src/fasta/builder/prefix_builder.dart';
+import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/fasta_codes.dart'
@@ -206,8 +207,10 @@ Future<void> main() async {
         " plainNameForRead: , kind:"
         " ReadOnlyAccessKind.ParenthesizedExpression)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
-    check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
-        new TypeUseGenerator(helper, token, declaration, "foo"));
+    check(
+        "TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
+        new TypeUseGenerator(
+            helper, token, declaration, new SyntheticTypeName("foo", -1)));
     check(
         "UnresolvedNameGenerator(offset: 4, name: bar)",
         new UnresolvedNameGenerator.internal(

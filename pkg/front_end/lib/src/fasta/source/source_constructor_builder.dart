@@ -525,7 +525,7 @@ class DeclaredSourceConstructorBuilder
       if (declaration is ClassBuilder) {
         superclassBuilder = declaration;
       } else if (declaration is TypeAliasBuilder) {
-        declaration = declaration.unaliasDeclaration(supertype.arguments);
+        declaration = declaration.unaliasDeclaration(supertype.typeArguments);
         if (declaration is ClassBuilder) {
           superclassBuilder = declaration;
         } else {

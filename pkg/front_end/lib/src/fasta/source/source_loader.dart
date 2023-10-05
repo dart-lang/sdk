@@ -2145,7 +2145,7 @@ severity: $severity
         if (builder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
-          builder = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+          builder = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments,
               isUsedAsClass: true,
               usedAsClassCharOffset: namedBuilder.charOffset,
               usedAsClassFileUri: namedBuilder.fileUri);
@@ -2289,7 +2289,7 @@ severity: $severity
         final TypeAliasBuilder aliasBuilder = typeDeclarationBuilder;
         final NamedTypeBuilder namedBuilder = typeBuilder as NamedTypeBuilder;
         typeDeclarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.arguments,
+            namedBuilder.typeArguments,
             isUsedAsClass: true,
             usedAsClassCharOffset: namedBuilder.charOffset,
             usedAsClassFileUri: namedBuilder.fileUri);

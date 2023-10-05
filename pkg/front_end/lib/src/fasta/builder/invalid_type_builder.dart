@@ -67,7 +67,7 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   bool get isVoidType => false;
 
   @override
-  Object? get name => null;
+  TypeName? get typeName => null;
 
   @override
   NullabilityBuilder get nullabilityBuilder =>

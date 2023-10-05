@@ -55,7 +55,7 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
   switch (type) {
     case NamedTypeBuilder(
         :TypeDeclarationBuilder? declaration,
-        :List<TypeBuilder>? arguments
+        typeArguments: List<TypeBuilder>? arguments
       ):
       assert(declaration != null);
       if (declaration is TypeVariableBuilder) {
@@ -82,8 +82,8 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
           case TypeAliasBuilder():
             int result = Variance.unrelated;
 
-            if (type.arguments != null) {
-              for (int i = 0; i < type.arguments!.length; ++i) {
+            if (type.typeArguments != null) {
+              for (int i = 0; i < type.typeArguments!.length; ++i) {
                 const int visitMarker = -2;
 
                 int declarationTypeVariableVariance = declaration.varianceAt(i);
@@ -118,7 +118,7 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
                     result,
                     Variance.combine(
                         computeTypeVariableBuilderVariance(
-                            variable, type.arguments![i], libraryBuilder),
+                            variable, type.typeArguments![i], libraryBuilder),
                         declarationTypeVariableVariance));
               }
             }
@@ -281,7 +281,7 @@ TypeBuilder _substituteNamedTypeBuilder(
       (key) => key is TypeVariableBuilder || key is StructuralVariableBuilder));
 
   TypeDeclarationBuilder? declaration = type.declaration;
-  List<TypeBuilder>? arguments = type.arguments;
+  List<TypeBuilder>? arguments = type.typeArguments;
 
   if (declaration is TypeVariableBuilder) {
     if (variance == Variance.contravariant) {
@@ -403,7 +403,7 @@ TypeBuilder _substituteNamedTypeBuilder(
       assert(false, "Unexpected named type builder declaration: $declaration.");
   }
   if (newArguments != null) {
-    NamedTypeBuilder newTypeBuilder = type.withArguments(newArguments);
+    NamedTypeBuilder newTypeBuilder = type.withTypeArguments(newArguments);
     if (declaration == null) {
       unboundTypes.add(newTypeBuilder);
     }
@@ -676,7 +676,7 @@ class TypeVariablesGraph implements Graph<int> {
       switch (type) {
         case NamedTypeBuilder(
             :TypeDeclarationBuilder? declaration,
-            :List<TypeBuilder>? arguments
+            typeArguments: List<TypeBuilder>? arguments
           ):
           if (declaration is TypeVariableBuilder &&
               this.variables.contains(declaration)) {
@@ -750,7 +750,7 @@ List<NamedTypeBuilder> findVariableUsesInType(
   switch (type) {
     case NamedTypeBuilder(
         :TypeDeclarationBuilder? declaration,
-        :List<TypeBuilder>? arguments
+        typeArguments: List<TypeBuilder>? arguments
       ):
       if (declaration == variable) {
         uses.add(type);
@@ -855,7 +855,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
   switch (type) {
     case NamedTypeBuilder(
         :TypeDeclarationBuilder? declaration,
-        :List<TypeBuilder>? arguments
+        typeArguments: List<TypeBuilder>? arguments
       ):
       if (arguments == null) {
         switch (declaration) {
@@ -1100,7 +1100,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
   switch (start) {
     case NamedTypeBuilder(
         :TypeDeclarationBuilder? declaration,
-        :List<TypeBuilder>? arguments
+        typeArguments: List<TypeBuilder>? arguments
       ):
       void visitTypeVariables(
           List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
@@ -1451,7 +1451,7 @@ void findUnaliasedGenericFunctionTypes(TypeBuilder? type,
           findUnaliasedGenericFunctionTypes(formal.type, result: result);
         }
       }
-    case NamedTypeBuilder(:List<TypeBuilder>? arguments):
+    case NamedTypeBuilder(typeArguments: List<TypeBuilder>? arguments):
       if (arguments != null) {
         for (TypeBuilder argument in arguments) {
           findUnaliasedGenericFunctionTypes(argument, result: result);

@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart' show Expression;
 
+import 'builder/type_builder.dart';
 import 'operator.dart';
 import 'problems.dart' show unhandled, unsupported;
 
@@ -34,6 +35,8 @@ abstract class Identifier {
   Operator? get operator;
 
   QualifiedName withQualifier(Object qualifier);
+
+  TypeName get typeName;
 }
 
 class SimpleIdentifier implements Identifier {
@@ -69,6 +72,9 @@ class SimpleIdentifier implements Identifier {
   QualifiedName withQualifier(Object qualifier) {
     return new QualifiedName(qualifier, token);
   }
+
+  @override
+  TypeName get typeName => new IdentifierTypeName(name, nameOffset);
 
   @override
   String toString() => "SimpleIdentifier($name)";
@@ -110,6 +116,11 @@ class OperatorIdentifier implements Identifier {
   }
 
   @override
+  TypeName get typeName {
+    return unsupported("typeName", charOffset, null);
+  }
+
+  @override
   String toString() => "Operator($name)";
 }
 
@@ -123,6 +134,11 @@ class InitializedIdentifier extends SimpleIdentifier {
   @override
   QualifiedName withQualifier(Object qualifier) {
     return unsupported("withQualifier", charOffset, null);
+  }
+
+  @override
+  TypeName get typeName {
+    return unsupported("typeName", charOffset, null);
   }
 
   @override
@@ -150,6 +166,10 @@ class QualifiedName extends SimpleIdentifier {
   QualifiedName withQualifier(Object qualifier) {
     return unsupported("withQualifier", charOffset, null);
   }
+
+  @override
+  TypeName get typeName => new QualifiedTypeName(
+      (qualifier as Identifier).name, qualifierOffset, name, nameOffset);
 
   @override
   String toString() => "qualified-name($qualifier, $name)";

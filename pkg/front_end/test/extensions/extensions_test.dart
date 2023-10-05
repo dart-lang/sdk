@@ -167,11 +167,11 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
 
     if (clsBuilder.supertypeBuilder != null) {
       features[Tags.builderSupertype] =
-          clsBuilder.supertypeBuilder!.name as String;
+          clsBuilder.supertypeBuilder!.typeName as String;
     }
     if (clsBuilder.interfaceBuilders != null) {
       for (TypeBuilder superinterface in clsBuilder.interfaceBuilders!) {
-        features.addElement(Tags.builderInterfaces, superinterface.name);
+        features.addElement(Tags.builderInterfaces, superinterface.typeName);
       }
     }
     if (clsBuilder.onTypes != null) {
