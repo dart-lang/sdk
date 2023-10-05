@@ -2155,7 +2155,7 @@ class OutlineBuilder extends StackListenerImpl {
           thisType = declaration.extensionThisType;
         } else {
           thisType = libraryBuilder.addNamedType(
-              declaration.name,
+              new SyntheticTypeName(declaration.name, charOffset),
               const NullabilityBuilder.omitted(),
               declaration.typeVariables != null
                   ? new List<TypeBuilder>.generate(
@@ -2496,7 +2496,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       Identifier identifier = name as Identifier;
       push(libraryBuilder.addNamedType(
-          identifier,
+          identifier.typeName,
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
           arguments,
           identifier.qualifierOffset,
@@ -3524,20 +3524,19 @@ class OutlineBuilder extends StackListenerImpl {
           for (int steps = 0;
               bound!.bound != null && steps < typeParameters.length;
               ++steps) {
-            Object? name = bound.bound!.name;
-            bound = typeVariablesByName[name is Identifier ? name.name : name];
+            TypeName? typeName = bound.bound!.typeName;
+            bound = typeVariablesByName[typeName?.name];
             if (bound == null || bound == builder) break;
           }
           if (bound == builder && bound!.bound != null) {
             // Write out cycle.
             List<String> via = <String>[];
-            Object? name = bound.bound!.name;
-            bound = typeVariablesByName[name is Identifier ? name.name : name];
+            TypeName? typeName = bound.bound!.typeName;
+            bound = typeVariablesByName[typeName?.name];
             while (bound != builder) {
               via.add(bound!.name);
-              Object? name = bound.bound!.name;
-              bound =
-                  typeVariablesByName[name is Identifier ? name.name : name];
+              TypeName? typeName = bound.bound!.typeName;
+              bound = typeVariablesByName[typeName?.name];
             }
             Message message = via.isEmpty
                 ? templateDirectCycleInTypeVariables.withArguments(builder.name)
@@ -3545,7 +3544,8 @@ class OutlineBuilder extends StackListenerImpl {
                     builder.name, via.join("', '"));
             addProblem(message, builder.charOffset, builder.name.length);
             builder.bound = new NamedTypeBuilderImpl(
-                builder.name, const NullabilityBuilder.omitted(),
+                new SyntheticTypeName(builder.name, builder.charOffset),
+                const NullabilityBuilder.omitted(),
                 fileUri: uri,
                 charOffset: builder.charOffset,
                 instanceTypeVariableAccess:

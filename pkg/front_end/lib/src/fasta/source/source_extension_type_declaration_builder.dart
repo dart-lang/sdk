@@ -273,7 +273,7 @@ class SourceExtensionTypeDeclarationBuilder
     switch (unaliased) {
       case NamedTypeBuilder(
           :TypeDeclarationBuilder? declaration,
-          :List<TypeBuilder>? arguments
+          typeArguments: List<TypeBuilder>? arguments
         ):
         if (declaration is ExtensionTypeDeclarationBuilder) {
           if (!seenExtensionTypeDeclarations.add(declaration)) {
@@ -612,7 +612,7 @@ class SourceExtensionTypeDeclarationBuilder
           TypeAliasBuilder aliasBuilder = declarationBuilder;
           NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
           declarationBuilder = aliasBuilder.unaliasDeclaration(
-              namedBuilder.arguments,
+              namedBuilder.typeArguments,
               isUsedAsClass: true,
               usedAsClassCharOffset: namedBuilder.charOffset,
               usedAsClassFileUri: namedBuilder.fileUri);

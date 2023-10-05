@@ -100,31 +100,31 @@ class KernelTarget extends TargetImplementation {
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
-      "dynamic", const NullabilityBuilder.inherent(),
+      const PredefinedTypeName("dynamic"), const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
-      "Object", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("Object"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
   final NamedTypeBuilder nullType = new NamedTypeBuilderImpl(
-      "Null", const NullabilityBuilder.inherent(),
+      const PredefinedTypeName("Null"), const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final NamedTypeBuilder bottomType = new NamedTypeBuilderImpl(
-      "Never", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("Never"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
-      "Enum", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("Enum"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
-      "_Enum", const NullabilityBuilder.omitted(),
+      const PredefinedTypeName("_Enum"), const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
@@ -897,7 +897,7 @@ class KernelTarget extends TargetImplementation {
     if (supertype is TypeAliasBuilder) {
       TypeAliasBuilder aliasBuilder = supertype;
       NamedTypeBuilder namedBuilder = type;
-      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
+      supertype = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments,
           isUsedAsClass: true,
           usedAsClassCharOffset: namedBuilder.charOffset,
           usedAsClassFileUri: namedBuilder.fileUri);

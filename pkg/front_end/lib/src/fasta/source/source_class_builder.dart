@@ -34,7 +34,6 @@ import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../fasta_codes.dart';
-import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
@@ -748,8 +747,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     void fail(NamedTypeBuilder target, Message message,
         TypeAliasBuilder? aliasBuilder) {
-      int nameOffset = target.nameOffset;
-      int nameLength = target.nameLength;
+      int nameOffset = target.typeName.nameOffset;
+      int nameLength = target.typeName.nameLength;
       if (aliasBuilder != null) {
         addProblem(message, nameOffset, nameLength, context: [
           messageTypedefCause.withLocation(
@@ -768,7 +767,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is use.
       if (decl is TypeAliasBuilder) {
         aliasBuilder = decl;
-        decl = aliasBuilder.unaliasDeclaration(superClassType.arguments,
+        decl = aliasBuilder.unaliasDeclaration(superClassType.typeArguments,
             isUsedAsClass: true,
             usedAsClassCharOffset: superClassType.charOffset,
             usedAsClassFileUri: superClassType.fileUri);
@@ -845,7 +844,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is used.
         if (typeDeclaration is TypeAliasBuilder) {
           aliasBuilder = typeDeclaration;
-          decl = aliasBuilder.unaliasDeclaration(type.arguments,
+          decl = aliasBuilder.unaliasDeclaration(type.typeArguments,
               isUsedAsClass: true,
               usedAsClassCharOffset: type.charOffset,
               usedAsClassFileUri: type.fileUri);
@@ -966,29 +965,29 @@ class SourceClassBuilder extends ClassBuilderImpl
           message = templateInvalidTypeVariableInSupertype.withArguments(
               typeVariables![i].name,
               Variance.keywordString(variance),
-              (supertype.name as Identifier).name);
+              supertype.typeName!.name);
         } else {
           message =
               templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
                   Variance.keywordString(typeVariables![i].variance),
                   typeVariables![i].name,
                   Variance.keywordString(variance),
-                  (supertype.name as Identifier).name);
+                  supertype.typeName!.name);
         }
         libraryBuilder.addProblem(message, charOffset, noLength, fileUri);
       }
     }
     if (message != null) {
-      return new NamedTypeBuilderImpl((supertype.name as Identifier).name,
-          const NullabilityBuilder.omitted(),
+      TypeName typeName = supertype.typeName!;
+      return new NamedTypeBuilderImpl(
+          typeName, const NullabilityBuilder.omitted(),
           fileUri: fileUri,
           charOffset: charOffset,
           instanceTypeVariableAccess:
               InstanceTypeVariableAccessState.Unexpected)
         ..bind(
             libraryBuilder,
-            new InvalidTypeDeclarationBuilder(
-                (supertype.name as Identifier).name,
+            new InvalidTypeDeclarationBuilder(typeName.name,
                 message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;
@@ -1189,7 +1188,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         TypeAliasBuilder aliasBuilder = declarationBuilder;
         NamedTypeBuilder namedBuilder = supertype as NamedTypeBuilder;
         declarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.arguments,
+            namedBuilder.typeArguments,
             isUsedAsClass: true,
             usedAsClassCharOffset: namedBuilder.charOffset,
             usedAsClassFileUri: namedBuilder.fileUri);
@@ -1209,7 +1208,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           TypeAliasBuilder aliasBuilder = declarationBuilder;
           NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
           declarationBuilder = aliasBuilder.unaliasDeclaration(
-              namedBuilder.arguments,
+              namedBuilder.typeArguments,
               isUsedAsClass: true,
               usedAsClassCharOffset: namedBuilder.charOffset,
               usedAsClassFileUri: namedBuilder.fileUri);
@@ -1227,7 +1226,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         TypeAliasBuilder aliasBuilder = declarationBuilder;
         NamedTypeBuilder namedBuilder = mixedInTypeBuilder as NamedTypeBuilder;
         declarationBuilder = aliasBuilder.unaliasDeclaration(
-            namedBuilder.arguments,
+            namedBuilder.typeArguments,
             isUsedAsClass: true,
             usedAsClassCharOffset: namedBuilder.charOffset,
             usedAsClassFileUri: namedBuilder.fileUri);

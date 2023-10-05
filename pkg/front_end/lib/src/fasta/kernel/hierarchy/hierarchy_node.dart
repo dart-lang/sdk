@@ -300,7 +300,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
         growable: false);
     NamedTypeBuilderImpl mixedInTypeBuilder =
         _classBuilder.mixedInTypeBuilder as NamedTypeBuilderImpl;
-    mixedInTypeBuilder.arguments = inferredArguments;
+    mixedInTypeBuilder.typeArguments = inferredArguments;
     return mixinNode;
   }
 }
@@ -615,7 +615,7 @@ ClassBuilder? getClass(TypeBuilder type) {
   if (declaration is TypeAliasBuilder) {
     TypeAliasBuilder aliasBuilder = declaration;
     NamedTypeBuilder namedBuilder = type as NamedTypeBuilder;
-    declaration = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
+    declaration = aliasBuilder.unaliasDeclaration(namedBuilder.typeArguments);
   }
   return declaration is ClassBuilder ? declaration : null;
 }

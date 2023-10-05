@@ -236,8 +236,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         unboundTypes, unboundTypeVariables);
     while (type is NamedTypeBuilder && type.declaration is TypeAliasBuilder) {
       TypeAliasBuilder? declaration = type.declaration as TypeAliasBuilder;
-      type = declaration.unaliasOnce(type.arguments, currentTypeAliasBuilders,
-          unboundTypes, unboundTypeVariables);
+      type = declaration.unaliasOnce(type.typeArguments,
+          currentTypeAliasBuilders, unboundTypes, unboundTypeVariables);
     }
     if (usedTypeAliasBuilders != null &&
         !identical(usedTypeAliasBuilders, currentTypeAliasBuilders)) {
@@ -467,7 +467,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                 substitutedBuilder.declaration;
             if (declarationBuilder is TypeAliasBuilder) {
               return declarationBuilder
-                  .unaliasDeclaration(substitutedBuilder.arguments);
+                  .unaliasDeclaration(substitutedBuilder.typeArguments);
             }
             return declarationBuilder;
           }
@@ -477,7 +477,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // Not yet at the end of the chain, more named builders to come.
         NamedTypeBuilder namedBuilder = substitutedBuilder as NamedTypeBuilder;
         currentDeclarationBuilder = namedBuilder.declaration;
-        currentTypeArguments = namedBuilder.arguments;
+        currentTypeArguments = namedBuilder.typeArguments;
         previousAliasBuilder = currentAliasBuilder;
       } else {
         // Violation of requirement that we only step through
@@ -550,16 +550,16 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             namedSubstitutedBuilder.declaration;
         if (declarationBuilder is TypeAliasBuilder) {
           return declarationBuilder
-              .unaliasTypeArguments(namedSubstitutedBuilder.arguments);
+              .unaliasTypeArguments(namedSubstitutedBuilder.typeArguments);
         }
         assert(declarationBuilder is ClassBuilder ||
             declarationBuilder is ExtensionTypeDeclarationBuilder);
-        return namedSubstitutedBuilder.arguments ?? [];
+        return namedSubstitutedBuilder.typeArguments ?? [];
       }
       // Not yet at the end of the chain, more named builders to come.
       NamedTypeBuilder namedBuilder = substitutedBuilder as NamedTypeBuilder;
       currentDeclarationBuilder = namedBuilder.declaration;
-      currentTypeArguments = namedBuilder.arguments ?? [];
+      currentTypeArguments = namedBuilder.typeArguments ?? [];
     }
     return currentTypeArguments;
   }

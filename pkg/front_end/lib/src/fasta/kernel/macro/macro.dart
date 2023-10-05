@@ -26,7 +26,6 @@ import '../../builder/member_builder.dart';
 import '../../builder/nullability_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../fasta_codes.dart';
-import '../../identifiers.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_factory_builder.dart';
@@ -1141,42 +1140,18 @@ class MacroApplications {
       LibraryBuilder libraryBuilder, TypeBuilder? typeBuilder) {
     if (typeBuilder != null) {
       if (typeBuilder is NamedTypeBuilder) {
-        Object name = typeBuilder.name;
         List<macro.TypeAnnotationImpl> typeArguments =
-            computeTypeAnnotations(libraryBuilder, typeBuilder.arguments);
+            computeTypeAnnotations(libraryBuilder, typeBuilder.typeArguments);
         bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
-        if (name is String) {
-          return new macro.NamedTypeAnnotationImpl(
-              id: macro.RemoteInstance.uniqueId,
-              identifier: new TypeBuilderIdentifier(
-                  typeBuilder: typeBuilder,
-                  libraryBuilder: libraryBuilder,
-                  id: macro.RemoteInstance.uniqueId,
-                  name: name),
-              typeArguments: typeArguments,
-              isNullable: isNullable);
-        } else if (name is Identifier) {
-          return new macro.NamedTypeAnnotationImpl(
-              id: macro.RemoteInstance.uniqueId,
-              identifier: new TypeBuilderIdentifier(
-                  typeBuilder: typeBuilder,
-                  libraryBuilder: libraryBuilder,
-                  id: macro.RemoteInstance.uniqueId,
-                  name: name.name),
-              typeArguments: typeArguments,
-              isNullable: isNullable);
-        } else if (name is QualifiedName) {
-          assert(name.qualifier is Identifier);
-          return new macro.NamedTypeAnnotationImpl(
-              id: macro.RemoteInstance.uniqueId,
-              identifier: new TypeBuilderIdentifier(
-                  typeBuilder: typeBuilder,
-                  libraryBuilder: libraryBuilder,
-                  id: macro.RemoteInstance.uniqueId,
-                  name: name.name),
-              typeArguments: typeArguments,
-              isNullable: isNullable);
-        }
+        return new macro.NamedTypeAnnotationImpl(
+            id: macro.RemoteInstance.uniqueId,
+            identifier: new TypeBuilderIdentifier(
+                typeBuilder: typeBuilder,
+                libraryBuilder: libraryBuilder,
+                id: macro.RemoteInstance.uniqueId,
+                name: typeBuilder.typeName.name),
+            typeArguments: typeArguments,
+            isNullable: isNullable);
       } else if (typeBuilder is OmittedTypeBuilder) {
         return new _OmittedTypeAnnotationImpl(typeBuilder,
             id: macro.RemoteInstance.uniqueId);

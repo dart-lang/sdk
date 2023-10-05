@@ -59,7 +59,7 @@ import '../configuration.dart' show Configuration;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
-import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
+import '../identifiers.dart' show Identifier, QualifiedName;
 import '../import.dart' show Import;
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/members_builder.dart';
@@ -1791,17 +1791,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _inferableTypes = null;
   }
 
-  TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments, int charOffset,
+  TypeBuilder addNamedType(
+      TypeName typeName,
+      NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder>? arguments,
+      int charOffset,
       {required InstanceTypeVariableAccessState instanceTypeVariableAccess}) {
-    if (_omittedTypeDeclarationBuilders != null && name is Identifier) {
-      Builder? builder = _omittedTypeDeclarationBuilders[name.name];
+    if (_omittedTypeDeclarationBuilders != null) {
+      Builder? builder = _omittedTypeDeclarationBuilders[typeName.name];
       if (builder is OmittedTypeDeclarationBuilder) {
         return new DependentTypeBuilder(builder.omittedTypeBuilder);
       }
     }
     return registerUnresolvedNamedType(new NamedTypeBuilderImpl(
-        name, nullabilityBuilder,
+        typeName, nullabilityBuilder,
         arguments: arguments,
         fileUri: fileUri,
         charOffset: charOffset,
@@ -2612,18 +2615,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       /// 1. `_Named&S&M1`
       /// 2. `_Named&S&M1&M2`
       /// 3. `Named`.
-      Object nameSourceForExtraction;
-      if (supertype.name == null) {
+      String runningName;
+      if (supertype.typeName == null) {
         assert(supertype is FunctionTypeBuilder);
 
         // Function types don't have names, and we can supply any string that
         // doesn't have to be unique. The actual supertype of the mixin will
         // not be built in that case.
-        nameSourceForExtraction = "";
+        runningName = "";
       } else {
-        nameSourceForExtraction = supertype.name!;
+        runningName = supertype.typeName!.name;
       }
-      String runningName = extractName(nameSourceForExtraction);
 
       /// True when we're building a named mixin application. Notice that for
       /// the `Named` example above, this is only true on the last
@@ -2645,7 +2647,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         switch (type) {
           case NamedTypeBuilder(
               :TypeDeclarationBuilder? declaration,
-              :List<TypeBuilder>? arguments
+              typeArguments: List<TypeBuilder>? arguments
             ):
             if (declaration is TypeVariableBuilder) {
               return typeVariableNames!.contains(declaration.name);
@@ -2720,7 +2722,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             isGeneric = isGeneric || usesTypeVariables(supertype);
           }
           if (mixin is NamedTypeBuilder) {
-            runningName += "&${extractName(mixin.name)}";
+            runningName += "&${mixin.typeName.name}";
             isGeneric = isGeneric || usesTypeVariables(mixin);
           }
         }
@@ -2745,15 +2747,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 kind: TypeVariableKind.extensionSynthesized);
 
             List<NamedTypeBuilder> newTypes = <NamedTypeBuilder>[];
-            if (supertype is NamedTypeBuilder && supertype.arguments != null) {
-              for (int i = 0; i < supertype.arguments!.length; ++i) {
-                supertype.arguments![i] = supertype.arguments![i]
+            if (supertype is NamedTypeBuilder &&
+                supertype.typeArguments != null) {
+              for (int i = 0; i < supertype.typeArguments!.length; ++i) {
+                supertype.typeArguments![i] = supertype.typeArguments![i]
                     .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
-            if (mixin is NamedTypeBuilder && mixin.arguments != null) {
-              for (int i = 0; i < mixin.arguments!.length; ++i) {
-                mixin.arguments![i] = mixin.arguments![i]
+            if (mixin is NamedTypeBuilder && mixin.typeArguments != null) {
+              for (int i = 0; i < mixin.typeArguments!.length; ++i) {
+                mixin.typeArguments![i] = mixin.typeArguments![i]
                     .clone(newTypes, this, currentTypeParameterScopeBuilder);
               }
             }
@@ -2839,8 +2842,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset,
             getterReference: referencesFromIndexedClass?.cls.reference);
-        supertype = addNamedType(fullname, const NullabilityBuilder.omitted(),
-            applicationTypeArguments, charOffset,
+        supertype = addNamedType(
+            new SyntheticTypeName(fullname, charOffset),
+            const NullabilityBuilder.omitted(),
+            applicationTypeArguments,
+            charOffset,
             instanceTypeVariableAccess:
                 InstanceTypeVariableAccessState.Allowed);
         registerMixinApplication(application, mixin);
@@ -3312,8 +3318,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           messageExtensionDeclaresConstructor.withLocation(
               fileUri, charOffset, name.length));
     } else {
-      returnType = addNamedType(currentTypeParameterScopeBuilder.parent!.name,
-          const NullabilityBuilder.omitted(), <TypeBuilder>[], charOffset,
+      returnType = addNamedType(
+          new SyntheticTypeName(
+              currentTypeParameterScopeBuilder.parent!.name, charOffset),
+          const NullabilityBuilder.omitted(),
+          <TypeBuilder>[],
+          charOffset,
           instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed);
     }
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
@@ -3420,10 +3430,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         currentTypeParameterScopeBuilder;
     currentTypeParameterScopeBuilder = factoryDeclaration;
     if (returnType is NamedTypeBuilderImpl && !typeVariables.isEmpty) {
-      returnType.arguments =
+      returnType.typeArguments =
           new List<TypeBuilder>.generate(typeVariables.length, (int index) {
         return addNamedType(
-            typeVariables[index].name,
+            new SyntheticTypeName(
+                typeVariables[index].name, procedureBuilder.charOffset),
             const NullabilityBuilder.omitted(),
             null,
             procedureBuilder.charOffset,
@@ -5868,47 +5879,33 @@ class TypeParameterScopeBuilder {
     }
     Scope? scope;
     for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
-      Object? nameOrQualified = namedTypeBuilder.name;
-      String? name;
-      if (nameOrQualified is QualifiedName) {
-        name = (nameOrQualified.qualifier as Identifier).name;
-      } else if (nameOrQualified is Identifier) {
-        name = nameOrQualified.name;
-      } else {
-        name = nameOrQualified as String?;
-      }
+      TypeName typeName = namedTypeBuilder.typeName;
+      String? qualifier = typeName.qualifier;
+      String? name = qualifier ?? typeName.name;
       Builder? declaration;
-      if (name != null) {
-        if (members != null) {
-          declaration = members![name];
-        }
-        if (declaration == null && map != null) {
-          declaration = map[name];
-        }
+      if (members != null) {
+        declaration = members![name];
+      }
+      if (declaration == null && map != null) {
+        declaration = map[name];
       }
       if (declaration == null) {
         // Since name didn't resolve in this scope, propagate it to the
         // parent declaration.
         parent!.registerUnresolvedNamedType(namedTypeBuilder);
-      } else if (nameOrQualified is QualifiedName) {
+      } else if (qualifier != null) {
         // Attempt to use a member or type variable as a prefix.
+        int nameOffset = typeName.fullNameOffset;
+        int nameLength = typeName.fullNameLength;
         Message message = templateNotAPrefixInTypeAnnotation.withArguments(
-            flattenName(nameOrQualified.qualifier, namedTypeBuilder.charOffset!,
-                namedTypeBuilder.fileUri!),
-            nameOrQualified.name);
+            qualifier, typeName.name);
         library.addProblem(
-            message,
-            namedTypeBuilder.charOffset!,
-            nameOrQualified.endCharOffset - namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!);
+            message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
         namedTypeBuilder.bind(
             library,
             namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
                 message.withLocation(
-                    namedTypeBuilder.fileUri!,
-                    namedTypeBuilder.charOffset!,
-                    nameOrQualified.endCharOffset -
-                        namedTypeBuilder.charOffset!)));
+                    namedTypeBuilder.fileUri!, nameOffset, nameLength)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,
@@ -5932,47 +5929,33 @@ class TypeParameterScopeBuilder {
     }
     Scope? scope;
     for (NamedTypeBuilder namedTypeBuilder in unresolvedNamedTypes) {
-      Object? nameOrQualified = namedTypeBuilder.name;
-      String? name;
-      if (nameOrQualified is QualifiedName) {
-        name = (nameOrQualified.qualifier as Identifier).name;
-      } else if (nameOrQualified is Identifier) {
-        name = nameOrQualified.name;
-      } else {
-        name = nameOrQualified as String?;
-      }
+      TypeName typeName = namedTypeBuilder.typeName;
+      String? qualifier = typeName.qualifier;
+      String name = qualifier ?? typeName.name;
       Builder? declaration;
-      if (name != null) {
-        if (members != null) {
-          declaration = members![name];
-        }
-        if (declaration == null && map != null) {
-          declaration = map[name];
-        }
+      if (members != null) {
+        declaration = members![name];
+      }
+      if (declaration == null && map != null) {
+        declaration = map[name];
       }
       if (declaration == null) {
         // Since name didn't resolve in this scope, propagate it to the
         // parent declaration.
         parent!.registerUnresolvedNamedType(namedTypeBuilder);
-      } else if (nameOrQualified is QualifiedName) {
+      } else if (qualifier != null) {
         // Attempt to use a member or type variable as a prefix.
+        int nameOffset = typeName.fullNameOffset;
+        int nameLength = typeName.fullNameLength;
         Message message = templateNotAPrefixInTypeAnnotation.withArguments(
-            flattenName(nameOrQualified.qualifier, namedTypeBuilder.charOffset!,
-                namedTypeBuilder.fileUri!),
-            nameOrQualified.name);
+            qualifier, namedTypeBuilder.typeName.name);
         library.addProblem(
-            message,
-            namedTypeBuilder.charOffset!,
-            nameOrQualified.endCharOffset - namedTypeBuilder.charOffset!,
-            namedTypeBuilder.fileUri!);
+            message, nameOffset, nameLength, namedTypeBuilder.fileUri!);
         namedTypeBuilder.bind(
             library,
             namedTypeBuilder.buildInvalidTypeDeclarationBuilder(
                 message.withLocation(
-                    namedTypeBuilder.fileUri!,
-                    namedTypeBuilder.charOffset!,
-                    nameOrQualified.endCharOffset -
-                        namedTypeBuilder.charOffset!)));
+                    namedTypeBuilder.fileUri!, nameOffset, nameLength)));
       } else {
         scope ??= toScope(null).withStructuralVariables(typeVariables);
         namedTypeBuilder.resolveIn(scope, namedTypeBuilder.charOffset!,
@@ -6049,10 +6032,6 @@ Uri computeLibraryUri(Builder declaration) {
   }
   return unhandled("no library parent", "${declaration.runtimeType}",
       declaration.charOffset, declaration.fileUri);
-}
-
-String extractName(Object name) {
-  return name is Identifier ? name.name : name as String;
 }
 
 class PostponedProblem {

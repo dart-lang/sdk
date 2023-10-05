@@ -29,7 +29,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   }
 
   @override
-  Object? get name => null;
+  TypeName? get typeName => null;
 
   @override
   NullabilityBuilder get nullabilityBuilder =>

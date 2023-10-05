@@ -3175,14 +3175,13 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleIdentifier");
-    String name = token.lexeme;
     if (context.isScopeReference) {
       assert(!inInitializerLeftHandSide ||
           this.scope == enclosingScope ||
           this.scope.parent == enclosingScope);
       // This deals with this kind of initializer: `C(a) : a = a;`
       Scope scope = inInitializerLeftHandSide ? enclosingScope : this.scope;
-      push(scopeLookup(scope, name, token));
+      push(scopeLookup(scope, token));
     } else {
       if (!context.inDeclaration &&
           constantContext != ConstantContext.none &&
@@ -3240,23 +3239,25 @@ class BodyBuilder extends StackListenerImpl
   bool isGuardScope(Scope scope) =>
       scope.kind == ScopeKind.caseHead || scope.kind == ScopeKind.ifCaseHead;
 
-  /// Look up [name] in [scope] using [token] as location information (both to
-  /// report problems and as the file offset in the generated kernel code).
+  /// Look up [name] in [scope] using [nameToken] as location information (both
+  /// to report problems and as the file offset in the generated kernel code).
   /// [isQualified] should be true if [name] is a qualified access (which
   /// implies that it shouldn't be turned into a [ThisPropertyAccessGenerator]
   /// if the name doesn't resolve in the scope).
   @override
-  Expression_Generator_Builder scopeLookup(
-      Scope scope, String name, Token token,
-      {bool isQualified = false, PrefixBuilder? prefix}) {
-    int charOffset = offsetForToken(token);
-    if (token.isSynthetic) {
-      return new ParserErrorGenerator(this, token, fasta.messageSyntheticToken);
+  Expression_Generator_Builder scopeLookup(Scope scope, Token nameToken,
+      {PrefixBuilder? prefix, Token? prefixToken}) {
+    String name = nameToken.lexeme;
+    int nameOffset = nameToken.charOffset;
+    if (nameToken.isSynthetic) {
+      return new ParserErrorGenerator(
+          this, nameToken, fasta.messageSyntheticToken);
     }
-    Builder? declaration = scope.lookup(name, charOffset, uri);
+    bool isQualified = prefixToken != null;
+    Builder? declaration = scope.lookup(name, nameOffset, uri);
     if (declaration == null && prefix == null && _context.isPatchClass) {
       // The scope of a patched method includes the origin class.
-      declaration = _context.lookupStaticOriginMember(name, charOffset, uri);
+      declaration = _context.lookupStaticOriginMember(name, nameOffset, uri);
     }
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
@@ -3272,7 +3273,7 @@ class BodyBuilder extends StackListenerImpl
       //       int bar;
       //     }
       //
-      return new IncompleteErrorGenerator(this, token,
+      return new IncompleteErrorGenerator(this, nameToken,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (declaration == null ||
@@ -3286,21 +3287,21 @@ class BodyBuilder extends StackListenerImpl
         if (constantContext != ConstantContext.none ||
             (inFieldInitializer && !inLateFieldInitializer) &&
                 !inInitializerLeftHandSide) {
-          return new UnresolvedNameGenerator(this, token, n,
+          return new UnresolvedNameGenerator(this, nameToken, n,
               unresolvedReadKind: UnresolvedKind.Unknown);
         }
         if (!inFormals && thisVariable != null) {
           // If we are in an extension instance member we interpret this as an
           // implicit access on the 'this' parameter.
-          return PropertyAccessGenerator.make(this, token,
-              createVariableGet(thisVariable!, charOffset), n, false);
+          return PropertyAccessGenerator.make(this, nameToken,
+              createVariableGet(thisVariable!, nameOffset), n, false);
         } else {
           // This is an implicit access on 'this'.
-          return new ThisPropertyAccessGenerator(this, token, n,
+          return new ThisPropertyAccessGenerator(this, nameToken, n,
               thisVariable: thisVariable);
         }
       } else {
-        return new UnresolvedNameGenerator(this, token, n,
+        return new UnresolvedNameGenerator(this, nameToken, n,
             unresolvedReadKind: UnresolvedKind.Unknown);
       }
     } else if (declaration.isTypeDeclaration) {
@@ -3309,7 +3310,13 @@ class BodyBuilder extends StackListenerImpl
         declaration = accessError.builder;
       }
       return new TypeUseGenerator(
-          this, token, declaration as TypeDeclarationBuilder, name);
+          this,
+          nameToken,
+          declaration as TypeDeclarationBuilder,
+          prefixToken != null
+              ? new QualifiedTypeName(
+                  prefixToken.lexeme, prefixToken.charOffset, name, nameOffset)
+              : new IdentifierTypeName(name, nameOffset));
     } else if (declaration.isLocal) {
       VariableBuilder variableBuilder = declaration as VariableBuilder;
       if (constantContext != ConstantContext.none &&
@@ -3317,26 +3324,27 @@ class BodyBuilder extends StackListenerImpl
           !_context.isConstructor &&
           !libraryFeatures.constFunctions.isEnabled) {
         return new IncompleteErrorGenerator(
-            this, token, fasta.messageNotAConstantExpression);
+            this, nameToken, fasta.messageNotAConstantExpression);
       }
       VariableDeclaration variable = variableBuilder.variable!;
       if (scope.kind == ScopeKind.forStatement &&
           variable.isAssignable &&
           variable.isLate &&
           variable.isFinal) {
-        return new ForInLateFinalVariableUseGenerator(this, token, variable);
+        return new ForInLateFinalVariableUseGenerator(
+            this, nameToken, variable);
       } else if (!variableBuilder.isAssignable ||
           (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
         return _createReadOnlyVariableAccess(
             variable,
-            token,
-            charOffset,
+            nameToken,
+            nameOffset,
             name,
             variableBuilder.isConst
                 ? ReadOnlyAccessKind.ConstVariable
                 : ReadOnlyAccessKind.FinalVariable);
       } else {
-        return new VariableUseGenerator(this, token, variable);
+        return new VariableUseGenerator(this, nameToken, variable);
       }
     } else if (declaration.isClassInstanceMember ||
         declaration.isExtensionTypeInstanceMember) {
@@ -3348,16 +3356,16 @@ class BodyBuilder extends StackListenerImpl
           // name that should be resolved here.
           !_context.isConstructor) {
         addProblem(
-            fasta.messageNotAConstantExpression, charOffset, token.length);
+            fasta.messageNotAConstantExpression, nameOffset, nameToken.length);
       }
       Name n = new Name(name, libraryBuilder.nameOrigin);
-      return new ThisPropertyAccessGenerator(this, token, n,
+      return new ThisPropertyAccessGenerator(this, nameToken, n,
           thisVariable: inConstructorInitializer ? null : thisVariable);
     } else if (declaration.isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder =
           declaration.parent as ExtensionBuilder;
       MemberBuilder? setterBuilder =
-          _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
+          _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
       // TODO(johnniwinther): Check for constantContext like below?
       if (declaration.isField) {
         declaration = null;
@@ -3368,14 +3376,14 @@ class BodyBuilder extends StackListenerImpl
       }
       if (declaration == null && setterBuilder == null) {
         return new UnresolvedNameGenerator(
-            this, token, new Name(name, libraryBuilder.nameOrigin),
+            this, nameToken, new Name(name, libraryBuilder.nameOrigin),
             unresolvedReadKind: UnresolvedKind.Unknown);
       }
       MemberBuilder? getterBuilder =
           declaration is MemberBuilder ? declaration : null;
       return new ExtensionInstanceAccessGenerator.fromBuilder(
           this,
-          token,
+          nameToken,
           extensionBuilder.extension,
           name,
           thisVariable!,
@@ -3385,30 +3393,30 @@ class BodyBuilder extends StackListenerImpl
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
       MemberBuilder memberBuilder = declaration as MemberBuilder;
-      return new StaticAccessGenerator(
-          this, token, name, memberBuilder.parent, memberBuilder.member, null);
+      return new StaticAccessGenerator(this, nameToken, name,
+          memberBuilder.parent, memberBuilder.member, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
-      return new PrefixUseGenerator(this, token, declaration);
+      return new PrefixUseGenerator(this, nameToken, declaration);
     } else if (declaration is LoadLibraryBuilder) {
-      return new LoadLibraryGenerator(this, token, declaration);
+      return new LoadLibraryGenerator(this, nameToken, declaration);
     } else if (declaration.hasProblem && declaration is! AccessErrorBuilder) {
       return declaration;
     } else {
       MemberBuilder? setterBuilder =
-          _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
+          _getCorrespondingSetterBuilder(scope, declaration, name, nameOffset);
       MemberBuilder? getterBuilder =
           declaration is MemberBuilder ? declaration : null;
       assert(getterBuilder != null || setterBuilder != null);
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
-          this, name, token, getterBuilder, setterBuilder);
+          this, name, nameToken, getterBuilder, setterBuilder);
       if (constantContext != ConstantContext.none) {
         Member? readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
-          addProblem(
-              fasta.messageNotAConstantExpression, charOffset, token.length);
+          addProblem(fasta.messageNotAConstantExpression, nameOffset,
+              nameToken.length);
         }
       }
       return generator;
@@ -9058,7 +9066,7 @@ class BodyBuilder extends StackListenerImpl
     switch (builder) {
       case NamedTypeBuilder(
           :TypeDeclarationBuilder? declaration,
-          :List<TypeBuilder>? arguments
+          typeArguments: List<TypeBuilder>? arguments
         ):
         if (declaration!.isTypeVariable &&
             builder.declaration is TypeVariableBuilder) {
@@ -9537,8 +9545,7 @@ class BodyBuilder extends StackListenerImpl
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
     assert(variable.lexeme != '_');
     Pattern pattern;
-    String name = variable.lexeme;
-    Expression variableUse = toValue(scopeLookup(scope, name, variable));
+    Expression variableUse = toValue(scopeLookup(scope, variable));
     if (variableUse is VariableGet) {
       VariableDeclaration variableDeclaration = variableUse.variable;
       pattern = forest.createAssignedVariablePattern(
