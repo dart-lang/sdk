@@ -121,11 +121,9 @@ _nightly_builder(
 _extra_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|a6",
-    channels = [],
+    channels = ["try"],
     dimensions = [jammy, arm64],
     goma = False,
-    execution_timeout = 4 * time.hour,
-    properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
 _extra_builder(
     "vm-mac-debug-arm64",
@@ -237,10 +235,9 @@ _nightly_builder(
 _nightly_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|a6",
-    channels = [],
+    channels = ["try"],
     dimensions = [jammy, arm64],
     goma = False,
-    properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
 _extra_builder(
     "vm-aot-mac-release-arm64",
