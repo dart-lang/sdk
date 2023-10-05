@@ -5,6 +5,8 @@
 /// An implementation of [Pipeline] that runs in-memory.
 ///
 /// To define a step, implement [MemoryModularStep].
+library;
+
 import 'pipeline.dart';
 import 'suite.dart';
 

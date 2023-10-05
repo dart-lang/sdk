@@ -60,6 +60,7 @@ import 'comment_references_test.dart' as comment_references;
 import 'conditional_uri_does_not_exist_test.dart'
     as conditional_uri_does_not_exist;
 import 'constant_identifier_names_test.dart' as constant_identifier_names;
+import 'control_flow_in_finally_test.dart' as control_flow_in_finally;
 import 'dangling_library_doc_comments_test.dart'
     as dangling_library_doc_comments;
 import 'depend_on_referenced_packages_test.dart'
@@ -288,6 +289,7 @@ void main() {
   comment_references.main();
   conditional_uri_does_not_exist.main();
   constant_identifier_names.main();
+  control_flow_in_finally.main();
   dangling_library_doc_comments.main();
   depend_on_referenced_packages.main();
   deprecated_consistency.main();

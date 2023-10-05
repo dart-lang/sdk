@@ -18,6 +18,7 @@
 ///         dart pkg/vm/bin/kernel_service.dart --train <source-file>
 ///
 ///
+library;
 
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;

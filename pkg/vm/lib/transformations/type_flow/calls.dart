@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Declares classes which describe a call: selectors and arguments.
+library;
 
 import 'dart:core' hide Type;
 

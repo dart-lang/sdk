@@ -44,6 +44,7 @@ final String _headerCode = r'''
 /// A library to access the VM Service API.
 ///
 /// The main entry-point for this library is the [VmService] class.
+library;
 
 // ignore_for_file: overridden_fields
 

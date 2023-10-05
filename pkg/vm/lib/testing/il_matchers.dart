@@ -5,6 +5,8 @@
 /// A library to facilitate programmatic matching against flow graphs
 /// collected during IL tests. See runtime/docs/infra/il_tests.md for more
 /// info.
+library;
+
 import 'dart:io';
 
 typedef Renamer = String Function(String);

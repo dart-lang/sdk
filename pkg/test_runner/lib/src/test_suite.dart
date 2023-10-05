@@ -10,6 +10,8 @@
 ///   and creating [TestCase]s for those files that meet the relevant criteria.
 /// - Preparing tests, including copying files and frameworks to temporary
 ///   directories, and computing the command line and arguments to be run.
+library;
+
 import 'dart:io';
 import 'dart:math';
 

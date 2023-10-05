@@ -5,6 +5,8 @@
 // ignore_for_file: avoid_dynamic_calls
 
 /// Converters and codecs for converting between JSON and [Info] classes.
+library;
+
 import 'dart:collection';
 import 'dart:convert';
 

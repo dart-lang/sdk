@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A runner that executes a pipeline on a folder containing modular tests.
+library;
+
 import 'dart:io';
 
 import 'package:args/args.dart';

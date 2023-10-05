@@ -90,11 +90,11 @@ class ProcessCommand extends Command {
   /// Working directory for the command.
   final String? workingDirectory;
 
-  ProcessCommand(String displayName, this.executable, this.arguments,
+  ProcessCommand(super.displayName, this.executable, this.arguments,
       [this.environmentOverrides = const {},
       this.workingDirectory,
       int index = 0])
-      : super._(displayName, index: index) {
+      : super._(index: index) {
     if (io.Platform.operatingSystem == 'windows') {
       // Windows can't handle the first command if it is a .bat file or the like
       // with the slashes going the other direction.
@@ -979,8 +979,7 @@ class Dart2WasmCommandLineCommand extends ProcessCommand {
 
 /// [ScriptCommand]s are executed by dart code.
 abstract class ScriptCommand extends Command {
-  ScriptCommand._(String displayName, {int index = 0})
-      : super._(displayName, index: index);
+  ScriptCommand._(super.displayName) : super._();
 
   Future<ScriptCommandOutput> run();
 }

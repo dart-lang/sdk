@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Global type flow analysis.
+library;
 
 import 'dart:collection';
 import 'dart:core' hide Type;

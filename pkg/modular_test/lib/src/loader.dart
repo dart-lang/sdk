@@ -12,6 +12,8 @@
 ///   * subfolders: each considered a module with multiple files
 ///   * a modules.yaml file: a specification of dependencies between modules.
 ///     The format is described in `test_specification_parser.dart`.
+library;
+
 import 'dart:io';
 import 'suite.dart';
 import 'test_specification_parser.dart';

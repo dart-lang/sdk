@@ -6,6 +6,7 @@
 
 /// Codes that transformed sync*/async/async* functions use to communicate with
 /// js_helper functions.
+library;
 
 const int SUCCESS = 0;
 const int ERROR = 1;
