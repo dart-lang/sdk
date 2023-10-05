@@ -50,9 +50,9 @@ class C1 extends core::Object implements self::C {
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v7", <dynamic>[], <dynamic>[], const <core::String, dynamic>{}, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} Null;
   no-such-method-forwarder operator +(core::double other) → core::double
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("+", <dynamic>[], <dynamic>[other], const <core::String, dynamic>{}, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::double;
-  no-such-method-forwarder method m1(covariant-by-declaration self::C arg1, [core::Set<core::Set<self::C>> arg2]) → core::Map<self::C, self::C>
+  no-such-method-forwarder method /* signature-type: (self::C, [core::Set<core::Set<self::C>>]) → core::Map<self::C, self::C> */ m1(covariant-by-declaration self::C arg1, [core::Set<core::Set<self::C>>? arg2]) → core::Map<self::C, self::C>
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m1", <dynamic>[], <dynamic>[arg1, arg2], const <core::String, dynamic>{}, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::Map<self::C, self::C>;
-  no-such-method-forwarder method m2({dynamic arg1, ((dynamic) → dynamic, dynamic) → core::Map<dynamic, dynamic> arg2}) → void
+  no-such-method-forwarder method /* signature-type: ({arg1: dynamic, arg2: ((dynamic) → dynamic, dynamic) → core::Map<dynamic, dynamic>}) → void */ m2({dynamic arg1, ((dynamic) → dynamic, dynamic) →? core::Map<dynamic, dynamic> arg2}) → void
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m2", <dynamic>[], <dynamic>[], <core::String, dynamic>{"arg1": arg1, "arg2": arg2}, 0)){(core::Invocation) → dynamic};
 }
 class D extends core::Object {

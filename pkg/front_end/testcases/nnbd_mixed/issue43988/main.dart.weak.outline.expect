@@ -10,7 +10,7 @@ abstract class _E1&Object&A = core::Object with mai::A /*isAnonymousMixin,hasCon
     : super core::Object::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
     return super.{mai::A::method}(i, s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -26,7 +26,7 @@ abstract class _E1&Object&A&D = self::_E1&Object&A with mai::D /*isAnonymousMixi
   const synthetic constructor •() → self::_E1&Object&A&D*
     : super self::_E1&Object&A::•()
     ;
-  forwarding-stub method method(covariant-by-declaration core::num* i, {core::String* s}) → core::String*
+  forwarding-stub method method(covariant-by-declaration core::num* i, {core::String* s = #C1}) → core::String*
     return super.{self::_E1&Object&A::method}(i, s: s);
 }
 class E1 extends self::_E1&Object&A&D {
@@ -38,7 +38,7 @@ abstract class _E2&Object&A = core::Object with mai::A /*isAnonymousMixin,hasCon
     : super core::Object::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
     return super.{mai::A::method}(i, s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -54,7 +54,7 @@ class E2 = self::_E2&Object&A with mai::D /*hasConstConstructor*/  {
   const synthetic constructor •() → self::E2*
     : super self::_E2&Object&A::•()
     ;
-  forwarding-stub method method(covariant-by-declaration core::num* i, {core::String* s}) → core::String*
+  forwarding-stub method method(covariant-by-declaration core::num* i, {core::String* s = #C1}) → core::String*
     return super.{self::_E2&Object&A::method}(i, s: s);
 }
 abstract class _E3&Object&A = core::Object with mai::A /*isAnonymousMixin,hasConstConstructor*/  {
@@ -62,7 +62,7 @@ abstract class _E3&Object&A = core::Object with mai::A /*isAnonymousMixin,hasCon
     : super core::Object::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  mixin-super-stub method method(core::num* i, {core::String* s}) → core::String*
+  mixin-super-stub method method(core::num* i, {core::String* s = #C1}) → core::String*
     return super.{mai::A::method}(i, s: s);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -107,7 +107,7 @@ abstract class C8 extends mai::C5 implements mai::C7 {
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub method method2([covariant-by-declaration core::String* a, core::num* b]) → dynamic;
+  abstract forwarding-stub method method2([covariant-by-declaration core::String* a = #C2, core::num* b = #C2]) → dynamic;
 }
 static method main() → dynamic
   ;

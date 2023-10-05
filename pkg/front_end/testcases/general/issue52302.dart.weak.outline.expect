@@ -32,11 +32,11 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin = core::Object with iss:
     return super.{core::Iterable::fold}<self::_MixesInMixesInMixin&Object&MixesInMixin::fold::T%>(initialValue, combine);
   mixin-super-stub method every((core::int) → core::bool test) → core::bool
     return super.{core::Iterable::every}(test);
-  mixin-super-stub method join([core::String separator]) → core::String
+  mixin-super-stub method join([core::String separator = #C1]) → core::String
     return super.{core::Iterable::join}(separator);
   mixin-super-stub method any((core::int) → core::bool test) → core::bool
     return super.{core::Iterable::any}(test);
-  mixin-super-stub method toList({core::bool growable}) → core::List<core::int>
+  mixin-super-stub method toList({core::bool growable = #C2}) → core::List<core::int>
     return super.{core::Iterable::toList}(growable: growable);
   mixin-super-stub method toSet() → core::Set<core::int>
     return super.{core::Iterable::toSet}();
@@ -60,11 +60,11 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin = core::Object with iss:
     return super.{core::Iterable::last};
   mixin-super-stub get single() → core::int
     return super.{core::Iterable::single};
-  mixin-super-stub method firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+  mixin-super-stub method firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int
     return super.{core::Iterable::firstWhere}(test, orElse: orElse);
-  mixin-super-stub method lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+  mixin-super-stub method lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int
     return super.{core::Iterable::lastWhere}(test, orElse: orElse);
-  mixin-super-stub method singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+  mixin-super-stub method singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int
     return super.{core::Iterable::singleWhere}(test, orElse: orElse);
   mixin-super-stub method elementAt(core::int index) → core::int
     return super.{core::Iterable::elementAt}(index);
@@ -109,11 +109,11 @@ abstract mixin class MixesInMixin = core::Object with core::Iterable<core::int> 
     return super.{core::Iterable::fold}<iss::MixesInMixin::fold::T%>(initialValue, combine);
   mixin-super-stub method every((core::int) → core::bool test) → core::bool
     return super.{core::Iterable::every}(test);
-  mixin-super-stub method join([core::String separator]) → core::String
+  mixin-super-stub method join([core::String separator = #C1]) → core::String
     return super.{core::Iterable::join}(separator);
   mixin-super-stub method any((core::int) → core::bool test) → core::bool
     return super.{core::Iterable::any}(test);
-  mixin-super-stub method toList({core::bool growable}) → core::List<core::int>
+  mixin-super-stub method toList({core::bool growable = #C2}) → core::List<core::int>
     return super.{core::Iterable::toList}(growable: growable);
   mixin-super-stub method toSet() → core::Set<core::int>
     return super.{core::Iterable::toSet}();
@@ -137,14 +137,20 @@ abstract mixin class MixesInMixin = core::Object with core::Iterable<core::int> 
     return super.{core::Iterable::last};
   mixin-super-stub get single() → core::int
     return super.{core::Iterable::single};
-  mixin-super-stub method firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+  mixin-super-stub method firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int
     return super.{core::Iterable::firstWhere}(test, orElse: orElse);
-  mixin-super-stub method lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+  mixin-super-stub method lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int
     return super.{core::Iterable::lastWhere}(test, orElse: orElse);
-  mixin-super-stub method singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse}) → core::int
+  mixin-super-stub method singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int
     return super.{core::Iterable::singleWhere}(test, orElse: orElse);
   mixin-super-stub method elementAt(core::int index) → core::int
     return super.{core::Iterable::elementAt}(index);
   mixin-super-stub method toString() → core::String
     return super.{core::Iterable::toString}();
+}
+
+constants  {
+  #C1 = ""
+  #C2 = true
+  #C3 = null
 }

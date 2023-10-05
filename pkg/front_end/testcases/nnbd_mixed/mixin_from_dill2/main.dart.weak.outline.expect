@@ -11,7 +11,7 @@ abstract class _RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin = mai::
   synthetic constructor •() → self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin
     : super mai::RenderProxyBox::•()
     ;
-  mixin-super-stub method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
+  mixin-super-stub method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position = #C1}) → core::bool
     return super.{mai::RenderProxyBoxMixin::hitTestChildren}(result, position: position);
 }
 abstract class _RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin&RenderAnimatedOpacityMixin = self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin with self::RenderAnimatedOpacityMixin<mai::RenderBox> /*isAnonymousMixin*/  {

@@ -15,7 +15,7 @@ abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding = fou::Binding
     : super fou::BindingBase::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature method registerSignalServiceExtension({core::String* name, () →* asy::Future<Null>* callback}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<Null>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

@@ -19,7 +19,7 @@ class B extends core::Object implements self::A {
     ;
   no-such-method-forwarder get bar() → core::int
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#bar, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
-  no-such-method-forwarder method baz(core::int x, {core::String y, core::double z}) → void
+  no-such-method-forwarder method /* signature-type: (core::int, {y: core::String, z: core::double}) → void */ baz(core::int x, {core::String? y, core::double? z}) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#baz, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#y: y, #z: z}))){(core::Invocation) → dynamic};
   no-such-method-forwarder set foo(core::int value) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};

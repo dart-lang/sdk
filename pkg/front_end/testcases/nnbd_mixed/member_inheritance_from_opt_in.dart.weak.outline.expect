@@ -63,9 +63,9 @@ class LegacyClass extends mem::Class implements mem::Interface {
   abstract member-signature method method2() → core::int*; -> mem::Class::method2
   abstract member-signature method method5a(core::int* a, core::int* b) → core::int*; -> mem::Class::method5a
   abstract member-signature method method5b(core::int* a, [core::int* b]) → core::int*; -> mem::Class::method5b
-  abstract member-signature method method5c([core::int* a, core::int* b]) → core::int*; -> mem::Class::method5c
+  abstract member-signature method method5c([has-declared-initializer core::int* a, core::int* b]) → core::int*; -> mem::Class::method5c
   abstract member-signature method method7a(core::int* a, {core::int* b}) → core::int*; -> mem::Class::method7a
-  abstract member-signature method method7b({core::int* a, core::int* b}) → core::int*; -> mem::Class::method7b
+  abstract member-signature method method7b({has-declared-initializer core::int* a, core::int* b}) → core::int*; -> mem::Class::method7b
   abstract member-signature method method9a(core::int* a, {core::int* b}) → core::int*; -> mem::Class::method9a
   abstract member-signature method method9b({core::int* a, core::int* b}) → core::int*; -> mem::Class::method9b
   abstract member-signature get getter1() → core::int*; -> mem::Class::getter1
