@@ -1767,7 +1767,7 @@
             "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 4
         }
       ]
     },
@@ -1795,7 +1795,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 4
         }
       ]
     },
