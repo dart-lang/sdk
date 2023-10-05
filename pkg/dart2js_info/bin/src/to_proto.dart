@@ -4,6 +4,7 @@
 
 /// Command-line tool to convert an info.json file outputted by dart2js to the
 /// alternative protobuf format.
+library;
 
 import 'dart:io';
 

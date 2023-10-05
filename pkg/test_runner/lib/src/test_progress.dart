@@ -445,14 +445,13 @@ abstract class ProgressIndicator extends EventListener {
 }
 
 abstract class CompactIndicator extends ProgressIndicator {
-  CompactIndicator(DateTime startTime) : super(startTime);
+  CompactIndicator(super.startTime);
 }
 
 class CompactProgressIndicator extends CompactIndicator {
   final Formatter _formatter;
 
-  CompactProgressIndicator(DateTime startTime, this._formatter)
-      : super(startTime);
+  CompactProgressIndicator(super.startTime, this._formatter);
 
   @override
   void _printDoneProgress(TestCase test) {
@@ -474,7 +473,7 @@ class CompactProgressIndicator extends CompactIndicator {
 }
 
 class LineProgressIndicator extends ProgressIndicator {
-  LineProgressIndicator(DateTime startTime) : super(startTime);
+  LineProgressIndicator(super.startTime);
 
   @override
   void _printDoneProgress(TestCase test) {
@@ -490,7 +489,7 @@ class LineProgressIndicator extends ProgressIndicator {
 class BuildbotProgressIndicator extends ProgressIndicator {
   static String? stepName;
 
-  BuildbotProgressIndicator(DateTime startTime) : super(startTime);
+  BuildbotProgressIndicator(super.startTime);
 
   @override
   void _printDoneProgress(TestCase test) {

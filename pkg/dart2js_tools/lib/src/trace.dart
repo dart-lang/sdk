@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Representation of stack traces and logic to parse d8 stack traces.
+library;
+
 // TODO(sigmund): we should delete this implementation and instead:
 // - switch to use the stack_trace package
 // - add support non-d8 frames

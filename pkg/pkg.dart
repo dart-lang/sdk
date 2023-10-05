@@ -4,6 +4,7 @@
 
 /// List the packages in pkg/ as well information about their
 /// analysis_options.yaml configuration.
+library;
 
 import 'dart:io';
 

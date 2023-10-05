@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Test to verify that this package is in-sync with shared runtime libraries.
+library;
+
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart';

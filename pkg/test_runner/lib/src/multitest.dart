@@ -66,6 +66,8 @@
 /// ddd //# 07: static type warning
 /// fff
 /// ```
+library;
+
 import "dart:io";
 
 import "path.dart";

@@ -7,6 +7,8 @@
 /// A library to invoke the CFE to compute kernel summary files.
 ///
 /// Used by `utils/bazel/kernel_worker.dart`.
+library;
+
 import 'dart:async';
 import 'dart:io';
 

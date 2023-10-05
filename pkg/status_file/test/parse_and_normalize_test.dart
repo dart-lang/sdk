@@ -4,6 +4,8 @@
 
 /// Tests that every .status file in the Dart repository can be successfully
 /// parsed.
+library;
+
 import 'dart:io';
 import 'package:status_file/canonical_status_file.dart';
 

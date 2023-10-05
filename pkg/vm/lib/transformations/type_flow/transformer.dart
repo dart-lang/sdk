@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Transformations based on type flow analysis.
+library;
 
 import 'dart:core' hide Type;
 

@@ -13,6 +13,8 @@
 /// The IO-based implementation ensures hermeticity by copying data to different
 /// directories. The memory-based implementation ensures hemeticity by filtering
 /// out the data before invoking the next step.
+library;
+
 import 'suite.dart';
 
 /// Describes a step in a modular compilation pipeline.

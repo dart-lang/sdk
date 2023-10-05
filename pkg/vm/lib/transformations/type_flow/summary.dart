@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Type flow summary of a member, function or initializer.
+library;
 
 import 'dart:core' hide Type;
 

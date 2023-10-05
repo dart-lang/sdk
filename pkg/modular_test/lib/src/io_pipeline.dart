@@ -5,6 +5,8 @@
 /// An implementation of [Pipeline] that runs using IO.
 ///
 /// To define a step, implement [IOModularStep].
+library;
+
 import 'dart:io';
 
 import 'pipeline.dart';

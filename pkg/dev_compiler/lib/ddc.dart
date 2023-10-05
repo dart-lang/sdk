@@ -5,6 +5,7 @@
 /// Command line entry point for Dart Development Compiler (known as ddc,
 /// dartdevc, dev compiler), used to compile a collection of dart libraries into
 /// a single JS module.
+library;
 
 import 'dart:async';
 import 'dart:convert';

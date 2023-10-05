@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Tests that the logic to load, parse, and validate modular tests.
+library;
+
 import 'dart:io';
 
 import 'package:test/test.dart';

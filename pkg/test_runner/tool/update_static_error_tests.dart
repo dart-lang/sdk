@@ -4,6 +4,8 @@
 
 /// Regenerates the static error test markers inside static error tests based
 /// on the actual errors reported by analyzer and CFE.
+library;
+
 import 'dart:io';
 
 import 'package:args/args.dart';

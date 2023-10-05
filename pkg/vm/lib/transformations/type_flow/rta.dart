@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Rapid type analysis on kernel AST.
+library;
 
 import 'dart:core' hide Type;
 

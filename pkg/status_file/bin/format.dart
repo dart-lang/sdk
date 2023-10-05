@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Reformats the status file(s) at the given path.
+library;
+
 import 'dart:io';
 
 import 'package:status_file/status_file.dart';

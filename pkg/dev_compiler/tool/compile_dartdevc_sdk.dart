@@ -5,6 +5,7 @@
 
 /// Tool that consumes the .dill file of an entire dart-sdk and produces the
 /// corresponding JavaScript module.
+library;
 
 import 'dart:io';
 import 'package:dev_compiler/src/kernel/command.dart';

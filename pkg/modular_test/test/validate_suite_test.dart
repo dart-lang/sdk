@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Unit test for validation of modular steps in a pipeline.
+library;
+
 import 'package:test/test.dart';
 import 'package:modular_test/src/suite.dart';
 

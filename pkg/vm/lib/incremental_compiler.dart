@@ -4,6 +4,8 @@
 
 /// Defines wrapper class around incremental compiler to support
 /// the flow, where incremental deltas can be rejected by VM.
+library;
+
 import 'dart:async';
 import 'dart:developer';
 

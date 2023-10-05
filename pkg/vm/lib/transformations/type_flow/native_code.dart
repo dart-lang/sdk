@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Handling of native code and entry points.
+library;
 
 import 'dart:core' hide Type;
 

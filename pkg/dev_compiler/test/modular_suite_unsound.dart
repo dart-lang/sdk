@@ -5,6 +5,8 @@
 /// Test the modular compilation pipeline of ddc without sound null safety.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
+library;
+
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/runner.dart';
 

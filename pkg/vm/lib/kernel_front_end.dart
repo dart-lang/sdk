@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Defines the VM-specific translation of Dart source code to kernel binaries.
+library;
 
 import 'dart:async';
 import 'dart:io' show File, IOSink;

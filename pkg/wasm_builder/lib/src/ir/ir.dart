@@ -4,6 +4,7 @@
 
 /// IR types are considered logically immutable.
 // TODO(joshualitt): Make all of the ir types full immutable.
+library;
 
 export 'data_segments.dart' show BaseDataSegment, DataSegment, DataSegments;
 export 'exports.dart' show Export, Exportable, Exports;

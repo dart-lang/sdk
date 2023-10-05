@@ -5,6 +5,8 @@
 /// Code for displaying the API as HTML. This is used both for generating a
 /// full description of the API as a web page, and for generating doc comments
 /// in generated code.
+library;
+
 import 'dart:convert';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;

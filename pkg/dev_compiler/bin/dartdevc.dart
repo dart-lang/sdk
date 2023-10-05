@@ -5,6 +5,7 @@
 
 /// Command line entry point for Dart Development Compiler (dartdevc), used to
 /// compile a collection of dart libraries into a single JS module
+library;
 
 import 'dart:isolate';
 
