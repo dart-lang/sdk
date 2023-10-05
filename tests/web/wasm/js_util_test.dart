@@ -131,8 +131,7 @@ void dartObjectRoundTripTest() {
 
 void deepConversionsTest() {
   // Dart to JS.
-  // TODO(joshualitt): Consider supporting `null` in jsify.
-  // Expect.isNull(dartify(jsify(null)));
+  Expect.isNull(dartify(jsify(null)));
   Expect.equals(true, dartify(jsify(true)));
   Expect.equals(2.0, dartify(jsify(2.0)));
   Expect.equals('foo', dartify(jsify('foo')));

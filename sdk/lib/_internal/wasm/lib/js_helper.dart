@@ -552,11 +552,6 @@ F _wrapDartFunction<F extends Function>(F f, WasmExternRef ref) {
 WasmExternRef? getConstructorRaw(String name) =>
     getPropertyRaw(globalThisRaw(), name.toExternRef);
 
-/// Equivalent to `Object.keys(object)`.
-// TODO(joshualitt): Make this a static helper on 'JSObject'.
-@js.JS('Object.keys')
-external JSArray objectKeys(JSObject object);
-
 /// Takes a [codeTemplate] string which must represent a valid JS function, and
 /// a list of optional arguments. The [codeTemplate] will be inserted into the
 /// JS runtime, and the call to [JS] will be replaced by a call to an external
