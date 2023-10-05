@@ -1391,6 +1391,8 @@ s
 safer
 sampled
 sandboxed
+sanitize
+sanitized
 sanitizing
 saw
 say
