@@ -71,16 +71,6 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 - Added `broadcast` parameter to `Stream.empty` constructor.
 
-#### `dart:cli`
-
-- **Breaking change** [#52121][]:
-  - `waitFor` is disabled by default and slated for removal in 3.4. Attempting
-  to call this function will now throw an exception. Users that still depend
-  on `waitFor` can enable it by passing `--enable_deprecated_wait_for` flag
-  to the VM.
-
-[#52121]: https://github.com/dart-lang/sdk/issues/52121
-
 #### `dart:convert`
 
 - **Breaking change** [#52801][]:

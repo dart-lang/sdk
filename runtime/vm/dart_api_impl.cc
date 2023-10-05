@@ -84,7 +84,7 @@ DEFINE_FLAG(bool,
             "Dump common hash tables before snapshotting.");
 DEFINE_FLAG(bool,
             enable_deprecated_wait_for,
-            false,
+            true,
             "Enable deprecated dart:cli waitFor. "
             "This feature will be fully removed in Dart 3.4 release. "
             "See https://dartbug.com/52121.");
