@@ -19,7 +19,7 @@ abstract class _C&Object&A = core::Object with iss::A /*isAnonymousMixin,hasCons
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  mixin-super-stub method method({core::String* s}) → core::String*
+  mixin-super-stub method method({core::String* s = #C1}) → core::String*
     return super.{iss::A::method}(s: s);
 }
 abstract class _C&Object&A&B = self::_C&Object&A with iss::B /*isAnonymousMixin,hasConstConstructor*/  {

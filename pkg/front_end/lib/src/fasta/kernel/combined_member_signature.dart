@@ -4,6 +4,8 @@
 
 import 'package:kernel/ast.dart';
 
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart';
@@ -634,13 +636,16 @@ class CombinedClassMemberSignature {
     FreshTypeParametersFromStructuralParameters freshTypeParameters =
         getFreshTypeParametersFromStructuralParameters(
             functionType.typeParameters);
+    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (int i = 0; i < function.positionalParameters.length; i++) {
       VariableDeclaration parameter = function.positionalParameters[i];
       DartType parameterType =
           freshTypeParameters.substitute(functionType.positionalParameters[i]);
       positionalParameters.add(new VariableDeclaration(parameter.name,
           type: parameterType,
-          isCovariantByDeclaration: parameter.isCovariantByDeclaration)
+          isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+          initializer: cloner.cloneOptional(parameter.initializer))
+        ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
         ..isCovariantByClass = parameter.isCovariantByClass
         ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
     }
@@ -652,7 +657,9 @@ class CombinedClassMemberSignature {
       namedParameters.add(new VariableDeclaration(parameter.name,
           type: freshTypeParameters.substitute(namedType.type),
           isRequired: namedType.isRequired,
-          isCovariantByDeclaration: parameter.isCovariantByDeclaration)
+          isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+          initializer: cloner.cloneOptional(parameter.initializer))
+        ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
         ..isCovariantByClass = parameter.isCovariantByClass
         ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
     } else if (namedParameterCount > 1) {
@@ -666,7 +673,9 @@ class CombinedClassMemberSignature {
         namedParameters.add(new VariableDeclaration(parameter.name,
             type: freshTypeParameters.substitute(namedParameterType.type),
             isRequired: namedParameterType.isRequired,
-            isCovariantByDeclaration: parameter.isCovariantByDeclaration)
+            isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+            initializer: cloner.cloneOptional(parameter.initializer))
+          ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
           ..isCovariantByClass = parameter.isCovariantByClass
           ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset);
       }

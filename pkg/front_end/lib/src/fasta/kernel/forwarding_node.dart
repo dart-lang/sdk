@@ -447,6 +447,49 @@ class ForwardingNode {
           ..fileOffset = procedure.fileOffset;
       }
     }
+
+    FunctionType signatureType = procedure.function
+        .computeFunctionType(procedure.enclosingLibrary.nonNullable);
+    List<VariableDeclaration> positionalParameters =
+        procedure.function.positionalParameters;
+    List<VariableDeclaration> namedParameters =
+        procedure.function.namedParameters;
+    int requiredParameterCount = procedure.function.requiredParameterCount;
+    bool hasUpdate = false;
+    bool updateNullability(VariableDeclaration parameter,
+        {required bool isRequired}) {
+      // Parameters in nnbd libraries that backends might not be able to pass
+      // a non-null value for must be nullable. This allows backends to do the
+      // appropriate parameter checks in the forwarder stub for null placeholder
+      // arguments. Covariance indicates the type must stay the same.
+      return !(isRequired ||
+              parameter.hasDeclaredInitializer ||
+              parameter.isCovariantByDeclaration ||
+              parameter.isCovariantByClass) &&
+          libraryBuilder.isNonNullableByDefault &&
+          parameter.type.nullability != Nullability.nullable;
+    }
+
+    for (int i = 0; i < positionalParameters.length; i++) {
+      VariableDeclaration parameter = positionalParameters[i];
+      bool isRequired = i < requiredParameterCount;
+      if (updateNullability(parameter, isRequired: isRequired)) {
+        parameter.type =
+            parameter.type.withDeclaredNullability(Nullability.nullable);
+        hasUpdate = true;
+      }
+    }
+
+    for (VariableDeclaration parameter in namedParameters) {
+      if (updateNullability(parameter, isRequired: parameter.isRequired)) {
+        parameter.type =
+            parameter.type.withDeclaredNullability(Nullability.nullable);
+        hasUpdate = true;
+      }
+    }
+    if (hasUpdate) {
+      procedure.signatureType = signatureType;
+    }
     procedure.function.body = new ReturnStatement(result)
       ..fileOffset = procedure.fileOffset
       ..parent = procedure.function;

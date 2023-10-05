@@ -37,7 +37,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method noSuchMethod(dart.core::Invocation invocation) → void {
       dart.core::print(invocation.{dart.core::Invocation::positionalArguments}{dart.core::List<dynamic>});
     }
-    no-such-method-forwarder method m([covariant-by-declaration dart.core::String a]) → dynamic
+    no-such-method-forwarder method m([covariant-by-declaration has-declared-initializer dart.core::String a]) → dynamic
       return this.{main::C::noSuchMethod}(new dart.core::_InvocationMirror::_withType(#C3, 0, #C4, dart.core::List::unmodifiable<dynamic>(dart.core::_GrowableList::_literal1<dynamic>(a)), dart.core::Map::unmodifiable<dart.core::Symbol*, dynamic>(#C5))){(dart.core::Invocation) → void} as{TypeError,ForDynamic} dynamic;
   }
   static method main() → dynamic {

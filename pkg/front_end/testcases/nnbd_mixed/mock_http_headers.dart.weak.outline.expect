@@ -63,9 +63,9 @@ class MockHttpHeaders extends self::Mock implements _ht::HttpHeaders {
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#[], 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[name]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic,ForLegacy} core::List<core::String*>*;
   no-such-method-forwarder method value(core::String* name) → core::String*
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#value, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[name]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic,ForLegacy} core::String*;
-  no-such-method-forwarder method add(core::String* name, core::Object* value, {core::bool* preserveHeaderCase}) → void
+  no-such-method-forwarder method add(core::String* name, core::Object* value, {core::bool* preserveHeaderCase = #C1}) → void
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#add, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[name, value]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#preserveHeaderCase: preserveHeaderCase}))){(core::Invocation*) →* dynamic};
-  no-such-method-forwarder method set(core::String* name, core::Object* value, {core::bool* preserveHeaderCase}) → void
+  no-such-method-forwarder method set(core::String* name, core::Object* value, {core::bool* preserveHeaderCase = #C1}) → void
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#set, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[name, value]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#preserveHeaderCase: preserveHeaderCase}))){(core::Invocation*) →* dynamic};
   no-such-method-forwarder method remove(core::String* name, core::Object* value) → void
     return this.{self::Mock::noSuchMethod}(new core::_InvocationMirror::_withType(#remove, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[name, value]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
@@ -81,6 +81,9 @@ class MockHttpHeaders extends self::Mock implements _ht::HttpHeaders {
 static method main() → dynamic
   ;
 
+constants  {
+  #C1 = false
+}
 
 Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///mock_http_headers.dart:13:7 -> SymbolConstant(#date)

@@ -28,14 +28,14 @@ abstract class _E&Object&A = core::Object with self::A /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_E&Object&A
     : super core::Object::•()
     ;
-  mixin-super-stub method method(core::num i, {core::String s}) → core::String
+  mixin-super-stub method method(core::num i, {has-declared-initializer core::String s}) → core::String
     return super.{self::A::method}(i, s: s);
 }
 abstract class _E&Object&A&D = self::_E&Object&A with self::D /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_E&Object&A&D
     : super self::_E&Object&A::•()
     ;
-  forwarding-stub method method(covariant-by-declaration core::num i, {core::String s}) → core::String
+  forwarding-stub method method(covariant-by-declaration core::num i, {has-declared-initializer core::String s}) → core::String
     return super.{self::_E&Object&A::method}(i, s: s);
 }
 class E extends self::_E&Object&A&D {
@@ -48,7 +48,7 @@ abstract class _G&Object&A = core::Object with self::A /*isAnonymousMixin,hasCon
   const synthetic constructor •() → self::_G&Object&A
     : super core::Object::•()
     ;
-  mixin-super-stub method method(core::num i, {core::String s}) → core::String
+  mixin-super-stub method method(core::num i, {has-declared-initializer core::String s}) → core::String
     return super.{self::A::method}(i, s: s);
 }
 abstract class _G&Object&A&F = self::_G&Object&A with self::F /*isAnonymousMixin,hasConstConstructor*/  {
