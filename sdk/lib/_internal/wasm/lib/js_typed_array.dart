@@ -230,6 +230,7 @@ final class JSIntArrayImpl extends JSArrayBufferViewImpl
   JSIntArrayImpl(super._ref);
 
   @override
+  @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexError.check(index, length);
     return js
@@ -238,6 +239,7 @@ final class JSIntArrayImpl extends JSArrayBufferViewImpl
   }
 
   @override
+  @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
     IndexError.check(index, length);
     js.JS<void>('(o, i, v) => o[i] = v', toExternRef, index.toDouble(),
@@ -501,6 +503,7 @@ final class JSInt32x4ArrayImpl
   int get length => _storage.length ~/ 4;
 
   @override
+  @pragma("wasm:prefer-inline")
   Int32x4 operator [](int index) {
     IndexError.check(index, length);
     int _x = _storage[(index * 4) + 0];
@@ -511,6 +514,7 @@ final class JSInt32x4ArrayImpl
   }
 
   @override
+  @pragma("wasm:prefer-inline")
   void operator []=(int index, Int32x4 value) {
     IndexError.check(index, length);
     _storage[(index * 4) + 0] = value.x;
@@ -531,12 +535,14 @@ final class JSBigIntArrayImpl extends JSIntArrayImpl {
   JSBigIntArrayImpl(super._ref);
 
   @override
+  @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexError.check(index, length);
     return js.JS<int>('(o, i) => o[i]', toExternRef, index.toDouble()).toInt();
   }
 
   @override
+  @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
     IndexError.check(index, length);
     js.JS<void>('(o, i, v) => o[i] = v', toExternRef, index.toDouble(), value);
@@ -603,12 +609,14 @@ final class JSFloatArrayImpl extends JSArrayBufferViewImpl
   JSFloatArrayImpl(super._ref);
 
   @override
+  @pragma("wasm:prefer-inline")
   double operator [](int index) {
     IndexError.check(index, length);
     return js.JS<double>('(o, i) => o[i]', toExternRef, index.toDouble());
   }
 
   @override
+  @pragma("wasm:prefer-inline")
   void operator []=(int index, double value) {
     IndexError.check(index, length);
     js.JS<void>('(o, i, v) => o[i] = v', toExternRef, index.toDouble(),
@@ -732,6 +740,7 @@ final class JSFloat32x4ArrayImpl
   int get length => _storage.length ~/ 4;
 
   @override
+  @pragma("wasm:prefer-inline")
   Float32x4 operator [](int index) {
     IndexError.check(index, length);
     double _x = _storage[(index * 4) + 0];
@@ -742,6 +751,7 @@ final class JSFloat32x4ArrayImpl
   }
 
   @override
+  @pragma("wasm:prefer-inline")
   void operator []=(int index, Float32x4 value) {
     IndexError.check(index, length);
     _storage[(index * 4) + 0] = value.x;
@@ -782,6 +792,7 @@ final class JSFloat64x2ArrayImpl
   int get length => _storage.length ~/ 2;
 
   @override
+  @pragma("wasm:prefer-inline")
   Float64x2 operator [](int index) {
     IndexError.check(index, length);
     double _x = _storage[(index * 2) + 0];
@@ -790,6 +801,7 @@ final class JSFloat64x2ArrayImpl
   }
 
   @override
+  @pragma("wasm:prefer-inline")
   void operator []=(int index, Float64x2 value) {
     IndexError.check(index, length);
     _storage[(index * 2) + 0] = value.x;
