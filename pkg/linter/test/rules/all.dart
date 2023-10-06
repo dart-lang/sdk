@@ -16,6 +16,8 @@ import 'avoid_final_parameters_test.dart' as avoid_final_parameters;
 import 'avoid_function_literals_in_foreach_calls_test.dart'
     as avoid_function_literals_in_foreach_calls;
 import 'avoid_init_to_null_test.dart' as avoid_init_to_null;
+import 'avoid_multiple_declarations_per_line_test.dart'
+    as avoid_multiple_declarations_per_line;
 import 'avoid_positional_boolean_parameters_test.dart'
     as avoid_positional_boolean_parameters;
 import 'avoid_print_test.dart' as avoid_print;
@@ -260,6 +262,7 @@ void main() {
   avoid_final_parameters.main();
   avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();
+  avoid_multiple_declarations_per_line.main();
   avoid_positional_boolean_parameters.main();
   avoid_print.main();
   avoid_private_typedef_functions.main();
