@@ -214,7 +214,7 @@ class _MatchImplementation implements RegExpMatch {
   Iterable<String> get groupNames {
     JSObject? groups = _match.groups;
     if (groups.isDefinedAndNotNull) {
-      return JSArrayIterableAdapter<String>(objectKeys(groups!));
+      return JSArrayIterableAdapter<String>(JSObject.keys(groups!));
     }
     return Iterable.empty();
   }
