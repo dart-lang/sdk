@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
 
-DartFormatter formatter = DartFormatter();
+DartFormatter _formatter = DartFormatter();
 
 /// Transforms a sequence of LSP document change events to a sequence of source
 /// edits used by analysis plugins.
@@ -84,10 +84,10 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
   SourceCode formattedResult;
   try {
     // If the lineLength has changed, recreate the formatter with the new setting.
-    if (lineLength != formatter.pageWidth) {
-      formatter = DartFormatter(pageWidth: lineLength);
+    if (lineLength != _formatter.pageWidth) {
+      _formatter = DartFormatter(pageWidth: lineLength);
     }
-    formattedResult = formatter.formatSource(code);
+    formattedResult = _formatter.formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the
@@ -101,10 +101,10 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     return success(null);
   }
 
-  return _generateMinimalEdits(result, formattedSource, range: range);
+  return generateMinimalEdits(result, formattedSource, range: range);
 }
 
-List<TextEdit> _generateFullEdit(
+List<TextEdit> generateFullEdit(
     LineInfo lineInfo, String unformattedSource, String formattedSource) {
   final end = lineInfo.getLocation(unformattedSource.length);
   return [
@@ -116,15 +116,15 @@ List<TextEdit> _generateFullEdit(
   ];
 }
 
-/// Generates edits that modify the minimum amount of code (only whitespace) to
-/// change [unformatted] to [formatted].
+/// Generates edits that modify the minimum amount of code (if only whitespace,
+/// commas and comments) to change the source of [result] to [formatted].
 ///
 /// This allows editors to more easily track important locations (such as
 /// breakpoints) without needing to do their own diffing.
 ///
-/// If [range] is supplied, only whitespace edits that fall entirely inside this
-/// range will be included in the results.
-ErrorOr<List<TextEdit>> _generateMinimalEdits(
+/// If [range] is supplied, only edits that fall entirely inside this range will
+/// be included in the results.
+ErrorOr<List<TextEdit>> generateMinimalEdits(
   ParsedUnitResult result,
   String formatted, {
   Range? range,
@@ -146,7 +146,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
   final parsedFormatted = _parse(formatted, result.unit.featureSet);
   final parsedUnformatted = _parse(unformatted, result.unit.featureSet);
   if (parsedFormatted == null || parsedUnformatted == null) {
-    return success(_generateFullEdit(lineInfo, unformatted, formatted));
+    return success(generateFullEdit(lineInfo, unformatted, formatted));
   }
 
   final unformattedTokens = _iterateAllTokens(parsedUnformatted).iterator;
@@ -270,7 +270,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
       // If the token lexemes do not match, there is a difference in the parsed
       // token streams (this should not ordinarily happen) so fall back to a
       // full edit.
-      return success(_generateFullEdit(lineInfo, unformatted, formatted));
+      return success(generateFullEdit(lineInfo, unformatted, formatted));
     }
 
     addEditFor(
@@ -293,7 +293,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
   // If we got here and either of the streams still have tokens, something
   // did not match so fall back to a full edit.
   if (unformattedHasMore || formattedHasMore) {
-    return success(_generateFullEdit(lineInfo, unformatted, formatted));
+    return success(generateFullEdit(lineInfo, unformatted, formatted));
   }
 
   // Finally, handle any whitespace that was after the last token.
