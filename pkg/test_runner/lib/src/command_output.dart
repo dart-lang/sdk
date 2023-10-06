@@ -414,7 +414,7 @@ class BrowserCommandOutput extends CommandOutput
           .replaceAll(RegExp('http://[^/]*/root_build/'), '$_buildDirectory/')
           .replaceAll(RegExp('http://[^/]*/root_dart/'), '')
           // Remove query parameters (seen in .html URIs).
-          .replaceAll(RegExp('\\?[^:]*:'), ':');
+          .replaceAll(RegExp('\\?[^:\n]*:'), ':');
       // TODO(sigmund): change internal deobfuscation code to avoid spurious
       // error messages when files do not have a corresponding source-map.
       _deobfuscateAndWriteStack(stringStack, output);
