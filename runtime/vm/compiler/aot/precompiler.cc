@@ -1600,7 +1600,9 @@ void Precompiler::AddAnnotatedRoots() {
               !function.IsSetterFunction()) {
             function2 = function.ImplicitClosureFunction();
             functions_with_entry_point_pragmas_.Insert(function2);
-            AddFunction(function2, RetainReasons::kEntryPointPragma);
+            if (!function.is_abstract()) {
+              AddFunction(function2, RetainReasons::kEntryPointPragma);
+            }
 
             // Not `function2`: Dart_GetField will lookup the regular function
             // and get the implicit closure function from that.

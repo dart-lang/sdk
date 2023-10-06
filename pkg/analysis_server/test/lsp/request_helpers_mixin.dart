@@ -15,26 +15,7 @@ import 'package:test/test.dart' hide expect;
 
 import 'change_verifier.dart';
 
-/// Helpers to simplify building LSP requests for use in tests.
-///
-/// The actual sending of requests must be supplied by the implementing class
-/// via [expectSuccessfulResponseTo].
-///
-/// These helpers can be used by in-process tests and out-of-process integration
-/// tests and by both the native LSP server and using LSP over the legacy
-/// protocol.
-mixin LspRequestHelpersMixin {
-  int _id = 0;
-
-  final startOfDocPos = Position(line: 0, character: 0);
-
-  final startOfDocRange = Range(
-      start: Position(line: 0, character: 0),
-      end: Position(line: 0, character: 0));
-
-  /// Whether to include 'clientRequestTime' fields in outgoing messages.
-  bool includeClientRequestTime = false;
-
+mixin LspEditHelpersMixin {
   String applyTextEdit(String content, TextEdit edit) {
     final startPos = edit.range.start;
     final endPos = edit.range.end;
@@ -93,6 +74,27 @@ mixin LspRequestHelpersMixin {
     indexedEdits.sort(TextEditWithIndex.compare);
     return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
   }
+}
+
+/// Helpers to simplify building LSP requests for use in tests.
+///
+/// The actual sending of requests must be supplied by the implementing class
+/// via [expectSuccessfulResponseTo].
+///
+/// These helpers can be used by in-process tests and out-of-process integration
+/// tests and by both the native LSP server and using LSP over the legacy
+/// protocol.
+mixin LspRequestHelpersMixin {
+  int _id = 0;
+
+  final startOfDocPos = Position(line: 0, character: 0);
+
+  final startOfDocRange = Range(
+      start: Position(line: 0, character: 0),
+      end: Position(line: 0, character: 0));
+
+  /// Whether to include 'clientRequestTime' fields in outgoing messages.
+  bool includeClientRequestTime = false;
 
   Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
       CallHierarchyItem item) {

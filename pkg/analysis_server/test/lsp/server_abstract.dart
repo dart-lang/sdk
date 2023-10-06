@@ -45,6 +45,7 @@ abstract class AbstractLspAnalysisServerTest
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
+        LspEditHelpersMixin,
         LspAnalysisServerTestMixin,
         ConfigurationFilesMixin {
   late MockLspServerChannel channel;
@@ -807,7 +808,8 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
   }
 }
 
-mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
+mixin LspAnalysisServerTestMixin
+    on LspRequestHelpersMixin, LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
