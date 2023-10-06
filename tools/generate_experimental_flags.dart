@@ -36,6 +36,8 @@ void main() {
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
+//
+// Current version: ${currentVersion.join('.')}
 
 #ifndef RUNTIME_VM_EXPERIMENTAL_FEATURES_H_
 #define RUNTIME_VM_EXPERIMENTAL_FEATURES_H_
@@ -61,6 +63,8 @@ const char* GetExperimentalFeatureName(ExperimentalFeature feature);
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
+//
+// Current version: ${currentVersion.join('.')}
 
 #include "vm/experimental_features.h"
 
