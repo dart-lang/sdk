@@ -148,7 +148,7 @@ void runNullSafeSharedTests(
 
   group('JS interop with extension types', () {
     const interopSource = r'''
-      // @dart=3.2
+      // @dart=3.3
 
       @JS()
       library debug_static_interop;

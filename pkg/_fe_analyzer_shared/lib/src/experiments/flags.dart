@@ -6,7 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 2);
+const Version defaultLanguageVersion = const Version(3, 3);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
