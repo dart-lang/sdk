@@ -1388,12 +1388,15 @@ body div {
         test_completed = false;
       }
 
-      window.onerror = function (message, url, lineNumber) {
-        if (url) {
-          reportError(url + ':' + lineNumber + ':' + message);
-        } else {
-          reportError(message);
+      window.onerror = function (message, url, lineNumber, columnNumber, err) {
+        // Ensure the stack is included in the reported error, if available.
+        if (err && err.stack) {
+          message = message + '\\n' + err.stack;
         }
+        if (url) {
+          message = url + ':' + lineNumber + ':' + columnNumber + ':' + message;
+        }
+        reportError(message);
       }
 
       function reportError(msg) {
