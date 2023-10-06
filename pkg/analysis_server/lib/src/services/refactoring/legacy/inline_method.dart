@@ -553,7 +553,8 @@ class _ReferenceProcessor {
         var source = _getMethodSourceForInvocation(status,
             ref._methodStatementsPart!, _refUtils, usage, target, arguments);
         source = _refUtils.replaceSourceIndent(
-            source, ref._methodStatementsPart!._prefix, _refPrefix);
+            source, ref._methodStatementsPart!._prefix, _refPrefix,
+            includeLeading: true, ensureTrailingNewline: true);
         // do insert
         var edit =
             newSourceEdit_range(SourceRange(_refLineRange!.offset, 0), source);

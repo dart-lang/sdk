@@ -108,8 +108,6 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         childText,
         indentOld,
         indentNew,
-        includeLeading: false,
-        includeTrailingNewline: false,
       );
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });
@@ -128,8 +126,6 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         childText,
         indentOld,
         indentNew,
-        includeLeading: false,
-        includeTrailingNewline: false,
       );
       builder.addSimpleReplacement(range.node(widgetCreation), childText);
     });

@@ -44,8 +44,6 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
               text,
               childIndent,
               parentIndent,
-              includeLeading: false,
-              includeTrailingNewline: false,
             );
             builder.write(parentIndent);
             builder.write('  ');
@@ -70,8 +68,6 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
               text,
               parentIndent,
               childIndent,
-              includeLeading: false,
-              includeTrailingNewline: false,
             );
             builder.write(childIndent);
             builder.write('  ');

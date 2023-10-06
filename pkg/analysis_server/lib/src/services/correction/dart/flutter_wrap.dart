@@ -234,8 +234,6 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
           src,
           indentOld,
           indentNew2,
-          includeLeading: false,
-          includeTrailingNewline: false,
         );
         builder.write(indentNew2);
         builder.write(newSrc);
@@ -314,8 +312,6 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
             widgetSrc,
             indentOld,
             indentNew,
-            includeLeading: false,
-            includeTrailingNewline: false,
           );
           widgetSrc += ',$eol$indentOld';
         }
