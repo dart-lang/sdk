@@ -78,8 +78,6 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
         childArgSrc,
         indentOld,
         indentNew,
-        includeLeading: false,
-        includeTrailingNewline: false,
       );
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(range.node(childArg), newChildArgSrc);

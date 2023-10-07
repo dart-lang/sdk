@@ -1236,15 +1236,18 @@ class CorrectionUtils {
   /// Returns the source with indentation changed from [oldIndent] to
   /// [newIndent], keeping indentation of lines relative to each other.
   ///
-  /// If [includeLeading] is `false`, indentation on the first line will not be
-  /// altered. This should be used if the provided string is a substring of code
-  /// that does not begin and end at line boundaries and [oldIndent] may be
-  /// an empty string.
+  /// Indentation on the first line will only be updated if [includeLeading] is
+  /// `true`.
   ///
-  /// Unless [includeTrailingNewline] is `false`, a newline will be added to
-  /// the end of the returned code.
+  /// If [ensureTrailingNewline] is `true`, a newline will be added to
+  /// the end of the returned code if it does not already have one.
+  ///
+  /// Usually [includeLeading] and [ensureTrailingNewline] will both be set
+  /// together when indenting a set of statements to go inside a block (as
+  /// opposed to just wrapping a nested expression that might span multiple
+  /// lines).
   String replaceSourceIndent(String source, String oldIndent, String newIndent,
-      {bool includeLeading = true, bool includeTrailingNewline = true}) {
+      {bool includeLeading = false, bool ensureTrailingNewline = false}) {
     // prepare STRING token ranges
     var lineRanges = <SourceRange>[];
     {
@@ -1262,12 +1265,17 @@ class CorrectionUtils {
     var lineOffset = 0;
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
-      var doReplaceWhitespace = i != 0 || includeLeading;
-      var doAppendEol = i != lines.length - 1 || includeTrailingNewline;
-      // last line, stop if empty
+      // Exit early if this is the last line and it's already empty, to avoid
+      // inserting any whitespace or appending an additional newline if
+      // [ensureTrailingNewline].
       if (i == lines.length - 1 && isEmpty(line)) {
         break;
       }
+      // Don't replace whitespace on first line unless [includeLeading].
+      var doReplaceWhitespace = i != 0 || includeLeading;
+      // Don't add eol to last line unless [ensureTrailingNewline].
+      var doAppendEol = i != lines.length - 1 || ensureTrailingNewline;
+
       // check if "offset" is in one of the String ranges
       var inString = false;
       for (var lineRange in lineRanges) {
@@ -1295,10 +1303,24 @@ class CorrectionUtils {
   /// Returns the source of the given [SourceRange] with indentation changed
   /// from [oldIndent] to [newIndent], keeping indentation of lines relative
   /// to each other.
+  ///
+  /// Indentation on the first line will only be updated if [includeLeading] is
+  /// `true`.
+  ///
+  /// If [ensureTrailingNewline] is `true`, a newline will be added to
+  /// the end of the returned code if it does not already have one.
+  ///
+  /// Usually [includeLeading] and [ensureTrailingNewline] will both be set
+  /// together when indenting a set of statements to go inside a block (as
+  /// opposed to just wrapping a nested expression that might span multiple
+  /// lines).
   String replaceSourceRangeIndent(
-      SourceRange range, String oldIndent, String newIndent) {
+      SourceRange range, String oldIndent, String newIndent,
+      {bool includeLeading = false, bool ensureTrailingNewline = false}) {
     var oldSource = getRangeText(range);
-    return replaceSourceIndent(oldSource, oldIndent, newIndent);
+    return replaceSourceIndent(oldSource, oldIndent, newIndent,
+        includeLeading: includeLeading,
+        ensureTrailingNewline: ensureTrailingNewline);
   }
 
   /// Return `true` if [selection] covers [node] and there are any

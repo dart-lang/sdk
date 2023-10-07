@@ -668,7 +668,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (selectionStatements != null) {
       var selectionIndent = utils.getNodePrefix(selectionStatements[0]);
       var targetIndent = '${utils.getNodePrefix(_parentMember!)}  ';
-      source = utils.replaceSourceIndent(source, selectionIndent, targetIndent);
+      source = utils.replaceSourceIndent(source, selectionIndent, targetIndent,
+          includeLeading: true, ensureTrailingNewline: true);
     }
     // done
     return source;
