@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--enable-experiment=inline-class
-// @dart=3.2
+// @dart=3.3
 // ignore_for_file: experiment_not_enabled,undefined_class,undefined_function
 
 import 'package:test/test.dart';
