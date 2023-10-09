@@ -293,10 +293,6 @@ dart_2/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37
 dart_2/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart_2/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 
-[ $arch == arm64 && $system == linux ]
-dart/gc/fragmentation*: Skip # dartbug.com/52589 Uses a lot of memory. Re-enable after we migrate from the Cavium to GCE.
-dart/gc/out_of_memory*: Skip # dartbug.com/52589 Uses a lot of memory. Re-enable after we migrate from the Cavium to GCE.
-
 [ $arch == ia32 && $mode == debug ]
 dart/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 dart_2/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow

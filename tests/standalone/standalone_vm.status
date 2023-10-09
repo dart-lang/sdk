@@ -69,10 +69,3 @@ io/named_pipe_script_test: Skip # Issue 28737
 io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass
-
-[ $runtime == vm && ($arch == arm || $arch == arm64) ]
-io/dart_std_io_pipe_test: Timeout, Pass
-io/file_input_stream_test: Skip # Issue 26109
-io/file_stream_test: Skip # Issue 26109
-io/file_typed_data_test: Skip # Issue 26109
-io/process_sync_test: Timeout, Pass
