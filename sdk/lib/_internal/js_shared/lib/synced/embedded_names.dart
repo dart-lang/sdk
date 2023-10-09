@@ -114,9 +114,9 @@ enum JsBuiltin {
 
 /// Names of fields of the Rti Universe object.
 class RtiUniverseFieldNames {
-  static String evalCache = 'eC';
-  static String typeRules = 'tR';
-  static String erasedTypes = 'eT';
-  static String typeParameterVariances = 'tPV';
-  static String sharedEmptyArray = 'sEA';
+  static const String evalCache = 'eC';
+  static const String typeRules = 'tR';
+  static const String erasedTypes = 'eT';
+  static const String typeParameterVariances = 'tPV';
+  static const String sharedEmptyArray = 'sEA';
 }
