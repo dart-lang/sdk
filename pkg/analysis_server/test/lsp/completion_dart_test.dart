@@ -2663,6 +2663,53 @@ void f() { }
     );
   }
 
+  Future<void> test_sort_sortsByRelevance() async {
+    final content = '''
+class UniquePrefixABC {}
+class UniquePrefixAaBbCc {}
+
+final a = UniquePrefixab^
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: [
+        // Constructors should all come before the class names, as they have
+        // higher relevance in this position.
+        'UniquePrefixABC()',
+        'UniquePrefixAaBbCc()',
+        'UniquePrefixABC',
+        'UniquePrefixAaBbCc',
+      ],
+    );
+  }
+
+  Future<void> test_sort_truncatesByFuzzyScore() async {
+    final content = '''
+class UniquePrefixABC {}
+class UniquePrefixAaBbCc {}
+
+final a = UniquePrefixab^
+''';
+
+    // Enable truncation after 2 items so we can verify which
+    // items were dropped.
+    await provideConfig(initialize, {'maxCompletionItems': 2});
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectNoAdditionalItems: true,
+      expectCompletions: [
+        // Although constructors are more relevant, when truncating we will use
+        // fuzzy score, so the closer matches are kept instead and we'll get
+        // constructor+class from the closer match.
+        'UniquePrefixABC()',
+        'UniquePrefixABC',
+      ],
+    );
+  }
+
   Future<void> test_unimportedSymbols() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
