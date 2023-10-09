@@ -109,10 +109,6 @@ _extra_builder(
     "vm-linux-release-simarm",
     category = "vm|jit|ra",
 )
-_extra_builder(
-    "vm-linux-release-simarm64",
-    category = "vm|jit|ra6",
-)
 _nightly_builder(
     "vm-linux-debug-simriscv64",
     category = "vm|jit|rv",
@@ -221,10 +217,6 @@ _nightly_builder(
     category = "vm|aot|d",
     channels = ["try"],
     properties = slow_shards,
-)
-_extra_builder(
-    "vm-aot-linux-release-simarm64",
-    category = "vm|aot|ra6",
 )
 _nightly_builder(
     "vm-aot-linux-debug-simriscv64",
