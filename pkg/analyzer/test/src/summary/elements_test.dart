@@ -12746,19 +12746,23 @@ mixin M {}
 
 class C = A with M;
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
   definingUnit
     classes
       class A @6
+        reference: self::@class::A
         constructors
           c1 @14
+            reference: self::@class::A::@constructor::c1
             periodOffset: 13
             nameEnd: 16
             parameters
               requiredPositional a @21
                 type: int
           c2 @29
+            reference: self::@class::A::@constructor::c2
             periodOffset: 28
             nameEnd: 31
             parameters
@@ -12773,25 +12777,30 @@ library
                     literal: 0 @56
                     staticType: int
           c3 @65
+            reference: self::@class::A::@constructor::c3
             periodOffset: 64
             nameEnd: 67
             parameters
               requiredPositional a @72
                 type: int
               optionalNamed default b @81
+                reference: self::@class::A::@constructor::c3::@parameter::b
                 type: int?
               optionalNamed default c @88
+                reference: self::@class::A::@constructor::c3::@parameter::c
                 type: int
                 constantInitializer
                   IntegerLiteral
                     literal: 0 @92
                     staticType: int
       class alias C @118
+        reference: self::@class::C
         supertype: A
         mixins
           M
         constructors
           synthetic c1 @-1
+            reference: self::@class::C::@constructor::c1
             parameters
               requiredPositional a @-1
                 type: int
@@ -12814,6 +12823,7 @@ library
                 staticElement: self::@class::A::@constructor::c1
             superConstructor: self::@class::A::@constructor::c1
           synthetic c2 @-1
+            reference: self::@class::C::@constructor::c2
             parameters
               requiredPositional a @-1
                 type: int
@@ -12852,12 +12862,15 @@ library
                 staticElement: self::@class::A::@constructor::c2
             superConstructor: self::@class::A::@constructor::c2
           synthetic c3 @-1
+            reference: self::@class::C::@constructor::c3
             parameters
               requiredPositional a @-1
                 type: int
               optionalNamed default b @-1
+                reference: self::@class::C::@constructor::c3::@parameter::b
                 type: int?
               optionalNamed default c @-1
+                reference: self::@class::C::@constructor::c3::@parameter::c
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -12891,6 +12904,7 @@ library
             superConstructor: self::@class::A::@constructor::c3
     mixins
       mixin M @106
+        reference: self::@mixin::M
         superclassConstraints
           Object
 ''');
@@ -23961,10 +23975,8 @@ library
         reference: self::@function::f::@def::2
         parameters
           optionalPositional default b @41
-            reference: self::@function::f::@def::2::@parameter::b
             type: int
           optionalPositional default c @51
-            reference: self::@function::f::@def::2::@parameter::c
             type: double
         returnType: void
 ''');
