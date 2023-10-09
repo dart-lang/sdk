@@ -51,7 +51,7 @@ extension type E05(covariant int x) {}
 
 extension type E06(required int x) {}
 //                 ^^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.REPRESENTATION_FIELD_MODIFIER
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] unspecified
 
 extension type E07(int this.x) {} // Initializing formal.
@@ -70,8 +70,9 @@ extension type E09(int super.x) implements E {} // Constructor super-parameter.
 // [cfe] unspecified
 
 extension type E10(super.x) implements E {} // Constructor super-parameter.
-//                 ^^^^^^^
+//                 ^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_REPRESENTATION_FIELD
+//                 ^^^^^^^
 // [cfe] unspecified
 
 extension type E11(int x()) {} // Old-style function parameter syntax.
@@ -84,7 +85,7 @@ extension type E11(int x()) {} // Old-style function parameter syntax.
 
 extension type E12(late int x) {}
 //                 ^^^^
-// [analyzer] SYNTACTIC_ERROR.REPRESENTATION_FIELD_MODIFIER
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] unspecified
 
 extension type E13(int x = 0) {}
@@ -94,12 +95,12 @@ extension type E13(int x = 0) {}
 
 extension type E14(static int x) {}
 //                 ^^^^^^
-// [analyzer] SYNTACTIC_ERROR.REPRESENTATION_FIELD_MODIFIER
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] unspecified
 
 extension type const E15(const int x) {}
 //                       ^^^^^
-// [analyzer] SYNTACTIC_ERROR.REPRESENTATION_FIELD_MODIFIER
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] unspecified
 
 // Precisely one parameter is allowed and required.

@@ -15,12 +15,87 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeDeclarationParserTest extends ParserDiagnosticsTest {
+  test_error_fieldModifier_const() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(const int it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 5),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_error_fieldModifier_final() {
     final parseResult = parseStringWithErrors(r'''
 extension type A(final int it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 5),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_error_fieldModifier_required() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(required int it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 8),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_error_fieldModifier_static() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(static int it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 6),
     ]);
 
     final node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -109,6 +184,31 @@ ExtensionTypeDeclaration
     fieldType: NamedType
       name: <empty> <synthetic>
     fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_error_superFormalParameter() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(super.it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_REPRESENTATION_FIELD, 17, 5),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: <empty> <synthetic>
+    fieldName: <empty> <synthetic>
     rightParenthesis: )
   leftBracket: {
   rightBracket: }
