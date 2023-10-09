@@ -97,8 +97,9 @@ class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
   Future<void> compute(ChangeBuilder builder) async {
     if (_isCodeUnignorable()) return;
 
+    final diagnostic = this.diagnostic!; // Enforced by _isCodeUnignorable
     final insertDesc = CorrectionUtils_InsertDesc();
-    insertDesc.offset = node.offset;
+    insertDesc.offset = diagnostic.problemMessage.offset;
     await _computeEdit(
       builder,
       insertDesc,

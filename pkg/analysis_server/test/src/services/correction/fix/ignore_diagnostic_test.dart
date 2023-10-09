@@ -148,6 +148,18 @@ void f() {
 ''');
   }
 
+  Future<void> test_dartdoc_getter() async {
+    await resolveTestCode('''
+/// AA
+String get _AA => '';
+''');
+    await assertHasFix('''
+/// AA
+// ignore: unused_element
+String get _AA => '';
+''');
+  }
+
   Future<void> test_existingIgnore() async {
     await resolveTestCode('''
 void f() {
