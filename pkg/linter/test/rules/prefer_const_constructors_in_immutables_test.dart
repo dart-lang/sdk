@@ -44,6 +44,296 @@ class C {
 ''');
   }
 
+  test_extendsImmutable_constConstructor() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+  }
+
+  test_extendsImmutable_nonConstConstructor() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  const A();
+}
+class B extends A {
+  B();
+}
+''', [
+      lint(91, 1),
+    ]);
+  }
+
+  test_extendsImmutable_nonConstSuperCall() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {}
+class B extends A {
+  B() : super();
+}
+''');
+  }
+
+  test_immutable_constConstructor() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  const A();
+}
+''');
+  }
+
+  test_immutable_constConstructor_named() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  const A.named();
+}
+''');
+  }
+
+  test_immutable_constFactory() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const factory C() = C.named;
+  const C.named();
+}
+''');
+  }
+
+  test_immutable_constRedirectingConstructor() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C();
+  const C.named() : this();
+}
+''');
+  }
+
+  test_immutable_constructorHasBody() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  A.named() {}
+}
+''');
+  }
+
+  test_immutable_factoryConsrtuctor_toConstConstructor() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C();
+  factory C.named() = C;
+}
+''', [
+      lint(69, 7),
+    ]);
+  }
+
+  test_immutable_factoryConstructor_toNonConst() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  C() {}
+  factory C.named() = C;
+}
+''');
+  }
+
+  test_immutable_fieldWithInitializer() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final f = Object();
+  C();
+}
+''');
+  }
+
+  test_immutable_hasMixin() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+mixin M {}
+
+@immutable
+class C with M {
+  C();
+}
+''');
+  }
+
+  test_immutable_nonConstConstructor() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  A();
+}
+''', [
+      lint(56, 1),
+    ]);
+  }
+
+  test_immutable_nonConstFactory() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  factory C() = C.named;
+  const C.named();
+}
+''', [
+      lint(56, 7),
+    ]);
+  }
+
+  test_immutable_nonConstInInitializerList() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final String _a; // ignore: unused_field
+  C(int a) : _a = a.toString();
+}
+''');
+  }
+
+  test_immutable_nonConstInInitializerList2() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final int _a; // ignore: unused_field
+  C(int a) : _a = a;
+}
+''', [
+      lint(96, 1),
+    ]);
+  }
+
+  test_immutable_nonConstInInitializerList3() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final bool _a; // ignore: unused_field
+  C(bool a) : _a = a && a;
+}
+''', [
+      lint(97, 1),
+    ]);
+  }
+
+  test_immutable_nonConstInInitializerList4() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final String _a; // ignore: unused_field
+  C(bool a) : _a = '${a ? a : ''}';
+}
+''', [
+      lint(99, 1),
+    ]);
+  }
+
+  test_immutable_nonConstInInitializerList5() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  final bool f;
+  C(bool? f) : f = f ?? f == null;
+}
+''', [
+      lint(72, 1),
+    ]);
+  }
+
+  test_immutable_nonConstInInitializerList6() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+int notConst = 0;
+@immutable
+class C {
+  final int f;
+  C(Object f) : f = notConst;
+}
+''');
+  }
+
+  test_immutable_redirectingConstructor() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  C.a();
+  C.b() : this.a();
+}
+''', [
+      lint(56, 1),
+    ]);
+  }
+
+  test_immutable_redirectingConstructor_toConst() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C();
+  C.named(): this();
+}
+''', [
+      lint(69, 1),
+    ]);
+  }
+
+  test_implementsImmutable() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  const A();
+}
+class B implements A {
+  B();
+}
+''');
+  }
+
+  test_implementsImmutable_named() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+class A {
+  const A();
+}
+class B implements A {
+  const B.named();
+}
+''');
+  }
+
   test_implicitSuperConstructorInvocation_undefined() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';
