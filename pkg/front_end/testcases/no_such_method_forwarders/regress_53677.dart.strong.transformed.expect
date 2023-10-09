@@ -1,0 +1,53 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+mixin class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation inv) → dynamic {
+    return "A";
+  }
+}
+abstract class M extends self::A /*isMixinDeclaration*/  {
+  abstract method m1(core::int v, [core::String s = #C1]) → core::String;
+  abstract method m2(core::int v, {core::String s = #C2}) → core::String;
+  abstract method m3(core::int v, {required core::String s = #C2}) → core::String;
+  abstract method m4(core::int v, [covariant-by-declaration core::String s = #C2]) → core::String;
+}
+class MA extends self::A implements self::M /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::MA
+    : super self::A::•()
+    ;
+  no-such-method-forwarder method m1(core::int v, [core::String s = #C1]) → core::String
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C3, 0, #C4, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal2<dynamic>(v, s)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+  no-such-method-forwarder method /* signature-type: (core::int, {s: core::String}) → core::String */ m2(core::int v, {core::String? s = #C2}) → core::String
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C4, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(v)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+  no-such-method-forwarder method m3(core::int v, {required core::String s = #C2}) → core::String
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C4, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(v)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C7: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+  no-such-method-forwarder method m4(core::int v, [covariant-by-declaration core::String s = #C2]) → core::String
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C4, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal2<dynamic>(v, s)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::String;
+}
+static method main() → dynamic {
+  (core::int, [core::String]) → core::String m1 = new self::MA::•().{self::MA::m1}{(core::int, [core::String]) → core::String};
+  core::print(m1(1, "1"){(core::int, [core::String]) → core::String});
+  (core::int, {s: core::String}) → core::String m2 = new self::MA::•().{self::MA::m2}{(core::int, {s: core::String}) → core::String};
+  core::print(m2(1, s: "1"){(core::int, {s: core::String}) → core::String});
+  (core::int, {required s: core::String}) → core::String m3 = new self::MA::•().{self::MA::m3}{(core::int, {required s: core::String}) → core::String};
+  core::print(m3(1, s: "1"){(core::int, {required s: core::String}) → core::String});
+  (core::int, [core::String]) → core::String m4 = new self::MA::•().{self::MA::m4}{(core::int, [core::String]) → core::String};
+  core::print(m4(1, "1"){(core::int, [core::String]) → core::String});
+}
+
+constants  {
+  #C1 = "s1"
+  #C2 = null
+  #C3 = #m1
+  #C4 = <core::Type*>[]
+  #C5 = <core::Symbol*, dynamic>{}
+  #C6 = #m2
+  #C7 = #s
+  #C8 = #m3
+  #C9 = #m4
+}

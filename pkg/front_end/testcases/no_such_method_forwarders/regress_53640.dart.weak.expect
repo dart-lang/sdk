@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder method m() → core::int
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return "C";
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  abstract method m() → core::int;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return "M";
+}
+class MA = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation i) → dynamic
+    return super.{self::M::noSuchMethod}(i);
+  no-such-method-forwarder method m() → core::int
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::TypeError catch(final core::TypeError e) {
+    core::print(e);
+    return;
+  }
+  throw "Missing TypeError";
+}
+static method main() → dynamic {
+  self::throws(() → void => new self::C::•().{self::C::m}(){() → core::int});
+  self::throws(() → void => new self::MA::•().{self::MA::m}(){() → core::int});
+}
+
+constants  {
+  #C1 = #m
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol*, dynamic>{}
+}

@@ -1,0 +1,11 @@
+class C {
+  noSuchMethod(Invocation i) => "C";
+  String foo();
+}
+
+mixin M {
+  noSuchMethod(Invocation i) => "M";
+  String foo();
+}
+class MA = Object with M;
+void main() {}
