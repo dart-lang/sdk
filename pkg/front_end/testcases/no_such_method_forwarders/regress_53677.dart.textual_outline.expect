@@ -1,0 +1,12 @@
+mixin class A {
+  dynamic noSuchMethod(Invocation inv) {}
+}
+
+mixin M on A {
+  String m1(int v, [String s = "s1"]);
+  String m2(int v, {String s});
+  String m3(int v, {required String s});
+  String m4(int v, [covariant String s]);
+}
+class MA = A with M;
+main() {}

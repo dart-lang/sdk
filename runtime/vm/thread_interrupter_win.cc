@@ -40,21 +40,25 @@ class ThreadInterrupterWin : public AllStatic {
       state->fp = static_cast<uintptr_t>(context.Ebp);
       state->csp = static_cast<uintptr_t>(context.Esp);
       state->dsp = static_cast<uintptr_t>(context.Esp);
+      state->lr = 0;
 #elif defined(HOST_ARCH_X64)
       state->pc = static_cast<uintptr_t>(context.Rip);
       state->fp = static_cast<uintptr_t>(context.Rbp);
       state->csp = static_cast<uintptr_t>(context.Rsp);
       state->dsp = static_cast<uintptr_t>(context.Rsp);
+      state->lr = 0;
 #elif defined(HOST_ARCH_ARM)
       state->pc = static_cast<uintptr_t>(context.Pc);
       state->fp = static_cast<uintptr_t>(context.R11);
       state->csp = static_cast<uintptr_t>(context.Sp);
       state->dsp = static_cast<uintptr_t>(context.Sp);
+      state->lr = static_cast<uintptr_t>(context.R14);
 #elif defined(HOST_ARCH_ARM64)
       state->pc = static_cast<uintptr_t>(context.Pc);
       state->fp = static_cast<uintptr_t>(context.Fp);
       state->csp = static_cast<uintptr_t>(context.Sp);
       state->dsp = static_cast<uintptr_t>(context.X15);
+      state->lr = static_cast<uintptr_t>(context.Lr);
 #else
 #error Unsupported architecture.
 #endif

@@ -194,18 +194,11 @@ class LinkedElementFactory {
       return createLibraryElementForReading(uri);
     }
 
-    // Should be `@method`, `@constructor`, etc.
-    // If a duplicates container, skip it up.
-    var containerInClass = reference.parent!;
-    if (containerInClass.name == '@def') {
-      containerInClass = containerInClass.parent!.parent!;
-    }
+    final parentRef = reference.parentNotContainer;
+    final parentElement = elementOfReference(parentRef);
 
     // Only classes delay creating children.
-    final classRef = containerInClass.parent!;
-    final parentElement = elementOfReference(classRef);
-
-    if (parentElement is InstanceElementImpl) {
+    if (parentElement is ClassElementImpl) {
       parentElement.linkedData?.readMembers(parentElement);
     }
 

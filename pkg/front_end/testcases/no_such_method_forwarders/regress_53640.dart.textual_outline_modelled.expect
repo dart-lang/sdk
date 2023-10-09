@@ -1,0 +1,12 @@
+class C {
+  dynamic noSuchMethod(Invocation i) => "C";
+  int m();
+}
+
+class MA = Object with M;
+main() {}
+mixin M {
+  dynamic noSuchMethod(Invocation i) => "M";
+  int m();
+}
+throws(void Function() f) {}

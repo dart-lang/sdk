@@ -25,6 +25,9 @@ import 'package:meta/meta.dart';
 ///
 /// There is only one reference object per [Element].
 class Reference {
+  /// The name of the container used for duplicate declarations.
+  static const _defName = '@def';
+
   /// The parent of this reference, or `null` if the root.
   Reference? parent;
 
@@ -61,7 +64,7 @@ class Reference {
   /// code, the actual name is the name of the parent of the duplicates
   /// container `@def`.
   String get elementName {
-    if (parent?.name == '@def') {
+    if (parent?.name == _defName) {
       return parent!.parent!.name;
     }
     return name;
@@ -74,6 +77,25 @@ class Reference {
   bool get isRoot => parent == null;
 
   bool get isSetter => parent?.name == '@setter';
+
+  /// The parent that is not a container like `@method`.
+  ///
+  /// Usually this is the parent of the parent.
+  /// @class::A::@method::foo -> @class::A
+  ///
+  /// But if this is a duplicates, we go two more levels up.
+  /// @class::A::@method::foo::@def::0 -> @class::A
+  Reference get parentNotContainer {
+    // Should be `@method`, `@constructor`, etc.
+    var containerInParent = parent!;
+
+    // Skip the duplicates container.
+    if (containerInParent.name == _defName) {
+      containerInParent = containerInParent.parent!.parent!;
+    }
+
+    return containerInParent.parent!;
+  }
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference? operator [](String name) {
@@ -104,12 +126,12 @@ class Reference {
       return getChild(name);
     }
 
-    var def = existing['@def'];
+    var def = existing[_defName];
 
     // If no duplicates container yet.
     if (def == null) {
       removeChild(name); // existing
-      def = getChild(name).getChild('@def');
+      def = getChild(name).getChild(_defName);
       def._addChild('0', existing);
       existing.parent = def;
       existing.name = '0';

@@ -26,6 +26,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     String? expectedContentIfInserting,
     bool verifyInsertReplaceRanges = false,
     bool openCloseFile = true,
+    bool expectNoAdditionalItems = false,
   }) async {
     final code = TestCode.parse(content);
     // If verifyInsertReplaceRanges is true, we need both expected contents.
@@ -48,11 +49,13 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
       await closeFile(fileUri);
     }
 
-    // Sort the completions by sortText and filter to those we expect, so the ordering
-    // can be compared.
     final sortedResults = completionResults
-        .where((r) => expectCompletions.contains(r.label))
+        // Filter to those we expect (unless `expectNoAdditionalItems` which
+        // indicates the test wants to ensure no additional unmatched items)
+        .where((r) =>
+            expectNoAdditionalItems || expectCompletions.contains(r.label))
         .toList()
+      // Sort using sortText as a client would.
       ..sort(sortTextSorter);
 
     expect(sortedResults.map((item) => item.label), equals(expectCompletions));

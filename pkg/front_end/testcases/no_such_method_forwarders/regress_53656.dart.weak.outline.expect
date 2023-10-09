@@ -1,0 +1,52 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  no-such-method-forwarder method m1(core::int v, [core::String s = "s1"]) → core::int
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#m1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  no-such-method-forwarder method m2(core::int v, {core::String s = "s2"}) → core::int
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#m2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#s: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  method noSuchMethod(core::Invocation inv) → dynamic
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  abstract method m1(core::int v, [core::String s = "s1"]) → core::int;
+  abstract method m2(core::int v, {core::String s = "s2"}) → core::int;
+  method noSuchMethod(core::Invocation inv) → dynamic
+    ;
+}
+class MA = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::MA
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation inv) → dynamic
+    return super.{self::M::noSuchMethod}(inv);
+  no-such-method-forwarder method m1(core::int v, [has-declared-initializer core::String s]) → core::int
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#m1, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v, s]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  no-such-method-forwarder method m2(core::int v, {has-declared-initializer core::String s}) → core::int
+    return this.{self::MA::noSuchMethod}(new core::_InvocationMirror::_withType(#m2, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[v]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#s: s}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+}
+static field core::String log;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:8:7 -> SymbolConstant(#m1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53656.dart:8:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///regress_53656.dart:8:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:10:7 -> SymbolConstant(#m2)
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53656.dart:10:7 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:10:7 -> SymbolConstant(#s)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> SymbolConstant(#m1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> SymbolConstant(#m2)
+Evaluated: ListLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///regress_53656.dart:39:7 -> SymbolConstant(#s)
+Extra constant evaluation: evaluated: 52, effectively constant: 12

@@ -34,6 +34,9 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+/// A record of a [CompletionItem] and a fuzzy score.
+typedef _ScoredCompletionItem = ({CompletionItem item, double score});
+
 class CompletionHandler
     extends LspMessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin, LspHandlerHelperMixin {
@@ -208,9 +211,12 @@ class CompletionHandler
     if (pluginResults.isError) return failure(pluginResults);
 
     final serverResult = serverResults.result;
-    final untruncatedRankedItems = serverResult.rankedItems
-        .followedBy(pluginResults.result.items)
-        .toList();
+    // Add in fuzzy scores for completion items.
+    final pluginResultItems = pluginResults.result.items.map((item) =>
+        (item: item, score: serverResult.fuzzy.completionItemScore(item)));
+
+    final untruncatedRankedItems =
+        serverResult.rankedItems.followedBy(pluginResultItems).toList();
     final unrankedItems = serverResult.unrankedItems;
 
     // Truncate ranked items allowing for all unranked items.
@@ -223,8 +229,10 @@ class CompletionHandler
             maxRankedItems,
           );
 
-    final truncatedItems =
-        truncatedRankedItems.followedBy(unrankedItems).toList();
+    final truncatedItems = truncatedRankedItems
+        .map((item) => item.item)
+        .followedBy(unrankedItems)
+        .toList();
 
     // If we're tracing performance (only Dart), record the number of results
     // after truncation.
@@ -368,7 +376,7 @@ class CompletionHandler
     );
     final target = completionRequest.target;
     final targetPrefix = completionRequest.targetPrefix;
-    final fuzzy = _FuzzyFilterHelper(targetPrefix);
+    final fuzzy = _FuzzyScoreHelper(targetPrefix);
 
     if (triggerCharacter != null) {
       if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
@@ -499,8 +507,17 @@ class CompletionHandler
 
       final rankedResults = performance.run('mapSuggestions', (performance) {
         return serverSuggestions
-            .where(fuzzy.completionSuggestionMatches)
-            .map(suggestionToCompletionItem)
+            // Compute the fuzzy score which we can use both for filtering here
+            // and for truncation sorting later on.
+            .map((item) => (item: item, score: fuzzy.suggestionScore(item)))
+            // Filter out the non-matches.
+            .where((scoredItem) => scoredItem.score > 0)
+            // Convert to CompletionItem and re-attach the score to be used for
+            // truncation later.
+            .map((scoredItem) => (
+                  item: suggestionToCompletionItem(scoredItem.item),
+                  score: scoredItem.score
+                ))
             .toList();
       });
 
@@ -554,7 +571,7 @@ class CompletionHandler
 
       return success(_CompletionResults(
         isIncomplete: isIncomplete,
-        targetPrefix: targetPrefix,
+        fuzzy: fuzzy,
         rankedItems: rankedResults,
         unrankedItems: unrankedResults,
         defaults: defaults,
@@ -734,43 +751,52 @@ class CompletionHandler
     return true; // Any other trigger character can be handled always.
   }
 
-  /// Truncates [items] to [maxItems] but additionally includes any items that
-  /// exactly match [prefix].
-  Iterable<CompletionItem> _truncateResults(
-    List<CompletionItem> items,
+  /// Truncates [items] to [maxItems] after sorting by fuzzy score (then
+  /// relevance/sortText) but always includes any items that exactly match
+  /// [prefix].
+  Iterable<_ScoredCompletionItem> _truncateResults(
+    List<_ScoredCompletionItem> items,
     String prefix,
     int maxItems,
   ) {
-    // Take the top `maxRankedItem` plus any exact matches.
     final prefixLower = prefix.toLowerCase();
     bool isExactMatch(CompletionItem item) =>
         (item.filterText ?? item.label).toLowerCase() == prefixLower;
 
-    // Sort the items by relevance using sortText.
-    items.sort(sortTextComparer);
+    // Sort the items by fuzzy score and then relevance (sortText).
+    items.sort(_scoreCompletionItemComparer);
 
     // Skip the text comparisons if we don't have a prefix (plugin results, or
     // just no prefix when completion was invoked).
     final shouldInclude = prefixLower.isEmpty
-        ? (int index, CompletionItem item) => index < maxItems
-        : (int index, CompletionItem item) =>
-            index < maxItems || isExactMatch(item);
+        ? (int index, _ScoredCompletionItem item) => index < maxItems
+        : (int index, _ScoredCompletionItem item) =>
+            index < maxItems || isExactMatch(item.item);
 
     return items.whereIndexed(shouldInclude);
   }
 
-  /// Compares [CompletionItem]s by the `sortText` field, which is derived from
-  /// relevance.
+  /// Compares [_ScoredCompletionItem]s by their fuzzy match score and then
+  /// `sortText` field (which is derived from relevance).
   ///
-  /// For items with the same relevance, shorter items are sorted first so that
-  /// truncation always removes longer items first (which can be included by
-  /// typing more of their characters).
-  static int sortTextComparer(CompletionItem item1, CompletionItem item2) {
+  /// For items with the same fuzzy score/relevance, shorter items are sorted
+  /// first so that truncation always removes longer items first (which can be
+  /// included by typing more of their characters).
+  static int _scoreCompletionItemComparer(
+    _ScoredCompletionItem item1,
+    _ScoredCompletionItem item2,
+  ) {
+    // First try to sort by fuzzy score.
+    if (item1.score != item2.score) {
+      return item2.score.compareTo(item1.score);
+    }
+
+    // Otherwise, use sortText.
     // Note: It should never be the case that we produce items without sortText
     // but if they're null, fall back to label which is what the client would do
     // when sorting.
-    final item1Text = item1.sortText ?? item1.label;
-    final item2Text = item2.sortText ?? item2.label;
+    final item1Text = item1.item.sortText ?? item1.item.label;
+    final item2Text = item2.item.sortText ?? item2.item.label;
 
     // If both items have the same text, this means they had the same relevance.
     // In this case, sort by the length of the name ascending, so that shorter
@@ -786,7 +812,7 @@ class CompletionHandler
     //
     // Typing 'aaa' should not allow 'aaa' to be truncated before 'aaa1'.
     if (item1Text == item2Text) {
-      return item1.label.length.compareTo(item2.label.length);
+      return item1.item.label.length.compareTo(item2.item.label.length);
     }
 
     return item1Text.compareTo(item2Text);
@@ -859,14 +885,15 @@ class CompletionRegistrations extends FeatureRegistration
 
 /// A set of completion items split into ranked and unranked items.
 class _CompletionResults {
-  /// Items that can be ranked using their relevance/sortText.
-  final List<CompletionItem> rankedItems;
+  /// Items that can be ranked using their relevance/sortText, returned with
+  /// their fuzzy match (if [targetPrefix] was provided).
+  final List<_ScoredCompletionItem> rankedItems;
 
   /// Items that cannot be ranked, and should avoid being truncated.
   final List<CompletionItem> unrankedItems;
 
-  /// Any prefixed used to filter the results.
-  final String targetPrefix;
+  /// The fuzzy filter used to score results.
+  final _FuzzyScoreHelper fuzzy;
 
   final bool isIncomplete;
 
@@ -878,42 +905,54 @@ class _CompletionResults {
   _CompletionResults({
     this.rankedItems = const [],
     this.unrankedItems = const [],
-    required this.targetPrefix,
+    required this.fuzzy,
     required this.isIncomplete,
     this.defaults,
   });
 
-  _CompletionResults.empty() : this(targetPrefix: '', isIncomplete: false);
+  _CompletionResults.empty()
+      : this(fuzzy: _FuzzyScoreHelper.empty, isIncomplete: false);
 
   /// An empty result set marked as incomplete because an error occurred.
   _CompletionResults.emptyIncomplete()
-      : this(targetPrefix: '', isIncomplete: true);
+      : this(fuzzy: _FuzzyScoreHelper.empty, isIncomplete: true);
 
   _CompletionResults.unranked(
     List<CompletionItem> unrankedItems, {
     required bool isIncomplete,
   }) : this(
           unrankedItems: unrankedItems,
-          targetPrefix: '',
+          fuzzy: _FuzzyScoreHelper.empty,
           isIncomplete: isIncomplete,
         );
+
+  /// Any prefix used to filter the results.
+  String get targetPrefix => fuzzy.prefix;
 }
 
-/// Helper to simplify fuzzy filtering.
+/// Helper to simplify fuzzy scoring.
 ///
-/// Used to perform fuzzy matching based on the identifier in front of the caret to
-/// reduce the size of the payload.
-class _FuzzyFilterHelper {
+/// Used to sort results for truncation and to filter out items that don't
+/// match the characters in front of the caret to reduce the size of the
+/// payload.
+class _FuzzyScoreHelper {
+  static final empty = _FuzzyScoreHelper('');
+
+  final String prefix;
+
   final FuzzyMatcher _matcher;
 
-  _FuzzyFilterHelper(String prefix)
+  _FuzzyScoreHelper(this.prefix)
       : _matcher = FuzzyMatcher(prefix, matchStyle: MatchStyle.TEXT);
 
   bool completionItemMatches(CompletionItem item) =>
       stringMatches(item.filterText ?? item.label);
 
-  bool completionSuggestionMatches(CompletionSuggestion item) =>
-      stringMatches(item.displayText ?? item.completion);
+  double completionItemScore(CompletionItem item) =>
+      _matcher.score(item.filterText ?? item.label);
 
   bool stringMatches(String input) => _matcher.score(input) > 0;
+
+  double suggestionScore(CompletionSuggestion item) =>
+      _matcher.score(item.displayText ?? item.completion);
 }
