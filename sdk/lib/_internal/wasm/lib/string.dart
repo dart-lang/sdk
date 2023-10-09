@@ -82,8 +82,6 @@ abstract final class StringBase implements String {
   // TODO(lrn): See if this limit can be tweaked.
   static const int _maxJoinReplaceOneByteStringLength = 500;
 
-  StringBase._();
-
   int get hashCode {
     int hash = getHash(this);
     if (hash != 0) return hash;
@@ -258,10 +256,6 @@ abstract final class StringBase implements String {
   }
 
   String operator [](int index) => String.fromCharCode(codeUnitAt(index));
-
-  int codeUnitAt(int index); // Implemented in the subclasses.
-
-  int get length; // Implemented in the subclasses.
 
   bool get isEmpty {
     return this.length == 0;
@@ -1012,9 +1006,7 @@ final class OneByteString extends StringBase {
   @pragma("wasm:entry-point")
   WasmIntArray<WasmI8> _array;
 
-  OneByteString._withLength(int length)
-      : _array = WasmIntArray<WasmI8>(length),
-        super._();
+  OneByteString._withLength(int length) : _array = WasmIntArray<WasmI8>(length);
 
   // Same hash as VM
   @override
@@ -1349,8 +1341,7 @@ final class TwoByteString extends StringBase {
   WasmIntArray<WasmI16> _array;
 
   TwoByteString._withLength(int length)
-      : _array = WasmIntArray<WasmI16>(length),
-        super._();
+      : _array = WasmIntArray<WasmI16>(length);
 
   // Same hash as VM
   @override
