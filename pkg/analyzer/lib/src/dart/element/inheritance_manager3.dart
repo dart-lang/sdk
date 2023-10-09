@@ -174,6 +174,10 @@ class InheritanceManager3 {
   /// from the superclasses and mixins.
   Map<Name, ExecutableElement> getInheritedConcreteMap2(
       InterfaceElement element) {
+    if (element is ExtensionTypeElement) {
+      return const {};
+    }
+
     var interface = getInterface(element);
     return interface.superImplemented.last;
   }
