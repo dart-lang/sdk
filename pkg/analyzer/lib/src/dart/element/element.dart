@@ -677,6 +677,13 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             )..constantInitializer = constVariable.constantInitializer;
+            if (superParameter.isNamed) {
+              final reference = implicitReference
+                  .getChild('@parameter')
+                  .getChild(implicitParameter.name);
+              implicitParameter.reference = reference;
+              reference.element = implicitParameter;
+            }
           } else {
             implicitParameter = ParameterElementImpl(
               name: superParameter.name,

@@ -806,6 +806,12 @@ class _ElementWriter {
   void _writeParameterElement(ParameterElement e) {
     e as ParameterElementImpl;
 
+    if (e.isNamed && e.enclosingElement is ExecutableElement) {
+      expect(e.reference, isNotNull);
+    } else {
+      expect(e.reference, isNull);
+    }
+
     _sink.writeIndentedLine(() {
       if (e.isRequiredPositional) {
         _sink.write('requiredPositional ');

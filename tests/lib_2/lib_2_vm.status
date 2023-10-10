@@ -5,9 +5,6 @@
 [ $runtime != vm ]
 isolate/native_wrapper_message_test: Skip # A VM specific test.
 
-[ $arch == arm64 && $runtime == vm ]
-mirrors/immutable_collections_test: Pass, Slow # http://dartbug.com/33057
-
 [ $compiler != app_jitk && $compiler != dartk && $runtime == vm ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.

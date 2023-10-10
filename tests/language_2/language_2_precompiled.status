@@ -3,10 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 # Sections in this file should start with "$runtime == dart_precompiled".
 
-[ $arch == arm64 && $runtime == dart_precompiled ]
-class/large_class_declaration_test: SkipSlow # Uses too much memory.
-setter/setter4_test: MissingCompileTimeError
-
 [ $arch == ia32 && $runtime == dart_precompiled ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 

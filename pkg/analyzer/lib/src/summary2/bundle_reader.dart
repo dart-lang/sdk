@@ -800,7 +800,7 @@ class LibraryReader {
       );
       element.setLinkedData(reference, linkedData);
       ConstructorElementFlags.read(_reader, element);
-      element.parameters = _readParameters(element, reference);
+      element.parameters = _readParameters();
       return element;
     });
   }
@@ -1159,7 +1159,7 @@ class LibraryReader {
 
       FunctionElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
-      element.parameters = _readParameters(element, reference);
+      element.parameters = _readParameters();
 
       return element;
     });
@@ -1278,7 +1278,7 @@ class LibraryReader {
       element.setLinkedData(reference, linkedData);
       MethodElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
-      element.parameters = _readParameters(element, reference);
+      element.parameters = _readParameters();
       element.typeInferenceError = _readTopLevelInferenceError();
       return element;
     });
@@ -1352,16 +1352,13 @@ class LibraryReader {
   }
 
   /// TODO(scheglov) Deduplicate parameter reading implementation.
-  List<ParameterElementImpl> _readParameters(
-    ElementImpl enclosingElement,
-    Reference enclosingReference,
-  ) {
+  List<ParameterElementImpl> _readParameters() {
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
       var isDefault = _reader.readBool();
       var isInitializingFormal = _reader.readBool();
       var isSuperFormal = _reader.readBool();
-      var reference = _readReference();
+      var reference = _readOptionalReference();
 
       var kindIndex = _reader.readByte();
       var kind = ResolutionReader._formalParameterKind(kindIndex);
@@ -1407,12 +1404,14 @@ class LibraryReader {
             parameterKind: kind,
           );
         }
-        element.reference = reference;
-        reference.element = element;
+        if (reference != null) {
+          element.reference = reference;
+          reference.element = element;
+        }
       }
       ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
-      element.parameters = _readParameters(element, reference);
+      element.parameters = _readParameters();
       return element;
     });
   }
@@ -1473,7 +1472,7 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
 
-    element.parameters = _readParameters(element, reference);
+    element.parameters = _readParameters();
     return element;
   }
 

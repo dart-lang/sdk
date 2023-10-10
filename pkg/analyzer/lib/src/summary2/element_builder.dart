@@ -579,7 +579,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
-      _enclosingContext.addParameter(name, element);
+      final refName = node.isNamed ? name : null;
+      _enclosingContext.addParameter(refName, element);
     } else {
       element = FieldFormalParameterElementImpl(
         name: name,
@@ -756,7 +757,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
-    _enclosingContext.addParameter(name, element);
+    final refName = node.isNamed ? name : null;
+    _enclosingContext.addParameter(refName, element);
 
     var fakeReference = Reference.root();
     var holder = _EnclosingContext(fakeReference, element);
@@ -1066,7 +1068,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
-      _enclosingContext.addParameter(name, element);
+      final refName = node.isNamed ? name : null;
+      _enclosingContext.addParameter(refName, element);
     } else {
       element = ParameterElementImpl(
         name: name,
@@ -1105,7 +1108,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         parameterKind: node.kind,
       )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
-      _enclosingContext.addParameter(name, element);
+      final refName = node.isNamed ? name : null;
+      _enclosingContext.addParameter(refName, element);
     } else {
       element = SuperFormalParameterElementImpl(
         name: name,

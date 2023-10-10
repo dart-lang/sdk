@@ -693,6 +693,7 @@ class FileState {
     return _fsState._logger.run('Create unlinked for $path', () {
       var unlinkedUnit = serializeAstUnlinked2(
         unit,
+        exists: exists,
         isDartCore: uriStr == 'dart:core',
       );
       var definedNames = computeDefinedNames(unit);
@@ -853,6 +854,7 @@ class FileState {
 
   static UnlinkedUnit serializeAstUnlinked2(
     CompilationUnit unit, {
+    required bool exists,
     required bool isDartCore,
   }) {
     UnlinkedLibraryDirective? libraryDirective;
@@ -984,8 +986,12 @@ class FileState {
       }
     }
 
+    final apiSignature = ApiSignature();
+    apiSignature.addBytes(computeUnlinkedApiSignature(unit));
+    apiSignature.addBool(exists);
+
     return UnlinkedUnit(
-      apiSignature: Uint8List.fromList(computeUnlinkedApiSignature(unit)),
+      apiSignature: apiSignature.toByteList(),
       augmentations: augmentations.toFixedList(),
       exports: exports.toFixedList(),
       imports: imports.toFixedList(),

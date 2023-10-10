@@ -206,12 +206,6 @@ vm_timeline_flags_test: SkipByDesign # Debugger is disabled in AOT mode.
 weak_properties_test: SkipByDesign # Uses 'dart:mirrors'
 yield_positions_with_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
 
-[ $arch == arm64 && $compiler == dartk ]
-coverage_optimized_function_test: Pass, Slow
-
-[ $arch == arm64 && $compiler == dartk && $mode == release ]
-get_object_rpc_test: Pass, RuntimeError # Please triage / issue #27806
-
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 eval_regression_flutter20255_test: SkipSlow # Timeout
 get_vm_timeline_rpc_test: Pass, Slow

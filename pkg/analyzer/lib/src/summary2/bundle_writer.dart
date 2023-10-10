@@ -378,8 +378,8 @@ class BundleWriter {
   void _writeFieldElement(FieldElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
-    _writeOptionalReference(element.getter);
-    _writeOptionalReference(element.setter);
+    _writeOptionalReference(element.getter?.reference);
+    _writeOptionalReference(element.setter?.reference);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -561,10 +561,10 @@ class BundleWriter {
     }
   }
 
-  /// Write the reference of a non-local element.
-  void _writeOptionalReference(ElementImpl? element) {
-    _sink.writeOptionalObject(element, (element) {
-      _writeReference(element);
+  void _writeOptionalReference(Reference? reference) {
+    _sink.writeOptionalObject(reference, (reference) {
+      final index = _references._indexOfReference(reference);
+      _sink.writeUInt30(index);
     });
   }
 
@@ -575,7 +575,7 @@ class BundleWriter {
     _sink.writeBool(element is ConstVariableElement);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
-    _writeReference(element);
+    _writeOptionalReference(element.reference);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 
@@ -633,8 +633,8 @@ class BundleWriter {
   void _writeTopLevelVariableElement(TopLevelVariableElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
-    _writeOptionalReference(element.getter);
-    _writeOptionalReference(element.setter);
+    _writeOptionalReference(element.getter?.reference);
+    _writeOptionalReference(element.setter?.reference);
     _sink.writeBool(element.isConst);
     TopLevelVariableElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);

@@ -278,7 +278,9 @@ CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED:
     The typical fix, when someone thought a termination was not needed, is to
     add a break.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
-  status: noFix
+  status: needsFix
+  notes: |-
+    The fix could be to change the switch expression to an if statement.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
   status: noFix
 CompileTimeErrorCode.CAST_TO_NON_TYPE:

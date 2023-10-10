@@ -1082,6 +1082,27 @@ var A = B;
     }, throwsArgumentError);
   }
 
+  test_changeFile_notExisting_toEmpty() async {
+    final b = newFile('/test/lib/b.dart', '''
+// ignore:unused_import
+import 'a.dart';
+''');
+
+    driver.addFile(b.path);
+    await waitForIdleWithoutExceptions();
+
+    // Has CompileTimeErrorCode.URI_DOES_NOT_EXIST
+    expect(allResults.withPath(b.path).errors, isNotEmpty);
+    allResults.clear();
+
+    final a = newFile('/test/lib/a.dart', '');
+    driver.changeFile(a.path);
+    await waitForIdleWithoutExceptions();
+
+    // No errors anymore.
+    expect(allResults.withPath(b.path).errors, isEmpty);
+  }
+
   test_changeFile_notUsed() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/other/b.dart');
