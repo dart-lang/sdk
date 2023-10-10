@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -81,7 +82,7 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createPlainWorkspaceEdit(
-    lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
+    AnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
       // Client capabilities are always available after initialization.
       server.lspClientCapabilities!,
@@ -133,7 +134,7 @@ WorkspaceEdit createRenameEdit(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createWorkspaceEdit(
-  lsp.LspAnalysisServer server,
+  AnalysisServer server,
   server.SourceChange change, {
   // The caller must specify whether snippets are valid here for where they're
   // sending this edit. Right now, support is limited to CodeActions.

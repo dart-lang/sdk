@@ -46,6 +46,7 @@ abstract class AbstractLspAnalysisServerTest
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
+        LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
         ConfigurationFilesMixin {
   late MockLspServerChannel channel;
@@ -1371,18 +1372,6 @@ mixin LspAnalysisServerTestMixin
       end: positionFromOffset(end, content),
     );
   }
-
-  /// Formats a path relative to the project root always using forward slashes.
-  ///
-  /// This is used in the text format for comparing edits.
-  String relativePath(String filePath) => pathContext
-      .relative(filePath, from: projectFolderPath)
-      .replaceAll(r'\', '/');
-
-  /// Formats a path relative to the project root always using forward slashes.
-  ///
-  /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
 
   Future<WorkspaceEdit?> rename(
     Uri uri,

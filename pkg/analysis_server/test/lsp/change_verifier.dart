@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:collection/collection.dart';
-import 'package:test/test.dart' hide expect;
+import 'package:test/test.dart';
 
-import 'server_abstract.dart';
+import 'request_helpers_mixin.dart';
 
 /// Applies LSP [WorkspaceEdit]s to produce a flattened string describing the
 /// new file contents and any create/rename/deletes to use in test expectations.
@@ -21,18 +21,18 @@ class LspChangeVerifier {
   /// Changes collected while applying the edit.
   final _changes = <Uri, _Change>{};
 
-  /// A base test class used to obtain the current content of a file.
-  final LspAnalysisServerTestMixin _server;
+  /// A mixin with helpers for applying LSP edits.
+  final LspVerifyEditHelpersMixin editHelpers;
 
   /// The [WorkspaceEdit] being applied/verified.
   final WorkspaceEdit edit;
 
-  LspChangeVerifier(this._server, this.edit) {
+  LspChangeVerifier(this.editHelpers, this.edit) {
     _applyEdit();
   }
 
   void verifyFiles(String expected, {Map<Uri, int>? expectedVersions}) {
-    _server.expect(_toChangeString(), equals(expected));
+    expect(_toChangeString(), equals(expected));
     if (expectedVersions != null) {
       _verifyDocumentVersions(expectedVersions);
     }
@@ -134,11 +134,13 @@ class LspChangeVerifier {
     final indexedEdits =
         edit.edits.mapIndexed(TextEditWithIndex.fromUnion).toList();
     indexedEdits.sort(TextEditWithIndex.compare);
-    return indexedEdits.map((e) => e.edit).fold(content, _server.applyTextEdit);
+    return indexedEdits
+        .map((e) => e.edit)
+        .fold(content, editHelpers.applyTextEdit);
   }
 
   String _applyTextEdits(String content, List<TextEdit> changes) =>
-      _server.applyTextEdits(content, changes);
+      editHelpers.applyTextEdits(content, changes);
 
   _Change _change(Uri fileUri) => _changes.putIfAbsent(
       fileUri, () => _Change(_getCurrentFileContent(fileUri)));
@@ -150,12 +152,13 @@ class LspChangeVerifier {
     final uri = edit.textDocument.uri;
     final expectedVersion = expectedVersions[uri];
 
-    _server.expect(edit.textDocument.version, equals(expectedVersion));
+    expect(edit.textDocument.version, equals(expectedVersion));
   }
 
-  String? _getCurrentFileContent(Uri uri) => _server.getCurrentFileContent(uri);
+  String? _getCurrentFileContent(Uri uri) =>
+      editHelpers.getCurrentFileContent(uri);
 
-  String _relativeUri(Uri uri) => _server.relativeUri(uri);
+  String _relativeUri(Uri uri) => editHelpers.relativeUri(uri);
 
   String _toChangeString() {
     final buffer = StringBuffer();

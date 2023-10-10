@@ -93,7 +93,6 @@ import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
-import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -320,9 +319,6 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// The state used by the completion domain handlers.
   final CompletionState completionState = CompletionState();
 
-  /// The workspace for rename refactorings.
-  late RefactoringWorkspace refactoringWorkspace;
-
   /// The object used to manage uncompleted refactorings.
   late RefactoringManager? _refactoringManager;
 
@@ -428,7 +424,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     );
     debounceRequests(channel, discardedRequests)
         .listen(handleRequestOrResponse, onDone: done, onError: error);
-    refactoringWorkspace = RefactoringWorkspace(driverMap.values, searchEngine);
     _newRefactoringManager();
   }
 
@@ -512,6 +507,13 @@ class LegacyAnalysisServer extends AnalysisServer {
     var driver = getAnalysisDriver(path);
     return driver?.getCachedResult(path);
   }
+
+  /// Gets the current version number of a document.
+  ///
+  /// For the legacy server we do not track version numbers, these are
+  /// LSP-specific.
+  @override
+  int? getDocumentVersion(String path) => null;
 
   @override
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
