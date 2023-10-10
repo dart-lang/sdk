@@ -1599,7 +1599,11 @@ class OutlineBuilder extends StackListenerImpl {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
         libraryBuilder.addPrimaryConstructorField(
-            metadata: formal.metadata,
+            // TODO(johnniwinther): Support annotations on annotations on fields
+            // defined through a primary constructor. This is not needed for
+            // extension types where the field is not part of the AST but will
+            // be needed when primary constructors are generally supported.
+            metadata: null,
             type: formal.type,
             name: formal.name,
             charOffset: formal.charOffset);
@@ -2184,8 +2188,6 @@ class OutlineBuilder extends StackListenerImpl {
               .addAll(unboundTypeVariables);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
-            /* metadata = */
-            null,
             FormalParameterKind.requiredPositional,
             finalMask,
             thisType,

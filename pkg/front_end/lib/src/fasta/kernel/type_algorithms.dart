@@ -489,7 +489,7 @@ TypeBuilder _substituteFunctionTypeBuilder(
           variance: Variance.combine(variance, Variance.contravariant));
       if (parameterType != formal.type) {
         newFormals[i] = new FunctionTypeParameterBuilder(
-            formal.metadata, formal.kind, parameterType, formal.name);
+            formal.kind, parameterType, formal.name);
         changed = true;
       } else {
         newFormals[i] = formal;

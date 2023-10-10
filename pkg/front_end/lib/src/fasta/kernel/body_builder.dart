@@ -1758,11 +1758,8 @@ class BodyBuilder extends StackListenerImpl
                 parameters.positionalParameters.length, (int i) {
                 VariableDeclaration formal = parameters.positionalParameters[i];
                 return new FormalParameterBuilder(
-                    /* metadata = */
-                    null,
                     FormalParameterKind.requiredPositional,
-                    /* modifiers = */
-                    0,
+                    /* modifiers = */ 0,
                     const ImplicitTypeBuilder(),
                     formal.name!,
                     libraryBuilder,
@@ -5383,7 +5380,6 @@ class BodyBuilder extends StackListenerImpl
       }
     } else {
       parameter = new FormalParameterBuilder(
-          null,
           kind,
           modifiers,
           type ?? const ImplicitTypeBuilder(),

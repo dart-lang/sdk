@@ -13,8 +13,10 @@ void main() {
 }
 
 @annotation
-void method(core.String value) {
+void method(@annotation core.String value) {
   core.print(value);
+  void local(@annotation int i) {}
+  local(0);
 }
 
 const annotation = const Object();
