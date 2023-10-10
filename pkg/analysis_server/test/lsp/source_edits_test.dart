@@ -20,7 +20,238 @@ void main() {
 
 @reflectiveTest
 class SourceEditsTest extends AbstractSingleUnitTest with LspEditHelpersMixin {
-  Future<void> test_minimalEdits() async {
+  Future<void> test_minimalEdits_comma_delete() async {
+    const startContent = '''
+void f(int a,) {}
+''';
+    const endContent = '''
+void f(int a) {}
+''';
+    const expectedEdits = r'''
+Delete 1:13-1:14
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_delete_afterBlockComment() async {
+    const startContent = '''
+void f(int a /* before */,);
+''';
+    const endContent = '''
+void f(int a /* before */);
+''';
+    const expectedEdits = r'''
+Delete 1:26-1:27
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_delete_afterWhitespace() async {
+    const startContent = '''
+void f(int a ,) {}
+''';
+    const endContent = '''
+void f(int a ) {}
+''';
+    const expectedEdits = r'''
+Delete 1:14-1:15
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_delete_beforeWhitespace() async {
+    const startContent = '''
+void f(int a, ) {}
+''';
+    const endContent = '''
+void f(int a ) {}
+''';
+    const expectedEdits = r'''
+Delete 1:13-1:14
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_delete_betweenBlockComments() async {
+    const startContent = '''
+void f(int a /* before */ , /* after */);
+''';
+    const endContent = '''
+void f(int a /* before */ /* after */);
+''';
+    const expectedEdits = r'''
+Delete 1:27-1:29
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void>
+      test_minimalEdits_comma_delete_betweenBlockComments_withWrapping() async {
+    const startContent = '''
+void f(veryLongArgument, argument /* before */ , /* after */ argument);
+''';
+    const endContent = '''
+void f(
+  veryLongArgument,
+  argument, /* before */
+  /* after */ argument,
+);
+''';
+    const expectedEdits = r'''
+Insert "\n  " at 1:8
+Insert "\n " at 1:25
+Insert "," at 1:34
+Replace 1:47-1:49 with "\n "
+Insert ",\n" at 1:70
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_delete_betweenWhitespace() async {
+    const startContent = '''
+void f(int a , ) {}
+''';
+    const endContent = '''
+void f(int a  ) {}
+''';
+    const expectedEdits = r'''
+Delete 1:14-1:15
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_insert() async {
+    const startContent = '''
+void f(int a) {}
+''';
+    const endContent = '''
+void f(int a,) {}
+''';
+    const expectedEdits = r'''
+Insert "," at 1:13
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_insert_afterWhitespace() async {
+    const startContent = '''
+void f(int a ) {}
+''';
+    const endContent = '''
+void f(int a ,) {}
+''';
+    const expectedEdits = r'''
+Insert "," at 1:14
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_insert_beforeWhitespace() async {
+    const startContent = '''
+void f(
+  int a
+) {}
+''';
+    const endContent = '''
+void f(
+  int a,
+) {}
+''';
+    const expectedEdits = r'''
+Insert "," at 2:8
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_insert_betweenWhitespace() async {
+    const startContent = '''
+void f(int a  ) {}
+''';
+    const endContent = '''
+void f(int a , ) {}
+''';
+    const expectedEdits = r'''
+Insert "," at 1:14
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void>
+      test_minimalEdits_comma_insertWithLeadingAndTrailingWhitespace() async {
+    const startContent = '''
+void f(int a) {}
+''';
+    const endContent = '''
+void f(int a , ) {}
+''';
+    const expectedEdits = r'''
+Insert " , " at 1:13
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_insertWithLeadingWhitespace() async {
+    const startContent = '''
+void f(int a) {}
+''';
+    const endContent = '''
+void f(int a ,) {}
+''';
+    const expectedEdits = r'''
+Insert " ," at 1:13
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_insertWithTrailingWhitespace() async {
+    const startContent = '''
+void f(int a) {}
+''';
+    const endContent = '''
+void f(int a, ) {}
+''';
+    const expectedEdits = r'''
+Insert ", " at 1:13
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_comma_move() async {
+    const startContent = '''
+void f(
+  int a // comment
+,) {
+}
+''';
+    const endContent = '''
+void f(
+  int a, // comment
+) {
+}
+''';
+    const expectedEdits = r'''
+Insert "," at 2:8
+Delete 3:1-3:2
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void> test_minimalEdits_whitespace() async {
     const startContent = '''
 void   f(){}
 ''';
