@@ -177,7 +177,7 @@ final class Isolate {
   /// If [computation] throws, the isolate is terminated and this
   /// function throws the same error.
   ///
-  /// ```dart import:convert
+  /// ```dart import "dart:convert";
   /// Future<int> eventualError() async {
   ///   await Future.delayed(const Duration(seconds: 1));
   ///   throw StateError("In a bad state!");
@@ -207,7 +207,7 @@ final class Isolate {
   /// (see http://dartbug.com/36983) or, if the state includes objects that
   /// can't be spent between isolates, a runtime failure.
   ///
-  /// ```dart import:convert import:io
+  /// ```dart import "dart:convert"; import "dart:io";
   ///
   /// void serializeAndWrite(File f, Object o) async {
   ///   final openFile = await f.open(mode: FileMode.append);
@@ -230,7 +230,7 @@ final class Isolate {
   /// In such cases, you can create a new function to call [Isolate.run] that
   /// takes all of the required state as arguments.
   ///
-  /// ```dart import:convert import:io
+  /// ```dart import "dart:convert"; import "dart:io";
   ///
   /// void serializeAndWrite(File f, Object o) async {
   ///   final openFile = await f.open(mode: FileMode.append);
@@ -976,7 +976,7 @@ abstract interface class RawReceivePort {
   ///
   /// The handler is invoked in the [Zone.root] zone.
   /// If the handler should be invoked in the current zone, do:
-  /// ```dart import:async
+  /// ```dart import "dart:async";
   /// rawPort.handler = Zone.current.bindCallback(actualHandler);
   /// ```
   ///
