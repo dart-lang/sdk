@@ -38,12 +38,12 @@ class AvoidRedundantArgumentValuesTest extends LintRuleTest {
   String get lintRule => 'avoid_redundant_argument_values';
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     noSoundNullSafety = false;
   }
 
-  tearDown() {
+  void tearDown() {
     noSoundNullSafety = true;
   }
 

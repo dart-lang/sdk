@@ -171,7 +171,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 ### Tools
 
-#### Dart Dev Compiler (DDC)
+#### Development JavaScript compiler (DDC)
 
 - Applications compiled by DDC will no longer add members to the native
   JavaScript Object prototype.
@@ -184,7 +184,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   `dart:js_interop`'s `JSSymbol` and `JSBigInt` with extension types to interop
   with these types.
 
-#### Dart2js
+#### Production JavaScript compiler (dart2js)
 
 - **Breaking change for JS interop with Symbols and BigInts**:
   JavaScript `Symbol`s and `BigInt`s are now associated with their own

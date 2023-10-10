@@ -4,7 +4,7 @@
 
 import 'dart:math';
 
-import 'package:heapsnapshot/src/intset.dart';
+import 'package:heap_snapshot/intset.dart';
 
 main() {
   checkDump();
@@ -104,7 +104,7 @@ void checkDump() {
 }
 
 void checkIsEmpty(Set<int> set) {
-  if (set.length != 0) throw "Got a non-zero length.";
+  if (set.isNotEmpty) throw "Got a non-zero length.";
   for (int i in set) {
     throw "Iterated and got (at least) '$i', expected empty.";
   }
@@ -163,7 +163,7 @@ void handCodedTests() {
 void randomTests() {
   int seed = Random.secure().nextInt(10000);
   print("Using seed $seed");
-  Random r = new Random(seed);
+  Random r = Random(seed);
   List<int> expect = [];
   const int maxExclusive = 100;
   Set<int> set = SpecializedIntSet(maxExclusive);

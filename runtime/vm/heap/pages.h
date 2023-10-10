@@ -344,6 +344,8 @@ class PageSpace {
 
   bool IsObjectFromImagePages(ObjectPtr object);
 
+  GCMarker* marker() const { return marker_; }
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -404,6 +406,7 @@ class PageSpace {
   void FreePages(Page* pages);
 
   void CollectGarbageHelper(Thread* thread, bool compact, bool finalize);
+  void SweepNew();
   void SweepLarge();
   void Sweep(bool exclusive);
   void ConcurrentSweep(IsolateGroup* isolate_group);

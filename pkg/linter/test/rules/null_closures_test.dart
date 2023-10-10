@@ -20,12 +20,12 @@ class NullClosuresPreNNBDTest extends LintRuleTest {
   String get lintRule => 'null_closures';
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     noSoundNullSafety = false;
   }
 
-  tearDown() {
+  void tearDown() {
     noSoundNullSafety = true;
   }
 

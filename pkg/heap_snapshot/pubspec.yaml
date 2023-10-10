@@ -1,0 +1,13 @@
+name: heap_snapshot
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '>=2.17.0 <3.0.0'
+
+dependencies:
+  vm_service: any
+
+dependency_overrides:
+  vm_service:
+    path: ../vm_service

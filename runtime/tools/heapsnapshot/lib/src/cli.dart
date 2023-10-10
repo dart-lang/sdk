@@ -7,13 +7,13 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 
+import 'package:heap_snapshot/analysis.dart';
+import 'package:heap_snapshot/format.dart';
 import 'package:mmap/mmap.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'analysis.dart';
 import 'completion.dart';
 import 'expression.dart';
-import 'format.dart';
 import 'load.dart';
 export 'expression.dart' show Output;
 

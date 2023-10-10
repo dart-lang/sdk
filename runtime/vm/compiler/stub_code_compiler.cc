@@ -1870,7 +1870,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   const Register kSrcFrame = SuspendStubABI::kSrcFrameReg;
   const Register kDstFrame = SuspendStubABI::kDstFrameReg;
   Label alloc_slow_case, alloc_done, init_done, resize_suspend_state,
-      old_gen_object, call_dart;
+      remember_object, call_dart;
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
   SPILLS_LR_TO_FRAME({});  // Simulate entering the caller (Dart) frame.
@@ -2008,8 +2008,13 @@ void StubCodeCompiler::GenerateSuspendStub(
   }
 
   // Write barrier.
-  __ BranchIfBit(kSuspendState, target::ObjectAlignment::kNewObjectBitPosition,
-                 ZERO, &old_gen_object);
+  __ AndImmediate(kTemp, kSuspendState, target::kPageMask);
+  __ LoadFromOffset(kTemp, Address(kTemp, target::Page::original_top_offset()));
+  __ CompareRegisters(kSuspendState, kTemp);
+  __ BranchIf(UNSIGNED_LESS, &remember_object);
+  // Assumption: SuspendStates are always on non-image pages.
+  // TODO(rmacnak): Also check original_end if we bound TLABs to smaller than a
+  // heap page.
 
   __ Bind(&call_dart);
   if (call_suspend_function) {
@@ -2085,7 +2090,7 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ PopRegister(kArgument);      // Restore argument.
   __ Jump(&alloc_done);
 
-  __ Bind(&old_gen_object);
+  __ Bind(&remember_object);
   __ Comment("Old gen SuspendState slow case");
   if (!call_suspend_function) {
     // Save kArgument which contains the return value

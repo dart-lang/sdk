@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:heapsnapshot/heapsnapshot.dart';
+import 'package:heap_snapshot/analysis.dart';
 import 'package:heapsnapshot/src/cli.dart';
 import 'package:path/path.dart' as path;
 
