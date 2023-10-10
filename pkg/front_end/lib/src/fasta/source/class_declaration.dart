@@ -13,7 +13,6 @@ import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
-import '../identifiers.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../type_inference/type_schema.dart';
@@ -65,20 +64,20 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
           List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
           Builder? target = redirectionTarget.target;
           if (typeArguments != null && target is MemberBuilder) {
-            Object? redirectionTargetName = redirectionTarget.name;
-            if (redirectionTargetName is String) {
+            TypeName redirectionTargetName = redirectionTarget.typeName;
+            if (redirectionTargetName.qualifier == null) {
               // Do nothing. This is the case of an identifier followed by
               // type arguments, such as the following:
               //   B<T>
               //   B<T>.named
-            } else if (redirectionTargetName is QualifiedName) {
+            } else {
               if (target.name.isEmpty) {
                 // Do nothing. This is the case of a qualified
                 // non-constructor prefix (for example, with a library
                 // qualifier) followed by type arguments, such as the
                 // following:
                 //   lib.B<T>
-              } else if (target.name != redirectionTargetName.suffix.lexeme) {
+              } else if (target.name != redirectionTargetName.name) {
                 // Do nothing. This is the case of a qualified
                 // non-constructor prefix followed by type arguments followed
                 // by a constructor name, such as the following:
@@ -90,8 +89,8 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
                 // names.
                 addProblem(
                     messageConstructorWithTypeArguments,
-                    redirectionTargetName.charOffset,
-                    redirectionTargetName.name.length);
+                    redirectionTargetName.nameOffset,
+                    redirectionTargetName.nameLength);
               }
             }
           }

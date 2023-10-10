@@ -6,8 +6,6 @@ library fasta.constructor_reference_builder;
 
 import '../messages.dart' show noLength, templateConstructorNotFound;
 
-import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
-
 import '../scope.dart';
 
 import 'builder.dart';
@@ -21,7 +19,7 @@ class ConstructorReferenceBuilder {
 
   final Uri fileUri;
 
-  final Object name;
+  final TypeName typeName;
 
   final List<TypeBuilder>? typeArguments;
 
@@ -30,21 +28,21 @@ class ConstructorReferenceBuilder {
 
   Builder? target;
 
-  ConstructorReferenceBuilder(this.name, this.typeArguments, this.suffix,
+  ConstructorReferenceBuilder(this.typeName, this.typeArguments, this.suffix,
       Builder parent, this.charOffset)
       : fileUri = parent.fileUri!;
 
   String get fullNameForErrors {
-    return "${flattenName(name, charOffset, fileUri)}"
+    return "${typeName.fullName}"
         "${suffix == null ? '' : '.$suffix'}";
   }
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
-    final Object name = this.name;
     Builder? declaration;
-    if (name is QualifiedName) {
-      String prefix = (name.qualifier as Identifier).name;
-      String middle = name.name;
+    String? qualifier = typeName.qualifier;
+    if (qualifier != null) {
+      String prefix = qualifier;
+      String middle = typeName.name;
       declaration = scope.lookup(prefix, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
@@ -52,23 +50,17 @@ class ConstructorReferenceBuilder {
       }
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;
-        declaration = prefix.lookup(middle, name.charOffset, fileUri);
+        declaration = prefix.lookup(middle, typeName.nameOffset, fileUri);
       } else if (declaration is DeclarationBuilder) {
         declaration = declaration.findConstructorOrFactory(
-            middle, name.charOffset, fileUri, accessingLibrary);
+            middle, typeName.nameOffset, fileUri, accessingLibrary);
         if (suffix == null) {
           target = declaration;
           return;
         }
       }
-    } else if (name is Identifier) {
-      declaration = scope.lookup(name.name, charOffset, fileUri);
-      if (declaration is TypeAliasBuilder) {
-        TypeAliasBuilder aliasBuilder = declaration;
-        declaration = aliasBuilder.unaliasDeclaration(typeArguments);
-      }
     } else {
-      declaration = scope.lookup(name as String, charOffset, fileUri);
+      declaration = scope.lookup(typeName.name, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);
