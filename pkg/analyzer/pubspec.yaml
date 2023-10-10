@@ -29,14 +29,20 @@ dev_dependencies:
   analyzer_utilities: any
   args: any
   async: any
+  heap_snapshot: any
   linter: any
   lints: any
   matcher: any
   test: any
   test_reflective_loader: any
+  vm_service: any
 
 dependency_overrides:
   _fe_analyzer_shared:
     path: ../_fe_analyzer_shared
   analyzer_utilities:
     path: ../analyzer_utilities
+  heap_snapshot:
+    path: ../heap_snapshot
+  vm_service:
+    path: ../vm_service

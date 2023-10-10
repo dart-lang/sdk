@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:heapsnapshot/src/intset.dart';
+import 'package:heap_snapshot/intset.dart';
 
 main() {
   for (int every in [16, 8, 4, 3, 2, 1]) {

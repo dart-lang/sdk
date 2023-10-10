@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: annotate_overrides
+// ignore_for_file: avoid_init_to_null
+// ignore_for_file: avoid_function_literals_in_foreach_calls
+// ignore_for_file: empty_constructor_bodies
+// ignore_for_file: prefer_is_not_empty
+// ignore_for_file: unnecessary_brace_in_string_interps
+
 import 'dart:typed_data';
 
 import 'package:vm_service/vm_service.dart';
