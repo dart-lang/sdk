@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_call_hierarchy.dart'
     as call_hierarchy;
@@ -17,6 +15,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
+import 'package:language_server_protocol/protocol_special.dart';
 
 typedef StaticOptions
     = Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>;

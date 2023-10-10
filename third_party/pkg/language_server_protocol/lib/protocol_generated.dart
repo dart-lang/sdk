@@ -1,6 +1,24 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// MIT License
+//
+// Copyright (c) Microsoft Corporation.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE
 
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
@@ -9,10 +27,11 @@
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
+
+import 'package:collection/collection.dart';
+import 'package:language_server_protocol/json_parsing.dart';
+import 'package:language_server_protocol/protocol_special.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -725,7 +744,7 @@ class BaseSymbolInformation implements ToJsonable {
         containerName == other.containerName &&
         kind == other.kind &&
         name == other.name &&
-        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
+        const DeepCollectionEquality().equals(tags, other.tags);
   }
 
   @override
@@ -857,7 +876,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
     return other is CallHierarchyIncomingCall &&
         other.runtimeType == CallHierarchyIncomingCall &&
         from == other.from &&
-        listEqual(fromRanges, other.fromRanges, (Range a, Range b) => a == b);
+        const DeepCollectionEquality().equals(fromRanges, other.fromRanges);
   }
 
   @override
@@ -1108,7 +1127,7 @@ class CallHierarchyItem implements ToJsonable {
         name == other.name &&
         range == other.range &&
         selectionRange == other.selectionRange &&
-        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
+        const DeepCollectionEquality().equals(tags, other.tags) &&
         uri == other.uri;
   }
 
@@ -1249,7 +1268,7 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   bool operator ==(Object other) {
     return other is CallHierarchyOutgoingCall &&
         other.runtimeType == CallHierarchyOutgoingCall &&
-        listEqual(fromRanges, other.fromRanges, (Range a, Range b) => a == b) &&
+        const DeepCollectionEquality().equals(fromRanges, other.fromRanges) &&
         to == other.to;
   }
 
@@ -1533,11 +1552,8 @@ class CallHierarchyRegistrationOptions
   bool operator ==(Object other) {
     return other is CallHierarchyRegistrationOptions &&
         other.runtimeType == CallHierarchyRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -2031,8 +2047,7 @@ class CodeAction implements ToJsonable {
         other.runtimeType == CodeAction &&
         command == other.command &&
         data == other.data &&
-        listEqual(diagnostics, other.diagnostics,
-            (Diagnostic a, Diagnostic b) => a == b) &&
+        const DeepCollectionEquality().equals(diagnostics, other.diagnostics) &&
         disabled == other.disabled &&
         edit == other.edit &&
         isPreferred == other.isPreferred &&
@@ -2338,7 +2353,7 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is CodeActionClientCapabilitiesResolveSupport &&
         other.runtimeType == CodeActionClientCapabilitiesResolveSupport &&
-        listEqual(properties, other.properties, (String a, String b) => a == b);
+        const DeepCollectionEquality().equals(properties, other.properties);
   }
 
   @override
@@ -2435,10 +2450,8 @@ class CodeActionContext implements ToJsonable {
   bool operator ==(Object other) {
     return other is CodeActionContext &&
         other.runtimeType == CodeActionContext &&
-        listEqual(diagnostics, other.diagnostics,
-            (Diagnostic a, Diagnostic b) => a == b) &&
-        listEqual(
-            only, other.only, (CodeActionKind a, CodeActionKind b) => a == b) &&
+        const DeepCollectionEquality().equals(diagnostics, other.diagnostics) &&
+        const DeepCollectionEquality().equals(only, other.only) &&
         triggerKind == other.triggerKind;
   }
 
@@ -2635,8 +2648,7 @@ class CodeActionLiteralSupportCodeActionKind implements ToJsonable {
   bool operator ==(Object other) {
     return other is CodeActionLiteralSupportCodeActionKind &&
         other.runtimeType == CodeActionLiteralSupportCodeActionKind &&
-        listEqual(valueSet, other.valueSet,
-            (CodeActionKind a, CodeActionKind b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -2729,8 +2741,8 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   bool operator ==(Object other) {
     return other is CodeActionOptions &&
         other.runtimeType == CodeActionOptions &&
-        listEqual(codeActionKinds, other.codeActionKinds,
-            (CodeActionKind a, CodeActionKind b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(codeActionKinds, other.codeActionKinds) &&
         resolveProvider == other.resolveProvider &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -2970,13 +2982,10 @@ class CodeActionRegistrationOptions
   bool operator ==(Object other) {
     return other is CodeActionRegistrationOptions &&
         other.runtimeType == CodeActionRegistrationOptions &&
-        listEqual(codeActionKinds, other.codeActionKinds,
-            (CodeActionKind a, CodeActionKind b) => a == b) &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(codeActionKinds, other.codeActionKinds) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         resolveProvider == other.resolveProvider &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -3471,11 +3480,8 @@ class CodeLensRegistrationOptions
   bool operator ==(Object other) {
     return other is CodeLensRegistrationOptions &&
         other.runtimeType == CodeLensRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         resolveProvider == other.resolveProvider &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -3797,8 +3803,8 @@ class ColorPresentation implements ToJsonable {
   bool operator ==(Object other) {
     return other is ColorPresentation &&
         other.runtimeType == ColorPresentation &&
-        listEqual(additionalTextEdits, other.additionalTextEdits,
-            (TextEdit a, TextEdit b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(additionalTextEdits, other.additionalTextEdits) &&
         label == other.label &&
         textEdit == other.textEdit;
   }
@@ -4008,7 +4014,7 @@ class Command implements ToJsonable {
   bool operator ==(Object other) {
     return other is Command &&
         other.runtimeType == Command &&
-        listEqual(arguments, other.arguments, (LSPAny a, LSPAny b) => a == b) &&
+        const DeepCollectionEquality().equals(arguments, other.arguments) &&
         command == other.command &&
         title == other.title;
   }
@@ -4391,8 +4397,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
         other.runtimeType == CompletionClientCapabilitiesCompletionItem &&
         commitCharactersSupport == other.commitCharactersSupport &&
         deprecatedSupport == other.deprecatedSupport &&
-        listEqual(documentationFormat, other.documentationFormat,
-            (MarkupKind a, MarkupKind b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentationFormat, other.documentationFormat) &&
         insertReplaceSupport == other.insertReplaceSupport &&
         insertTextModeSupport == other.insertTextModeSupport &&
         labelDetailsSupport == other.labelDetailsSupport &&
@@ -4473,8 +4479,7 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionClientCapabilitiesCompletionItemKind &&
         other.runtimeType == CompletionClientCapabilitiesCompletionItemKind &&
-        listEqual(valueSet, other.valueSet,
-            (CompletionItemKind a, CompletionItemKind b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -4537,8 +4542,7 @@ class CompletionClientCapabilitiesCompletionList implements ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionClientCapabilitiesCompletionList &&
         other.runtimeType == CompletionClientCapabilitiesCompletionList &&
-        listEqual(
-            itemDefaults, other.itemDefaults, (String a, String b) => a == b);
+        const DeepCollectionEquality().equals(itemDefaults, other.itemDefaults);
   }
 
   @override
@@ -5018,11 +5022,11 @@ class CompletionItem implements ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionItem &&
         other.runtimeType == CompletionItem &&
-        listEqual(additionalTextEdits, other.additionalTextEdits,
-            (TextEdit a, TextEdit b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(additionalTextEdits, other.additionalTextEdits) &&
         command == other.command &&
-        listEqual(commitCharacters, other.commitCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(commitCharacters, other.commitCharacters) &&
         data == other.data &&
         deprecated == other.deprecated &&
         detail == other.detail &&
@@ -5036,8 +5040,7 @@ class CompletionItem implements ToJsonable {
         labelDetails == other.labelDetails &&
         preselect == other.preselect &&
         sortText == other.sortText &&
-        listEqual(tags, other.tags,
-            (CompletionItemTag a, CompletionItemTag b) => a == b) &&
+        const DeepCollectionEquality().equals(tags, other.tags) &&
         textEdit == other.textEdit &&
         textEditText == other.textEditText;
   }
@@ -5177,8 +5180,7 @@ class CompletionItemInsertTextModeSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionItemInsertTextModeSupport &&
         other.runtimeType == CompletionItemInsertTextModeSupport &&
-        listEqual(valueSet, other.valueSet,
-            (InsertTextMode a, InsertTextMode b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -5358,7 +5360,7 @@ class CompletionItemResolveSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionItemResolveSupport &&
         other.runtimeType == CompletionItemResolveSupport &&
-        listEqual(properties, other.properties, (String a, String b) => a == b);
+        const DeepCollectionEquality().equals(properties, other.properties);
   }
 
   @override
@@ -5440,8 +5442,7 @@ class CompletionItemTagSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionItemTagSupport &&
         other.runtimeType == CompletionItemTagSupport &&
-        listEqual(valueSet, other.valueSet,
-            (CompletionItemTag a, CompletionItemTag b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -5541,8 +5542,7 @@ class CompletionList implements ToJsonable {
         other.runtimeType == CompletionList &&
         isIncomplete == other.isIncomplete &&
         itemDefaults == other.itemDefaults &&
-        listEqual(
-            items, other.items, (CompletionItem a, CompletionItem b) => a == b);
+        const DeepCollectionEquality().equals(items, other.items);
   }
 
   @override
@@ -5669,8 +5669,8 @@ class CompletionListItemDefaults implements ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionListItemDefaults &&
         other.runtimeType == CompletionListItemDefaults &&
-        listEqual(commitCharacters, other.commitCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(commitCharacters, other.commitCharacters) &&
         data == other.data &&
         editRange == other.editRange &&
         insertTextFormat == other.insertTextFormat &&
@@ -5820,12 +5820,12 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   bool operator ==(Object other) {
     return other is CompletionOptions &&
         other.runtimeType == CompletionOptions &&
-        listEqual(allCommitCharacters, other.allCommitCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(allCommitCharacters, other.allCommitCharacters) &&
         completionItem == other.completionItem &&
         resolveProvider == other.resolveProvider &&
-        listEqual(triggerCharacters, other.triggerCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(triggerCharacters, other.triggerCharacters) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -6183,17 +6183,14 @@ class CompletionRegistrationOptions
   bool operator ==(Object other) {
     return other is CompletionRegistrationOptions &&
         other.runtimeType == CompletionRegistrationOptions &&
-        listEqual(allCommitCharacters, other.allCommitCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(allCommitCharacters, other.allCommitCharacters) &&
         completionItem == other.completionItem &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         resolveProvider == other.resolveProvider &&
-        listEqual(triggerCharacters, other.triggerCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(triggerCharacters, other.triggerCharacters) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -6367,8 +6364,7 @@ class ConfigurationParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is ConfigurationParams &&
         other.runtimeType == ConfigurationParams &&
-        listEqual(items, other.items,
-            (ConfigurationItem a, ConfigurationItem b) => a == b);
+        const DeepCollectionEquality().equals(items, other.items);
   }
 
   @override
@@ -6607,7 +6603,7 @@ class CreateFilesParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is CreateFilesParams &&
         other.runtimeType == CreateFilesParams &&
-        listEqual(files, other.files, (FileCreate a, FileCreate b) => a == b);
+        const DeepCollectionEquality().equals(files, other.files);
   }
 
   @override
@@ -6941,11 +6937,8 @@ class DeclarationRegistrationOptions
   bool operator ==(Object other) {
     return other is DeclarationRegistrationOptions &&
         other.runtimeType == DeclarationRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -7268,11 +7261,8 @@ class DefinitionRegistrationOptions
   bool operator ==(Object other) {
     return other is DefinitionRegistrationOptions &&
         other.runtimeType == DefinitionRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -7515,7 +7505,7 @@ class DeleteFilesParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is DeleteFilesParams &&
         other.runtimeType == DeleteFilesParams &&
-        listEqual(files, other.files, (FileDelete a, FileDelete b) => a == b);
+        const DeepCollectionEquality().equals(files, other.files);
   }
 
   @override
@@ -7702,15 +7692,11 @@ class Diagnostic implements ToJsonable {
         data == other.data &&
         message == other.message &&
         range == other.range &&
-        listEqual(
-            relatedInformation,
-            other.relatedInformation,
-            (DiagnosticRelatedInformation a, DiagnosticRelatedInformation b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(relatedInformation, other.relatedInformation) &&
         severity == other.severity &&
         source == other.source &&
-        listEqual(
-            tags, other.tags, (DiagnosticTag a, DiagnosticTag b) => a == b);
+        const DeepCollectionEquality().equals(tags, other.tags);
   }
 
   @override
@@ -8045,11 +8031,8 @@ class DiagnosticRegistrationOptions
   bool operator ==(Object other) {
     return other is DiagnosticRegistrationOptions &&
         other.runtimeType == DiagnosticRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         identifier == other.identifier &&
         interFileDependencies == other.interFileDependencies &&
@@ -8600,12 +8583,8 @@ class DidChangeTextDocumentParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is DidChangeTextDocumentParams &&
         other.runtimeType == DidChangeTextDocumentParams &&
-        listEqual(
-            contentChanges,
-            other.contentChanges,
-            (TextDocumentContentChangeEvent a,
-                    TextDocumentContentChangeEvent b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(contentChanges, other.contentChanges) &&
         textDocument == other.textDocument;
   }
 
@@ -8741,7 +8720,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is DidChangeWatchedFilesParams &&
         other.runtimeType == DidChangeWatchedFilesParams &&
-        listEqual(changes, other.changes, (FileEvent a, FileEvent b) => a == b);
+        const DeepCollectionEquality().equals(changes, other.changes);
   }
 
   @override
@@ -8797,8 +8776,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
   bool operator ==(Object other) {
     return other is DidChangeWatchedFilesRegistrationOptions &&
         other.runtimeType == DidChangeWatchedFilesRegistrationOptions &&
-        listEqual(watchers, other.watchers,
-            (FileSystemWatcher a, FileSystemWatcher b) => a == b);
+        const DeepCollectionEquality().equals(watchers, other.watchers);
   }
 
   @override
@@ -8925,8 +8903,8 @@ class DidCloseNotebookDocumentParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is DidCloseNotebookDocumentParams &&
         other.runtimeType == DidCloseNotebookDocumentParams &&
-        listEqual(cellTextDocuments, other.cellTextDocuments,
-            (TextDocumentIdentifier a, TextDocumentIdentifier b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(cellTextDocuments, other.cellTextDocuments) &&
         notebookDocument == other.notebookDocument;
   }
 
@@ -9053,8 +9031,8 @@ class DidOpenNotebookDocumentParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is DidOpenNotebookDocumentParams &&
         other.runtimeType == DidOpenNotebookDocumentParams &&
-        listEqual(cellTextDocuments, other.cellTextDocuments,
-            (TextDocumentItem a, TextDocumentItem b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(cellTextDocuments, other.cellTextDocuments) &&
         notebookDocument == other.notebookDocument;
   }
 
@@ -9535,11 +9513,8 @@ class DocumentColorRegistrationOptions
   bool operator ==(Object other) {
     return other is DocumentColorRegistrationOptions &&
         other.runtimeType == DocumentColorRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -9768,16 +9743,8 @@ class DocumentDiagnosticReportPartialResult implements ToJsonable {
   bool operator ==(Object other) {
     return other is DocumentDiagnosticReportPartialResult &&
         other.runtimeType == DocumentDiagnosticReportPartialResult &&
-        mapEqual(
-            relatedDocuments,
-            other.relatedDocuments,
-            (Either2<FullDocumentDiagnosticReport,
-                            UnchangedDocumentDiagnosticReport>
-                        a,
-                    Either2<FullDocumentDiagnosticReport,
-                            UnchangedDocumentDiagnosticReport>
-                        b) =>
-                a == b);
+        const DeepCollectionEquality()
+            .equals(relatedDocuments, other.relatedDocuments);
   }
 
   @override
@@ -10056,11 +10023,8 @@ class DocumentFormattingRegistrationOptions
   bool operator ==(Object other) {
     return other is DocumentFormattingRegistrationOptions &&
         other.runtimeType == DocumentFormattingRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -10475,11 +10439,8 @@ class DocumentHighlightRegistrationOptions
   bool operator ==(Object other) {
     return other is DocumentHighlightRegistrationOptions &&
         other.runtimeType == DocumentHighlightRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -10922,11 +10883,8 @@ class DocumentLinkRegistrationOptions
   bool operator ==(Object other) {
     return other is DocumentLinkRegistrationOptions &&
         other.runtimeType == DocumentLinkRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         resolveProvider == other.resolveProvider &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -11061,8 +11019,8 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
     return other is DocumentOnTypeFormattingOptions &&
         other.runtimeType == DocumentOnTypeFormattingOptions &&
         firstTriggerCharacter == other.firstTriggerCharacter &&
-        listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
-            (String a, String b) => a == b);
+        const DeepCollectionEquality()
+            .equals(moreTriggerCharacter, other.moreTriggerCharacter);
   }
 
   @override
@@ -11262,14 +11220,11 @@ class DocumentOnTypeFormattingRegistrationOptions
   bool operator ==(Object other) {
     return other is DocumentOnTypeFormattingRegistrationOptions &&
         other.runtimeType == DocumentOnTypeFormattingRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         firstTriggerCharacter == other.firstTriggerCharacter &&
-        listEqual(moreTriggerCharacter, other.moreTriggerCharacter,
-            (String a, String b) => a == b);
+        const DeepCollectionEquality()
+            .equals(moreTriggerCharacter, other.moreTriggerCharacter);
   }
 
   @override
@@ -11568,11 +11523,8 @@ class DocumentRangeFormattingRegistrationOptions
   bool operator ==(Object other) {
     return other is DocumentRangeFormattingRegistrationOptions &&
         other.runtimeType == DocumentRangeFormattingRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -11738,15 +11690,14 @@ class DocumentSymbol implements ToJsonable {
   bool operator ==(Object other) {
     return other is DocumentSymbol &&
         other.runtimeType == DocumentSymbol &&
-        listEqual(children, other.children,
-            (DocumentSymbol a, DocumentSymbol b) => a == b) &&
+        const DeepCollectionEquality().equals(children, other.children) &&
         deprecated == other.deprecated &&
         detail == other.detail &&
         kind == other.kind &&
         name == other.name &&
         range == other.range &&
         selectionRange == other.selectionRange &&
-        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
+        const DeepCollectionEquality().equals(tags, other.tags);
   }
 
   @override
@@ -11957,8 +11908,7 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   bool operator ==(Object other) {
     return other is DocumentSymbolClientCapabilitiesSymbolKind &&
         other.runtimeType == DocumentSymbolClientCapabilitiesSymbolKind &&
-        listEqual(
-            valueSet, other.valueSet, (SymbolKind a, SymbolKind b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -12013,8 +11963,7 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is DocumentSymbolClientCapabilitiesTagSupport &&
         other.runtimeType == DocumentSymbolClientCapabilitiesTagSupport &&
-        listEqual(
-            valueSet, other.valueSet, (SymbolTag a, SymbolTag b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -12278,11 +12227,8 @@ class DocumentSymbolRegistrationOptions
   bool operator ==(Object other) {
     return other is DocumentSymbolRegistrationOptions &&
         other.runtimeType == DocumentSymbolRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         label == other.label &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -12469,7 +12415,7 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   bool operator ==(Object other) {
     return other is ExecuteCommandOptions &&
         other.runtimeType == ExecuteCommandOptions &&
-        listEqual(commands, other.commands, (String a, String b) => a == b) &&
+        const DeepCollectionEquality().equals(commands, other.commands) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -12556,7 +12502,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   bool operator ==(Object other) {
     return other is ExecuteCommandParams &&
         other.runtimeType == ExecuteCommandParams &&
-        listEqual(arguments, other.arguments, (LSPAny a, LSPAny b) => a == b) &&
+        const DeepCollectionEquality().equals(arguments, other.arguments) &&
         command == other.command &&
         workDoneToken == other.workDoneToken;
   }
@@ -12630,7 +12576,7 @@ class ExecuteCommandRegistrationOptions
   bool operator ==(Object other) {
     return other is ExecuteCommandRegistrationOptions &&
         other.runtimeType == ExecuteCommandRegistrationOptions &&
-        listEqual(commands, other.commands, (String a, String b) => a == b) &&
+        const DeepCollectionEquality().equals(commands, other.commands) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -13604,8 +13550,7 @@ class FileOperationRegistrationOptions implements ToJsonable {
   bool operator ==(Object other) {
     return other is FileOperationRegistrationOptions &&
         other.runtimeType == FileOperationRegistrationOptions &&
-        listEqual(filters, other.filters,
-            (FileOperationFilter a, FileOperationFilter b) => a == b);
+        const DeepCollectionEquality().equals(filters, other.filters);
   }
 
   @override
@@ -14150,8 +14095,7 @@ class FoldingRangeClientCapabilitiesFoldingRangeKind implements ToJsonable {
   bool operator ==(Object other) {
     return other is FoldingRangeClientCapabilitiesFoldingRangeKind &&
         other.runtimeType == FoldingRangeClientCapabilitiesFoldingRangeKind &&
-        listEqual(valueSet, other.valueSet,
-            (FoldingRangeKind a, FoldingRangeKind b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -14424,11 +14368,8 @@ class FoldingRangeRegistrationOptions
   bool operator ==(Object other) {
     return other is FoldingRangeRegistrationOptions &&
         other.runtimeType == FoldingRangeRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -14651,7 +14592,7 @@ class FullDocumentDiagnosticReport implements ToJsonable {
   bool operator ==(Object other) {
     return other is FullDocumentDiagnosticReport &&
         other.runtimeType == FullDocumentDiagnosticReport &&
-        listEqual(items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
+        const DeepCollectionEquality().equals(items, other.items) &&
         kind == other.kind &&
         resultId == other.resultId;
   }
@@ -14793,8 +14734,8 @@ class GeneralClientCapabilities implements ToJsonable {
     return other is GeneralClientCapabilities &&
         other.runtimeType == GeneralClientCapabilities &&
         markdown == other.markdown &&
-        listEqual(positionEncodings, other.positionEncodings,
-            (PositionEncodingKind a, PositionEncodingKind b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(positionEncodings, other.positionEncodings) &&
         regularExpressions == other.regularExpressions &&
         staleRequestSupport == other.staleRequestSupport;
   }
@@ -14870,8 +14811,8 @@ class GeneralClientCapabilitiesStaleRequestSupport implements ToJsonable {
     return other is GeneralClientCapabilitiesStaleRequestSupport &&
         other.runtimeType == GeneralClientCapabilitiesStaleRequestSupport &&
         cancel == other.cancel &&
-        listEqual(retryOnContentModified, other.retryOnContentModified,
-            (String a, String b) => a == b);
+        const DeepCollectionEquality()
+            .equals(retryOnContentModified, other.retryOnContentModified);
   }
 
   @override
@@ -15018,8 +14959,8 @@ class HoverClientCapabilities implements ToJsonable {
   bool operator ==(Object other) {
     return other is HoverClientCapabilities &&
         other.runtimeType == HoverClientCapabilities &&
-        listEqual(contentFormat, other.contentFormat,
-            (MarkupKind a, MarkupKind b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(contentFormat, other.contentFormat) &&
         dynamicRegistration == other.dynamicRegistration;
   }
 
@@ -15242,11 +15183,8 @@ class HoverRegistrationOptions
   bool operator ==(Object other) {
     return other is HoverRegistrationOptions &&
         other.runtimeType == HoverRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -15586,11 +15524,8 @@ class ImplementationRegistrationOptions
   bool operator ==(Object other) {
     return other is ImplementationRegistrationOptions &&
         other.runtimeType == ImplementationRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -15808,8 +15743,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         rootUri == other.rootUri &&
         trace == other.trace &&
         workDoneToken == other.workDoneToken &&
-        listEqual(workspaceFolders, other.workspaceFolders,
-            (WorkspaceFolder a, WorkspaceFolder b) => a == b);
+        const DeepCollectionEquality()
+            .equals(workspaceFolders, other.workspaceFolders);
   }
 
   @override
@@ -16241,8 +16176,7 @@ class InlayHint implements ToJsonable {
         paddingLeft == other.paddingLeft &&
         paddingRight == other.paddingRight &&
         position == other.position &&
-        listEqual(
-            textEdits, other.textEdits, (TextEdit a, TextEdit b) => a == b) &&
+        const DeepCollectionEquality().equals(textEdits, other.textEdits) &&
         tooltip == other.tooltip;
   }
 
@@ -16385,7 +16319,7 @@ class InlayHintClientCapabilitiesResolveSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is InlayHintClientCapabilitiesResolveSupport &&
         other.runtimeType == InlayHintClientCapabilitiesResolveSupport &&
-        listEqual(properties, other.properties, (String a, String b) => a == b);
+        const DeepCollectionEquality().equals(properties, other.properties);
   }
 
   @override
@@ -16816,11 +16750,8 @@ class InlayHintRegistrationOptions
   bool operator ==(Object other) {
     return other is InlayHintRegistrationOptions &&
         other.runtimeType == InlayHintRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         resolveProvider == other.resolveProvider &&
         workDoneProgress == other.workDoneProgress;
@@ -17352,11 +17283,8 @@ class InlineValueRegistrationOptions
   bool operator ==(Object other) {
     return other is InlineValueRegistrationOptions &&
         other.runtimeType == InlineValueRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -18053,11 +17981,8 @@ class LinkedEditingRangeRegistrationOptions
   bool operator ==(Object other) {
     return other is LinkedEditingRangeRegistrationOptions &&
         other.runtimeType == LinkedEditingRangeRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -18137,7 +18062,7 @@ class LinkedEditingRanges implements ToJsonable {
   bool operator ==(Object other) {
     return other is LinkedEditingRanges &&
         other.runtimeType == LinkedEditingRanges &&
-        listEqual(ranges, other.ranges, (Range a, Range b) => a == b) &&
+        const DeepCollectionEquality().equals(ranges, other.ranges) &&
         wordPattern == other.wordPattern;
   }
 
@@ -18537,8 +18462,7 @@ class MarkdownClientCapabilities implements ToJsonable {
   bool operator ==(Object other) {
     return other is MarkdownClientCapabilities &&
         other.runtimeType == MarkdownClientCapabilities &&
-        listEqual(
-            allowedTags, other.allowedTags, (String a, String b) => a == b) &&
+        const DeepCollectionEquality().equals(allowedTags, other.allowedTags) &&
         parser == other.parser &&
         version == other.version;
   }
@@ -19522,11 +19446,8 @@ class MonikerRegistrationOptions
   bool operator ==(Object other) {
     return other is MonikerRegistrationOptions &&
         other.runtimeType == MonikerRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -19723,8 +19644,7 @@ class NotebookCellArrayChange implements ToJsonable {
   bool operator ==(Object other) {
     return other is NotebookCellArrayChange &&
         other.runtimeType == NotebookCellArrayChange &&
-        listEqual(
-            cells, other.cells, (NotebookCell a, NotebookCell b) => a == b) &&
+        const DeepCollectionEquality().equals(cells, other.cells) &&
         deleteCount == other.deleteCount &&
         start == other.start;
   }
@@ -19951,8 +19871,7 @@ class NotebookDocument implements ToJsonable {
   bool operator ==(Object other) {
     return other is NotebookDocument &&
         other.runtimeType == NotebookDocument &&
-        listEqual(
-            cells, other.cells, (NotebookCell a, NotebookCell b) => a == b) &&
+        const DeepCollectionEquality().equals(cells, other.cells) &&
         metadata == other.metadata &&
         notebookType == other.notebookType &&
         uri == other.uri &&
@@ -20134,15 +20053,9 @@ class NotebookDocumentChangeEventCells implements ToJsonable {
   bool operator ==(Object other) {
     return other is NotebookDocumentChangeEventCells &&
         other.runtimeType == NotebookDocumentChangeEventCells &&
-        listEqual(
-            data, other.data, (NotebookCell a, NotebookCell b) => a == b) &&
+        const DeepCollectionEquality().equals(data, other.data) &&
         structure == other.structure &&
-        listEqual(
-            textContent,
-            other.textContent,
-            (NotebookDocumentChangeEventCellsTextContent a,
-                    NotebookDocumentChangeEventCellsTextContent b) =>
-                a == b);
+        const DeepCollectionEquality().equals(textContent, other.textContent);
   }
 
   @override
@@ -20234,10 +20147,8 @@ class NotebookDocumentChangeEventCellsStructure implements ToJsonable {
     return other is NotebookDocumentChangeEventCellsStructure &&
         other.runtimeType == NotebookDocumentChangeEventCellsStructure &&
         array == other.array &&
-        listEqual(didClose, other.didClose,
-            (TextDocumentIdentifier a, TextDocumentIdentifier b) => a == b) &&
-        listEqual(didOpen, other.didOpen,
-            (TextDocumentItem a, TextDocumentItem b) => a == b);
+        const DeepCollectionEquality().equals(didClose, other.didClose) &&
+        const DeepCollectionEquality().equals(didOpen, other.didOpen);
   }
 
   @override
@@ -20309,12 +20220,7 @@ class NotebookDocumentChangeEventCellsTextContent implements ToJsonable {
   bool operator ==(Object other) {
     return other is NotebookDocumentChangeEventCellsTextContent &&
         other.runtimeType == NotebookDocumentChangeEventCellsTextContent &&
-        listEqual(
-            changes,
-            other.changes,
-            (TextDocumentContentChangeEvent a,
-                    TextDocumentContentChangeEvent b) =>
-                a == b) &&
+        const DeepCollectionEquality().equals(changes, other.changes) &&
         document == other.document;
   }
 
@@ -20853,16 +20759,8 @@ class NotebookDocumentSyncOptions implements ToJsonable {
   bool operator ==(Object other) {
     return other is NotebookDocumentSyncOptions &&
         other.runtimeType == NotebookDocumentSyncOptions &&
-        listEqual(
-            notebookSelector,
-            other.notebookSelector,
-            (Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                            NotebookDocumentSyncOptionsNotebookSelector2>
-                        a,
-                    Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                            NotebookDocumentSyncOptionsNotebookSelector2>
-                        b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(notebookSelector, other.notebookSelector) &&
         save == other.save;
   }
 
@@ -20942,12 +20840,7 @@ class NotebookDocumentSyncOptionsNotebookSelector implements ToJsonable {
   bool operator ==(Object other) {
     return other is NotebookDocumentSyncOptionsNotebookSelector &&
         other.runtimeType == NotebookDocumentSyncOptionsNotebookSelector &&
-        listEqual(
-            cells,
-            other.cells,
-            (NotebookDocumentSyncOptionsNotebookSelectorCells a,
-                    NotebookDocumentSyncOptionsNotebookSelectorCells b) =>
-                a == b) &&
+        const DeepCollectionEquality().equals(cells, other.cells) &&
         notebook == other.notebook;
   }
 
@@ -21028,12 +20921,7 @@ class NotebookDocumentSyncOptionsNotebookSelector2 implements ToJsonable {
   bool operator ==(Object other) {
     return other is NotebookDocumentSyncOptionsNotebookSelector2 &&
         other.runtimeType == NotebookDocumentSyncOptionsNotebookSelector2 &&
-        listEqual(
-            cells,
-            other.cells,
-            (NotebookDocumentSyncOptionsNotebookSelector2Cells a,
-                    NotebookDocumentSyncOptionsNotebookSelector2Cells b) =>
-                a == b) &&
+        const DeepCollectionEquality().equals(cells, other.cells) &&
         notebook == other.notebook;
   }
 
@@ -21243,16 +21131,8 @@ class NotebookDocumentSyncRegistrationOptions
     return other is NotebookDocumentSyncRegistrationOptions &&
         other.runtimeType == NotebookDocumentSyncRegistrationOptions &&
         id == other.id &&
-        listEqual(
-            notebookSelector,
-            other.notebookSelector,
-            (Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                            NotebookDocumentSyncOptionsNotebookSelector2>
-                        a,
-                    Either2<NotebookDocumentSyncOptionsNotebookSelector,
-                            NotebookDocumentSyncOptionsNotebookSelector2>
-                        b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(notebookSelector, other.notebookSelector) &&
         save == other.save;
   }
 
@@ -22250,8 +22130,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is PublishDiagnosticsClientCapabilitiesTagSupport &&
         other.runtimeType == PublishDiagnosticsClientCapabilitiesTagSupport &&
-        listEqual(valueSet, other.valueSet,
-            (DiagnosticTag a, DiagnosticTag b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -22334,8 +22213,7 @@ class PublishDiagnosticsParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is PublishDiagnosticsParams &&
         other.runtimeType == PublishDiagnosticsParams &&
-        listEqual(diagnostics, other.diagnostics,
-            (Diagnostic a, Diagnostic b) => a == b) &&
+        const DeepCollectionEquality().equals(diagnostics, other.diagnostics) &&
         uri == other.uri &&
         version == other.version;
   }
@@ -22784,11 +22662,8 @@ class ReferenceRegistrationOptions
   bool operator ==(Object other) {
     return other is ReferenceRegistrationOptions &&
         other.runtimeType == ReferenceRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -22926,8 +22801,8 @@ class RegistrationParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is RegistrationParams &&
         other.runtimeType == RegistrationParams &&
-        listEqual(registrations, other.registrations,
-            (Registration a, Registration b) => a == b);
+        const DeepCollectionEquality()
+            .equals(registrations, other.registrations);
   }
 
   @override
@@ -23123,18 +22998,10 @@ class RelatedFullDocumentDiagnosticReport
   bool operator ==(Object other) {
     return other is RelatedFullDocumentDiagnosticReport &&
         other.runtimeType == RelatedFullDocumentDiagnosticReport &&
-        listEqual(items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
+        const DeepCollectionEquality().equals(items, other.items) &&
         kind == other.kind &&
-        mapEqual(
-            relatedDocuments,
-            other.relatedDocuments,
-            (Either2<FullDocumentDiagnosticReport,
-                            UnchangedDocumentDiagnosticReport>
-                        a,
-                    Either2<FullDocumentDiagnosticReport,
-                            UnchangedDocumentDiagnosticReport>
-                        b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(relatedDocuments, other.relatedDocuments) &&
         resultId == other.resultId;
   }
 
@@ -23247,16 +23114,8 @@ class RelatedUnchangedDocumentDiagnosticReport
     return other is RelatedUnchangedDocumentDiagnosticReport &&
         other.runtimeType == RelatedUnchangedDocumentDiagnosticReport &&
         kind == other.kind &&
-        mapEqual(
-            relatedDocuments,
-            other.relatedDocuments,
-            (Either2<FullDocumentDiagnosticReport,
-                            UnchangedDocumentDiagnosticReport>
-                        a,
-                    Either2<FullDocumentDiagnosticReport,
-                            UnchangedDocumentDiagnosticReport>
-                        b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(relatedDocuments, other.relatedDocuments) &&
         resultId == other.resultId;
   }
 
@@ -23710,7 +23569,7 @@ class RenameFilesParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is RenameFilesParams &&
         other.runtimeType == RenameFilesParams &&
-        listEqual(files, other.files, (FileRename a, FileRename b) => a == b);
+        const DeepCollectionEquality().equals(files, other.files);
   }
 
   @override
@@ -23977,11 +23836,8 @@ class RenameRegistrationOptions
   bool operator ==(Object other) {
     return other is RenameRegistrationOptions &&
         other.runtimeType == RenameRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         prepareProvider == other.prepareProvider &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -24454,8 +24310,7 @@ class SelectionRangeParams
     return other is SelectionRangeParams &&
         other.runtimeType == SelectionRangeParams &&
         partialResultToken == other.partialResultToken &&
-        listEqual(
-            positions, other.positions, (Position a, Position b) => a == b) &&
+        const DeepCollectionEquality().equals(positions, other.positions) &&
         textDocument == other.textDocument &&
         workDoneToken == other.workDoneToken;
   }
@@ -24553,11 +24408,8 @@ class SelectionRangeRegistrationOptions
   bool operator ==(Object other) {
     return other is SelectionRangeRegistrationOptions &&
         other.runtimeType == SelectionRangeRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -24723,7 +24575,7 @@ class SemanticTokens implements ToJsonable {
   bool operator ==(Object other) {
     return other is SemanticTokens &&
         other.runtimeType == SemanticTokens &&
-        listEqual(data, other.data, (int a, int b) => a == b) &&
+        const DeepCollectionEquality().equals(data, other.data) &&
         resultId == other.resultId;
   }
 
@@ -24916,15 +24768,14 @@ class SemanticTokensClientCapabilities implements ToJsonable {
         other.runtimeType == SemanticTokensClientCapabilities &&
         augmentsSyntaxTokens == other.augmentsSyntaxTokens &&
         dynamicRegistration == other.dynamicRegistration &&
-        listEqual(
-            formats, other.formats, (TokenFormat a, TokenFormat b) => a == b) &&
+        const DeepCollectionEquality().equals(formats, other.formats) &&
         multilineTokenSupport == other.multilineTokenSupport &&
         overlappingTokenSupport == other.overlappingTokenSupport &&
         requests == other.requests &&
         serverCancelSupport == other.serverCancelSupport &&
-        listEqual(tokenModifiers, other.tokenModifiers,
-            (String a, String b) => a == b) &&
-        listEqual(tokenTypes, other.tokenTypes, (String a, String b) => a == b);
+        const DeepCollectionEquality()
+            .equals(tokenModifiers, other.tokenModifiers) &&
+        const DeepCollectionEquality().equals(tokenTypes, other.tokenTypes);
   }
 
   @override
@@ -25175,8 +25026,7 @@ class SemanticTokensDelta implements ToJsonable {
   bool operator ==(Object other) {
     return other is SemanticTokensDelta &&
         other.runtimeType == SemanticTokensDelta &&
-        listEqual(edits, other.edits,
-            (SemanticTokensEdit a, SemanticTokensEdit b) => a == b) &&
+        const DeepCollectionEquality().equals(edits, other.edits) &&
         resultId == other.resultId;
   }
 
@@ -25343,8 +25193,7 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
   bool operator ==(Object other) {
     return other is SemanticTokensDeltaPartialResult &&
         other.runtimeType == SemanticTokensDeltaPartialResult &&
-        listEqual(edits, other.edits,
-            (SemanticTokensEdit a, SemanticTokensEdit b) => a == b);
+        const DeepCollectionEquality().equals(edits, other.edits);
   }
 
   @override
@@ -25423,7 +25272,7 @@ class SemanticTokensEdit implements ToJsonable {
   bool operator ==(Object other) {
     return other is SemanticTokensEdit &&
         other.runtimeType == SemanticTokensEdit &&
-        listEqual(data, other.data, (int a, int b) => a == b) &&
+        const DeepCollectionEquality().equals(data, other.data) &&
         deleteCount == other.deleteCount &&
         start == other.start;
   }
@@ -25497,9 +25346,9 @@ class SemanticTokensLegend implements ToJsonable {
   bool operator ==(Object other) {
     return other is SemanticTokensLegend &&
         other.runtimeType == SemanticTokensLegend &&
-        listEqual(tokenModifiers, other.tokenModifiers,
-            (String a, String b) => a == b) &&
-        listEqual(tokenTypes, other.tokenTypes, (String a, String b) => a == b);
+        const DeepCollectionEquality()
+            .equals(tokenModifiers, other.tokenModifiers) &&
+        const DeepCollectionEquality().equals(tokenTypes, other.tokenTypes);
   }
 
   @override
@@ -25846,7 +25695,7 @@ class SemanticTokensPartialResult implements ToJsonable {
   bool operator ==(Object other) {
     return other is SemanticTokensPartialResult &&
         other.runtimeType == SemanticTokensPartialResult &&
-        listEqual(data, other.data, (int a, int b) => a == b);
+        const DeepCollectionEquality().equals(data, other.data);
   }
 
   @override
@@ -26095,11 +25944,8 @@ class SemanticTokensRegistrationOptions
   bool operator ==(Object other) {
     return other is SemanticTokensRegistrationOptions &&
         other.runtimeType == SemanticTokensRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         full == other.full &&
         id == other.id &&
         legend == other.legend &&
@@ -27561,8 +27407,7 @@ class ShowMessageRequestParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is ShowMessageRequestParams &&
         other.runtimeType == ShowMessageRequestParams &&
-        listEqual(actions, other.actions,
-            (MessageActionItem a, MessageActionItem b) => a == b) &&
+        const DeepCollectionEquality().equals(actions, other.actions) &&
         message == other.message &&
         type == other.type;
   }
@@ -27667,8 +27512,7 @@ class SignatureHelp implements ToJsonable {
         other.runtimeType == SignatureHelp &&
         activeParameter == other.activeParameter &&
         activeSignature == other.activeSignature &&
-        listEqual(signatures, other.signatures,
-            (SignatureInformation a, SignatureInformation b) => a == b);
+        const DeepCollectionEquality().equals(signatures, other.signatures);
   }
 
   @override
@@ -27868,8 +27712,8 @@ class SignatureHelpClientCapabilitiesSignatureInformation
         other.runtimeType ==
             SignatureHelpClientCapabilitiesSignatureInformation &&
         activeParameterSupport == other.activeParameterSupport &&
-        listEqual(documentationFormat, other.documentationFormat,
-            (MarkupKind a, MarkupKind b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentationFormat, other.documentationFormat) &&
         parameterInformation == other.parameterInformation;
   }
 
@@ -28084,10 +27928,10 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   bool operator ==(Object other) {
     return other is SignatureHelpOptions &&
         other.runtimeType == SignatureHelpOptions &&
-        listEqual(retriggerCharacters, other.retriggerCharacters,
-            (String a, String b) => a == b) &&
-        listEqual(triggerCharacters, other.triggerCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(retriggerCharacters, other.retriggerCharacters) &&
+        const DeepCollectionEquality()
+            .equals(triggerCharacters, other.triggerCharacters) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -28318,15 +28162,12 @@ class SignatureHelpRegistrationOptions
   bool operator ==(Object other) {
     return other is SignatureHelpRegistrationOptions &&
         other.runtimeType == SignatureHelpRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
-        listEqual(retriggerCharacters, other.retriggerCharacters,
-            (String a, String b) => a == b) &&
-        listEqual(triggerCharacters, other.triggerCharacters,
-            (String a, String b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
+        const DeepCollectionEquality()
+            .equals(retriggerCharacters, other.retriggerCharacters) &&
+        const DeepCollectionEquality()
+            .equals(triggerCharacters, other.triggerCharacters) &&
         workDoneProgress == other.workDoneProgress;
   }
 
@@ -28475,8 +28316,7 @@ class SignatureInformation implements ToJsonable {
         activeParameter == other.activeParameter &&
         documentation == other.documentation &&
         label == other.label &&
-        listEqual(parameters, other.parameters,
-            (ParameterInformation a, ParameterInformation b) => a == b);
+        const DeepCollectionEquality().equals(parameters, other.parameters);
   }
 
   @override
@@ -28783,7 +28623,7 @@ class SymbolInformation implements BaseSymbolInformation, ToJsonable {
         kind == other.kind &&
         location == other.location &&
         name == other.name &&
-        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
+        const DeepCollectionEquality().equals(tags, other.tags);
   }
 
   @override
@@ -28940,11 +28780,8 @@ class TextDocumentChangeRegistrationOptions
   bool operator ==(Object other) {
     return other is TextDocumentChangeRegistrationOptions &&
         other.runtimeType == TextDocumentChangeRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         syncKind == other.syncKind;
   }
 
@@ -29816,12 +29653,7 @@ class TextDocumentEdit implements ToJsonable {
   bool operator ==(Object other) {
     return other is TextDocumentEdit &&
         other.runtimeType == TextDocumentEdit &&
-        listEqual(
-            edits,
-            other.edits,
-            (Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> a,
-                    Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> b) =>
-                a == b) &&
+        const DeepCollectionEquality().equals(edits, other.edits) &&
         textDocument == other.textDocument;
   }
 
@@ -30502,11 +30334,8 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   bool operator ==(Object other) {
     return other is TextDocumentRegistrationOptions &&
         other.runtimeType == TextDocumentRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b);
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector);
   }
 
   @override
@@ -30615,11 +30444,8 @@ class TextDocumentSaveRegistrationOptions
   bool operator ==(Object other) {
     return other is TextDocumentSaveRegistrationOptions &&
         other.runtimeType == TextDocumentSaveRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         includeText == other.includeText;
   }
 
@@ -31365,11 +31191,8 @@ class TypeDefinitionRegistrationOptions
   bool operator ==(Object other) {
     return other is TypeDefinitionRegistrationOptions &&
         other.runtimeType == TypeDefinitionRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -31591,7 +31414,7 @@ class TypeHierarchyItem implements ToJsonable {
         name == other.name &&
         range == other.range &&
         selectionRange == other.selectionRange &&
-        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b) &&
+        const DeepCollectionEquality().equals(tags, other.tags) &&
         uri == other.uri;
   }
 
@@ -31846,11 +31669,8 @@ class TypeHierarchyRegistrationOptions
   bool operator ==(Object other) {
     return other is TypeHierarchyRegistrationOptions &&
         other.runtimeType == TypeHierarchyRegistrationOptions &&
-        listEqual(
-            documentSelector,
-            other.documentSelector,
-            (TextDocumentFilterWithScheme a, TextDocumentFilterWithScheme b) =>
-                a == b) &&
+        const DeepCollectionEquality()
+            .equals(documentSelector, other.documentSelector) &&
         id == other.id &&
         workDoneProgress == other.workDoneProgress;
   }
@@ -32291,8 +32111,8 @@ class UnregistrationParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is UnregistrationParams &&
         other.runtimeType == UnregistrationParams &&
-        listEqual(unregisterations, other.unregisterations,
-            (Unregistration a, Unregistration b) => a == b);
+        const DeepCollectionEquality()
+            .equals(unregisterations, other.unregisterations);
   }
 
   @override
@@ -33809,8 +33629,8 @@ class WorkspaceDiagnosticParams
         other.runtimeType == WorkspaceDiagnosticParams &&
         identifier == other.identifier &&
         partialResultToken == other.partialResultToken &&
-        listEqual(previousResultIds, other.previousResultIds,
-            (PreviousResultId a, PreviousResultId b) => a == b) &&
+        const DeepCollectionEquality()
+            .equals(previousResultIds, other.previousResultIds) &&
         workDoneToken == other.workDoneToken;
   }
 
@@ -33874,12 +33694,7 @@ class WorkspaceDiagnosticReport implements ToJsonable {
   bool operator ==(Object other) {
     return other is WorkspaceDiagnosticReport &&
         other.runtimeType == WorkspaceDiagnosticReport &&
-        listEqual(
-            items,
-            other.items,
-            (WorkspaceDocumentDiagnosticReport a,
-                    WorkspaceDocumentDiagnosticReport b) =>
-                a == b);
+        const DeepCollectionEquality().equals(items, other.items);
   }
 
   @override
@@ -33939,12 +33754,7 @@ class WorkspaceDiagnosticReportPartialResult implements ToJsonable {
   bool operator ==(Object other) {
     return other is WorkspaceDiagnosticReportPartialResult &&
         other.runtimeType == WorkspaceDiagnosticReportPartialResult &&
-        listEqual(
-            items,
-            other.items,
-            (WorkspaceDocumentDiagnosticReport a,
-                    WorkspaceDocumentDiagnosticReport b) =>
-                a == b);
+        const DeepCollectionEquality().equals(items, other.items);
   }
 
   @override
@@ -34073,21 +33883,11 @@ class WorkspaceEdit implements ToJsonable {
   bool operator ==(Object other) {
     return other is WorkspaceEdit &&
         other.runtimeType == WorkspaceEdit &&
-        mapEqual(changeAnnotations, other.changeAnnotations,
-            (ChangeAnnotation a, ChangeAnnotation b) => a == b) &&
-        mapEqual(
-            changes,
-            other.changes,
-            (List<TextEdit> a, List<TextEdit> b) =>
-                listEqual(a, b, (TextEdit a, TextEdit b) => a == b)) &&
-        listEqual(
-            documentChanges,
-            other.documentChanges,
-            (Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit> a,
-                    Either4<CreateFile, DeleteFile, RenameFile,
-                            TextDocumentEdit>
-                        b) =>
-                a == b);
+        const DeepCollectionEquality()
+            .equals(changeAnnotations, other.changeAnnotations) &&
+        const DeepCollectionEquality().equals(changes, other.changes) &&
+        const DeepCollectionEquality()
+            .equals(documentChanges, other.documentChanges);
   }
 
   @override
@@ -34228,8 +34028,8 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
         documentChanges == other.documentChanges &&
         failureHandling == other.failureHandling &&
         normalizesLineEndings == other.normalizesLineEndings &&
-        listEqual(resourceOperations, other.resourceOperations,
-            (ResourceOperationKind a, ResourceOperationKind b) => a == b);
+        const DeepCollectionEquality()
+            .equals(resourceOperations, other.resourceOperations);
   }
 
   @override
@@ -34431,10 +34231,8 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   bool operator ==(Object other) {
     return other is WorkspaceFoldersChangeEvent &&
         other.runtimeType == WorkspaceFoldersChangeEvent &&
-        listEqual(added, other.added,
-            (WorkspaceFolder a, WorkspaceFolder b) => a == b) &&
-        listEqual(removed, other.removed,
-            (WorkspaceFolder a, WorkspaceFolder b) => a == b);
+        const DeepCollectionEquality().equals(added, other.added) &&
+        const DeepCollectionEquality().equals(removed, other.removed);
   }
 
   @override
@@ -34635,7 +34433,7 @@ class WorkspaceFullDocumentDiagnosticReport
   bool operator ==(Object other) {
     return other is WorkspaceFullDocumentDiagnosticReport &&
         other.runtimeType == WorkspaceFullDocumentDiagnosticReport &&
-        listEqual(items, other.items, (Diagnostic a, Diagnostic b) => a == b) &&
+        const DeepCollectionEquality().equals(items, other.items) &&
         kind == other.kind &&
         resultId == other.resultId &&
         uri == other.uri &&
@@ -34784,7 +34582,7 @@ class WorkspaceSymbol implements BaseSymbolInformation, ToJsonable {
         kind == other.kind &&
         location == other.location &&
         name == other.name &&
-        listEqual(tags, other.tags, (SymbolTag a, SymbolTag b) => a == b);
+        const DeepCollectionEquality().equals(tags, other.tags);
   }
 
   @override
@@ -34970,7 +34768,7 @@ class WorkspaceSymbolClientCapabilitiesResolveSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is WorkspaceSymbolClientCapabilitiesResolveSupport &&
         other.runtimeType == WorkspaceSymbolClientCapabilitiesResolveSupport &&
-        listEqual(properties, other.properties, (String a, String b) => a == b);
+        const DeepCollectionEquality().equals(properties, other.properties);
   }
 
   @override
@@ -35032,8 +34830,7 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   bool operator ==(Object other) {
     return other is WorkspaceSymbolClientCapabilitiesSymbolKind &&
         other.runtimeType == WorkspaceSymbolClientCapabilitiesSymbolKind &&
-        listEqual(
-            valueSet, other.valueSet, (SymbolKind a, SymbolKind b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
@@ -35088,8 +34885,7 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
   bool operator ==(Object other) {
     return other is WorkspaceSymbolClientCapabilitiesTagSupport &&
         other.runtimeType == WorkspaceSymbolClientCapabilitiesTagSupport &&
-        listEqual(
-            valueSet, other.valueSet, (SymbolTag a, SymbolTag b) => a == b);
+        const DeepCollectionEquality().equals(valueSet, other.valueSet);
   }
 
   @override
