@@ -912,7 +912,8 @@ final class FileSystemCreateEvent extends FileSystemEvent {
   FileSystemCreateEvent(String path, bool isDirectory)
       : super._(FileSystemEvent.create, path, isDirectory);
 
-  String toString() => "FileSystemCreateEvent('$path')";
+  String toString() =>
+      "FileSystemCreateEvent('$path', isDirectory=$isDirectory)";
 }
 
 /// File system event for modifications of file system objects.
@@ -926,7 +927,8 @@ final class FileSystemModifyEvent extends FileSystemEvent {
       : super._(FileSystemEvent.modify, path, isDirectory);
 
   String toString() =>
-      "FileSystemModifyEvent('$path', contentChanged=$contentChanged)";
+      "FileSystemModifyEvent('$path', isDirectory=$isDirectory, "
+      "contentChanged=$contentChanged)";
 }
 
 /// File system event for deletion of file system objects.
@@ -935,7 +937,8 @@ final class FileSystemDeleteEvent extends FileSystemEvent {
   FileSystemDeleteEvent(String path, bool isDirectory)
       : super._(FileSystemEvent.delete, path, isDirectory);
 
-  String toString() => "FileSystemDeleteEvent('$path')";
+  String toString() =>
+      "FileSystemDeleteEvent('$path', isDirectory=$isDirectory)";
 }
 
 /// File system event for moving of file system objects.
@@ -952,13 +955,8 @@ final class FileSystemMoveEvent extends FileSystemEvent {
   FileSystemMoveEvent(String path, bool isDirectory, this.destination)
       : super._(FileSystemEvent.move, path, isDirectory);
 
-  String toString() {
-    var buffer = new StringBuffer();
-    buffer.write("FileSystemMoveEvent('$path'");
-    if (destination != null) buffer.write(", '$destination'");
-    buffer.write(')');
-    return buffer.toString();
-  }
+  String toString() => "FileSystemMoveEvent('$path', "
+      "isDirectory=$isDirectory, destination=$destination)";
 }
 
 abstract class _FileSystemWatcher {
