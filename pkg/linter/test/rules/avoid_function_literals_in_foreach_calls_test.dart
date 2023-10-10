@@ -151,12 +151,12 @@ class AvoidFunctionLiteralsInForeachCallsPreNNBDTest extends LintRuleTest {
   String get lintRule => 'avoid_function_literals_in_foreach_calls';
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     noSoundNullSafety = false;
   }
 
-  tearDown() {
+  void tearDown() {
     noSoundNullSafety = true;
   }
 

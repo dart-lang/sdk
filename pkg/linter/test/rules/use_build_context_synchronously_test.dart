@@ -1645,12 +1645,12 @@ class UseBuildContextSynchronouslyMixedModeTest extends LintRuleTest {
   String get testPackageRootPath => '$workspaceRootPath/lib';
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     noSoundNullSafety = false;
   }
 
-  tearDown() {
+  void tearDown() {
     noSoundNullSafety = true;
   }
 
