@@ -35,11 +35,14 @@ namespace compiler {
 // WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
 // The caller should simply call LeaveFrame() and return.
 void StubCodeCompiler::EnsureIsNewOrRemembered() {
-  // If the object is not remembered we call a leaf-runtime to add it to the
-  // remembered set.
+  // If the object is not in an active TLAB, we call a leaf-runtime to add it to
+  // the remembered set and/or deferred marking worklist. This test assumes a
+  // Page's TLAB use is always ascending.
   Label done;
-  __ testl(EAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
-  __ BranchIf(NOT_ZERO, &done);
+  __ AndImmediate(ECX, EAX, target::kPageMask);
+  __ LoadFromOffset(ECX, Address(ECX, target::Page::original_top_offset()));
+  __ CompareRegisters(EAX, ECX);
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
   {
     LeafRuntimeScope rt(assembler,
@@ -1414,15 +1417,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   __ j(ZERO, &skip_marking);
 
   {
-    // Atomically clear kOldAndNotMarkedBit.
+    // Atomically clear kNotMarkedBit.
     Label retry, done;
     __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
     __ Bind(&retry);
     __ movl(ECX, EAX);
-    __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ testl(ECX, Immediate(1 << target::UntaggedObject::kNotMarkedBit));
     __ j(ZERO, &done);  // Marked by another thread.
-    __ andl(ECX,
-            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+    __ andl(ECX, Immediate(~(1 << target::UntaggedObject::kNotMarkedBit)));
     // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
     // On failure, EAX is updated with the current value.
     __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);

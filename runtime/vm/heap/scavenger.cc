@@ -14,6 +14,7 @@
 #include "vm/flags.h"
 #include "vm/heap/become.h"
 #include "vm/heap/gc_shared.h"
+#include "vm/heap/marker.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/heap/safepoint.h"
@@ -114,14 +115,14 @@ static void objcpy(void* dst, const void* src, size_t size) {
 }
 
 DART_FORCE_INLINE
-static uword ReadHeaderRelaxed(ObjectPtr raw_obj) {
-  return reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
+static uword ReadHeaderRelaxed(ObjectPtr obj) {
+  return reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(obj))
       ->load(std::memory_order_relaxed);
 }
 
 DART_FORCE_INLINE
-static void WriteHeaderRelaxed(ObjectPtr raw_obj, uword header) {
-  reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
+static void WriteHeaderRelaxed(ObjectPtr obj, uword header) {
+  reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(obj))
       ->store(header, std::memory_order_relaxed);
 }
 
@@ -358,24 +359,17 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   DART_FORCE_INLINE
   void ScavengePointer(ObjectPtr* p) {
     // ScavengePointer cannot be called recursively.
-    ObjectPtr raw_obj = *p;
+    ObjectPtr obj = *p;
 
-    if (raw_obj->IsImmediateOrOldObject()) {
+    if (obj->IsImmediateOrOldObject()) {
       return;
     }
 
-    ObjectPtr new_obj = ScavengeObject(raw_obj);
+    ObjectPtr new_obj = ScavengeObject(obj);
 
     // Update the reference.
-    if (!new_obj->IsNewObject()) {
-      // Setting the mark bit above must not be ordered after a publishing store
-      // of this object. Note this could be a publishing store even if the
-      // object was promoted by an early invocation of ScavengePointer. Compare
-      // Object::Allocate.
-      reinterpret_cast<std::atomic<ObjectPtr>*>(p)->store(
-          static_cast<ObjectPtr>(new_obj), std::memory_order_release);
-    } else {
-      *p = new_obj;
+    *p = new_obj;
+    if (new_obj->IsNewObject()) {
       // Update the store buffer as needed.
       ObjectPtr visiting_object = visiting_old_object_;
       if (visiting_object != nullptr &&
@@ -388,25 +382,18 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   DART_FORCE_INLINE
   void ScavengeCompressedPointer(uword heap_base, CompressedObjectPtr* p) {
     // ScavengePointer cannot be called recursively.
-    ObjectPtr raw_obj = p->Decompress(heap_base);
+    ObjectPtr obj = p->Decompress(heap_base);
 
     // Could be tested without decompression.
-    if (raw_obj->IsImmediateOrOldObject()) {
+    if (obj->IsImmediateOrOldObject()) {
       return;
     }
 
-    ObjectPtr new_obj = ScavengeObject(raw_obj);
+    ObjectPtr new_obj = ScavengeObject(obj);
 
     // Update the reference.
-    if (!new_obj->IsNewObject()) {
-      // Setting the mark bit above must not be ordered after a publishing store
-      // of this object. Note this could be a publishing store even if the
-      // object was promoted by an early invocation of ScavengePointer. Compare
-      // Object::Allocate.
-      reinterpret_cast<std::atomic<CompressedObjectPtr>*>(p)->store(
-          static_cast<CompressedObjectPtr>(new_obj), std::memory_order_release);
-    } else {
-      *p = new_obj;
+    *p = new_obj;
+    if (new_obj->IsNewObject()) {
       // Update the store buffer as needed.
       ObjectPtr visiting_object = visiting_old_object_;
       if (visiting_object != nullptr &&
@@ -417,27 +404,27 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   DART_FORCE_INLINE
-  ObjectPtr ScavengeObject(ObjectPtr raw_obj) {
+  ObjectPtr ScavengeObject(ObjectPtr obj) {
     // Fragmentation might cause the scavenge to fail. Ensure we always have
     // somewhere to bail out to.
     ASSERT(thread_->long_jump_base() != nullptr);
 
-    uword raw_addr = UntaggedObject::ToAddr(raw_obj);
+    uword raw_addr = UntaggedObject::ToAddr(obj);
     // The scavenger is only expects objects located in the from space.
     ASSERT(from_->Contains(raw_addr));
     // Read the header word of the object and determine if the object has
     // already been copied.
-    uword header = ReadHeaderRelaxed(raw_obj);
+    uword header = ReadHeaderRelaxed(obj);
     ObjectPtr new_obj;
     if (IsForwarding(header)) {
       // Get the new location of the object.
       new_obj = ForwardedObj(header);
     } else {
-      intptr_t size = raw_obj->untag()->HeapSize(header);
+      intptr_t size = obj->untag()->HeapSize(header);
       ASSERT(IsAllocatableInNewSpace(size));
       uword new_addr = 0;
       // Check whether object should be promoted.
-      if (!Page::Of(raw_obj)->IsSurvivor(raw_addr)) {
+      if (!Page::Of(obj)->IsSurvivor(raw_addr)) {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
         new_addr = TryAllocateCopy(size);
@@ -446,12 +433,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object. (Or, unlikely, to-space was exhausted by fragmentation.)
         new_addr = page_space_->TryAllocatePromoLocked(freelist_, size);
-        if (LIKELY(new_addr != 0)) {
-          // If promotion succeeded then we need to remember it so that it can
-          // be traversed later.
-          promoted_list_.Push(UntaggedObject::FromAddr(new_addr));
-          bytes_promoted_ += size;
-        } else {
+        if (UNLIKELY(new_addr == 0)) {
           // Promotion did not succeed. Copy into the to space instead.
           scavenger_->failed_to_promote_ = true;
           new_addr = TryAllocateCopy(size);
@@ -471,19 +453,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       if (new_obj->IsOldObject()) {
         // Promoted: update age/barrier tags.
         uword tags = static_cast<uword>(header);
-        tags = UntaggedObject::OldBit::update(true, tags);
         tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
         tags = UntaggedObject::NewBit::update(false, tags);
-        // Setting the forwarding pointer below will make this tenured object
-        // visible to the concurrent marker, but we haven't visited its slots
-        // yet. We mark the object here to prevent the concurrent marker from
-        // adding it to the mark stack and visiting its unprocessed slots. We
-        // push it to the mark stack after forwarding its slots.
-        tags = UntaggedObject::OldAndNotMarkedBit::update(
-            !thread_->is_marking(), tags);
-        // release: Setting the mark bit above must not be ordered after a
-        // publishing store of this object. Compare Object::Allocate.
-        new_obj->untag()->tags_.store(tags, std::memory_order_release);
+        new_obj->untag()->tags_.store(tags, std::memory_order_relaxed);
       }
 
       intptr_t cid = UntaggedObject::ClassIdTag::decode(header);
@@ -493,7 +465,14 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 
       // Try to install forwarding address.
       uword forwarding_header = ForwardingHeader(new_obj);
-      if (!InstallForwardingPointer(raw_addr, &header, forwarding_header)) {
+      if (InstallForwardingPointer(raw_addr, &header, forwarding_header)) {
+        if (new_obj->IsOldObject()) {
+          // If promotion succeeded then we need to remember it so that it can
+          // be traversed later.
+          promoted_list_.Push(new_obj);
+          bytes_promoted_ += size;
+        }
+      } else {
         ASSERT(IsForwarding(header));
         if (new_obj->IsOldObject()) {
           // Abandon as a free list element.
@@ -611,11 +590,11 @@ typedef ScavengerVisitorBase<false> SerialScavengerVisitor;
 typedef ScavengerVisitorBase<true> ParallelScavengerVisitor;
 
 static bool IsUnreachable(ObjectPtr* ptr) {
-  ObjectPtr raw_obj = *ptr;
-  if (raw_obj->IsImmediateOrOldObject()) {
+  ObjectPtr obj = *ptr;
+  if (obj->IsImmediateOrOldObject()) {
     return false;
   }
-  uword raw_addr = UntaggedObject::ToAddr(raw_obj);
+  uword raw_addr = UntaggedObject::ToAddr(obj);
   uword header = *reinterpret_cast<uword*>(raw_addr);
   if (IsForwarding(header)) {
     *ptr = ForwardedObj(header);
@@ -798,14 +777,7 @@ static constexpr intptr_t kConservativeInitialScavengeSpeed = 40;
 Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
     : heap_(heap),
       max_semi_capacity_in_words_(max_semi_capacity_in_words),
-      scavenging_(false),
-      gc_time_micros_(0),
-      collections_(0),
-      scavenge_words_per_micro_(kConservativeInitialScavengeSpeed),
-      idle_scavenge_threshold_in_words_(0),
-      external_size_(0),
-      failed_to_promote_(false),
-      abort_(false) {
+      scavenge_words_per_micro_(kConservativeInitialScavengeSpeed) {
   ASSERT(heap != nullptr);
 
   // Verify assumptions about the first word in objects which the scavenger is
@@ -870,18 +842,18 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
 
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
-      ObjectPtr raw_obj = *ptr;
-      RELEASE_ASSERT_WITH_MSG(raw_obj->untag()->IsRemembered(), msg_);
-      RELEASE_ASSERT_WITH_MSG(raw_obj->IsOldObject(), msg_);
+      ObjectPtr obj = *ptr;
+      RELEASE_ASSERT_WITH_MSG(obj->untag()->IsRemembered(), msg_);
+      RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
-      RELEASE_ASSERT_WITH_MSG(!raw_obj->untag()->IsCardRemembered(), msg_);
-      if (raw_obj.GetClassId() == kArrayCid) {
+      RELEASE_ASSERT_WITH_MSG(!obj->untag()->IsCardRemembered(), msg_);
+      if (obj.GetClassId() == kArrayCid) {
         const uword length =
-            Smi::Value(static_cast<UntaggedArray*>(raw_obj.untag())->length());
+            Smi::Value(static_cast<UntaggedArray*>(obj.untag())->length());
         RELEASE_ASSERT_WITH_MSG(!Array::UseCardMarkingForAllocation(length),
                                 msg_);
       }
-      in_store_buffer_->Add(raw_obj);
+      in_store_buffer_->Add(obj);
     }
   }
 
@@ -910,28 +882,27 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
         to_(to),
         msg_(msg) {}
 
-  void VisitObject(ObjectPtr raw_obj) override {
-    if (raw_obj->IsPseudoObject()) return;
-    RELEASE_ASSERT_WITH_MSG(raw_obj->IsOldObject(), msg_);
+  void VisitObject(ObjectPtr obj) override {
+    if (obj->IsPseudoObject()) return;
+    RELEASE_ASSERT_WITH_MSG(obj->IsOldObject(), msg_);
 
     RELEASE_ASSERT_WITH_MSG(
-        raw_obj->untag()->IsRemembered() == in_store_buffer_->Contains(raw_obj),
-        msg_);
+        obj->untag()->IsRemembered() == in_store_buffer_->Contains(obj), msg_);
 
-    visiting_ = raw_obj;
-    is_remembered_ = raw_obj->untag()->IsRemembered();
-    is_card_remembered_ = raw_obj->untag()->IsCardRemembered();
+    visiting_ = obj;
+    is_remembered_ = obj->untag()->IsRemembered();
+    is_card_remembered_ = obj->untag()->IsCardRemembered();
     if (is_card_remembered_) {
       RELEASE_ASSERT_WITH_MSG(!is_remembered_, msg_);
-      RELEASE_ASSERT_WITH_MSG(Page::Of(raw_obj)->progress_bar_ == 0, msg_);
+      RELEASE_ASSERT_WITH_MSG(Page::Of(obj)->progress_bar_ == 0, msg_);
     }
-    raw_obj->untag()->VisitPointers(this);
+    obj->untag()->VisitPointers(this);
   }
 
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
-      ObjectPtr raw_obj = *ptr;
-      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
+      ObjectPtr obj = *ptr;
+      if (obj->IsHeapObject() && obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
             FATAL(
@@ -940,8 +911,8 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 "slot's card is not remembered. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                msg_, static_cast<uword>(visiting_),
-                static_cast<uword>(raw_obj), ptr);
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
           }
         } else if (!is_remembered_) {
           FATAL("%s: Old object %#" Px " references new object %#" Px
@@ -949,10 +920,10 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 "not in any store buffer. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                msg_, static_cast<uword>(visiting_),
-                static_cast<uword>(raw_obj), ptr);
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
         }
-        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(raw_obj)),
+        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(obj)),
                                 msg_);
       }
     }
@@ -963,8 +934,8 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                                CompressedObjectPtr* from,
                                CompressedObjectPtr* to) override {
     for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++) {
-      ObjectPtr raw_obj = ptr->Decompress(heap_base);
-      if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
+      ObjectPtr obj = ptr->Decompress(heap_base);
+      if (obj->IsHeapObject() && obj->IsNewObject()) {
         if (is_card_remembered_) {
           if (!Page::Of(visiting_)->IsCardRemembered(ptr)) {
             FATAL(
@@ -973,8 +944,8 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 "slot's card is not remembered. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                msg_, static_cast<uword>(visiting_),
-                static_cast<uword>(raw_obj), ptr);
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
           }
         } else if (!is_remembered_) {
           FATAL("%s: Old object %#" Px " references new object %#" Px
@@ -982,10 +953,10 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
                 "not in any store buffer. Consider using rr to watch the "
                 "slot %p and reverse-continue to find the store with a missing "
                 "barrier.\n",
-                msg_, static_cast<uword>(visiting_),
-                static_cast<uword>(raw_obj), ptr);
+                msg_, static_cast<uword>(visiting_), static_cast<uword>(obj),
+                ptr);
         }
-        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(raw_obj)),
+        RELEASE_ASSERT_WITH_MSG(to_->Contains(UntaggedObject::ToAddr(obj)),
                                 msg_);
       }
     }
@@ -1025,6 +996,7 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Prologue");
 
   heap_->isolate_group()->ReleaseStoreBuffers();
+  heap_->isolate_group()->FlushMarkingStacks();
 
   if (FLAG_verify_store_buffer) {
     heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
@@ -1033,7 +1005,13 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
 
   // Need to stash the old remembered set before any worker begins adding to the
   // new remembered set.
-  blocks_ = heap_->isolate_group()->store_buffer()->TakeBlocks();
+  blocks_ = heap_->isolate_group()->store_buffer()->PopAll();
+  GCMarker* marker = heap_->old_space()->marker();
+  if (marker != nullptr) {
+    mark_blocks_ = marker->marking_stack_.PopAll();
+    new_blocks_ = marker->new_marking_stack_.PopAll();
+    deferred_blocks_ = marker->deferred_marking_stack_.PopAll();
+  }
 
   UpdateMaxHeapCapacity();
 
@@ -1140,23 +1118,12 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
   NoSafepointScope no_safepoint;
 
   // TODO(rmacnak): Investigate collecting a history of idle period durations.
-  intptr_t used_in_words = UsedInWords();
+  intptr_t used_in_words = UsedInWords() + freed_in_words_;
   intptr_t external_in_words = ExternalInWords();
   // Normal reason: new space is getting full.
   bool for_new_space = (used_in_words >= idle_scavenge_threshold_in_words_) ||
                        (external_in_words >= idle_scavenge_threshold_in_words_);
-  // New-space objects are roots during old-space GC. This means that even
-  // unreachable new-space objects prevent old-space objects they reference
-  // from being collected during an old-space GC. Normally this is not an
-  // issue because new-space GCs run much more frequently than old-space GCs.
-  // If new-space allocation is low and direct old-space allocation is high,
-  // which can happen in a program that allocates large objects and little
-  // else, old-space can fill up with unreachable objects until the next
-  // new-space GC. This check is the idle equivalent to the
-  // new-space GC before synchronous-marking in CollectMostGarbage.
-  bool for_old_space = heap_->last_gc_was_old_space_ &&
-                       heap_->old_space()->ReachedIdleThreshold();
-  if (!for_new_space && !for_old_space) {
+  if (!for_new_space) {
     return false;
   }
 
@@ -1188,7 +1155,7 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
       ObjectPtr obj = pending->Pop();
       ASSERT(!obj->IsForwardingCorpse());
       ASSERT(obj->untag()->IsRemembered());
-      obj->untag()->ClearRememberedBit();
+      obj->untag()->ClearRememberedBitUnsynchronized();
       visitor->VisitingOldObject(obj);
       visitor->ProcessObject(obj);
     }
@@ -1252,6 +1219,7 @@ enum WeakSlices {
   kWeakTables,
   kProgressBars,
   kRememberLiveTemporaries,
+  kPruneWeak,
   kNumWeakSlices,
 };
 
@@ -1276,9 +1244,22 @@ void Scavenger::IterateWeak() {
         // Restore write-barrier assumptions.
         heap_->isolate_group()->RememberLiveTemporaries();
         break;
+      case kPruneWeak: {
+        GCMarker* marker = heap_->old_space()->marker();
+        if (marker != nullptr) {
+          marker->PruneWeak(this);
+        }
+      } break;
       default:
         UNREACHABLE();
     }
+  }
+
+  GCMarker* marker = heap_->old_space()->marker();
+  if (marker != nullptr) {
+    Prune(&mark_blocks_, &marker->marking_stack_);
+    Prune(&new_blocks_, &marker->marking_stack_);
+    Prune(&deferred_blocks_, &marker->deferred_marking_stack_);
   }
 }
 
@@ -1295,8 +1276,8 @@ void ScavengerVisitorBase<parallel>::ProcessToSpace() {
   while (scan_ != nullptr) {
     uword resolved_top = scan_->resolved_top_;
     while (resolved_top < scan_->top_) {
-      ObjectPtr raw_obj = UntaggedObject::FromAddr(resolved_top);
-      resolved_top += ProcessObject(raw_obj);
+      ObjectPtr obj = UntaggedObject::FromAddr(resolved_top);
+      resolved_top += ProcessObject(obj);
     }
     scan_->resolved_top_ = resolved_top;
 
@@ -1315,12 +1296,8 @@ void ScavengerVisitorBase<parallel>::ProcessPromotedList() {
   while (promoted_list_.Pop(&obj)) {
     VisitingOldObject(obj);
     ProcessObject(obj);
-    if (obj->untag()->IsMarked()) {
-      // Complete our promise from ScavengePointer. Note that marker cannot
-      // visit this object until it pops a block from the mark stack, which
-      // involves a memory fence from the mutex, so even on architectures
-      // with a relaxed memory model, the marker will see the fully
-      // forwarded contents of this object.
+    // Black allocation.
+    if (thread_->is_marking() && obj->untag()->TryAcquireMarkBit()) {
       thread_->MarkingStackAddObject(obj);
     }
   }
@@ -1431,16 +1408,16 @@ void Scavenger::MournWeakTables() {
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAtExclusive(i)) {
-        ObjectPtr raw_obj = table->ObjectAtExclusive(i);
-        ASSERT(raw_obj->IsHeapObject());
-        uword raw_addr = UntaggedObject::ToAddr(raw_obj);
+        ObjectPtr obj = table->ObjectAtExclusive(i);
+        ASSERT(obj->IsHeapObject());
+        uword raw_addr = UntaggedObject::ToAddr(obj);
         uword header = *reinterpret_cast<uword*>(raw_addr);
         if (IsForwarding(header)) {
           // The object has survived.  Preserve its record.
-          raw_obj = ForwardedObj(header);
+          obj = ForwardedObj(header);
           auto replacement =
-              raw_obj->IsNewObject() ? replacement_new : replacement_old;
-          replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
+              obj->IsNewObject() ? replacement_new : replacement_old;
+          replacement->SetValueExclusive(obj, table->ValueAtExclusive(i));
         } else {
           // The object has been collected.
           if (cleanup != nullptr) {
@@ -1487,6 +1464,117 @@ void Scavenger::MournWeakTables() {
         }
       },
       /*at_safepoint=*/true);
+}
+
+void Scavenger::Forward(MarkingStack* marking_stack) {
+  ASSERT(abort_);
+
+  class ReverseMarkStack : public ObjectPointerVisitor {
+   public:
+    explicit ReverseMarkStack(IsolateGroup* group)
+        : ObjectPointerVisitor(group) {}
+
+    void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
+      for (ObjectPtr* p = first; p <= last; p++) {
+        ObjectPtr obj = *p;
+#if defined(DEBUG)
+        if (obj->IsNewObject()) {
+          uword header = ReadHeaderRelaxed(obj);
+          ASSERT(!IsForwarding(header));
+        }
+#endif
+        if (obj->IsForwardingCorpse()) {
+          // Promoted object was pushed to mark list but reversed.
+          *p = reinterpret_cast<ForwardingCorpse*>(UntaggedObject::ToAddr(obj))
+                   ->target();
+        }
+      }
+    }
+#if defined(DART_COMPRESSED_POINTERS)
+    void VisitCompressedPointers(uword heap_base,
+                                 CompressedObjectPtr* first,
+                                 CompressedObjectPtr* last) override {
+      UNREACHABLE();
+    }
+#endif
+  };
+
+  ReverseMarkStack visitor(heap_->isolate_group());
+  marking_stack->VisitObjectPointers(&visitor);
+}
+
+void Scavenger::Prune(MarkingStackBlock** source, MarkingStack* marking_stack) {
+  ASSERT(!abort_);
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "PruneMarkingStack");
+  MarkingStackBlock* reading;
+  MarkingStackBlock* writing = marking_stack->PopNonFullBlock();
+  for (;;) {
+    {
+      MutexLocker ml(&space_lock_);
+      reading = *source;
+      if (reading == nullptr) break;
+      *source = reading->next();
+    }
+    // Generated code appends to marking stacks; tell MemorySanitizer.
+    MSAN_UNPOISON(reading, sizeof(*reading));
+    while (!reading->IsEmpty()) {
+      ObjectPtr obj = reading->Pop();
+      ASSERT(obj->IsHeapObject());
+      if (obj->IsNewObject()) {
+        uword header = ReadHeaderRelaxed(obj);
+        if (!IsForwarding(header)) continue;
+        obj = ForwardedObj(header);
+      }
+      ASSERT(!obj->IsForwardingCorpse());
+      ASSERT(!obj->IsFreeListElement());
+      writing->Push(obj);
+      if (writing->IsFull()) {
+        marking_stack->PushBlock(writing);
+        writing = marking_stack->PopNonFullBlock();
+      }
+    }
+    reading->Reset();
+    marking_stack->PushBlock(reading);
+  }
+  marking_stack->PushBlock(writing);
+}
+
+void Scavenger::PruneWeak(GCLinkedLists* deferred) {
+  ASSERT(!abort_);
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "PruneWeak");
+  PruneWeak(&deferred->weak_properties);
+  PruneWeak(&deferred->weak_references);
+  PruneWeak(&deferred->weak_arrays);
+  PruneWeak(&deferred->finalizer_entries);
+}
+
+template <typename Type, typename PtrType>
+void Scavenger::PruneWeak(GCLinkedList<Type, PtrType>* list) {
+  PtrType weak = list->Release();
+  while (weak != Object::null()) {
+    PtrType next;
+    if (weak->IsOldObject()) {
+      ASSERT(weak->GetClassId() == Type::kClassId);
+      next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
+      weak->untag()->next_seen_by_gc_ = Type::null();
+      list->Enqueue(weak);
+    } else {
+      uword header = ReadHeaderRelaxed(weak);
+      if (IsForwarding(header)) {
+        weak = static_cast<PtrType>(ForwardedObj(header));
+        ASSERT(weak->GetClassId() == Type::kClassId);
+        next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
+        weak->untag()->next_seen_by_gc_ = Type::null();
+        list->Enqueue(weak);
+      } else {
+        // Collected in this scavenge.
+        ASSERT(weak->GetClassId() == Type::kClassId);
+        next = weak->untag()->next_seen_by_gc_.Decompress(weak->heap_base());
+      }
+    }
+
+    weak = next;
+  }
 }
 
 // Returns whether the object referred to in `slot` was GCed this GC.
@@ -1607,6 +1695,9 @@ intptr_t Scavenger::AbandonRemainingTLAB(Thread* thread) {
   Page* page = Page::Of(thread->top() - 1);
   intptr_t allocated;
   {
+    if (thread->is_marking()) {
+      thread->DeferredMarkLiveTemporaries();
+    }
     MutexLocker ml(&space_lock_);
     allocated = page->Release(thread);
   }
@@ -1661,6 +1752,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   abort_ = false;
   root_slices_started_ = 0;
   weak_slices_started_ = 0;
+  freed_in_words_ = 0;
   intptr_t abandoned_bytes = 0;  // TODO(rmacnak): Count fragmentation?
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words = 0;
@@ -1684,18 +1776,6 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     ReverseScavenge(&from);
     bytes_promoted = 0;
   } else {
-    if (type == GCType::kEvacuate) {
-      if (heap_->stats_.state_ == Heap::kInitial ||
-          heap_->stats_.state_ == Heap::kFirstScavenge) {
-        heap_->stats_.state_ = Heap::kSecondScavenge;
-      }
-    } else {
-      if (heap_->stats_.state_ == Heap::kInitial) {
-        heap_->stats_.state_ = Heap::kFirstScavenge;
-      } else if (heap_->stats_.state_ == Heap::kFirstScavenge) {
-        heap_->stats_.state_ = Heap::kSecondScavenge;
-      }
-    }
     if ((ThresholdInWords() - UsedInWords()) < KBInWords) {
       // Don't scavenge again until the next old-space GC has occurred. Prevents
       // performing one scavenge per allocation as the heap limit is approached.
@@ -1795,12 +1875,9 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
         // Reset the ages bits in case this was a promotion.
         uword from_header = static_cast<uword>(to_header);
-        from_header = UntaggedObject::OldBit::update(false, from_header);
         from_header =
             UntaggedObject::OldAndNotRememberedBit::update(false, from_header);
         from_header = UntaggedObject::NewBit::update(true, from_header);
-        from_header =
-            UntaggedObject::OldAndNotMarkedBit::update(false, from_header);
 
         WriteHeaderRelaxed(from_obj, from_header);
 
@@ -1845,6 +1922,26 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   Become::FollowForwardingPointers(thread);
 
   heap_->old_space()->ResetProgressBars();
+
+  GCMarker* marker = heap_->old_space()->marker();
+  if (marker != nullptr) {
+    marker->marking_stack_.PushAll(mark_blocks_);
+    mark_blocks_ = nullptr;
+    marker->marking_stack_.PushAll(new_blocks_);
+    new_blocks_ = nullptr;
+    marker->deferred_marking_stack_.PushAll(deferred_blocks_);
+    deferred_blocks_ = nullptr;
+    // Not redundant with the flush at the beginning of the scavenge because
+    // the scavenge workers may add promoted objects to the mark stack.
+    heap_->isolate_group()->FlushMarkingStacks();
+
+    Forward(&marker->marking_stack_);
+    ASSERT(marker->new_marking_stack_.IsEmpty());
+    Forward(&marker->deferred_marking_stack_);
+  }
+
+  // Restore write-barrier assumptions. Must occur after mark list fixups.
+  heap_->isolate_group()->RememberLiveTemporaries();
 
   // Don't scavenge again until the next old-space GC has occurred. Prevents
   // performing one scavenge per allocation as the heap limit is approached.

@@ -37,11 +37,14 @@ namespace compiler {
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
 void StubCodeCompiler::EnsureIsNewOrRemembered() {
-  // If the object is not remembered we call a leaf-runtime to add it to the
-  // remembered set.
+  // If the object is not in an active TLAB, we call a leaf-runtime to add it to
+  // the remembered set and/or deferred marking worklist. This test assumes a
+  // Page's TLAB use is always ascending.
   Label done;
-  __ tst(R0, Operand(1 << target::ObjectAlignment::kNewObjectBitPosition));
-  __ BranchIf(NOT_ZERO, &done);
+  __ AndImmediate(TMP, R0, target::kPageMask);
+  __ LoadFromOffset(TMP, Address(TMP, target::Page::original_top_offset()));
+  __ CompareRegisters(R0, TMP);
+  __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
   {
     LeafRuntimeScope rt(assembler,
@@ -1680,16 +1683,16 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ b(&skip_marking, ZERO);
 
   {
-    // Atomically clear kOldAndNotMarkedBit.
+    // Atomically clear kNotMarkedBit.
     Label retry, done;
     __ PushList((1 << R2) | (1 << R3) | (1 << R4));  // Spill.
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (ldrex/strex do not support offsets).
     __ Bind(&retry);
     __ ldrex(R2, R3);
-    __ tst(R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ tst(R2, Operand(1 << target::UntaggedObject::kNotMarkedBit));
     __ b(&done, ZERO);  // Marked by another thread.
-    __ bic(R2, R2, Operand(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ bic(R2, R2, Operand(1 << target::UntaggedObject::kNotMarkedBit));
     __ strex(R4, R2, R3);
     __ cmp(R4, Operand(1));
     __ b(&retry, EQ);
@@ -1713,7 +1716,6 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ Bind(&done);
     __ clrex();
     __ PopList((1 << R2) | (1 << R3) | (1 << R4));  // Unspill.
-    __ Ret();
   }
 
   Label add_to_remembered_set, remember_card;
