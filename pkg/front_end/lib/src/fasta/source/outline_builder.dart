@@ -3622,7 +3622,7 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else if (name is Identifier) {
       push(libraryBuilder.addConstructorReference(
-          name, typeArguments, suffix?.name, name.qualifierOffset));
+          name.typeName, typeArguments, suffix?.name, name.qualifierOffset));
     } else {
       assert(name == null);
       // At the moment, the name of the type in a constructor reference can be
@@ -3630,11 +3630,14 @@ class OutlineBuilder extends StackListenerImpl {
       if (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
           TypeParameterScopeKind.enumDeclaration) {
         if (libraryFeatures.enhancedEnums.isEnabled) {
+          int constructorNameOffset = suffix?.nameOffset ?? charOffset;
           push(libraryBuilder.addConstructorReference(
-              libraryBuilder.currentTypeParameterScopeBuilder.name,
+              new SyntheticTypeName(
+                  libraryBuilder.currentTypeParameterScopeBuilder.name,
+                  constructorNameOffset),
               typeArguments,
               suffix?.name,
-              suffix?.nameOffset ?? charOffset));
+              constructorNameOffset));
         } else {
           // For entries that consist of their name only, all of the elements
           // of the constructor reference should be null.

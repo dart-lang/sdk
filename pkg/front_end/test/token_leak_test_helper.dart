@@ -4,6 +4,7 @@
 
 import 'dart:core';
 import 'dart:core' as core;
+import 'token_leak_test_helper.dart' as self;
 
 core.String field = '';
 
@@ -20,3 +21,12 @@ void method(@annotation core.String value) {
 }
 
 const annotation = const Object();
+
+class Class {
+  Class();
+  Class.named();
+  factory Class.fact1() = Class;
+  factory Class.fact2() = Class.named;
+  factory Class.fact3() = self.Class;
+  factory Class.fact4() = self.Class.named;
+}

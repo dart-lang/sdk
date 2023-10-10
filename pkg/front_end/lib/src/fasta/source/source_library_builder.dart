@@ -627,7 +627,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _languageVersion.isFinal = true;
   }
 
-  ConstructorReferenceBuilder addConstructorReference(Object name,
+  ConstructorReferenceBuilder addConstructorReference(TypeName name,
       List<TypeBuilder>? typeArguments, String? suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
         name, typeArguments, suffix, this, charOffset);
