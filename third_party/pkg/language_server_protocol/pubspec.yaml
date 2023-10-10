@@ -1,0 +1,16 @@
+name: language_server_protocol
+version: 0.0.0
+description: >-
+  A Dart implementation of the language server protocol.
+repository: https://github.com/dart-lang/sdk/tree/main/third_party/pkg/language_server_protocol
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  collection: 'any'
+
+dependency_overrides:
+  collection:
+    path: ../collection

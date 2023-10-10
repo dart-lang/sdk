@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/src/services/refactoring/agnostic/change_method_signature.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
     show ArgumentsTrailingComma;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:collection/collection.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart';
 
 /// The refactoring that move selected formal parameters one position left
 /// in the list of formal parameters.

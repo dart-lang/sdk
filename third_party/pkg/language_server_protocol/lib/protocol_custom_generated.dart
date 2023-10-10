@@ -1,6 +1,24 @@
-// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// MIT License
+//
+// Copyright (c) Microsoft Corporation.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE
 
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
@@ -9,10 +27,11 @@
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
+
+import 'package:collection/collection.dart';
+import 'package:language_server_protocol/json_parsing.dart';
+import 'package:language_server_protocol/protocol_special.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -321,8 +340,7 @@ class DartCompletionResolutionInfo
     return other is DartCompletionResolutionInfo &&
         other.runtimeType == DartCompletionResolutionInfo &&
         file == other.file &&
-        listEqual(
-            importUris, other.importUris, (String a, String b) => a == b) &&
+        const DeepCollectionEquality().equals(importUris, other.importUris) &&
         ref == other.ref;
   }
 
@@ -648,10 +666,8 @@ class FlutterOutline implements ToJsonable {
   bool operator ==(Object other) {
     return other is FlutterOutline &&
         other.runtimeType == FlutterOutline &&
-        listEqual(attributes, other.attributes,
-            (FlutterOutlineAttribute a, FlutterOutlineAttribute b) => a == b) &&
-        listEqual(children, other.children,
-            (FlutterOutline a, FlutterOutline b) => a == b) &&
+        const DeepCollectionEquality().equals(attributes, other.attributes) &&
+        const DeepCollectionEquality().equals(children, other.children) &&
         className == other.className &&
         codeRange == other.codeRange &&
         dartElement == other.dartElement &&
@@ -1142,7 +1158,7 @@ class Outline implements ToJsonable {
   bool operator ==(Object other) {
     return other is Outline &&
         other.runtimeType == Outline &&
-        listEqual(children, other.children, (Outline a, Outline b) => a == b) &&
+        const DeepCollectionEquality().equals(children, other.children) &&
         codeRange == other.codeRange &&
         element == other.element &&
         range == other.range;
@@ -1265,8 +1281,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   bool operator ==(Object other) {
     return other is PublishClosingLabelsParams &&
         other.runtimeType == PublishClosingLabelsParams &&
-        listEqual(
-            labels, other.labels, (ClosingLabel a, ClosingLabel b) => a == b) &&
+        const DeepCollectionEquality().equals(labels, other.labels) &&
         uri == other.uri;
   }
 
@@ -1818,11 +1833,7 @@ class SaveUriCommandParameter implements CommandParameter, ToJsonable {
         other.runtimeType == SaveUriCommandParameter &&
         actionLabel == other.actionLabel &&
         defaultValue == other.defaultValue &&
-        mapEqual(
-            filters,
-            other.filters,
-            (List<String> a, List<String> b) =>
-                listEqual(a, b, (String a, String b) => a == b)) &&
+        const DeepCollectionEquality().equals(filters, other.filters) &&
         kind == other.kind &&
         parameterLabel == other.parameterLabel &&
         parameterTitle == other.parameterTitle;
@@ -1980,7 +1991,7 @@ class TypeHierarchyAnchor implements ToJsonable {
   bool operator ==(Object other) {
     return other is TypeHierarchyAnchor &&
         other.runtimeType == TypeHierarchyAnchor &&
-        listEqual(path, other.path, (int a, int b) => a == b) &&
+        const DeepCollectionEquality().equals(path, other.path) &&
         ref == other.ref;
   }
 

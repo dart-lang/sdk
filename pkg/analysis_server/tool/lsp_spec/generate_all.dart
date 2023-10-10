@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -19,10 +20,7 @@ Future<void> main(List<String> arguments) async {
     return;
   }
 
-  final script = Platform.script.toFilePath();
-  // 3x parent = file -> lsp_spec -> tool -> analysis_server.
-  final packageFolder = File(script).parent.parent.parent.path;
-  final outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
+  final outFolder = path.join(languageServerProtocolPackagePath, 'lib');
   Directory(outFolder).createSync();
 
   // Collect definitions for types in the model and our custom extensions.
@@ -57,14 +55,27 @@ final argParser = ArgParser()
       help:
           'Download the latest version of the LSP spec before generating types');
 
-final String localLicensePath = path.join(
-    path.dirname(Platform.script.toFilePath()), 'lsp_meta_model.license.txt');
+final String languageServerProtocolPackagePath =
+    '$sdkRootPath/third_party/pkg/language_server_protocol';
 
-final String localSpecPath = path.join(
-    path.dirname(Platform.script.toFilePath()), 'lsp_meta_model.json');
+final String licenseComment = LineSplitter.split(
+        File(localLicensePath).readAsStringSync())
+    .skipWhile((line) =>
+        line !=
+        'Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart')
+    .skip(2)
+    .map((line) => line.isEmpty ? '//' : '// $line')
+    .join('\n');
+
+final String localLicensePath = '$languageServerProtocolPackagePath/LICENSE';
+final String localSpecPath =
+    '$languageServerProtocolPackagePath/lsp_meta_model.json';
+
+final String sdkRootPath =
+    File(Platform.script.toFilePath()).parent.parent.parent.parent.parent.path;
 
 final Uri specLicenseUri = Uri.parse(
-    'https://microsoft.github.io/language-server-protocol/License.txt');
+    'https://microsoft.github.io/language-server-protocol/License-code.txt');
 
 /// The URI of the version of the LSP meta model to generate from. This should
 /// be periodically updated to the latest version.
@@ -78,20 +89,22 @@ Future<void> downloadSpec() async {
   assert(specResp.statusCode == 200);
   assert(licenseResp.statusCode == 200);
 
+  final dartSdkLicense = await File('$sdkRootPath/LICENSE').readAsString();
   await File(localSpecPath).writeAsString(specResp.body);
-  await File(localLicensePath).writeAsString(
-    'This license is for the ${path.basename(localSpecPath)} file.\n\n'
-    '${path.basename(localLicensePath)} downloaded from: $specLicenseUri\n'
-    '${path.basename(localSpecPath)} downloaded from: $specUri\n'
-    '\n--\n\n'
-    '${licenseResp.body}',
-  );
+  await File(localLicensePath).writeAsString('''
+$dartSdkLicense
+
+------------------
+
+Files: lsp_meta_model.json
+Files: lib/protocol_custom_generated.dart, lib/protocol_generated.dart
+
+${licenseResp.body}
+''');
 }
 
 String generatedFileHeader(int year, {bool importCustom = false}) => '''
-// Copyright (c) $year, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+$licenseComment
 
 // This file has been automatically generated. Please do not edit it manually.
 // To regenerate the file, use the script
@@ -100,10 +113,11 @@ String generatedFileHeader(int year, {bool importCustom = false}) => '''
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
-import 'package:analysis_server/lsp_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
+
+import 'package:collection/collection.dart';
+import 'package:language_server_protocol/json_parsing.dart';
+import 'package:language_server_protocol/protocol_special.dart';
+import 'package:language_server_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 

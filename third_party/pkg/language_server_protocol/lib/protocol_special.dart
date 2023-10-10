@@ -4,11 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
-
-import 'protocol_custom_generated.dart';
+import 'package:collection/collection.dart';
+import 'package:language_server_protocol/json_parsing.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
 
 const jsonRpcVersion = '2.0';
 
@@ -25,27 +24,13 @@ ErrorOr<R> failure<R>(ErrorOr<dynamic> error) => ErrorOr<R>.error(error.error);
 /// Returns if two objects are equal, recursively checking items in
 /// Maps/Lists.
 bool lspEquals(dynamic obj1, dynamic obj2) {
-  if (obj1 is List && obj2 is List) {
-    return listEqual(obj1, obj2, lspEquals);
-  } else if (obj1 is Map && obj2 is Map) {
-    return mapEqual(obj1, obj2, lspEquals);
-  } else {
-    return obj1.runtimeType == obj2.runtimeType && obj1 == obj2;
-  }
+  return const DeepCollectionEquality().equals(obj1, obj2);
 }
 
 /// Returns an objects hash code, recursively combining hashes for items in
 /// Maps/Lists.
 int lspHashCode(dynamic obj) {
-  if (obj is List) {
-    return Object.hashAll(obj.map(lspHashCode));
-  } else if (obj is Map) {
-    return Object.hashAll(obj.entries
-        .expand((element) => [element.key, element.value])
-        .map(lspHashCode));
-  } else {
-    return obj.hashCode;
-  }
+  return const DeepCollectionEquality().hash(obj);
 }
 
 Object? specToJson(Object? obj) {

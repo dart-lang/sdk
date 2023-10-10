@@ -6,10 +6,10 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
+import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart' as test show expect;
 import 'package:test/test.dart' hide expect;
 
