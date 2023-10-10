@@ -297,11 +297,6 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
     }
 
-    // TODO(dart-engprod): Remove after replacing Cavium with GCE instances.
-    if (arch == Architecture.arm64 && system == System.linux) {
-      multiplier *= 4;
-    }
-
     if (_configuration.useQemu) {
       multiplier *= 2;
     }
