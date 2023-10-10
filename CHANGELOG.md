@@ -204,6 +204,14 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 - Support `--enable-experiment` command-line option to enable language
   experiments.
 
+#### Linter
+
+- Added the experimental [`annotate_redeclares`][] lint.
+- Marked the [`use_build_context_synchronously`][] lint as stable.
+
+[`annotate_redeclares`]: https://dart.dev/lints/annotate_redeclares
+[`use_build_context_synchronously`]: https://dart.dev/lints/use_build_context_synchronously
+
 #### Pub
 
 - New option `dart pub upgrade --tighten` which will update dependencies' lower

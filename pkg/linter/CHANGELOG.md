@@ -1,3 +1,10 @@
+# 3.3.0-wip
+
+# 3.2.0
+
+- new lint: `annotate_redeclares` (experimental)
+- stable: `use_build_context_synchronously`
+
 # 3.1.0
 
 - new lint: `no_self_assignments`

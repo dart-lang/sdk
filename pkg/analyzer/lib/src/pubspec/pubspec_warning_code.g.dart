@@ -110,6 +110,7 @@ class PubspecWarningCode extends ErrorCode {
     'MISSING_DEPENDENCY',
     "Missing a dependency on imported package '{0}'.",
     correctionMessage: "Try adding {0}.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
