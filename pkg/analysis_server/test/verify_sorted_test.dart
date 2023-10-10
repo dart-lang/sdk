@@ -65,8 +65,6 @@ void buildTestsForAnalysisServer() {
     'test/mock_packages',
     // TODO(brianwilkerson) Fix the generator to sort the generated files and
     //  remove these exclusions.
-    'lib/lsp_protocol/protocol_custom_generated.dart',
-    'lib/lsp_protocol/protocol_generated.dart',
     'lib/protocol/protocol_constants.dart',
     'lib/protocol/protocol_generated.dart',
     'lib/src/edit/nnbd_migration/resources/resources.g.dart',
@@ -74,9 +72,7 @@ void buildTestsForAnalysisServer() {
     'test/integration/support/protocol_matchers.dart',
     // The following are not generated, but can't be sorted because they contain
     // ignore comments in the directives, which sorting deletes.
-    'lib/src/edit/edit_domain.dart',
     'lib/src/services/kythe/schema.dart',
-    'test/services/completion/dart/test_all.dart',
   ];
 
   buildTests(
