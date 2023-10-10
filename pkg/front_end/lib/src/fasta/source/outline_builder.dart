@@ -1599,7 +1599,11 @@ class OutlineBuilder extends StackListenerImpl {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
         libraryBuilder.addPrimaryConstructorField(
-            metadata: formal.metadata,
+            // TODO(johnniwinther): Support annotations on annotations on fields
+            // defined through a primary constructor. This is not needed for
+            // extension types where the field is not part of the AST but will
+            // be needed when primary constructors are generally supported.
+            metadata: null,
             type: formal.type,
             name: formal.name,
             charOffset: formal.charOffset);
@@ -2184,8 +2188,6 @@ class OutlineBuilder extends StackListenerImpl {
               .addAll(unboundTypeVariables);
         }
         synthesizedFormals.add(new FormalParameterBuilder(
-            /* metadata = */
-            null,
             FormalParameterKind.requiredPositional,
             finalMask,
             thisType,
@@ -3620,7 +3622,7 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else if (name is Identifier) {
       push(libraryBuilder.addConstructorReference(
-          name, typeArguments, suffix?.name, name.qualifierOffset));
+          name.typeName, typeArguments, suffix?.name, name.qualifierOffset));
     } else {
       assert(name == null);
       // At the moment, the name of the type in a constructor reference can be
@@ -3628,11 +3630,14 @@ class OutlineBuilder extends StackListenerImpl {
       if (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
           TypeParameterScopeKind.enumDeclaration) {
         if (libraryFeatures.enhancedEnums.isEnabled) {
+          int constructorNameOffset = suffix?.nameOffset ?? charOffset;
           push(libraryBuilder.addConstructorReference(
-              libraryBuilder.currentTypeParameterScopeBuilder.name,
+              new SyntheticTypeName(
+                  libraryBuilder.currentTypeParameterScopeBuilder.name,
+                  constructorNameOffset),
               typeArguments,
               suffix?.name,
-              suffix?.nameOffset ?? charOffset));
+              constructorNameOffset));
         } else {
           // For entries that consist of their name only, all of the elements
           // of the constructor reference should be null.

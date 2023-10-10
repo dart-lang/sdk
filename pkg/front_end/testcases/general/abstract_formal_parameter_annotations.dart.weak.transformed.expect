@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  abstract method method(@#C1 core::int id) → dynamic;
+}
+static const field core::Object annotation = #C1;
+
+constants  {
+  #C1 = core::Object {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///abstract_formal_parameter_annotations.dart:
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

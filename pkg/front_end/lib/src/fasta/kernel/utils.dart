@@ -244,7 +244,7 @@ final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
-    new FormalParameterBuilder(null, FormalParameterKind.requiredPositional, 0,
+    new FormalParameterBuilder(FormalParameterKind.requiredPositional, 0,
         const ImplicitTypeBuilder(), '', null, -1,
         fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
 final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(

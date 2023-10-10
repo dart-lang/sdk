@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ExtensionType(core::int id) {
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static const field core::Object annotation = #C1;
+static inline-class-member method ExtensionType|constructor#(@#C1 core::int id) → self::ExtensionType /* = core::int */ {
+  lowered final self::ExtensionType /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int id) → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#(id);
+
+constants  {
+  #C1 = core::Object {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///primary_constructor_annotations.dart:
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

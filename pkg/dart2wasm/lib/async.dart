@@ -278,8 +278,8 @@ class _ExceptionHandlerStack {
 
       codeGen.b.catch_(codeGen.translator.exceptionTag);
 
-      final stackTraceLocal =
-          codeGen.addLocal(codeGen.translator.stackTraceInfo.nonNullableType);
+      final stackTraceLocal = codeGen
+          .addLocal(codeGen.translator.stackTraceInfo.repr.nonNullableType);
       codeGen.b.local_set(stackTraceLocal);
 
       final exceptionLocal =
@@ -573,8 +573,8 @@ class AsyncCodeGenerator extends CodeGenerator {
           asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
           translator.topInfo.nullableType, // Object?, await value
           translator.topInfo.nullableType, // Object?, error value
-          translator
-              .stackTraceInfo.nullableType // StackTrace?, error stack trace
+          translator.stackTraceInfo.repr
+              .nullableType // StackTrace?, error stack trace
         ], [
           // Inner function does not return a value, but it's Dart type is
           // `void Function(...)` and all Dart functions return a value, so we
@@ -647,7 +647,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.local_get(asyncStateLocal);
     b.ref_null(translator.topInfo.struct); // await value
     b.ref_null(translator.topInfo.struct); // error value
-    b.ref_null(translator.stackTraceInfo.struct); // stack trace
+    b.ref_null(translator.stackTraceInfo.repr.struct); // stack trace
     b.call(resumeFun);
     b.drop(); // drop null
 
@@ -783,7 +783,8 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     b.catch_(translator.exceptionTag);
 
-    final stackTraceLocal = addLocal(translator.stackTraceInfo.nonNullableType);
+    final stackTraceLocal =
+        addLocal(translator.stackTraceInfo.repr.nonNullableType);
     b.local_set(stackTraceLocal);
 
     final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
@@ -1291,7 +1292,8 @@ class AsyncCodeGenerator extends CodeGenerator {
     wrap(node.expression, translator.topInfo.nonNullableType);
     b.local_set(exceptionLocal);
 
-    final stackTraceLocal = addLocal(translator.stackTraceInfo.nonNullableType);
+    final stackTraceLocal =
+        addLocal(translator.stackTraceInfo.repr.nonNullableType);
     call(translator.stackTraceCurrent.reference);
     b.local_set(stackTraceLocal);
 

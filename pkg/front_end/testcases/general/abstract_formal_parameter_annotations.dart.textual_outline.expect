@@ -1,0 +1,5 @@
+const annotation = const Object();
+
+abstract class Class {
+  method(@annotation int id);
+}
