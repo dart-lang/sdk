@@ -39,6 +39,8 @@ Future<void> main() async {
       inputs: [
         Uri.base.resolve('pkg/front_end/test/token_leak_test_helper.dart'),
       ],
+      // TODO(johnniwinther): Enable sdk compilation.
+      compileSdk: false,
       kernelTargetCreator: (api.FileSystem fileSystem,
           bool includeComments,
           DillTarget dillTarget,
@@ -59,6 +61,8 @@ Future<void> main() async {
 class KernelTargetTester extends KernelTargetTest {
   final VmService serviceClient;
 
+  // TODO(johnniwinther): Can we programmatically find all subclasses of [Token]
+  //  instead?
   static const String className = 'StringTokenImpl';
 
   KernelTargetTester(
@@ -83,7 +87,6 @@ class KernelTargetTester extends KernelTargetTest {
 
     String isolateId = isolateRef.id!;
 
-    String className = 'StringTokenImpl';
     int foundInstances =
         await findAndPrintRetainingPaths(serviceClient, isolateId, className);
     if (foundInstances > 0) {
@@ -137,8 +140,8 @@ Future<int> findAndPrintRetainingPaths(
         "(instancesCurrent: ${member.instancesCurrent})");
     print("");
 
-    vmService.InstanceSet instances = await serviceClient.getInstances(
-        isolateId, member.classRef!.id!, 10000);
+    vmService.InstanceSet instances =
+        await serviceClient.getInstances(isolateId, member.classRef!.id!, 100);
     foundInstances += instances.instances!.length;
     print(" => Got ${instances.instances!.length} instances");
     print("");

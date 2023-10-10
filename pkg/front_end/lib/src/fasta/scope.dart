@@ -1719,7 +1719,7 @@ extension on Builder {
       return false;
     }
     for (MetadataBuilder metadataBuilder in metadata) {
-      if (metadataBuilder.beginToken.next?.lexeme == 'patch') {
+      if (metadataBuilder.hasPatch) {
         return true;
       }
     }
