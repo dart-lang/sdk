@@ -7,7 +7,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
-import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/move_file.dart';
 
 typedef StaticOptions = FileOperationRegistrationOptions?;
 
@@ -24,27 +24,29 @@ class WillRenameFilesHandler
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(RenameFilesParams params,
       MessageInfo message, CancellationToken token) async {
-    final files = params.files;
-    // Although we support folders, currently only a single item in the list
-    // is supported (eg. although you can rename a folder, you can't drag
-    // multiple files between folders).
-    if (files.length > 1) {
-      return success(null);
+    final pathMapping = <String, String>{};
+
+    for (final file in params.files) {
+      final oldPath = pathOfUri(Uri.tryParse(file.oldUri));
+
+      if (oldPath.isError) {
+        return failure(oldPath);
+      }
+
+      final newPath = pathOfUri(Uri.tryParse(file.newUri));
+      if (newPath.isError) {
+        return failure(newPath);
+      }
+
+      pathMapping[oldPath.result] = newPath.result;
     }
-
-    final file = files.single;
-    final oldPath = pathOfUri(Uri.tryParse(file.oldUri));
-    final newPath = pathOfUri(Uri.tryParse(file.newUri));
-
-    return oldPath.mapResult((oldPath) =>
-        newPath.mapResult((newPath) => _renameFile(oldPath, newPath, token)));
+    return _renameFiles(pathMapping, token);
   }
 
-  Future<ErrorOr<WorkspaceEdit?>> _renameFile(
-      String oldPath, String newPath, CancellationToken token) async {
-    final refactoring = MoveFileRefactoring(
-        server.resourceProvider, server.refactoringWorkspace, oldPath)
-      ..newFile = newPath
+  Future<ErrorOr<WorkspaceEdit?>> _renameFiles(
+      Map<String, String> renames, CancellationToken token) async {
+    final refactoring = MoveFileRefactoringImpl.multi(
+        server.resourceProvider, server.refactoringWorkspace, renames)
       ..cancellationToken = token;
 
     // If we're unable to update imports for a rename, we should silently do
