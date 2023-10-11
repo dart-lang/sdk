@@ -705,6 +705,20 @@ class C {
     ]);
   }
 
+  test_constructor_named_unreachable_inExtensionType() async {
+    await assertDiagnostics(r'''
+void main() {
+  E(7);
+}
+
+extension type E(int it) {
+  E.named(this.it);
+}
+''', [
+      lint(56, 5),
+    ]);
+  }
+
   test_constructor_named_unreachable_otherHasRedirectedConstructor() async {
     await assertDiagnostics(r'''
 void main() {
@@ -985,6 +999,27 @@ extension IntExtension on int {}
     ]);
   }
 
+  test_extensionType_reachable_referencedInTypeAnnotation_asExpression() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  1 as E;
+}
+
+extension type E(int it) {}
+''');
+  }
+
+  test_extensionType_reachable_referencedInTypeAnnotation_castPattern() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  var r = (1, );
+  var (s as E, ) = r;
+}
+
+extension type E(int it) {}
+''');
+  }
+
   test_mixin_reachable_implemented() async {
     await assertNoDiagnostics(r'''
 void main() {
@@ -1068,6 +1103,21 @@ extension E on int {
   static int f = 1;
 }
 ''');
+  }
+
+  test_staticFieldOnExtension_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  E(1).m();
+}
+
+extension E on int {
+  static int f = 1;
+  void m() {}
+}
+''', [
+      lint(63, 1),
+    ]);
   }
 
   test_staticFieldOnMixin_reachable() async {

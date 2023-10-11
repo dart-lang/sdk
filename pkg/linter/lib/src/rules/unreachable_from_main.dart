@@ -17,6 +17,13 @@ const _desc = 'Unreachable top-level members in executable libraries.';
 
 const _details = r'''
 Top-level members and static members in an executable library should be used
+'''
+// TODO(srawlins): Lasse
+// [suggests](https://github.com/dart-lang/linter/issues/3625#issuecomment-1735355630)
+// changing this to use "statically resolved" members, which I love. But it
+// will mean reporting additionally on extension instance members and extension
+// type instance members, so land carefully.
+    '''
 directly inside this library.  An executable library is a library that contains
 a `main` top-level function or that contains a top-level function annotated with
 `@pragma('vm:entry-point')`).  Executable libraries are not usually imported
@@ -102,6 +109,11 @@ class _DeclarationGatherer {
             members: declaration.members,
           );
         } else if (declaration is ExtensionDeclaration) {
+          _addMembers(
+            containerElement: null,
+            members: declaration.members,
+          );
+        } else if (declaration is ExtensionTypeDeclaration) {
           _addMembers(
             containerElement: null,
             members: declaration.members,
@@ -241,9 +253,9 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // If a constructor does not have an explicit super-initializer (or
-    // redirection?) then it has an implicit super-initializer to the
-    // super-type's unnamed constructor.
+    // If a constructor in a class declaration does not have an explicit
+    // super-initializer (or redirection?) then it has an implicit
+    // super-initializer to the super-type's unnamed constructor.
     var hasSuperInitializer =
         node.initializers.any((e) => e is SuperConstructorInvocation);
     if (!hasSuperInitializer) {
@@ -265,6 +277,13 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _addNamedTypes(node.implementsClause?.interfaces);
+
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     var element = node.element;
     if (element == null) {
@@ -274,14 +293,18 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
     var nodeIsInTypeArgument =
         node.thisOrAncestorOfType<TypeArgumentList>() != null;
 
-    // Any reference to a typedef is reachable, since structural typing is used
-    // to match against objects.
-    //
-    // The return type of an external variable declaration is reachable, since
-    // the external implementation can instantiate it.
-    if (node.type?.alias != null ||
-        nodeIsInTypeArgument ||
-        node.isInExternalVariableTypeOrFunctionReturnType) {
+    if (
+        // Any reference to a typedef marks it as reachable, since structural
+        // typing is used to match against objects.
+        node.type?.alias != null ||
+            // Any reference to an extension type marks it as reachable, since
+            // casting can be used to instantiate the type.
+            node.type?.element is ExtensionTypeElement ||
+            nodeIsInTypeArgument ||
+            // A reference to any type in an external variable declaration marks
+            // that type as reachable, since the external implementation can
+            // instantiate it.
+            node.isInExternalVariableTypeOrFunctionReturnType) {
       _addDeclaration(element);
     }
 
@@ -378,7 +401,8 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
       return;
     }
     if (enclosingElement is InterfaceElement ||
-        enclosingElement is ExtensionElement) {
+        enclosingElement is ExtensionElement ||
+        enclosingElement is ExtensionTypeElement) {
       var declarationElement = element.declaration;
       var declaration = declarationMap[declarationElement];
       if (declaration != null) {
