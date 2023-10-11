@@ -1,3 +1,9 @@
+## 13.0.0
+- Add Dart IO extension methods `isSocketProfilingAvailable`,
+`isHttpTimelineLoggingAvailable`, `isHttpProfilingAvailable`.
+- Remove deprecated Dart IO extension methods: `startSocketProfiling`
+`pauseSocketProfiling`, `getHttpEnableTimelineLogging`, `setHttpEnableTimelineLogging`.
+
 ## 12.0.1
 - Fix Java VM service version bug.
 
