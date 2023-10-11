@@ -4523,19 +4523,19 @@ class _WhyNotPromotedVisitor
     if (member is Member) {
       propertyReference = member;
       propertyType = reason.staticType;
-      Template<Message Function(String, String)> template;
-      switch (reason.whyNotPromotable) {
-        case PropertyNonPromotabilityReason.isNotEnabled:
-          template = templateFieldNotPromotedBecauseNotEnabled;
-        case PropertyNonPromotabilityReason.isNotField:
-          template = templateFieldNotPromotedBecauseNotField;
-        case PropertyNonPromotabilityReason.isNotPrivate:
-          template = templateFieldNotPromotedBecauseNotPrivate;
-        case PropertyNonPromotabilityReason.isExternal:
-          template = templateFieldNotPromotedBecauseExternal;
-        case PropertyNonPromotabilityReason.isNotFinal:
-          template = templateFieldNotPromotedBecauseNotFinal;
-      }
+      Template<Message Function(String, String)> template =
+          switch (reason.whyNotPromotable) {
+        PropertyNonPromotabilityReason.isNotEnabled =>
+          templateFieldNotPromotedBecauseNotEnabled,
+        PropertyNonPromotabilityReason.isNotField =>
+          templateFieldNotPromotedBecauseNotField,
+        PropertyNonPromotabilityReason.isNotPrivate =>
+          templateFieldNotPromotedBecauseNotPrivate,
+        PropertyNonPromotabilityReason.isExternal =>
+          templateFieldNotPromotedBecauseExternal,
+        PropertyNonPromotabilityReason.isNotFinal =>
+          templateFieldNotPromotedBecauseNotFinal
+      };
       return [
         template
             .withArguments(reason.propertyName, reason.documentationLink.url)

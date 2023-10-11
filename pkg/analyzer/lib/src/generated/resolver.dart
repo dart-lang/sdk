@@ -5437,29 +5437,23 @@ class _WhyNotPromotedVisitor
       var property = propertyReference = receiverElement;
       propertyType = reason.staticType;
       var propertyName = reason.propertyName;
-      String message;
-      switch (reason.whyNotPromotable) {
-        case PropertyNonPromotabilityReason.isNotEnabled:
-          message =
-              "'$propertyName' refers to a field. It couldn't be promoted "
+      String message = switch (reason.whyNotPromotable) {
+        PropertyNonPromotabilityReason.isNotEnabled =>
+          "'$propertyName' refers to a field. It couldn't be promoted "
               "because field promotion is only available in Dart 3.2 and "
-              "above.";
-        case PropertyNonPromotabilityReason.isNotField:
-          message =
-              "'$propertyName' refers to a getter so it couldn't be promoted.";
-        case PropertyNonPromotabilityReason.isNotPrivate:
-          message =
-              "'$propertyName' refers to a public field so it couldn't be "
-              "promoted.";
-        case PropertyNonPromotabilityReason.isExternal:
-          message =
-              "'$propertyName' refers to an external field so it couldn't be "
-              "promoted.";
-        case PropertyNonPromotabilityReason.isNotFinal:
-          message =
-              "'$propertyName' refers to a non-final field so it couldn't be "
-              "promoted.";
-      }
+              "above.",
+        PropertyNonPromotabilityReason.isNotField =>
+          "'$propertyName' refers to a getter so it couldn't be promoted.",
+        PropertyNonPromotabilityReason.isNotPrivate =>
+          "'$propertyName' refers to a public field so it couldn't be "
+              "promoted.",
+        PropertyNonPromotabilityReason.isExternal =>
+          "'$propertyName' refers to an external field so it couldn't be "
+              "promoted.",
+        PropertyNonPromotabilityReason.isNotFinal =>
+          "'$propertyName' refers to a non-final field so it couldn't be "
+              "promoted."
+      };
       return [
         DiagnosticMessageImpl(
             filePath: property.source.fullName,
