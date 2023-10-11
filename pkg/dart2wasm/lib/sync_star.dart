@@ -241,7 +241,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
         m.types.defineFunction([
           suspendStateInfo.nonNullableType,
           translator.topInfo.nullableType,
-          translator.stackTraceInfo.repr.nullableType
+          translator.stackTraceInfo.nullableType
         ], const [
           w.NumType.i32
         ]),

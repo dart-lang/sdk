@@ -1150,7 +1150,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // stack after each type test. Also, store the stack trace in a local.
     w.Local thrownException = addLocal(translator.topInfo.nonNullableType);
     w.Local thrownStackTrace =
-        addLocal(translator.stackTraceInfo.repr.nonNullableType);
+        addLocal(translator.stackTraceInfo.nonNullableType);
 
     void emitCatchBlock(Catch catch_, bool emitGuard) {
       // For each catch node:
@@ -1864,7 +1864,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       translator.types.makeType(this, typeArguments[elementIdx]);
     }, isGrowable: true);
     final typeArgsLocal = function.addLocal(
-        translator.classInfo[translator.growableListClass]!.nonNullableType);
+        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
     b.local_set(typeArgsLocal);
 
     // Evaluate positional arguments

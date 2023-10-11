@@ -173,13 +173,13 @@ class Translator with KernelNodes {
     w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
 
     // Type arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    classInfo[fixedLengthListClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    classInfo[fixedLengthListClass]!.nonNullableType,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[listBaseClass]!.nonNullableType,
+    classInfo[fixedLengthListClass]!.nonNullableType,
   ], [
     topInfo.nullableType
   ]);
@@ -191,13 +191,13 @@ class Translator with KernelNodes {
     topInfo.nonNullableType,
 
     // Type arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    classInfo[fixedLengthListClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    classInfo[fixedLengthListClass]!.nonNullableType,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[listBaseClass]!.nonNullableType,
+    classInfo[fixedLengthListClass]!.nonNullableType,
   ], [
     topInfo.nullableType
   ]);
@@ -465,8 +465,7 @@ class Translator with KernelNodes {
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
     w.FunctionType tagType = m.types.defineFunction(
-        [topInfo.nonNullableType, stackTraceInfo.repr.nonNullableType],
-        const []);
+        [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
     w.Tag tag = m.tags.define(tagType);
     return tag;
   }
