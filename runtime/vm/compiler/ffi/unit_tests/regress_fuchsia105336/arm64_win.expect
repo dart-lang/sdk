@@ -1,0 +1,9 @@
+r0 int64
+v0 double
+r1 int32
+v1 double
+r2 int32
+r3 int64
+r4 int64
+=>
+r0 void
