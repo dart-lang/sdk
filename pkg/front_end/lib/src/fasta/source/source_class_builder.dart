@@ -2159,12 +2159,13 @@ bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
 /// classes that are not valid Dart. For instance `JSInt` in
 /// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
 /// in `dart:js` that implement both `ListMixin` and `JsObject`.
-int? getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
-  String uri = '${classBuilder.libraryBuilder.importUri}';
-  if (uri == 'dart:js' && classBuilder.fileUri.pathSegments.last == 'js.dart') {
+int? getOverlookedOverrideProblemChoice(DeclarationBuilder declarationBuilder) {
+  String uri = '${declarationBuilder.libraryBuilder.importUri}';
+  if (uri == 'dart:js' &&
+      declarationBuilder.fileUri.pathSegments.last == 'js.dart') {
     return 0;
   } else if (uri == 'dart:_interceptors' &&
-      classBuilder.fileUri.pathSegments.last == 'js_number.dart') {
+      declarationBuilder.fileUri.pathSegments.last == 'js_number.dart') {
     return 1;
   }
   return null;

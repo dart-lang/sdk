@@ -2752,7 +2752,20 @@ severity: $severity
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
       delayedMemberChecks[i].getMember(membersBuilder);
-      changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
+      DeclarationBuilder declarationBuilder =
+          delayedMemberChecks[i].declarationBuilder;
+      switch (declarationBuilder) {
+        case ClassBuilder():
+          // TODO(johnniwinther): Only invalidate class if a member was added.
+          changedClasses.add(declarationBuilder.cls);
+        case ExtensionTypeDeclarationBuilder():
+          // TODO(johnniwinther): Should the member be added to the extension
+          //  type declaration?
+          break;
+        case ExtensionBuilder():
+          throw new UnsupportedError(
+              "Unexpected declaration ${declarationBuilder}.");
+      }
     }
     ticker.logMs(
         "Computed ${delayedMemberChecks.length} combined member signatures");
@@ -2876,9 +2889,11 @@ severity: $severity
     ticker.logMs("Built class hierarchy");
   }
 
-  void buildClassHierarchyMembers(List<SourceClassBuilder> sourceClasses) {
+  void buildClassHierarchyMembers(List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
     ClassMembersBuilder membersBuilder = _membersBuilder =
-        ClassMembersBuilder.build(hierarchyBuilder, sourceClasses);
+        ClassMembersBuilder.build(
+            hierarchyBuilder, sourceClasses, sourceExtensionTypes);
     typeInferenceEngine.membersBuilder = membersBuilder;
     ticker.logMs("Built class hierarchy members");
   }

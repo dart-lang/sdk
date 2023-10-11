@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/fasta/kernel/hierarchy/extension_type_members.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:front_end/src/fasta/kernel/hierarchy/class_member.dart';
@@ -100,7 +101,9 @@ class Tag {
   static const String stubTarget = 'stubTarget';
   static const String type = 'type';
   static const String covariance = 'covariance';
+  static const String extensionTypeBuilder = 'extensionTypeBuilder';
   static const String superExtensionTypes = 'superExtensionTypes';
+  static const String nonExtensionTypeMember = 'nonExtensionTypeMember';
 }
 
 class InheritanceDataExtractor extends CfeDataExtractor<Features> {
@@ -158,7 +161,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
           }
         }
       }
-      features[Tag.classBuilder] = classMember.classBuilder.name;
+      features[Tag.classBuilder] = classMember.declarationBuilder.name;
 
       Set<ClassMember>? declaredOverrides =
           data.declaredOverrides[data.aliasMap[classMember] ?? classMember];
@@ -280,6 +283,111 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
+  void computeForExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    super.computeForExtensionTypeDeclaration(node);
+    ExtensionTypeMembersNode extensionTypeMembersNode =
+        _classMembersBuilder.getNodeFromExtensionTypeDeclaration(node);
+    void addMember(ClassMember classMember,
+        {required bool isSetter, required bool isNonExtensionTypeMember}) {
+      Member member = classMember.getMember(_classMembersBuilder);
+      Member memberOrigin = member.memberSignatureOrigin ?? member;
+      if (memberOrigin.enclosingClass == _coreTypes.objectClass) {
+        return;
+      }
+      Features features = new Features();
+
+      String memberName = classMemberName(classMember);
+      MemberId id = new MemberId.internal(memberName, className: node.name);
+
+      TreeNode nodeWithOffset;
+      if (member.enclosingClass == node) {
+        nodeWithOffset = computeTreeNodeWithOffset(member)!;
+      } else {
+        nodeWithOffset = computeTreeNodeWithOffset(node)!;
+      }
+      if (classMember.isSourceDeclaration) {
+        features.add(Tag.isSourceDeclaration);
+      }
+      if (classMember.isSynthesized) {
+        features.add(Tag.isSynthesized);
+        if (member.enclosingClass != node) {
+          features[Tag.member] = memberQualifiedName(member);
+        }
+        if (classMember.hasDeclarations) {
+          for (ClassMember declaration in classMember.declarations) {
+            features.addElement(
+                Tag.declarations, classMemberQualifiedName(declaration));
+          }
+        }
+      }
+      if (isNonExtensionTypeMember) {
+        features.add(Tag.nonExtensionTypeMember);
+        features[Tag.classBuilder] = classMember.declarationBuilder.name;
+      } else {
+        features[Tag.extensionTypeBuilder] =
+            classMember.declarationBuilder.name;
+      }
+
+      if (member.enclosingClass == node && member is Procedure) {
+        switch (member.stubKind) {
+          case ProcedureStubKind.Regular:
+            // TODO: Handle this case.
+            break;
+          case ProcedureStubKind.AbstractForwardingStub:
+            features.add(Tag.abstractForwardingStub);
+            features[Tag.type] = procedureType(member);
+            features[Tag.covariance] =
+                classMember.getCovariance(_classMembersBuilder).toString();
+            break;
+          case ProcedureStubKind.ConcreteForwardingStub:
+            features.add(Tag.concreteForwardingStub);
+            features[Tag.type] = procedureType(member);
+            features[Tag.covariance] =
+                classMember.getCovariance(_classMembersBuilder).toString();
+            features[Tag.stubTarget] = memberQualifiedName(member.stubTarget!);
+            break;
+          case ProcedureStubKind.NoSuchMethodForwarder:
+            // TODO: Handle this case.
+            break;
+          case ProcedureStubKind.MemberSignature:
+            features.add(Tag.memberSignature);
+            features[Tag.type] = procedureType(member);
+            features[Tag.covariance] =
+                classMember.getCovariance(_classMembersBuilder).toString();
+            break;
+          case ProcedureStubKind.AbstractMixinStub:
+            features.add(Tag.abstractMixinStub);
+            break;
+          case ProcedureStubKind.ConcreteMixinStub:
+            features.add(Tag.concreteMixinStub);
+            features[Tag.stubTarget] = memberQualifiedName(member.stubTarget!);
+            break;
+        }
+      }
+
+      registerValue(nodeWithOffset.location!.file, nodeWithOffset.fileOffset,
+          id, features, member);
+    }
+
+    extensionTypeMembersNode.extensionTypeGetableMap
+        ?.forEach((Name name, ClassMember classMember) {
+      addMember(classMember, isSetter: false, isNonExtensionTypeMember: false);
+    });
+    extensionTypeMembersNode.extensionTypeSetableMap
+        ?.forEach((Name name, ClassMember classMember) {
+      addMember(classMember, isSetter: true, isNonExtensionTypeMember: false);
+    });
+    extensionTypeMembersNode.nonExtensionTypeGetableMap
+        ?.forEach((Name name, ClassMember classMember) {
+      addMember(classMember, isSetter: false, isNonExtensionTypeMember: true);
+    });
+    extensionTypeMembersNode.nonExtensionTypeSetableMap
+        ?.forEach((Name name, ClassMember classMember) {
+      addMember(classMember, isSetter: true, isNonExtensionTypeMember: true);
+    });
+  }
+
+  @override
   Features computeExtensionTypeDeclarationValue(
       Id id, ExtensionTypeDeclaration node) {
     Features features = new Features();
@@ -309,7 +417,8 @@ String classMemberName(ClassMember classMember) {
 }
 
 String classMemberQualifiedName(ClassMember classMember) {
-  return '${classMember.classBuilder.name}.${classMemberName(classMember)}';
+  return '${classMember.declarationBuilder.name}.'
+      '${classMemberName(classMember)}';
 }
 
 String memberName(Member member) {

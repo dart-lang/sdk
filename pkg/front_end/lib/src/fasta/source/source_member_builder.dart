@@ -169,6 +169,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   }
 
   /// The builder for the enclosing class or extension, if any.
+  @override
   DeclarationBuilder? get declarationBuilder =>
       parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
 

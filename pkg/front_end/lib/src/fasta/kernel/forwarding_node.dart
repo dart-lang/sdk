@@ -20,10 +20,12 @@ import 'combined_member_signature.dart';
 import 'kernel_target.dart';
 
 class ForwardingNode {
+  final SourceClassBuilder classBuilder;
+
   /// The combined member signature for all interface members implemented
   /// by the, possibly synthesized, member for which this [ForwardingNode] was
   /// created.
-  final CombinedClassMemberSignature _combinedMemberSignature;
+  final CombinedMemberSignatureBase _combinedMemberSignature;
 
   final ProcedureKind kind;
 
@@ -39,7 +41,7 @@ class ForwardingNode {
   /// [_superClassMember] is a valid implementation of the interface.
   final ClassMember? _noSuchMethodTarget;
 
-  ForwardingNode(this._combinedMemberSignature, this.kind,
+  ForwardingNode(this.classBuilder, this._combinedMemberSignature, this.kind,
       this._superClassMember, this._mixedInMember, this._noSuchMethodTarget);
 
   /// Finishes handling of this node by propagating covariance and creating
@@ -49,7 +51,6 @@ class ForwardingNode {
   /// If a new member is created, this is returned. Otherwise `null` is
   /// returned.
   Procedure? finalize() {
-    SourceClassBuilder classBuilder = _combinedMemberSignature.classBuilder;
     ClassMember canonicalMember = _combinedMemberSignature.canonicalMember!;
     Member interfaceMember =
         canonicalMember.getMember(_combinedMemberSignature.membersBuilder);
@@ -77,7 +78,7 @@ class ForwardingNode {
       // Covariance can only come from [interfaceMember] so we never need a
       // forwarding stub.
       if (_combinedMemberSignature.neededLegacyErasure) {
-        return _combinedMemberSignature.createMemberFromSignature(
+        return _combinedMemberSignature.createMemberFromSignature(classBuilder,
             // TODO(johnniwinther): Change member signatures to use location
             // of origin.
             copyLocation: false);
@@ -158,12 +159,12 @@ class ForwardingNode {
     bool needsNoSuchMethodForwarder =
         hasNoSuchMethodTarget && !hasValidImplementation;
     bool stubNeeded = cannotReuseExistingMember ||
-        (canonicalMember.classBuilder != classBuilder &&
+        (canonicalMember.declarationBuilder != classBuilder &&
             (needsTypeOrCovarianceUpdate || needsNoSuchMethodForwarder)) ||
         needMixinStub;
     if (stubNeeded) {
-      Procedure stub = _combinedMemberSignature.createMemberFromSignature(
-          copyLocation: false)!;
+      Procedure stub = _combinedMemberSignature
+          .createMemberFromSignature(classBuilder, copyLocation: false)!;
       bool needsForwardingStub =
           _combinedMemberSignature.needsCovarianceMerging || needsSuperImpl;
       if (needsForwardingStub || needMixinStub || needsNoSuchMethodForwarder) {
@@ -298,8 +299,7 @@ class ForwardingNode {
             if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
                 parameter.type,
                 superParameterType,
-                _combinedMemberSignature
-                        .classBuilder.libraryBuilder.isNonNullableByDefault
+                classBuilder.libraryBuilder.isNonNullableByDefault
                     ? SubtypeCheckMode.withNullabilities
                     : SubtypeCheckMode.ignoringNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
@@ -327,8 +327,7 @@ class ForwardingNode {
             if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
                 parameter.type,
                 superParameterType,
-                _combinedMemberSignature
-                        .classBuilder.libraryBuilder.isNonNullableByDefault
+                classBuilder.libraryBuilder.isNonNullableByDefault
                     ? SubtypeCheckMode.withNullabilities
                     : SubtypeCheckMode.ignoringNullabilities)) {
               expression = new AsExpression(expression, superParameterType)
@@ -366,8 +365,7 @@ class ForwardingNode {
           if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
               parameter.type,
               superParameterType,
-              _combinedMemberSignature
-                      .classBuilder.libraryBuilder.isNonNullableByDefault
+              classBuilder.libraryBuilder.isNonNullableByDefault
                   ? SubtypeCheckMode.withNullabilities
                   : SubtypeCheckMode.ignoringNullabilities)) {
             expression = new AsExpression(expression, superParameterType)

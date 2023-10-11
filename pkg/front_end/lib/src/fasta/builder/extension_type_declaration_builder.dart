@@ -4,7 +4,8 @@
 
 part of 'declaration_builders.dart';
 
-abstract class ExtensionTypeDeclarationBuilder implements DeclarationBuilder {
+abstract class ExtensionTypeDeclarationBuilder
+    implements DeclarationBuilder, ClassMemberAccess {
   /// Type parameters declared on the extension type declaration.
   ///
   /// This is `null` if the extension type declaration is not generic.

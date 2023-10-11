@@ -580,29 +580,30 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
 
 class ExtensionTypeHierarchyNode {
   /// The extension type corresponding to this hierarchy node.
-  final ExtensionTypeDeclarationBuilder extensionTypeBuilder;
+  final ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
 
-  /// The list of all classes implemented by [extensionTypeBuilder] and its
-  /// superclasses.
+  /// The list of all classes implemented by [extensionTypeDeclarationBuilder]
+  /// and its superclasses.
   final List<Supertype> superclasses;
 
-  /// The list of all extension types implemented by [extensionTypeBuilder]
-  /// and its super extension types.
+  /// The list of all extension types implemented by
+  /// [extensionTypeDeclarationBuilder] and its super extension types.
   final List<ExtensionType> superExtensionTypes;
 
   /// The [ClassHierarchyNode]s for the direct superclasses of
-  /// [extensionTypeBuilder].
+  /// [extensionTypeDeclarationBuilder].
   final List<ClassHierarchyNode>? directSuperclassNodes;
 
   /// The [ExtensionTypeHierarchyNode]s for the direct super extension types of
-  /// [extensionTypeBuilder].
+  /// [extensionTypeDeclarationBuilder].
   final List<ExtensionTypeHierarchyNode>? directSuperExtensionTypeNodes;
 
-  /// The longest inheritance path from [extensionTypeBuilder] to `Object`.
+  /// The longest inheritance path from [extensionTypeDeclarationBuilder] to
+  /// `Object`.
   final int maxInheritancePath;
 
   ExtensionTypeHierarchyNode(
-      this.extensionTypeBuilder,
+      this.extensionTypeDeclarationBuilder,
       this.superclasses,
       this.superExtensionTypes,
       this.directSuperclassNodes,

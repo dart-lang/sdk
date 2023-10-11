@@ -79,6 +79,9 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// lowered late fields this can be synthesized setters.
   List<ClassMember> get localSetters;
 
+  /// The builder for the enclosing class or extension type declaration, if any.
+  DeclarationBuilder? get declarationBuilder;
+
   /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder;
 
@@ -104,6 +107,10 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   MemberBuilderImpl(this.parent, int charOffset, [Uri? fileUri])
       : this.fileUri = (fileUri ?? parent?.fileUri)!,
         super(parent, charOffset);
+
+  @override
+  DeclarationBuilder? get declarationBuilder =>
+      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
 
   @override
   ClassBuilder? get classBuilder =>
@@ -178,18 +185,32 @@ abstract class BuilderClassMember implements ClassMember {
   int get charOffset => memberBuilder.charOffset;
 
   @override
-  ClassBuilder get classBuilder => memberBuilder.classBuilder!;
+  DeclarationBuilder get declarationBuilder =>
+      memberBuilder.declarationBuilder!;
 
   @override
   Uri get fileUri => memberBuilder.fileUri;
 
   @override
-  Name get name => memberBuilder.member.name;
+  Name get name {
+    // The name must be derived from the declared name and not the generated
+    // name. For instance for extension type members the generated name might
+    // be `ExtensionType|_id` but the return named should be `_id` private to
+    // library in which it was declared.
+    //
+    // Therefore, if the member name is already private, use the library of the
+    // of the member name, otherwise use the enclosing library.
+    // TODO(johnniwinther): Find a more robust way to compute this.
+    return new Name(
+        memberBuilder.name,
+        memberBuilder.member.name.library ??
+            memberBuilder.libraryBuilder.library);
+  }
 
   @override
   String get fullName {
     String suffix = isSetter ? "=" : "";
-    String className = classBuilder.fullNameForErrors;
+    String className = declarationBuilder.fullNameForErrors;
     return "${className}.${fullNameForErrors}$suffix";
   }
 
@@ -222,7 +243,7 @@ abstract class BuilderClassMember implements ClassMember {
 
   @override
   bool isObjectMember(ClassBuilder objectClass) {
-    return classBuilder == objectClass;
+    return declarationBuilder == objectClass;
   }
 
   @override

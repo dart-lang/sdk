@@ -63,7 +63,7 @@ class ClassHierarchyBuilder
         getNodeFromClassBuilder(loader.computeClassBuilderFromTargetClass(cls));
   }
 
-  ExtensionTypeHierarchyNode getNodeFromExtensionDeclarationTypeBuilder(
+  ExtensionTypeHierarchyNode getNodeFromExtensionTypeDeclarationBuilder(
       ExtensionTypeDeclarationBuilder extensionTypeBuilder) {
     return extensionTypeNodes[extensionTypeBuilder.extensionTypeDeclaration] ??=
         new ExtensionTypeHierarchyNodeBuilder(this, extensionTypeBuilder)
@@ -73,7 +73,7 @@ class ClassHierarchyBuilder
   ExtensionTypeHierarchyNode getNodeFromExtensionType(
       ExtensionTypeDeclaration extensionType) {
     return extensionTypeNodes[extensionType] ??
-        getNodeFromExtensionDeclarationTypeBuilder(loader
+        getNodeFromExtensionTypeDeclarationBuilder(loader
             .computeExtensionTypeBuilderFromTargetExtensionType(extensionType));
   }
 

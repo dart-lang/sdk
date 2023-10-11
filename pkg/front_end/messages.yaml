@@ -2835,6 +2835,10 @@ DeclaredMemberConflictsWithInheritedMemberCause:
   problemMessage: "This is the inherited member."
   severity: CONTEXT
 
+DeclaredMemberConflictsWithInheritedMembersCause:
+  problemMessage: "This is one of the inherited members."
+  severity: CONTEXT
+
 DeclaredMemberConflictsWithOverriddenMembersCause:
   problemMessage: "This is one of the overridden members."
   severity: CONTEXT
@@ -5379,6 +5383,24 @@ CombinedMemberSignatureFailed:
 
       abstract class C implements I2, I1 {}
 
+ExtensionTypeCombinedMemberSignatureFailed:
+  problemMessage: "Extension type '#name' inherits multiple members named '#name2' with incompatible signatures."
+  correctionMessage: "Try adding a declaration of '#name2' to '#name'."
+  analyzerCode: INCONSISTENT_INHERITANCE
+  experiments: inline-class
+  script:
+    - |
+      abstract class I1 {
+        void foo(int? x);
+      }
+      abstract class I2 {
+        void foo();
+      }
+      abstract class I3 implements I1, I2 {
+        void foo([int? x]);
+      }
+      extension type C(I3 i) implements I2, I1 {}
+
 LanguageVersionTooHigh:
   problemMessage: "The specified language version is too high. The highest supported language version is #count.#count2."
   script: >
@@ -7341,3 +7363,45 @@ LocalVariableUsedBeforeDeclared:
 LocalVariableUsedBeforeDeclaredContext:
   problemMessage: "This is the declaration of the variable '#name'."
   severity: CONTEXT
+
+ImplementNonExtensionTypeAndExtensionTypeMember:
+  problemMessage: "The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member."
+  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+  experiments: inline-class
+  script: |
+    class Class {
+      void method() {}
+    }
+    extension type ExtensionType(Class c) {
+      void method() {}
+    }
+    extension type ExtensionType1(Class c) implements Class, ExtensionType {}
+
+ExtensionTypeMemberContext:
+  problemMessage: "This is the inherited extension type member."
+  severity: CONTEXT
+
+ExtensionTypeMemberOneOfContext:
+  problemMessage: "This is one of the inherited extension type members."
+  severity: CONTEXT
+
+NonExtensionTypeMemberContext:
+  problemMessage: "This is the inherited non-extension type member."
+  severity: CONTEXT
+
+NonExtensionTypeMemberOneOfContext:
+  problemMessage: "This is one of the inherited non-extension type members."
+  severity: CONTEXT
+
+ImplementMultipleExtensionTypeMembers:
+  problemMessage: "The extension type '#name' can't inherit the member '#name2' from more than one extension type."
+  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+  experiments: inline-class
+  script: |
+    extension type ExtensionType1(int i) {
+      void method() {}
+    }
+    extension type ExtensionType2(int i) {
+      void method() {}
+    }
+    extension type ExtensionType3(int i) implements ExtensionType1, ExtensionType2 {}

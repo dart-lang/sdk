@@ -5,6 +5,7 @@
 import "dart:developer" as developer;
 
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
@@ -16,7 +17,9 @@ import "package:vm_service/vm_service_io.dart" as vmServiceIo;
 import 'compiler_test_helper.dart';
 import 'vm_service_helper.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
+  args = args.toList();
+  bool compileSdk = !args.remove('--no-sdk');
   developer.ServiceProtocolInfo serviceProtocolInfo =
       await developer.Service.getInfo();
   bool startedServiceProtocol = false;
@@ -36,11 +39,13 @@ Future<void> main() async {
   VmService serviceClient = await vmServiceIo.vmServiceConnectUri(wsUriString);
 
   await compile(
-      inputs: [
-        Uri.base.resolve('pkg/front_end/test/token_leak_test_helper.dart'),
-      ],
-      // TODO(johnniwinther): Enable sdk compilation.
-      compileSdk: false,
+      inputs: args.isNotEmpty
+          ? args.map(nativeToUri).toList()
+          : [
+              Uri.base
+                  .resolve('pkg/front_end/test/token_leak_test_helper.dart'),
+            ],
+      compileSdk: compileSdk,
       kernelTargetCreator: (api.FileSystem fileSystem,
           bool includeComments,
           DillTarget dillTarget,

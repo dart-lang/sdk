@@ -1,0 +1,68 @@
+import 'implements_conflicts_lib.dart';
+extension type ExtensionType1a(ClassA c) implements ClassA, ExtensionTypeA {}
+extension type ExtensionType1b(ClassA c) implements ClassA, ExtensionTypeA {
+  void method1() {}
+}
+extension type ExtensionType2a(ClassC c) implements ClassC, ExtensionTypeA, ExtensionTypeB {}
+extension type ExtensionType2b(ClassC c) implements ClassC, ExtensionTypeA, ExtensionTypeB {
+  void method1() {}
+}
+extension type ExtensionType3a(ClassC c) implements ClassA, ClassB, ExtensionTypeA {}
+extension type ExtensionType3b(ClassC c) implements ClassA, ClassB, ExtensionTypeA {
+  void method1() {}
+}
+extension type ExtensionType4a(ClassC c) implements ExtensionTypeA, ExtensionTypeB {}
+extension type ExtensionType4b(ClassC c) implements ExtensionTypeA, ExtensionTypeB {
+  void method1() {}
+}
+extension type ExtensionType5(ClassC c) implements ExtensionTypeA1, ExtensionTypeA2 {}
+extension type ExtensionType6a(ClassF c) implements ClassD, ClassE {}
+extension type ExtensionType6b(ClassF c) implements ClassD, ClassE {
+  void method2() {}
+}
+extension type ExtensionType7a(ClassF c) implements ExtensionTypeD, ExtensionTypeE {}
+extension type ExtensionType7b(ClassF c) implements ExtensionTypeD, ExtensionTypeE {
+  void method2() {}
+}
+extension type ExtensionType8a(ClassI c) implements ClassG, ClassH {}
+extension type ExtensionType8b(ClassI c) implements ExtensionTypeG, ExtensionTypeH {}
+extension type ExtensionType9(int i) {
+  void method4() {}
+  void set method4(int value) {}
+}
+extension type ExtensionType9a(Never n) implements ClassJ, ClassK {}
+extension type ExtensionType9b(Never n) implements ClassJ, ClassK {
+  int get method4 => 42;
+  void set method4(int value) {}
+}
+extension type ExtensionType10a(int i) implements ExtensionTypeJ, ExtensionTypeK {}
+extension type ExtensionType10b(int i) implements ExtensionTypeJ, ExtensionTypeK {
+  int get method4 => 42;
+  void set method4(int value) {}
+}
+extension type ExtensionType11(Never n) {
+  int get property => 42;
+  void set property(String value) {}
+}
+extension type ExtensionType12a(Never n) implements ClassL, ClassM {}
+extension type ExtensionType12b(Never n) implements ClassL {
+  void set property(bool value) {}
+}
+extension type ExtensionType12c(Never n) implements ClassM {
+  bool get property => true;
+}
+extension type ExtensionType12d(Never n) implements ClassL, ClassM {
+  bool get property => true;
+  void set property(bool value) {}
+}
+extension type ExtensionType13a(int i) implements ExtensionTypeL, ExtensionTypeM {}
+extension type ExtensionType13b(int i) implements ExtensionTypeL {
+  void set property(bool value) {}
+}
+extension type ExtensionType13c(int i) implements ExtensionTypeM {
+  bool get property => true;
+}
+extension type ExtensionType13d(int i) implements ExtensionTypeL, ExtensionTypeM {
+  bool get property => true;
+  void set property(bool value) {}
+}

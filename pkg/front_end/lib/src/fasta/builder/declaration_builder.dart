@@ -10,6 +10,9 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   LibraryBuilder get libraryBuilder;
 
   @override
+  Uri get fileUri;
+
+  @override
   DeclarationBuilder get origin;
 
   /// Lookup a member accessed statically through this declaration.

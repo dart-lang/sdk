@@ -994,6 +994,11 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
+  DeclarationBuilder get declarationBuilder {
+    throw new UnsupportedError('$runtimeType.declarationBuilder');
+  }
+
+  @override
   ClassBuilder get classBuilder {
     throw new UnsupportedError('$runtimeType.classBuilder');
   }

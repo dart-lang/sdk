@@ -10,8 +10,10 @@ import '../../builder/declaration_builders.dart';
 import '../../messages.dart'
     show
         LocatedMessage,
+        messageDeclaredMemberConflictsWithInheritedMembersCause,
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
-        templateCombinedMemberSignatureFailed;
+        templateCombinedMemberSignatureFailed,
+        templateExtensionTypeCombinedMemberSignatureFailed;
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../combined_member_signature.dart';
@@ -46,7 +48,8 @@ abstract class ClassMember {
   bool get isDuplicate;
   String get fullName;
   String get fullNameForErrors;
-  ClassBuilder get classBuilder;
+  DeclarationBuilder get declarationBuilder;
+  //ClassBuilder get classBuilder;
 
   /// Returns `true` if this class member is declared in Object from dart:core.
   bool isObjectMember(ClassBuilder objectClass);
@@ -140,9 +143,6 @@ abstract class ClassMember {
 
 abstract class SynthesizedMember extends ClassMember {
   @override
-  final ClassBuilder classBuilder;
-
-  @override
   final Name name;
 
   @override
@@ -151,7 +151,7 @@ abstract class SynthesizedMember extends ClassMember {
   @override
   final bool isProperty;
 
-  SynthesizedMember(this.classBuilder, this.name,
+  SynthesizedMember(this.name,
       {required this.forSetter, required this.isProperty});
 
   @override
@@ -203,6 +203,8 @@ abstract class SynthesizedMember extends ClassMember {
 /// members inherited into the same class, and to insert forwarding stubs,
 /// mixin stubs, and member signatures where needed.
 class SynthesizedInterfaceMember extends SynthesizedMember {
+  final ClassBuilder classBuilder;
+
   @override
   final List<ClassMember> declarations;
 
@@ -298,8 +300,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
 
   ClassMember? _noSuchMethodTarget;
 
-  SynthesizedInterfaceMember(
-      ClassBuilder classBuilder, Name name, this.declarations,
+  SynthesizedInterfaceMember(this.classBuilder, Name name, this.declarations,
       {ClassMember? superClassMember,
       ClassMember? canonicalMember,
       ClassMember? mixedInMember,
@@ -312,10 +313,13 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         this._mixedInMember = mixedInMember,
         this._noSuchMethodTarget = noSuchMethodTarget,
         this._shouldModifyKernel = shouldModifyKernel,
-        super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
+        super(name, isProperty: isProperty, forSetter: forSetter);
 
   @override
   bool get hasDeclarations => true;
+
+  @override
+  DeclarationBuilder get declarationBuilder => classBuilder;
 
   void _ensureMemberAndCovariance(ClassMembersBuilder membersBuilder) {
     if (_member != null) {
@@ -331,22 +335,23 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       }
       return;
     }
-    CombinedClassMemberSignature combinedMemberSignature;
+    CombinedMemberSignatureBase combinedMemberSignature;
     if (_canonicalMember != null) {
       combinedMemberSignature = new CombinedClassMemberSignature.internal(
           membersBuilder,
-          classBuilder as SourceClassBuilder,
+          classBuilder,
           declarations.indexOf(_canonicalMember),
           declarations,
           forSetter: isSetter);
     } else {
       combinedMemberSignature = new CombinedClassMemberSignature(
-          membersBuilder, classBuilder as SourceClassBuilder, declarations,
+          membersBuilder, classBuilder, declarations,
           forSetter: isSetter);
 
       if (combinedMemberSignature.canonicalMember == null) {
         String name = classBuilder.fullNameForErrors;
-        int length = classBuilder.isAnonymousMixinApplication ? 1 : name.length;
+        int nameLength =
+            classBuilder.isAnonymousMixinApplication ? 1 : name.length;
         List<LocatedMessage> context = declarations.map((ClassMember d) {
           return messageDeclaredMemberConflictsWithOverriddenMembersCause
               .withLocation(
@@ -355,10 +360,9 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
 
         classBuilder.addProblem(
             templateCombinedMemberSignatureFailed.withArguments(
-                classBuilder.fullNameForErrors,
-                declarations.first.fullNameForErrors),
+                name, declarations.first.fullNameForErrors),
             classBuilder.charOffset,
-            length,
+            nameLength,
             context: context);
         // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
         // cascading errors.
@@ -379,8 +383,13 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         kind = ProcedureKind.Operator;
       }
 
-      Procedure? stub = new ForwardingNode(combinedMemberSignature, kind,
-              _superClassMember, _mixedInMember, _noSuchMethodTarget)
+      Procedure? stub = new ForwardingNode(
+              classBuilder as SourceClassBuilder,
+              combinedMemberSignature,
+              kind,
+              _superClassMember,
+              _mixedInMember,
+              _noSuchMethodTarget)
           .finalize();
       if (stub != null) {
         assert(classBuilder.cls == stub.enclosingClass);
@@ -493,18 +502,22 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
 ///  Here the create stub `Class.method` overrides `Super.method` and should
 ///  be used to determine whether to insert a forwarding stub in subclasses.
 class InheritedClassMemberImplementsInterface extends SynthesizedMember {
+  final ClassBuilder classBuilder;
   final ClassMember inheritedClassMember;
   final ClassMember implementedInterfaceMember;
 
   Member? _member;
   Covariance? _covariance;
 
-  InheritedClassMemberImplementsInterface(ClassBuilder classBuilder, Name name,
+  InheritedClassMemberImplementsInterface(this.classBuilder, Name name,
       {required this.inheritedClassMember,
       required this.implementedInterfaceMember,
       required bool isProperty,
       required bool forSetter})
-      : super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
+      : super(name, isProperty: isProperty, forSetter: forSetter);
+
+  @override
+  DeclarationBuilder get declarationBuilder => classBuilder;
 
   void _ensureMemberAndCovariance(ClassMembersBuilder membersBuilder) {
     if (_member == null) {
@@ -651,4 +664,118 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
       'inheritedClassMember=$inheritedClassMember,'
       'implementedInterfaceMember=$implementedInterfaceMember,'
       'forSetter=$forSetter)';
+}
+
+/// Class member for a set of non-extension type members implemented by an
+/// extension type.
+///
+/// This is used to compute combined member signature of a set of interface
+/// members inherited into the same class.
+class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
+  final ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
+
+  @override
+  final List<ClassMember> declarations;
+
+  Member? _member;
+  Covariance? _covariance;
+
+  SynthesizedNonExtensionTypeMember(
+      this.extensionTypeDeclarationBuilder, Name name, this.declarations,
+      {required bool isProperty, required bool forSetter})
+      : super(name, isProperty: isProperty, forSetter: forSetter);
+
+  @override
+  DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
+
+  @override
+  bool get hasDeclarations => true;
+
+  void _ensureMemberAndCovariance(ClassMembersBuilder membersBuilder) {
+    if (_member != null) {
+      return;
+    }
+    CombinedExtensionTypeMemberSignature combinedMemberSignature =
+        new CombinedExtensionTypeMemberSignature(
+            membersBuilder, extensionTypeDeclarationBuilder, declarations,
+            forSetter: isSetter);
+
+    if (combinedMemberSignature.canonicalMember == null) {
+      String name = extensionTypeDeclarationBuilder.fullNameForErrors;
+      int nameLength = name.length;
+      List<LocatedMessage> context = declarations.map((ClassMember d) {
+        return messageDeclaredMemberConflictsWithInheritedMembersCause
+            .withLocation(d.fileUri, d.charOffset, d.fullNameForErrors.length);
+      }).toList();
+
+      extensionTypeDeclarationBuilder.addProblem(
+          templateExtensionTypeCombinedMemberSignatureFailed.withArguments(
+              name, declarations.first.fullNameForErrors),
+          extensionTypeDeclarationBuilder.charOffset,
+          nameLength,
+          context: context);
+      // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
+      // cascading errors.
+      _member = declarations.first.getMember(membersBuilder);
+      _covariance = declarations.first.getCovariance(membersBuilder);
+      return;
+    }
+
+    _member =
+        combinedMemberSignature.canonicalMember!.getMember(membersBuilder);
+    _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
+  }
+
+  @override
+  Member getMember(ClassMembersBuilder membersBuilder) {
+    _ensureMemberAndCovariance(membersBuilder);
+    return _member!;
+  }
+
+  @override
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
+    _ensureMemberAndCovariance(membersBuilder);
+    return _covariance!;
+  }
+
+  @override
+  ClassMember get interfaceMember => this;
+
+  @override
+  bool isObjectMember(ClassBuilder objectClass) {
+    return false;
+  }
+
+  @override
+  bool isSameDeclaration(ClassMember other) {
+    // TODO(johnniwinther): Optimize this.
+    return false;
+  }
+
+  @override
+  bool get isNoSuchMethodForwarder => false;
+
+  @override
+  int get charOffset => declarations.first.charOffset;
+
+  @override
+  Uri get fileUri => declarations.first.fileUri;
+
+  @override
+  bool get isAbstract => true;
+
+  @override
+  String get fullNameForErrors =>
+      declarations.map((ClassMember m) => m.fullName).join("%");
+
+  @override
+  String get fullName {
+    String suffix = isSetter ? "=" : "";
+    return "${fullNameForErrors}$suffix";
+  }
+
+  @override
+  String toString() =>
+      'SynthesizedNonExtensionTypeMember($declarationBuilder,$name,'
+      '$declarations,forSetter=$forSetter)';
 }

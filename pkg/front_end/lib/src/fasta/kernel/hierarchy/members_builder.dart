@@ -14,6 +14,7 @@ import '../../source/source_field_builder.dart';
 import '../../source/source_procedure_builder.dart';
 import 'class_member.dart';
 import 'delayed.dart';
+import 'extension_type_members.dart';
 import 'hierarchy_builder.dart';
 import 'hierarchy_node.dart';
 import 'members_node.dart';
@@ -21,7 +22,10 @@ import 'members_node.dart';
 class ClassMembersBuilder implements ClassHierarchyMembers {
   final ClassHierarchyBuilder hierarchyBuilder;
 
-  final Map<Class, ClassMembersNode> nodes = <Class, ClassMembersNode>{};
+  final Map<Class, ClassMembersNode> classNodes = {};
+
+  final Map<ExtensionTypeDeclaration, ExtensionTypeMembersNode>
+      extensionTypeDeclarationNodes = {};
 
   final List<DelayedTypeComputation> _delayedTypeComputations =
       <DelayedTypeComputation>[];
@@ -33,7 +37,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   ClassMembersBuilder(this.hierarchyBuilder);
 
   void clear() {
-    nodes.clear();
+    classNodes.clear();
     _delayedChecks.clear();
     _delayedTypeComputations.clear();
     _delayedMemberComputations.clear();
@@ -118,8 +122,18 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 
   ClassMembersNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
-    return nodes[classBuilder.cls] ??= new ClassMembersNodeBuilder(
+    return classNodes[classBuilder.cls] ??= new ClassMembersNodeBuilder(
             this, hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
+        .build();
+  }
+
+  ExtensionTypeMembersNode getNodeFromExtensionTypeDeclarationBuilder(
+      ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder) {
+    return extensionTypeDeclarationNodes[extensionTypeDeclarationBuilder
+        .extensionTypeDeclaration] ??= new ExtensionTypeMembersNodeBuilder(
+            this,
+            hierarchyBuilder.getNodeFromExtensionTypeDeclarationBuilder(
+                extensionTypeDeclarationBuilder))
         .build();
   }
 
@@ -129,9 +143,17 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 
   ClassMembersNode getNodeFromClass(Class cls) {
-    return nodes[cls] ??
+    return classNodes[cls] ??
         getNodeFromClassBuilder(
             hierarchyBuilder.loader.computeClassBuilderFromTargetClass(cls));
+  }
+
+  ExtensionTypeMembersNode getNodeFromExtensionTypeDeclaration(
+      ExtensionTypeDeclaration extensionTypeDeclaration) {
+    return extensionTypeDeclarationNodes[extensionTypeDeclaration] ??
+        getNodeFromExtensionTypeDeclarationBuilder(hierarchyBuilder.loader
+            .computeExtensionTypeBuilderFromTargetExtensionType(
+                extensionTypeDeclaration));
   }
 
   @override
@@ -159,20 +181,31 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   }
 
   static ClassMembersBuilder build(
-      ClassHierarchyBuilder hierarchyBuilder, List<ClassBuilder> classes) {
+      ClassHierarchyBuilder hierarchyBuilder,
+      List<ClassBuilder> classes,
+      List<ExtensionTypeDeclarationBuilder> extensionTypeDeclarations) {
     ClassMembersBuilder membersBuilder =
         new ClassMembersBuilder(hierarchyBuilder);
-    for (int i = 0; i < classes.length; i++) {
-      ClassBuilder classBuilder = classes[i];
-      if (!classBuilder.isPatch) {
-        membersBuilder.nodes[classBuilder.cls] = new ClassMembersNodeBuilder(
-                membersBuilder,
-                hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
-            .build();
-      } else {
-        // TODO(ahe): Merge the injected members of patch into the hierarchy
-        // node of `cls.origin`.
-      }
+    for (ClassBuilder classBuilder in classes) {
+      assert(!classBuilder.isPatch, "Unexpected augment class $classBuilder");
+      membersBuilder.classNodes[classBuilder.cls] = new ClassMembersNodeBuilder(
+              membersBuilder,
+              hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
+          .build();
+    }
+    for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
+        in extensionTypeDeclarations) {
+      assert(
+          !extensionTypeDeclarationBuilder.isPatch,
+          "Unexpected augment extension type declaration "
+          "$extensionTypeDeclarationBuilder");
+      membersBuilder.extensionTypeDeclarationNodes[
+              extensionTypeDeclarationBuilder.extensionTypeDeclaration] =
+          new ExtensionTypeMembersNodeBuilder(
+                  membersBuilder,
+                  hierarchyBuilder.getNodeFromExtensionTypeDeclarationBuilder(
+                      extensionTypeDeclarationBuilder))
+              .build();
     }
     return membersBuilder;
   }

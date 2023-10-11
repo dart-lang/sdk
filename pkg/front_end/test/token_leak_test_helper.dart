@@ -30,3 +30,13 @@ class Class {
   factory Class.fact3() = self.Class;
   factory Class.fact4() = self.Class.named;
 }
+
+enum E {
+  a(0),
+  b(1),
+  ;
+
+  final int value;
+
+  const E(this.value);
+}

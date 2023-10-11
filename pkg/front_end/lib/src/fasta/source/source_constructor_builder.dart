@@ -59,6 +59,7 @@ import 'source_function_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
+  @override
   DeclarationBuilder get declarationBuilder;
 
   /// Infers the types of any untyped initializing formals.
