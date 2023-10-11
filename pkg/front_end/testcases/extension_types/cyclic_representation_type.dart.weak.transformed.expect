@@ -469,11 +469,11 @@ static inline-class-member method E18|constructor#((self::E18 /* = invalid-type 
 }
 static inline-class-member method E18|constructor#_#new#tearOff((self::E18 /* = invalid-type */) → void it) → self::E18 /* = invalid-type */
   return self::E18|constructor#(it);
-static inline-class-member method E19a|constructor#((self::E19b /* = core::int */, self::E19b /* = core::int */) it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */ {
-  lowered final self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */ #this = it;
+static inline-class-member method E19a|constructor#((self::E19b /* = core::int */, self::E19b /* = core::int */) it) → self::E19a /* =(core::int, core::int) */ {
+  lowered final self::E19a /* =(core::int, core::int) */ #this = it;
   return #this;
 }
-static inline-class-member method E19a|constructor#_#new#tearOff((self::E19b /* = core::int */, self::E19b /* = core::int */) it) → self::E19a /* =(self::E19b /* = core::int */, self::E19b /* = core::int */) */
+static inline-class-member method E19a|constructor#_#new#tearOff((self::E19b /* = core::int */, self::E19b /* = core::int */) it) → self::E19a /* =(core::int, core::int) */
   return self::E19a|constructor#(it);
 static inline-class-member method E19b|constructor#(core::int it) → self::E19b /* = core::int */ {
   lowered final self::E19b /* = core::int */ #this = it;

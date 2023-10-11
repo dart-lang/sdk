@@ -2685,7 +2685,7 @@ class RuntimeTypeTranslatorImpl
 
   @override
   TypeExpr visitExtensionType(ExtensionType type) =>
-      translate(type.typeErasure);
+      translate(type.extensionTypeErasure);
 
   @override
   TypeExpr visitIntersectionType(IntersectionType type) => unknownType;

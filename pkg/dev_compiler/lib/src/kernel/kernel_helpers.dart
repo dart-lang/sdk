@@ -24,7 +24,7 @@ Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
 /// The immediately returned value will not be an [ExtensionType] but it could
 /// still contain other [ExtensionType]s embedded within.
 DartType shallowExtensionTypeErasure(DartType type) =>
-    type is ExtensionType ? type.typeErasure : type;
+    type is ExtensionType ? type.extensionTypeErasure : type;
 
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
@@ -388,7 +388,8 @@ class ExtensionTypeEraser extends ReplacementVisitor {
 
   @override
   DartType? visitExtensionType(ExtensionType node, int variance) =>
-      node.typeErasure.accept1(this, Variance.unrelated) ?? node.typeErasure;
+      node.extensionTypeErasure.accept1(this, Variance.unrelated) ??
+      node.extensionTypeErasure;
 }
 
 /// Replaces [VariableGet] nodes with a different expression defined by a

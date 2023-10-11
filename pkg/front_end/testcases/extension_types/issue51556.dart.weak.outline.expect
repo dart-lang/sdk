@@ -39,9 +39,9 @@ static inline-class-member method JSObject|constructor#(core::Object value) → 
   ;
 static inline-class-member method JSObject|constructor#_#new#tearOff(core::Object value) → self::JSObject /* = core::Object */
   return self::JSObject|constructor#(value);
-static inline-class-member method JSArray|constructor#(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<self::JSAny? /* = core::Object? */> */
+static inline-class-member method JSArray|constructor#(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<core::Object?> */
   ;
-static inline-class-member method JSArray|constructor#_#new#tearOff(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<self::JSAny? /* = core::Object? */> */
+static inline-class-member method JSArray|constructor#_#new#tearOff(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<core::Object?> */
   return self::JSArray|constructor#(value);
 static inline-class-member method JSExportedDartObject|constructor#(core::Object value) → self::JSExportedDartObject /* = core::Object */
   ;
@@ -53,7 +53,7 @@ static inline-class-member method JSNumber|constructor#_#new#tearOff(core::doubl
   return self::JSNumber|constructor#(value);
 static extension-member method ObjectToJSExportedDartObject|get#toJS(lowered final core::Object #this) → self::JSExportedDartObject /* = core::Object */
   ;
-static extension-member method ListToJSArray|get#toJS(lowered final core::List<self::JSAny? /* = core::Object? */> #this) → self::JSArray /* = core::List<self::JSAny? /* = core::Object? */> */
+static extension-member method ListToJSArray|get#toJS(lowered final core::List<self::JSAny? /* = core::Object? */> #this) → self::JSArray /* = core::List<core::Object?> */
   ;
 static extension-member method DoubleToJSNumber|get#toJS(lowered final core::double #this) → self::JSNumber /* = core::double */
   ;

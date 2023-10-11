@@ -1256,7 +1256,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             return _emitTypeParameterType(t.left,
                 emitNullability: emitNullability);
           case ExtensionType():
-            return emitDeferredType(t.typeErasure);
+            return emitDeferredType(t.extensionTypeErasure);
           case DynamicType():
           case VoidType():
           case NeverType():
@@ -1308,7 +1308,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           case RecordType():
             return t.positional.any(defer) || t.named.any((n) => defer(n.type));
           case ExtensionType():
-            return defer(t.typeErasure);
+            return defer(t.extensionTypeErasure);
           case DynamicType():
           case VoidType():
           case NeverType():
@@ -3334,7 +3334,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       case TypedefType():
         return type.typeArguments.every(_canEmitTypeAtTopLevel);
       case ExtensionType():
-        return _canEmitTypeAtTopLevel(type.typeErasure);
+        return _canEmitTypeAtTopLevel(type.extensionTypeErasure);
       case DynamicType():
       case VoidType():
       case NeverType():
@@ -3485,7 +3485,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitExtensionType(ExtensionType type) =>
-      type.typeErasure.accept(this);
+      type.extensionTypeErasure.accept(this);
 
   @override
   js_ast.Expression visitFutureOrType(FutureOrType type) {

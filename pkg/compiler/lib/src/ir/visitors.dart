@@ -217,7 +217,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitExtensionType(ir.ExtensionType node) {
-    return node.typeErasure.accept(this);
+    return node.extensionTypeErasure.accept(this);
   }
 
   @override

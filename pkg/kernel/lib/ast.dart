@@ -67,6 +67,7 @@ library kernel.ast;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
+import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
 export 'visitor.dart';
 
@@ -10993,6 +10994,20 @@ sealed class DartType extends Node {
   /// Returns the non-type parameter type bound of this type.
   DartType get resolveTypeParameterType;
 
+  /// Returns the type with all occurrences of [ExtensionType] replaced by their
+  /// representations, transitively. This is the type used at runtime to
+  /// represent this type.
+  ///
+  /// For instance, for these declarations
+  ///
+  ///    extension type ET1(int id) {}
+  ///    extension type ET2(ET1 id) {}
+  ///    extension type ET3<T>(T id) {}
+  ///
+  /// the extension type erasures for `ET1`, `ET2`, `ET3<ET2>` and `List<ET2>`
+  /// are `int`, `int`, `int`, `List<int>`, respectively.
+  DartType get extensionTypeErasure => computeExtensionTypeErasure(this);
+
   /// Internal implementation of equality using [assumptions] to handle equality
   /// of type parameters on function types coinductively.
   bool equals(Object other, Assumptions? assumptions);
@@ -11793,14 +11808,16 @@ class ExtensionType extends DartType {
   ///
   /// the type erasure of `E1` is `int`, type erasure of `E2<num>` is `num` and
   /// the type erasure of `E3<String>` is `List<String>`.
-  DartType get typeErasure => _computeTypeErasure(
+  @override
+  DartType get extensionTypeErasure => _computeTypeErasure(
       extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
   @override
   Nullability get nullability => declaredNullability;
 
   @override
-  DartType get resolveTypeParameterType => typeErasure.resolveTypeParameterType;
+  DartType get resolveTypeParameterType =>
+      extensionTypeErasure.resolveTypeParameterType;
 
   static List<DartType> _defaultTypeArguments(
       ExtensionTypeDeclaration extensionTypeDeclaration) {
@@ -11822,9 +11839,7 @@ class ExtensionType extends DartType {
     DartType result = Substitution.fromPairs(
             extensionTypeDeclaration.typeParameters, typeArguments)
         .substituteType(extensionTypeDeclaration.declaredRepresentationType);
-    if (result is ExtensionType) {
-      result = result.typeErasure;
-    }
+    result = result.extensionTypeErasure;
     result = result.withDeclaredNullability(combineNullabilitiesForSubstitution(
         result.nullability, declaredNullability));
     return result;

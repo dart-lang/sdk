@@ -130,7 +130,7 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
 
   @override
   void visitExtensionType(ir.ExtensionType node, StringBuffer sb) {
-    writeType(node.typeErasure, sb);
+    writeType(node.extensionTypeErasure, sb);
   }
 
   @override

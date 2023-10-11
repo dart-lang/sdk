@@ -2494,7 +2494,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(node.nullability.index);
     writeNonNullReference(node.extensionTypeDeclarationReference);
     writeNodeList(node.typeArguments);
-    writeNode(node.typeErasure);
+    writeNode(node.extensionTypeErasure);
   }
 
   @override

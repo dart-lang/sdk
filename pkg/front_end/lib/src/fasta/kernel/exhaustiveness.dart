@@ -666,7 +666,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitExtensionType(ExtensionType type, CoreTypes coreTypes) {
-    return type.typeErasure.accept1(this, coreTypes);
+    return type.extensionTypeErasure.accept1(this, coreTypes);
   }
 
   @override
