@@ -180,7 +180,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     assert(
         overriddenMembers.every((overriddenMember) =>
-            overriddenMember.classBuilder != classBuilder),
+            overriddenMember.declarationBuilder != classBuilder),
         "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
     _overrideDependencies!.addAll(overriddenMembers);

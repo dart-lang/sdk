@@ -19,7 +19,33 @@ import '../scope.dart';
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 
-class DillClassBuilder extends ClassBuilderImpl {
+mixin DillClassMemberAccessMixin implements ClassMemberAccess {
+  Scope get scope;
+  ConstructorScope get constructorScope;
+
+  @override
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+
+  @override
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+
+  @override
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      scope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+
+  @override
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      scope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
+}
+
+class DillClassBuilder extends ClassBuilderImpl
+    with DillClassMemberAccessMixin {
   @override
   final Class cls;
 
@@ -205,26 +231,6 @@ class DillClassBuilder extends ClassBuilderImpl {
     }
     return interfaceBuilders;
   }
-
-  @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      constructorScope.filteredNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
-
-  @override
-  Iterator<T> fullMemberIterator<T extends Builder>() =>
-      scope.filteredIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
-
-  @override
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      scope.filteredNameIterator<T>(
-          includeAugmentations: true, includeDuplicates: false);
 
   void clearCachedValues() {
     _supertypeBuilder = null;

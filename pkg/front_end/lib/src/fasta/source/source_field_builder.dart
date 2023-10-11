@@ -297,7 +297,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {
     assert(
         overriddenMembers.every((overriddenMember) =>
-            overriddenMember.classBuilder != classBuilder),
+            overriddenMember.declarationBuilder != classBuilder),
         "Unexpected override dependencies for $this: $overriddenMembers");
     _overrideDependencies ??= {};
     _overrideDependencies!.addAll(overriddenMembers);
@@ -1463,11 +1463,11 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isProperty => isField || isGetter || isSetter;
 
   @override
-  ClassBuilder get classBuilder => fieldBuilder.classBuilder!;
+  DeclarationBuilder get declarationBuilder => fieldBuilder.classBuilder!;
 
   @override
   bool isObjectMember(ClassBuilder objectClass) {
-    return classBuilder == objectClass;
+    return declarationBuilder == objectClass;
   }
 
   @override
@@ -1515,7 +1515,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   @override
   String get fullName {
     String suffix = isSetter ? "=" : "";
-    String className = classBuilder.fullNameForErrors;
+    String className = declarationBuilder.fullNameForErrors;
     return "${className}.${fullNameForErrors}$suffix";
   }
 

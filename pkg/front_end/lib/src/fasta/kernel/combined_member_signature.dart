@@ -16,6 +16,7 @@ import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/types.dart' show Types;
 
+import '../builder/declaration_builders.dart';
 import '../problems.dart' show unhandled;
 
 import '../source/source_class_builder.dart';
@@ -27,21 +28,22 @@ import 'member_covariance.dart';
 
 /// Class used for computing and inspecting the combined member signature for
 /// a set of overridden/inherited [ClassMember]s.
-class CombinedClassMemberSignature {
+abstract class CombinedMemberSignatureBase {
   /// The class members builder used for building this class.
   final ClassMembersBuilder membersBuilder;
 
-  /// The list of the members inherited into or overridden in [classBuilder].
+  /// The list of the members inherited into or overridden in
+  /// [extensionTypeDeclarationBuilder].
   final List<ClassMember> members;
 
-  /// The target class for the combined member signature.
+  /// The target declaration for the combined member signature.
   ///
   /// The [_memberTypes] are computed in terms of each member is inherited into
-  /// [classBuilder].
+  /// [declarationBuilder].
   ///
-  /// [classBuilder] is also used for determining whether the combined member
-  /// signature should be computed using nnbd or legacy semantics.
-  final SourceClassBuilder classBuilder;
+  /// [declarationBuilder] is also used for determining whether the combined
+  /// member signature should be computed using nnbd or legacy semantics.
+  DeclarationBuilder get declarationBuilder;
 
   /// If `true` the combined member signature is for the setter aspect of the
   /// members. Otherwise it is for the getter/method aspect of the members.
@@ -49,7 +51,7 @@ class CombinedClassMemberSignature {
 
   /// The index within [members] for the member whose type is the most specific
   /// among [members]. If `null`, the combined member signature is not defined
-  /// for [members] in [classBuilder].
+  /// for [members] in [extensionTypeDeclarationBuilder].
   ///
   /// For the legacy computation, the type of this member defines the combined
   /// member signature.
@@ -65,11 +67,9 @@ class CombinedClassMemberSignature {
   /// If there is only one most specific member type, this is `null`.
   Map<DartType, int>? _mutualSubtypes;
 
-  /// Cache for the types of [members] as inherited into [classBuilder].
+  /// Cache for the types of [members] as inherited into
+  /// [extensionTypeDeclarationBuilder].
   List<DartType?>? _memberTypes;
-
-  /// Cache for the this type of [classBuilder].
-  InterfaceType? _thisType;
 
   /// If `true` the combined member signature type has been computed.
   ///
@@ -98,27 +98,26 @@ class CombinedClassMemberSignature {
 
   Covariance? _combinedMemberSignatureCovariance;
 
-  /// Creates a [CombinedClassMemberSignature] whose canonical member is already
+  /// Creates a [CombinedMemberSignatureBase] whose canonical member is already
   /// defined.
-  CombinedClassMemberSignature.internal(this.membersBuilder, this.classBuilder,
-      this._canonicalMemberIndex, this.members,
+  CombinedMemberSignatureBase.internal(
+      this.membersBuilder, this._canonicalMemberIndex, this.members,
       {required this.forSetter});
 
-  /// Creates a [CombinedClassMemberSignature] for [members] inherited into
-  /// [classBuilder].
+  /// Creates a [CombinedMemberSignatureBase] for [members] inherited into
+  /// [extensionTypeDeclarationBuilder].
   ///
   /// If [forSetter] is `true`, contravariance of the setter types is used to
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
-  CombinedClassMemberSignature(
-      this.membersBuilder, this.classBuilder, this.members,
+  CombinedMemberSignatureBase(this.membersBuilder, this.members,
       {required this.forSetter}) {
     int? bestSoFarIndex;
     if (members.length == 1) {
       bestSoFarIndex = 0;
     } else {
       bool isNonNullableByDefault =
-          classBuilder.libraryBuilder.isNonNullableByDefault;
+          declarationBuilder.libraryBuilder.isNonNullableByDefault;
 
       DartType? bestTypeSoFar;
       for (int candidateIndex = members.length - 1;
@@ -160,7 +159,7 @@ class CombinedClassMemberSignature {
           DartType candidateType = getMemberType(candidateIndex);
           if (!_isMoreSpecific(bestTypeSoFar!, candidateType, forSetter)) {
             int? favoredIndex =
-                getOverlookedOverrideProblemChoice(classBuilder);
+                getOverlookedOverrideProblemChoice(declarationBuilder);
             bestSoFarIndex = favoredIndex;
             _mutualSubtypes = null;
             break;
@@ -174,7 +173,7 @@ class CombinedClassMemberSignature {
 
   /// The member within [members] type is the most specific among [members].
   /// If `null`, the combined member signature is not defined for [members] in
-  /// [classBuilder].
+  /// [extensionTypeDeclarationBuilder].
   ///
   /// For the legacy computation, the type of this member defines the combined
   /// member signature.
@@ -187,7 +186,7 @@ class CombinedClassMemberSignature {
 
   /// The index within [members] for the member whose type is the most specific
   /// among [members]. If `null`, the combined member signature is not defined
-  /// for [members] in [classBuilder].
+  /// for [members] in [extensionTypeDeclarationBuilder].
   ///
   /// For the legacy computation, the type of this member defines the combined
   /// member signature.
@@ -270,17 +269,12 @@ class CombinedClassMemberSignature {
     return _containsNnbdTypes;
   }
 
-  /// The this type of [classBuilder].
-  InterfaceType get thisType {
-    return _thisType ??= _coreTypes.thisInterfaceType(
-        classBuilder.cls, classBuilder.libraryBuilder.nonNullable);
-  }
+  /// Returns the [declarationBuilder] as an instance of [cls].
+  InterfaceType _asInstanceOfClass(Class cls);
 
-  /// Returns `true` if the canonical member is declared in [classBuilder].
-  bool get isCanonicalMemberDeclared {
-    return _canonicalMemberIndex != null &&
-        _getMember(_canonicalMemberIndex!).enclosingClass == classBuilder.cls;
-  }
+  /// Returns `true` if the canonical member is declared in
+  /// [declarationBuilder].
+  bool get isCanonicalMemberDeclared;
 
   /// Returns `true` if the canonical member is the 0th.
   // TODO(johnniwinther): This is currently used under the assumption that the
@@ -289,14 +283,14 @@ class CombinedClassMemberSignature {
   bool get isCanonicalMemberFirst => _canonicalMemberIndex == 0;
 
   /// Returns type of the [index]th member in [members] as inherited in
-  /// [classBuilder].
+  /// [extensionTypeDeclarationBuilder].
   DartType getMemberType(int index) {
     _memberTypes ??= new List<DartType?>.filled(members.length, null);
     DartType? candidateType = _memberTypes![index];
     if (candidateType == null) {
       Member target = _getMember(index);
-      candidateType = _computeMemberType(thisType, target);
-      if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
+      candidateType = _computeMemberType(target);
+      if (!declarationBuilder.libraryBuilder.isNonNullableByDefault) {
         DartType? legacyErasure;
         if (target == hierarchy.coreTypes.objectEquals) {
           // In legacy code we special case `Object.==` to infer `dynamic`
@@ -318,8 +312,8 @@ class CombinedClassMemberSignature {
   }
 
   DartType getMemberTypeForTarget(Member target) {
-    DartType candidateType = _computeMemberType(thisType, target);
-    if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
+    DartType candidateType = _computeMemberType(target);
+    if (!declarationBuilder.libraryBuilder.isNonNullableByDefault) {
       DartType? legacyErasure;
       if (target == hierarchy.coreTypes.objectEquals) {
         // In legacy code we special case `Object.==` to infer `dynamic`
@@ -342,7 +336,7 @@ class CombinedClassMemberSignature {
       if (_canonicalMemberIndex == null) {
         return null;
       }
-      if (classBuilder.libraryBuilder.isNonNullableByDefault) {
+      if (declarationBuilder.libraryBuilder.isNonNullableByDefault) {
         DartType canonicalMemberType = _combinedMemberSignatureType =
             getMemberType(_canonicalMemberIndex!);
         _containsNnbdTypes =
@@ -473,7 +467,8 @@ class CombinedClassMemberSignature {
 
   /// Create a member signature with the [combinedMemberSignatureType] using the
   /// [canonicalMember] as member signature origin.
-  Procedure? createMemberFromSignature({bool copyLocation = true}) {
+  Procedure? createMemberFromSignature(SourceClassBuilder classBuilder,
+      {bool copyLocation = true}) {
     if (canonicalMemberIndex == null) {
       return null;
     }
@@ -483,14 +478,14 @@ class CombinedClassMemberSignature {
       switch (member.kind) {
         case ProcedureKind.Getter:
           combinedMemberSignature = _createGetterMemberSignature(
-              member, combinedMemberSignatureType!,
+              classBuilder, member, combinedMemberSignatureType!,
               copyLocation: copyLocation);
           break;
         case ProcedureKind.Setter:
           VariableDeclaration parameter =
               member.function.positionalParameters.first;
           combinedMemberSignature = _createSetterMemberSignature(
-              member, combinedMemberSignatureType!,
+              classBuilder, member, combinedMemberSignatureType!,
               isCovariantByClass: parameter.isCovariantByClass,
               isCovariantByDeclaration: parameter.isCovariantByDeclaration,
               parameter: parameter,
@@ -499,7 +494,7 @@ class CombinedClassMemberSignature {
         case ProcedureKind.Method:
         case ProcedureKind.Operator:
           combinedMemberSignature = _createMethodSignature(
-              member, combinedMemberSignatureType as FunctionType,
+              classBuilder, member, combinedMemberSignatureType as FunctionType,
               copyLocation: copyLocation);
           break;
         case ProcedureKind.Factory:
@@ -510,13 +505,13 @@ class CombinedClassMemberSignature {
     } else if (member is Field) {
       if (forSetter) {
         combinedMemberSignature = _createSetterMemberSignature(
-            member, combinedMemberSignatureType!,
+            classBuilder, member, combinedMemberSignatureType!,
             isCovariantByClass: member.isCovariantByClass,
             isCovariantByDeclaration: member.isCovariantByDeclaration,
             copyLocation: copyLocation);
       } else {
         combinedMemberSignature = _createGetterMemberSignature(
-            member, combinedMemberSignatureType!,
+            classBuilder, member, combinedMemberSignatureType!,
             copyLocation: copyLocation);
       }
     } else {
@@ -529,7 +524,8 @@ class CombinedClassMemberSignature {
 
   /// Creates a getter member signature for [member] with the given
   /// [type].
-  Procedure _createGetterMemberSignature(Member member, DartType type,
+  Procedure _createGetterMemberSignature(
+      SourceClassBuilder classBuilder, Member member, DartType type,
       {required bool copyLocation}) {
     Class enclosingClass = classBuilder.cls;
     Reference? reference =
@@ -568,7 +564,8 @@ class CombinedClassMemberSignature {
   /// [type]. The flags of parameter is set according to
   /// [isCovariantByDeclaration] and [isCovariantByClass] and the name of the
   /// [parameter] is used, if provided.
-  Procedure _createSetterMemberSignature(Member member, DartType type,
+  Procedure _createSetterMemberSignature(
+      SourceClassBuilder classBuilder, Member member, DartType type,
       {required bool isCovariantByDeclaration,
       required bool isCovariantByClass,
       VariableDeclaration? parameter,
@@ -614,7 +611,7 @@ class CombinedClassMemberSignature {
       ..parent = enclosingClass;
   }
 
-  Procedure _createMethodSignature(
+  Procedure _createMethodSignature(SourceClassBuilder classBuilder,
       Procedure procedure, FunctionType functionType,
       {required bool copyLocation}) {
     Class enclosingClass = classBuilder.cls;
@@ -702,7 +699,7 @@ class CombinedClassMemberSignature {
       ..parent = enclosingClass;
   }
 
-  DartType _computeMemberType(InterfaceType thisType, Member member) {
+  DartType _computeMemberType(Member member) {
     DartType type;
     if (member is Procedure) {
       if (member.isGetter) {
@@ -712,21 +709,18 @@ class CombinedClassMemberSignature {
       } else {
         // TODO(johnniwinther): Why do we need the specific nullability here?
         type = member.getterType.withDeclaredNullability(
-            classBuilder.cls.enclosingLibrary.nonNullable);
+            declarationBuilder.libraryBuilder.library.nonNullable);
       }
     } else if (member is Field) {
       type = member.type;
     } else {
-      unhandled("${member.runtimeType}", "$member", classBuilder.charOffset,
-          classBuilder.fileUri);
+      unhandled("${member.runtimeType}", "$member",
+          declarationBuilder.charOffset, declarationBuilder.fileUri);
     }
     if (member.enclosingClass!.typeParameters.isEmpty) {
       return type;
     }
-    InterfaceType instance = hierarchy.getTypeAsInstanceOf(
-        thisType, member.enclosingClass!,
-        isNonNullableByDefault:
-            classBuilder.libraryBuilder.isNonNullableByDefault);
+    InterfaceType instance = _asInstanceOfClass(member.enclosingClass!);
     return Substitution.fromInterfaceType(instance).substituteType(type);
   }
 
@@ -737,4 +731,103 @@ class CombinedClassMemberSignature {
       return _types.isSubtypeOf(a, b, SubtypeCheckMode.withNullabilities);
     }
   }
+}
+
+class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
+  final ClassBuilder classBuilder;
+
+  /// Cache for the this type of [classBuilder].
+  InterfaceType? _thisType;
+
+  /// Creates a [CombinedClassMemberSignature] whose canonical member is already
+  /// defined.
+  CombinedClassMemberSignature.internal(ClassMembersBuilder membersBuilder,
+      this.classBuilder, int? canonicalMemberIndex, List<ClassMember> members,
+      {required bool forSetter})
+      : super.internal(membersBuilder, canonicalMemberIndex, members,
+            forSetter: forSetter);
+
+  /// Creates a [CombinedClassMemberSignature] for [members] inherited into
+  /// [classBuilder].
+  ///
+  /// If [forSetter] is `true`, contravariance of the setter types is used to
+  /// compute the most specific member type. Otherwise covariance of the getter
+  /// types or function types is used.
+  CombinedClassMemberSignature(ClassMembersBuilder membersBuilder,
+      this.classBuilder, List<ClassMember> members,
+      {required bool forSetter})
+      : super(membersBuilder, members, forSetter: forSetter);
+
+  @override
+  DeclarationBuilder get declarationBuilder => classBuilder;
+
+  /// The this type of [classBuilder].
+  InterfaceType get thisType {
+    return _thisType ??= _coreTypes.thisInterfaceType(
+        classBuilder.cls, declarationBuilder.libraryBuilder.nonNullable);
+  }
+
+  @override
+  InterfaceType _asInstanceOfClass(Class cls) {
+    return hierarchy.getTypeAsInstanceOf(thisType, cls,
+        isNonNullableByDefault:
+            declarationBuilder.libraryBuilder.isNonNullableByDefault);
+  }
+
+  /// Returns `true` if the canonical member is declared in
+  /// [declarationBuilder].
+  @override
+  bool get isCanonicalMemberDeclared {
+    return _canonicalMemberIndex != null &&
+        _getMember(_canonicalMemberIndex!).enclosingClass == classBuilder.cls;
+  }
+}
+
+class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
+  final ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
+
+  /// Cache for the this type of [extensionTypeDeclarationBuilder].
+  ExtensionType? _thisType;
+
+  /// Creates a [CombinedClassMemberSignature] whose canonical member is already
+  /// defined.
+  CombinedExtensionTypeMemberSignature.internal(
+      ClassMembersBuilder membersBuilder,
+      this.extensionTypeDeclarationBuilder,
+      int? canonicalMemberIndex,
+      List<ClassMember> members,
+      {required bool forSetter})
+      : super.internal(membersBuilder, canonicalMemberIndex, members,
+            forSetter: forSetter);
+
+  /// Creates a [CombinedClassMemberSignature] for [members] inherited into
+  /// [extensionTypeDeclarationBuilder].
+  ///
+  /// If [forSetter] is `true`, contravariance of the setter types is used to
+  /// compute the most specific member type. Otherwise covariance of the getter
+  /// types or function types is used.
+  CombinedExtensionTypeMemberSignature(ClassMembersBuilder membersBuilder,
+      this.extensionTypeDeclarationBuilder, List<ClassMember> members,
+      {required bool forSetter})
+      : super(membersBuilder, members, forSetter: forSetter);
+
+  @override
+  DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
+
+  /// The this type of [extensionTypeDeclarationBuilder].
+  ExtensionType get thisType {
+    return _thisType ??= _coreTypes.thisExtensionType(
+        extensionTypeDeclarationBuilder.extensionTypeDeclaration,
+        declarationBuilder.libraryBuilder.nonNullable);
+  }
+
+  @override
+  InterfaceType _asInstanceOfClass(Class cls) {
+    return hierarchy.getExtensionTypeAsInstanceOfClass(thisType, cls,
+        isNonNullableByDefault:
+            declarationBuilder.libraryBuilder.isNonNullableByDefault)!;
+  }
+
+  @override
+  bool get isCanonicalMemberDeclared => false;
 }

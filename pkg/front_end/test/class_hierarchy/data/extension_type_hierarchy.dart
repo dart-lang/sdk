@@ -8,10 +8,18 @@
 */
 class Class {}
 
+/*member: ExtensionType1.c:
+ extensionTypeBuilder=ExtensionType1,
+ isSourceDeclaration
+*/
 extension type ExtensionType1(Class c) {}
 
 /*class: ExtensionType2:superExtensionTypes=[
   Class,
   ExtensionType1,
   Object]*/
+/*member: ExtensionType2.c:
+ extensionTypeBuilder=ExtensionType2,
+ isSourceDeclaration
+*/
 extension type ExtensionType2(Class c) implements Class, ExtensionType1 {}

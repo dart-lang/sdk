@@ -13,7 +13,8 @@ import 'dill_extension_type_member_builder.dart';
 import 'dill_library_builder.dart';
 
 class DillExtensionTypeDeclarationBuilder
-    extends ExtensionTypeDeclarationBuilderImpl {
+    extends ExtensionTypeDeclarationBuilderImpl
+    with DillClassMemberAccessMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   List<TypeVariableBuilder>? _typeParameters;

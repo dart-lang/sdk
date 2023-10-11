@@ -2332,6 +2332,16 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
         problemMessage: r"""This is the inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDeclaredMemberConflictsWithInheritedMembersCause =
+    messageDeclaredMemberConflictsWithInheritedMembersCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
+    const MessageCode("DeclaredMemberConflictsWithInheritedMembersCause",
+        severity: Severity.context,
+        problemMessage: r"""This is one of the inherited members.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDeclaredMemberConflictsWithOverriddenMembersCause =
     messageDeclaredMemberConflictsWithOverriddenMembersCause;
 
@@ -4336,6 +4346,39 @@ Message _withArgumentsExtensionMemberConflictsWithObjectMember(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateExtensionTypeCombinedMemberSignatureFailed =
+    const Template<Message Function(String name, String name2)>(
+        "ExtensionTypeCombinedMemberSignatureFailed",
+        problemMessageTemplate:
+            r"""Extension type '#name' inherits multiple members named '#name2' with incompatible signatures.""",
+        correctionMessageTemplate:
+            r"""Try adding a declaration of '#name2' to '#name'.""",
+        withArguments:
+            _withArgumentsExtensionTypeCombinedMemberSignatureFailed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeExtensionTypeCombinedMemberSignatureFailed =
+    const Code<Message Function(String name, String name2)>(
+        "ExtensionTypeCombinedMemberSignatureFailed",
+        analyzerCodes: <String>["INCONSISTENT_INHERITANCE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeExtensionTypeCombinedMemberSignatureFailed,
+      problemMessage:
+          """Extension type '${name}' inherits multiple members named '${name2}' with incompatible signatures.""",
+      correctionMessage: """Try adding a declaration of '${name2}' to '${name}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeDeclarationCause =
     messageExtensionTypeDeclarationCause;
 
@@ -4357,6 +4400,27 @@ const MessageCode messageExtensionTypeExtends = const MessageCode(
         r"""An extension type declaration can't have an 'extends' clause.""",
     correctionMessage:
         r"""Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeMemberContext =
+    messageExtensionTypeMemberContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeMemberContext = const MessageCode(
+    "ExtensionTypeMemberContext",
+    severity: Severity.context,
+    problemMessage: r"""This is the inherited extension type member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeMemberOneOfContext =
+    messageExtensionTypeMemberOneOfContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
+    "ExtensionTypeMemberOneOfContext",
+    severity: Severity.context,
+    problemMessage:
+        r"""This is one of the inherited extension type members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;
@@ -6139,6 +6203,74 @@ const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
     "IllegalSyncGeneratorVoidReturnType",
     problemMessage:
         r"""Functions marked 'sync*' can't have return type 'void'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateImplementMultipleExtensionTypeMembers = const Template<
+        Message Function(String name, String name2)>(
+    "ImplementMultipleExtensionTypeMembers",
+    problemMessageTemplate:
+        r"""The extension type '#name' can't inherit the member '#name2' from more than one extension type.""",
+    correctionMessageTemplate:
+        r"""Try declaring a member '#name2' in '#name' to resolve the conflict.""",
+    withArguments: _withArgumentsImplementMultipleExtensionTypeMembers);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeImplementMultipleExtensionTypeMembers =
+    const Code<Message Function(String name, String name2)>(
+  "ImplementMultipleExtensionTypeMembers",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplementMultipleExtensionTypeMembers(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeImplementMultipleExtensionTypeMembers,
+      problemMessage:
+          """The extension type '${name}' can't inherit the member '${name2}' from more than one extension type.""",
+      correctionMessage: """Try declaring a member '${name2}' in '${name}' to resolve the conflict.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateImplementNonExtensionTypeAndExtensionTypeMember =
+    const Template<Message Function(String name, String name2)>(
+        "ImplementNonExtensionTypeAndExtensionTypeMember",
+        problemMessageTemplate:
+            r"""The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member.""",
+        correctionMessageTemplate:
+            r"""Try declaring a member '#name2' in '#name' to resolve the conflict.""",
+        withArguments:
+            _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeImplementNonExtensionTypeAndExtensionTypeMember =
+    const Code<Message Function(String name, String name2)>(
+  "ImplementNonExtensionTypeAndExtensionTypeMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeImplementNonExtensionTypeAndExtensionTypeMember,
+      problemMessage:
+          """The extension type '${name}' can't inherit the member '${name2}' as both an extension type member and a non-extension type member.""",
+      correctionMessage: """Try declaring a member '${name2}' in '${name}' to resolve the conflict.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;
@@ -10622,6 +10754,27 @@ const MessageCode messageNonCovariantTypeParameterInRepresentationType =
             r"""An extension type parameter can't be used non-covariantly in its representation type.""",
         correctionMessage:
             r"""Try removing the type parameters from function parameter types and type parameter bounds.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonExtensionTypeMemberContext =
+    messageNonExtensionTypeMemberContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonExtensionTypeMemberContext = const MessageCode(
+    "NonExtensionTypeMemberContext",
+    severity: Severity.context,
+    problemMessage: r"""This is the inherited non-extension type member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonExtensionTypeMemberOneOfContext =
+    messageNonExtensionTypeMemberOneOfContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonExtensionTypeMemberOneOfContext = const MessageCode(
+    "NonExtensionTypeMemberOneOfContext",
+    severity: Severity.context,
+    problemMessage:
+        r"""This is one of the inherited non-extension type members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

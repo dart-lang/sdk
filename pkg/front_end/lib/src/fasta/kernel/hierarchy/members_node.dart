@@ -49,7 +49,146 @@ import 'hierarchy_builder.dart';
 import 'hierarchy_node.dart';
 import 'members_builder.dart';
 
-class ClassMembersNodeBuilder {
+abstract class MembersNodeBuilder {
+  DeclarationBuilder get declarationBuilder;
+
+  List<LocatedMessage> _inheritedConflictContext(ClassMember a, ClassMember b) {
+    int length = a.fullNameForErrors.length;
+    // TODO(ahe): Delete this method when it isn't used by [InterfaceResolver].
+    int compare = "${a.fileUri}".compareTo("${b.fileUri}");
+    if (compare == 0) {
+      compare = a.charOffset.compareTo(b.charOffset);
+    }
+    ClassMember first;
+    ClassMember second;
+    if (compare < 0) {
+      first = a;
+      second = b;
+    } else {
+      first = b;
+      second = a;
+    }
+    return <LocatedMessage>[
+      messageInheritedMembersConflictCause1.withLocation(
+          first.fileUri, first.charOffset, length),
+      messageInheritedMembersConflictCause2.withLocation(
+          second.fileUri, second.charOffset, length),
+    ];
+  }
+
+  void reportInheritanceConflict(ClassMember a, ClassMember b) {
+    String name = a.fullNameForErrors;
+    while (a.hasDeclarations) {
+      a = a.declarations.first;
+    }
+    while (b.hasDeclarations) {
+      b = b.declarations.first;
+    }
+    if (a.declarationBuilder != b.declarationBuilder) {
+      if (a.declarationBuilder == declarationBuilder) {
+        declarationBuilder.addProblem(
+            messageDeclaredMemberConflictsWithInheritedMember,
+            a.charOffset,
+            name.length,
+            context: <LocatedMessage>[
+              messageDeclaredMemberConflictsWithInheritedMemberCause
+                  .withLocation(b.fileUri, b.charOffset, name.length)
+            ]);
+      } else if (b.declarationBuilder == declarationBuilder) {
+        declarationBuilder.addProblem(
+            messageDeclaredMemberConflictsWithInheritedMember,
+            b.charOffset,
+            name.length,
+            context: <LocatedMessage>[
+              messageDeclaredMemberConflictsWithInheritedMemberCause
+                  .withLocation(a.fileUri, a.charOffset, name.length)
+            ]);
+      } else {
+        declarationBuilder.addProblem(
+            messageInheritedMembersConflict,
+            declarationBuilder.charOffset,
+            declarationBuilder.fullNameForErrors.length,
+            context: _inheritedConflictContext(a, b));
+      }
+    } else if (a.isStatic != b.isStatic) {
+      ClassMember staticMember;
+      ClassMember instanceMember;
+      if (a.isStatic) {
+        staticMember = a;
+        instanceMember = b;
+      } else {
+        staticMember = b;
+        instanceMember = a;
+      }
+      if (!staticMember.isSynthesized) {
+        declarationBuilder.libraryBuilder.addProblem(
+            messageStaticAndInstanceConflict,
+            staticMember.charOffset,
+            name.length,
+            staticMember.fileUri,
+            context: <LocatedMessage>[
+              messageStaticAndInstanceConflictCause.withLocation(
+                  instanceMember.fileUri,
+                  instanceMember.charOffset,
+                  name.length)
+            ]);
+      } else {
+        declarationBuilder.libraryBuilder.addProblem(
+            templateInstanceAndSynthesizedStaticConflict
+                .withArguments(staticMember.name.text),
+            instanceMember.charOffset,
+            name.length,
+            instanceMember.fileUri);
+      }
+    } else {
+      // This message can be reported twice (when merging localMembers with
+      // classSetters, or localSetters with classMembers). By ensuring that
+      // we always report the one with higher charOffset as the duplicate,
+      // the message duplication logic ensures that we only report this
+      // problem once.
+      ClassMember existing;
+      ClassMember duplicate;
+      assert(a.fileUri == b.fileUri ||
+          a.name.text == "toString" &&
+              (a.fileUri.isScheme("org-dartlang-sdk") &&
+                      a.fileUri.pathSegments.isNotEmpty &&
+                      a.fileUri.pathSegments.last == "enum.dart" ||
+                  b.fileUri.isScheme("org-dartlang-sdk") &&
+                      b.fileUri.pathSegments.isNotEmpty &&
+                      b.fileUri.pathSegments.last == "enum.dart"));
+
+      if (a.fileUri != b.fileUri) {
+        if (a.fileUri.isScheme("org-dartlang-sdk")) {
+          existing = a;
+          duplicate = b;
+        } else {
+          assert(b.fileUri.isScheme("org-dartlang-sdk"));
+          existing = b;
+          duplicate = a;
+        }
+      } else {
+        if (a.charOffset < b.charOffset) {
+          existing = a;
+          duplicate = b;
+        } else {
+          existing = b;
+          duplicate = a;
+        }
+      }
+      declarationBuilder.libraryBuilder.addProblem(
+          templateDuplicatedDeclaration.withArguments(name),
+          duplicate.charOffset,
+          name.length,
+          duplicate.fileUri,
+          context: <LocatedMessage>[
+            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
+                existing.fileUri, existing.charOffset, name.length)
+          ]);
+    }
+  }
+}
+
+class ClassMembersNodeBuilder extends MembersNodeBuilder {
   final ClassHierarchyNode _hierarchyNode;
   final ClassMembersBuilder _membersBuilder;
 
@@ -60,6 +199,9 @@ class ClassMembersNodeBuilder {
   ClassBuilder get objectClass => hierarchy.objectClassBuilder;
 
   ClassBuilder get classBuilder => _hierarchyNode.classBuilder;
+
+  @override
+  DeclarationBuilder get declarationBuilder => classBuilder;
 
   bool get shouldModifyKernel =>
       classBuilder.libraryBuilder.loader == hierarchy.loader;
@@ -91,7 +233,7 @@ class ClassMembersNodeBuilder {
 
       Set<ClassMember> overriddenMemberSet =
           toSet(classBuilder, overriddenMembers);
-      CombinedClassMemberSignature combinedMemberSignature =
+      CombinedMemberSignatureBase combinedMemberSignature =
           new CombinedClassMemberSignature(
               membersBuilder, classBuilder, overriddenMemberSet.toList(),
               forSetter: false);
@@ -195,7 +337,7 @@ class ClassMembersNodeBuilder {
     Procedure declaredProcedure =
         declaredMember.getMember(membersBuilder) as Procedure;
     for (ClassMember overriddenMember
-        in toSet(declaredMember.classBuilder, overriddenMembers)) {
+        in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(membersBuilder);
       covariance.applyCovariance(declaredProcedure);
     }
@@ -216,7 +358,7 @@ class ClassMembersNodeBuilder {
     Procedure declaredSetter =
         declaredMember.getMember(membersBuilder) as Procedure;
     for (ClassMember overriddenMember
-        in toSet(declaredMember.classBuilder, overriddenMembers)) {
+        in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(membersBuilder);
       covariance.applyCovariance(declaredSetter);
     }
@@ -245,7 +387,7 @@ class ClassMembersNodeBuilder {
       }
 
       void inferFrom(List<ClassMember> members, {required bool forSetter}) {
-        CombinedClassMemberSignature combinedMemberSignature =
+        CombinedMemberSignatureBase combinedMemberSignature =
             new CombinedClassMemberSignature(
                 membersBuilder, classBuilder, members,
                 forSetter: forSetter);
@@ -308,7 +450,7 @@ class ClassMembersNodeBuilder {
       }
 
       void inferFrom(List<ClassMember> members, {required bool forSetter}) {
-        CombinedClassMemberSignature combinedMemberSignature =
+        CombinedMemberSignatureBase combinedMemberSignature =
             new CombinedClassMemberSignature(
                 membersBuilder, classBuilder, members,
                 forSetter: forSetter);
@@ -407,7 +549,7 @@ class ClassMembersNodeBuilder {
 
       DartType? inferFrom(List<ClassMember> members,
           {required bool forSetter}) {
-        CombinedClassMemberSignature combinedMemberSignature =
+        CombinedMemberSignatureBase combinedMemberSignature =
             new CombinedClassMemberSignature(
                 membersBuilder, classBuilder, members,
                 forSetter: forSetter);
@@ -468,139 +610,9 @@ class ClassMembersNodeBuilder {
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
     Field declaredField = declaredMember.getMember(membersBuilder) as Field;
     for (ClassMember overriddenMember
-        in toSet(declaredMember.classBuilder, overriddenMembers)) {
+        in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(membersBuilder);
       covariance.applyCovariance(declaredField);
-    }
-  }
-
-  List<LocatedMessage> _inheritedConflictContext(ClassMember a, ClassMember b) {
-    int length = a.fullNameForErrors.length;
-    // TODO(ahe): Delete this method when it isn't used by [InterfaceResolver].
-    int compare = "${a.fileUri}".compareTo("${b.fileUri}");
-    if (compare == 0) {
-      compare = a.charOffset.compareTo(b.charOffset);
-    }
-    ClassMember first;
-    ClassMember second;
-    if (compare < 0) {
-      first = a;
-      second = b;
-    } else {
-      first = b;
-      second = a;
-    }
-    return <LocatedMessage>[
-      messageInheritedMembersConflictCause1.withLocation(
-          first.fileUri, first.charOffset, length),
-      messageInheritedMembersConflictCause2.withLocation(
-          second.fileUri, second.charOffset, length),
-    ];
-  }
-
-  void reportInheritanceConflict(ClassMember a, ClassMember b) {
-    String name = a.fullNameForErrors;
-    while (a.hasDeclarations) {
-      a = a.declarations.first;
-    }
-    while (b.hasDeclarations) {
-      b = b.declarations.first;
-    }
-    if (a.classBuilder != b.classBuilder) {
-      if (a.classBuilder == classBuilder) {
-        classBuilder.addProblem(
-            messageDeclaredMemberConflictsWithInheritedMember,
-            a.charOffset,
-            name.length,
-            context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation(b.fileUri, b.charOffset, name.length)
-            ]);
-      } else if (b.classBuilder == classBuilder) {
-        classBuilder.addProblem(
-            messageDeclaredMemberConflictsWithInheritedMember,
-            b.charOffset,
-            name.length,
-            context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation(a.fileUri, a.charOffset, name.length)
-            ]);
-      } else {
-        classBuilder.addProblem(messageInheritedMembersConflict,
-            classBuilder.charOffset, classBuilder.fullNameForErrors.length,
-            context: _inheritedConflictContext(a, b));
-      }
-    } else if (a.isStatic != b.isStatic) {
-      ClassMember staticMember;
-      ClassMember instanceMember;
-      if (a.isStatic) {
-        staticMember = a;
-        instanceMember = b;
-      } else {
-        staticMember = b;
-        instanceMember = a;
-      }
-      if (!staticMember.isSynthesized) {
-        classBuilder.libraryBuilder.addProblem(messageStaticAndInstanceConflict,
-            staticMember.charOffset, name.length, staticMember.fileUri,
-            context: <LocatedMessage>[
-              messageStaticAndInstanceConflictCause.withLocation(
-                  instanceMember.fileUri,
-                  instanceMember.charOffset,
-                  name.length)
-            ]);
-      } else {
-        classBuilder.libraryBuilder.addProblem(
-            templateInstanceAndSynthesizedStaticConflict
-                .withArguments(staticMember.name.text),
-            instanceMember.charOffset,
-            name.length,
-            instanceMember.fileUri);
-      }
-    } else {
-      // This message can be reported twice (when merging localMembers with
-      // classSetters, or localSetters with classMembers). By ensuring that
-      // we always report the one with higher charOffset as the duplicate,
-      // the message duplication logic ensures that we only report this
-      // problem once.
-      ClassMember existing;
-      ClassMember duplicate;
-      assert(a.fileUri == b.fileUri ||
-          a.name.text == "toString" &&
-              (a.fileUri.isScheme("org-dartlang-sdk") &&
-                      a.fileUri.pathSegments.isNotEmpty &&
-                      a.fileUri.pathSegments.last == "enum.dart" ||
-                  b.fileUri.isScheme("org-dartlang-sdk") &&
-                      b.fileUri.pathSegments.isNotEmpty &&
-                      b.fileUri.pathSegments.last == "enum.dart"));
-
-      if (a.fileUri != b.fileUri) {
-        if (a.fileUri.isScheme("org-dartlang-sdk")) {
-          existing = a;
-          duplicate = b;
-        } else {
-          assert(b.fileUri.isScheme("org-dartlang-sdk"));
-          existing = b;
-          duplicate = a;
-        }
-      } else {
-        if (a.charOffset < b.charOffset) {
-          existing = a;
-          duplicate = b;
-        } else {
-          existing = b;
-          duplicate = a;
-        }
-      }
-      classBuilder.libraryBuilder.addProblem(
-          templateDuplicatedDeclaration.withArguments(name),
-          duplicate.charOffset,
-          name.length,
-          duplicate.fileUri,
-          context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause.withArguments(name).withLocation(
-                existing.fileUri, existing.charOffset, name.length)
-          ]);
     }
   }
 
@@ -622,7 +634,7 @@ class ClassMembersNodeBuilder {
   ///
   bool needsMemberSignatureFor(ClassMember classMember) {
     return !classBuilder.libraryBuilder.isNonNullableByDefault &&
-        classMember.classBuilder.libraryBuilder.isNonNullableByDefault;
+        classMember.declarationBuilder.libraryBuilder.isNonNullableByDefault;
   }
 
   /// Registers that the current class has an interface member without a
@@ -700,7 +712,7 @@ class ClassMembersNodeBuilder {
     /// `Object.noSuchMethod`.
     ClassMember? userNoSuchMethodMember;
 
-    Map<Name, Tuple> memberMap = {};
+    Map<Name, _Tuple> memberMap = {};
 
     Iterator<MemberBuilder> iterator =
         classBuilder.fullMemberIterator<MemberBuilder>();
@@ -711,9 +723,9 @@ class ClassMembersNodeBuilder {
         if (classMember.isAbstract) {
           _hasInterfaces = true;
         }
-        Tuple? tuple = memberMap[name];
+        _Tuple? tuple = memberMap[name];
         if (tuple == null) {
-          memberMap[name] = new Tuple.declareMember(classMember);
+          memberMap[name] = new _Tuple.declareMember(classMember);
         } else {
           tuple.declaredMember = classMember;
         }
@@ -728,9 +740,9 @@ class ClassMembersNodeBuilder {
         if (classMember.isAbstract) {
           _hasInterfaces = true;
         }
-        Tuple? tuple = memberMap[name];
+        _Tuple? tuple = memberMap[name];
         if (tuple == null) {
-          memberMap[name] = new Tuple.declareSetter(classMember);
+          memberMap[name] = new _Tuple.declareSetter(classMember);
         } else {
           tuple.declaredSetter = classMember;
         }
@@ -766,9 +778,9 @@ class ClassMembersNodeBuilder {
             if (classMember.isAbstract || classMember.isNoSuchMethodForwarder) {
               _hasInterfaces = true;
             }
-            Tuple? tuple = memberMap[name];
+            _Tuple? tuple = memberMap[name];
             if (tuple == null) {
-              memberMap[name] = new Tuple.mixInMember(classMember);
+              memberMap[name] = new _Tuple.mixInMember(classMember);
             } else {
               tuple.mixedInMember = classMember;
             }
@@ -783,9 +795,9 @@ class ClassMembersNodeBuilder {
             if (classMember.isAbstract || classMember.isNoSuchMethodForwarder) {
               _hasInterfaces = true;
             }
-            Tuple? tuple = memberMap[name];
+            _Tuple? tuple = memberMap[name];
             if (tuple == null) {
-              memberMap[name] = new Tuple.mixInSetter(classMember);
+              memberMap[name] = new _Tuple.mixInSetter(classMember);
             } else {
               tuple.mixedInSetter = classMember;
             }
@@ -799,7 +811,7 @@ class ClassMembersNodeBuilder {
       for (MapEntry<Name, ClassMember> entry in superClassMembers.entries) {
         Name name = entry.key;
         ClassMember superClassMember = entry.value;
-        Tuple? tuple = memberMap[name];
+        _Tuple? tuple = memberMap[name];
         if (tuple != null) {
           if (superClassMember.forSetter) {
             tuple.extendedSetter = superClassMember;
@@ -808,9 +820,9 @@ class ClassMembersNodeBuilder {
           }
         } else {
           if (superClassMember.forSetter) {
-            memberMap[name] = new Tuple.extendSetter(superClassMember);
+            memberMap[name] = new _Tuple.extendSetter(superClassMember);
           } else {
-            memberMap[name] = new Tuple.extendMember(superClassMember);
+            memberMap[name] = new _Tuple.extendMember(superClassMember);
           }
         }
       }
@@ -821,7 +833,7 @@ class ClassMembersNodeBuilder {
       for (MapEntry<Name, ClassMember> entry in superInterfaceMembers.entries) {
         Name name = entry.key;
         ClassMember superInterfaceMember = entry.value;
-        Tuple? tuple = memberMap[name];
+        _Tuple? tuple = memberMap[name];
         if (tuple != null) {
           if (superInterfaceMember.forSetter) {
             tuple.addImplementedSetter(superInterfaceMember);
@@ -831,10 +843,10 @@ class ClassMembersNodeBuilder {
         } else {
           if (superInterfaceMember.forSetter) {
             memberMap[superInterfaceMember.name] =
-                new Tuple.implementSetter(superInterfaceMember);
+                new _Tuple.implementSetter(superInterfaceMember);
           } else {
             memberMap[superInterfaceMember.name] =
-                new Tuple.implementMember(superInterfaceMember);
+                new _Tuple.implementMember(superInterfaceMember);
           }
         }
       }
@@ -925,7 +937,7 @@ class ClassMembersNodeBuilder {
           inheritedImplementsMap);
     }
 
-    void computeClassInterfaceMember(Name name, Tuple tuple) {
+    void computeClassInterfaceMember(Name name, _Tuple tuple) {
       /// The computation starts by sanitizing the members. Conflicts between
       /// methods and properties (getters/setters) or between static and
       /// instance members are reported. Conflicting members and members
@@ -1003,7 +1015,7 @@ class ClassMembersNodeBuilder {
 
     // Compute the 'noSuchMethod' member first so we know the target for
     // noSuchMethod forwarders.
-    Tuple? noSuchMethod = memberMap.remove(noSuchMethodName);
+    _Tuple? noSuchMethod = memberMap.remove(noSuchMethodName);
     if (noSuchMethod != null) {
       // The noSuchMethod is always available - unless Object is not valid.
       // See for instance pkg/front_end/test/fasta/object_supertype_test.dart
@@ -1109,12 +1121,13 @@ class ClassMembersNodeBuilder {
 
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
     for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
-      if (classBuilder.isEnum && declaration.classBuilder == classBuilder) {
+      if (classBuilder.isEnum &&
+          declaration.declarationBuilder == classBuilder) {
         classBuilder.addProblem(messageEnumAbstractMember,
             declaration.charOffset, declaration.name.text.length);
       } else {
         String name = declaration.fullNameForErrors;
-        String className = declaration.classBuilder.fullNameForErrors;
+        String className = declaration.declarationBuilder.fullNameForErrors;
         String displayName =
             declaration.isSetter ? "$className.$name=" : "$className.$name";
         contextMap[displayName] = templateMissingImplementationCause
@@ -1205,7 +1218,7 @@ class ClassMembersNode {
     for (ClassMember member in members) {
       sb
         ..write("    ")
-        ..write(member.classBuilder.fullNameForErrors)
+        ..write(member.declarationBuilder.fullNameForErrors)
         ..write(".")
         ..write(member.fullNameForErrors)
         ..writeln();
@@ -1285,7 +1298,7 @@ class ClassHierarchyNodeDataForTesting {
       this.mixinApplicationOverrides, this.inheritedImplements);
 }
 
-class Tuple {
+class _Tuple {
   final Name name;
   ClassMember? _declaredGetable;
   ClassMember? _declaredSetable;
@@ -1296,42 +1309,42 @@ class Tuple {
   List<ClassMember>? _implementedGetables;
   List<ClassMember>? _implementedSetables;
 
-  Tuple.declareMember(ClassMember declaredMember)
+  _Tuple.declareMember(ClassMember declaredMember)
       : assert(!declaredMember.forSetter),
         this._declaredGetable = declaredMember,
         this.name = declaredMember.name;
 
-  Tuple.mixInMember(ClassMember mixedInMember)
+  _Tuple.mixInMember(ClassMember mixedInMember)
       : assert(!mixedInMember.forSetter),
         this._mixedInGetable = mixedInMember,
         this.name = mixedInMember.name;
 
-  Tuple.extendMember(ClassMember extendedMember)
+  _Tuple.extendMember(ClassMember extendedMember)
       : assert(!extendedMember.forSetter),
         this._extendedGetable = extendedMember,
         this.name = extendedMember.name;
 
-  Tuple.implementMember(ClassMember implementedMember)
+  _Tuple.implementMember(ClassMember implementedMember)
       : assert(!implementedMember.forSetter),
         this.name = implementedMember.name,
         _implementedGetables = <ClassMember>[implementedMember];
 
-  Tuple.declareSetter(ClassMember declaredSetter)
+  _Tuple.declareSetter(ClassMember declaredSetter)
       : assert(declaredSetter.forSetter),
         this._declaredSetable = declaredSetter,
         this.name = declaredSetter.name;
 
-  Tuple.mixInSetter(ClassMember mixedInSetter)
+  _Tuple.mixInSetter(ClassMember mixedInSetter)
       : assert(mixedInSetter.forSetter),
         this._mixedInSetable = mixedInSetter,
         this.name = mixedInSetter.name;
 
-  Tuple.extendSetter(ClassMember extendedSetter)
+  _Tuple.extendSetter(ClassMember extendedSetter)
       : assert(extendedSetter.forSetter),
         this._extendedSetable = extendedSetter,
         this.name = extendedSetter.name;
 
-  Tuple.implementSetter(ClassMember implementedSetter)
+  _Tuple.implementSetter(ClassMember implementedSetter)
       : assert(implementedSetter.forSetter),
         this.name = implementedSetter.name,
         _implementedSetables = <ClassMember>[implementedSetter];
@@ -1675,7 +1688,7 @@ class Tuple {
           ///     method() {}
           ///   }
           ///   class Class extends Super {
-          ///     get getter => 0;
+          ///     get method => 0;
           ///   }
           builder.reportInheritanceConflict(
               definingGetable, tupleExtendedMember);
@@ -1893,26 +1906,25 @@ class Tuple {
 /// The [_definingMember] hold the first member found among declared, mixed in,
 /// extended and implemented members.
 ///
-/// This is computed by [Tuple.sanitize].
+/// This is computed by [_Tuple.sanitize].
 class _SanitizedMember {
   final Name name;
 
-  /// [_definingMember] is the member which defines whether the computation
-  /// is for a method, a getter or a setter.
+  /// The member which defines whether the computation is for a method, a getter
+  /// or a setter.
   final ClassMember _definingMember;
 
-  /// [_declaredMember] is the member declared in the current class, if any.
+  /// The member declared in the current class, if any.
   final ClassMember? _declaredMember;
 
-  /// [_mixedInMember] is the member declared in a mixin that is mixed into
-  /// the current class, if any.
+  /// The member declared in a mixin that is mixed into the current class, if
+  /// any.
   final ClassMember? _mixedInMember;
 
-  /// [_extendedMember] is the member inherited from the super class.
+  /// The member inherited from the super class.
   final ClassMember? _extendedMember;
 
-  /// [_implementedMembers] are the members inherited from the super
-  /// interfaces, if none this is `null`.
+  /// The members inherited from the super interfaces, if none this is `null`.
   final List<ClassMember>? _implementedMembers;
 
   _SanitizedMember(this.name, this._definingMember, this._declaredMember,
@@ -2720,7 +2732,7 @@ class _Overrides {
     if (_classBuilder is SourceClassBuilder && !declaredMember.isStatic) {
       assert(
           declaredMember.isSourceDeclaration &&
-              declaredMember.classBuilder.origin == _classBuilder,
+              declaredMember.declarationBuilder.origin == _classBuilder,
           "Only declared members can override: ${declaredMember}");
       hasDeclaredMembers = true;
       if (declaredMember.isProperty) {
@@ -2764,7 +2776,7 @@ class _Overrides {
   /// instead default to `dynamic`.
   void registerMixedInOverride(ClassMember mixedInMember,
       {ClassMember? aliasForTesting}) {
-    assert(mixedInMember.classBuilder != _classBuilder,
+    assert(mixedInMember.declarationBuilder != _classBuilder,
         "Only mixin members can override by application: ${mixedInMember}");
     if (_classBuilder is SourceClassBuilder) {
       hasDeclaredMembers = true;
@@ -2805,7 +2817,7 @@ class _Overrides {
       {required ClassMember aliasForTesting}) {
     if (_classBuilder is SourceClassBuilder) {
       assert(
-          inheritedMember.classBuilder != _classBuilder,
+          inheritedMember.declarationBuilder != _classBuilder,
           "Only inherited members can implement by inheritance: "
           "${inheritedMember}");
       _inheritedImplementsMap[inheritedMember] = overrides;
@@ -2905,17 +2917,18 @@ class _Overrides {
 }
 
 Set<ClassMember> toSet(
-    ClassBuilder classBuilder, Iterable<ClassMember> members) {
+    DeclarationBuilder declarationBuilder, Iterable<ClassMember> members) {
   Set<ClassMember> result = <ClassMember>{};
-  _toSet(classBuilder, members, result);
+  _toSet(declarationBuilder, members, result);
   return result;
 }
 
-void _toSet(ClassBuilder classBuilder, Iterable<ClassMember> members,
-    Set<ClassMember> result) {
+void _toSet(DeclarationBuilder declarationBuilder,
+    Iterable<ClassMember> members, Set<ClassMember> result) {
   for (ClassMember member in members) {
-    if (member.hasDeclarations && classBuilder == member.classBuilder) {
-      _toSet(classBuilder, member.declarations, result);
+    if (member.hasDeclarations &&
+        declarationBuilder == member.declarationBuilder) {
+      _toSet(declarationBuilder, member.declarations, result);
     } else {
       result.add(member);
     }
