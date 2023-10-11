@@ -1134,7 +1134,7 @@ abstract final class NativeApi {
 /// NOTE: This experimental feature is replaced by [Native].
 @Since('2.14')
 @Deprecated('Use Native instead.')
-final class FfiNative<T> {
+final class FfiNative<T extends Function> {
   final String nativeName;
 
   /// Whether the function is a leaf function.
@@ -1173,8 +1173,9 @@ final class FfiNative<T> {
 /// are resolved against an asset, and to, optionally, provide overrides
 /// of the default symbol and asset IDs.
 ///
-/// The type argument to the [Native] annotation must be a function type
+/// The type argument [T] to the [Native] annotation must be a function type
 /// representing the native function's parameter and return types.
+/// The parameter and return types must be subtypes of [NativeType].
 ///
 /// Example:
 ///
