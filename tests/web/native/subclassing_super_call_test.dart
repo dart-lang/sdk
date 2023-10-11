@@ -49,7 +49,7 @@ void setup() {
   function N2() {}
   N2.prototype.foo = function() { return "foo:" + this.text; };
   function BB() {}
-  BB.prototype.__proto__ = N2.prototype;
+  Object.setPrototypeOf(BB.prototype, N2.prototype);
   self.makeBB = function(){return new BB()};
 
   self.getBBPrototype = function(){return BB.prototype;};
