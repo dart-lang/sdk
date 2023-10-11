@@ -2072,6 +2072,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasImmutable {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isImmutable) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasInternal {
     final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -5362,6 +5374,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasFactory => false;
+
+  @override
+  bool get hasImmutable => false;
 
   @override
   bool get hasInternal => false;

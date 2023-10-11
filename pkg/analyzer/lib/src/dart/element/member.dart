@@ -561,6 +561,9 @@ abstract class Member implements Element {
   bool get hasFactory => _declaration.hasFactory;
 
   @override
+  bool get hasImmutable => _declaration.hasImmutable;
+
+  @override
   bool get hasInternal => _declaration.hasInternal;
 
   @override
