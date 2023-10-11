@@ -535,7 +535,7 @@ final class Isolate {
   external static void _sendOOB(port, msg);
 
   @pragma("vm:external-name", "Isolate_getDebugName")
-  external static String _getDebugName(SendPort controlPort);
+  external static String? _getDebugName(SendPort controlPort);
 
   @patch
   void _pause(Capability resumeCapability) {
