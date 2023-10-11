@@ -116,10 +116,15 @@ class KeywordHelper {
     var preceedingElement = elements.elementBefore(offset);
     if (preceedingElement != null) {
       var nextToken = preceedingElement.endToken.next!;
-      if ( //nextToken.type == TokenType.COMMA &&
-          (nextToken.isSynthetic || offset <= nextToken.offset) &&
-              preceedingElement.couldHaveTrailingElse) {
-        addKeyword(Keyword.ELSE);
+      if (nextToken.isSynthetic || offset <= nextToken.offset) {
+        if (preceedingElement.couldHaveTrailingElse) {
+          addKeyword(Keyword.ELSE);
+        } else {
+          var index = elements.indexOf(preceedingElement);
+          if (index > 0 && elements[index - 1].couldHaveTrailingElse) {
+            addKeyword(Keyword.ELSE);
+          }
+        }
       }
     }
     addExpressionKeywords(literal);

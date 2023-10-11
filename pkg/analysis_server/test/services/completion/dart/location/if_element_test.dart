@@ -10,7 +10,27 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IfElementTest1);
     defineReflectiveTests(IfElementTest2);
+    defineReflectiveTests(IfElementInListTest1);
+    defineReflectiveTests(IfElementInListTest2);
+    defineReflectiveTests(IfElementInMapTest1);
+    defineReflectiveTests(IfElementInMapTest2);
+    defineReflectiveTests(IfElementInSetTest1);
+    defineReflectiveTests(IfElementInSetTest2);
   });
+}
+
+@reflectiveTest
+class IfElementInListTest1 extends AbstractCompletionDriverTest
+    with IfElementInListTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class IfElementInListTest2 extends AbstractCompletionDriverTest
+    with IfElementInListTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin IfElementInListTestCases on AbstractCompletionDriverTest {
@@ -348,6 +368,20 @@ suggestions
   }
 }
 
+@reflectiveTest
+class IfElementInMapTest1 extends AbstractCompletionDriverTest
+    with IfElementInMapTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class IfElementInMapTest2 extends AbstractCompletionDriverTest
+    with IfElementInMapTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
 mixin IfElementInMapTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterMapEntry_beforeComma_partial() async {
     await computeSuggestions('''
@@ -387,6 +421,20 @@ suggestions
 ''');
     }
   }
+}
+
+@reflectiveTest
+class IfElementInSetTest1 extends AbstractCompletionDriverTest
+    with IfElementInSetTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class IfElementInSetTest2 extends AbstractCompletionDriverTest
+    with IfElementInSetTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin IfElementInSetTestCases on AbstractCompletionDriverTest {
@@ -432,22 +480,14 @@ suggestions
 
 @reflectiveTest
 class IfElementTest1 extends AbstractCompletionDriverTest
-    with
-        IfElementTestCases,
-        IfElementInListTestCases,
-        IfElementInMapTestCases,
-        IfElementInSetTestCases {
+    with IfElementTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class IfElementTest2 extends AbstractCompletionDriverTest
-    with
-        IfElementTestCases,
-        IfElementInListTestCases,
-        IfElementInMapTestCases,
-        IfElementInSetTestCases {
+    with IfElementTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }

@@ -44,14 +44,10 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  m1
-    kind: parameter
   null
     kind: keyword
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -71,14 +67,10 @@ suggestions
     kind: keyword
   false
     kind: keyword
-  m1
-    kind: parameter
   null
     kind: keyword
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -102,12 +94,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -131,12 +119,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -160,12 +144,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -202,12 +182,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
     }
   }
@@ -232,12 +208,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
   }
 
@@ -274,12 +246,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
-  v1
-    kind: localVariable
 ''');
     }
   }

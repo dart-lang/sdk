@@ -8,7 +8,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -323,18 +322,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(
-    Token name,
-    TypeAnnotation? type,
-    LocalVariableElement declaredElement,
-  ) {
-    if (visibilityTracker._isVisible(declaredElement) &&
-        opType.includeReturnValueSuggestions) {
-      builder.suggestLocalVariable(declaredElement);
-    }
-  }
-
-  @override
   void declaredMethod(MethodDeclaration declaration) {
     var element = declaration.declaredElement;
     if (visibilityTracker._isVisible(element) &&
@@ -370,21 +357,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestInterface(declaredElement);
-    }
-  }
-
-  @override
-  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
-    if (visibilityTracker._isVisible(element) &&
-        opType.includeReturnValueSuggestions) {
-      if (_isUnused(name.lexeme)) {
-        return;
-      }
-      if (element is ParameterElement) {
-        builder.suggestParameter(element);
-      } else if (element is LocalVariableElement) {
-        builder.suggestCatchParameter(element);
-      }
     }
   }
 
@@ -458,10 +430,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
   }
-
-  /// Return `true` if the [identifier] is composed of one or more underscore
-  /// characters and nothing else.
-  bool _isUnused(String identifier) => RegExp(r'^_+$').hasMatch(identifier);
 
   bool _isVoid(TypeAnnotation? returnType) {
     if (returnType is NamedType) {

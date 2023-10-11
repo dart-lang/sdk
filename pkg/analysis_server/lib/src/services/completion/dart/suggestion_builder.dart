@@ -1271,6 +1271,23 @@ class SuggestionBuilder {
       var key = suggestion.key;
       listener?.builtSuggestion(suggestion);
       if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
+        // TODO(brianwilkerson) Add some specific tests of shadowing behavior.
+        if (suggestion is _CompletionSuggestionBuilderImpl) {
+          // We need to special-case constructors because the order in which
+          // suggestions are added has been changed by the move to
+          // `InScopeCompletionPass`.
+          var suggestedElement = suggestion.orgElement;
+          if (suggestedElement is ConstructorElement) {
+            var parentName = suggestedElement.enclosingElement.name;
+            var existingSuggestion = _suggestionMap[parentName];
+            if (existingSuggestion is _CompletionSuggestionBuilderImpl &&
+                existingSuggestion.orgElement is! ClassElement) {
+              // We return when the current suggestion is not a class because that
+              // means that the current suggestion shadows the one being added.
+              return;
+            }
+          }
+        }
         // When suggesting from not-yet-imported libraries, record items
         // with a key that includes the URI so that multiple not-yet-imported
         // libraries can be included, but only if there is no imported library

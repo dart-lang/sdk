@@ -131,7 +131,7 @@ class X {X c; X(this.!1c!3) : super() {c.!2}}''',
         <String>['1+c', '2+c', '3+c']);
 
     buildTests('testCommentSnippets024', '''
-class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''', <String>['1+x', '2+x']);
+class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''', <String>['1+x', '2-x']);
 
     buildTests('testCommentSnippets025', '''
 class C {num m() {var q; num x=!1 q!3 + !2/**/;}}''',
