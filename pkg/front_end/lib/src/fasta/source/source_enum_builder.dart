@@ -740,6 +740,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
         arguments.positional.insertAll(0, enumSyntheticArguments);
         arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
+        enumConstantInfo.argumentsBeginToken = null;
       } else {
         arguments = new ArgumentsImpl(enumSyntheticArguments);
       }
