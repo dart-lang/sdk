@@ -1,3 +1,6 @@
+## 6.3.0
+* Updated the current language version to `3.3`.
+
 ## 6.2.0
 * Improvements for extension types.
 * Heap usage improvements.

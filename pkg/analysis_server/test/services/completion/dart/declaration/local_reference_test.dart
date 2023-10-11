@@ -5812,23 +5812,11 @@ void f() {
   ^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-suggestions
-  A2
-    kind: localVariable
-  A2
-    kind: constructorInvocation
-  A2.named
-    kind: constructorInvocation
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A2
     kind: localVariable
 ''');
-    }
   }
 
   Future<void> test_localVariableDeclarationName() async {

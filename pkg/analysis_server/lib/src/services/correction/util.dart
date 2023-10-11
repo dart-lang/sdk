@@ -1679,7 +1679,7 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (!_isPrefixed(node)) {
+    if (!_isPrefixed(node) && !_isLabelName(node)) {
       names.add(node.name);
     }
   }
@@ -1688,6 +1688,10 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor<void> {
   visitVariableDeclaration(VariableDeclaration node) {
     names.add(node.name.lexeme);
     return super.visitVariableDeclaration(node);
+  }
+
+  static bool _isLabelName(SimpleIdentifier node) {
+    return node.parent is Label;
   }
 
   static bool _isPrefixed(SimpleIdentifier node) {

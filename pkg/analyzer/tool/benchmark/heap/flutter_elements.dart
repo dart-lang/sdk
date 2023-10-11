@@ -113,7 +113,8 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
   );
 
   timer.reset();
-  final graph = HeapSnapshotGraph.fromChunks([bytes.buffer.asByteData()]);
+  final graph = HeapSnapshotGraph.fromChunks(
+      [bytes.buffer.asByteData(bytes.offsetInBytes, bytes.length)]);
   print('[+${timer.elapsedMilliseconds} ms] Create HeapSnapshotGraph');
 
   final analysis = Analysis(graph);

@@ -197,6 +197,14 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 
 [#53106]: https://github.com/dart-lang/sdk/issues/53106
 
+#### Dart command line
+
+- The `dart create` command has a new `cli` template
+  to quickly create Dart command-line applications
+  with basic argument parsing capabilities.
+  To learn more about using the template,
+  run `dart help create`.
+
 #### Dart format
 
 - Always split enum declarations containing a line comment.

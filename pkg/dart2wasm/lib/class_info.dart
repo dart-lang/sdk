@@ -366,8 +366,19 @@ class ClassInfoCollector {
         }
       }
 
-      w.StructType struct =
-          m.types.defineStruct(cls.name, superType: superInfo.struct);
+      // A class can reuse the Wasm struct of the superclass if it doesn't
+      // declare any Wasm fields of its own. This is the case when three
+      // conditions are met:
+      //   1. All type parameters can reuse a type parameter field of the
+      //      superclass.
+      //   2. The class declares no Dart fields of its own.
+      //   3. The class is not a special class that contains hidden fields.
+      bool canReuseSuperStruct =
+          typeParameterMatch.length == cls.typeParameters.length &&
+              cls.fields.where((f) => f.isInstanceMember).isEmpty;
+      w.StructType struct = canReuseSuperStruct
+          ? superInfo.struct
+          : m.types.defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(
           cls, _nextClassId++, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
@@ -436,7 +447,7 @@ class ClassInfoCollector {
       // Top - add class id field
       info._addField(
           w.FieldType(w.NumType.i32, mutable: false), FieldIndex.classId);
-    } else {
+    } else if (info.struct != superInfo.struct) {
       // Copy fields from superclass
       for (w.FieldType fieldType in superInfo.struct.fields) {
         info._addField(fieldType);
@@ -464,6 +475,12 @@ class ClassInfoCollector {
           translator.fieldIndex[field] = info.struct.fields.length;
           info._addField(w.FieldType(wasmType, mutable: !field.isFinal));
         }
+      }
+    } else {
+      for (TypeParameter parameter in info.cls!.typeParameters) {
+        // Reuse supertype type variable
+        translator.typeParameterIndex[parameter] =
+            translator.typeParameterIndex[info.typeParameterMatch[parameter]]!;
       }
     }
   }

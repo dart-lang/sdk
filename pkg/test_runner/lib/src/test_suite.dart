@@ -400,6 +400,7 @@ class FfiTestSuite extends TestSuite {
     "arm64_ios",
     "arm64_linux",
     "arm64_macos",
+    "arm64_win",
     "arm_android",
     "arm_ios",
     "arm_linux",

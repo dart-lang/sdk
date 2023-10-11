@@ -54,14 +54,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');
@@ -93,14 +89,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');
@@ -132,14 +124,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');
@@ -171,14 +159,10 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  o1
-    kind: parameter
   true
     kind: keyword
   v01
     kind: topLevelVariable
-  v11
-    kind: localVariable
   var
     kind: keyword
 ''');
