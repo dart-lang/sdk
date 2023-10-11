@@ -38,6 +38,10 @@ mixin ResourceProviderMixin {
     deleteFile(path);
   }
 
+  String fromUri(Uri uri) {
+    return resourceProvider.pathContext.fromUri(uri);
+  }
+
   File getFile(String path) {
     String convertedPath = convertPath(path);
     return resourceProvider.getFile(convertedPath);

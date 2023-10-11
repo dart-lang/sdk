@@ -6,16 +6,25 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:path/path.dart' as path;
 
 import '../analysis_server_base.dart';
 import '../lsp/request_helpers_mixin.dart';
 
 abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
-    with LspRequestHelpersMixin {
+    with
+        LspRequestHelpersMixin,
+        LspEditHelpersMixin,
+        LspVerifyEditHelpersMixin {
   var _requestId = 0;
 
-  Uri get testFileUri =>
-      server.resourceProvider.pathContext.toUri(convertPath(testFilePath));
+  @override
+  path.Context get pathContext => resourceProvider.pathContext;
+
+  @override
+  String get projectFolderPath => testPackageRootPath;
+
+  Uri get testFileUri => toUri(convertPath(testFilePath));
 
   @override
   Future<T> expectSuccessfulResponseTo<T, R>(
@@ -53,6 +62,15 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
           : throw 'Expected Null response but got ${lspResponse.result}';
     } else {
       return fromJson(lspResponse.result as R);
+    }
+  }
+
+  @override
+  String? getCurrentFileContent(Uri uri) {
+    try {
+      return resourceProvider.getFile(fromUri(uri)).readAsStringSync();
+    } catch (_) {
+      return null;
     }
   }
 

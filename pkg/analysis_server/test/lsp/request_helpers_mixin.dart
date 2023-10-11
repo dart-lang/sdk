@@ -10,11 +10,13 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart' as test show expect;
 import 'package:test/test.dart' hide expect;
 
 import 'change_verifier.dart';
 
+/// A mixin with helpers for applying LSP edits to strings.
 mixin LspEditHelpersMixin {
   String applyTextEdit(String content, TextEdit edit) {
     final startPos = edit.range.start;
@@ -659,4 +661,29 @@ mixin LspRequestHelpersMixin {
       throw '$input was not one of ($T1, $T2)';
     };
   }
+}
+
+/// A mixin with helpers for verifying LSP edits in a given project.
+///
+/// Extends [LspEditHelpersMixin] with methods for accessing file state and
+/// information about the project to build paths.
+mixin LspVerifyEditHelpersMixin on LspEditHelpersMixin {
+  path.Context get pathContext;
+
+  String get projectFolderPath;
+
+  /// A function to get the current contents of a file to apply edits.
+  String? getCurrentFileContent(Uri uri);
+
+  /// Formats a path relative to the project root always using forward slashes.
+  ///
+  /// This is used in the text format for comparing edits.
+  String relativePath(String filePath) => pathContext
+      .relative(filePath, from: projectFolderPath)
+      .replaceAll(r'\', '/');
+
+  /// Formats a path relative to the project root always using forward slashes.
+  ///
+  /// This is used in the text format for comparing edits.
+  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
 }

@@ -1809,9 +1809,6 @@ abstract class DartTypes {
 
   bool get useLegacySubtyping;
 
-  DartType bottomType() =>
-      useLegacySubtyping ? commonElements.nullType : neverType();
-
   DartType legacyType(DartType baseType) {
     DartType result;
     if (isStrongTopType(baseType) ||
@@ -1997,10 +1994,6 @@ abstract class DartTypes {
 
   /// Returns `true` if [s] is a subtype of [t].
   bool isSubtype(DartType s, DartType t) => _subtypeHelper(s, t);
-
-  /// Returns `true` if [s] is assignable to [t].
-  bool isAssignable(DartType s, DartType t) =>
-      isSubtype(s, t) || isSubtype(t, s);
 
   /// Returns `true` if [s] might be a subtype of [t] for some values of
   /// type variables in [s] and [t].
