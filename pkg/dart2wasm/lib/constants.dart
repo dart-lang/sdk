@@ -810,7 +810,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     } else if (type is FunctionType) {
       return _makeFunctionType(constant, type, info);
     } else if (type is ExtensionType) {
-      return ensureConstant(TypeLiteralConstant(type.typeErasure));
+      return ensureConstant(TypeLiteralConstant(type.extensionTypeErasure));
     } else if (type is TypeParameterType) {
       int environmentIndex =
           types.interfaceTypeEnvironment.lookup(type.parameter);

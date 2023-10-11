@@ -39,7 +39,7 @@ Set< /* TypeParameter | StructuralParameter */ Object> freeTypeParameters(
         t.positional.forEach((p) => find(p));
         t.named.forEach((n) => find(n.type));
       case ExtensionType():
-        find(t.typeErasure);
+        find(t.extensionTypeErasure);
       case AuxiliaryType():
         throwUnsupportedAuxiliaryType(t);
       case InvalidType():
@@ -123,7 +123,7 @@ String _typeString(DartType type, {bool flat = false}) {
       }
       return 'Rec${nullability}Of$elements';
     case ExtensionType():
-      return _typeString(type.typeErasure);
+      return _typeString(type.extensionTypeErasure);
     case AuxiliaryType():
       throwUnsupportedAuxiliaryType(type);
     case InvalidType():

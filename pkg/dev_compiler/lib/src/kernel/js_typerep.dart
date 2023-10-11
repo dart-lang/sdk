@@ -67,7 +67,7 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
       case VoidType():
         return JSType.jsUnknown;
       case ExtensionType():
-        return typeFor(type.typeErasure);
+        return typeFor(type.extensionTypeErasure);
       case InterfaceType():
       case NeverType():
       case FunctionType():

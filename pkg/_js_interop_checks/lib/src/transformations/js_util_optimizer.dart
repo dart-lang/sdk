@@ -795,7 +795,7 @@ class ExtensionIndex {
     }
     DartType repType = extensionType.declaredRepresentationType;
     if (repType is ExtensionType) {
-      repType = repType.typeErasure;
+      repType = repType.extensionTypeErasure;
     }
     if (repType is InterfaceType) {
       final cls = repType.classNode;

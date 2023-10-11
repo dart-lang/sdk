@@ -368,7 +368,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
 
   @override
   String visitExtensionType(ExtensionType node) =>
-      node.typeErasure.accept(this);
+      node.extensionTypeErasure.accept(this);
 
   @override
   String visitRecordType(RecordType node) {

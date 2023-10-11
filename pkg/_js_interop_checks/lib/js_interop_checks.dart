@@ -951,7 +951,7 @@ class JsInteropChecks extends RecursiveVisitor {
       // Extension types where the representation type is allowed are okay.
       // TODO(srujzs): Once the CFE pre-computes the concrete type, don't
       // recurse.
-      return _isAllowedExternalType(type.typeErasure);
+      return _isAllowedExternalType(type.extensionTypeErasure);
     }
     return false;
   }

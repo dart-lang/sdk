@@ -587,7 +587,7 @@ class Translator with KernelNodes {
           nullable: nullable);
     }
     if (type is ExtensionType) {
-      return translateStorageType(type.typeErasure);
+      return translateStorageType(type.extensionTypeErasure);
     }
     if (type is RecordType) {
       return getRecordClassInfo(type).typeWithNullability(nullable);
