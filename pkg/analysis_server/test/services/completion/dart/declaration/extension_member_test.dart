@@ -10,19 +10,21 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMemberTest1);
     defineReflectiveTests(ExtensionMemberTest2);
+    defineReflectiveTests(StaticExtensionMemberTest1);
+    defineReflectiveTests(StaticExtensionMemberTest2);
   });
 }
 
 @reflectiveTest
 class ExtensionMemberTest1 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases, StaticExtensionMemberTestCases {
+    with ExtensionMemberTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ExtensionMemberTest2 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases, StaticExtensionMemberTestCases {
+    with ExtensionMemberTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
@@ -501,6 +503,20 @@ replacement
 suggestions
 ''');
   }
+}
+
+@reflectiveTest
+class StaticExtensionMemberTest1 extends AbstractCompletionDriverTest
+    with StaticExtensionMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class StaticExtensionMemberTest2 extends AbstractCompletionDriverTest
+    with StaticExtensionMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin StaticExtensionMemberTestCases on AbstractCompletionDriverTest {

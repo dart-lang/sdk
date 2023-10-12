@@ -8,9 +8,27 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ForEachPartsTest1);
+    defineReflectiveTests(ForEachPartsTest2);
+    defineReflectiveTests(ForPartsTest1);
+    defineReflectiveTests(ForPartsTest2);
     defineReflectiveTests(ForStatementTest1);
     defineReflectiveTests(ForStatementTest2);
   });
+}
+
+@reflectiveTest
+class ForEachPartsTest1 extends AbstractCompletionDriverTest
+    with ForEachPartsTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class ForEachPartsTest2 extends AbstractCompletionDriverTest
+    with ForEachPartsTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 /// Tests specific to a for-each statement.
@@ -156,19 +174,33 @@ suggestions
   }
 }
 
+@reflectiveTest
+class ForPartsTest1 extends AbstractCompletionDriverTest
+    with ForPartsTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class ForPartsTest2 extends AbstractCompletionDriverTest
+    with ForPartsTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
 /// Tests specific to a traditional for statement.
 mixin ForPartsTestCases on AbstractCompletionDriverTest {}
 
 @reflectiveTest
 class ForStatementTest1 extends AbstractCompletionDriverTest
-    with ForEachPartsTestCases, ForPartsTestCases, ForStatementTestCases {
+    with ForStatementTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ForStatementTest2 extends AbstractCompletionDriverTest
-    with ForEachPartsTestCases, ForPartsTestCases, ForStatementTestCases {
+    with ForStatementTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
