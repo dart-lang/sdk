@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/move_file.dart';
 typedef StaticOptions = FileOperationRegistrationOptions?;
 
 class WillRenameFilesHandler
-    extends LspMessageHandler<RenameFilesParams, WorkspaceEdit?> {
+    extends SharedMessageHandler<RenameFilesParams, WorkspaceEdit?> {
   WillRenameFilesHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_willRenameFiles;
@@ -45,6 +45,12 @@ class WillRenameFilesHandler
 
   Future<ErrorOr<WorkspaceEdit?>> _renameFiles(
       Map<String, String> renames, CancellationToken token) async {
+    // This handler has a lot of async steps and may modify files that we don't
+    // know about at the start (or in the case of LSP-over-Legacy that we even
+    // have version numbers for). To ensure we never produce inconsistent edits,
+    // capture all sessions at the start and ensure they are all consistent at the end.
+    final sessions = await server.currentSessions;
+
     final refactoring = MoveFileRefactoringImpl.multi(
         server.resourceProvider, server.refactoringWorkspace, renames)
       ..cancellationToken = token;
@@ -57,8 +63,10 @@ class WillRenameFilesHandler
     }
 
     final change = await refactoring.createChange();
-    final edit = createWorkspaceEdit(server, change);
 
+    server.checkConsistency(sessions);
+
+    final edit = createWorkspaceEdit(server, change);
     return success(edit);
   }
 }

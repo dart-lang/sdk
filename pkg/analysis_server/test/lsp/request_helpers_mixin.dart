@@ -551,6 +551,14 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<WorkspaceEdit> onWillRename(List<FileRename> renames) {
+    final request = makeRequest(
+      Method.workspace_willRenameFiles,
+      RenameFilesParams(files: renames),
+    );
+    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
+  }
+
   Position positionFromOffset(int offset, String contents) {
     final lineInfo = LineInfo.fromContent(contents);
     return toPosition(lineInfo.getLocation(offset));

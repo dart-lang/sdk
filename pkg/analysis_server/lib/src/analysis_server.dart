@@ -60,6 +60,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
@@ -320,8 +321,8 @@ abstract class AnalysisServer {
       analysisContextRebuildCompleter.future;
 
   /// The list of current analysis sessions in all contexts.
-  Future<List<AnalysisSession>> get currentSessions async {
-    var sessions = <AnalysisSession>[];
+  Future<List<AnalysisSessionImpl>> get currentSessions async {
+    var sessions = <AnalysisSessionImpl>[];
     for (var driver in driverMap.values) {
       await driver.applyPendingFileChanges();
       sessions.add(driver.currentSession);
@@ -403,6 +404,14 @@ abstract class AnalysisServer {
       requestParams,
       contextRoot: driver.analysisContext!.contextRoot,
     );
+  }
+
+  /// Checks that all [sessions] are still consistent, throwing
+  /// [InconsistentAnalysisException] if not.
+  void checkConsistency(List<AnalysisSessionImpl> sessions) {
+    for (final session in sessions) {
+      session.checkConsistency();
+    }
   }
 
   /// If the state location can be accessed, return the file byte store,

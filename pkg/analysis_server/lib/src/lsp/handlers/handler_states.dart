@@ -87,7 +87,6 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
     DiagnosticServerHandler.new,
     WorkspaceDidChangeConfigurationMessageHandler.new,
     ReanalyzeHandler.new,
-    WillRenameFilesHandler.new,
     SelectionRangeHandler.new,
     SemanticTokensFullHandler.new,
     SemanticTokensRangeHandler.new,
@@ -129,6 +128,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     TypeDefinitionHandler.new,
     TypeHierarchySubtypesHandler.new,
     TypeHierarchySupertypesHandler.new,
+    WillRenameFilesHandler.new,
     WorkspaceSymbolHandler.new,
   ];
 
