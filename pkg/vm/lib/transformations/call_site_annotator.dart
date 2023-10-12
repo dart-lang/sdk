@@ -84,19 +84,6 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   }
 
   @override
-  visitFunctionInvocation(FunctionInvocation node) {
-    super.visitFunctionInvocation(node);
-
-    final DartType receiverType =
-        node.receiver.getStaticType(_staticTypeContext!);
-    if (receiverType is FunctionType &&
-        node.kind == FunctionAccessKind.Function) {
-      throw 'Node ${node.runtimeType}: $node at ${node.location} has receiver'
-          ' static type $receiverType, but kind ${node.kind}';
-    }
-  }
-
-  @override
   visitEqualsCall(EqualsCall node) {
     super.visitEqualsCall(node);
 

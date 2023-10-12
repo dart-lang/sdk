@@ -39,6 +39,7 @@ class VmTarget extends Target {
   Class? _twoByteString;
   Class? _smi;
   Class? _double; // _Double, not double.
+  Class? _closure;
   Class? _syncStarIterable;
 
   VmTarget(this.flags);
@@ -488,6 +489,11 @@ class VmTarget extends Target {
     }
     return _oneByteString ??=
         coreTypes.index.getClass('dart:core', '_OneByteString');
+  }
+
+  @override
+  Class concreteClosureClass(CoreTypes coreTypes) {
+    return _closure ??= coreTypes.index.getClass('dart:core', '_Closure');
   }
 
   @override

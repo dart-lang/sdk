@@ -18,6 +18,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:vm/metadata/closure_id.dart';
 import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
@@ -310,6 +311,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final TableSelectorMetadataRepository _tableSelectorMetadata;
   final TableSelectorAssigner _tableSelectorAssigner;
+  final ClosureIdMetadataRepository _closureIdMetadata;
   final UnboxingInfoMetadataRepository _unboxingInfoMetadata;
   final UnboxingInfoManager _unboxingInfo;
   final Class _intClass;
@@ -325,6 +327,7 @@ class AnnotateKernel extends RecursiveVisitor {
         _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = TableSelectorMetadataRepository(),
+        _closureIdMetadata = ClosureIdMetadataRepository(),
         _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
@@ -332,6 +335,7 @@ class AnnotateKernel extends RecursiveVisitor {
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
     component.addMetadataRepository(_tableSelectorMetadata);
+    component.addMetadataRepository(_closureIdMetadata);
     component.addMetadataRepository(_unboxingInfoMetadata);
   }
 
@@ -344,6 +348,8 @@ class AnnotateKernel extends RecursiveVisitor {
       {bool skipCheck = false, bool receiverNotInt = false}) {
     Class? concreteClass;
     Constant? constantValue;
+    Member? closureMember;
+    int closureId = 0;
     bool isInt = false;
 
     final nullable = type is NullableType;
@@ -363,7 +369,20 @@ class AnnotateKernel extends RecursiveVisitor {
       }
 
       if (type is ConcreteType && !nullable) {
-        constantValue = type.constant;
+        constantValue = type.attributes?.constant;
+
+        final closure = type.attributes?.closure;
+        if (closure != null) {
+          closureMember = closure.member;
+          final function = closure.function;
+          if (function != null) {
+            _closureIdMetadata.indexClosures(closureMember);
+            closureId = _closureIdMetadata.getClosureId(function);
+            assert(closureId > 0);
+          } else {
+            closureId = 0;
+          }
+        }
       }
     }
 
@@ -381,8 +400,10 @@ class AnnotateKernel extends RecursiveVisitor {
         isInt ||
         constantValue != null ||
         skipCheck ||
-        receiverNotInt) {
+        receiverNotInt ||
+        closureMember != null) {
       return new InferredType(concreteClass, nullable, isInt, constantValue,
+          closureMember, closureId,
           exactTypeArguments: typeArgs,
           skipCheck: skipCheck,
           receiverNotInt: receiverNotInt);

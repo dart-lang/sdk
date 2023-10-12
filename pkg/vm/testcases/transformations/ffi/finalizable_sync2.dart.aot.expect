@@ -11,7 +11,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
     : super core::Object::•()
     ;
 }
-static method main() → void {
+[@vm.closure-id=1]static method main() → void {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   {
     final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
@@ -210,7 +210,7 @@ static method main() → void {
     _in::reachabilityFence(finalizable16);
   }
   {
-    synthesized core::Iterator<ffi::Finalizable> :sync-for-iterator = [@vm.inferred-type.metadata=!] [@vm.inferred-type.metadata=!] core::Iterable::generate<ffi::Finalizable>((core::int index) → self::MyFinalizable => new self::MyFinalizable::•()).{core::Iterable::iterator}{core::Iterator<ffi::Finalizable>};
+    synthesized core::Iterator<ffi::Finalizable> :sync-for-iterator = [@vm.inferred-type.metadata=!] [@vm.inferred-type.metadata=!] core::Iterable::generate<ffi::Finalizable>([@vm.closure-id=1](core::int index) → self::MyFinalizable => new self::MyFinalizable::•()).{core::Iterable::iterator}{core::Iterator<ffi::Finalizable>};
     for (; [@vm.inferred-type.metadata=dart.core::bool] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final ffi::Finalizable finalizable17 = [@vm.inferred-type.metadata=#lib::MyFinalizable] :sync-for-iterator.{core::Iterator::current}{ffi::Finalizable};
       {

@@ -3912,7 +3912,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   Array& argument_names =
       Array::ZoneHandle(Z, GetOptionalParameterNames(function));
 
-  closure += StaticCall(TokenPosition::kNoSource, target, argument_count,
+  closure += StaticCall(function.token_pos(), target, argument_count,
                         argument_names, ICData::kNoRebind,
                         /* result_type = */ nullptr, type_args_len);
 

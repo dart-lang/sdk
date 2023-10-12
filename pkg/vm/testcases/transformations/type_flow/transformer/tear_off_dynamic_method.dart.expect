@@ -15,10 +15,10 @@ class B extends self::A {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=! (skip check)] 1.{core::num::+}([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo() as{TypeError,ForDynamic} core::num){(core::num) → core::num} as core::int;
 }
 class TearOffDynamicMethod extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field dynamic bazz;
+[@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field dynamic bazz;
   constructor •(dynamic arg) → self::TearOffDynamicMethod
-    : self::TearOffDynamicMethod::bazz = arg{dynamic}.foo, super core::Object::•() {
-    [@vm.direct-call.metadata=#lib::TearOffDynamicMethod.bazz] this.{self::TearOffDynamicMethod::bazz}{dynamic}{dynamic}.call();
+    : self::TearOffDynamicMethod::bazz = [@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] arg{dynamic}.foo, super core::Object::•() {
+    [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::TearOffDynamicMethod.bazz] [@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] this.{self::TearOffDynamicMethod::bazz}{dynamic}{dynamic}.call();
   }
 }
 static method knownResult() → dynamic
