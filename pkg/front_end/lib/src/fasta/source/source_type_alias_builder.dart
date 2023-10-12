@@ -29,7 +29,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   final TypeBuilder type;
 
-  final List<TypeVariableBuilder>? _typeVariables;
+  final List<NominalVariableBuilder>? _typeVariables;
 
   /// The [Typedef] built by this builder.
   @override
@@ -52,8 +52,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       Typedef? referenceFrom})
       : typedef = typedef ??
             (new Typedef(name, null,
-                typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
-                    _typeVariables),
+                typeParameters:
+                    NominalVariableBuilder.typeParametersFromBuilders(
+                        _typeVariables),
                 fileUri: parent.fileUri,
                 reference: referenceFrom?.reference)
               ..fileOffset = charOffset),
@@ -64,7 +65,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
-  List<TypeVariableBuilder>? get typeVariables => _typeVariables;
+  List<NominalVariableBuilder>? get typeVariables => _typeVariables;
 
   @override
   int varianceAt(int index) => typeVariables![index].parameter.variance;
@@ -106,7 +107,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     thisType = pendingTypeAliasMarker;
     DartType builtType = type.build(libraryBuilder, TypeUse.typedefAlias);
     if (typeVariables != null) {
-      for (TypeVariableBuilder tv in typeVariables!) {
+      for (NominalVariableBuilder tv in typeVariables!) {
         // Follow bound in order to find all cycles
         tv.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
       }
@@ -226,7 +227,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Scope computeTypeParameterScope(Scope parent) {
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
-    for (TypeVariableBuilder variable in typeVariables!) {
+    for (NominalVariableBuilder variable in typeVariables!) {
       local[variable.name] = variable;
     }
     return new Scope(
@@ -302,7 +303,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case ExtensionTypeDeclarationBuilder():
       // TODO(johnniwinther): Handle this case.
       case TypeAliasBuilder():
-      case TypeVariableBuilder():
+      case NominalVariableBuilder():
       case StructuralVariableBuilder():
       case ExtensionBuilder():
       case InvalidTypeDeclarationBuilder():

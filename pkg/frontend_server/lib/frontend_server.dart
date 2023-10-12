@@ -333,6 +333,8 @@ abstract class CompilerInterface {
       String libraryUri,
       String? klass,
       String? method,
+      int offset,
+      String? scriptUri,
       bool isStatic);
 
   /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
@@ -982,6 +984,8 @@ class FrontendCompiler implements CompilerInterface {
       String libraryUri,
       String? klass,
       String? method,
+      int offset,
+      String? scriptUri,
       bool isStatic) async {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
@@ -995,6 +999,8 @@ class FrontendCompiler implements CompilerInterface {
         libraryUri,
         klass,
         method,
+        offset,
+        scriptUri,
         isStatic);
     if (procedure != null) {
       Component component = createExpressionEvaluationComponent(procedure);
@@ -1281,6 +1287,8 @@ class _CompileExpressionRequest {
   late String library;
   String? klass;
   String? method;
+  int offset = -1;
+  String? scriptUri;
   late bool isStatic;
 }
 
@@ -1466,6 +1474,8 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
               compileExpressionRequest.library,
               compileExpressionRequest.klass,
               compileExpressionRequest.method,
+              compileExpressionRequest.offset,
+              compileExpressionRequest.scriptUri,
               compileExpressionRequest.isStatic);
         } else {
           compiler

@@ -204,7 +204,7 @@ static inline-class-member method GenericExtensionType|constructor#<T extends co
   lowered final self::GenericExtensionType<self::GenericExtensionType|constructor#::T%> /* = self::GenericExtensionType|constructor#::T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericExtensionType|constructor#_#new#tearOff::T% it) → self::GenericExtensionType<self::GenericExtensionType|constructor#_#new#tearOff::T%> /* = self::GenericExtensionType|constructor#_#new#tearOff::T% */
+static inline-class-member method GenericExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericExtensionType|constructor#_#new#tearOff::T% it) → self::GenericExtensionType<self::GenericExtensionType|constructor#_#new#tearOff::T%>% /* = self::GenericExtensionType|constructor#_#new#tearOff::T% */
   return self::GenericExtensionType|constructor#<self::GenericExtensionType|constructor#_#new#tearOff::T%>(it);
 static inline-class-member method ET_Null|constructor#(Null it) → self::ET_Null /* = Null */ {
   lowered final self::ET_Null /* = Null */ #this = it;
@@ -288,7 +288,7 @@ static inline-class-member method ET_TypeVariable|constructor#<T extends core::O
   lowered final self::ET_TypeVariable<self::ET_TypeVariable|constructor#::T%> /* = self::ET_TypeVariable|constructor#::T% */ #this = it;
   return #this;
 }
-static inline-class-member method ET_TypeVariable|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET_TypeVariable|constructor#_#new#tearOff::T% it) → self::ET_TypeVariable<self::ET_TypeVariable|constructor#_#new#tearOff::T%> /* = self::ET_TypeVariable|constructor#_#new#tearOff::T% */
+static inline-class-member method ET_TypeVariable|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET_TypeVariable|constructor#_#new#tearOff::T% it) → self::ET_TypeVariable<self::ET_TypeVariable|constructor#_#new#tearOff::T%>% /* = self::ET_TypeVariable|constructor#_#new#tearOff::T% */
   return self::ET_TypeVariable|constructor#<self::ET_TypeVariable|constructor#_#new#tearOff::T%>(it);
 static inline-class-member method ET_Class|constructor#(self::Class it) → self::ET_Class /* = self::Class */ {
   lowered final self::ET_Class /* = self::Class */ #this = it;
@@ -324,5 +324,5 @@ static inline-class-member method ET_GenericExtensionType|constructor#<T extends
   lowered final self::ET_GenericExtensionType<self::ET_GenericExtensionType|constructor#::T%> /* = self::ET_GenericExtensionType|constructor#::T% */ #this = it;
   return #this;
 }
-static inline-class-member method ET_GenericExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET_GenericExtensionType|constructor#_#new#tearOff::T% it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|constructor#_#new#tearOff::T%> /* = self::ET_GenericExtensionType|constructor#_#new#tearOff::T% */
+static inline-class-member method ET_GenericExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET_GenericExtensionType|constructor#_#new#tearOff::T% it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|constructor#_#new#tearOff::T%>% /* = self::ET_GenericExtensionType|constructor#_#new#tearOff::T% */
   return self::ET_GenericExtensionType|constructor#<self::ET_GenericExtensionType|constructor#_#new#tearOff::T%>(it);

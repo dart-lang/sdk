@@ -1,0 +1,23 @@
+extension type E1<T>(T foo) {}
+extension type E2(Object? foo) {}
+extension type E3(E1<String?> foo) {}
+extension type E4(E1<int> foo) {}
+extension type E5(E2 foo) {}
+testNotNonNullable(E1<num?> e1numNullableNNN, E1<double> e1doubleNNN, E2 e2NNN, E3 e3NNN, E4 e4NNN, E5 e5NNN) {}
+testNotNullable( E1<num?> e1numNullableNN, E1<double> e1doubleNN, E2 e2NN, E3 e3NN, E4 e4NN, E5 e5NN, E1<num?>? e1numNullableNNNullable, E1<double>? e1doubleNNNullable, E2? e2NNNullable, E3? e3NNNullable, E4? e4NNNullable, E5? e5NNNullable, ) {}
+class A {
+  E1<num?> e1numNullableA;
+  E1<double> e1doubleA;
+  E2 e2A;
+  E3 e3A;
+  E4 e4A;
+  E5 e5A;
+  E1<num?>? e1numNullableANullable;
+  E1<double>? e1doubleANullable;
+  E2? e2ANullable;
+  E3? e3ANullable;
+  E4? e4ANullable;
+  E5? e5ANullable;
+}
+testOptionalPositional([ E1<num?> e1numNullableOP, E1<double> e1doubleOP, E2 e2OP, E3 e3OP, E4 e4OP, E5 e5OP, E1<num?>? e1numNullableOPNullable, E1<double>? e1doubleOPNullable, E2? e2OPNullable, E3? e3OPNullable, E4? e4OPNullable, E5? e5OPNullable ]) {}
+testNamedNotRequired({ E1<num?> e1numNullableNNR, E1<double> e1doubleNNR, E2 e2NNR, E3 e3NNR, E4 e4NNR, E5 e5NNR, E1<num?>? e1numNullableNNRNullable, E1<double>? e1doubleNNRNullable, E2? e2NNRNullable, E3? e3NNRNullable, E4? e4NNRNullable, E5? e5NNRNullable }) {}

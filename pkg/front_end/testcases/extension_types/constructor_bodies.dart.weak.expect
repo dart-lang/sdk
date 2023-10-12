@@ -86,13 +86,13 @@ static inline-class-member method Class2|constructor#<T extends core::Object? = 
   lowered final self::Class2<self::Class2|constructor#::T%> /* = self::Class2|constructor#::T% */ #this = it;
   return #this;
 }
-static inline-class-member method Class2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#new#tearOff::T% it) → self::Class2<self::Class2|constructor#_#new#tearOff::T%> /* = self::Class2|constructor#_#new#tearOff::T% */
+static inline-class-member method Class2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#new#tearOff::T% it) → self::Class2<self::Class2|constructor#_#new#tearOff::T%>% /* = self::Class2|constructor#_#new#tearOff::T% */
   return self::Class2|constructor#<self::Class2|constructor#_#new#tearOff::T%>(it);
 static inline-class-member method Class2|constructor#named1<T extends core::Object? = dynamic>(self::Class2|constructor#named1::T% it, core::int additional) → self::Class2<self::Class2|constructor#named1::T%> /* = self::Class2|constructor#named1::T% */ {
   lowered final self::Class2<self::Class2|constructor#named1::T%> /* = self::Class2|constructor#named1::T% */ #this = it;
   return #this;
 }
-static inline-class-member method Class2|constructor#_#named1#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#named1#tearOff::T% it, core::int additional) → self::Class2<self::Class2|constructor#_#named1#tearOff::T%> /* = self::Class2|constructor#_#named1#tearOff::T% */
+static inline-class-member method Class2|constructor#_#named1#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#named1#tearOff::T% it, core::int additional) → self::Class2<self::Class2|constructor#_#named1#tearOff::T%>% /* = self::Class2|constructor#_#named1#tearOff::T% */
   return self::Class2|constructor#named1<self::Class2|constructor#_#named1#tearOff::T%>(it, additional);
 static inline-class-member method Class2|constructor#named2<T extends core::Object? = dynamic>(self::Class2|constructor#named2::T% it, core::int additional) → self::Class2<self::Class2|constructor#named2::T%> /* = self::Class2|constructor#named2::T% */ {
   lowered final self::Class2<self::Class2|constructor#named2::T%> /* = self::Class2|constructor#named2::T% */ #this = it;
@@ -101,19 +101,19 @@ static inline-class-member method Class2|constructor#named2<T extends core::Obje
   }
   return #this;
 }
-static inline-class-member method Class2|constructor#_#named2#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#named2#tearOff::T% it, core::int additional) → self::Class2<self::Class2|constructor#_#named2#tearOff::T%> /* = self::Class2|constructor#_#named2#tearOff::T% */
+static inline-class-member method Class2|constructor#_#named2#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#named2#tearOff::T% it, core::int additional) → self::Class2<self::Class2|constructor#_#named2#tearOff::T%>% /* = self::Class2|constructor#_#named2#tearOff::T% */
   return self::Class2|constructor#named2<self::Class2|constructor#_#named2#tearOff::T%>(it, additional);
 static inline-class-member method Class2|constructor#named3<T extends core::Object? = dynamic>(self::Class2|constructor#named3::T% it) → self::Class2<self::Class2|constructor#named3::T%> /* = self::Class2|constructor#named3::T% */ {
   lowered final self::Class2<self::Class2|constructor#named3::T%> /* = self::Class2|constructor#named3::T% */ #this = it;
   return #this;
 }
-static inline-class-member method Class2|constructor#_#named3#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#named3#tearOff::T% it) → self::Class2<self::Class2|constructor#_#named3#tearOff::T%> /* = self::Class2|constructor#_#named3#tearOff::T% */
+static inline-class-member method Class2|constructor#_#named3#tearOff<T extends core::Object? = dynamic>(self::Class2|constructor#_#named3#tearOff::T% it) → self::Class2<self::Class2|constructor#_#named3#tearOff::T%>% /* = self::Class2|constructor#_#named3#tearOff::T% */
   return self::Class2|constructor#named3<self::Class2|constructor#_#named3#tearOff::T%>(it);
 static inline-class-member method Class2|constructor#named4<T extends core::Object? = dynamic>(core::int additional, self::Class2|constructor#named4::T% it) → self::Class2<self::Class2|constructor#named4::T%> /* = self::Class2|constructor#named4::T% */ {
   lowered final self::Class2<self::Class2|constructor#named4::T%> /* = self::Class2|constructor#named4::T% */ #this = it;
   return #this;
 }
-static inline-class-member method Class2|constructor#_#named4#tearOff<T extends core::Object? = dynamic>(core::int additional, self::Class2|constructor#_#named4#tearOff::T% it) → self::Class2<self::Class2|constructor#_#named4#tearOff::T%> /* = self::Class2|constructor#_#named4#tearOff::T% */
+static inline-class-member method Class2|constructor#_#named4#tearOff<T extends core::Object? = dynamic>(core::int additional, self::Class2|constructor#_#named4#tearOff::T% it) → self::Class2<self::Class2|constructor#_#named4#tearOff::T%>% /* = self::Class2|constructor#_#named4#tearOff::T% */
   return self::Class2|constructor#named4<self::Class2|constructor#_#named4#tearOff::T%>(additional, it);
 static inline-class-member method Class2|constructor#named5<T extends core::Object? = dynamic>(core::int additional, self::Class2|constructor#named5::T% it) → self::Class2<self::Class2|constructor#named5::T%> /* = self::Class2|constructor#named5::T% */ {
   lowered final self::Class2<self::Class2|constructor#named5::T%> /* = self::Class2|constructor#named5::T% */ #this = it;
@@ -122,11 +122,11 @@ static inline-class-member method Class2|constructor#named5<T extends core::Obje
   }
   return #this;
 }
-static inline-class-member method Class2|constructor#_#named5#tearOff<T extends core::Object? = dynamic>(core::int additional, self::Class2|constructor#_#named5#tearOff::T% it) → self::Class2<self::Class2|constructor#_#named5#tearOff::T%> /* = self::Class2|constructor#_#named5#tearOff::T% */
+static inline-class-member method Class2|constructor#_#named5#tearOff<T extends core::Object? = dynamic>(core::int additional, self::Class2|constructor#_#named5#tearOff::T% it) → self::Class2<self::Class2|constructor#_#named5#tearOff::T%>% /* = self::Class2|constructor#_#named5#tearOff::T% */
   return self::Class2|constructor#named5<self::Class2|constructor#_#named5#tearOff::T%>(additional, it);
 static inline-class-member method Class2|constructor#named6<T extends core::Object? = dynamic>(core::List<self::Class2|constructor#named6::T%> list) → self::Class2<self::Class2|constructor#named6::T%> /* = self::Class2|constructor#named6::T% */ {
   lowered final self::Class2<self::Class2|constructor#named6::T%> /* = self::Class2|constructor#named6::T% */ #this = list.{core::Iterable::first}{self::Class2|constructor#named6::T%};
   return #this;
 }
-static inline-class-member method Class2|constructor#_#named6#tearOff<T extends core::Object? = dynamic>(core::List<self::Class2|constructor#_#named6#tearOff::T%> list) → self::Class2<self::Class2|constructor#_#named6#tearOff::T%> /* = self::Class2|constructor#_#named6#tearOff::T% */
+static inline-class-member method Class2|constructor#_#named6#tearOff<T extends core::Object? = dynamic>(core::List<self::Class2|constructor#_#named6#tearOff::T%> list) → self::Class2<self::Class2|constructor#_#named6#tearOff::T%>% /* = self::Class2|constructor#_#named6#tearOff::T% */
   return self::Class2|constructor#named6<self::Class2|constructor#_#named6#tearOff::T%>(list);

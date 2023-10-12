@@ -970,7 +970,7 @@ class KernelTarget extends TargetImplementation {
               builder, constructorReference, tearOffReference));
         }
       case TypeAliasBuilder():
-      case TypeVariableBuilder():
+      case NominalVariableBuilder():
       case StructuralVariableBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():

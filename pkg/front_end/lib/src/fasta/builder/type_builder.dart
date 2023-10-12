@@ -318,7 +318,7 @@ sealed class TypeBuilder {
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
+  TypeBuilder subst(Map<NominalVariableBuilder, TypeBuilder> substitution,
       {List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
     if (substitution.isEmpty) {

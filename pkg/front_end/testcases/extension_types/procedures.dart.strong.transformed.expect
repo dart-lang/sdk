@@ -1,4 +1,37 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/procedures.dart:39:18: Error: Method 'instanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+// Try calling using ?. instead.
+//     var localM = instanceMethod();
+//                  ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/procedures.dart:40:18: Error: Property 'instanceMethod' cannot be accessed on 'GenericClass<T>' because it is potentially null.
+// Try accessing using ?. instead.
+//     var localT = instanceMethod;
+//                  ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/procedures.dart:41:18: Error: Property 'instanceGetter' cannot be accessed on 'GenericClass<T>' because it is potentially null.
+// Try accessing using ?. instead.
+//     var localG = instanceGetter;
+//                  ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/procedures.dart:50:19: Error: Method 'genericInstanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+// Try calling using ?. instead.
+//     var localG1 = genericInstanceMethod(s);
+//                   ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/procedures.dart:51:19: Error: Method 'genericInstanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+// Try calling using ?. instead.
+//     var localG2 = genericInstanceMethod(i);
+//                   ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/procedures.dart:52:19: Error: Method 'genericInstanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+// Try calling using ?. instead.
+//     var localG3 = genericInstanceMethod<num>(i);
+//                   ^^^^^^^^^^^^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -70,15 +103,24 @@ static inline-class-member method GenericClass|constructor#_<T extends core::Obj
   lowered final self::GenericClass<self::GenericClass|constructor#_::T%> /* = self::GenericClass|constructor#_::T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericClass|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#_#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#_#tearOff::T%> /* = self::GenericClass|constructor#_#_#tearOff::T% */
+static inline-class-member method GenericClass|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#_#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#_#tearOff::T%>% /* = self::GenericClass|constructor#_#_#tearOff::T% */
   return self::GenericClass|constructor#_<self::GenericClass|constructor#_#_#tearOff::T%>(it);
 static inline-class-member method GenericClass|instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|instanceMethod::T%> /* = self::GenericClass|instanceMethod::T% */ #this) → void {
   self::GenericClass<self::GenericClass|instanceMethod::T%> /* = self::GenericClass|instanceMethod::T% */ local = #this;
-  void localM = self::GenericClass|instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
-  () → void localT = self::GenericClass|get#instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
-  self::GenericClass|instanceMethod::T% localG = self::GenericClass|get#instanceGetter<self::GenericClass|instanceMethod::T%>(#this);
+  void localM = invalid-expression "pkg/front_end/testcases/extension_types/procedures.dart:39:18: Error: Method 'instanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+Try calling using ?. instead.
+    var localM = instanceMethod();
+                 ^^^^^^^^^^^^^^" in self::GenericClass|instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
+  () → void localT = invalid-expression "pkg/front_end/testcases/extension_types/procedures.dart:40:18: Error: Property 'instanceMethod' cannot be accessed on 'GenericClass<T>' because it is potentially null.
+Try accessing using ?. instead.
+    var localT = instanceMethod;
+                 ^^^^^^^^^^^^^^" in self::GenericClass|get#instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
+  self::GenericClass|instanceMethod::T% localG = invalid-expression "pkg/front_end/testcases/extension_types/procedures.dart:41:18: Error: Property 'instanceGetter' cannot be accessed on 'GenericClass<T>' because it is potentially null.
+Try accessing using ?. instead.
+    var localG = instanceGetter;
+                 ^^^^^^^^^^^^^^" in self::GenericClass|get#instanceGetter<self::GenericClass|instanceMethod::T%>(#this);
 }
-static inline-class-member method GenericClass|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod::T%> /* = self::GenericClass|get#instanceMethod::T% */ #this) → () → void
+static inline-class-member method GenericClass|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod::T%>% /* = self::GenericClass|get#instanceMethod::T% */ #this) → () → void
   return () → void => self::GenericClass|instanceMethod<self::GenericClass|get#instanceMethod::T%>(#this);
 static inline-class-member method GenericClass|get#instanceGetter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceGetter::T%> /* = self::GenericClass|get#instanceGetter::T% */ #this) → self::GenericClass|get#instanceGetter::T%
   return throw "";
@@ -86,15 +128,24 @@ static inline-class-member method GenericClass|instanceMethod2<T extends core::O
   self::GenericClass<self::GenericClass|instanceMethod2::T%> /* = self::GenericClass|instanceMethod2::T% */ local = #this;
   core::String localS = s;
   core::int localI = i;
-  core::String localG1 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::String>(#this, s);
-  core::int localG2 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::int>(#this, i);
-  core::num localG3 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::num>(#this, i);
+  core::String localG1 = invalid-expression "pkg/front_end/testcases/extension_types/procedures.dart:50:19: Error: Method 'genericInstanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+Try calling using ?. instead.
+    var localG1 = genericInstanceMethod(s);
+                  ^^^^^^^^^^^^^^^^^^^^^" in self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::String>(#this, s);
+  core::int localG2 = invalid-expression "pkg/front_end/testcases/extension_types/procedures.dart:51:19: Error: Method 'genericInstanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+Try calling using ?. instead.
+    var localG2 = genericInstanceMethod(i);
+                  ^^^^^^^^^^^^^^^^^^^^^" in self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::int>(#this, i);
+  core::num localG3 = invalid-expression "pkg/front_end/testcases/extension_types/procedures.dart:52:19: Error: Method 'genericInstanceMethod' cannot be called on 'GenericClass<T>' because it is potentially null.
+Try calling using ?. instead.
+    var localG3 = genericInstanceMethod<num>(i);
+                  ^^^^^^^^^^^^^^^^^^^^^" in self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::num>(#this, i);
 }
-static inline-class-member method GenericClass|get#instanceMethod2<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod2::T%> /* = self::GenericClass|get#instanceMethod2::T% */ #this) → (core::String, {i: core::int}) → void
+static inline-class-member method GenericClass|get#instanceMethod2<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod2::T%>% /* = self::GenericClass|get#instanceMethod2::T% */ #this) → (core::String, {i: core::int}) → void
   return (core::String s, {core::int i = #C1}) → void => self::GenericClass|instanceMethod2<self::GenericClass|get#instanceMethod2::T%>(#this, s, i: i);
 static inline-class-member method GenericClass|genericInstanceMethod<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|genericInstanceMethod::T%> /* = self::GenericClass|genericInstanceMethod::T% */ #this, self::GenericClass|genericInstanceMethod::S% s) → self::GenericClass|genericInstanceMethod::S%
   return s;
-static inline-class-member method GenericClass|get#genericInstanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#genericInstanceMethod::T%> /* = self::GenericClass|get#genericInstanceMethod::T% */ #this) → <S extends core::Object? = dynamic>(S%) → S%
+static inline-class-member method GenericClass|get#genericInstanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#genericInstanceMethod::T%>% /* = self::GenericClass|get#genericInstanceMethod::T% */ #this) → <S extends core::Object? = dynamic>(S%) → S%
   return <S extends core::Object? = dynamic>(S% s) → S% => self::GenericClass|genericInstanceMethod<self::GenericClass|get#genericInstanceMethod::T%, S%>(#this, s);
 static inline-class-member method GenericClass|staticMethod() → void {
   self::GenericClass|staticMethod();

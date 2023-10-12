@@ -22,7 +22,7 @@ static inline-class-member method Class|constructor#_#named#tearOff(core::int it
   return self::Class|constructor#named(it);
 static inline-class-member method GenericClass|constructor#<T extends core::Object? = dynamic>(self::GenericClass|constructor#::T% it) → self::GenericClass<self::GenericClass|constructor#::T%> /* = self::GenericClass|constructor#::T% */
   ;
-static inline-class-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%> /* = self::GenericClass|constructor#_#new#tearOff::T% */
+static inline-class-member method GenericClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|constructor#_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|constructor#_#new#tearOff::T%>% /* = self::GenericClass|constructor#_#new#tearOff::T% */
   return self::GenericClass|constructor#<self::GenericClass|constructor#_#new#tearOff::T%>(it);
 static method main() → dynamic
   ;

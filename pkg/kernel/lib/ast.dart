@@ -11813,7 +11813,18 @@ class ExtensionType extends DartType {
       extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
   @override
-  Nullability get nullability => declaredNullability;
+  Nullability get nullability {
+    Nullability nullabilityInducedByRepresentationType = _computeTypeErasure(
+                    extensionTypeDeclarationReference,
+                    typeArguments,
+                    Nullability.nonNullable)
+                .nullability ==
+            Nullability.nonNullable
+        ? Nullability.nonNullable
+        : Nullability.undetermined;
+    return combineNullabilitiesForSubstitution(
+        nullabilityInducedByRepresentationType, declaredNullability);
+  }
 
   @override
   DartType get resolveTypeParameterType =>

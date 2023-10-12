@@ -17,7 +17,7 @@ class DillExtensionTypeDeclarationBuilder
     with DillClassMemberAccessMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  List<TypeVariableBuilder>? _typeParameters;
+  List<NominalVariableBuilder>? _typeParameters;
 
   List<TypeBuilder>? _interfaceBuilders;
 
@@ -127,8 +127,8 @@ class DillExtensionTypeDeclarationBuilder
       _extensionTypeDeclaration;
 
   @override
-  List<TypeVariableBuilder>? get typeParameters {
-    List<TypeVariableBuilder>? typeVariables = _typeParameters;
+  List<NominalVariableBuilder>? get typeParameters {
+    List<NominalVariableBuilder>? typeVariables = _typeParameters;
     if (typeVariables == null &&
         _extensionTypeDeclaration.typeParameters.isNotEmpty) {
       typeVariables = _typeParameters =

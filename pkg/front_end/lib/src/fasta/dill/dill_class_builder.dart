@@ -49,7 +49,7 @@ class DillClassBuilder extends ClassBuilderImpl
   @override
   final Class cls;
 
-  List<TypeVariableBuilder>? _typeVariables;
+  List<NominalVariableBuilder>? _typeVariables;
 
   TypeBuilder? _supertypeBuilder;
 
@@ -106,8 +106,8 @@ class DillClassBuilder extends ClassBuilderImpl
   bool get isAugmentation => false;
 
   @override
-  List<TypeVariableBuilder>? get typeVariables {
-    List<TypeVariableBuilder>? typeVariables = _typeVariables;
+  List<NominalVariableBuilder>? get typeVariables {
+    List<NominalVariableBuilder>? typeVariables = _typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
       typeVariables =
           _typeVariables = computeTypeVariableBuilders(cls.typeParameters);
@@ -257,10 +257,10 @@ TypeBuilder? computeTypeBuilder(
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
-List<TypeVariableBuilder>? computeTypeVariableBuilders(
+List<NominalVariableBuilder>? computeTypeVariableBuilders(
     List<TypeParameter>? typeParameters) {
   if (typeParameters == null || typeParameters.length == 0) return null;
   return new List.generate(typeParameters.length,
-      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i]),
+      (int i) => new NominalVariableBuilder.fromKernel(typeParameters[i]),
       growable: false);
 }

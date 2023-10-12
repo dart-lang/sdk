@@ -53,7 +53,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilderComputer(this.loader);
 
-  final Map<TypeParameter, TypeVariableBuilder> functionTypeParameters = {};
+  final Map<TypeParameter, NominalVariableBuilder> functionTypeParameters = {};
 
   @override
   TypeBuilder visitInvalidType(InvalidType node) {
@@ -170,7 +170,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new TypeVariableBuilder.fromKernel(parameter),
+        new NominalVariableBuilder.fromKernel(parameter),
         new NullabilityBuilder.fromNullability(node.nullability),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
         type: node);

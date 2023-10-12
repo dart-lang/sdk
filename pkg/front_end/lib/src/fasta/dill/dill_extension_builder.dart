@@ -15,7 +15,7 @@ import 'dill_extension_member_builder.dart';
 class DillExtensionBuilder extends ExtensionBuilderImpl {
   @override
   final Extension extension;
-  List<TypeVariableBuilder>? _typeParameters;
+  List<NominalVariableBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
@@ -83,7 +83,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
   }
 
   @override
-  List<TypeVariableBuilder>? get typeParameters {
+  List<NominalVariableBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
       _typeParameters = computeTypeVariableBuilders(extension.typeParameters);
     }

@@ -229,7 +229,6 @@ general/supertype_conflict: TypeCheckError
 general/type_variable_as_super: RuntimeError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
-generic_metadata/from_dill/main: Crash
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError

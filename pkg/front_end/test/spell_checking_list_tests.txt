@@ -491,6 +491,9 @@ naturally
 negatable
 newworld
 ninja
+nn
+nnn
+nnr
 noisy
 nomatch
 nominal

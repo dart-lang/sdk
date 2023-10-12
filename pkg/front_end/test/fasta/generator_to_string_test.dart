@@ -102,7 +102,7 @@ Future<void> main() async {
         new PrefixBuilder("myPrefix", false, libraryBuilder, null, -1, -1);
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration =
-        new TypeVariableBuilder.fromKernel(new TypeParameter("T"));
+        new NominalVariableBuilder.fromKernel(new TypeParameter("T"));
     VariableDeclaration variable =
         new VariableDeclaration(null, isSynthesized: true);
 

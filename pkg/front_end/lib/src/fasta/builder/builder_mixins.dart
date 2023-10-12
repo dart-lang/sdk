@@ -22,7 +22,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Type parameters declared.
   ///
   /// This is `null` if the declaration is not generic.
-  List<TypeVariableBuilder>? get typeParameters;
+  List<NominalVariableBuilder>? get typeParameters;
 
   /// Lookup a static member of this declaration.
   @override

@@ -22,25 +22,35 @@ library;
 //     var c2 = it = 42; // Error, should not resolve to extension method.
 //              ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:26:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
+// pkg/front_end/testcases/extension_types/field_access.dart:24:19: Error: The getter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var a1 = this.it;
+//                   ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:25:14: Error: The getter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var a2 = it;
+//              ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:26:19: Error: The getter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var b1 = this.it<int>; // Error
+//                   ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:26:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 // Try changing the operand or remove the type arguments.
 //     var b1 = this.it<int>; // Error
 //                     ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:27:16: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
+// pkg/front_end/testcases/extension_types/field_access.dart:27:14: Error: The getter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var b2 = it<int>; // Error
+//              ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:27:16: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 // Try changing the operand or remove the type arguments.
 //     var b2 = it<int>; // Error
 //                ^
-//
-// pkg/front_end/testcases/extension_types/field_access.dart:28:19: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-//     var c1 = this.it = t; // Error, should not resolve to extension method.
-//                   ^^
-//
-// pkg/front_end/testcases/extension_types/field_access.dart:29:14: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-//     var c2 = it = t; // Error, should not resolve to extension method.
-//              ^^
 //
 // pkg/front_end/testcases/extension_types/field_access.dart:37:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T Function()'.
 // Try changing the operand or remove the type arguments.
@@ -82,24 +92,54 @@ library;
 //     var c2 = it = t; // Error, should not resolve to extension method.
 //              ^^
 //
+// pkg/front_end/testcases/extension_types/field_access.dart:70:19: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var a1 = this.it;
+//                   ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:71:14: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var a2 = it;
+//              ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:72:19: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var b1 = this.it<int>; // Error
+//                   ^^
+//
 // pkg/front_end/testcases/extension_types/field_access.dart:72:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 // Try changing the operand or remove the type arguments.
 //     var b1 = this.it<int>; // Error
 //                     ^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:73:14: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var b2 = it<int>; // Error
+//              ^^
 //
 // pkg/front_end/testcases/extension_types/field_access.dart:73:16: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 // Try changing the operand or remove the type arguments.
 //     var b2 = it<int>; // Error
 //                ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:74:19: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-//     var c1 = this.it = 42; // Error, should not resolve to extension method.
+// pkg/front_end/testcases/extension_types/field_access.dart:76:19: Error: The method 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing method, or defining a method named 'it'.
+//     var d1 = this.it();
 //                   ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:75:14: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-//     var c2 = it = 42; // Error, should not resolve to extension method.
+// pkg/front_end/testcases/extension_types/field_access.dart:77:14: Error: The method 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing method, or defining a method named 'it'.
+//     var d2 = it();
+//              ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:78:19: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var d3 = this.it.call();
+//                   ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:79:14: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//     var d4 = it.call();
 //              ^^
 //
 // pkg/front_end/testcases/extension_types/field_access.dart:87:19: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
@@ -237,14 +277,24 @@ library;
 //   var d6 = genericFunctionInlineClass.it = <T>() => throw ''; // Error, should
 //                                       ^^
 //
+// pkg/front_end/testcases/extension_types/field_access.dart:142:31: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//   var e1 = dynamicInlineClass.it;
+//                               ^^
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:143:31: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+//   var e2 = dynamicInlineClass.it<int>; // Error
+//                               ^^
+//
 // pkg/front_end/testcases/extension_types/field_access.dart:143:33: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 // Try changing the operand or remove the type arguments.
 //   var e2 = dynamicInlineClass.it<int>; // Error
 //                                 ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:145:31: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-//   var e4 = dynamicInlineClass.it = '42'; // Error, should not resolve
+// pkg/front_end/testcases/extension_types/field_access.dart:144:31: Error: The method 'it' isn't defined for the class 'DynamicInlineClass'.
+// Try correcting the name to the name of an existing method, or defining a method named 'it'.
+//   var e3 = dynamicInlineClass.it();
 //                               ^^
 //
 // pkg/front_end/testcases/extension_types/field_access.dart:149:34: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
@@ -369,29 +419,29 @@ static inline-class-member method GenericInlineClass|constructor#<T extends core
   lowered final self::GenericInlineClass<self::GenericInlineClass|constructor#::T%> /* = self::GenericInlineClass|constructor#::T% */ #this = it;
   return #this;
 }
-static inline-class-member method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%> /* = self::GenericInlineClass|constructor#_#new#tearOff::T% */
+static inline-class-member method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%>% /* = self::GenericInlineClass|constructor#_#new#tearOff::T% */
   return self::GenericInlineClass|constructor#<self::GenericInlineClass|constructor#_#new#tearOff::T%>(it);
 static inline-class-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> /* = self::GenericInlineClass|test::T% */ #this, self::GenericInlineClass|test::T% t) → void {
-  self::GenericInlineClass|test::T% a1 = #this as{Unchecked} self::GenericInlineClass|test::T%;
-  self::GenericInlineClass|test::T% a2 = #this as{Unchecked} self::GenericInlineClass|test::T%;
-  invalid-type b1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:26:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
+  dynamic a1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:24:19: Error: The getter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+    var a1 = this.it;
+                  ^^" in #this{<unresolved>}.it;
+  dynamic a2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:25:14: Error: The getter 'it' isn't defined for the class 'GenericInlineClass<T>'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+    var a2 = it;
+             ^^" in #this{<unresolved>}.it;
+  invalid-type b1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:26:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 Try changing the operand or remove the type arguments.
     var b1 = this.it<int>; // Error
                     ^";
-  invalid-type b2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:27:16: Error: The static type of the explicit instantiation operand must be a generic function type but is 'T'.
+  invalid-type b2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:27:16: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 Try changing the operand or remove the type arguments.
     var b2 = it<int>; // Error
                ^";
-  self::GenericInlineClass|test::T% c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:28:19: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-    var c1 = this.it = t; // Error, should not resolve to extension method.
-                  ^^" in #this{<unresolved>}.it = t;
-  self::GenericInlineClass|test::T% c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:29:14: Error: The setter 'it' isn't defined for the class 'GenericInlineClass<T>'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-    var c2 = it = t; // Error, should not resolve to extension method.
-             ^^" in #this{<unresolved>}.it = t;
+  self::GenericInlineClass|test::T% c1 = let final self::GenericInlineClass|test::T% #t1 = t in let final void #t2 = self::_extension#0|set#it(#this, #t1) in #t1;
+  self::GenericInlineClass|test::T% c2 = let final self::GenericInlineClass|test::T% #t3 = t in let final void #t4 = self::_extension#0|set#it(#this, #t3) in #t3;
 }
-static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%> /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
+static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%>% /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
   return (self::GenericInlineClass|get#test::T% t) → void => self::GenericInlineClass|test<self::GenericInlineClass|get#test::T%>(#this, t);
 static inline-class-member method FunctionInlineClass|constructor#<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#::T%> /* = () → self::FunctionInlineClass|constructor#::T% */ {
   lowered final self::FunctionInlineClass<self::FunctionInlineClass|constructor#::T%> /* = () → self::FunctionInlineClass|constructor#::T% */ #this = it;
@@ -468,8 +518,14 @@ static inline-class-member method DynamicInlineClass|constructor#(dynamic it) �
 static inline-class-member method DynamicInlineClass|constructor#_#new#tearOff(dynamic it) → self::DynamicInlineClass /* = dynamic */
   return self::DynamicInlineClass|constructor#(it);
 static inline-class-member method DynamicInlineClass|test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → void {
-  dynamic a1 = #this as{Unchecked} dynamic;
-  dynamic a2 = #this as{Unchecked} dynamic;
+  dynamic a1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:70:19: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+    var a1 = this.it;
+                  ^^" in #this{<unresolved>}.it;
+  dynamic a2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:71:14: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+    var a2 = it;
+             ^^" in #this{<unresolved>}.it;
   invalid-type b1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:72:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 Try changing the operand or remove the type arguments.
     var b1 = this.it<int>; // Error
@@ -478,18 +534,24 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b2 = it<int>; // Error
                ^";
-  core::int c1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:74:19: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-    var c1 = this.it = 42; // Error, should not resolve to extension method.
-                  ^^" in #this{<unresolved>}.it = 42;
-  core::int c2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:75:14: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-    var c2 = it = 42; // Error, should not resolve to extension method.
-             ^^" in #this{<unresolved>}.it = 42;
-  dynamic d1 = (#this as{Unchecked} dynamic){dynamic}.call();
-  dynamic d2 = (#this as{Unchecked} dynamic){dynamic}.call();
-  dynamic d3 = (#this as{Unchecked} dynamic){dynamic}.call();
-  dynamic d4 = (#this as{Unchecked} dynamic){dynamic}.call();
+  core::int c1 = let final core::int #t5 = 42 in let final void #t6 = self::_extension#0|set#it(#this, #t5) in #t5;
+  core::int c2 = let final core::int #t7 = 42 in let final void #t8 = self::_extension#0|set#it(#this, #t7) in #t7;
+  dynamic d1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:76:19: Error: The method 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing method, or defining a method named 'it'.
+    var d1 = this.it();
+                  ^^" in #this{<unresolved>}.it();
+  dynamic d2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:77:14: Error: The method 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing method, or defining a method named 'it'.
+    var d2 = it();
+             ^^" in #this{<unresolved>}.it();
+  dynamic d3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:78:19: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+    var d3 = this.it.call();
+                  ^^" in #this{<unresolved>}.it{dynamic}.call();
+  dynamic d4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:79:14: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+    var d4 = it.call();
+             ^^" in #this{<unresolved>}.it{dynamic}.call();
 }
 static inline-class-member method DynamicInlineClass|get#test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → () → void
   return () → void => self::DynamicInlineClass|test(#this);
@@ -616,16 +678,19 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
   var d6 = genericFunctionInlineClass.it = <T>() => throw ''; // Error, should
                                       ^^" in genericFunctionInlineClass{<unresolved>}.it = <T extends core::Object? = dynamic>() → Never => throw "";
-  dynamic e1 = dynamicInlineClass as{Unchecked} dynamic;
+  dynamic e1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:142:31: Error: The getter 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'it'.
+  var e1 = dynamicInlineClass.it;
+                              ^^" in dynamicInlineClass{<unresolved>}.it;
   invalid-type e2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:143:33: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
 Try changing the operand or remove the type arguments.
   var e2 = dynamicInlineClass.it<int>; // Error
                                 ^";
-  dynamic e3 = (dynamicInlineClass as{Unchecked} dynamic){dynamic}.call();
-  core::String e4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:145:31: Error: The setter 'it' isn't defined for the class 'DynamicInlineClass'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'it'.
-  var e4 = dynamicInlineClass.it = '42'; // Error, should not resolve
-                              ^^" in dynamicInlineClass{<unresolved>}.it = "42";
+  dynamic e3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:144:31: Error: The method 'it' isn't defined for the class 'DynamicInlineClass'.
+Try correcting the name to the name of an existing method, or defining a method named 'it'.
+  var e3 = dynamicInlineClass.it();
+                              ^^" in dynamicInlineClass{<unresolved>}.it();
+  core::String e4 = let final core::String #t9 = "42" in let final void #t10 = self::_extension#0|set#it(dynamicInlineClass, #t9) in #t9;
   core::int f1 = erroneousInlineClass as{Unchecked} core::int;
   invalid-type f2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:149:34: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
 Try changing the operand or remove the type arguments.
@@ -722,3 +787,13 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 }
 static inline-class-member method PrivateInlineClass|get#test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → () → void
   return () → void => self2::PrivateInlineClass|test(#this);
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///field_access.dart:74:24 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///field_access.dart:74:24 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///field_access.dart:75:19 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///field_access.dart:75:19 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///field_access.dart:145:36 -> StringConstant("42")
+Evaluated: VariableGet @ org-dartlang-testcase:///field_access.dart:145:36 -> StringConstant("42")
+Extra constant evaluation: evaluated: 178, effectively constant: 6

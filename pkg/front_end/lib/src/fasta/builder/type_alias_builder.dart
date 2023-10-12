@@ -22,7 +22,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   @override
   Uri get fileUri;
 
-  List<TypeVariableBuilder>? get typeVariables;
+  List<NominalVariableBuilder>? get typeVariables;
 
   int varianceAt(int index);
 
@@ -268,7 +268,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           return typeVariables![i].defaultType!;
         }, growable: true);
       }
-      Map<TypeVariableBuilder, TypeBuilder> substitution = {};
+      Map<NominalVariableBuilder, TypeBuilder> substitution = {};
       for (int index = 0; index < typeArguments.length; index++) {
         substitution[typeVariables![index]] = typeArguments[index];
       }
@@ -338,7 +338,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         thisType = const InvalidType();
         return _cachedUnaliasedDeclaration = this;
       }
-      if (current is TypeVariableBuilder) {
+      if (current is NominalVariableBuilder) {
         // Encountered `typedef F<..X..> = X`, must repeat the computation,
         // tracing type variables at each step. We repeat everything because
         // that kind of type alias is expected to be rare. We cannot save it in
@@ -350,7 +350,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         if (isUsedAsClass) {
           List<TypeBuilder> freshTypeArguments = [
             if (typeVariables != null)
-              for (TypeVariableBuilder typeVariable in typeVariables!)
+              for (NominalVariableBuilder typeVariable in typeVariables!)
                 new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
                     typeVariable, libraryBuilder.nonNullableBuilder,
                     arguments: const [],
@@ -415,7 +415,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       TypeAliasBuilder currentAliasBuilder = currentDeclarationBuilder;
       TypeBuilder nextTypeBuilder = currentAliasBuilder.type;
       if (nextTypeBuilder is NamedTypeBuilder) {
-        Map<TypeVariableBuilder, TypeBuilder> substitution = {};
+        Map<NominalVariableBuilder, TypeBuilder> substitution = {};
         int index = 0;
         if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
           if (currentAliasBuilder.typeVariables != null) {
@@ -447,7 +447,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                 "_unaliasDeclaration", -1, null);
           }
         }
-        for (TypeVariableBuilder typeVariableBuilder
+        for (NominalVariableBuilder typeVariableBuilder
             in currentAliasBuilder.typeVariables ?? []) {
           substitution[typeVariableBuilder] = currentTypeArguments[index];
           ++index;
@@ -455,7 +455,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         TypeDeclarationBuilder? nextDeclarationBuilder =
             nextTypeBuilder.declaration;
         TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
-        if (nextDeclarationBuilder is TypeVariableBuilder) {
+        if (nextDeclarationBuilder is NominalVariableBuilder) {
           // We have reached the end of the type alias chain which yields a
           // type argument, which may become a type alias, possibly with its
           // own similar chain. We do not simply continue the iteration here,
@@ -515,7 +515,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           "Expected NamedTypeBuilder, got '${nextTypeBuilder.runtimeType}'.");
       NamedTypeBuilder namedNextTypeBuilder =
           nextTypeBuilder as NamedTypeBuilder;
-      Map<TypeVariableBuilder, TypeBuilder> substitution = {};
+      Map<NominalVariableBuilder, TypeBuilder> substitution = {};
       int index = 0;
       if (currentTypeArguments == null || currentTypeArguments.isEmpty) {
         if (currentAliasBuilder.typeVariables != null) {
@@ -531,7 +531,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       }
       assert((currentAliasBuilder.typeVariables?.length ?? 0) ==
           currentTypeArguments.length);
-      for (TypeVariableBuilder typeVariableBuilder
+      for (NominalVariableBuilder typeVariableBuilder
           in currentAliasBuilder.typeVariables ?? []) {
         substitution[typeVariableBuilder] = currentTypeArguments[index];
         ++index;
@@ -539,7 +539,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       TypeDeclarationBuilder? nextDeclarationBuilder =
           namedNextTypeBuilder.declaration;
       TypeBuilder substitutedBuilder = nextTypeBuilder.subst(substitution);
-      if (nextDeclarationBuilder is TypeVariableBuilder) {
+      if (nextDeclarationBuilder is NominalVariableBuilder) {
         // We have reached the end of the type alias chain which yields a
         // type argument, which may become a type alias, possibly with its
         // own similar chain.

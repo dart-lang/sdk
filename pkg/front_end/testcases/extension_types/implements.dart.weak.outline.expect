@@ -42,11 +42,11 @@ static inline-class-member method A|get#methodA(lowered final self::A /* = core:
   return () → core::int => self::A|methodA(#this);
 static inline-class-member method B|constructor#<T extends core::Object? = dynamic>(self::B|constructor#::T% it) → self::B<self::B|constructor#::T%> /* = self::B|constructor#::T% */
   ;
-static inline-class-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::B|constructor#_#new#tearOff::T% it) → self::B<self::B|constructor#_#new#tearOff::T%> /* = self::B|constructor#_#new#tearOff::T% */
+static inline-class-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::B|constructor#_#new#tearOff::T% it) → self::B<self::B|constructor#_#new#tearOff::T%>% /* = self::B|constructor#_#new#tearOff::T% */
   return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
 static inline-class-member method B|methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|methodB::T%> /* = self::B|methodB::T% */ #this) → self::B|methodB::T%
   ;
-static inline-class-member method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%> /* = self::B|get#methodB::T% */ #this) → () → self::B|get#methodB::T%
+static inline-class-member method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%>% /* = self::B|get#methodB::T% */ #this) → () → self::B|get#methodB::T%
   return () → self::B|get#methodB::T% => self::B|methodB<self::B|get#methodB::T%>(#this);
 static inline-class-member method C1|constructor#(core::int it) → self::C1 /* = core::int */
   ;

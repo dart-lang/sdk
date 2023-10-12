@@ -115,6 +115,17 @@
     "sinceDartSdk": "2.0.0"
   },
   {
+    "name": "avoid_unstable_final_fields",
+    "description": "Avoid overriding a final field to return different values if called multiple times.",
+    "group": "errors",
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "noFix",
+    "details": "**AVOID** overriding or implementing a final field as a getter which could\nreturn different values if it is invoked multiple times on the same receiver.\nThis could occur because the getter is an implicitly induced getter of a\nnon-final field, or it could be an explicitly declared getter with a body\nthat isn't known to return the same value each time it is called.\n\nThe underlying motivation for this rule is that if it is followed then a final\nfield is an immutable property of an object. This is important for correctness\nbecause it is then safe to assume that the value does not change during the\nexecution of an algorithm. In contrast, it may be necessary to re-check any\nother getter repeatedly if it is not known to have this property. Similarly,\nit is safe to cache the immutable property in a local variable and promote it,\nbut for any other property it is necessary to check repeatedly that the\nunderlying property hasn't changed since it was promoted.\n\n**BAD:**\n```dart\nclass A {\n  final int i;\n  A(this.i);\n}\n\nvar j = 0;\n\nclass B1 extends A {\n  int get i => ++j + super.i; // LINT.\n  B1(super.i);\n}\n\nclass B2 implements A {\n  int i; // LINT.\n  B2(this.i);\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  final int i;\n  C(this.i);\n}\n\nclass D1 implements C {\n  late final int i = someExpression; // OK.\n}\n\nclass D2 extends C {\n  int get i => super.i + 1; // OK.\n  D2(super.i);\n}\n\nclass D3 implements C {\n  final int i; // OK.\n  D3(this.i);\n}\n```\n\n",
+    "sinceDartSdk": "3.1.0"
+  },
+  {
     "name": "avoid_web_libraries_in_flutter",
     "description": "Avoid using web-only libraries outside Flutter web plugin packages.",
     "group": "errors",
@@ -373,7 +384,11 @@
     "group": "errors",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "needsEvaluation",
     "details": "**DON'T** use wildcard parameters or variables.\n\nWildcard parameters and local variables\n(e.g. underscore-only names like `_`, `__`, `___`, etc.) will\nbecome non-binding in a future version of the Dart language.\nAny existing code that uses wildcard parameters or variables will\nbreak. In anticipation of this change, and to make adoption easier,\nthis lint disallows wildcard and variable parameter uses.\n\n\n**BAD:**\n```dart\nvar _ = 1;\nprint(_); // LINT\n```\n\n```dart\nvoid f(int __) {\n  print(__); // LINT multiple underscores too\n}\n```\n\n**GOOD:**\n```dart\nfor (var _ in [1, 2, 3]) count++;\n```\n\n```dart\nvar [a, _, b, _] = [1, 2, 3, 4];\n```\n",
     "sinceDartSdk": "3.1.0"

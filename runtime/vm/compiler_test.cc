@@ -211,6 +211,8 @@ TEST_CASE(EvalExpression) {
             Array::empty_array(), Array::empty_array(), Array::empty_array(),
             String::Handle(lib_handle.url()).ToCString(), "A",
             /* method= */ nullptr,
+            /* token_pos= */ TokenPosition::kNoSource,
+            /* script_uri= */ String::Handle(lib_handle.url()).ToCString(),
             /* is_static= */ false);
     EXPECT_EQ(Dart_KernelCompilationStatus_Ok, compilation_result.status);
 

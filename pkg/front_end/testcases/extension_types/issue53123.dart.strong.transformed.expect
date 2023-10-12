@@ -21,16 +21,16 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension type V<T extends self::V<T> /* = T */ = self::V<dynamic> /* = dynamic */>(T id) {
+extension type V<T extends self::V<T%> /* = T% */ = self::V<dynamic> /* = dynamic */>(T% id) {
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
-static inline-class-member method V|constructor#<T extends self::V<self::V|constructor#::T> /* = self::V|constructor#::T */ = self::V<dynamic> /* = dynamic */>(self::V|constructor#::T id) → self::V<self::V|constructor#::T> /* = self::V|constructor#::T */ {
-  lowered final self::V<self::V|constructor#::T> /* = self::V|constructor#::T */ #this = id;
+static inline-class-member method V|constructor#<T extends self::V<self::V|constructor#::T%> /* = self::V|constructor#::T% */ = self::V<dynamic> /* = dynamic */>(self::V|constructor#::T% id) → self::V<self::V|constructor#::T%> /* = self::V|constructor#::T% */ {
+  lowered final self::V<self::V|constructor#::T%> /* = self::V|constructor#::T% */ #this = id;
   return #this;
 }
-static inline-class-member method V|constructor#_#new#tearOff<T extends self::V<self::V|constructor#_#new#tearOff::T> /* = self::V|constructor#_#new#tearOff::T */ = self::V<dynamic> /* = dynamic */>(self::V|constructor#_#new#tearOff::T id) → self::V<self::V|constructor#_#new#tearOff::T> /* = self::V|constructor#_#new#tearOff::T */
-  return self::V|constructor#<self::V|constructor#_#new#tearOff::T>(id);
+static inline-class-member method V|constructor#_#new#tearOff<T extends self::V<self::V|constructor#_#new#tearOff::T%>% /* = self::V|constructor#_#new#tearOff::T% */ = self::V<dynamic> /* = dynamic */>(self::V|constructor#_#new#tearOff::T% id) → self::V<self::V|constructor#_#new#tearOff::T%>% /* = self::V|constructor#_#new#tearOff::T% */
+  return self::V|constructor#<self::V|constructor#_#new#tearOff::T%>(id);
 static method test(self::V<self::V<dynamic> /* = dynamic */> /* = dynamic */ v) → dynamic {
   core::List<self::V<self::V<dynamic> /* = dynamic */> /* = dynamic */> l = core::_GrowableList::_literal1<self::V<self::V<dynamic> /* = dynamic */> /* = dynamic */>(v);
 }

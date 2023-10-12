@@ -1275,6 +1275,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             setter: isSetter);
         if (target != null) {
           return target;
+        } else if (receiverBound is ExtensionType &&
+            name.text ==
+                receiverBound.extensionTypeDeclaration.representationName) {
+          ObjectAccessTarget target =
+              objectAccessDescriptor.findNonExtensionTarget(this);
+          if (!target.isMissing) {
+            return target;
+          }
         }
       }
     }
@@ -4201,7 +4209,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     readResult ??= new ExpressionInferenceResult(readType, read);
-    if (readTarget.isNullable) {
+    if (readTarget.isNullable &&
+        !(receiverType is ExtensionType &&
+            propertyName.text ==
+                receiverType.extensionTypeDeclaration.representationName)) {
       readResult = wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(

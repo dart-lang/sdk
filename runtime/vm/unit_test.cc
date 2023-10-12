@@ -661,6 +661,8 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
             String::Handle(lib.url()).ToCString(),
             /* klass= */ nullptr,
             /* method= */ nullptr,
+            /* token_pos= */ TokenPosition::kNoSource,
+            /* script_uri= */ String::Handle(lib.url()).ToCString(),
             /* is_static= */ true);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       return Api::NewError("%s", compilation_result.error);

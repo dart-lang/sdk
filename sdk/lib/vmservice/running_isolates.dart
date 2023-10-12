@@ -134,11 +134,16 @@ class _Evaluator {
       'typeBounds': buildScopeResponseResult['type_params_bounds']!,
       'typeDefaults': buildScopeResponseResult['type_params_defaults']!,
       'libraryUri': buildScopeResponseResult['libraryUri']!,
+      'tokenPos': buildScopeResponseResult['tokenPos']!,
       'isStatic': buildScopeResponseResult['isStatic']!,
     };
     final klass = buildScopeResponseResult['klass'];
     if (klass != null) {
       compileParams['klass'] = klass;
+    }
+    final scriptUri = buildScopeResponseResult['scriptUri'];
+    if (scriptUri != null) {
+      compileParams['scriptUri'] = scriptUri;
     }
     final method = buildScopeResponseResult['method'];
     if (method != null) {

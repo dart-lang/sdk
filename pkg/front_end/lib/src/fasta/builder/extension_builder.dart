@@ -8,7 +8,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// Type parameters declared on the extension.
   ///
   /// This is `null` if the extension is not generic.
-  List<TypeVariableBuilder>? get typeParameters;
+  List<NominalVariableBuilder>? get typeParameters;
 
   /// The type of the on-clause of the extension declaration.
   TypeBuilder get onType;

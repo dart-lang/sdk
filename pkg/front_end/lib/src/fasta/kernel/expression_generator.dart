@@ -3157,7 +3157,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 ExtensionBuilder() => false,
                 ExtensionTypeDeclarationBuilder() => true,
                 TypeAliasBuilder() => false,
-                TypeVariableBuilder() => false,
+                NominalVariableBuilder() => false,
                 StructuralVariableBuilder() => false,
                 InvalidTypeDeclarationBuilder() => false,
                 BuiltinTypeDeclarationBuilder() => false,
@@ -3200,7 +3200,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               aliasBuilder.typeVariablesCount != 0) {
             isGenericTypedefTearOff = true;
             aliasedTypeArguments = <TypeBuilder>[];
-            for (TypeVariableBuilder typeVariable
+            for (NominalVariableBuilder typeVariable
                 in aliasBuilder.typeVariables!) {
               aliasedTypeArguments.add(new NamedTypeBuilderImpl(
                   new SyntheticTypeName(typeVariable.name, fileOffset),
