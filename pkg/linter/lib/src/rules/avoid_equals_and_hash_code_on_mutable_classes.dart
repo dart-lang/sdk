@@ -63,17 +63,6 @@ class C {
 
 ''';
 
-/// The name of the top-level variable used to mark a immutable class.
-String _immutableVarName = 'immutable';
-
-/// The name of `meta` library, used to define analysis annotations.
-String _metaLibName = 'meta';
-
-bool _isImmutable(Element? element) =>
-    element is PropertyAccessorElement &&
-    element.name == _immutableVarName &&
-    element.library.name == _metaLibName;
-
 class AvoidEqualsAndHashCodeOnMutableClasses extends LintRule {
   static const LintCode code = LintCode(
       'avoid_equals_and_hash_code_on_mutable_classes',
@@ -124,9 +113,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       ...clazz.allSupertypes.map((t) => t.element),
       clazz,
     ];
-    var inheritedAndSelfAnnotations = inheritedAndSelfElements
-        .expand((c) => c.metadata)
-        .map((m) => m.element);
-    return inheritedAndSelfAnnotations.any(_isImmutable);
+    return inheritedAndSelfElements.any((e) => e.hasImmutable);
   }
 }

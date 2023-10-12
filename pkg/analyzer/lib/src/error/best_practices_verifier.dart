@@ -929,23 +929,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// its superclasses, reporting a warning if any non-final instance fields are
   /// found.
   void _checkForImmutable(NamedCompilationUnitMember node) {
-    /// Return `true` if the given class [element] is annotated with the
-    /// `@immutable` annotation.
-    bool isImmutable(InterfaceElement element) {
-      for (ElementAnnotation annotation in element.metadata) {
-        if (annotation.isImmutable) {
-          return true;
-        }
-      }
-      return false;
-    }
-
     /// Return `true` if the given class [element] or any superclass of it is
     /// annotated with the `@immutable` annotation.
     bool isOrInheritsImmutable(
         InterfaceElement element, Set<InterfaceElement> visited) {
       if (visited.add(element)) {
-        if (isImmutable(element)) {
+        if (element.hasImmutable) {
           return true;
         }
         for (InterfaceType interface in element.mixins) {
