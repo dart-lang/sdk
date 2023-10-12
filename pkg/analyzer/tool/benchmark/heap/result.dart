@@ -13,9 +13,9 @@ String formatSizeInBytes(int value) {
     buffer.write(' = $kb KB');
   }
 
-  final mb = kb ~/ 1024;
-  if (mb > 0) {
-    buffer.write(' = $mb MB');
+  final mb = kb / 1024;
+  if (mb >= 1.0) {
+    buffer.write(' = ${mb.toStringAsFixed(1)} MB');
   }
 
   final gb = mb / 1024;
