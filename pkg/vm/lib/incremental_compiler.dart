@@ -215,6 +215,8 @@ class IncrementalCompiler {
       String libraryUri,
       String? klass,
       String? method,
+      int offset,
+      String? scriptUri,
       bool isStatic) {
     ClassHierarchy? classHierarchy =
         (_lastKnownGood ?? _combinePendingDeltas(false)).classHierarchy;
@@ -249,8 +251,17 @@ class IncrementalCompiler {
 
     Uri library = Uri.parse(libraryUri);
 
-    return _generator.compileExpression(expression, completeDefinitions,
-        typeParameters, kDebugProcedureName, library,
-        className: klass, methodName: method, isStatic: isStatic);
+    return _generator.compileExpression(
+      expression,
+      completeDefinitions,
+      typeParameters,
+      kDebugProcedureName,
+      library,
+      className: klass,
+      methodName: method,
+      offset: offset,
+      scriptUri: scriptUri,
+      isStatic: isStatic,
+    );
   }
 }

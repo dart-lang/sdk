@@ -186,6 +186,8 @@ Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
             String::Handle(lib.url()).ToCString(),
             /* klass= */ nullptr,
             /* method= */ nullptr,
+            /* token_pos= */ TokenPosition::kNoSource,
+            /* script_uri= */ String::Handle(lib.url()).ToCString(),
             /* is_static= */ true);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       return Api::NewError("Failed to compile expression.");
