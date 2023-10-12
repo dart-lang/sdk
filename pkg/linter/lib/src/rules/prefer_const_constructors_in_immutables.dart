@@ -37,17 +37,6 @@ class A {
 
 ''';
 
-/// The name of the top-level variable used to mark a immutable class.
-String _immutableVarName = 'immutable';
-
-/// The name of `meta` library, used to define analysis annotations.
-String _metaLibName = 'meta';
-
-bool _isImmutable(Element? element) =>
-    element is PropertyAccessorElement &&
-    element.name == _immutableVarName &&
-    element.library.name == _metaLibName;
-
 class PreferConstConstructorsInImmutables extends LintRule {
   static const LintCode code = LintCode(
       'prefer_const_constructors_in_immutables',
@@ -128,10 +117,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// `@immutable`.
   bool _hasImmutableAnnotation(InterfaceElement clazz) {
     var selfAndInheritedClasses = _getSelfAndSuperClasses(clazz);
-    for (var cls in selfAndInheritedClasses) {
-      if (cls.metadata.any((m) => _isImmutable(m.element))) return true;
-    }
-    return false;
+    return selfAndInheritedClasses.any((cls) => cls.hasImmutable);
   }
 
   static List<InterfaceElement> _getSelfAndSuperClasses(InterfaceElement self) {
