@@ -85,10 +85,17 @@ OSThread::~OSThread() {
   delete log_;
   log_ = nullptr;
 #if defined(SUPPORT_TIMELINE)
-  if (Timeline::recorder() != nullptr) {
+  RecorderSynchronizationLockScope ls;
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder != nullptr && !ls.IsShuttingDown()) {
     // Acquire the recorder's lock so that |timeline_block_| cannot be given to
     // another thread until the call to |TimelineEventRecorder::FinishBlock| is
-    // complete.
+    // complete. This is guarded by a check ensuring that the recorder has not
+    // yet been deleted, and thus ensuring that the recorder's lock can be
+    // acquired. It is fine to skip the call to
+    // |TimelineEventRecorder::FinishBlock| if the recorder has already been
+    // deleted, because only the recorder cares about whether blocks have been
+    // marked as finished.
     MutexLocker recorder_lock_locker(&Timeline::recorder()->lock_);
     MutexLocker timeline_block_lock_locker(timeline_block_lock());
     Timeline::recorder()->FinishBlock(timeline_block_);
