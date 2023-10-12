@@ -1,4 +1,10 @@
 ## 13.0.0
+- Add `wrapFuture` method that can be overridden to add additional logic to
+each VM service RPC call (like logging, tracking values, etc.).
+- Add `vmServiceConnectUriWithFactory` helper that can create a generic [VmService]
+instance and connect it to a web socket URI.
+- Add `VmServiceFactory` typedef.
+- Add a static method `VmService.defaultFactory` that provides a `VmServiceFactory` method for the `VmService` class.
 - Add Dart IO extension methods `isSocketProfilingAvailable`,
 `isHttpTimelineLoggingAvailable`, `isHttpProfilingAvailable`.
 - Remove deprecated Dart IO extension methods: `startSocketProfiling`

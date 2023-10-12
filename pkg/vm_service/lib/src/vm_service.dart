@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This is a generated file.
+// This is a generated file. To regenerate, run `dart tool/generate.dart`.
 
 /// A library to access the VM Service API.
 ///
@@ -1949,6 +1949,15 @@ class _OutstandingRequest<T> {
       _completer.completeError(error, _stackTrace);
 }
 
+typedef VmServiceFactory<T extends VmService> = T Function({
+  required Stream<dynamic> /*String|List<int>*/ inStream,
+  required void Function(String message) writeMessage,
+  Log? log,
+  DisposeHandler? disposeHandler,
+  Future? streamClosed,
+  String? wsUri,
+});
+
 class VmService implements VmServiceInterface {
   late final StreamSubscription _streamSub;
   late final Function _writeMessage;
@@ -1959,11 +1968,15 @@ class VmService implements VmServiceInterface {
   /// The web socket URI pointing to the target VM service instance.
   final String? wsUri;
 
+  Stream<String> get onSend => _onSend.stream;
   final StreamController<String> _onSend =
       StreamController.broadcast(sync: true);
+
+  Stream<String> get onReceive => _onReceive.stream;
   final StreamController<String> _onReceive =
       StreamController.broadcast(sync: true);
 
+  Future<void> get onDone => _onDoneCompleter.future;
   final Completer _onDoneCompleter = Completer();
 
   final Map<String, StreamController<Event>> _eventControllers = {};
@@ -1997,6 +2010,24 @@ class VmService implements VmServiceInterface {
         _onDoneCompleter.complete();
       }
     });
+  }
+
+  static VmService defaultFactory({
+    required Stream<dynamic> /*String|List<int>*/ inStream,
+    required void Function(String message) writeMessage,
+    Log? log,
+    DisposeHandler? disposeHandler,
+    Future? streamClosed,
+    String? wsUri,
+  }) {
+    return VmService(
+      inStream,
+      writeMessage,
+      log: log,
+      disposeHandler: disposeHandler,
+      streamClosed: streamClosed,
+      wsUri: wsUri,
+    );
   }
 
   @override
@@ -2486,10 +2517,6 @@ class VmService implements VmServiceInterface {
     }
   }
 
-  Stream<String> get onSend => _onSend.stream;
-
-  Stream<String> get onReceive => _onReceive.stream;
-
   Future<void> dispose() async {
     await _streamSub.cancel();
     _outstandingRequests.forEach((id, request) {
@@ -2508,21 +2535,36 @@ class VmService implements VmServiceInterface {
     }
   }
 
-  Future get onDone => _onDoneCompleter.future;
+  /// When overridden, this method wraps [future] with logic.
+  ///
+  /// [wrapFuture] is called by [_call], which is the method that each VM
+  /// service endpoint eventually goes through.
+  ///
+  /// This method should be overridden if subclasses of [VmService] need to do
+  /// anything special upon calling the VM service, like tracking futures or
+  /// logging requests.
+  Future<T> wrapFuture<T>(String name, Future<T> future) {
+    return future;
+  }
 
-  Future<T> _call<T>(String method, [Map args = const {}]) async {
-    final request = _OutstandingRequest(method);
-    _outstandingRequests[request.id] = request;
-    Map m = {
-      'jsonrpc': '2.0',
-      'id': request.id,
-      'method': method,
-      'params': args,
-    };
-    String message = jsonEncode(m);
-    _onSend.add(message);
-    _writeMessage(message);
-    return await request.future as T;
+  Future<T> _call<T>(String method, [Map args = const {}]) {
+    return wrapFuture<T>(
+      method,
+      () {
+        final request = _OutstandingRequest<T>(method);
+        _outstandingRequests[request.id] = request;
+        Map m = {
+          'jsonrpc': '2.0',
+          'id': request.id,
+          'method': method,
+          'params': args,
+        };
+        String message = jsonEncode(m);
+        _onSend.add(message);
+        _writeMessage(message);
+        return request.future;
+      }(),
+    );
   }
 
   /// Register a service for invocation.
