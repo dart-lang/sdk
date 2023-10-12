@@ -1126,7 +1126,7 @@ class TimeoutException implements Exception {
 /// A way to produce Future objects and to complete them later
 /// with a value or error.
 ///
-/// Most of the time, the simples t way to create a future is to just use
+/// Most of the time, the simplest way to create a future is to just use
 /// one of the [Future] constructors to capture the result of a single
 /// asynchronous computation:
 /// ```dart
