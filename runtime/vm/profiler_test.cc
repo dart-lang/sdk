@@ -2430,6 +2430,23 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ProfileCodeTableTest) {
   EXPECT_EQ(table->FindCodeForPC(50), code1);
 }
 
+// Try to hit any races in related to setting TLS and Isolate::mutator_thread_.
+// https://github.com/flutter/flutter/issues/134548
+ISOLATE_UNIT_TEST_CASE(Profiler_EnterExitIsolate) {
+  EnableProfiler();
+  Profiler::SetSamplePeriod(50);  // Microseconds.
+
+  const char* kScript = "main() => null;\n";
+  const Library& root_library = Library::Handle(LoadTestScript(kScript));
+
+  Isolate* isolate = Isolate::Current();
+  for (intptr_t i = 0; i < 100000; i++) {
+    Thread::ExitIsolate();
+    Thread::EnterIsolate(isolate);
+    Invoke(root_library, "main");
+  }
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart
