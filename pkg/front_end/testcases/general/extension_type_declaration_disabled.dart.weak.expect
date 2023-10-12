@@ -3,7 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:7:11: Error: The 'inline-class' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.3 or higher.
+// Try removing the `@dart=` annotation or setting the language version to the current release or higher.
 // extension type ExtensionType1(int it) {}
 //           ^^^^
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'inline-class' language feature.
@@ -11,7 +11,7 @@ library;
 // ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:8:11: Error: The 'inline-class' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.3 or higher.
+// Try removing the `@dart=` annotation or setting the language version to the current release or higher.
 // extension type ExtensionType2<T>._(int it) implements int, ExtensionType1 {}
 //           ^^^^
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'inline-class' language feature.

@@ -366,9 +366,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(!feature.isEnabled);
     Message message;
     if (feature.isSupported) {
+      // TODO(johnniwinther): Ideally the error should actually be special-cased
+      // to mention that it is an experimental feature.
+      String enabledVersionText = feature.flag.isEnabledByDefault
+          ? feature.enabledVersion.toText()
+          : "the current release";
       if (languageVersion.isExplicit) {
         message = templateExperimentOptOutExplicit.withArguments(
-            feature.flag.name, feature.enabledVersion.toText());
+            feature.flag.name, enabledVersionText);
         addProblem(message, charOffset, length, fileUri,
             context: <LocatedMessage>[
               templateExperimentOptOutComment
@@ -378,7 +383,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             ]);
       } else {
         message = templateExperimentOptOutImplicit.withArguments(
-            feature.flag.name, feature.enabledVersion.toText());
+            feature.flag.name, enabledVersionText);
         addProblem(message, charOffset, length, fileUri);
       }
     } else {
