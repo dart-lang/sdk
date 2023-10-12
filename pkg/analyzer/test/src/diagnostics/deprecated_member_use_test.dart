@@ -97,6 +97,23 @@ enum E {
     );
   }
 
+  test_inDeprecatedExtensionType() async {
+    await assertNoErrorsInCode2(
+      externalCode: r'''
+@deprecated
+f() {}
+''',
+      code: '''
+@deprecated
+extension type E(int i) {
+  m() {
+    f();
+  }
+}
+''',
+    );
+  }
+
   test_inDeprecatedFieldFormalParameter() async {
     await assertNoErrorsInCode2(
       externalCode: r'''
