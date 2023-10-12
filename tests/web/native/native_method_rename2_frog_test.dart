@@ -26,8 +26,8 @@ void setup() {
 (function(){
   // This code is inside 'setup' and so not accessible from the global scope.
   function inherits(child, parent) {
-    if (child.prototype.__proto__) {
-      child.prototype.__proto__ = parent.prototype;
+    if (Object.getPrototypeOf(child.prototype)) {
+      Object.setPrototypeOf(child.prototype, parent.prototype);
     } else {
       function tmp() {};
       tmp.prototype = parent.prototype;

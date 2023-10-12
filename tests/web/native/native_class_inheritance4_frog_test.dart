@@ -39,8 +39,8 @@ void setup() {
   JS('', r"""
 (function(){
   function inherits(child, parent) {
-    if (child.prototype.__proto__) {
-      child.prototype.__proto__ = parent.prototype;
+    if (Object.getPrototypeOf(child.prototype)) {
+      Object.setPrototypeOf(child.prototype, parent.prototype);
     } else {
       function tmp() {};
       tmp.prototype = parent.prototype;

@@ -27,17 +27,12 @@ extension DartIOExtension on VmService {
   Future<Version> getDartIOVersion(String isolateId) =>
       _callHelper('ext.dart.io.getVersion', isolateId);
 
-  /// Start profiling new socket connections. Statistics for sockets created
-  /// before profiling was enabled will not be recorded.
-  @Deprecated('Use socketProfilingEnabled instead')
-  Future<Success> startSocketProfiling(String isolateId) =>
-      _callHelper('ext.dart.io.startSocketProfiling', isolateId);
-
-  /// Pause recording socket statistics. [clearSocketProfile] must be called in
-  /// order for collected statistics to be cleared.
-  @Deprecated('Use socketProfilingEnabled instead')
-  Future<Success> pauseSocketProfiling(String isolateId) =>
-      _callHelper('ext.dart.io.pauseSocketProfiling', isolateId);
+  /// Whether socket profiling is available for the given [isolateId].
+  Future<bool> isSocketProfilingAvailable(String isolateId) async {
+    final Isolate isolate = await getIsolate(isolateId);
+    return (isolate.extensionRPCs ?? [])
+        .contains('ext.dart.io.getSocketProfile');
+  }
 
   /// The _socketProfilingEnabled_ RPC is used to enable/disable the socket profiler
   /// and query its current state. If `enabled` is provided, the profiler state will
@@ -47,41 +42,33 @@ extension DartIOExtension on VmService {
   /// event will be sent on the `Extension` stream.
   Future<SocketProfilingState> socketProfilingEnabled(String isolateId,
       [bool? enabled]) async {
+    assert(await isSocketProfilingAvailable(isolateId));
     return _callHelper('ext.dart.io.socketProfilingEnabled', isolateId, args: {
       if (enabled != null) 'enabled': enabled,
     });
   }
 
   /// Removes all statistics associated with prior and current sockets.
-  Future<Success> clearSocketProfile(String isolateId) =>
-      _callHelper('ext.dart.io.clearSocketProfile', isolateId);
+  Future<Success> clearSocketProfile(String isolateId) async {
+    assert(await isSocketProfilingAvailable(isolateId));
+    return _callHelper('ext.dart.io.clearSocketProfile', isolateId);
+  }
 
   /// The `getSocketProfile` RPC is used to retrieve socket statistics collected
   /// by the socket profiler. Only samples collected after the initial
   /// [socketProfilingEnabled] call or the last call to [clearSocketProfile]
   /// will be reported.
-  Future<SocketProfile> getSocketProfile(String isolateId) =>
-      _callHelper('ext.dart.io.getSocketProfile', isolateId);
+  Future<SocketProfile> getSocketProfile(String isolateId) async {
+    assert(await isSocketProfilingAvailable(isolateId));
+    return _callHelper('ext.dart.io.getSocketProfile', isolateId);
+  }
 
-  /// Gets the current state of HTTP logging for a given isolate.
-  ///
-  /// Warning: The returned [Future] will not complete if the target isolate is paused
-  /// and will only complete when the isolate is resumed.
-  @Deprecated('Use httpEnableTimelineLogging instead.')
-  Future<HttpTimelineLoggingState> getHttpEnableTimelineLogging(
-          String isolateId) =>
-      _callHelper('ext.dart.io.getHttpEnableTimelineLogging', isolateId);
-
-  /// Enables or disables HTTP logging for a given isolate.
-  ///
-  /// Warning: The returned [Future] will not complete if the target isolate is paused
-  /// and will only complete when the isolate is resumed.
-  @Deprecated('Use httpEnableTimelineLogging instead.')
-  Future<Success> setHttpEnableTimelineLogging(
-          String isolateId, bool enabled) =>
-      _callHelper('ext.dart.io.setHttpEnableTimelineLogging', isolateId, args: {
-        'enabled': enabled,
-      });
+  /// Whether HTTP timeline logging is available for the given [isolateId].
+  Future<bool> isHttpTimelineLoggingAvailable(String isolateId) async {
+    final Isolate isolate = await getIsolate(isolateId);
+    final rpcs = isolate.extensionRPCs ?? [];
+    return rpcs.contains('ext.dart.io.httpEnableTimelineLogging');
+  }
 
   /// The `httpEnableTimelineLogging` RPC is used to set and inspect the value of
   /// `HttpClient.enableTimelineLogging`, which determines if HTTP client requests
@@ -90,8 +77,11 @@ extension DartIOExtension on VmService {
   ///
   /// If the value of `HttpClient.enableTimelineLogging` is changed, a
   /// `HttpTimelineLoggingStateChange` event will be sent on the `Extension` stream.
-  Future<HttpTimelineLoggingState> httpEnableTimelineLogging(String isolateId,
-      [bool? enabled]) async {
+  Future<HttpTimelineLoggingState> httpEnableTimelineLogging(
+    String isolateId, [
+    bool? enabled,
+  ]) async {
+    assert(await isHttpTimelineLoggingAvailable(isolateId));
     final version = await _version(isolateId);
     // Parameter name changed in version 1.4.
     final enableKey =
@@ -104,6 +94,12 @@ extension DartIOExtension on VmService {
         });
   }
 
+  /// Whether HTTP profiling is available for the given [isolateId].
+  Future<bool> isHttpProfilingAvailable(String isolateId) async {
+    final Isolate isolate = await getIsolate(isolateId);
+    return (isolate.extensionRPCs ?? []).contains('ext.dart.io.getHttpProfile');
+  }
+
   /// The `getHttpProfile` RPC is used to retrieve HTTP profiling information
   /// for requests made via `dart:io`'s `HttpClient`.
   ///
@@ -113,26 +109,38 @@ extension DartIOExtension on VmService {
   ///
   /// If `updatedSince` is provided, only requests started or updated since
   /// the specified time will be reported.
-  Future<HttpProfile> getHttpProfile(String isolateId, {int? updatedSince}) =>
-      _callHelper('ext.dart.io.getHttpProfile', isolateId, args: {
-        if (updatedSince != null) 'updatedSince': updatedSince,
-      });
+  Future<HttpProfile> getHttpProfile(
+    String isolateId, {
+    int? updatedSince,
+  }) async {
+    assert(await isHttpProfilingAvailable(isolateId));
+    return _callHelper('ext.dart.io.getHttpProfile', isolateId, args: {
+      if (updatedSince != null) 'updatedSince': updatedSince,
+    });
+  }
 
   /// The `getHttpProfileRequest` RPC is used to retrieve an instance of
   /// [HttpProfileRequest], which includes request and response body data.
   Future<HttpProfileRequest> getHttpProfileRequest(
-          String isolateId, String id) =>
-      _callHelper('ext.dart.io.getHttpProfileRequest', isolateId, args: {
-        'id': id,
-      });
+    String isolateId,
+    String id,
+  ) async {
+    assert(await isHttpProfilingAvailable(isolateId));
+    return _callHelper('ext.dart.io.getHttpProfileRequest', isolateId, args: {
+      'id': id,
+    });
+  }
 
   /// The `clearHttpProfile` RPC is used to clear previously recorded HTTP
   /// requests from the HTTP profiler state. Requests still in-flight after
   /// clearing the profiler state will be ignored by the profiler.
-  Future<Success> clearHttpProfile(String isolateId) => _callHelper(
-        'ext.dart.io.clearHttpProfile',
-        isolateId,
-      );
+  Future<Success> clearHttpProfile(String isolateId) async {
+    assert(await isHttpProfilingAvailable(isolateId));
+    return _callHelper(
+      'ext.dart.io.clearHttpProfile',
+      isolateId,
+    );
+  }
 
   /// The `getOpenFiles` RPC is used to retrieve the list of files currently
   /// opened files by `dart:io` from a given isolate.

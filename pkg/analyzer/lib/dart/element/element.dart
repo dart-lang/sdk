@@ -565,6 +565,9 @@ abstract class Element implements AnalysisTarget {
   /// Whether the element has an annotation of the form `@factory`.
   bool get hasFactory;
 
+  /// Whether the element has an annotation of the form `@immutable`.
+  bool get hasImmutable;
+
   /// Whether the element has an annotation of the form `@internal`.
   bool get hasInternal;
 

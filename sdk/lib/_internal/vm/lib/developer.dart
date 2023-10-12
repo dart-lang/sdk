@@ -178,7 +178,7 @@ external void _webServerControl(
 
 @patch
 @pragma("vm:external-name", "Developer_getIsolateIdFromSendPort")
-external String _getIsolateIdFromSendPort(SendPort sendPort);
+external String? _getIsolateIdFromSendPort(SendPort sendPort);
 
 @patch
 @pragma("vm:external-name", "Developer_getObjectId")

@@ -34,14 +34,23 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       initializers.forEach(_detachNode);
 
       for (final initializer in initializers) {
-        if (initializer is ConstructorFieldInitializerImpl) {
-          final expression = initializer.expression;
-          final replacement = replaceNotSerializableNode(expression);
-          initializer.expression = replacement;
-        } else if (initializer is RedirectingConstructorInvocationImpl) {
-          _sanitizeArguments(initializer.argumentList.arguments);
-        } else if (initializer is SuperConstructorInvocationImpl) {
-          _sanitizeArguments(initializer.argumentList.arguments);
+        if (initializer is! ConstructorInitializerImpl) continue;
+        switch (initializer) {
+          case AssertInitializerImpl(:final condition, :final message):
+            var conditionReplacement = replaceNotSerializableNode(condition);
+            initializer.condition = conditionReplacement;
+
+            if (message != null) {
+              var messageReplacement = replaceNotSerializableNode(message);
+              initializer.message = messageReplacement;
+            }
+          case ConstructorFieldInitializerImpl(:final expression):
+            var replacement = replaceNotSerializableNode(expression);
+            initializer.expression = replacement;
+          case RedirectingConstructorInvocationImpl(:final argumentList):
+            _sanitizeArguments(argumentList.arguments);
+          case SuperConstructorInvocationImpl(:final argumentList):
+            _sanitizeArguments(argumentList.arguments);
         }
       }
 

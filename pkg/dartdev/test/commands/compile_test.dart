@@ -374,6 +374,43 @@ void defineCompileTests() {
     expect(result.stdout, contains('42'));
   }, skip: isRunningOnIA32);
 
+  test('Regression test for https://github.com/dart-lang/sdk/issues/45347',
+      () async {
+    final p = project(mainSrc: '''
+          import "dart:developer";
+          import "dart:isolate";
+          void main() {
+              final id = Service.getIsolateId(Isolate.current)?? "NA";
+          }
+          ''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'exe',
+        '-v',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    result = Process.runSync(
+      outFile,
+      [],
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  }, skip: isRunningOnIA32);
+
   test('Compile executable cannot compile cross-OS', () async {
     final p = project(
         mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');

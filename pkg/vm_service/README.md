@@ -17,3 +17,18 @@ The VM Service Protocol spec can be found at
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dart-lang/sdk/issues
+
+## Running tests locally
+
+1. Build the SDK
+    ```
+    gclient sync -D && \
+    ./tools/build.py -ax64 create_sdk
+    ```
+    Note: for a release build, add the `-mrelease` flag: `./tools/build.py -mrelease -ax64 create_sdk`
+
+2. Run the tests
+
+    - To run all the tests: `python3 tools/test.py [ -mdebug | -mrelease ] -ax64 -j4 pkg/vm_service`
+
+    - To run a single test: `dart pkg/vm_service/test/<test_name>.dart`

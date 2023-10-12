@@ -16635,6 +16635,61 @@ library
 ''');
   }
 
+  test_const_invalid_functionExpression_assertInitializer() async {
+    var library = await buildLibrary('''
+class A  {
+  const A() : assert((() => true)());
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @19
+            constantInitializers
+              AssertInitializer
+                assertKeyword: assert @25
+                leftParenthesis: ( @31
+                condition: SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  staticElement: <null>
+                  staticType: null
+                rightParenthesis: ) @46
+''');
+  }
+
+  test_const_invalid_functionExpression_assertInitializer_message() async {
+    var library = await buildLibrary('''
+class A  {
+  const A() : assert(b, () => 0);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @19
+            constantInitializers
+              AssertInitializer
+                assertKeyword: assert @25
+                leftParenthesis: ( @31
+                condition: SimpleIdentifier
+                  token: b @32
+                  staticElement: <null>
+                  staticType: InvalidType
+                comma: , @33
+                message: SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  staticElement: <null>
+                  staticType: null
+                rightParenthesis: ) @42
+''');
+  }
+
   test_const_invalid_functionExpression_constructorFieldInitializer() async {
     var library = await buildLibrary('''
 class A {

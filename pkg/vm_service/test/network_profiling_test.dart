@@ -17,14 +17,14 @@ const String udpContent = 'aghfkjdb';
 const String kClearSocketProfileRPC = 'ext.dart.io.clearSocketProfile';
 const String kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
 const String kGetVersionRPC = 'ext.dart.io.getVersion';
-const String kPauseSocketProfilingRPC = 'ext.dart.io.pauseSocketProfiling';
-const String kStartSocketProfilingRPC = 'ext.dart.io.startSocketProfiling';
 const String kSocketProfilingEnabledRPC = 'ext.dart.io.socketProfilingEnabled';
 const String localhost = '127.0.0.1';
 
 Future<void> waitForStreamEvent(
-    VmService service, IsolateRef isolateRef, bool state,
-    {bool useSetter = true}) async {
+  VmService service,
+  IsolateRef isolateRef,
+  bool state,
+) async {
   final completer = Completer<void>();
   final isolateId = isolateRef.id!;
   late StreamSubscription sub;
@@ -36,16 +36,7 @@ Future<void> waitForStreamEvent(
     completer.complete();
   });
   await service.streamListen(EventStreams.kExtension);
-
-  if (useSetter) {
-    state
-        // ignore: deprecated_member_use_from_same_package
-        ? await service.startSocketProfiling(isolateId)
-        // ignore: deprecated_member_use_from_same_package
-        : await service.pauseSocketProfiling(isolateId);
-  } else {
-    await service.socketProfilingEnabled(isolateId, state);
-  }
+  await service.socketProfilingEnabled(isolateId, state);
   await completer.future;
   await service.streamCancel(EventStreams.kExtension);
 }
@@ -89,9 +80,6 @@ var tests = <IsolateTest>[
     expect(isolate.extensionRPCs!.length, greaterThanOrEqualTo(5));
     expect(isolate.extensionRPCs!.contains(kClearSocketProfileRPC), isTrue);
     expect(isolate.extensionRPCs!.contains(kGetVersionRPC), isTrue);
-    expect(isolate.extensionRPCs!.contains(kPauseSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs!.contains(kStartSocketProfilingRPC), isTrue);
-    expect(isolate.extensionRPCs!.contains(kPauseSocketProfilingRPC), isTrue);
     expect(isolate.extensionRPCs!.contains(kSocketProfilingEnabledRPC), isTrue);
   },
 
@@ -117,14 +105,6 @@ var tests = <IsolateTest>[
     await waitForStreamEvent(service, isolateRef, initial);
     expect((await service.socketProfilingEnabled(isolateId)).enabled, initial);
   },
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final initial = (await service.socketProfilingEnabled(isolateId)).enabled;
-    await waitForStreamEvent(service, isolateRef, !initial, useSetter: false);
-    expect((await service.socketProfilingEnabled(isolateId)).enabled, !initial);
-    await waitForStreamEvent(service, isolateRef, initial, useSetter: false);
-    expect((await service.socketProfilingEnabled(isolateId)).enabled, initial);
-  }
   // TODO(bkonyi): fully port observatory test for socket profiling.
 ];
 
