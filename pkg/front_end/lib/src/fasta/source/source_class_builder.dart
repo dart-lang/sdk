@@ -53,7 +53,7 @@ import 'source_member_builder.dart';
 
 Class initializeClass(
     Class? cls,
-    List<TypeVariableBuilder>? typeVariables,
+    List<NominalVariableBuilder>? typeVariables,
     String name,
     SourceLibraryBuilder parent,
     int startCharOffset,
@@ -64,7 +64,7 @@ Class initializeClass(
   cls ??= new Class(
       name: name,
       typeParameters:
-          TypeVariableBuilder.typeParametersFromBuilders(typeVariables),
+          NominalVariableBuilder.typeParametersFromBuilders(typeVariables),
       // If the class is an augmentation class it shouldn't use the reference
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
@@ -90,7 +90,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   final Class actualCls;
 
   @override
-  List<TypeVariableBuilder>? typeVariables;
+  List<NominalVariableBuilder>? typeVariables;
 
   @override
   TypeBuilder? supertypeBuilder;
@@ -560,7 +560,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         ]);
       } else if (typeVariables != null) {
         int count = 0;
-        for (TypeVariableBuilder t in patch.typeVariables!) {
+        for (NominalVariableBuilder t in patch.typeVariables!) {
           typeVariables![count++].applyPatch(t);
         }
       }
@@ -957,7 +957,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (typeVariables == null) return supertype;
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
-      TypeVariableBuilder typeVariableBuilder = typeVariables![i];
+      NominalVariableBuilder typeVariableBuilder = typeVariables![i];
       int variance = computeTypeVariableBuilderVariance(
           typeVariableBuilder, supertype, libraryBuilder);
       if (!Variance.greaterThanOrEqual(variance, typeVariables![i].variance)) {

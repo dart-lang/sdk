@@ -50,7 +50,7 @@ const int pendingVariance = -1;
 // variables.  For that case if the type has its declaration set to null and its
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
-int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
+int computeTypeVariableBuilderVariance(NominalVariableBuilder variable,
     TypeBuilder? type, LibraryBuilder libraryBuilder) {
   switch (type) {
     case NamedTypeBuilder(
@@ -58,7 +58,7 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
         typeArguments: List<TypeBuilder>? arguments
       ):
       assert(declaration != null);
-      if (declaration is TypeVariableBuilder) {
+      if (declaration is NominalVariableBuilder) {
         if (declaration == variable) {
           return Variance.covariant;
         } else {
@@ -89,7 +89,7 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
                 int declarationTypeVariableVariance = declaration.varianceAt(i);
                 if (declarationTypeVariableVariance == pendingVariance) {
                   assert(!declaration.fromDill);
-                  TypeVariableBuilder declarationTypeVariable =
+                  NominalVariableBuilder declarationTypeVariable =
                       declaration.typeVariables![i];
                   declarationTypeVariable.variance = visitMarker;
                   int computedVariance = computeTypeVariableBuilderVariance(
@@ -100,7 +100,7 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
                       declarationTypeVariable.variance = computedVariance;
                 } else if (declarationTypeVariableVariance == visitMarker) {
                   assert(!declaration.fromDill);
-                  TypeVariableBuilder declarationTypeVariable =
+                  NominalVariableBuilder declarationTypeVariable =
                       declaration.typeVariables![i];
                   libraryBuilder.addProblem(
                       templateCyclicTypedef.withArguments(declaration.name),
@@ -125,7 +125,7 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
             return result;
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
-          case TypeVariableBuilder():
+          case NominalVariableBuilder():
           case StructuralVariableBuilder():
           case ExtensionBuilder():
           case InvalidTypeDeclarationBuilder():
@@ -223,21 +223,21 @@ NullabilityBuilder combineNullabilityBuildersForSubstitution(
 
 TypeBuilder substituteRange(
     TypeBuilder type,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         upperSubstitution,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         lowerSubstitution,
     List<TypeBuilder> unboundTypes,
     List<StructuralVariableBuilder> unboundTypeVariables,
     {final int variance = Variance.covariant}) {
-  assert(upperSubstitution.keys.every(
-      (key) => key is TypeVariableBuilder || key is StructuralVariableBuilder));
-  assert(lowerSubstitution.keys.every(
-      (key) => key is TypeVariableBuilder || key is StructuralVariableBuilder));
+  assert(upperSubstitution.keys.every((key) =>
+      key is NominalVariableBuilder || key is StructuralVariableBuilder));
+  assert(lowerSubstitution.keys.every((key) =>
+      key is NominalVariableBuilder || key is StructuralVariableBuilder));
 
   switch (type) {
     case NamedTypeBuilder():
@@ -264,26 +264,26 @@ TypeBuilder substituteRange(
 
 TypeBuilder _substituteNamedTypeBuilder(
     NamedTypeBuilder type,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         upperSubstitution,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         lowerSubstitution,
     List<TypeBuilder> unboundTypes,
     List<StructuralVariableBuilder> unboundTypeVariables,
     {final int variance = Variance.covariant}) {
-  assert(upperSubstitution.keys.every(
-      (key) => key is TypeVariableBuilder || key is StructuralVariableBuilder));
-  assert(lowerSubstitution.keys.every(
-      (key) => key is TypeVariableBuilder || key is StructuralVariableBuilder));
+  assert(upperSubstitution.keys.every((key) =>
+      key is NominalVariableBuilder || key is StructuralVariableBuilder));
+  assert(lowerSubstitution.keys.every((key) =>
+      key is NominalVariableBuilder || key is StructuralVariableBuilder));
 
   TypeDeclarationBuilder? declaration = type.declaration;
   List<TypeBuilder>? arguments = type.typeArguments;
 
-  if (declaration is TypeVariableBuilder) {
+  if (declaration is NominalVariableBuilder) {
     if (variance == Variance.contravariant) {
       TypeBuilder? replacement = lowerSubstitution[declaration];
       if (replacement != null) {
@@ -374,7 +374,7 @@ TypeBuilder _substituteNamedTypeBuilder(
       }
     case TypeAliasBuilder():
       for (int i = 0; i < arguments.length; ++i) {
-        TypeVariableBuilder variable = declaration.typeVariables![i];
+        NominalVariableBuilder variable = declaration.typeVariables![i];
         TypeBuilder substitutedArgument = substituteRange(
             arguments[i],
             upperSubstitution,
@@ -387,9 +387,9 @@ TypeBuilder _substituteNamedTypeBuilder(
           newArguments[i] = substitutedArgument;
         }
       }
-    case TypeVariableBuilder():
+    case NominalVariableBuilder():
       // Handled above.
-      throw new UnsupportedError("Unexpected TypeVariableBuilder");
+      throw new UnsupportedError("Unexpected NominalVariableBuilder");
     case StructuralVariableBuilder():
       // Handled above.
       throw new UnsupportedError("Unexpected StructuralVariableBuilder");
@@ -414,11 +414,11 @@ TypeBuilder _substituteNamedTypeBuilder(
 
 TypeBuilder _substituteFunctionTypeBuilder(
     FunctionTypeBuilder type,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         upperSubstitution,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         lowerSubstitution,
@@ -438,10 +438,10 @@ TypeBuilder _substituteFunctionTypeBuilder(
   TypeBuilder newReturnType;
   bool changed = false;
 
-  Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+  Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
       Object,
       TypeBuilder>? functionTypeUpperSubstitution;
-  Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+  Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
       Object,
       TypeBuilder>? functionTypeLowerSubstitution;
   if (typeVariables != null) {
@@ -514,11 +514,11 @@ TypeBuilder _substituteFunctionTypeBuilder(
 
 TypeBuilder _substituteRecordTypeBuilder(
     RecordTypeBuilder type,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         upperSubstitution,
-    Map< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
+    Map< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */
             Object,
             TypeBuilder>
         lowerSubstitution,
@@ -584,7 +584,7 @@ TypeBuilder _substituteRecordTypeBuilder(
 }
 
 TypeBuilder substitute(
-    TypeBuilder type, Map<TypeVariableBuilder, TypeBuilder> substitution,
+    TypeBuilder type, Map<NominalVariableBuilder, TypeBuilder> substitution,
     {required List<TypeBuilder> unboundTypes,
     required List<StructuralVariableBuilder> unboundTypeVariables}) {
   return substituteRange(
@@ -598,7 +598,7 @@ TypeBuilder substitute(
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
+List<TypeBuilder> calculateBounds(List<TypeVariableBuilderBase> variables,
     TypeBuilder dynamicType, TypeBuilder bottomType,
     {required List<TypeBuilder> unboundTypes,
     required List<StructuralVariableBuilder> unboundTypeVariables}) {
@@ -609,16 +609,16 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
   TypeVariablesGraph graph = new TypeVariablesGraph(variables, bounds);
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   for (List<int> component in stronglyConnected) {
-    Map<TypeVariableBuilder, TypeBuilder> dynamicSubstitution =
-        <TypeVariableBuilder, TypeBuilder>{};
-    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
-        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilderBase, TypeBuilder> dynamicSubstitution =
+        <TypeVariableBuilderBase, TypeBuilder>{};
+    Map<TypeVariableBuilderBase, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilderBase, TypeBuilder>{};
     for (int variableIndex in component) {
       dynamicSubstitution[variables[variableIndex]] = dynamicType;
       nullSubstitution[variables[variableIndex]] = bottomType;
     }
     for (int variableIndex in component) {
-      TypeVariableBuilder variable = variables[variableIndex];
+      TypeVariableBuilderBase variable = variables[variableIndex];
       bounds[variableIndex] = substituteRange(
           bounds[variableIndex],
           dynamicSubstitution,
@@ -630,14 +630,14 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
   }
 
   for (int i = 0; i < variables.length; i++) {
-    Map<TypeVariableBuilder, TypeBuilder> substitution =
-        <TypeVariableBuilder, TypeBuilder>{};
-    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
-        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilderBase, TypeBuilder> substitution =
+        <TypeVariableBuilderBase, TypeBuilder>{};
+    Map<TypeVariableBuilderBase, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilderBase, TypeBuilder>{};
     substitution[variables[i]] = bounds[i];
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
-      TypeVariableBuilder variable = variables[j];
+      TypeVariableBuilderBase variable = variables[j];
       bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
           unboundTypes, unboundTypeVariables,
           variance: variable.variance);
@@ -653,7 +653,7 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
 class TypeVariablesGraph implements Graph<int> {
   @override
   late List<int> vertices;
-  List<TypeVariableBuilder> variables;
+  List<TypeVariableBuilderBase> variables;
   List<TypeBuilder> bounds;
 
   // `edges[i]` is the list of indices of type variables that reference the type
@@ -665,8 +665,8 @@ class TypeVariablesGraph implements Graph<int> {
 
     vertices =
         new List<int>.generate(variables.length, (int i) => i, growable: false);
-    Map<TypeVariableBuilder, int> variableIndices =
-        <TypeVariableBuilder, int>{};
+    Map<TypeVariableBuilderBase, int> variableIndices =
+        <TypeVariableBuilderBase, int>{};
     edges = new List<List<int>>.generate(variables.length, (int i) {
       variableIndices[variables[i]] = i;
       return <int>[];
@@ -678,7 +678,7 @@ class TypeVariablesGraph implements Graph<int> {
             :TypeDeclarationBuilder? declaration,
             typeArguments: List<TypeBuilder>? arguments
           ):
-          if (declaration is TypeVariableBuilder &&
+          if (declaration is NominalVariableBuilder &&
               this.variables.contains(declaration)) {
             edges[variableIndices[declaration]!].add(index);
           }
@@ -741,11 +741,7 @@ class TypeVariablesGraph implements Graph<int> {
 ///
 /// Returns list of the found type builders.
 List<NamedTypeBuilder> findVariableUsesInType(
-    /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
-    Object variable,
-    TypeBuilder? type) {
-  assert(
-      variable is TypeVariableBuilder || variable is StructuralVariableBuilder);
+    TypeVariableBuilderBase variable, TypeBuilder? type) {
   List<NamedTypeBuilder> uses = <NamedTypeBuilder>[];
   switch (type) {
     case NamedTypeBuilder(
@@ -813,23 +809,12 @@ List<NamedTypeBuilder> findVariableUsesInType(
 /// variable builder from [variables] that references other [variables] in its
 /// bound.  The second element in the pair is the list of found references
 /// represented as type builders.
-List<Object> findInboundReferences(
-    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
-            TypeDeclarationBuilderImpl>
-        variables) {
-  assert(variables is List<TypeVariableBuilder> ||
-      variables is List<StructuralVariableBuilder>);
+List<Object> findInboundReferences(List<TypeVariableBuilderBase> variables) {
   List<Object> variablesAndDependencies = <Object>[];
-  for (TypeDeclarationBuilderImpl dependent in variables) {
-    TypeBuilder? dependentBound;
-    if (dependent is TypeVariableBuilder) {
-      dependentBound = dependent.bound;
-    } else {
-      dependent as StructuralVariableBuilder;
-      dependentBound = dependent.bound;
-    }
+  for (TypeVariableBuilderBase dependent in variables) {
+    TypeBuilder? dependentBound = dependent.bound;
     List<NamedTypeBuilder> dependencies = <NamedTypeBuilder>[];
-    for (TypeDeclarationBuilderImpl dependence in variables) {
+    for (TypeVariableBuilderBase dependence in variables) {
       List<NamedTypeBuilder> uses =
           findVariableUsesInType(dependence, dependentBound);
       if (uses.length != 0) {
@@ -928,7 +913,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
                 typesAndDependencies.add(dependencies);
               }
             }
-          case TypeVariableBuilder():
+          case NominalVariableBuilder():
           case StructuralVariableBuilder():
           case ExtensionBuilder():
           case InvalidTypeDeclarationBuilder():
@@ -999,28 +984,12 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
 List<NonSimplicityIssue> getInboundReferenceIssues(
-    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
-            Object>?
-        variables) {
-  assert(
-      variables == null ||
-          variables is List<TypeVariableBuilder> ||
-          variables is List<StructuralVariableBuilder>,
-      "Expected either 'List<TypeVariableBuilder>' or "
-      "'List<FunctionTypeTypeVariableBuilder>', "
-      "but got '${variables.runtimeType}'.");
+    List<TypeVariableBuilderBase>? variables) {
   if (variables == null) return <NonSimplicityIssue>[];
 
   List<NonSimplicityIssue> issues = <NonSimplicityIssue>[];
-  for (Object variable in variables) {
-    TypeBuilder? variableBound;
-    if (variable is TypeVariableBuilder) {
-      variableBound = variable.bound;
-    } else {
-      variable as StructuralVariableBuilder;
-      variableBound = variable.bound;
-    }
-
+  for (TypeVariableBuilderBase variable in variables) {
+    TypeBuilder? variableBound = variable.bound;
     if (variableBound != null) {
       List<Object> rawTypesAndMutualDependencies =
           findRawTypesWithInboundReferences(variableBound);
@@ -1030,13 +999,13 @@ List<NonSimplicityIssue> getInboundReferenceIssues(
         List<Object> variablesAndDependencies =
             rawTypesAndMutualDependencies[i + 1] as List<Object>;
         for (int j = 0; j < variablesAndDependencies.length; j += 2) {
-          TypeVariableBuilder dependent =
-              variablesAndDependencies[j] as TypeVariableBuilder;
+          NominalVariableBuilder dependent =
+              variablesAndDependencies[j] as NominalVariableBuilder;
           List<NamedTypeBuilder> dependencies =
               variablesAndDependencies[j + 1] as List<NamedTypeBuilder>;
           for (NamedTypeBuilder dependency in dependencies) {
             issues.add(new NonSimplicityIssue(
-                variable as TypeDeclarationBuilder,
+                variable,
                 templateBoundIssueViaRawTypeWithNonSimpleBounds
                     .withArguments(type.declaration!.name),
                 <LocatedMessage>[
@@ -1050,7 +1019,7 @@ List<NonSimplicityIssue> getInboundReferenceIssues(
         if (variablesAndDependencies.length == 0) {
           // The inbound references are in a compiled declaration in a .dill.
           issues.add(new NonSimplicityIssue(
-              variable as TypeDeclarationBuilder,
+              variable,
               templateBoundIssueViaRawTypeWithNonSimpleBounds
                   .withArguments(type.declaration!.name),
               const <LocatedMessage>[]));
@@ -1102,24 +1071,11 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
         :TypeDeclarationBuilder? declaration,
         typeArguments: List<TypeBuilder>? arguments
       ):
-      void visitTypeVariables(
-          List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
-                  TypeDeclarationBuilderImpl>?
-              typeVariables) {
-        assert(typeVariables == null ||
-            typeVariables is List<TypeVariableBuilder> ||
-            typeVariables is List<StructuralVariableBuilder>);
+      void visitTypeVariables(List<TypeVariableBuilderBase>? typeVariables) {
         if (typeVariables == null) return;
 
-        for (TypeDeclarationBuilderImpl variable in typeVariables) {
-          TypeBuilder? variableBound;
-          if (variable is TypeVariableBuilder) {
-            variableBound = variable.bound;
-          } else {
-            variable as StructuralVariableBuilder;
-            variableBound = variable.bound;
-          }
-
+        for (TypeVariableBuilderBase variable in typeVariables) {
+          TypeBuilder? variableBound = variable.bound;
           if (variableBound != null) {
             for (List<RawTypeCycleElement> path
                 in findRawTypePathsToDeclaration(variableBound, end, visited)) {
@@ -1152,7 +1108,7 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
               visitTypeVariables(declaration.typeParameters);
             case ExtensionTypeDeclarationBuilder():
               visitTypeVariables(declaration.typeParameters);
-            case TypeVariableBuilder():
+            case NominalVariableBuilder():
               // Do nothing. The type variable is handled by its parent
               // declaration.
               break;
@@ -1226,23 +1182,14 @@ List<List<RawTypeCycleElement>> findRawTypePathsToDeclaration(
 
 List<List<RawTypeCycleElement>> _findRawTypeCyclesFromTypeVariables(
     TypeDeclarationBuilder declaration,
-    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
-            TypeDeclarationBuilderImpl>?
-        typeVariables) {
+    List<TypeVariableBuilderBase>? typeVariables) {
   if (typeVariables == null) {
     return const [];
   }
 
   List<List<RawTypeCycleElement>> cycles = <List<RawTypeCycleElement>>[];
-  for (TypeDeclarationBuilderImpl variable in typeVariables) {
-    TypeBuilder? variableBound;
-    if (variable is TypeVariableBuilder) {
-      variableBound = variable.bound;
-    } else {
-      variable as StructuralVariableBuilder;
-      variableBound = variable.bound;
-    }
-
+  for (TypeVariableBuilderBase variable in typeVariables) {
+    TypeBuilder? variableBound = variable.bound;
     if (variableBound != null) {
       for (List<RawTypeCycleElement> dependencyPath
           in findRawTypePathsToDeclaration(variableBound, declaration)) {
@@ -1309,7 +1256,7 @@ List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
     if (cycle.length == 1) {
       // Loop.
       issues.add(new NonSimplicityIssue(
-          cycle.single.typeVariable! as TypeVariableBuilder,
+          cycle.single.typeVariable! as NominalVariableBuilder,
           templateBoundIssueViaLoopNonSimplicity
               .withArguments(cycle.single.type.declaration!.name),
           null));
@@ -1345,7 +1292,7 @@ List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
 /// The second element in the triplet is the error message.  The third element
 /// in the triplet is the context.
 List<NonSimplicityIssue> getNonSimplicityIssuesForTypeVariables(
-    List<TypeVariableBuilder>? variables) {
+    List<NominalVariableBuilder>? variables) {
   if (variables == null) return <NonSimplicityIssue>[];
   return getInboundReferenceIssues(variables);
 }
@@ -1422,7 +1369,7 @@ List<NonSimplicityIssue> getNonSimplicityIssuesForDeclaration(
 void breakCycles(List<List<RawTypeCycleElement>> cycles) {
   for (List<RawTypeCycleElement> cycle in cycles) {
     if (cycle.isNotEmpty) {
-      cycle.first.setVariableBound(null);
+      cycle.first.typeVariable?.bound = null;
     }
   }
 }
@@ -1552,22 +1499,9 @@ class RawTypeCycleElement {
 
   /// The type variable that connects [type] to the next element in the
   /// non-simple raw type cycle.
-  /* TypeVariableBuilder? | FunctionTypeTypeVariableBuilder? */
-  TypeDeclarationBuilderImpl? typeVariable;
+  TypeVariableBuilderBase? typeVariable;
 
   RawTypeCycleElement(this.type, this.typeVariable)
-      : assert(typeVariable is TypeVariableBuilder? ||
+      : assert(typeVariable is NominalVariableBuilder? ||
             typeVariable is StructuralVariableBuilder?);
-
-  void setVariableBound(TypeBuilder? bound) {
-    TypeDeclarationBuilderImpl? typeVariable = this.typeVariable;
-    if (typeVariable == null) {
-      return;
-    } else if (typeVariable is TypeVariableBuilder) {
-      typeVariable.bound = bound;
-    } else {
-      typeVariable as StructuralVariableBuilder;
-      typeVariable.bound = bound;
-    }
-  }
 }

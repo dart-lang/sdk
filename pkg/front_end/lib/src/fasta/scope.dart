@@ -451,11 +451,11 @@ class Scope extends MutableScope {
         isModifiable: isModifiable, kind: kind);
   }
 
-  Scope withTypeVariables(List<TypeVariableBuilder>? typeVariables) {
+  Scope withTypeVariables(List<NominalVariableBuilder>? typeVariables) {
     if (typeVariables == null) return this;
     Scope newScope = new Scope.nested(this, "type variables",
         isModifiable: false, kind: ScopeKind.typeParameters);
-    for (TypeVariableBuilder t in typeVariables) {
+    for (NominalVariableBuilder t in typeVariables) {
       (newScope._local ??= {})[t.name] = t;
     }
     return newScope;

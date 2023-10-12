@@ -159,7 +159,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.builderName] = clsBuilder.name;
     if (clsBuilder.typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in clsBuilder.typeVariables!) {
+      for (NominalVariableBuilder typeVariable in clsBuilder.typeVariables!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
       }
@@ -204,7 +204,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.builderName] = extensionBuilder.name;
     if (extensionBuilder.typeParameters != null) {
-      for (TypeVariableBuilder typeVariable
+      for (NominalVariableBuilder typeVariable
           in extensionBuilder.typeParameters!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
@@ -252,7 +252,8 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         features.markAsUnsorted(Tags.builderNamedParameters);
       }
       if (memberBuilder.typeVariables != null) {
-        for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables!) {
+        for (NominalVariableBuilder typeVariable
+            in memberBuilder.typeVariables!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

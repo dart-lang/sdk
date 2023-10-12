@@ -79,7 +79,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       int modifiers,
       this.returnType,
       String name,
-      List<TypeVariableBuilder>? typeVariables,
+      List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       this.kind,
       SourceLibraryBuilder libraryBuilder,

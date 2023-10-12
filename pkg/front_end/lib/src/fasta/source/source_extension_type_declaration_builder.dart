@@ -52,7 +52,7 @@ class SourceExtensionTypeDeclarationBuilder
   MergedClassMemberScope? _mergedScope;
 
   @override
-  final List<TypeVariableBuilder>? typeParameters;
+  final List<NominalVariableBuilder>? typeParameters;
 
   @override
   List<TypeBuilder>? interfaceBuilders;
@@ -77,8 +77,8 @@ class SourceExtensionTypeDeclarationBuilder
       : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: parent.fileUri,
-            typeParameters:
-                TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
+            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+                typeParameters),
             reference: referenceFrom?.reference)
           ..fileOffset = nameOffset,
         super(metadata, modifiers, name, parent, nameOffset, scope,

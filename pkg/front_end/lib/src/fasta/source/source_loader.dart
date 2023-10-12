@@ -1287,7 +1287,7 @@ severity: $severity
           case ExtensionTypeDeclarationBuilder():
           // TODO(johnniwinther): Handle this case.
           case TypeAliasBuilder():
-          case TypeVariableBuilder():
+          case NominalVariableBuilder():
           case StructuralVariableBuilder():
           case InvalidTypeDeclarationBuilder():
           case BuiltinTypeDeclarationBuilder():
@@ -1853,8 +1853,8 @@ severity: $severity
 
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
-    Map<TypeVariableBuilder, SourceLibraryBuilder> unboundTypeVariableBuilders =
-        {};
+    Map<NominalVariableBuilder, SourceLibraryBuilder>
+        unboundTypeVariableBuilders = {};
     Map<StructuralVariableBuilder, SourceLibraryBuilder>
         unboundFunctionTypeTypeVariableBuilders = {};
     for (SourceLibraryBuilder library in libraryBuilders) {
@@ -1864,13 +1864,13 @@ severity: $severity
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+    List< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
         sortedTypeVariables = sortAllTypeVariablesTopologically([
       ...unboundFunctionTypeTypeVariableBuilders.keys,
       ...unboundTypeVariableBuilders.keys
     ]);
     for (Object builder in sortedTypeVariables) {
-      if (builder is TypeVariableBuilder) {
+      if (builder is NominalVariableBuilder) {
         builder.finish(
             unboundTypeVariableBuilders[builder]!, object, dynamicType);
       } else {

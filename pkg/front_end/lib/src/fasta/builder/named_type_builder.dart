@@ -264,9 +264,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       library.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, nameOffset, nameLength));
-    } else if (_declaration is TypeVariableBuilder) {
-      TypeVariableBuilder typeParameterBuilder =
-          _declaration as TypeVariableBuilder;
+    } else if (_declaration is NominalVariableBuilder) {
+      NominalVariableBuilder typeParameterBuilder =
+          _declaration as NominalVariableBuilder;
       if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
           typeParameterBuilder.kind ==
               TypeVariableKind.extensionOrExtensionType ||
@@ -507,7 +507,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             declaration.message.uri,
             severity: Severity.error);
         return null;
-      case TypeVariableBuilder():
+      case NominalVariableBuilder():
       case StructuralVariableBuilder():
       case ExtensionTypeDeclarationBuilder():
       case ExtensionBuilder():
@@ -539,7 +539,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             declaration.message.uri,
             severity: Severity.error);
         return null;
-      case TypeVariableBuilder():
+      case NominalVariableBuilder():
       case StructuralVariableBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
