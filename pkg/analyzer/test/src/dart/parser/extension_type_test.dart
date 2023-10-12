@@ -240,6 +240,40 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_error_typeParameters_afterConstructorName() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A._<T>(T _) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_REPRESENTATION_FIELD, 16, 0),
+      error(ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS, 17, 1),
+      error(ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY, 17, 1),
+      error(ParserErrorCode.EXPECTED_EXECUTABLE, 18, 1),
+      error(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 19, 1),
+      error(ParserErrorCode.EXPECTED_TOKEN, 19, 1),
+      error(ParserErrorCode.TOP_LEVEL_OPERATOR, 20, 1),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    constructorName: RepresentationConstructorName
+      period: .
+      name: _
+    leftParenthesis: ( <synthetic>
+    fieldType: NamedType
+      name: <empty> <synthetic>
+    fieldName: <empty> <synthetic>
+    rightParenthesis: ) <synthetic>
+  leftBracket: { <synthetic>
+  rightBracket: } <synthetic>
+''');
+  }
+
   test_featureNotEnabled() {
     final parseResult = parseStringWithErrors(r'''
 // @dart = 3.1
