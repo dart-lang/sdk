@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -21,24 +23,24 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   late final Uri otherFileUri;
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
-  /// [mainContents] and uses the single result to call
+  /// [maincode.code] and uses the single result to call
   /// `callHierarchy/incomingCalls` and ensures the results match
   /// [expectedResults].
   Future<void> expectResults({
-    required String mainContents,
-    String? otherContents,
+    required TestCode mainCode,
+    TestCode? otherCode,
     required List<CallHierarchyIncomingCall> expectedResults,
   }) async {
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(mainFileUri, mainCode.code);
 
-    if (otherContents != null) {
-      await openFile(otherFileUri, withoutMarkers(otherContents));
+    if (otherCode != null) {
+      await openFile(otherFileUri, otherCode.code);
     }
 
     final prepareResult = await prepareCallHierarchy(
       mainFileUri,
-      positionFromMarker(mainContents),
+      mainCode.position.position,
     );
     final result = await callHierarchyIncoming(prepareResult!.single);
 
@@ -53,23 +55,23 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    final contents = '''
-    class Foo {
-      Fo^o();
-    }
-    ''';
+    final code = TestCode.parse('''
+class Foo {
+  Fo^o();
+}
+''');
 
-    final otherContents = '''
-    import 'main.dart';
+    final otherCode = TestCode.parse('''
+import 'main.dart';
 
-    class Bar {
-      final foo = Foo();
-    }
-    ''';
+class Bar {
+  final foo = Foo();
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyIncomingCall(
           // Container of the call
@@ -79,12 +81,12 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             kind: SymbolKind.Class,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherContents, RegExp(r'class Bar \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(otherContents, 'Bar'),
+                otherCode.code, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode.code, 'Bar'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherContents, 'Foo'),
+            rangeOfString(otherCode.code, 'Foo'),
           ],
         ),
       ],
@@ -92,19 +94,19 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_function() async {
-    final contents = '''
-    String fo^o() {}
-    ''';
+    final code = TestCode.parse('''
+String fo^o() {}
+''');
 
-    final otherContents = '''
-    import 'main.dart';
+    final otherCode = TestCode.parse('''
+import 'main.dart';
 
-    final x = foo();
-    ''';
+final x = foo();
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyIncomingCall(
           // Container of the call
@@ -113,12 +115,12 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             detail: null,
             kind: SymbolKind.File,
             uri: otherFileUri,
-            range: entireRange(otherContents),
+            range: entireRange(otherCode.code),
             selectionRange: startOfDocRange,
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherContents, 'foo'),
+            rangeOfString(otherCode.code, 'foo'),
           ],
         ),
       ],
@@ -126,25 +128,25 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_functionInPattern() async {
-    final contents = '''
-    bool gr^eater(int x, int y) => x > y;
-    ''';
+    final code = TestCode.parse('''
+bool gr^eater(int x, int y) => x > y;
+''');
 
-    final otherContents = '''
-    import 'main.dart';
+    final otherCode = TestCode.parse('''
+import 'main.dart';
 
-    void foo() {
-      var pair = (1, 2);
-      switch (pair) {
-        case (int a, int b) when greater(a, b):
-        print('First element');
-      }
-    }
-    ''';
+void foo() {
+  var pair = (1, 2);
+  switch (pair) {
+    case (int a, int b) when greater(a, b):
+    print('First element');
+  }
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyIncomingCall(
           // Container of the call
@@ -154,12 +156,12 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             kind: SymbolKind.Function,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherContents, RegExp(r'void foo\(\) \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(otherContents, 'foo'),
+                otherCode.code, RegExp(r'void foo\(\) \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode.code, 'foo'),
           ),
           // Ranges of calls within this container.
           fromRanges: [
-            rangeOfString(otherContents, 'greater'),
+            rangeOfString(otherCode.code, 'greater'),
           ],
         ),
       ],
@@ -167,21 +169,21 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_implicitConstructor() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    void main() {
-      final foo = Fo^o();
-    }
-    ''';
+void main() {
+  final foo = Fo^o();
+}
+''');
 
-    final otherContents = '''
-    class Foo {}
-    ''';
+    final otherCode = TestCode.parse('''
+class Foo {}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyIncomingCall(
           // Container of the call
@@ -191,12 +193,12 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             kind: SymbolKind.Function,
             uri: mainFileUri,
             range: rangeOfPattern(
-                contents, RegExp(r'void main\(\) \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(contents, 'main'),
+                code.code, RegExp(r'void main\(\) \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(code.code, 'main'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(contents, 'Foo'),
+            rangeOfString(code.code, 'Foo'),
           ],
         ),
       ],
@@ -204,25 +206,25 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_method() async {
-    final contents = '''
-    class A {
-      String fo^o() {}
-    }
-    ''';
+    final code = TestCode.parse('''
+class A {
+  String fo^o() {}
+}
+''');
 
-    final otherContents = '''
-    import 'main.dart';
+    final otherCode = TestCode.parse('''
+import 'main.dart';
 
-    class B {
-      String bar() {
-        A().foo();
-      }
-    }
-    ''';
+class B {
+  String bar() {
+    A().foo();
+  }
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyIncomingCall(
           // Container of the call
@@ -231,13 +233,13 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             detail: 'B',
             kind: SymbolKind.Method,
             uri: otherFileUri,
-            range: rangeOfPattern(otherContents,
-                RegExp(r'String bar\(\) \{.*\      }', dotAll: true)),
-            selectionRange: rangeOfString(otherContents, 'bar'),
+            range: rangeOfPattern(otherCode.code,
+                RegExp(r'String bar\(\) \{.*\  }', dotAll: true)),
+            selectionRange: rangeOfString(otherCode.code, 'bar'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherContents, 'foo'),
+            rangeOfString(otherCode.code, 'foo'),
           ],
         ),
       ],
@@ -245,13 +247,13 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_method_extension() async {
-    final contents = '''
+    final code = TestCode.parse('''
 extension type E1(int a) {
   void foo^() {}
 }
-''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'main.dart';
 
 extension type E2(E1 a) {
@@ -259,11 +261,11 @@ extension type E2(E1 a) {
     a.foo();
   }
 }
-''';
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyIncomingCall(
           // Container of the call
@@ -273,12 +275,12 @@ extension type E2(E1 a) {
             kind: SymbolKind.Method,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherContents, RegExp(r'void g\(\) \{.*\  }', dotAll: true)),
-            selectionRange: rangeOfString(otherContents, 'g'),
+                otherCode.code, RegExp(r'void g\(\) \{.*\  }', dotAll: true)),
+            selectionRange: rangeOfString(otherCode.code, 'g'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherContents, 'foo'),
+            rangeOfString(otherCode.code, 'foo'),
           ],
         ),
       ],
@@ -286,23 +288,23 @@ extension type E2(E1 a) {
   }
 
   Future<void> test_namedConstructor() async {
-    final contents = '''
-    class Foo {
-      Foo.nam^ed();
-    }
-    ''';
+    final code = TestCode.parse('''
+class Foo {
+  Foo.nam^ed();
+}
+''');
 
-    final otherContents = '''
-    import 'main.dart';
+    final otherCode = TestCode.parse('''
+import 'main.dart';
 
-    class Bar {
-      final foo = Foo.named();
-    }
-    ''';
+class Bar {
+  final foo = Foo.named();
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyIncomingCall(
           // Container of the call
@@ -312,12 +314,12 @@ extension type E2(E1 a) {
             kind: SymbolKind.Class,
             uri: otherFileUri,
             range: rangeOfPattern(
-                otherContents, RegExp(r'class Bar \{.*\}', dotAll: true)),
-            selectionRange: rangeOfString(otherContents, 'Bar'),
+                otherCode.code, RegExp(r'class Bar \{.*\}', dotAll: true)),
+            selectionRange: rangeOfString(otherCode.code, 'Bar'),
           ),
           // Ranges of calls within this container
           fromRanges: [
-            rangeOfString(otherContents, 'named'),
+            rangeOfString(otherCode.code, 'named'),
           ],
         ),
       ],
@@ -330,24 +332,24 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   late final Uri otherFileUri;
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
-  /// [mainContents] and uses the single result to call
+  /// [maincode.code] and uses the single result to call
   /// `callHierarchy/outgoingCalls` and ensures the results match
   /// [expectedResults].
   Future<void> expectResults({
-    required String mainContents,
-    String? otherContents,
+    required TestCode mainCode,
+    TestCode? otherCode,
     required List<CallHierarchyOutgoingCall> expectedResults,
   }) async {
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(mainFileUri, mainCode.code);
 
-    if (otherContents != null) {
-      await openFile(otherFileUri, withoutMarkers(otherContents));
+    if (otherCode != null) {
+      await openFile(otherFileUri, otherCode.code);
     }
 
     final prepareResult = await prepareCallHierarchy(
       mainFileUri,
-      positionFromMarker(mainContents),
+      mainCode.position.position,
     );
     final result = await callHierarchyOutgoing(prepareResult!.single);
 
@@ -362,25 +364,25 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    class Foo {
-      Fo^o() {
-        final b = Bar();
-      }
-    }
-    ''';
+class Foo {
+  Fo^o() {
+    final b = Bar();
+  }
+}
+''');
 
-    final otherContents = '''
-    class Bar {
-      Bar();
-    }
-    ''';
+    final otherCode = TestCode.parse('''
+class Bar {
+  Bar();
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyOutgoingCall(
           // Target of the call.
@@ -389,13 +391,13 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherContents, 'Bar();'),
+            range: rangeOfString(otherCode.code, 'Bar();'),
             selectionRange:
-                rangeStartingAtString(otherContents, 'Bar();', 'Bar'),
+                rangeStartingAtString(otherCode.code, 'Bar();', 'Bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(contents, 'Bar'),
+            rangeOfString(code.code, 'Bar'),
           ],
         ),
       ],
@@ -403,21 +405,21 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_function() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    void fo^o() {
-      bar();
-    }
-    ''';
+void fo^o() {
+  bar();
+}
+''');
 
-    final otherContents = '''
-    void bar() {}
-    ''';
+    final otherCode = TestCode.parse('''
+void bar() {}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyOutgoingCall(
           // Target of the call.
@@ -426,12 +428,12 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             detail: 'other.dart',
             kind: SymbolKind.Function,
             uri: otherFileUri,
-            range: rangeOfString(otherContents, 'void bar() {}'),
-            selectionRange: rangeOfString(otherContents, 'bar'),
+            range: rangeOfString(otherCode.code, 'void bar() {}'),
+            selectionRange: rangeOfString(otherCode.code, 'bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(contents, 'bar'),
+            rangeOfString(code.code, 'bar'),
           ],
         ),
       ],
@@ -439,25 +441,25 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_functionInPattern() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    void fo^o() {
-      var pair = (1, 2);
-      switch (pair) {
-        case (int a, int b) when greater(a, b):
-        break;
-      }
-    }
-    ''';
+void fo^o() {
+  var pair = (1, 2);
+  switch (pair) {
+    case (int a, int b) when greater(a, b):
+    break;
+  }
+}
+''');
 
-    final otherContents = '''
-    bool greater(int x, int y) => x > y;
-    ''';
+    final otherCode = TestCode.parse('''
+bool greater(int x, int y) => x > y;
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyOutgoingCall(
           // Target of the call.
@@ -467,12 +469,12 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             kind: SymbolKind.Function,
             uri: otherFileUri,
             range: rangeOfString(
-                otherContents, 'bool greater(int x, int y) => x > y;'),
-            selectionRange: rangeOfString(otherContents, 'greater'),
+                otherCode.code, 'bool greater(int x, int y) => x > y;'),
+            selectionRange: rangeOfString(otherCode.code, 'greater'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(contents, 'greater'),
+            rangeOfString(code.code, 'greater'),
           ],
         ),
       ],
@@ -480,23 +482,23 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_implicitConstructor() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    class Foo {
-      Fo^o() {
-        final b = Bar();
-      }
-    }
-    ''';
+class Foo {
+  Fo^o() {
+    final b = Bar();
+  }
+}
+''');
 
-    final otherContents = '''
-    class Bar {}
-    ''';
+    final otherCode = TestCode.parse('''
+class Bar {}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyOutgoingCall(
           // Target of the call.
@@ -505,12 +507,12 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherContents, 'class Bar {}'),
-            selectionRange: rangeOfString(otherContents, 'Bar'),
+            range: rangeOfString(otherCode.code, 'class Bar {}'),
+            selectionRange: rangeOfString(otherCode.code, 'Bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(contents, 'Bar'),
+            rangeOfString(code.code, 'Bar'),
           ],
         ),
       ],
@@ -518,26 +520,26 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_method() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    class Foo {
-      final b = Bar();
-      void f^oo() {
-        b.bar();
-      }
-    }
-    ''';
+class Foo {
+  final b = Bar();
+  void f^oo() {
+    b.bar();
+  }
+}
+''');
 
-    final otherContents = '''
-    class Bar {
-      void bar() {}
-    }
-    ''';
+    final otherCode = TestCode.parse('''
+class Bar {
+  void bar() {}
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyOutgoingCall(
           // Target of the call.
@@ -546,12 +548,12 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
             detail: 'Bar',
             kind: SymbolKind.Method,
             uri: otherFileUri,
-            range: rangeOfString(otherContents, 'void bar() {}'),
-            selectionRange: rangeOfString(otherContents, 'bar'),
+            range: rangeOfString(otherCode.code, 'void bar() {}'),
+            selectionRange: rangeOfString(otherCode.code, 'bar'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(contents, 'bar'),
+            rangeOfString(code.code, 'bar'),
           ],
         ),
       ],
@@ -559,7 +561,7 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_method_extensionType() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 extension type E2(E1 a) {
@@ -567,17 +569,17 @@ extension type E2(E1 a) {
     a.foo();
   }
 }
-''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 extension type E1(int a) {
   void foo() {}
 }
-''';
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyOutgoingCall(
           // Target of the call.
@@ -586,12 +588,12 @@ extension type E1(int a) {
             detail: 'E1',
             kind: SymbolKind.Method,
             uri: otherFileUri,
-            range: rangeOfString(otherContents, 'void foo() {}'),
-            selectionRange: rangeOfString(otherContents, 'foo'),
+            range: rangeOfString(otherCode.code, 'void foo() {}'),
+            selectionRange: rangeOfString(otherCode.code, 'foo'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeOfString(contents, 'foo'),
+            rangeOfString(code.code, 'foo'),
           ],
         ),
       ],
@@ -599,25 +601,25 @@ extension type E1(int a) {
   }
 
   Future<void> test_namedConstructor() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    class Foo {
-      Foo.nam^ed() {
-        final b = Bar.named();
-      }
-    }
-    ''';
+class Foo {
+  Foo.nam^ed() {
+    final b = Bar.named();
+  }
+}
+''');
 
-    final otherContents = '''
-    class Bar {
-      Bar.named();
-    }
-    ''';
+    final otherCode = TestCode.parse('''
+class Bar {
+  Bar.named();
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResults: [
         CallHierarchyOutgoingCall(
           // Target of the call.
@@ -626,12 +628,12 @@ extension type E1(int a) {
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherContents, 'Bar.named();'),
-            selectionRange: rangeOfString(otherContents, 'named'),
+            range: rangeOfString(otherCode.code, 'Bar.named();'),
+            selectionRange: rangeOfString(otherCode.code, 'named'),
           ),
           // Ranges of the outbound call.
           fromRanges: [
-            rangeStartingAtString(contents, 'named();', 'named'),
+            rangeStartingAtString(code.code, 'named();', 'named'),
           ],
         ),
       ],
@@ -644,34 +646,37 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   late final Uri otherFileUri;
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
-  /// [mainContents] and expects a null result.
-  Future<void> expectNullResults(String mainContents) async {
+  /// [contents] and expects a null result.
+  Future<void> expectNullResults(String contents) async {
+    final code = TestCode.parse(contents);
+
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(mainFileUri, code.code);
+
     final result = await prepareCallHierarchy(
       mainFileUri,
-      positionFromMarker(mainContents),
+      code.position.position,
     );
     expect(result, isNull);
   }
 
   /// Calls textDocument/prepareCallHierarchy at the location of `^` in
-  /// [mainContents] and ensures the results match [expectedResults].
+  /// [maincode.code] and ensures the results match [expectedResults].
   Future<void> expectResults({
-    required String mainContents,
-    String? otherContents,
+    required TestCode mainCode,
+    TestCode? otherCode,
     required CallHierarchyItem expectedResult,
   }) async {
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(mainFileUri, mainCode.code);
 
-    if (otherContents != null) {
-      await openFile(otherFileUri, withoutMarkers(otherContents));
+    if (otherCode != null) {
+      await openFile(otherFileUri, otherCode.code);
     }
 
     final results = await prepareCallHierarchy(
       mainFileUri,
-      positionFromMarker(mainContents),
+      mainCode.position.position,
     );
 
     expect(results, isNotNull);
@@ -698,242 +703,242 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_constructor() async {
-    final contents = '''
-    class Foo {
-      [[Fo^o]](String a) {}
-    }
-    ''';
+    final code = TestCode.parse('''
+class Foo {
+  [!Fo^o!](String a) {}
+}
+''');
 
     await expectResults(
-      mainContents: contents,
+      mainCode: code,
       expectedResult: CallHierarchyItem(
           name: 'Foo',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: mainFileUri,
-          range: rangeOfString(contents, 'Foo(String a) {}'),
-          selectionRange: rangeFromMarkers(contents)),
+          range: rangeOfString(code.code, 'Foo(String a) {}'),
+          selectionRange: code.range.range),
     );
   }
 
   Future<void> test_constructorCall() async {
-    final contents = '''
-    import 'other.dart';
+    final mainCode = TestCode.parse('''
+import 'other.dart';
 
-    main() {
-      final foo = Fo^o();
-    }
-    ''';
+main() {
+  final foo = Fo^o();
+}
+''');
 
-    final otherContents = '''
-    class Foo {
-      [[Foo]]();
-    }
-    ''';
+    final otherCode = TestCode.parse('''
+class Foo {
+  [!Foo!]();
+}
+''');
 
     await expectResults(
-        mainContents: contents,
-        otherContents: otherContents,
+        mainCode: mainCode,
+        otherCode: otherCode,
         expectedResult: CallHierarchyItem(
             name: 'Foo',
             detail: 'Foo', // Containing class name
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
-            range: rangeOfString(otherContents, 'Foo();'),
-            selectionRange: rangeFromMarkers(otherContents)));
+            range: rangeOfString(otherCode.code, 'Foo();'),
+            selectionRange: otherCode.range.range));
   }
 
   Future<void> test_function() async {
-    final contents = '''
-    void myFun^ction() {}
-    ''';
+    final code = TestCode.parse('''
+void myFun^ction() {}
+''');
 
     await expectResults(
-      mainContents: contents,
+      mainCode: code,
       expectedResult: CallHierarchyItem(
           name: 'myFunction',
           detail: 'main.dart', // Containing file name
           kind: SymbolKind.Function,
           uri: mainFileUri,
-          range: rangeOfString(contents, 'void myFunction() {}'),
-          selectionRange: rangeOfString(contents, 'myFunction')),
+          range: rangeOfString(code.code, 'void myFunction() {}'),
+          selectionRange: rangeOfString(code.code, 'myFunction')),
     );
   }
 
   Future<void> test_functionCall() async {
-    final contents = '''
-    import 'other.dart' as f;
+    final code = TestCode.parse('''
+import 'other.dart' as f;
 
-    main() {
-      f.myFun^ction();
-    }
-    ''';
+main() {
+  f.myFun^ction();
+}
+''');
 
-    final otherContents = '''
-    void myFunction() {}
-    ''';
+    final otherCode = TestCode.parse('''
+void myFunction() {}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResult: CallHierarchyItem(
           name: 'myFunction',
           detail: 'other.dart', // Containing file name
           kind: SymbolKind.Function,
           uri: otherFileUri,
-          range: rangeOfString(otherContents, 'void myFunction() {}'),
-          selectionRange: rangeOfString(otherContents, 'myFunction')),
+          range: rangeOfString(otherCode.code, 'void myFunction() {}'),
+          selectionRange: rangeOfString(otherCode.code, 'myFunction')),
     );
   }
 
   Future<void> test_implicitConstructorCall() async {
-    // Even if a constructor is implicit, we might want to be able to get the
-    // incoming calls, so invoking it here should still return an element
-    // (the class).
-    final contents = '''
-    import 'other.dart';
+// Even if a constructor is implicit, we might want to be able to get the
+// incoming calls, so invoking it here should still return an element
+// (the class).
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    main() {
-      final foo = Fo^o();
-    }
-    ''';
+main() {
+  final foo = Fo^o();
+}
+''');
 
-    final otherContents = '''
-    class Foo {}
-    ''';
+    final otherCode = TestCode.parse('''
+class Foo {}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResult: CallHierarchyItem(
           name: 'Foo',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: otherFileUri,
-          range: rangeOfString(otherContents, 'class Foo {}'),
-          selectionRange: rangeOfString(otherContents, 'Foo')),
+          range: rangeOfString(otherCode.code, 'class Foo {}'),
+          selectionRange: rangeOfString(otherCode.code, 'Foo')),
     );
   }
 
   Future<void> test_method() async {
-    final contents = '''
-    class Foo {
-      void myMet^hod() {}
-    }
-    ''';
+    final code = TestCode.parse('''
+class Foo {
+  void myMet^hod() {}
+}
+''');
 
     await expectResults(
-      mainContents: contents,
+      mainCode: code,
       expectedResult: CallHierarchyItem(
           name: 'myMethod',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Method,
           uri: mainFileUri,
-          range: rangeOfString(contents, 'void myMethod() {}'),
-          selectionRange: rangeOfString(contents, 'myMethod')),
+          range: rangeOfString(code.code, 'void myMethod() {}'),
+          selectionRange: rangeOfString(code.code, 'myMethod')),
     );
   }
 
   Future<void> test_methodCall() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    main() {
-      Foo().myMet^hod();
-    }
-    ''';
+main() {
+  Foo().myMet^hod();
+}
+''');
 
-    final otherContents = '''
-    class Foo {
-      void myMethod() {}
-    }
-    ''';
+    final otherCode = TestCode.parse('''
+class Foo {
+  void myMethod() {}
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResult: CallHierarchyItem(
           name: 'myMethod',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Method,
           uri: otherFileUri,
-          range: rangeOfString(otherContents, 'void myMethod() {}'),
-          selectionRange: rangeOfString(otherContents, 'myMethod')),
+          range: rangeOfString(otherCode.code, 'void myMethod() {}'),
+          selectionRange: rangeOfString(otherCode.code, 'myMethod')),
     );
   }
 
   Future<void> test_methodCall_extension() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void main() {
   E1(1).f^();
 }
-''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 extension type E1(int a) {
   void f() {}
 }
-''';
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResult: CallHierarchyItem(
           name: 'f',
           detail: 'E1',
           kind: SymbolKind.Method,
           uri: otherFileUri,
-          range: rangeOfString(otherContents, 'void f() {}'),
-          selectionRange: rangeOfString(otherContents, 'f')),
+          range: rangeOfString(otherCode.code, 'void f() {}'),
+          selectionRange: rangeOfString(otherCode.code, 'f')),
     );
   }
 
   Future<void> test_namedConstructor() async {
-    final contents = '''
-    class Foo {
-      Foo.Ba^r(String a) {}
-    }
-    ''';
+    final code = TestCode.parse('''
+class Foo {
+  Foo.Ba^r(String a) {}
+}
+''');
 
     await expectResults(
-      mainContents: contents,
+      mainCode: code,
       expectedResult: CallHierarchyItem(
           name: 'Foo.Bar',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: mainFileUri,
-          range: rangeOfString(contents, 'Foo.Bar(String a) {}'),
-          selectionRange: rangeOfString(contents, 'Bar')),
+          range: rangeOfString(code.code, 'Foo.Bar(String a) {}'),
+          selectionRange: rangeOfString(code.code, 'Bar')),
     );
   }
 
   Future<void> test_namedConstructorCall() async {
-    final contents = '''
-    import 'other.dart';
+    final code = TestCode.parse('''
+import 'other.dart';
 
-    main() {
-      final foo = Foo.Ba^r();
-    }
-    ''';
+main() {
+  final foo = Foo.Ba^r();
+}
+''');
 
-    final otherContents = '''
-    class Foo {
-      Foo.Bar();
-    }
-    ''';
+    final otherCode = TestCode.parse('''
+class Foo {
+  Foo.Bar();
+}
+''');
 
     await expectResults(
-      mainContents: contents,
-      otherContents: otherContents,
+      mainCode: code,
+      otherCode: otherCode,
       expectedResult: CallHierarchyItem(
           name: 'Foo.Bar',
           detail: 'Foo', // Containing class name
           kind: SymbolKind.Constructor,
           uri: otherFileUri,
-          range: rangeOfString(otherContents, 'Foo.Bar();'),
-          selectionRange: rangeOfString(otherContents, 'Bar')),
+          range: rangeOfString(otherCode.code, 'Foo.Bar();'),
+          selectionRange: rangeOfString(otherCode.code, 'Bar')),
     );
   }
 
