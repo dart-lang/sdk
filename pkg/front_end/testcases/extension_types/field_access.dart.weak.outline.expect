@@ -55,11 +55,11 @@ static inline-class-member method InlineClass|get#test(lowered final self::Inlin
   return () → void => self::InlineClass|test(#this);
 static inline-class-member method GenericInlineClass|constructor#<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#::T%> /* = self::GenericInlineClass|constructor#::T% */
   ;
-static inline-class-member method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%> /* = self::GenericInlineClass|constructor#_#new#tearOff::T% */
+static inline-class-member method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%>% /* = self::GenericInlineClass|constructor#_#new#tearOff::T% */
   return self::GenericInlineClass|constructor#<self::GenericInlineClass|constructor#_#new#tearOff::T%>(it);
 static inline-class-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> /* = self::GenericInlineClass|test::T% */ #this, self::GenericInlineClass|test::T% t) → void
   ;
-static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%> /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
+static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%>% /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
   return (self::GenericInlineClass|get#test::T% t) → void => self::GenericInlineClass|test<self::GenericInlineClass|get#test::T%>(#this, t);
 static inline-class-member method FunctionInlineClass|constructor#<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#::T%> /* = () → self::FunctionInlineClass|constructor#::T% */
   ;

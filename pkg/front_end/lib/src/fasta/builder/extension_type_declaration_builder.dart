@@ -68,6 +68,7 @@ abstract class ExtensionTypeDeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
+    buildRepresentationTypeAndName();
     ExtensionType type =
         new ExtensionType(extensionTypeDeclaration, nullability, arguments);
     if (typeVariablesCount != 0 && library is SourceLibraryBuilder) {
@@ -79,4 +80,6 @@ abstract class ExtensionTypeDeclarationBuilderImpl
 
   @override
   String get debugName => "ExtensionTypeDeclarationBuilder";
+
+  void buildRepresentationTypeAndName() {}
 }

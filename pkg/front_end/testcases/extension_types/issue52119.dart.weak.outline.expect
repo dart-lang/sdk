@@ -48,11 +48,11 @@ static inline-class-member method Foo|constructor#_#erroneous#tearOff() → self
   return self::Foo|constructor#erroneous();
 static inline-class-member method Bar|constructor#_<T extends core::Object? = dynamic>(dynamic i) → self::Bar<self::Bar|constructor#_::T%> /* = dynamic */
   ;
-static inline-class-member method Bar|constructor#_#_#tearOff<T extends core::Object? = dynamic>(dynamic i) → self::Bar<self::Bar|constructor#_#_#tearOff::T%> /* = dynamic */
+static inline-class-member method Bar|constructor#_#_#tearOff<T extends core::Object? = dynamic>(dynamic i) → self::Bar<self::Bar|constructor#_#_#tearOff::T%>% /* = dynamic */
   return self::Bar|constructor#_<self::Bar|constructor#_#_#tearOff::T%>(i);
 static inline-class-member method Bar|constructor#<T extends core::Object? = dynamic>(self::Bar|constructor#::T% i) → self::Bar<self::Bar|constructor#::T%> /* = dynamic */
   ;
-static inline-class-member method Bar|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|constructor#_#new#tearOff::T% i) → self::Bar<self::Bar|constructor#_#new#tearOff::T%> /* = dynamic */
+static inline-class-member method Bar|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|constructor#_#new#tearOff::T% i) → self::Bar<self::Bar|constructor#_#new#tearOff::T%>% /* = dynamic */
   return self::Bar|constructor#<self::Bar|constructor#_#new#tearOff::T%>(i);
 static method main() → dynamic
   ;

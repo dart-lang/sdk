@@ -8,7 +8,7 @@ extension type I<X extends core::Object? = dynamic, Y extends core::Object? = dy
 }
 static inline-class-member method I|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|constructor#::X% value) → self::I<self::I|constructor#::X%, self::I|constructor#::Y%> /* = self::I|constructor#::X% */
   ;
-static inline-class-member method I|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|constructor#_#new#tearOff::X% value) → self::I<self::I|constructor#_#new#tearOff::X%, self::I|constructor#_#new#tearOff::Y%> /* = self::I|constructor#_#new#tearOff::X% */
+static inline-class-member method I|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|constructor#_#new#tearOff::X% value) → self::I<self::I|constructor#_#new#tearOff::X%, self::I|constructor#_#new#tearOff::Y%>% /* = self::I|constructor#_#new#tearOff::X% */
   return self::I|constructor#<self::I|constructor#_#new#tearOff::X%, self::I|constructor#_#new#tearOff::Y%>(value);
 static method f(self::I<core::int, core::String> /* = core::int */ i) → void
   ;

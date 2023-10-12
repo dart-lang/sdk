@@ -37,7 +37,7 @@ static inline-class-member method ET1|constructor#_#new#tearOff(core::int id) �
   return self::ET1|constructor#(id);
 static inline-class-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% id) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */
   ;
-static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%> /* = self::ET2|constructor#_#new#tearOff::T% */
+static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* = self::ET2|constructor#_#new#tearOff::T% */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(id);
 static inline-class-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */
   ;
@@ -45,7 +45,7 @@ static inline-class-member method ET3|constructor#_#new#tearOff(core::int id) �
   return self::ET3|constructor#(id);
 static inline-class-member method ET4|constructor#<T extends core::Object? = dynamic>(self::ET4|constructor#::T% id) → self::ET4<self::ET4|constructor#::T%> /* = self::ET4|constructor#::T% */
   ;
-static inline-class-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%> /* = self::ET4|constructor#_#new#tearOff::T% */
+static inline-class-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%>% /* = self::ET4|constructor#_#new#tearOff::T% */
   return self::ET4|constructor#<self::ET4|constructor#_#new#tearOff::T%>(id);
 static inline-class-member method ET5|constructor#n(core::int id) → self::ET5 /* = core::int */
   ;
@@ -53,7 +53,7 @@ static inline-class-member method ET5|constructor#_#n#tearOff(core::int id) → 
   return self::ET5|constructor#n(id);
 static inline-class-member method ET6|constructor#n<T extends core::Object? = dynamic>(self::ET6|constructor#n::T% id) → self::ET6<self::ET6|constructor#n::T%> /* = self::ET6|constructor#n::T% */
   ;
-static inline-class-member method ET6|constructor#_#n#tearOff<T extends core::Object? = dynamic>(self::ET6|constructor#_#n#tearOff::T% id) → self::ET6<self::ET6|constructor#_#n#tearOff::T%> /* = self::ET6|constructor#_#n#tearOff::T% */
+static inline-class-member method ET6|constructor#_#n#tearOff<T extends core::Object? = dynamic>(self::ET6|constructor#_#n#tearOff::T% id) → self::ET6<self::ET6|constructor#_#n#tearOff::T%>% /* = self::ET6|constructor#_#n#tearOff::T% */
   return self::ET6|constructor#n<self::ET6|constructor#_#n#tearOff::T%>(id);
 static method main() → dynamic
   ;

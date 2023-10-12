@@ -495,7 +495,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             node,
             "Extension type can only implement extension types and interface "
             "types. Found $type.");
-      } else if (type.isPotentiallyNullable) {
+      } else if (type is ExtensionType &&
+              type.nullability == Nullability.nullable ||
+          type is! ExtensionType && type.isPotentiallyNullable) {
         problem(
             node,
             "Extension type can only implement non-nullable types. "

@@ -342,7 +342,7 @@ static inline-class-member method G|constructor#<T extends core::Object? = dynam
   lowered final self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ #this = o;
   return #this;
 }
-static inline-class-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%> /* = self::G|constructor#_#new#tearOff::T% */
+static inline-class-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* = self::G|constructor#_#new#tearOff::T% */
   return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(o);
 static method test<T1 extends core::Object? = dynamic, T2 extends self::A>(core::Object o, self::A a, self::B b, self::C /* = core::Object? */ c, self::D /* = core::Object */ d, self::E /* = self::B */ e, self::F /* = self::B */ f, self::G<self::test::T1%> /* = self::test::T1% */ g1, self::G<self::test::T2> /* = self::test::T2 */ g2) → dynamic {
   o = o;

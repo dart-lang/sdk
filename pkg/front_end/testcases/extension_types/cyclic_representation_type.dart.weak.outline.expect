@@ -10,6 +10,31 @@ library;
 // typedef Alias22a = Alias22b<int>; /* Error */
 //                    ^^^^^^^^
 //
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:20:24: Error: An extension type can't depend on itself through its representation type.
+// extension type E7(void Function<T extends E7>() it) /* Error */ {}
+//                        ^
+//
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:37:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E13(Alias13 it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:36:9: Context: The issue arises via this type alias.
+// typedef Alias13 = void Function<T extends E13>();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:71:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E23(Alias23 it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:70:9: Context: The issue arises via this type alias.
+// typedef Alias23<T extends E23> = List<T>;
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:74:23: Error: An extension type can't depend on itself through its representation type.
+// extension type E24<T>(Alias24 it) /* Error */ {}
+//                       ^
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:73:9: Context: The issue arises via this type alias.
+// typedef Alias24<T extends E24<T>> = List<T>;
+//         ^^^^^^^
+//
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:5:19: Error: An extension type can't depend on itself through its representation type.
 // extension type E1(E1 it) /* Error */ {}
 //                   ^
@@ -70,10 +95,6 @@ library;
 // extension type E6((E6, int) it) /* Error */ {}
 //                   ^
 //
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:20:24: Error: An extension type can't depend on itself through its representation type.
-// extension type E7(void Function<T extends E7>() it) /* Error */ {}
-//                        ^
-//
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:22:22: Error: An extension type can't depend on itself through its representation type.
 // extension type E8<T>(List<E8> it) /* Error */ {}
 //                      ^
@@ -106,13 +127,6 @@ library;
 // typedef Alias12 = void Function(E12);
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:37:20: Error: An extension type can't depend on itself through its representation type.
-// extension type E13(Alias13 it) /* Error */ {}
-//                    ^
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:36:9: Context: The issue arises via this type alias.
-// typedef Alias13 = void Function<T extends E13>();
-//         ^^^^^^^
-//
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:43:21: Error: An extension type can't depend on itself through its representation type.
 // extension type E15a(Alias15<E15b> it) /* Error */ {}
 //                     ^
@@ -133,19 +147,6 @@ library;
 // typedef Alias15<T> = List<T>;
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:48:21: Error: An extension type can't depend on itself through its representation type.
-// extension type E16a(Alias16a<int> it) /* Error */ {}
-//                     ^
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:49:16: Context: The issue arises via this extension type declaration.
-// extension type E16b(Alias16b<int> it) /* Error */ {}
-//                ^^^^
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:46:9: Context: The issue arises via this type alias.
-// typedef Alias16a<T> = List<E16b>;
-//         ^^^^^^^^
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:47:9: Context: The issue arises via this type alias.
-// typedef Alias16b<T> = List<E16a>;
-//         ^^^^^^^^
-//
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:49:21: Error: An extension type can't depend on itself through its representation type.
 // extension type E16b(Alias16b<int> it) /* Error */ {}
 //                     ^
@@ -157,6 +158,19 @@ library;
 //         ^^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:46:9: Context: The issue arises via this type alias.
 // typedef Alias16a<T> = List<E16b>;
+//         ^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:48:21: Error: An extension type can't depend on itself through its representation type.
+// extension type E16a(Alias16a<int> it) /* Error */ {}
+//                     ^
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:49:16: Context: The issue arises via this extension type declaration.
+// extension type E16b(Alias16b<int> it) /* Error */ {}
+//                ^^^^
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:46:9: Context: The issue arises via this type alias.
+// typedef Alias16a<T> = List<E16b>;
+//         ^^^^^^^^
+// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:47:9: Context: The issue arises via this type alias.
+// typedef Alias16b<T> = List<E16a>;
 //         ^^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:51:20: Error: An extension type can't depend on itself through its representation type.
@@ -177,20 +191,6 @@ library;
 // typedef Alias20 = Alias20; /* Error */
 //         ^
 //
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:71:20: Error: An extension type can't depend on itself through its representation type.
-// extension type E23(Alias23 it) /* Error */ {}
-//                    ^
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:70:9: Context: The issue arises via this type alias.
-// typedef Alias23<T extends E23> = List<T>;
-//         ^^^^^^^
-//
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:74:23: Error: An extension type can't depend on itself through its representation type.
-// extension type E24<T>(Alias24 it) /* Error */ {}
-//                       ^
-// pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:73:9: Context: The issue arises via this type alias.
-// typedef Alias24<T extends E24<T>> = List<T>;
-//         ^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -203,14 +203,14 @@ typedef Alias14<unrelated T extends core::Object? = dynamic> = core::int;
 typedef Alias15<T extends core::Object? = dynamic> = core::List<T%>;
 typedef Alias16a<unrelated T extends core::Object? = dynamic> = core::List<self::E16b /* = invalid-type */>;
 typedef Alias16b<unrelated T extends core::Object? = dynamic> = core::List<self::E16a /* = invalid-type */>;
-typedef Alias18a<unrelated T extends core::Object? = dynamic> = (self::E18 /* = invalid-type */) → void;
+typedef Alias18a<unrelated T extends core::Object? = dynamic> = (self::E18% /* = invalid-type */) → void;
 typedef Alias18b<contravariant T extends core::Object? = dynamic> = (T%) → void;
 typedef Alias20 = invalid-type;
 typedef Alias21 = core::int;
 typedef Alias22a = invalid-type;
 typedef Alias22b = core::int;
-typedef Alias23<T extends self::E23 /* = invalid-type */> = core::List<T>;
-typedef Alias24<T extends self::E24<T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */> = core::List<T>;
+typedef Alias23<T extends self::E23 /* = invalid-type */> = core::List<T%>;
+typedef Alias24<T extends self::E24<T%> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */> = core::List<T%>;
 extension type E1(invalid-type it) {
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
@@ -373,15 +373,15 @@ static inline-class-member method E7|constructor#(<T extends self::E7 /* = inval
   ;
 static inline-class-member method E8|constructor#<T extends core::Object? = dynamic>(core::List<self::E8<dynamic> /* = invalid-type */> it) → self::E8<self::E8|constructor#::T%> /* = invalid-type */
   ;
-static inline-class-member method E8|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::E8<dynamic> /* = invalid-type */> it) → self::E8<self::E8|constructor#_#new#tearOff::T%> /* = invalid-type */
+static inline-class-member method E8|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::E8<dynamic> /* = invalid-type */> it) → self::E8<self::E8|constructor#_#new#tearOff::T%>% /* = invalid-type */
   return self::E8|constructor#<self::E8|constructor#_#new#tearOff::T%>(it);
-static inline-class-member method E9|constructor#(self::E9 /* = invalid-type */ it) → self::E9 /* = invalid-type */
+static inline-class-member method E9|constructor#(self::E9% /* = invalid-type */ it) → self::E9 /* = invalid-type */
   ;
-static inline-class-member method E9|constructor#_#new#tearOff(self::E9 /* = invalid-type */ it) → self::E9 /* = invalid-type */
+static inline-class-member method E9|constructor#_#new#tearOff(self::E9% /* = invalid-type */ it) → self::E9 /* = invalid-type */
   return self::E9|constructor#(it);
-static inline-class-member method E10|constructor#<T extends core::Object? = dynamic>(self::E10<self::E10|constructor#::T%> /* = invalid-type */ it) → self::E10<self::E10|constructor#::T%> /* = invalid-type */
+static inline-class-member method E10|constructor#<T extends core::Object? = dynamic>(self::E10<self::E10|constructor#::T%>% /* = invalid-type */ it) → self::E10<self::E10|constructor#::T%> /* = invalid-type */
   ;
-static inline-class-member method E10|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E10<self::E10|constructor#_#new#tearOff::T%> /* = invalid-type */ it) → self::E10<self::E10|constructor#_#new#tearOff::T%> /* = invalid-type */
+static inline-class-member method E10|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E10<self::E10|constructor#_#new#tearOff::T%>% /* = invalid-type */ it) → self::E10<self::E10|constructor#_#new#tearOff::T%>% /* = invalid-type */
   return self::E10|constructor#<self::E10|constructor#_#new#tearOff::T%>(it);
 static inline-class-member method E11|constructor#(() → self::E11 /* = invalid-type */ it) → self::E11 /* = invalid-type */
   ;
@@ -399,13 +399,13 @@ static inline-class-member method E14|constructor#(core::int it) → self::E14 /
   ;
 static inline-class-member method E14|constructor#_#new#tearOff(core::int it) → self::E14 /* = core::int */
   return self::E14|constructor#(it);
-static inline-class-member method E15a|constructor#(core::List<self::E15b /* = invalid-type */> it) → self::E15a /* = invalid-type */
+static inline-class-member method E15a|constructor#(core::List<self::E15b% /* = invalid-type */> it) → self::E15a /* = invalid-type */
   ;
-static inline-class-member method E15a|constructor#_#new#tearOff(core::List<self::E15b /* = invalid-type */> it) → self::E15a /* = invalid-type */
+static inline-class-member method E15a|constructor#_#new#tearOff(core::List<self::E15b% /* = invalid-type */> it) → self::E15a /* = invalid-type */
   return self::E15a|constructor#(it);
-static inline-class-member method E15b|constructor#(core::List<self::E15a /* = invalid-type */> it) → self::E15b /* = invalid-type */
+static inline-class-member method E15b|constructor#(core::List<self::E15a% /* = invalid-type */> it) → self::E15b /* = invalid-type */
   ;
-static inline-class-member method E15b|constructor#_#new#tearOff(core::List<self::E15a /* = invalid-type */> it) → self::E15b /* = invalid-type */
+static inline-class-member method E15b|constructor#_#new#tearOff(core::List<self::E15a% /* = invalid-type */> it) → self::E15b /* = invalid-type */
   return self::E15b|constructor#(it);
 static inline-class-member method E16a|constructor#(core::List<self::E16b /* = invalid-type */> it) → self::E16a /* = invalid-type */
   ;
@@ -419,9 +419,9 @@ static inline-class-member method E17|constructor#((core::int, {required a: self
   ;
 static inline-class-member method E17|constructor#_#new#tearOff((core::int, {required a: self::E17 /* = invalid-type */}) it) → self::E17 /* = invalid-type */
   return self::E17|constructor#(it);
-static inline-class-member method E18|constructor#((self::E18 /* = invalid-type */) → void it) → self::E18 /* = invalid-type */
+static inline-class-member method E18|constructor#((self::E18% /* = invalid-type */) → void it) → self::E18 /* = invalid-type */
   ;
-static inline-class-member method E18|constructor#_#new#tearOff((self::E18 /* = invalid-type */) → void it) → self::E18 /* = invalid-type */
+static inline-class-member method E18|constructor#_#new#tearOff((self::E18% /* = invalid-type */) → void it) → self::E18 /* = invalid-type */
   return self::E18|constructor#(it);
 static inline-class-member method E19a|constructor#((self::E19b /* = core::int */, self::E19b /* = core::int */) it) → self::E19a /* =(core::int, core::int) */
   ;
@@ -443,61 +443,61 @@ static inline-class-member method E22|constructor#(invalid-type it) → self::E2
   ;
 static inline-class-member method E22|constructor#_#new#tearOff(invalid-type it) → self::E22 /* = invalid-type */
   return self::E22|constructor#(it);
-static inline-class-member method E23|constructor#(core::List<self::E23 /* = invalid-type */> it) → self::E23 /* = invalid-type */
+static inline-class-member method E23|constructor#(core::List<self::E23% /* = invalid-type */> it) → self::E23 /* = invalid-type */
   ;
-static inline-class-member method E23|constructor#_#new#tearOff(core::List<self::E23 /* = invalid-type */> it) → self::E23 /* = invalid-type */
+static inline-class-member method E23|constructor#_#new#tearOff(core::List<self::E23% /* = invalid-type */> it) → self::E23 /* = invalid-type */
   return self::E23|constructor#(it);
-static inline-class-member method E24|constructor#<T extends core::Object? = dynamic>(core::List<self::E24<dynamic> /* = invalid-type */> it) → self::E24<self::E24|constructor#::T%> /* = invalid-type */
+static inline-class-member method E24|constructor#<T extends core::Object? = dynamic>(core::List<self::E24<dynamic>% /* = invalid-type */> it) → self::E24<self::E24|constructor#::T%> /* = invalid-type */
   ;
-static inline-class-member method E24|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::E24<dynamic> /* = invalid-type */> it) → self::E24<self::E24|constructor#_#new#tearOff::T%> /* = invalid-type */
+static inline-class-member method E24|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::E24<dynamic>% /* = invalid-type */> it) → self::E24<self::E24|constructor#_#new#tearOff::T%>% /* = invalid-type */
   return self::E24|constructor#<self::E24|constructor#_#new#tearOff::T%>(it);
 static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#Alias14#fromEnvironment#tearOff<unrelated T extends core::Object? = dynamic>(core::String name, {has-declared-initializer core::int defaultValue}) → core::int
   return core::int::fromEnvironment(name, defaultValue: defaultValue);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16b /* = invalid-type */ fill, {has-declared-initializer core::bool growable}) → core::List<self::E16b /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16b% /* = invalid-type */ fill, {has-declared-initializer core::bool growable}) → core::List<self::E16b% /* = invalid-type */>
   return core::List::filled<self::E16b /* = invalid-type */>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#empty#tearOff<unrelated T extends core::Object? = dynamic>({has-declared-initializer core::bool growable}) → core::List<self::E16b /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#empty#tearOff<unrelated T extends core::Object? = dynamic>({has-declared-initializer core::bool growable}) → core::List<self::E16b% /* = invalid-type */>
   return core::List::empty<self::E16b /* = invalid-type */>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16b /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16b% /* = invalid-type */>
   return core::List::from<self::E16b /* = invalid-type */>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16b /* = invalid-type */> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16b /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16b% /* = invalid-type */> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16b% /* = invalid-type */>
   return core::List::of<self::E16b /* = invalid-type */>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16b /* = invalid-type */ generator, {has-declared-initializer core::bool growable}) → core::List<self::E16b /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16b% /* = invalid-type */ generator, {has-declared-initializer core::bool growable}) → core::List<self::E16b% /* = invalid-type */>
   return core::List::generate<self::E16b /* = invalid-type */>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16b /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16b% /* = invalid-type */>
   return core::List::unmodifiable<self::E16b /* = invalid-type */>(elements);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16a /* = invalid-type */ fill, {has-declared-initializer core::bool growable}) → core::List<self::E16a /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16a% /* = invalid-type */ fill, {has-declared-initializer core::bool growable}) → core::List<self::E16a% /* = invalid-type */>
   return core::List::filled<self::E16a /* = invalid-type */>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#empty#tearOff<unrelated T extends core::Object? = dynamic>({has-declared-initializer core::bool growable}) → core::List<self::E16a /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#empty#tearOff<unrelated T extends core::Object? = dynamic>({has-declared-initializer core::bool growable}) → core::List<self::E16a% /* = invalid-type */>
   return core::List::empty<self::E16a /* = invalid-type */>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16a /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16a% /* = invalid-type */>
   return core::List::from<self::E16a /* = invalid-type */>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16a /* = invalid-type */> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16a /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16a% /* = invalid-type */> elements, {has-declared-initializer core::bool growable}) → core::List<self::E16a% /* = invalid-type */>
   return core::List::of<self::E16a /* = invalid-type */>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16a /* = invalid-type */ generator, {has-declared-initializer core::bool growable}) → core::List<self::E16a /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16a% /* = invalid-type */ generator, {has-declared-initializer core::bool growable}) → core::List<self::E16a% /* = invalid-type */>
   return core::List::generate<self::E16a /* = invalid-type */>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16a /* = invalid-type */>
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16a% /* = invalid-type */>
   return core::List::unmodifiable<self::E16a /* = invalid-type */>(elements);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#filled#tearOff<T extends self::E23 /* = invalid-type */>(core::int length, self::_#Alias23#filled#tearOff::T fill, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#filled#tearOff::T>
-  return core::List::filled<self::_#Alias23#filled#tearOff::T>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#empty#tearOff<T extends self::E23 /* = invalid-type */>({has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#empty#tearOff::T>
-  return core::List::empty<self::_#Alias23#empty#tearOff::T>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#from#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#from#tearOff::T>
-  return core::List::from<self::_#Alias23#from#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#of#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<self::_#Alias23#of#tearOff::T> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#of#tearOff::T>
-  return core::List::of<self::_#Alias23#of#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#generate#tearOff<T extends self::E23 /* = invalid-type */>(core::int length, (core::int) → self::_#Alias23#generate#tearOff::T generator, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#generate#tearOff::T>
-  return core::List::generate<self::_#Alias23#generate#tearOff::T>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#unmodifiable#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<dynamic> elements) → core::List<self::_#Alias23#unmodifiable#tearOff::T>
-  return core::List::unmodifiable<self::_#Alias23#unmodifiable#tearOff::T>(elements);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#filled#tearOff<T extends self::E24<self::_#Alias24#filled#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::int length, self::_#Alias24#filled#tearOff::T fill, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#filled#tearOff::T>
-  return core::List::filled<self::_#Alias24#filled#tearOff::T>(length, fill, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#empty#tearOff<T extends self::E24<self::_#Alias24#empty#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>({has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#empty#tearOff::T>
-  return core::List::empty<self::_#Alias24#empty#tearOff::T>(growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#from#tearOff<T extends self::E24<self::_#Alias24#from#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#from#tearOff::T>
-  return core::List::from<self::_#Alias24#from#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#of#tearOff<T extends self::E24<self::_#Alias24#of#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<self::_#Alias24#of#tearOff::T> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#of#tearOff::T>
-  return core::List::of<self::_#Alias24#of#tearOff::T>(elements, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#generate#tearOff<T extends self::E24<self::_#Alias24#generate#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::int length, (core::int) → self::_#Alias24#generate#tearOff::T generator, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#generate#tearOff::T>
-  return core::List::generate<self::_#Alias24#generate#tearOff::T>(length, generator, growable: growable);
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#unmodifiable#tearOff<T extends self::E24<self::_#Alias24#unmodifiable#tearOff::T> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<dynamic> elements) → core::List<self::_#Alias24#unmodifiable#tearOff::T>
-  return core::List::unmodifiable<self::_#Alias24#unmodifiable#tearOff::T>(elements);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#filled#tearOff<T extends self::E23 /* = invalid-type */>(core::int length, self::_#Alias23#filled#tearOff::T% fill, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#filled#tearOff::T%>
+  return core::List::filled<self::_#Alias23#filled#tearOff::T%>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#empty#tearOff<T extends self::E23 /* = invalid-type */>({has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#empty#tearOff::T%>
+  return core::List::empty<self::_#Alias23#empty#tearOff::T%>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#from#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#from#tearOff::T%>
+  return core::List::from<self::_#Alias23#from#tearOff::T%>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#of#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<self::_#Alias23#of#tearOff::T%> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#of#tearOff::T%>
+  return core::List::of<self::_#Alias23#of#tearOff::T%>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#generate#tearOff<T extends self::E23 /* = invalid-type */>(core::int length, (core::int) → self::_#Alias23#generate#tearOff::T% generator, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias23#generate#tearOff::T%>
+  return core::List::generate<self::_#Alias23#generate#tearOff::T%>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#unmodifiable#tearOff<T extends self::E23 /* = invalid-type */>(core::Iterable<dynamic> elements) → core::List<self::_#Alias23#unmodifiable#tearOff::T%>
+  return core::List::unmodifiable<self::_#Alias23#unmodifiable#tearOff::T%>(elements);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#filled#tearOff<T extends self::E24<self::_#Alias24#filled#tearOff::T%>% /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::int length, self::_#Alias24#filled#tearOff::T% fill, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#filled#tearOff::T%>
+  return core::List::filled<self::_#Alias24#filled#tearOff::T%>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#empty#tearOff<T extends self::E24<self::_#Alias24#empty#tearOff::T%>% /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>({has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#empty#tearOff::T%>
+  return core::List::empty<self::_#Alias24#empty#tearOff::T%>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#from#tearOff<T extends self::E24<self::_#Alias24#from#tearOff::T%>% /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<dynamic> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#from#tearOff::T%>
+  return core::List::from<self::_#Alias24#from#tearOff::T%>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#of#tearOff<T extends self::E24<self::_#Alias24#of#tearOff::T%>% /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<self::_#Alias24#of#tearOff::T%> elements, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#of#tearOff::T%>
+  return core::List::of<self::_#Alias24#of#tearOff::T%>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#generate#tearOff<T extends self::E24<self::_#Alias24#generate#tearOff::T%>% /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::int length, (core::int) → self::_#Alias24#generate#tearOff::T% generator, {has-declared-initializer core::bool growable}) → core::List<self::_#Alias24#generate#tearOff::T%>
+  return core::List::generate<self::_#Alias24#generate#tearOff::T%>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#unmodifiable#tearOff<T extends self::E24<self::_#Alias24#unmodifiable#tearOff::T%>% /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */>(core::Iterable<dynamic> elements) → core::List<self::_#Alias24#unmodifiable#tearOff::T%>
+  return core::List::unmodifiable<self::_#Alias24#unmodifiable#tearOff::T%>(elements);

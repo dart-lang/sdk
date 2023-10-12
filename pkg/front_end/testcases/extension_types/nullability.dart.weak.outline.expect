@@ -1,0 +1,131 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:62:14: Error: The parameter 'e1numNullableOP' can't have a value of 'null' because of its type 'E1<num?>', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E1<num?> e1numNullableOP, // Error.
+//              ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:63:16: Error: The parameter 'e1doubleOP' can't have a value of 'null' because of its type 'E1<double>', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E1<double> e1doubleOP, // Error.
+//                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:64:8: Error: The parameter 'e2OP' can't have a value of 'null' because of its type 'E2', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E2 e2OP, // Error.
+//        ^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:65:8: Error: The parameter 'e3OP' can't have a value of 'null' because of its type 'E3', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E3 e3OP, // Error.
+//        ^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:66:8: Error: The parameter 'e4OP' can't have a value of 'null' because of its type 'E4', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E4 e4OP, // Error.
+//        ^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:67:8: Error: The parameter 'e5OP' can't have a value of 'null' because of its type 'E5', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E5 e5OP, // Error.
+//        ^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:78:14: Error: The parameter 'e1numNullableNNR' can't have a value of 'null' because of its type 'E1<num?>', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E1<num?> e1numNullableNNR, // Error.
+//              ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:79:16: Error: The parameter 'e1doubleNNR' can't have a value of 'null' because of its type 'E1<double>', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E1<double> e1doubleNNR, // Error.
+//                ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:80:8: Error: The parameter 'e2NNR' can't have a value of 'null' because of its type 'E2', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E2 e2NNR, // Error.
+//        ^^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:81:8: Error: The parameter 'e3NNR' can't have a value of 'null' because of its type 'E3', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E3 e3NNR, // Error.
+//        ^^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:82:8: Error: The parameter 'e4NNR' can't have a value of 'null' because of its type 'E4', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E4 e4NNR, // Error.
+//        ^^^^^
+//
+// pkg/front_end/testcases/extension_types/nullability.dart:83:8: Error: The parameter 'e5NNR' can't have a value of 'null' because of its type 'E5', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//     E5 e5NNR, // Error.
+//        ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field self::E1<core::num?> /* = core::num? */ e1numNullableA;
+  field self::E1<core::double> /* = core::double */ e1doubleA;
+  field self::E2 /* = core::Object? */ e2A;
+  field self::E3 /* = core::String? */ e3A;
+  field self::E4 /* = core::int */ e4A;
+  field self::E5 /* = core::Object? */ e5A;
+  field self::E1<core::num?>? /* = core::num? */ e1numNullableANullable;
+  field self::E1<core::double>? /* = core::double? */ e1doubleANullable;
+  field self::E2? /* = core::Object? */ e2ANullable;
+  field self::E3? /* = core::String? */ e3ANullable;
+  field self::E4? /* = core::int? */ e4ANullable;
+  field self::E5? /* = core::Object? */ e5ANullable;
+  synthetic constructor •() → self::A
+    ;
+}
+extension type E1<T extends core::Object? = dynamic>(T% foo) {
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(core::Object? foo) {
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+extension type E3(self::E1<core::String?> /* = core::String? */ foo) {
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+extension type E4(self::E1<core::int> /* = core::int */ foo) {
+  constructor • = self::E4|constructor#;
+  constructor tearoff • = self::E4|constructor#_#new#tearOff;
+}
+extension type E5(self::E2 /* = core::Object? */ foo) {
+  constructor • = self::E5|constructor#;
+  constructor tearoff • = self::E5|constructor#_#new#tearOff;
+}
+static inline-class-member method E1|constructor#<T extends core::Object? = dynamic>(self::E1|constructor#::T% foo) → self::E1<self::E1|constructor#::T%> /* = self::E1|constructor#::T% */
+  ;
+static inline-class-member method E1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::T% foo) → self::E1<self::E1|constructor#_#new#tearOff::T%>% /* = self::E1|constructor#_#new#tearOff::T% */
+  return self::E1|constructor#<self::E1|constructor#_#new#tearOff::T%>(foo);
+static inline-class-member method E2|constructor#(core::Object? foo) → self::E2 /* = core::Object? */
+  ;
+static inline-class-member method E2|constructor#_#new#tearOff(core::Object? foo) → self::E2 /* = core::Object? */
+  return self::E2|constructor#(foo);
+static inline-class-member method E3|constructor#(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */
+  ;
+static inline-class-member method E3|constructor#_#new#tearOff(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */
+  return self::E3|constructor#(foo);
+static inline-class-member method E4|constructor#(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */
+  ;
+static inline-class-member method E4|constructor#_#new#tearOff(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */
+  return self::E4|constructor#(foo);
+static inline-class-member method E5|constructor#(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */
+  ;
+static inline-class-member method E5|constructor#_#new#tearOff(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */
+  return self::E5|constructor#(foo);
+static method testNotNonNullable(self::E1<core::num?> /* = core::num? */ e1numNullableNNN, self::E1<core::double> /* = core::double */ e1doubleNNN, self::E2 /* = core::Object? */ e2NNN, self::E3 /* = core::String? */ e3NNN, self::E4 /* = core::int */ e4NNN, self::E5 /* = core::Object? */ e5NNN) → dynamic
+  ;
+static method testNotNullable(self::E1<core::num?> /* = core::num? */ e1numNullableNN, self::E1<core::double> /* = core::double */ e1doubleNN, self::E2 /* = core::Object? */ e2NN, self::E3 /* = core::String? */ e3NN, self::E4 /* = core::int */ e4NN, self::E5 /* = core::Object? */ e5NN, self::E1<core::num?>? /* = core::num? */ e1numNullableNNNullable, self::E1<core::double>? /* = core::double? */ e1doubleNNNullable, self::E2? /* = core::Object? */ e2NNNullable, self::E3? /* = core::String? */ e3NNNullable, self::E4? /* = core::int? */ e4NNNullable, self::E5? /* = core::Object? */ e5NNNullable) → dynamic
+  ;
+static method testOptionalPositional([self::E1<core::num?> /* = core::num? */ e1numNullableOP, self::E1<core::double> /* = core::double */ e1doubleOP, self::E2 /* = core::Object? */ e2OP, self::E3 /* = core::String? */ e3OP, self::E4 /* = core::int */ e4OP, self::E5 /* = core::Object? */ e5OP, self::E1<core::num?>? /* = core::num? */ e1numNullableOPNullable, self::E1<core::double>? /* = core::double? */ e1doubleOPNullable, self::E2? /* = core::Object? */ e2OPNullable, self::E3? /* = core::String? */ e3OPNullable, self::E4? /* = core::int? */ e4OPNullable, self::E5? /* = core::Object? */ e5OPNullable]) → dynamic
+  ;
+static method testNamedNotRequired({self::E1<core::num?> /* = core::num? */ e1numNullableNNR, self::E1<core::double> /* = core::double */ e1doubleNNR, self::E2 /* = core::Object? */ e2NNR, self::E3 /* = core::String? */ e3NNR, self::E4 /* = core::int */ e4NNR, self::E5 /* = core::Object? */ e5NNR, self::E1<core::num?>? /* = core::num? */ e1numNullableNNRNullable, self::E1<core::double>? /* = core::double? */ e1doubleNNRNullable, self::E2? /* = core::Object? */ e2NNRNullable, self::E3? /* = core::String? */ e3NNRNullable, self::E4? /* = core::int? */ e4NNRNullable, self::E5? /* = core::Object? */ e5NNRNullable}) → dynamic
+  ;

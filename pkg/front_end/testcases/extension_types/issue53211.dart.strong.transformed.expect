@@ -41,7 +41,7 @@ static inline-class-member method ET2|constructor#<T extends core::Object? = dyn
   lowered final self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */ #this = id;
   return #this;
 }
-static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%> /* = self::ET2|constructor#_#new#tearOff::T% */
+static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* = self::ET2|constructor#_#new#tearOff::T% */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(id);
 static inline-class-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */ {
   lowered final self::ET3 /* = core::int */ #this = id;
@@ -53,7 +53,7 @@ static inline-class-member method ET4|constructor#<T extends core::Object? = dyn
   lowered final self::ET4<self::ET4|constructor#::T%> /* = self::ET4|constructor#::T% */ #this = id;
   return #this;
 }
-static inline-class-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%> /* = self::ET4|constructor#_#new#tearOff::T% */
+static inline-class-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%>% /* = self::ET4|constructor#_#new#tearOff::T% */
   return self::ET4|constructor#<self::ET4|constructor#_#new#tearOff::T%>(id);
 static inline-class-member method ET5|constructor#n(core::int id) → self::ET5 /* = core::int */ {
   lowered final self::ET5 /* = core::int */ #this = id;
@@ -65,15 +65,15 @@ static inline-class-member method ET6|constructor#n<T extends core::Object? = dy
   lowered final self::ET6<self::ET6|constructor#n::T%> /* = self::ET6|constructor#n::T% */ #this = id;
   return #this;
 }
-static inline-class-member method ET6|constructor#_#n#tearOff<T extends core::Object? = dynamic>(self::ET6|constructor#_#n#tearOff::T% id) → self::ET6<self::ET6|constructor#_#n#tearOff::T%> /* = self::ET6|constructor#_#n#tearOff::T% */
+static inline-class-member method ET6|constructor#_#n#tearOff<T extends core::Object? = dynamic>(self::ET6|constructor#_#n#tearOff::T% id) → self::ET6<self::ET6|constructor#_#n#tearOff::T%>% /* = self::ET6|constructor#_#n#tearOff::T% */
   return self::ET6|constructor#n<self::ET6|constructor#_#n#tearOff::T%>(id);
 static method main() → dynamic {
   self::StaticType|expectStaticType<(core::int) → self::ET1 /* = core::int */, ((core::int) → self::ET1 /* = core::int */) → (core::int) → self::ET1 /* = core::int */>(#C1);
-  self::StaticType|expectStaticType<(core::String) → self::ET2<core::String> /* = core::String */, ((core::String) → self::ET2<core::String> /* = core::String */) → (core::String) → self::ET2<core::String> /* = core::String */>(#C3);
+  self::StaticType|expectStaticType<(core::String) → self::ET2<core::String>% /* = core::String */, ((core::String) → self::ET2<core::String> /* = core::String */) → (core::String) → self::ET2<core::String> /* = core::String */>(#C3);
   self::StaticType|expectStaticType<(core::int) → self::ET3 /* = core::int */, ((core::int) → self::ET3 /* = core::int */) → (core::int) → self::ET3 /* = core::int */>(#C4);
-  self::StaticType|expectStaticType<(core::String) → self::ET4<core::String> /* = core::String */, ((core::String) → self::ET4<core::String> /* = core::String */) → (core::String) → self::ET4<core::String> /* = core::String */>(#C6);
+  self::StaticType|expectStaticType<(core::String) → self::ET4<core::String>% /* = core::String */, ((core::String) → self::ET4<core::String> /* = core::String */) → (core::String) → self::ET4<core::String> /* = core::String */>(#C6);
   self::StaticType|expectStaticType<(core::int) → self::ET5 /* = core::int */, ((core::int) → self::ET5 /* = core::int */) → (core::int) → self::ET5 /* = core::int */>(#C7);
-  self::StaticType|expectStaticType<(core::String) → self::ET6<core::String> /* = core::String */, ((core::String) → self::ET6<core::String> /* = core::String */) → (core::String) → self::ET6<core::String> /* = core::String */>(#C9);
+  self::StaticType|expectStaticType<(core::String) → self::ET6<core::String>% /* = core::String */, ((core::String) → self::ET6<core::String> /* = core::String */) → (core::String) → self::ET6<core::String> /* = core::String */>(#C9);
 }
 static extension-member method StaticType|expectStaticType<T extends core::Object? = dynamic, R extends (self::StaticType|expectStaticType::T%) → self::StaticType|expectStaticType::T% = (dynamic) → dynamic>(lowered final self::StaticType|expectStaticType::T% #this) → self::StaticType|expectStaticType::T% {
   return #this;

@@ -2491,7 +2491,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitExtensionType(ExtensionType node) {
     writeByte(Tag.ExtensionType);
-    writeByte(node.nullability.index);
+    writeByte(node.declaredNullability.index);
     writeNonNullReference(node.extensionTypeDeclarationReference);
     writeNodeList(node.typeArguments);
     writeNode(node.extensionTypeErasure);
