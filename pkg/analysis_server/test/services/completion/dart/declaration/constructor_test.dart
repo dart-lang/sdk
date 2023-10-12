@@ -10,19 +10,21 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstructorTest1);
     defineReflectiveTests(ConstructorTest2);
+    defineReflectiveTests(NamedConstructorTest1);
+    defineReflectiveTests(NamedConstructorTest2);
   });
 }
 
 @reflectiveTest
 class ConstructorTest1 extends AbstractCompletionDriverTest
-    with ConstructorTestCases, NamedConstructorTestCases {
+    with ConstructorTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ConstructorTest2 extends AbstractCompletionDriverTest
-    with ConstructorTestCases, NamedConstructorTestCases {
+    with ConstructorTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
@@ -133,6 +135,20 @@ void f() {
 suggestions
 ''');
   }
+}
+
+@reflectiveTest
+class NamedConstructorTest1 extends AbstractCompletionDriverTest
+    with NamedConstructorTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class NamedConstructorTest2 extends AbstractCompletionDriverTest
+    with NamedConstructorTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin NamedConstructorTestCases on AbstractCompletionDriverTest {

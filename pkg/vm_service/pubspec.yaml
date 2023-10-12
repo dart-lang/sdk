@@ -1,5 +1,4 @@
 name: vm_service
-
 version: 13.0.0
 description: >-
   A library to communicate with a service implementing the Dart VM

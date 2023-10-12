@@ -262,6 +262,7 @@ class _ServiceTesterRunner {
     bool pause_on_unhandled_exceptions = false,
     bool testeeControlsServer = false,
     bool useAuthToken = false,
+    VmServiceFactory serviceFactory = VmService.defaultFactory,
   }) async {
     var process = _ServiceTesteeLauncher(scriptName);
     late VmService vm;
@@ -278,7 +279,10 @@ class _ServiceTesterRunner {
           io.sleep(wait);
         }
         setupAddresses(serverAddress);
-        vm = await vmServiceConnectUri(serviceWebsocketAddress);
+        vm = await vmServiceConnectUriWithFactory(
+          serviceWebsocketAddress,
+          vmServiceFactory: serviceFactory,
+        );
         print('Done loading VM');
         isolate = await getFirstIsolate(vm);
       });
@@ -461,6 +465,7 @@ Future<void> runVMTests(
   bool verbose_vm = false,
   bool pause_on_unhandled_exceptions = false,
   List<String>? extraArgs,
+  VmServiceFactory serviceFactory = VmService.defaultFactory,
 }) async {
   if (_isTestee()) {
     await _ServiceTesteeRunner().run(
@@ -477,6 +482,7 @@ Future<void> runVMTests(
         pause_on_start: pause_on_start,
         pause_on_exit: pause_on_exit,
         verbose_vm: verbose_vm,
-        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions);
+        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
+        serviceFactory: serviceFactory);
   }
 }

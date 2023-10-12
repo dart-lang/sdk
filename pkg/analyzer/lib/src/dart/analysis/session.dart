@@ -47,6 +47,14 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _uriConverter ??= DriverBasedUriConverter(_driver);
   }
 
+  /// Check to see that results from this session will be consistent, and throw
+  /// an [InconsistentAnalysisException] if they might not be.
+  void checkConsistency() {
+    if (_driver.hasPendingFileChanges || _driver.currentSession != this) {
+      throw InconsistentAnalysisException();
+    }
+  }
+
   /// Clear hierarchies, to reduce memory consumption.
   void clearHierarchies() {
     classHierarchy = ClassHierarchy();
@@ -58,31 +66,31 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<SomeErrorsResult> getErrors(String path) async {
-    _checkConsistency();
+    checkConsistency();
     return await _driver.getErrors(path);
   }
 
   @override
   SomeFileResult getFile(String path) {
-    _checkConsistency();
+    checkConsistency();
     return _driver.getFileSync(path);
   }
 
   @override
   Future<SomeLibraryElementResult> getLibraryByUri(String uri) async {
-    _checkConsistency();
+    checkConsistency();
     return await _driver.getLibraryByUri(uri);
   }
 
   @override
   SomeParsedLibraryResult getParsedLibrary(String path) {
-    _checkConsistency();
+    checkConsistency();
     return _driver.getParsedLibrary(path);
   }
 
   @override
   SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
-    _checkConsistency();
+    checkConsistency();
 
     if (element.session != this) {
       return NotElementOfThisSessionResult();
@@ -93,13 +101,13 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   SomeParsedUnitResult getParsedUnit(String path) {
-    _checkConsistency();
+    checkConsistency();
     return _driver.parseFileSync(path);
   }
 
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
-    _checkConsistency();
+    checkConsistency();
     return await _driver.getResolvedLibrary(path);
   }
 
@@ -107,7 +115,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
     LibraryElement element,
   ) async {
-    _checkConsistency();
+    checkConsistency();
 
     if (element.session != this) {
       return NotElementOfThisSessionResult();
@@ -118,21 +126,13 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   @override
   Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
-    _checkConsistency();
+    checkConsistency();
     return await _driver.getResult(path);
   }
 
   @override
   Future<SomeUnitElementResult> getUnitElement(String path) {
-    _checkConsistency();
+    checkConsistency();
     return _driver.getUnitElement(path);
-  }
-
-  /// Check to see that results from this session will be consistent, and throw
-  /// an [InconsistentAnalysisException] if they might not be.
-  void _checkConsistency() {
-    if (_driver.hasPendingFileChanges || _driver.currentSession != this) {
-      throw InconsistentAnalysisException();
-    }
   }
 }

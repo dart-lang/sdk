@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -17,49 +19,47 @@ void main() {
 @reflectiveTest
 class SuperTest extends AbstractLspAnalysisServerTest {
   Future<void> test_className() async {
-    final content = '''
+    final code = TestCode.parse('''
 class A {}
 
-class [[B]] extends A {}
+class [!B!] extends A {}
 
 class C^ extends B {}
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     final res = await getSuper(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    expect(res,
-        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
   }
 
   Future<void> test_insideClass() async {
-    final content = '''
+    final code = TestCode.parse('''
 class A {}
 
-class [[B]] extends A {}
+class [!B!] extends A {}
 
 class C extends B {
   ^
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     final res = await getSuper(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    expect(res,
-        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
   }
 
   Future<void> test_insideMethod() async {
-    final content = '''
+    final code = TestCode.parse('''
 class A {
-  void [[foo]]() {}
+  void [!foo!]() {}
 }
 
 class B extends A {}
@@ -70,22 +70,21 @@ class C extends B {
     // fo^oC
   }
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     final res = await getSuper(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    expect(res,
-        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
   }
 
   Future<void> test_methodName() async {
-    final content = '''
+    final code = TestCode.parse('''
 class A {
-  void [[foo]]() {}
+  void [!foo!]() {}
 }
 
 class B extends A {}
@@ -96,22 +95,21 @@ class C extends B {
     // fooC
   }
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     final res = await getSuper(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    expect(res,
-        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
   }
 
   Future<void> test_methodName_startOfParameterList() async {
-    final content = '''
+    final code = TestCode.parse('''
 class A {
-  void [[foo]]() {}
+  void [!foo!]() {}
 }
 
 class B extends A {}
@@ -122,22 +120,21 @@ class C extends B {
     // fooC
   }
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     final res = await getSuper(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    expect(res,
-        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
   }
 
   Future<void> test_methodName_startOfTypeParameterList() async {
-    final content = '''
+    final code = TestCode.parse('''
 class A {
-  void [[foo]]<T>() {}
+  void [!foo!]<T>() {}
 }
 
 class B extends A {}
@@ -148,22 +145,21 @@ class C extends B {
     // fooC
   }
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     final res = await getSuper(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    expect(res,
-        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
   }
 
   Future<void> test_methodReturnType() async {
-    final content = '''
+    final code = TestCode.parse('''
 class A {
-  void [[foo]]() {}
+  void [!foo!]() {}
 }
 
 class B extends A {}
@@ -174,15 +170,14 @@ class C extends B {
     // fooC
   }
 }
-''';
+''');
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     final res = await getSuper(
       mainFileUri,
-      positionFromMarker(content),
+      code.position.position,
     );
 
-    expect(res,
-        equals(Location(uri: mainFileUri, range: rangeFromMarkers(content))));
+    expect(res, equals(Location(uri: mainFileUri, range: code.range.range)));
   }
 }

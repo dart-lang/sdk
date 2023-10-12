@@ -182,7 +182,7 @@ class _ParameterInfo {
     // constant value in every implementation. The constant value inferred does
     // not have to be the same across implementations, as it is specialized in
     // each implementation individually.
-    if (!(type is ConcreteType && type.constant != null ||
+    if (!(type is ConcreteType && type.attributes?.constant != null ||
         type is NullableType && type.baseType is EmptyType)) {
       isConstant = false;
     }
@@ -372,7 +372,7 @@ class _Transform extends RecursiveVisitor {
     if (param.isConstant) {
       Type type = shaker.typeFlowAnalysis.argumentType(member, variable)!;
       if (type is ConcreteType) {
-        value = type.constant!;
+        value = type.attributes!.constant!;
       } else {
         assert(type is NullableType && type.baseType is EmptyType);
         value = NullConstant();
@@ -499,7 +499,8 @@ class _Transform extends RecursiveVisitor {
   void visitVariableGet(VariableGet node) {
     Constant? constantValue = eliminatedParams[node.variable];
     if (constantValue != null) {
-      node.replaceWith(ConstantExpression(constantValue));
+      node.replaceWith(ConstantExpression(
+          constantValue, constantValue.getType(typeContext)));
     }
   }
 

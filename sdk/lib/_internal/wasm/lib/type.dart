@@ -199,7 +199,9 @@ class _FutureOrType extends _Type {
     s.write("<");
     s.write(typeArgument);
     s.write(">");
-    if (isDeclaredNullable) s.write("?");
+    // Omit the question mark if the type argument is nullable in order to match
+    // the specified normalization rules for `FutureOr` types.
+    if (isDeclaredNullable && !typeArgument.isDeclaredNullable) s.write("?");
     return s.toString();
   }
 }
@@ -706,8 +708,12 @@ class _TypeUniverse {
           WasmObjectArray<_Type>.literal([typeArgument]));
     }
 
+    // Note: We diverge from the spec here and normalize the type to nullable if
+    // its type argument is nullable, since this simplifies subtype checking.
+    // We compensate for this difference when converting the type to a string,
+    // making the discrepancy invisible to the user.
     bool declaredNullability =
-        typeArgument.isDeclaredNullable ? false : isDeclaredNullable;
+        isDeclaredNullable || typeArgument.isDeclaredNullable;
     return _FutureOrType(declaredNullability, typeArgument);
   }
 
@@ -881,20 +887,7 @@ class _TypeUniverse {
     if (identical(s, t)) return true;
 
     // Compare nullabilities:
-    if (s.isDeclaredNullable && !t.isDeclaredNullable) {
-      // [s] is declared nullable and is therefore definitely nullable. [t] is
-      // declared non-nullable and is therefore non-nullable or has undetermined
-      // nullability, unless it is `FutureOr<T>` where `T` is nullable.
-      nullable:
-      {
-        _Type t2 = t;
-        while (t2.isFutureOr) {
-          t2 = t2.as<_FutureOrType>().typeArgument;
-          if (t2.isDeclaredNullable) break nullable;
-        }
-        return false;
-      }
-    }
+    if (s.isDeclaredNullable && !t.isDeclaredNullable) return false;
 
     // Left bottom:
     if (s.isBottom) return true;

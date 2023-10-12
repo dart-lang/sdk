@@ -315,9 +315,29 @@ final class _DirectInvocation extends _Invocation {
       if (selector.callKind == CallKind.PropertyGet) {
         // Tear-off.
         // TODO(alexmarkov): capture receiver type
-        assert((member is Procedure) && !member.isGetter && !member.isSetter);
+        assert((member is Procedure) &&
+            !member.isGetter &&
+            !member.isSetter &&
+            !member.isFactory &&
+            !member.isAbstract);
         typeFlowAnalysis.addRawCall(new DirectSelector(member));
         typeFlowAnalysis._tearOffTaken.add(member);
+        final Class? concreteClass = typeFlowAnalysis.target
+            .concreteClosureClass(typeFlowAnalysis.coreTypes);
+        if (concreteClass != null) {
+          if (!member.isInstanceMember) {
+            return typeFlowAnalysis
+                .addAllocatedClass(concreteClass)
+                .cls
+                .constantConcreteType(
+                    StaticTearOffConstant(member as Procedure));
+          } else {
+            return typeFlowAnalysis
+                .addAllocatedClass(concreteClass)
+                .cls
+                .closureConcreteType(member, null);
+          }
+        }
         return nullableAnyType;
       } else {
         // Call via getter.

@@ -303,6 +303,11 @@ class LegacyAnalysisServer extends AnalysisServer {
           ],
         ),
       ),
+      workspace: lsp.WorkspaceClientCapabilities(
+        workspaceEdit: lsp.WorkspaceEditClientCapabilities(
+          documentChanges: true,
+        ),
+      ),
     ),
   );
 

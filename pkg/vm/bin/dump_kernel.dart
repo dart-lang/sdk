@@ -8,6 +8,7 @@ import 'package:kernel/kernel.dart' show Component, writeComponentToText;
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 
+import 'package:vm/metadata/closure_id.dart' show ClosureIdMetadataRepository;
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show InferredTypeMetadataRepository, InferredArgTypeMetadataRepository;
@@ -50,6 +51,7 @@ main(List<String> arguments) async {
   component.addMetadataRepository(new UnreachableNodeMetadataRepository());
   component.addMetadataRepository(new CallSiteAttributesMetadataRepository());
   component.addMetadataRepository(new LoadingUnitsMetadataRepository());
+  component.addMetadataRepository(new ClosureIdMetadataRepository());
 
   final List<int> bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readComponent(component);

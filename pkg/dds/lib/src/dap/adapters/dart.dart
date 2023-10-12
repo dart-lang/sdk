@@ -2156,21 +2156,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // frames.
     final paths = await Future.wait(frames.map((frame) async {
       final uri = frame?.uri;
-      if (uri == null || thread == null) return null;
+      if (uri == null) return null;
       if (uri.isScheme('file')) {
         final path = uri.toFilePath();
         return _PathInfo(path, isUserCode: isInUserProject(path));
       }
-      if (isResolvableUri(uri)) {
-        try {
-          final path = await thread.resolveUriToPath(uri);
-          return path != null
-              ? _PathInfo(path, isUserCode: isInUserProject(path))
-              : null;
-        } catch (e, s) {
-          // Swallow errors for the same reason noted above.
-          logger?.call('Failed to resolve URIs: $e\n$s');
-        }
+      if (thread == null || !isResolvableUri(uri)) return null;
+      try {
+        final path = await thread.resolveUriToPath(uri);
+        return path != null
+            ? _PathInfo(path, isUserCode: isInUserProject(path))
+            : null;
+      } catch (e, s) {
+        // Swallow errors for the same reason noted above.
+        logger?.call('Failed to resolve URIs: $e\n$s');
       }
       return null;
     }));

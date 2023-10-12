@@ -1131,10 +1131,13 @@ lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
 }
 
 List<lsp.DocumentHighlight> toHighlights(
-    server.LineInfo lineInfo, server.Occurrences occurrences) {
-  return occurrences.offsets
-      .map((offset) => lsp.DocumentHighlight(
-          range: toRange(lineInfo, offset, occurrences.length)))
+    server.LineInfo lineInfo, List<server.Occurrences> occurrences) {
+  return occurrences
+      .map((occurrence) => occurrence.offsets.map((offset) =>
+          lsp.DocumentHighlight(
+              range: toRange(lineInfo, offset, occurrence.length))))
+      .expand((occurrences) => occurrences)
+      .toSet()
       .toList();
 }
 

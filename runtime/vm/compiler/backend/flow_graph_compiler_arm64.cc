@@ -921,15 +921,17 @@ static compiler::OperandSize BytesToOperandSize(intptr_t bytes) {
 void FlowGraphCompiler::EmitNativeMoveArchitecture(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source) {
-  const auto& src_type = source.payload_type();
-  const auto& dst_type = destination.payload_type();
-  ASSERT(src_type.IsFloat() == dst_type.IsFloat());
-  ASSERT(src_type.IsInt() == dst_type.IsInt());
-  ASSERT(src_type.IsSigned() == dst_type.IsSigned());
-  ASSERT(src_type.IsPrimitive());
-  ASSERT(dst_type.IsPrimitive());
-  const intptr_t src_size = src_type.SizeInBytes();
-  const intptr_t dst_size = dst_type.SizeInBytes();
+  const auto& src_payload_type = source.payload_type();
+  const auto& dst_payload_type = destination.payload_type();
+  const auto& src_container_type = source.container_type();
+  const auto& dst_container_type = destination.container_type();
+  ASSERT(src_container_type.IsFloat() == dst_container_type.IsFloat());
+  ASSERT(src_container_type.IsInt() == dst_container_type.IsInt());
+  ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
+  ASSERT(src_payload_type.IsPrimitive());
+  ASSERT(dst_payload_type.IsPrimitive());
+  const intptr_t src_size = src_payload_type.SizeInBytes();
+  const intptr_t dst_size = dst_payload_type.SizeInBytes();
   const bool sign_or_zero_extend = dst_size > src_size;
 
   if (source.IsRegisters()) {
@@ -953,7 +955,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
             UNIMPLEMENTED();
         }
       } else {
-        switch (src_type.AsPrimitive().representation()) {
+        switch (src_payload_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
             __ sxtb(dst_reg, src_reg);
             return;
@@ -988,7 +990,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   } else if (source.IsFpuRegisters()) {
     const auto& src = source.AsFpuRegisters();
     // We have not implemented conversions here, use IL convert instructions.
-    ASSERT(src_type.Equals(dst_type));
+    ASSERT(src_payload_type.Equals(dst_payload_type));
 
     if (destination.IsRegisters()) {
       // Fpu Registers should only contain doubles and registers only ints.
@@ -1000,7 +1002,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
 
     } else {
       ASSERT(destination.IsStack());
-      ASSERT(src_type.IsFloat());
+      ASSERT(src_payload_type.IsFloat());
       const auto& dst = destination.AsStack();
       switch (dst_size) {
         case 8:
@@ -1029,8 +1031,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
                         op_size);
 
     } else if (destination.IsFpuRegisters()) {
-      ASSERT(src_type.Equals(dst_type));
-      ASSERT(src_type.IsFloat());
+      ASSERT(src_payload_type.Equals(dst_payload_type));
+      ASSERT(src_payload_type.IsFloat());
       const auto& dst = destination.AsFpuRegisters();
       switch (src_size) {
         case 8:

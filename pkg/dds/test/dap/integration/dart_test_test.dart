@@ -106,7 +106,9 @@ main() {
 
       // Collect output and test events while running the script.
       final outputEvents = await client.collectTestOutput(
-        launch: () => client.launch(testFile.path),
+        // Set noDebug:true because we shouldn't require a VM Service connection
+        // to map file paths.
+        launch: () => client.launch(testFile.path, noDebug: true),
       );
 
       // Collect paths from any OutputEvents that had them.

@@ -8,9 +8,25 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FieldDeclarationTest1);
-    defineReflectiveTests(FieldDeclarationTest2);
+    defineReflectiveTests(FieldDeclarationInClassTest1);
+    defineReflectiveTests(FieldDeclarationInClassTest2);
+    defineReflectiveTests(FieldDeclarationInExtensionTest1);
+    defineReflectiveTests(FieldDeclarationInExtensionTest2);
   });
+}
+
+@reflectiveTest
+class FieldDeclarationInClassTest1 extends AbstractCompletionDriverTest
+    with FieldDeclarationInClassTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class FieldDeclarationInClassTest2 extends AbstractCompletionDriverTest
+    with FieldDeclarationInClassTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin FieldDeclarationInClassTestCases on AbstractCompletionDriverTest {
@@ -197,6 +213,20 @@ suggestions
   }
 }
 
+@reflectiveTest
+class FieldDeclarationInExtensionTest1 extends AbstractCompletionDriverTest
+    with FieldDeclarationInExtensionTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class FieldDeclarationInExtensionTest2 extends AbstractCompletionDriverTest
+    with FieldDeclarationInExtensionTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
 mixin FieldDeclarationInExtensionTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterStatic_partial_c() async {
     await computeSuggestions('''
@@ -267,22 +297,4 @@ suggestions
 ''');
     }
   }
-}
-
-@reflectiveTest
-class FieldDeclarationTest1 extends AbstractCompletionDriverTest
-    with
-        FieldDeclarationInClassTestCases,
-        FieldDeclarationInExtensionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class FieldDeclarationTest2 extends AbstractCompletionDriverTest
-    with
-        FieldDeclarationInClassTestCases,
-        FieldDeclarationInExtensionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }

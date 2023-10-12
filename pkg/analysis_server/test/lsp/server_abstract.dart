@@ -1208,14 +1208,6 @@ mixin LspAnalysisServerTestMixin
     );
   }
 
-  Future<WorkspaceEdit> onWillRename(List<FileRename> renames) {
-    final request = makeRequest(
-      Method.workspace_willRenameFiles,
-      RenameFilesParams(files: renames),
-    );
-    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
-  }
-
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,

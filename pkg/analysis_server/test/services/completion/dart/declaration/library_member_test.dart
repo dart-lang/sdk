@@ -8,8 +8,10 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LibraryMemberTest1);
-    defineReflectiveTests(LibraryMemberTest2);
+    defineReflectiveTests(LibraryMemberWithPrefixTest1);
+    defineReflectiveTests(LibraryMemberWithPrefixTest2);
+    defineReflectiveTests(LibraryMemberWithoutPrefixTest1);
+    defineReflectiveTests(LibraryMemberWithoutPrefixTest2);
   });
 }
 
@@ -414,19 +416,29 @@ suggestions
 }
 
 @reflectiveTest
-class LibraryMemberTest1 extends AbstractCompletionDriverTest
-    with
-        LibraryMemberImportedWithPrefixTestCases,
-        LibraryMemberImportedWithoutPrefixTestCases {
+class LibraryMemberWithoutPrefixTest1 extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithoutPrefixTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
-class LibraryMemberTest2 extends AbstractCompletionDriverTest
-    with
-        LibraryMemberImportedWithPrefixTestCases,
-        LibraryMemberImportedWithoutPrefixTestCases {
+class LibraryMemberWithoutPrefixTest2 extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithoutPrefixTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+@reflectiveTest
+class LibraryMemberWithPrefixTest1 extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithPrefixTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class LibraryMemberWithPrefixTest2 extends AbstractCompletionDriverTest
+    with LibraryMemberImportedWithPrefixTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }

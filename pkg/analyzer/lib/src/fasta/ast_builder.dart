@@ -2773,7 +2773,12 @@ class AstBuilder extends StackListener {
   @override
   void endPrimaryConstructor(
       Token beginToken, Token? constKeyword, bool hasConstructorName) {
-    final formalParameterList = pop() as FormalParameterListImpl;
+    var formalParameterList = pop() as FormalParameterListImpl?;
+    if (formalParameterList == null) {
+      final extensionTypeName = beginToken.previous!;
+      formalParameterList = _syntheticFormalParameterList(extensionTypeName);
+    }
+
     final leftParenthesis = formalParameterList.leftParenthesis;
 
     RepresentationConstructorNameImpl? constructorName;
@@ -5813,14 +5818,23 @@ class AstBuilder extends StackListener {
   }
 
   ArgumentListImpl _syntheticArgumentList(Token precedingToken) {
-    var syntheticOffset = precedingToken.end;
-    var left = SyntheticToken(TokenType.OPEN_PAREN, syntheticOffset)
-      ..previous = precedingToken;
-    var right = SyntheticToken(TokenType.CLOSE_PAREN, syntheticOffset)
-      ..previous = left;
+    final left = parser.rewriter.insertParens(precedingToken, false);
+    final right = left.endGroup!;
     return ArgumentListImpl(
       leftParenthesis: left,
       arguments: [],
+      rightParenthesis: right,
+    );
+  }
+
+  FormalParameterListImpl _syntheticFormalParameterList(Token precedingToken) {
+    final left = parser.rewriter.insertParens(precedingToken, false);
+    final right = left.endGroup!;
+    return FormalParameterListImpl(
+      leftParenthesis: left,
+      parameters: [],
+      leftDelimiter: null,
+      rightDelimiter: null,
       rightParenthesis: right,
     );
   }
