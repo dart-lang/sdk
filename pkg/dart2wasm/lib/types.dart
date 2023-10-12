@@ -478,8 +478,12 @@ class Types {
 
     // The type is normalized, and remains a `FutureOr` so now we normalize its
     // nullability.
+    // Note: We diverge from the spec here and normalize the type to nullable if
+    // its type argument is nullable, since this simplifies subtype checking.
+    // We compensate for this difference when converting the type to a string,
+    // making the discrepancy invisible to the user.
     final declaredNullability = s.nullability == Nullability.nullable
-        ? Nullability.nonNullable
+        ? Nullability.nullable
         : type.declaredNullability;
     return FutureOrType(s, declaredNullability);
   }
