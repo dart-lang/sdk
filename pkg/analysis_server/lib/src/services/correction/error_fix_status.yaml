@@ -1979,6 +1979,8 @@ LintCode.avoid_types_on_closure_parameters:
   status: hasFix
 LintCode.avoid_unnecessary_containers:
   status: hasFix
+LintCode.avoid_unstable_final_fields:
+  status: noFix
 LintCode.avoid_unused_constructor_parameters:
   status: hasFix
 LintCode.avoid_void_async:
