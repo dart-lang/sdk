@@ -548,10 +548,17 @@ abstract class AnalysisServer {
   ///
   /// This method supports non-Dart files but uses the current content of the
   /// file which may not be the latest analyzed version of the file if it was
-  /// recently modified, so using the lineInfo from an analyzed result may be
+  /// recently modified, so using the LineInfo from an analyzed result may be
   /// preferable.
   LineInfo? getLineInfo(String path) {
     try {
+      // First try to get from the File if it's an analyzed Dart file.
+      final result = getAnalysisDriver(path)?.getFileSync(path);
+      if (result is FileResult) {
+        return result.lineInfo;
+      }
+
+      // Fall back to reading from the resource provider.
       final content = resourceProvider.getFile(path).readAsStringSync();
       return LineInfo.fromContent(content);
     } on FileSystemException {
