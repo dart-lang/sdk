@@ -286,7 +286,7 @@ void main(List<String> args) {
       final client = dap.client;
       final testFile = dap.createTestFile('''
 void main(List<String> args) {
-  final myVariable = ["first", "second", "third"];
+  final myVariable = ["first", "second", "third", null];
   print('Hello!'); $breakpointMarker
 }
     ''');
@@ -296,12 +296,13 @@ void main(List<String> args) {
       await client.expectLocalVariable(
         stop.threadId!,
         expectedName: 'myVariable',
-        expectedDisplayString: 'List (3 items)',
-        expectedIndexedItems: 3,
+        expectedDisplayString: 'List (4 items)',
+        expectedIndexedItems: 4,
         expectedVariables: '''
             [0]: "first", eval: myVariable[0]
             [1]: "second", eval: myVariable[1]
             [2]: "third", eval: myVariable[2]
+            [3]: null
         ''',
       );
     });

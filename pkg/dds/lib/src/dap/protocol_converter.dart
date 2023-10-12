@@ -145,8 +145,9 @@ class ProtocolConverter {
       ];
     } else if (elements != null) {
       // For lists, map each item (in the requested subset) to a variable.
+      // Elements can contain nulls!
       final start = startItem ?? 0;
-      return Future.wait(elements.cast<vm.Response>().mapIndexed(
+      return Future.wait(elements.cast<vm.Response?>().mapIndexed(
         (index, response) {
           final name = '[${start + index}]';
           final itemEvaluateName =
@@ -485,7 +486,7 @@ class ProtocolConverter {
   /// the object for a display string.
   Future<dap.Variable> convertVmResponseToVariable(
     ThreadInfo thread,
-    vm.Response response, {
+    vm.Response? response, {
     required String? name,
     required String? evaluateName,
     required bool allowCallingToString,
@@ -522,6 +523,12 @@ class ProtocolConverter {
       return dap.Variable(
         name: name ?? '<error>',
         value: '<$errorMessage>',
+        variablesReference: 0,
+      );
+    } else if (response == null) {
+      return dap.Variable(
+        name: name ?? '<null>',
+        value: 'null',
         variablesReference: 0,
       );
     } else {
