@@ -83,6 +83,46 @@ class B extends A {
 ''');
   }
 
+  test_extensionType_constConstructor_named() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+extension type const E(int i) {
+  const E.e(this.i);
+}
+''');
+  }
+
+  test_extensionType_constConstructor_primary() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+extension type const E(int i) { }
+''');
+  }
+
+  test_extensionType_nonConstConstructor_named() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+extension type const E(int i) {
+  E.e(this.i);
+}
+''', [
+      lint(78, 1),
+    ]);
+  }
+
+  test_extensionType_nonConstConstructor_primary() async {
+    await assertDiagnostics(r'''
+import 'package:meta/meta.dart';
+@immutable
+extension type E(int i) { }
+''', [
+      lint(59, 1),
+    ]);
+  }
+
   test_immutable_constConstructor() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';

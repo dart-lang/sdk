@@ -58,6 +58,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addExtensionTypeDeclaration(this, visitor);
   }
 }
 
@@ -88,6 +89,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (node.constKeyword != null) return;
+    var element = node.declaredElement;
+    if (element == null) return;
+    if (element.hasImmutable) {
+      rule.reportLintForToken(node.name);
+    }
+  }
+
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement == null) {
@@ -107,6 +118,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (redirectInvocation != null) {
       return redirectInvocation.staticElement?.isConst ?? false;
     }
+
+    if (clazz is ExtensionTypeElement) {
+      return clazz.primaryConstructor.isConst;
+    }
+
     // Constructor with implicit `super()` call.
     var unnamedSuperConstructor =
         clazz.supertype?.constructors.firstWhereOrNull((e) => e.name.isEmpty);
