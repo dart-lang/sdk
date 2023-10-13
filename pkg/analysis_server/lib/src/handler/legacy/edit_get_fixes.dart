@@ -209,24 +209,25 @@ error.errorCode: ${error.errorCode}
     if (session == null) {
       return errorFixesList;
     }
-    YamlDocument document;
+
+    YamlNode node;
     try {
-      document = loadYamlDocument(content);
+      node = loadYamlNode(content);
     } catch (exception) {
       return errorFixesList;
     }
-    var yamlContent = document.contents;
-    if (yamlContent is! YamlMap) {
-      yamlContent = YamlMap();
+    if (node is! YamlMap) {
+      return errorFixesList;
     }
     final errors = validatePubspec(
-      contents: yamlContent.nodes,
+      contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,
+      analysisOptions: session.analysisContext.analysisOptions,
     );
     for (var error in errors) {
       var generator =
-          PubspecFixGenerator(resourceProvider, error, content, document);
+          PubspecFixGenerator(resourceProvider, error, content, node);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);

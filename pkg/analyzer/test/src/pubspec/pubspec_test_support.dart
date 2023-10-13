@@ -3,30 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
 
 class PubspecDiagnosticTest with ResourceProviderMixin {
-  late Source _source;
-
   /// Assert that when the validator is used on the given [content] the
   /// [expectedErrorCodes] are produced.
   void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
+    var pubspecFile = newFile('/sample/pubspec.yaml', content);
+    var source = pubspecFile.createSource();
     YamlNode node = loadYamlNode(content);
-    if (node is! YamlMap) {
-      // The file is empty.
-      node = YamlMap();
-    }
     GatheringErrorListener listener = GatheringErrorListener();
     listener.addAll(validatePubspec(
-      contents: node.nodes,
-      source: _source,
+      contents: node,
+      source: source,
       provider: resourceProvider,
+      // TODO: Can/should we pass analysisOptions here?
     ));
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
@@ -35,10 +30,5 @@ class PubspecDiagnosticTest with ResourceProviderMixin {
   /// are produced.
   void assertNoErrors(String content) {
     assertErrors(content, []);
-  }
-
-  @mustCallSuper
-  void setUp() {
-    _source = getFile('/sample/pubspec.yaml').createSource();
   }
 }

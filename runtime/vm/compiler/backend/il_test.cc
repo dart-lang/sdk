@@ -202,7 +202,8 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
                                           int64_t min_value,
                                           int64_t max_value,
                                           Representation initial,
-                                          Representation intermediate) {
+                                          Representation intermediate,
+                                          Representation final) {
   using compiler::BlockBuilder;
 
   CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
@@ -237,23 +238,37 @@ bool TestIntConverterCanonicalizationRule(Thread* thread,
 
 ISOLATE_UNIT_TEST_CASE(IL_IntConverterCanonicalization) {
   EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt16, kMaxInt16,
-                                              kUnboxedInt64, kUnboxedInt32));
+                                              kUnboxedInt64, kUnboxedInt32,
+                                              kUnboxedInt64));
   EXPECT(TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
-                                              kUnboxedInt64, kUnboxedInt32));
+                                              kUnboxedInt64, kUnboxedInt32,
+                                              kUnboxedInt64));
   EXPECT(!TestIntConverterCanonicalizationRule(
       thread, kMinInt32, static_cast<int64_t>(kMaxInt32) + 1, kUnboxedInt64,
-      kUnboxedInt32));
-  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt16,
-                                              kUnboxedInt64, kUnboxedUint32));
-  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxInt32,
-                                              kUnboxedInt64, kUnboxedUint32));
-  EXPECT(TestIntConverterCanonicalizationRule(thread, 0, kMaxUint32,
-                                              kUnboxedInt64, kUnboxedUint32));
+      kUnboxedInt32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt16, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt32, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxUint32, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
   EXPECT(!TestIntConverterCanonicalizationRule(
       thread, 0, static_cast<int64_t>(kMaxUint32) + 1, kUnboxedInt64,
-      kUnboxedUint32));
-  EXPECT(!TestIntConverterCanonicalizationRule(thread, -1, kMaxInt16,
-                                               kUnboxedInt64, kUnboxedUint32));
+      kUnboxedUint32, kUnboxedInt64));
+  EXPECT(!TestIntConverterCanonicalizationRule(
+      thread, -1, kMaxInt16, kUnboxedInt64, kUnboxedUint32, kUnboxedInt64));
+
+  // Regression test for https://dartbug.com/53613.
+  EXPECT(!TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
+                                               kUnboxedInt32, kUnboxedUint32,
+                                               kUnboxedInt64));
+  EXPECT(!TestIntConverterCanonicalizationRule(thread, kMinInt32, kMaxInt32,
+                                               kUnboxedInt32, kUnboxedUint32,
+                                               kUnboxedInt32));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt32, kUnboxedInt32, kUnboxedUint32, kUnboxedInt64));
+  EXPECT(TestIntConverterCanonicalizationRule(
+      thread, 0, kMaxInt32, kUnboxedInt32, kUnboxedUint32, kUnboxedInt32));
 }
 
 ISOLATE_UNIT_TEST_CASE(IL_PhiCanonicalization) {

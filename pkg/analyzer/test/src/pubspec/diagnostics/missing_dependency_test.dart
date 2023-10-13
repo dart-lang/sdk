@@ -104,9 +104,8 @@ dev_dependencies:
       // The file is empty.
       node = YamlMap();
     }
-    var errors =
-        MissingDependencyValidator(node.nodes, _source, resourceProvider)
-            .validate(usedDeps, usedDevDeps);
+    var errors = MissingDependencyValidator(node, _source, resourceProvider)
+        .validate(usedDeps, usedDevDeps);
     return errors;
   }
 }

@@ -508,8 +508,6 @@ class LibraryAnalyzer {
       return errors;
     }
 
-    LineInfo lineInfo = _fileToLineInfo[file]!;
-
     var unignorableCodes = _analysisOptions.unignorableNames;
 
     bool isIgnored(AnalysisError error) {
@@ -521,8 +519,7 @@ class LibraryAnalyzer {
           unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
-      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      return ignoreInfo.ignoredAt(code, errorLine);
+      return ignoreInfo.ignored(error);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();

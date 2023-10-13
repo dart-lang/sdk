@@ -83,7 +83,7 @@ class IgnoreDiagnosticInFile extends AbstractIgnoreDiagnostic {
     await _computeEdit(
       builder,
       insertDesc,
-      IgnoreInfo.IGNORE_FOR_FILE_MATCHER,
+      IgnoreInfo.ignoreForFileMatcher,
       'ignore_for_file',
     );
   }
@@ -103,7 +103,7 @@ class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
     await _computeEdit(
       builder,
       insertDesc,
-      IgnoreInfo.IGNORE_MATCHER,
+      IgnoreInfo.ignoreMatcher,
       'ignore',
     );
   }

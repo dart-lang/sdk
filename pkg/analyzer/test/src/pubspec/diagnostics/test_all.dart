@@ -12,6 +12,7 @@ import 'asset_not_string_test.dart' as asset_not_string;
 import 'dependencies_field_not_map_test.dart' as dependencies_field_not_map;
 import 'deprecated_field_test.dart' as deprecated_field;
 import 'flutter_field_not_map_test.dart' as flutter_field_not_map;
+import 'ignore_diagnostic_test.dart' as ignore_diagnostic;
 import 'invalid_dependency_test.dart' as invalid_dependency;
 import 'invalid_platforms_field_test.dart' as platforms_field_test;
 import 'missing_dependency_test.dart' as missing_dependency_test;
@@ -33,6 +34,7 @@ main() {
     dependencies_field_not_map.main();
     deprecated_field.main();
     flutter_field_not_map.main();
+    ignore_diagnostic.main();
     invalid_dependency.main();
     missing_dependency_test.main();
     missing_name.main();

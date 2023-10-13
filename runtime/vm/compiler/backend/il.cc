@@ -3323,31 +3323,33 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
-  if ((box_defn != nullptr) && (box_defn->representation() == from())) {
-    // If the first conversion can erase bits (or deoptimize) we can't
-    // canonicalize it away.
-    auto src_defn = box_defn->value()->definition();
-    if ((box_defn->from() == kUnboxedInt64) &&
-        !Range::Fits(src_defn->range(), box_defn->to())) {
+  // Fold IntCoverter(b->c, IntConverter(a->b, v)) into IntConverter(a->c, v).
+  IntConverterInstr* first_converter = value()->definition()->AsIntConverter();
+  if ((first_converter != nullptr) &&
+      (first_converter->representation() == from())) {
+    const auto intermediate_rep = first_converter->representation();
+    // Only eliminate intermediate conversion if it does not change the value.
+    auto src_defn = first_converter->value()->definition();
+    if (!Range::Fits(src_defn->range(), intermediate_rep)) {
       return this;
     }
 
     // Otherise it is safe to discard any other conversions from and then back
     // to the same integer type.
-    if (box_defn->from() == to()) {
+    if (first_converter->from() == to()) {
       return src_defn;
     }
 
     // Do not merge conversions where the first starts from Untagged or the
     // second ends at Untagged, since we expect to see either UnboxedIntPtr
     // or UnboxedFfiIntPtr as the other type in an Untagged conversion.
-    if ((box_defn->from() == kUntagged) || (to() == kUntagged)) {
+    if ((first_converter->from() == kUntagged) || (to() == kUntagged)) {
       return this;
     }
 
     IntConverterInstr* converter = new IntConverterInstr(
-        box_defn->from(), representation(), box_defn->value()->CopyWithType(),
+        first_converter->from(), representation(),
+        first_converter->value()->CopyWithType(),
         (to() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
       converter->mark_truncating();

@@ -7,7 +7,6 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -20,8 +19,6 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -277,41 +274,17 @@ class Driver implements CommandLineStarter {
           try {
             var file = resourceProvider.getFile(path);
             var content = file.readAsStringSync();
-            var node = loadYamlNode(content);
+            var node = loadYamlNode(content, sourceUrl: file.toUri());
+
             if (node is YamlMap) {
               errors.addAll(validatePubspec(
-                contents: node.nodes,
+                contents: node,
                 source: file.createSource(),
                 provider: resourceProvider,
+                analysisOptions: analysisDriver
+                    .currentSession.analysisContext.analysisOptions,
               ));
             }
-
-            if (analysisDriver.analysisOptions.lint) {
-              var visitors = <LintRule, PubspecVisitor>{};
-              for (var linter in analysisDriver.analysisOptions.lintRules) {
-                if (linter is LintRule) {
-                  var visitor = linter.getPubspecVisitor();
-                  if (visitor != null) {
-                    visitors[linter] = visitor;
-                  }
-                }
-              }
-              if (visitors.isNotEmpty) {
-                var sourceUri = pathContext.toUri(path);
-                var pubspecAst = Pubspec.parse(content,
-                    sourceUrl: sourceUri, resourceProvider: resourceProvider);
-                var listener = RecordingErrorListener();
-                var reporter = ErrorReporter(listener,
-                    resourceProvider.getFile(path).createSource(sourceUri),
-                    isNonNullableByDefault: false);
-                for (var entry in visitors.entries) {
-                  entry.key.reporter = reporter;
-                  pubspecAst.accept(entry.value);
-                }
-                errors.addAll(listener.errors);
-              }
-            }
-
             if (errors.isNotEmpty) {
               for (var error in errors) {
                 var severity = determineProcessedSeverity(

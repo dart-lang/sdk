@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
 /// The name and location of a diagnostic name in an ignore comment.
@@ -58,13 +59,26 @@ class IgnoreInfo {
   /// A regular expression for matching 'ignore' comments.
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp IGNORE_MATCHER = RegExp(r'//+[ ]*ignore:');
+  static final RegExp ignoreMatcher = RegExp(r'//+[ ]*ignore:');
 
   /// A regular expression for matching 'ignore_for_file' comments.
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp IGNORE_FOR_FILE_MATCHER =
-      RegExp(r'//[ ]*ignore_for_file:');
+  static final RegExp ignoreForFileMatcher = RegExp(r'//[ ]*ignore_for_file:');
+
+  /// A regular expression for matching 'ignore' comments in a .yaml file.
+  ///
+  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  static final RegExp yamlIgnoreMatcher =
+      RegExp(r'^(?<before>.*)#+[ ]*ignore:(?<ignored>.*)', multiLine: true);
+
+  /// A regular expression for matching 'ignore_for_file' comments.
+  ///
+  /// Resulting codes may be in a list ('error_code_1,error_code2').
+  static final RegExp yamlIgnoreForFileMatcher =
+      RegExp(r'#[ ]*ignore_for_file:(?<ignored>.*)');
+
+  static final _trimmedCommaSeparatedMatcher = RegExp(r'[^\s,]([^,]*[^\s,])?');
 
   /// A table mapping line numbers to the elements (diagnostics and diagnostic
   /// types) that are ignored on that line.
@@ -74,10 +88,14 @@ class IgnoreInfo {
   /// that are ignored for the whole file.
   final List<IgnoredElement> _ignoredForFile = [];
 
+  final LineInfo lineInfo;
+
+  IgnoreInfo.empty() : lineInfo = LineInfo([]);
+
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
-  IgnoreInfo.forDart(CompilationUnit unit, String content) {
-    var lineInfo = unit.lineInfo;
+  IgnoreInfo.forDart(CompilationUnit unit, String content)
+      : lineInfo = unit.lineInfo {
     for (var comment in unit.ignoreComments) {
       var lexeme = comment.lexeme;
       if (lexeme.contains('ignore:')) {
@@ -99,6 +117,30 @@ class IgnoreInfo {
     }
   }
 
+  /// Initialize a newly created instance of this class to represent the ignore
+  /// comments in the given YAML file.
+  IgnoreInfo.forYaml(String content, this.lineInfo) {
+    Iterable<DiagnosticName> diagnosticNamesInMatch(RegExpMatch match) {
+      final ignored = match.namedGroup('ignored')!;
+      final offset = match.start;
+      return _trimmedCommaSeparatedMatcher
+          .allMatches(ignored)
+          .map((m) => DiagnosticName(m[0]!, offset + m.start));
+    }
+
+    for (final match in yamlIgnoreForFileMatcher.allMatches(content)) {
+      _ignoredForFile.addAll(diagnosticNamesInMatch(match));
+    }
+    for (final match in yamlIgnoreMatcher.allMatches(content)) {
+      final lineNumber = lineInfo.getLocation(match.start).lineNumber;
+      final beforeComment = match.namedGroup('before')!;
+      final nextLine = beforeComment.trim().isEmpty;
+      _ignoredOnLine
+          .putIfAbsent(nextLine ? lineNumber + 1 : lineNumber, () => [])
+          .addAll(diagnosticNamesInMatch(match));
+    }
+  }
+
   /// Return `true` if there are any ignore comments in the file.
   bool get hasIgnores =>
       _ignoredOnLine.isNotEmpty || _ignoredForFile.isNotEmpty;
@@ -115,6 +157,11 @@ class IgnoreInfo {
       ignoredOnLine[entry.key] = entry.value.toList();
     }
     return ignoredOnLine;
+  }
+
+  bool ignored(AnalysisError error) {
+    final line = lineInfo.getLocation(error.offset).lineNumber;
+    return ignoredAt(error.errorCode, line);
   }
 
   /// Return `true` if the [errorCode] is ignored at the given [line].
@@ -140,9 +187,9 @@ extension on CompilationUnit {
       var comment = currentToken.precedingComments;
       while (comment != null) {
         var lexeme = comment.lexeme;
-        if (lexeme.startsWith(IgnoreInfo.IGNORE_MATCHER)) {
+        if (lexeme.startsWith(IgnoreInfo.ignoreMatcher)) {
           yield comment;
-        } else if (lexeme.startsWith(IgnoreInfo.IGNORE_FOR_FILE_MATCHER)) {
+        } else if (lexeme.startsWith(IgnoreInfo.ignoreForFileMatcher)) {
           yield comment;
         }
         comment = comment.next as CommentToken?;
