@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/pubspec/validators/dependency_validator.dart';
 import 'package:analyzer/src/pubspec/validators/field_validator.dart';
 import 'package:analyzer/src/pubspec/validators/flutter_validator.dart';
@@ -32,27 +36,49 @@ const _pubspecValidators = <PubspecValidator>[
 List<AnalysisError> validatePubspec({
   // TODO(brianwilkerson) This method needs to take a `YamlDocument` rather
   //  than the contents of the document so that it can validate an empty file.
-  required Map<dynamic, YamlNode> contents,
+  required YamlNode contents,
   required Source source,
   required ResourceProvider provider,
+  AnalysisOptions? analysisOptions,
 }) {
   final recorder = RecordingErrorListener();
+  ErrorReporter reporter = ErrorReporter(
+    recorder,
+    source,
+    isNonNullableByDefault: false,
+  );
   final ctx = PubspecValidationContext._(
     contents: contents,
     source: source,
-    reporter: ErrorReporter(
-      recorder,
-      source,
-      isNonNullableByDefault: false,
-    ),
+    reporter: reporter,
     provider: provider,
   );
 
   for (final validator in _pubspecValidators) {
     validator(ctx);
   }
+  if (analysisOptions != null && analysisOptions.lint) {
+    var visitors = <LintRule, PubspecVisitor>{};
+    for (var linter in analysisOptions.lintRules) {
+      if (linter is LintRule) {
+        var visitor = linter.getPubspecVisitor();
+        if (visitor != null) {
+          visitors[linter] = visitor;
+        }
+      }
+    }
+    if (visitors.isNotEmpty) {
+      var pubspecAst = Pubspec.parseYaml(contents, resourceProvider: provider);
+      for (var entry in visitors.entries) {
+        entry.key.reporter = reporter;
+        pubspecAst.accept(entry.value);
+      }
+    }
+  }
+  final lineInfo = LineInfo.fromContent(source.contents.data);
+  final ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
 
-  return recorder.errors;
+  return recorder.errors.where((error) => !ignoreInfo.ignored(error)).toList();
 }
 
 /// A function that can validate a `pubspec.yaml`.
@@ -98,7 +124,7 @@ final class PubspecField {
 /// Context given to function that implement [PubspecValidator].
 final class PubspecValidationContext {
   /// Yaml document being validated
-  final Map<dynamic, YamlNode> contents;
+  final YamlNode contents;
 
   /// The source representing the file being validated.
   final Source source;

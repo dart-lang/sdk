@@ -177,17 +177,11 @@ dependencies:
   void _runValidator(
       String content, Set<String> usedDeps, Set<String> usedDevDeps) {
     this.content = content;
-    document = loadYamlDocument(this.content);
+    node = loadYamlNode(this.content);
     var source = newFile('/home/test/pubspec.yaml', content).createSource();
-    YamlNode node = loadYamlNode(content);
-    if (node is! YamlMap) {
-      // The file is empty.
-      node = YamlMap();
-    }
 
-    var errors =
-        MissingDependencyValidator(node.nodes, source, resourceProvider)
-            .validate(usedDeps, usedDevDeps);
+    var errors = MissingDependencyValidator(node, source, resourceProvider)
+        .validate(usedDeps, usedDevDeps);
     expect(errors.length, 1);
     error = errors[0];
   }

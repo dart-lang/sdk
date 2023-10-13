@@ -42,7 +42,9 @@ void flutterValidator(PubspecValidationContext ctx) {
     return false;
   }
 
-  var flutterField = ctx.contents[PubspecField.FLUTTER_FIELD];
+  final contents = ctx.contents;
+  if (contents is! YamlMap) return;
+  var flutterField = contents.nodes[PubspecField.FLUTTER_FIELD];
   if (flutterField is YamlMap) {
     var assetsField = flutterField.nodes[PubspecField.ASSETS_FIELD];
     if (assetsField is YamlList) {

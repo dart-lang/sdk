@@ -327,7 +327,7 @@ class ImportOrganizer {
   /// Returns whether this token is a '// ignore:' comment (but not an
   /// '// ignore_for_file:' comment).
   static bool _isIgnoreComment(Token token) =>
-      IgnoreInfo.IGNORE_MATCHER.matchAsPrefix(token.lexeme) != null;
+      IgnoreInfo.ignoreMatcher.matchAsPrefix(token.lexeme) != null;
 
   static bool _isLibraryTargetAnnotation(Annotation annotation) =>
       annotation.elementAnnotation?.targetKinds.contains(TargetKind.library) ??

@@ -265,10 +265,20 @@ abstract class PSNodeList with IterableMixin<PSNode> {
 }
 
 abstract class Pubspec {
-  factory Pubspec.parse(String source,
-          {Uri? sourceUrl, ResourceProvider? resourceProvider}) =>
-      _Pubspec(source,
-          sourceUrl: sourceUrl, resourceProvider: resourceProvider);
+  factory Pubspec.parse(String pubspec,
+      {Uri? sourceUrl, ResourceProvider? resourceProvider}) {
+    try {
+      var yaml = loadYamlNode(pubspec, sourceUrl: sourceUrl);
+      return Pubspec.parseYaml(yaml, resourceProvider: resourceProvider);
+    } on Exception {
+      return _Pubspec(YamlMap(), resourceProvider: resourceProvider);
+    }
+  }
+
+  factory Pubspec.parseYaml(YamlNode yaml,
+      {ResourceProvider? resourceProvider}) {
+    return _Pubspec(yaml, resourceProvider: resourceProvider);
+  }
 
   PSEntry? get author;
 
@@ -551,9 +561,9 @@ class _Pubspec implements Pubspec {
   @override
   PSDependencyList? dependencyOverrides;
 
-  _Pubspec(String src, {Uri? sourceUrl, ResourceProvider? resourceProvider}) {
+  _Pubspec(YamlNode yaml, {ResourceProvider? resourceProvider}) {
     try {
-      _parse(src, sourceUrl: sourceUrl, resourceProvider: resourceProvider);
+      _parse(yaml, resourceProvider: resourceProvider);
     } on Exception {
       // ignore
     }
@@ -622,14 +632,12 @@ class _Pubspec implements Pubspec {
     return sb.toString();
   }
 
-  void _parse(String src,
-      {Uri? sourceUrl, ResourceProvider? resourceProvider}) {
-    var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
+  void _parse(YamlNode yaml, {ResourceProvider? resourceProvider}) {
     if (yaml is! YamlMap) {
       return;
     }
-    YamlMap yamlMap = yaml;
-    yamlMap.nodes.forEach((k, v) {
+
+    yaml.nodes.forEach((k, v) {
       if (k is! YamlScalar) {
         return;
       }

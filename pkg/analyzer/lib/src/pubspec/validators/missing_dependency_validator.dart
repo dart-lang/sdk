@@ -24,7 +24,7 @@ class MissingDependencyData {
 ///  provided for validation.
 class MissingDependencyValidator {
   /// Yaml document being validated
-  final Map<dynamic, YamlNode> contents;
+  final YamlNode contents;
 
   /// The source representing the file being validated.
   final Source source;
@@ -49,11 +49,16 @@ class MissingDependencyValidator {
   /// Returns the list of names of the packages to be added/removed for these
   /// sections.
   List<AnalysisError> validate(Set<String> usedDeps, Set<String> usedDevDeps) {
+    final contents = this.contents;
+    if (contents is! YamlMap) {
+      return [];
+    }
+
     /// Return a map whose keys are the names of declared dependencies and whose
     /// values are the specifications of those dependencies. The map is extracted
     /// from the given [contents] using the given [key].
     Map<dynamic, YamlNode> getDeclaredDependencies(String key) {
-      var field = contents[key];
+      var field = contents.nodes[key];
       if (field == null || (field is YamlScalar && field.value == null)) {
         return <String, YamlNode>{};
       } else if (field is YamlMap) {
@@ -104,7 +109,7 @@ class MissingDependencyValidator {
     }
     if (addDeps.isNotEmpty || addDevDeps.isNotEmpty) {
       _reportErrorForNode(
-          contents.values.first,
+          contents.nodes.values.first,
           PubspecWarningCode.MISSING_DEPENDENCY,
           [message],
           [],
