@@ -149,10 +149,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         kind = ExtensionMemberKind.Operator;
         break;
     }
-    extension.members.add(new ExtensionMemberDescriptor(
+    extension.memberDescriptors.add(new ExtensionMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
-        member: memberReference,
-        tearOff: tearOffReference,
+        memberReference: memberReference,
+        tearOffReference: tearOffReference,
         isStatic: memberBuilder.isStatic,
         kind: kind));
   }

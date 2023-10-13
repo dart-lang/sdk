@@ -129,8 +129,9 @@ class IndexedLibrary extends IndexedContainer {
     // repurposing these canonical names.
     for (Extension extension in unnamedExtensions) {
       extension.reference.canonicalName?.unbind();
-      for (ExtensionMemberDescriptor descriptor in extension.members) {
-        Reference reference = descriptor.member;
+      for (ExtensionMemberDescriptor descriptor
+          in extension.memberDescriptors) {
+        Reference reference = descriptor.memberReference;
         Member member = reference.asMember;
         if (member is Field) {
           member.fieldReference.canonicalName?.unbind();
@@ -139,7 +140,7 @@ class IndexedLibrary extends IndexedContainer {
         } else {
           member.reference.canonicalName?.unbind();
         }
-        descriptor.tearOff?.canonicalName?.unbind();
+        descriptor.tearOffReference?.canonicalName?.unbind();
       }
     }
   }

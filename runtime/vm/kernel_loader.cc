@@ -1002,6 +1002,14 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.SkipStringReference();         // skip representation name.
     helper_.SkipListOfDartTypes();         // skip implements types.
 
+    // Skip extension type procedures.
+    const intptr_t extension_type_procedure_count =
+        helper_.ReadListLength();  // read list length.
+    for (intptr_t i = 0; i < extension_type_procedure_count; ++i) {
+      ProcedureHelper procedure_helper(&helper_);
+      procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
+    }
+
     const intptr_t extension_type_member_count = helper_.ReadListLength();
     for (intptr_t j = 0; j < extension_type_member_count; ++j) {
       helper_.SkipName();                    // skip name.

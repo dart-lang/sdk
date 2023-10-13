@@ -254,7 +254,7 @@ extension ExtensionMemberDescriptorExtension on ExtensionMemberDescriptor {
   bool get isSetter => kind == ExtensionMemberKind.Setter;
   bool get isMethod => kind == ExtensionMemberKind.Method;
 
-  bool get isExternal => (member.asProcedure).isExternal;
+  bool get isExternal => (memberReference.asProcedure).isExternal;
 }
 
 extension ProcedureExtension on Procedure {

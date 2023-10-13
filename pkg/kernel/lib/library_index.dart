@@ -247,7 +247,7 @@ class _MemberTable {
         class_!.fields.forEach(_addMember);
         class_!.constructors.forEach(_addMember);
       } else if (extension_ != null) {
-        extension_!.members.forEach(_addExtensionMember);
+        extension_!.memberDescriptors.forEach(_addExtensionMember);
       } else {
         library.procedures.forEach(_addMember);
         library.fields.forEach(_addMember);
@@ -307,8 +307,8 @@ class _MemberTable {
       _members![name] = replacement;
     }
 
-    addReference(extensionMember.member, forTearOff: false);
-    addReference(extensionMember.tearOff, forTearOff: true);
+    addReference(extensionMember.memberReference, forTearOff: false);
+    addReference(extensionMember.tearOffReference, forTearOff: true);
   }
 
   String get containerName {

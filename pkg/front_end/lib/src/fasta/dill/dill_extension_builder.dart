@@ -32,20 +32,20 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
                 parent: parent.scope,
                 debugName: "extension ${extension.name}",
                 isModifiable: false)) {
-    for (ExtensionMemberDescriptor descriptor in extension.members) {
+    for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:
           if (descriptor.isStatic) {
-            Procedure procedure = descriptor.member.asProcedure;
+            Procedure procedure = descriptor.memberReference.asProcedure;
             scope.addLocalMember(
                 name.text,
                 new DillExtensionStaticMethodBuilder(
                     procedure, descriptor, this),
                 setter: false);
           } else {
-            Procedure procedure = descriptor.member.asProcedure;
-            Procedure? tearOff = descriptor.tearOff?.asProcedure;
+            Procedure procedure = descriptor.memberReference.asProcedure;
+            Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
             assert(tearOff != null, "No tear found for ${descriptor}");
             scope.addLocalMember(
                 name.text,
@@ -55,25 +55,25 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
           }
           break;
         case ExtensionMemberKind.Getter:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionGetterBuilder(procedure, descriptor, this),
               setter: false);
           break;
         case ExtensionMemberKind.Field:
-          Field field = descriptor.member.asField;
+          Field field = descriptor.memberReference.asField;
           scope.addLocalMember(
               name.text, new DillExtensionFieldBuilder(field, descriptor, this),
               setter: false);
           break;
         case ExtensionMemberKind.Setter:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionSetterBuilder(procedure, descriptor, this),
               setter: true);
           break;
         case ExtensionMemberKind.Operator:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionOperatorBuilder(procedure, descriptor, this),
               setter: false);

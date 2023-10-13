@@ -400,6 +400,7 @@ dereferencing
 deregister
 descent
 descriptive
+descriptors
 deserializable
 deserializer
 deserializers

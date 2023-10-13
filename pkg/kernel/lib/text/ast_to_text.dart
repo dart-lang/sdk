@@ -1360,7 +1360,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
     endLine(endLineString);
     ++indentation;
-    node.members.forEach((ExtensionMemberDescriptor descriptor) {
+    node.memberDescriptors.forEach((ExtensionMemberDescriptor descriptor) {
       void writeReference(Reference reference, {required bool isTearOff}) {
         writeIndentation();
         writeModifier(descriptor.isStatic, 'static');
@@ -1398,9 +1398,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine(';');
       }
 
-      writeReference(descriptor.member, isTearOff: false);
-      if (descriptor.tearOff != null) {
-        writeReference(descriptor.tearOff!, isTearOff: true);
+      writeReference(descriptor.memberReference, isTearOff: false);
+      if (descriptor.tearOffReference != null) {
+        writeReference(descriptor.tearOffReference!, isTearOff: true);
       }
     });
     --indentation;
@@ -1430,7 +1430,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
     endLine(endLineString);
     ++indentation;
-    node.members.forEach((ExtensionTypeMemberDescriptor descriptor) {
+    node.procedures.forEach(writeNode);
+    node.memberDescriptors.forEach((ExtensionTypeMemberDescriptor descriptor) {
       void writeReference(Reference reference, {required bool isTearOff}) {
         writeIndentation();
         writeModifier(descriptor.isStatic, 'static');
@@ -1477,9 +1478,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine(';');
       }
 
-      writeReference(descriptor.member, isTearOff: false);
-      if (descriptor.tearOff != null) {
-        writeReference(descriptor.tearOff!, isTearOff: true);
+      writeReference(descriptor.memberReference, isTearOff: false);
+      if (descriptor.tearOffReference != null) {
+        writeReference(descriptor.tearOffReference!, isTearOff: true);
       }
     });
     --indentation;
