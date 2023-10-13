@@ -1715,10 +1715,11 @@ class EquivalenceStrategy {
     if (!checkExtensionMemberDescriptor_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionMemberDescriptor_member(visitor, node, other)) {
+    if (!checkExtensionMemberDescriptor_memberReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionMemberDescriptor_tearOff(visitor, node, other)) {
+    if (!checkExtensionMemberDescriptor_tearOffReference(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     return result;
@@ -1746,7 +1747,7 @@ class EquivalenceStrategy {
     if (!checkExtension_onType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtension_members(visitor, node, other)) {
+    if (!checkExtension_memberDescriptors(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtension_annotations(visitor, node, other)) {
@@ -1780,10 +1781,12 @@ class EquivalenceStrategy {
     if (!checkExtensionTypeMemberDescriptor_flags(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionTypeMemberDescriptor_member(visitor, node, other)) {
+    if (!checkExtensionTypeMemberDescriptor_memberReference(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionTypeMemberDescriptor_tearOff(visitor, node, other)) {
+    if (!checkExtensionTypeMemberDescriptor_tearOffReference(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     return result;
@@ -1816,7 +1819,11 @@ class EquivalenceStrategy {
         visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkExtensionTypeDeclaration_members(visitor, node, other)) {
+    if (!checkExtensionTypeDeclaration_procedures(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionTypeDeclaration_memberDescriptors(
+        visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtensionTypeDeclaration_annotations(visitor, node, other)) {
@@ -6022,24 +6029,31 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkExtensionMemberDescriptor_member(EquivalenceVisitor visitor,
-      ExtensionMemberDescriptor node, ExtensionMemberDescriptor other) {
-    return visitor.checkReferences(node.member, other.member, 'member');
+  bool checkExtensionMemberDescriptor_memberReference(
+      EquivalenceVisitor visitor,
+      ExtensionMemberDescriptor node,
+      ExtensionMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.memberReference, other.memberReference, 'memberReference');
   }
 
-  bool checkExtensionMemberDescriptor_tearOff(EquivalenceVisitor visitor,
-      ExtensionMemberDescriptor node, ExtensionMemberDescriptor other) {
-    return visitor.checkReferences(node.tearOff, other.tearOff, 'tearOff');
+  bool checkExtensionMemberDescriptor_tearOffReference(
+      EquivalenceVisitor visitor,
+      ExtensionMemberDescriptor node,
+      ExtensionMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.tearOffReference, other.tearOffReference, 'tearOffReference');
   }
 
-  bool checkExtension_members(
+  bool checkExtension_memberDescriptors(
       EquivalenceVisitor visitor, Extension node, Extension other) {
-    return visitor.checkLists(node.members, other.members, (a, b, _) {
+    return visitor.checkLists(node.memberDescriptors, other.memberDescriptors,
+        (a, b, _) {
       if (identical(a, b)) return true;
       if (a is! ExtensionMemberDescriptor) return false;
       if (b is! ExtensionMemberDescriptor) return false;
       return checkExtensionMemberDescriptor(visitor, a, b);
-    }, 'members');
+    }, 'memberDescriptors');
   }
 
   bool checkExtension_annotations(
@@ -6095,6 +6109,12 @@ class EquivalenceStrategy {
         other.representationName, 'representationName');
   }
 
+  bool checkExtensionTypeDeclaration_procedures(EquivalenceVisitor visitor,
+      ExtensionTypeDeclaration node, ExtensionTypeDeclaration other) {
+    return visitor.checkLists(
+        node.procedures, other.procedures, visitor.checkNodes, 'procedures');
+  }
+
   bool checkExtensionTypeMemberDescriptor_name(EquivalenceVisitor visitor,
       ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
     return visitor.checkNodes(node.name, other.name, 'name');
@@ -6110,24 +6130,33 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.flags, other.flags, 'flags');
   }
 
-  bool checkExtensionTypeMemberDescriptor_member(EquivalenceVisitor visitor,
-      ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
-    return visitor.checkReferences(node.member, other.member, 'member');
+  bool checkExtensionTypeMemberDescriptor_memberReference(
+      EquivalenceVisitor visitor,
+      ExtensionTypeMemberDescriptor node,
+      ExtensionTypeMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.memberReference, other.memberReference, 'memberReference');
   }
 
-  bool checkExtensionTypeMemberDescriptor_tearOff(EquivalenceVisitor visitor,
-      ExtensionTypeMemberDescriptor node, ExtensionTypeMemberDescriptor other) {
-    return visitor.checkReferences(node.tearOff, other.tearOff, 'tearOff');
+  bool checkExtensionTypeMemberDescriptor_tearOffReference(
+      EquivalenceVisitor visitor,
+      ExtensionTypeMemberDescriptor node,
+      ExtensionTypeMemberDescriptor other) {
+    return visitor.checkReferences(
+        node.tearOffReference, other.tearOffReference, 'tearOffReference');
   }
 
-  bool checkExtensionTypeDeclaration_members(EquivalenceVisitor visitor,
-      ExtensionTypeDeclaration node, ExtensionTypeDeclaration other) {
-    return visitor.checkLists(node.members, other.members, (a, b, _) {
+  bool checkExtensionTypeDeclaration_memberDescriptors(
+      EquivalenceVisitor visitor,
+      ExtensionTypeDeclaration node,
+      ExtensionTypeDeclaration other) {
+    return visitor.checkLists(node.memberDescriptors, other.memberDescriptors,
+        (a, b, _) {
       if (identical(a, b)) return true;
       if (a is! ExtensionTypeMemberDescriptor) return false;
       if (b is! ExtensionTypeMemberDescriptor) return false;
       return checkExtensionTypeMemberDescriptor(visitor, a, b);
-    }, 'members');
+    }, 'memberDescriptors');
   }
 
   bool checkExtensionTypeDeclaration_annotations(EquivalenceVisitor visitor,

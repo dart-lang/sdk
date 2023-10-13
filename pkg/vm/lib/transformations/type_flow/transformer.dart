@@ -877,9 +877,9 @@ class TreeShaker {
       if (m.isExtensionMember) {
         // The AST should have exactly one [Extension] for [m].
         final extension = m.enclosingLibrary.extensions.firstWhere((extension) {
-          return extension.members.any((descriptor) =>
-              descriptor.member.asMember == m ||
-              descriptor.tearOff?.asMember == m);
+          return extension.memberDescriptors.any((descriptor) =>
+              descriptor.memberReference.asMember == m ||
+              descriptor.tearOffReference?.asMember == m);
         });
 
         // Ensure we retain the [Extension] itself (though members might be
@@ -894,9 +894,9 @@ class TreeShaker {
         final extensionTypeDeclaration = m
             .enclosingLibrary.extensionTypeDeclarations
             .firstWhere((extensionTypeDeclaration) {
-          return extensionTypeDeclaration.members.any((descriptor) =>
-              descriptor.member.asMember == m ||
-              descriptor.tearOff?.asMember == m);
+          return extensionTypeDeclaration.memberDescriptors.any((descriptor) =>
+              descriptor.memberReference.asMember == m ||
+              descriptor.tearOffReference?.asMember == m);
         });
 
         // Ensure we retain the [ExtensionTypeDeclaration] itself (though
@@ -1985,17 +1985,17 @@ class _TreeShakerPass2 extends RemovingTransformer {
   TreeNode visitExtension(Extension node, TreeNode? removalSentinel) {
     if (shaker.isExtensionUsed(node)) {
       int writeIndex = 0;
-      for (int i = 0; i < node.members.length; ++i) {
-        ExtensionMemberDescriptor descriptor = node.members[i];
+      for (int i = 0; i < node.memberDescriptors.length; ++i) {
+        ExtensionMemberDescriptor descriptor = node.memberDescriptors[i];
 
         // To avoid depending on the order in which members and extensions are
         // visited during the transformation, we handle both cases: either the
         // member was already removed or it will be removed later.
-        final Reference memberReference = descriptor.member;
+        final Reference memberReference = descriptor.memberReference;
         final bool memberIsBound = memberReference.node != null;
         final bool isMemberUsed =
             memberIsBound && shaker.isMemberUsed(memberReference.asMember);
-        final Reference? tearOffReference = descriptor.tearOff;
+        final Reference? tearOffReference = descriptor.tearOffReference;
         final bool tearOffIsBound = tearOffReference?.node != null;
         final bool isTearOffUsed =
             tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
@@ -2008,16 +2008,16 @@ class _TreeShakerPass2 extends RemovingTransformer {
                 name: descriptor.name,
                 kind: descriptor.kind,
                 isStatic: descriptor.isStatic,
-                member: descriptor.member,
-                tearOff: null);
+                memberReference: descriptor.memberReference,
+                tearOffReference: null);
           }
-          node.members[writeIndex++] = descriptor;
+          node.memberDescriptors[writeIndex++] = descriptor;
         }
       }
-      node.members.length = writeIndex;
+      node.memberDescriptors.length = writeIndex;
 
       // We only retain the extension if at least one member is retained.
-      assert(node.members.isNotEmpty);
+      assert(node.memberDescriptors.isNotEmpty);
       return node;
     }
     return removalSentinel!;
@@ -2028,18 +2028,18 @@ class _TreeShakerPass2 extends RemovingTransformer {
       ExtensionTypeDeclaration node, TreeNode? removalSentinel) {
     if (shaker.isExtensionTypeDeclarationUsed(node)) {
       int writeIndex = 0;
-      for (int i = 0; i < node.members.length; ++i) {
-        ExtensionTypeMemberDescriptor descriptor = node.members[i];
+      for (int i = 0; i < node.memberDescriptors.length; ++i) {
+        ExtensionTypeMemberDescriptor descriptor = node.memberDescriptors[i];
 
         // To avoid depending on the order in which members and extension type
         // declarations are visited during the transformation, we handle both
         // cases: either the member was already removed or it will be removed
         // later.
-        final Reference memberReference = descriptor.member;
+        final Reference memberReference = descriptor.memberReference;
         final bool memberIsBound = memberReference.node != null;
         final bool isMemberUsed =
             memberIsBound && shaker.isMemberUsed(memberReference.asMember);
-        final Reference? tearOffReference = descriptor.tearOff;
+        final Reference? tearOffReference = descriptor.tearOffReference;
         final bool tearOffIsBound = tearOffReference?.node != null;
         final bool isTearOffUsed =
             tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
@@ -2052,17 +2052,17 @@ class _TreeShakerPass2 extends RemovingTransformer {
                 name: descriptor.name,
                 kind: descriptor.kind,
                 isStatic: descriptor.isStatic,
-                member: descriptor.member,
-                tearOff: null);
+                memberReference: descriptor.memberReference,
+                tearOffReference: null);
           }
-          node.members[writeIndex++] = descriptor;
+          node.memberDescriptors[writeIndex++] = descriptor;
         }
       }
-      node.members.length = writeIndex;
+      node.memberDescriptors.length = writeIndex;
 
       // We only retain the extension type declaration if at least one member is
       // retained.
-      assert(node.members.isNotEmpty);
+      assert(node.memberDescriptors.isNotEmpty);
       return node;
     }
     return removalSentinel!;

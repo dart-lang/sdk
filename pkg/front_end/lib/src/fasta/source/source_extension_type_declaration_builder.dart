@@ -503,12 +503,13 @@ class SourceExtensionTypeDeclarationBuilder
         kind = ExtensionTypeMemberKind.Operator;
         break;
     }
-    extensionTypeDeclaration.members.add(new ExtensionTypeMemberDescriptor(
-        name: new Name(name, libraryBuilder.library),
-        member: memberReference,
-        tearOff: tearOffReference,
-        isStatic: memberBuilder.isStatic,
-        kind: kind));
+    extensionTypeDeclaration.memberDescriptors.add(
+        new ExtensionTypeMemberDescriptor(
+            name: new Name(name, libraryBuilder.library),
+            memberReference: memberReference,
+            tearOffReference: tearOffReference,
+            isStatic: memberBuilder.isStatic,
+            kind: kind));
   }
 
   @override

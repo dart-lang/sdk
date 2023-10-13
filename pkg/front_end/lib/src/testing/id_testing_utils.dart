@@ -853,9 +853,9 @@ List<String> extensionMethodDescriptorToText(
   }
 
   return [
-    descriptorToText(descriptor.member, forTearOff: false),
-    if (descriptor.tearOff != null)
-      descriptorToText(descriptor.tearOff!, forTearOff: true),
+    descriptorToText(descriptor.memberReference, forTearOff: false),
+    if (descriptor.tearOffReference != null)
+      descriptorToText(descriptor.tearOffReference!, forTearOff: true),
   ];
 }
 

@@ -1361,6 +1361,19 @@ class BinaryBuilder {
     return list;
   }
 
+  List<Procedure> _readProcedureListWithoutOffsets(TreeNode parent) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      // When lists don't have to be growable anyway, we might as well use an
+      // almost constant one for the empty list.
+      return emptyListOfProcedure;
+    }
+    List<Procedure> list = new List<Procedure>.generate(length, (int index) {
+      return readProcedure(/* no end offset = */ -1)..parent = parent;
+    }, growable: useGrowableLists);
+    return list;
+  }
+
   void _readLibraryDependencies(Library library) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
@@ -1571,7 +1584,7 @@ class BinaryBuilder {
     node.fileUri = fileUri;
     node.onType = onType;
 
-    node.members = _readExtensionMemberDescriptorList();
+    node.memberDescriptors = _readExtensionMemberDescriptorList();
 
     return node;
   }
@@ -1597,8 +1610,8 @@ class BinaryBuilder {
     return new ExtensionMemberDescriptor(
         name: name,
         kind: ExtensionMemberKind.values[kind],
-        member: memberName.reference,
-        tearOff: tearOffName?.reference)
+        memberReference: memberName.reference,
+        tearOffReference: tearOffName?.reference)
       ..flags = flags;
   }
 
@@ -1639,6 +1652,8 @@ class BinaryBuilder {
     DartType representationType = readDartType();
     String representationName = readStringReference();
     List<DartType> implements = _readExtensionTypeDeclarationImplementsList();
+
+    node.proceduresInternal = _readProcedureListWithoutOffsets(node);
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1647,7 +1662,8 @@ class BinaryBuilder {
     node.representationName = representationName;
 
     node.implements = implements;
-    node.members = _readExtensionTypeMemberDescriptorList();
+
+    node.memberDescriptors = _readExtensionTypeMemberDescriptorList();
 
     return node;
   }
@@ -1684,8 +1700,8 @@ class BinaryBuilder {
     return new ExtensionTypeMemberDescriptor(
         name: name,
         kind: ExtensionTypeMemberKind.values[kind],
-        member: memberName.reference,
-        tearOff: tearOffName?.reference)
+        memberReference: memberName.reference,
+        tearOffReference: tearOffName?.reference)
       ..flags = flags;
   }
 

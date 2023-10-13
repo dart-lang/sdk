@@ -986,33 +986,33 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Member? targetTearoff;
     ProcedureKind? targetKind;
     for (ExtensionTypeMemberDescriptor descriptor
-        in extensionType.extensionTypeDeclaration.members) {
+        in extensionType.extensionTypeDeclaration.memberDescriptors) {
       if (descriptor.name == name) {
         switch (descriptor.kind) {
           case ExtensionTypeMemberKind.Method:
             if (!isSetter) {
-              targetMember = descriptor.member.asMember;
-              targetTearoff = descriptor.tearOff?.asMember;
+              targetMember = descriptor.memberReference.asMember;
+              targetTearoff = descriptor.tearOffReference?.asMember;
               targetKind = ProcedureKind.Method;
             }
             break;
           case ExtensionTypeMemberKind.Getter:
             if (!isSetter) {
-              targetMember = descriptor.member.asMember;
+              targetMember = descriptor.memberReference.asMember;
               targetTearoff = null;
               targetKind = ProcedureKind.Getter;
             }
             break;
           case ExtensionTypeMemberKind.Setter:
             if (isSetter) {
-              targetMember = descriptor.member.asMember;
+              targetMember = descriptor.memberReference.asMember;
               targetTearoff = null;
               targetKind = ProcedureKind.Setter;
             }
             break;
           case ExtensionTypeMemberKind.Operator:
             if (!isSetter) {
-              targetMember = descriptor.member.asMember;
+              targetMember = descriptor.memberReference.asMember;
               targetTearoff = null;
               targetKind = ProcedureKind.Operator;
             }

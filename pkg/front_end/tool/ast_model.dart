@@ -117,6 +117,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   },
   'ExtensionTypeDeclaration': {
     'typeParameters': FieldRule(isDeclaration: true),
+    '_procedures': FieldRule(name: 'procedures'),
   },
   'Field': {
     'reference': FieldRule(name: 'fieldReference'),

@@ -77,9 +77,10 @@ String? computeKernelElementNameForSourceMaps(
 String _findExtensionMemberName(ir.Member member) {
   assert(member.isExtensionMember);
   for (ir.Extension extension in member.enclosingLibrary.extensions) {
-    for (ir.ExtensionMemberDescriptor descriptor in extension.members) {
-      if (descriptor.member == member.reference ||
-          descriptor.tearOff == member.reference) {
+    for (ir.ExtensionMemberDescriptor descriptor
+        in extension.memberDescriptors) {
+      if (descriptor.memberReference == member.reference ||
+          descriptor.tearOffReference == member.reference) {
         String extensionName;
         // Anonymous extensions contain a # on their synthetic name.
         if (extension.name.contains('#')) {

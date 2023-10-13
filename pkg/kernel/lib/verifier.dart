@@ -403,8 +403,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (_extensionsMembers == null) {
       Map<Reference, ExtensionMemberDescriptor> map = _extensionsMembers = {};
       for (Extension extension in library.extensions) {
-        for (ExtensionMemberDescriptor descriptor in extension.members) {
-          Reference memberReference = descriptor.member;
+        for (ExtensionMemberDescriptor descriptor
+            in extension.memberDescriptors) {
+          Reference memberReference = descriptor.memberReference;
           map[memberReference] = descriptor;
           Member member = memberReference.asMember;
           if (!member.isExtensionMember) {
@@ -413,7 +414,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                 "Member $member (${descriptor}) from $extension is not marked "
                 "as an extension member.");
           }
-          Reference? tearOffReference = descriptor.tearOff;
+          Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
             map[tearOffReference] = descriptor;
             Member tearOff = tearOffReference.asMember;
@@ -438,8 +439,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       for (ExtensionTypeDeclaration extensionTypeDeclaration
           in library.extensionTypeDeclarations) {
         for (ExtensionTypeMemberDescriptor descriptor
-            in extensionTypeDeclaration.members) {
-          Reference memberReference = descriptor.member;
+            in extensionTypeDeclaration.memberDescriptors) {
+          Reference memberReference = descriptor.memberReference;
           map[memberReference] = descriptor;
           Member member = memberReference.asMember;
           if (!member.isExtensionTypeMember) {
@@ -448,7 +449,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                 "Member $member (${descriptor}) from $extensionTypeDeclaration "
                 "is not marked as an extension type member.");
           }
-          Reference? tearOffReference = descriptor.tearOff;
+          Reference? tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
             map[tearOffReference] = descriptor;
             Member tearOff = tearOffReference.asMember;

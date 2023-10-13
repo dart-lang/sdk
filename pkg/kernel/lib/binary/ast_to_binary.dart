@@ -2646,17 +2646,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     leaveScope(typeParameters: node.typeParameters);
 
-    final int len = node.members.length;
+    final int len = node.memberDescriptors.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final ExtensionMemberDescriptor descriptor = node.members[i];
+      final ExtensionMemberDescriptor descriptor = node.memberDescriptors[i];
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
-      assert(descriptor.member.canonicalName != null,
+      assert(descriptor.memberReference.canonicalName != null,
           "No canonical name for ${descriptor}.");
-      writeNonNullCanonicalNameReference(descriptor.member);
-      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
+      writeNonNullCanonicalNameReference(descriptor.memberReference);
+      writeNullAllowedCanonicalNameReference(descriptor.tearOffReference);
     }
   }
 
@@ -2679,23 +2679,25 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeDartType(node.declaredRepresentationType);
     writeStringReference(node.representationName);
     writeNodeList(node.implements);
+    writeProcedureNodeList(node.procedures);
     leaveScope(typeParameters: node.typeParameters);
 
-    final int len = node.members.length;
+    final int len = node.memberDescriptors.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final ExtensionTypeMemberDescriptor descriptor = node.members[i];
+      final ExtensionTypeMemberDescriptor descriptor =
+          node.memberDescriptors[i];
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
-      assert(descriptor.member.canonicalName != null,
+      assert(descriptor.memberReference.canonicalName != null,
           "No canonical name for ${descriptor}.");
-      writeNonNullCanonicalNameReference(descriptor.member);
+      writeNonNullCanonicalNameReference(descriptor.memberReference);
       assert(
-          descriptor.tearOff == null ||
-              descriptor.tearOff?.canonicalName != null,
+          descriptor.tearOffReference == null ||
+              descriptor.tearOffReference?.canonicalName != null,
           "No canonical name for ${descriptor} tear-off.");
-      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
+      writeNullAllowedCanonicalNameReference(descriptor.tearOffReference);
     }
   }
 
