@@ -191,9 +191,6 @@ class CompileType : public ZoneAllocated {
   // Create non-nullable String type.
   static CompileType String();
 
-  // Create non-nullable Object type.
-  static CompileType Object();
-
   // Perform a join operation over the type lattice.
   void Union(CompileType* other);
 

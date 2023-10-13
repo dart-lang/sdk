@@ -1646,9 +1646,8 @@ Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
   const intptr_t element_size = TypedDataBase::ElementSizeFor(cid);
   const intptr_t index_scale = element_size;
 
-  auto data = new (Z)
-      LoadFieldInstr(new (Z) Value(array), Slot::PointerBase_data(),
-                     InnerPointerAccess::kMayBeInnerPointer, call->source());
+  auto data = new (Z) LoadUntaggedInstr(
+      new (Z) Value(array), compiler::target::PointerBase::data_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
   Definition* load = new (Z) LoadIndexedInstr(
@@ -1724,9 +1723,8 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
       break;
   }
 
-  auto data = new (Z)
-      LoadFieldInstr(new (Z) Value(array), Slot::PointerBase_data(),
-                     InnerPointerAccess::kMayBeInnerPointer, call->source());
+  auto data = new (Z) LoadUntaggedInstr(
+      new (Z) Value(array), compiler::target::PointerBase::data_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
   auto store = new (Z) StoreIndexedInstr(

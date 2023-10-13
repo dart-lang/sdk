@@ -183,10 +183,6 @@ class Env {
   void bind(String name, Map<String, dynamic> instrOrBlock) {
     final id = instrOrBlock['v'] ?? instrOrBlock['b'];
 
-    if (id == null) {
-      throw 'Instruction is not a definition or a block: ${instrOrBlock['o']}';
-    }
-
     if (nameToId.containsKey(name)) {
       if (nameToId[name] != id) {
         throw 'Binding mismatch for $name: got ${nameToId[name]} and $id';

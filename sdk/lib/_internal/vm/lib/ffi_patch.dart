@@ -580,7 +580,6 @@ extension Int8Pointer on Pointer<Int8> {
   Pointer<Int8> elementAt(int index) => Pointer.fromAddress(address + index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Int8List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -617,7 +616,6 @@ extension Int16Pointer on Pointer<Int16> {
       Pointer.fromAddress(address + 2 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Int16List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -654,7 +652,6 @@ extension Int32Pointer on Pointer<Int32> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Int32List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -691,7 +688,6 @@ extension Int64Pointer on Pointer<Int64> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Int64List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -727,7 +723,6 @@ extension Uint8Pointer on Pointer<Uint8> {
   Pointer<Uint8> elementAt(int index) => Pointer.fromAddress(address + index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Uint8List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -764,7 +759,6 @@ extension Uint16Pointer on Pointer<Uint16> {
       Pointer.fromAddress(address + 2 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Uint16List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -801,7 +795,6 @@ extension Uint32Pointer on Pointer<Uint32> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Uint32List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -838,7 +831,6 @@ extension Uint64Pointer on Pointer<Uint64> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Uint64List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -875,7 +867,6 @@ extension FloatPointer on Pointer<Float> {
       Pointer.fromAddress(address + 4 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Float32List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
@@ -912,7 +903,6 @@ extension DoublePointer on Pointer<Double> {
       Pointer.fromAddress(address + 8 * index);
 
   @patch
-  @pragma("vm:prefer-inline")
   Float64List asTypedList(
     int length, {
     Pointer<NativeFinalizerFunction>? finalizer,
