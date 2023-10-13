@@ -8,7 +8,7 @@ import "dart:_internal" as _in;
 [226]  enum-element static const field self::E a = [226] [226] #C3;
 [229]  enum-element static const field self::E b = [229] [229] #C6;
 [232]  enum-element static const field self::E c = [232] [232] #C9;
-[222]  const constructor •([222] core::int #index, [222] core::String #name) → self::E
+[222]  const synthetic constructor •([222] core::int #index, [222] core::String #name) → self::E
     : [-1] super core::_Enum::• [-1]([-1] #index, [-1] #name)
 [-1]    ;
 [222]  method _enumToString() → core::String

@@ -25,7 +25,7 @@ class B<X extends core::Object? = dynamic> extends core::Object {
 class E1<Y extends (self::E1::Y) → self::E1::Y = (dynamic) → dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1<(dynamic) → dynamic>> values = const <self::E1<(Never) → dynamic>>[self::E1::e1];
   enum-element static const field self::E1<Never> e1 = const self::E1::•<Never>(0, "e1");
-  const constructor •(core::int #index, core::String #name) → self::E1<self::E1::Y>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1<self::E1::Y>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -34,7 +34,7 @@ class E1<Y extends (self::E1::Y) → self::E1::Y = (dynamic) → dynamic> extend
 class E2<Y extends self::B<self::E2::Y> = self::B<dynamic>> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2<self::B<dynamic>>> values = const <self::E2<self::B<dynamic>>>[self::E2::e2];
   enum-element static const field self::E2<Never> e2 = const self::E2::•<Never>(0, "e2");
-  const constructor •(core::int #index, core::String #name) → self::E2<self::E2::Y>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2<self::E2::Y>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -43,7 +43,7 @@ class E2<Y extends self::B<self::E2::Y> = self::B<dynamic>> extends core::_Enum 
 class E3<Y extends self::E3<self::E3::Y> = self::E3<dynamic>> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E3<self::E3<dynamic>>> values = const <self::E3<self::E3<dynamic>>>[self::E3::e3];
   enum-element static const field self::E3<Never> e3 = const self::E3::•<Never>(0, "e3");
-  const constructor •(core::int #index, core::String #name) → self::E3<self::E3::Y>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3<self::E3::Y>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

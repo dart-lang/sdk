@@ -359,7 +359,8 @@ class DeclaredSourceConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnumOrMixin})
+      required bool forAbstractClassOrEnumOrMixin,
+      bool isSynthetic = false})
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(
@@ -376,7 +377,8 @@ class DeclaredSourceConstructorBuilder
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
         fileUri: compilationUnit.fileUri,
-        reference: constructorReference)
+        reference: constructorReference,
+        isSynthetic: isSynthetic)
       ..startFileOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset

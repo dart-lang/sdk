@@ -15,7 +15,7 @@ class CrossAxisAlignment extends core::_Enum /*isEnum*/  {
   enum-element static const field self::CrossAxisAlignment center = #C13;
   enum-element static const field self::CrossAxisAlignment stretch = #C16;
   enum-element static const field self::CrossAxisAlignment baseline = #C4;
-  const constructor •(core::int #index, core::String #name) → self::CrossAxisAlignment
+  const synthetic constructor •(core::int #index, core::String #name) → self::CrossAxisAlignment
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

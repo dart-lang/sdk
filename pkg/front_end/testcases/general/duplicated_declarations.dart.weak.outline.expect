@@ -355,7 +355,7 @@ class Sub extends core::Object {
 class Enum#4#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#4#0> values = const <self::Enum#4#0>[self::Enum#4#0::a];
   enum-element static const field self::Enum#4#0 a = const self::Enum#4#0::•(0, "a");
-  const constructor •(core::int #index, core::String #name) → self::Enum#4#0
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#4#0
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -366,7 +366,7 @@ class Enum#3#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
   enum-element static const field self::Enum#3#0 a = const self::Enum#3#0::•(0, "a");
   enum-element static const field self::Enum#3#0 b = const self::Enum#3#0::•(1, "b");
   enum-element static const field self::Enum#3#0 c = const self::Enum#3#0::•(2, "c");
-  const constructor •(core::int #index, core::String #name) → self::Enum#3#0
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#3#0
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -377,7 +377,7 @@ class Enum#2#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
   enum-element static const field self::Enum#2#0 Enum = const self::Enum#2#0::•(0, "Enum");
   enum-element static const field self::Enum#2#0 a = const self::Enum#2#0::•(1, "a");
   enum-element static const field self::Enum#2#0 b = const self::Enum#2#0::•(2, "b");
-  const constructor •(core::int #index, core::String #name) → self::Enum#2#0
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#2#0
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -388,7 +388,7 @@ class Enum#1#0 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::Enum#1#0 a = const self::Enum#1#0::•(0, "a");
   enum-element static const field self::Enum#1#0 b = const self::Enum#1#0::•(1, "b");
   enum-element static const field self::Enum#1#0 c = const self::Enum#1#0::•(2, "c");
-  const constructor •(core::int #index, core::String #name) → self::Enum#1#0
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum#1#0
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -399,7 +399,7 @@ class Enum extends core::_Enum /*isEnum*/  {
   enum-element static const field self::Enum Enum = const self::Enum::•(0, "Enum");
   enum-element static const field self::Enum a = const self::Enum::•(1, "a");
   enum-element static const field self::Enum b = const self::Enum::•(2, "b");
-  const constructor •(core::int #index, core::String #name) → self::Enum
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -413,7 +413,7 @@ class AnotherEnum extends core::_Enum /*isEnum*/  {
   enum-element static const field self::AnotherEnum _name = const self::AnotherEnum::•(3, "_name");
   enum-element static const field self::AnotherEnum index = const self::AnotherEnum::•(4, "index");
   enum-element static const field self::AnotherEnum toString = const self::AnotherEnum::•(5, "toString");
-  const constructor •(core::int #index, core::String #name) → self::AnotherEnum
+  const synthetic constructor •(core::int #index, core::String #name) → self::AnotherEnum
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

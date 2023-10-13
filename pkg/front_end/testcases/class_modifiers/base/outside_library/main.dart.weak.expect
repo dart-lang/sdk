@@ -33,7 +33,7 @@ base class ImplementsBaseMixin extends core::Object implements mai::M {
 class EnumImplementsBaseMixin extends core::_Enum implements mai::M /*isEnum*/  {
   static const field core::List<self::EnumImplementsBaseMixin> values = #C4;
   enum-element static const field self::EnumImplementsBaseMixin x = #C3;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsBaseMixin
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsBaseMixin
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

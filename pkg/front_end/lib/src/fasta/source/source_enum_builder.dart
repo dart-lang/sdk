@@ -346,7 +346,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   containerName: new ClassName(name),
                   containerType: ContainerType.Class,
                   libraryName: libraryName),
-              forAbstractClassOrEnumOrMixin: true);
+              forAbstractClassOrEnumOrMixin: true,
+              isSynthetic: true);
       synthesizedDefaultConstructorBuilder
           .registerInitializedField(valuesBuilder);
       constructors[""] = synthesizedDefaultConstructorBuilder;

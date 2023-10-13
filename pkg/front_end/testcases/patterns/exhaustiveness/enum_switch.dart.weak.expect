@@ -53,7 +53,7 @@ class Enum extends core::_Enum /*isEnum*/  {
   enum-element static const field self::Enum a = #C3;
   enum-element static const field self::Enum b = #C6;
   enum-element static const field self::Enum c = #C9;
-  const constructor •(core::int #index, core::String #name) → self::Enum
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -64,7 +64,7 @@ class GenericEnum<T extends core::Object? = dynamic> extends core::_Enum /*isEnu
   enum-element static const field self::GenericEnum<core::int> a = #C11;
   enum-element static const field self::GenericEnum<core::String> b = #C12;
   enum-element static const field self::GenericEnum<core::bool> c = #C13;
-  const constructor •(core::int #index, core::String #name) → self::GenericEnum<self::GenericEnum::T%>
+  const synthetic constructor •(core::int #index, core::String #name) → self::GenericEnum<self::GenericEnum::T%>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

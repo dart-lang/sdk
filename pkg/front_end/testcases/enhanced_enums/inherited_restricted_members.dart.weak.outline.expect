@@ -91,7 +91,7 @@ abstract class _E1&_Enum&A1 = core::_Enum with self::A1 /*isAnonymousMixin,hasCo
 class E1 extends self::_E1&_Enum&A1 /*isEnum*/  {
   static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
   enum-element static const field self::E1 element = const self::E1::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E1
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
     ;
   method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
@@ -112,7 +112,7 @@ abstract class _E2&_Enum&A2 = core::_Enum with self::A2 /*isAnonymousMixin,hasCo
 class E2 extends self::_E2&_Enum&A2 /*isEnum*/  {
   static const field core::List<self::E2> values = const <self::E2>[self::E2::element];
   enum-element static const field self::E2 element = const self::E2::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E2
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2
     ;
   method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
@@ -133,7 +133,7 @@ abstract class _E3&_Enum&A3 = core::_Enum with self::A3 /*isAnonymousMixin,hasCo
 class E3 extends self::_E3&_Enum&A3 /*isEnum*/  {
   static const field core::List<self::E3> values = const <self::E3>[self::E3::element];
   enum-element static const field self::E3 element = const self::E3::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E3
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3
     ;
   method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
@@ -154,7 +154,7 @@ abstract class _E4&_Enum&A4 = core::_Enum with self::A4 /*isAnonymousMixin,hasCo
 class E4 extends self::_E4&_Enum&A4 /*isEnum*/  {
   static const field core::List<self::E4> values = const <self::E4>[self::E4::element];
   enum-element static const field self::E4 element = const self::E4::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E4
+  const synthetic constructor •(core::int #index, core::String #name) → self::E4
     ;
   method _enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
@@ -173,7 +173,7 @@ abstract class _E5&_Enum&M5 = core::_Enum with self::M5 /*isAnonymousMixin,hasCo
 class E5 extends self::_E5&_Enum&M5 /*isEnum*/  {
   static const field core::List<self::E5> values = const <self::E5>[self::E5::element];
   enum-element static const field self::E5 element = const self::E5::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E5
+  const synthetic constructor •(core::int #index, core::String #name) → self::E5
     ;
   method _enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
@@ -192,7 +192,7 @@ abstract class _E6&_Enum&M6 = core::_Enum with self::M6 /*isAnonymousMixin,hasCo
 class E6 extends self::_E6&_Enum&M6 /*isEnum*/  {
   static const field core::List<self::E6> values = const <self::E6>[self::E6::element];
   enum-element static const field self::E6 element = const self::E6::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E6
+  const synthetic constructor •(core::int #index, core::String #name) → self::E6
     ;
   method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
@@ -211,7 +211,7 @@ abstract class _E7&_Enum&M7 = core::_Enum with self::M7 /*isAnonymousMixin,hasCo
 class E7 extends self::_E7&_Enum&M7 /*isEnum*/  {
   static const field core::List<self::E7> values = const <self::E7>[self::E7::element];
   enum-element static const field self::E7 element = const self::E7::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E7
+  const synthetic constructor •(core::int #index, core::String #name) → self::E7
     ;
   method _enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
@@ -230,7 +230,7 @@ abstract class _E8&_Enum&M8 = core::_Enum with self::M8 /*isAnonymousMixin,hasCo
 class E8 extends self::_E8&_Enum&M8 /*isEnum*/  {
   static const field core::List<self::E8> values = const <self::E8>[self::E8::element];
   enum-element static const field self::E8 element = const self::E8::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E8
+  const synthetic constructor •(core::int #index, core::String #name) → self::E8
     ;
   method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
@@ -253,7 +253,7 @@ abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin,hasCo
 class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   static const field core::List<self::E9> values = const <self::E9>[self::E9::element];
   enum-element static const field self::E9 element = const self::E9::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E9
+  const synthetic constructor •(core::int #index, core::String #name) → self::E9
     ;
   method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
@@ -274,7 +274,7 @@ abstract class _E10&_Enum&M10 = core::_Enum with self::M10 /*isAnonymousMixin,ha
 class E10 extends self::_E10&_Enum&M10 /*isEnum*/  {
   static const field core::List<self::E10> values = const <self::E10>[self::E10::element];
   enum-element static const field self::E10 element = const self::E10::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E10
+  const synthetic constructor •(core::int #index, core::String #name) → self::E10
     ;
   method _enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";

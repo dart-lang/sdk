@@ -34,7 +34,7 @@ abstract class _EA&_Enum&A extends core::_Enum implements self::A /*isAnonymousM
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
   static const field core::List<self::EA> values = #C4;
   enum-element static const field self::EA element = #C3;
-  const constructor •(core::int #index, core::String #name) → self::EA
+  const synthetic constructor •(core::int #index, core::String #name) → self::EA
     : super self::_EA&_Enum&A::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -57,7 +57,7 @@ abstract class _EB&_Enum&B extends core::_Enum implements self::B /*isAnonymousM
 class EB extends self::_EB&_Enum&B /*isEnum*/  {
   static const field core::List<self::EB> values = #C6;
   enum-element static const field self::EB element = #C5;
-  const constructor •(core::int #index, core::String #name) → self::EB
+  const synthetic constructor •(core::int #index, core::String #name) → self::EB
     : super self::_EB&_Enum&B::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -77,7 +77,7 @@ abstract class _EM&_Enum&M extends core::_Enum implements self::M /*isAnonymousM
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
   static const field core::List<self::EM> values = #C8;
   enum-element static const field self::EM element = #C7;
-  const constructor •(core::int #index, core::String #name) → self::EM
+  const synthetic constructor •(core::int #index, core::String #name) → self::EM
     : super self::_EM&_Enum&M::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -97,7 +97,7 @@ abstract class _EN&_Enum&N extends core::_Enum implements self::N /*isAnonymousM
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
   static const field core::List<self::EN> values = #C10;
   enum-element static const field self::EN element = #C9;
-  const constructor •(core::int #index, core::String #name) → self::EN
+  const synthetic constructor •(core::int #index, core::String #name) → self::EN
     : super self::_EN&_Enum&N::•(#index, #name)
     ;
   method _enumToString() → core::String
