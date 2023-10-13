@@ -22,7 +22,7 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
   bool isWillRenameFilesRegistration(Registration registration) =>
       registration.method == Method.workspace_willRenameFiles.toJson();
 
-  /// Test that `part`/`part` of that point to each other are updated correctly.
+  /// Test that `part`/`part of` that point to each other are updated correctly.
   ///
   /// Updating each file individually would try to update the other so this will
   /// produce conflicting edits if not handled correctly.

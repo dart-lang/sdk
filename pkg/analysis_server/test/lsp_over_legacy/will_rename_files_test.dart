@@ -18,6 +18,28 @@ void main() {
 
 @reflectiveTest
 class WillRenameFilesTest extends LspOverLegacyTest {
+  /// Test that sending a (legacy) cancellation request can cancel this LSP
+  /// request.
+  Future<void> test_cancellation() async {
+    final testFileNewPath = join(testPackageLibPath, 'test_new.dart');
+
+    await addOverlay(testFilePath, 'original');
+    // Don't await, need to send cancellation.
+    final editFuture = onWillRename([
+      FileRename(
+        oldUri: toUri(testFilePath).toString(),
+        newUri: toUri(testFileNewPath).toString(),
+      ),
+    ]);
+
+    final cancelRequest =
+        createLegacyRequest(ServerCancelRequestParams(lastSentLegacyRequestId));
+    await handleRequest(cancelRequest);
+
+    // Expect the cancellation was forwarded and handled by the LSP handler.
+    expect(editFuture, throwsA(isResponseError(ErrorCodes.RequestCancelled)));
+  }
+
   Future<void> test_inconsistentAnalysis() async {
     final testFileNewPath = join(testPackageLibPath, 'test_new.dart');
 

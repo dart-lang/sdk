@@ -73,7 +73,7 @@ void main() async {
   }
 }
 
-const String includedPath = '/Users/scheglov/dart/flutter_multi/packages';
+const String includedPath = '/Users/scheglov/dart/flutter_elements/packages';
 
 final Stopwatch timer = Stopwatch();
 
@@ -142,29 +142,52 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
 
   // It is interesting to see all reachable objects.
   {
-    timer.reset();
     print('Reachable objects');
     final objects = analysis.reachableObjects;
     analysis.printObjectStats(objects, maxLines: 100);
-    print('');
   }
+
+  timer.reset();
 
   allResults.add(
     _doUniqueUriStr(analysis),
   );
 
+  allResults.add(
+    _doInterfaceType(analysis),
+  );
+
+  print('[+${timer.elapsedMilliseconds} ms] Compute benchmark results');
+  print('');
+
   return allResults;
 }
 
+BenchmarkResult _doInterfaceType(Analysis analysis) {
+  final objects = analysis.filterByClass(
+    analysis.reachableObjects,
+    libraryUri: Uri.parse('package:analyzer/src/dart/element/type.dart'),
+    name: 'InterfaceTypeImpl',
+  );
+
+  final measure = analysis.measureObjects(objects);
+  return BenchmarkResultCompound(name: 'InterfaceTypeImpl', children: [
+    BenchmarkResultCount(
+      name: 'count',
+      value: measure.count,
+    ),
+    BenchmarkResultBytes(
+      name: 'size(shallow)',
+      value: measure.size,
+    ),
+  ]);
+}
+
 BenchmarkResult _doUniqueUriStr(Analysis analysis) {
-  print('Instances of: _SimpleUri');
   final uriList = analysis.filterByClass(analysis.reachableObjects,
       libraryUri: Uri.parse('dart:core'), name: '_SimpleUri');
-  analysis.printObjectStats(uriList);
-  print('');
 
   final uriStringList = analysis.findReferences(uriList, [':_uri']);
-
   final uniqueUriStrSet = <String>{};
   final duplicateUriStrList = <String>[];
   for (final objectId in uriStringList) {
@@ -174,7 +197,6 @@ BenchmarkResult _doUniqueUriStr(Analysis analysis) {
       duplicateUriStrList.add(uriStr);
     }
   }
-  print('');
 
   final uriListMeasure = analysis.measureObjects(uriList);
   return BenchmarkResultCompound(name: '_SimpleUri', children: [

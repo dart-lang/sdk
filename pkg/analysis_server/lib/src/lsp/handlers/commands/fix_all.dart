@@ -141,7 +141,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
 
     // We must revert overlays before mapping edits, because we need any
     // LineInfos to reflect the original state while mapping to LSP.
-    revertOverlays();
+    await revertOverlays();
 
     final edit = createPlainWorkspaceEdit(server, changes);
 

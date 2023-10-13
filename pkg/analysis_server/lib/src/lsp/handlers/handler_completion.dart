@@ -751,13 +751,13 @@ class CompletionHandler
     return true; // Any other trigger character can be handled always.
   }
 
-  /// Truncates [items] to [maxItems] after sorting by fuzzy score (then
-  /// relevance/sortText) but always includes any items that exactly match
+  /// Truncates [items] to [maxCompletionCount] after sorting by fuzzy score
+  /// (then relevance/sortText) but always includes any items that exactly match
   /// [prefix].
   Iterable<_ScoredCompletionItem> _truncateResults(
     List<_ScoredCompletionItem> items,
     String prefix,
-    int maxItems,
+    int maxCompletionCount,
   ) {
     final prefixLower = prefix.toLowerCase();
     bool isExactMatch(CompletionItem item) =>
@@ -769,9 +769,9 @@ class CompletionHandler
     // Skip the text comparisons if we don't have a prefix (plugin results, or
     // just no prefix when completion was invoked).
     final shouldInclude = prefixLower.isEmpty
-        ? (int index, _ScoredCompletionItem item) => index < maxItems
+        ? (int index, _ScoredCompletionItem item) => index < maxCompletionCount
         : (int index, _ScoredCompletionItem item) =>
-            index < maxItems || isExactMatch(item.item);
+            index < maxCompletionCount || isExactMatch(item.item);
 
     return items.whereIndexed(shouldInclude);
   }

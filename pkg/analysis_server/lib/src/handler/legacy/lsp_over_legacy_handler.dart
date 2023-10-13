@@ -72,7 +72,8 @@ class LspOverLegacyHandler extends LegacyHandler {
 
     ErrorOr<Object?> result;
     try {
-      result = await handler.handleMessage(message, messageInfo);
+      result = await handler.handleMessage(message, messageInfo,
+          cancellationToken: cancellationToken);
     } on InconsistentAnalysisException {
       result = error(
         ErrorCodes.ContentModified,

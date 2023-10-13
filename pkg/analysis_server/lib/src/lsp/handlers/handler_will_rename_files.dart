@@ -58,11 +58,18 @@ class WillRenameFilesHandler
     // If we're unable to update imports for a rename, we should silently do
     // nothing rather than interrupt the users file rename with an error.
     final results = await refactoring.checkAllConditions();
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
+
     if (results.hasFatalError) {
       return success(null);
     }
 
     final change = await refactoring.createChange();
+    if (token.isCancellationRequested) {
+      return cancelled();
+    }
 
     server.checkConsistency(sessions);
 
