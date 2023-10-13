@@ -4532,6 +4532,11 @@ class _WhyNotPromotedVisitor
       PropertyNotPromotedForInherentReason<DartType> reason) {
     Object? member = reason.propertyMember;
     if (member is Member) {
+      if (member case Procedure(:var stubTarget?)) {
+        // Use the stub target so that the context message has a better source
+        // location.
+        member = stubTarget;
+      }
       propertyReference = member;
       propertyType = reason.staticType;
       Template<Message Function(String, String)> template =

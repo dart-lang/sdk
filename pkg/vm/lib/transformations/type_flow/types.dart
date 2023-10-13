@@ -131,9 +131,7 @@ class RecordShape {
   int get hashCode => (_hash == 0) ? _computeHashCode() : _hash;
 
   int _computeHashCode() {
-    int hash =
-        (((numPositionalFields * 31) & kHashMask) + listHashCode(namedFields)) &
-            kHashMask;
+    int hash = combineHashes(numPositionalFields, listHashCode(namedFields));
     if (hash == 0) {
       hash = 1;
     }
@@ -402,7 +400,10 @@ class NullableType extends Type {
   NullableType nullable() => this;
 
   @override
-  int get hashCode => (baseType.hashCode + 31) & kHashMask;
+  int get hashCode {
+    const int seed = 31;
+    return combineHashes(seed, baseType.hashCode);
+  }
 
   @override
   bool operator ==(other) =>
@@ -545,9 +546,10 @@ class SetType extends Type {
   }
 
   int _computeHashCode() {
-    int hash = 1237;
+    const int seed = 1237;
+    int hash = seed;
     for (var t in types) {
-      hash = (((hash * 31) & kHashMask) + t.hashCode) & kHashMask;
+      hash = combineHashes(hash, t.hashCode);
     }
     return hash;
   }
@@ -765,7 +767,10 @@ class ConeType extends Type {
   }
 
   @override
-  int get hashCode => (cls.id + 37) & kHashMask;
+  int get hashCode {
+    const int seed = 37;
+    return combineHashes(seed, cls.id);
+  }
 
   @override
   bool operator ==(other) => identical(this, other);
@@ -848,7 +853,10 @@ class WideConeType extends ConeType {
   Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
   @override
-  int get hashCode => (cls.id + 41) & kHashMask;
+  int get hashCode {
+    const int seed = 41;
+    return combineHashes(seed, cls.id);
+  }
 
   @override
   bool operator ==(other) =>
@@ -939,7 +947,7 @@ class Closure {
   Closure._(this.member, this.function);
 
   @override
-  int get hashCode => ((member.hashCode * 31) & kHashMask) + function.hashCode;
+  int get hashCode => combineHashes(member.hashCode, function.hashCode);
 
   @override
   bool operator ==(other) {
@@ -1141,13 +1149,14 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   }
 
   int _computeHashCode() {
-    int hash = cls.hashCode ^ 0x1234 & kHashMask;
+    const int seed = 43;
+    int hash = combineHashes(seed, cls.hashCode);
     // We only need to hash the first type arguments vector, since the type
     // arguments of the implemented interfaces are implied by it.
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
-      hash = (((hash * 31) & kHashMask) + typeArgs![i].hashCode) & kHashMask;
+      hash = combineHashes(hash, typeArgs![i].hashCode);
     }
-    hash = ((hash * 31) & kHashMask) + attributes.hashCode;
+    hash = combineHashes(hash, attributes.hashCode);
     return hash;
   }
 
@@ -1375,11 +1384,12 @@ class RuntimeType extends Type {
   late final int hashCode = _computeHashCode();
 
   int _computeHashCode() {
-    int hash = _type.hashCode ^ 0x1234 & kHashMask;
+    const int seed = 47;
+    int hash = combineHashes(seed, _type.hashCode);
     // Only hash by the type arguments of the class. The type arguments of
     // supertypes are implied by them.
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
-      hash = (((hash * 31) & kHashMask) + typeArgs![i].hashCode) & kHashMask;
+      hash = combineHashes(hash, typeArgs![i].hashCode);
     }
     return hash;
   }

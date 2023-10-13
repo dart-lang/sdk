@@ -570,7 +570,7 @@ class RefFunc implements Instruction {
 }
 
 class RefAsNonNull extends SingleByteInstruction {
-  const RefAsNonNull() : super(0xD3);
+  const RefAsNonNull() : super(0xD4);
 }
 
 class BrOnNull implements Instruction {
@@ -580,13 +580,13 @@ class BrOnNull implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeByte(0xD4);
+    s.writeByte(0xD5);
     s.writeUnsigned(labelIndex);
   }
 }
 
 class RefEq extends SingleByteInstruction {
-  const RefEq() : super(0xD5);
+  const RefEq() : super(0xD3);
 }
 
 class BrOnNonNull implements Instruction {
@@ -609,7 +609,7 @@ class StructGet implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x03]);
+    s.writeBytes(const [0xFB, 0x02]);
     s.writeUnsigned(structType.index);
     s.writeUnsigned(fieldIndex);
   }
@@ -623,7 +623,7 @@ class StructGetS implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x04]);
+    s.writeBytes(const [0xFB, 0x03]);
     s.writeUnsigned(structType.index);
     s.writeUnsigned(fieldIndex);
   }
@@ -637,7 +637,7 @@ class StructGetU implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x05]);
+    s.writeBytes(const [0xFB, 0x04]);
     s.writeUnsigned(structType.index);
     s.writeUnsigned(fieldIndex);
   }
@@ -651,7 +651,7 @@ class StructSet implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x06]);
+    s.writeBytes(const [0xFB, 0x05]);
     s.writeUnsigned(structType.index);
     s.writeUnsigned(fieldIndex);
   }
@@ -664,7 +664,7 @@ class StructNew implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x07]);
+    s.writeBytes(const [0xFB, 0x00]);
     s.writeUnsigned(structType.index);
   }
 }
@@ -676,7 +676,7 @@ class StructNewDefault implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x08]);
+    s.writeBytes(const [0xFB, 0x01]);
     s.writeUnsigned(structType.index);
   }
 }
@@ -688,7 +688,7 @@ class ArrayGet implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x13]);
+    s.writeBytes(const [0xFB, 0x0b]);
     s.writeUnsigned(arrayType.index);
   }
 }
@@ -700,7 +700,7 @@ class ArrayGetS implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x14]);
+    s.writeBytes(const [0xFB, 0x0c]);
     s.writeUnsigned(arrayType.index);
   }
 }
@@ -712,7 +712,7 @@ class ArrayGetU implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x15]);
+    s.writeBytes(const [0xFB, 0x0d]);
     s.writeUnsigned(arrayType.index);
   }
 }
@@ -724,13 +724,13 @@ class ArraySet implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x16]);
+    s.writeBytes(const [0xFB, 0x0E]);
     s.writeUnsigned(arrayType.index);
   }
 }
 
 class ArrayLen extends MultiByteInstruction {
-  const ArrayLen() : super(const [0xFB, 0x19]);
+  const ArrayLen() : super(const [0xFB, 0x0F]);
 }
 
 class ArrayNewFixed implements Instruction {
@@ -741,7 +741,7 @@ class ArrayNewFixed implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x1a]);
+    s.writeBytes(const [0xFB, 0x08]);
     s.writeUnsigned(arrayType.index);
     s.writeUnsigned(length);
   }
@@ -754,7 +754,7 @@ class ArrayNew implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x1b]);
+    s.writeBytes(const [0xFB, 0x06]);
     s.writeUnsigned(arrayType.index);
   }
 }
@@ -766,7 +766,7 @@ class ArrayNewDefault implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x1c]);
+    s.writeBytes(const [0xFB, 0x07]);
     s.writeUnsigned(arrayType.index);
   }
 }
@@ -779,7 +779,7 @@ class ArrayNewData implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x1d]);
+    s.writeBytes(const [0xFB, 0x09]);
     s.writeUnsigned(arrayType.index);
     s.writeUnsigned(data.index);
   }
@@ -793,7 +793,7 @@ class ArrayCopy implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x18]);
+    s.writeBytes(const [0xFB, 0x11]);
     s.writeUnsigned(destArrayType.index);
     s.writeUnsigned(sourceArrayType.index);
   }
@@ -806,21 +806,21 @@ class ArrayFill implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(const [0xFB, 0x0F]);
+    s.writeBytes(const [0xFB, 0x10]);
     s.writeUnsigned(arrayType.index);
   }
 }
 
 class I31New extends MultiByteInstruction {
-  const I31New() : super(const [0xFB, 0x20]);
+  const I31New() : super(const [0xFB, 0x1C]);
 }
 
 class I31GetS extends MultiByteInstruction {
-  const I31GetS() : super(const [0xFB, 0x21]);
+  const I31GetS() : super(const [0xFB, 0x1D]);
 }
 
 class I31GetU extends MultiByteInstruction {
-  const I31GetU() : super(const [0xFB, 0x22]);
+  const I31GetU() : super(const [0xFB, 0x1E]);
 }
 
 class RefTest implements Instruction {
@@ -830,7 +830,7 @@ class RefTest implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(targetType.nullable ? const [0xFB, 0x48] : const [0xFB, 0x40]);
+    s.writeBytes(targetType.nullable ? const [0xFB, 0x15] : const [0xFB, 0x14]);
     s.write(targetType.heapType);
   }
 }
@@ -842,7 +842,7 @@ class RefCast implements Instruction {
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(targetType.nullable ? const [0xFB, 0x49] : const [0xFB, 0x41]);
+    s.writeBytes(targetType.nullable ? const [0xFB, 0x17] : const [0xFB, 0x16]);
     s.write(targetType.heapType);
   }
 }
@@ -858,7 +858,7 @@ class BrOnCast implements Instruction {
   void serialize(Serializer s) {
     int flags = (inputType.nullable ? 0x01 : 0x00) |
         (targetType.nullable ? 0x02 : 0x00);
-    s.writeBytes(const [0xFB, 0x4E]);
+    s.writeBytes(const [0xFB, 0x18]);
     s.writeByte(flags);
     s.writeUnsigned(labelIndex);
     s.write(inputType.heapType);
@@ -877,7 +877,7 @@ class BrOnCastFail implements Instruction {
   void serialize(Serializer s) {
     int flags = (inputType.nullable ? 0x01 : 0x00) |
         (targetType.nullable ? 0x02 : 0x00);
-    s.writeBytes(const [0xFB, 0x4F]);
+    s.writeBytes(const [0xFB, 0x19]);
     s.writeByte(flags);
     s.writeUnsigned(labelIndex);
     s.write(inputType.heapType);
@@ -886,11 +886,11 @@ class BrOnCastFail implements Instruction {
 }
 
 class ExternInternalize extends MultiByteInstruction {
-  const ExternInternalize() : super(const [0xFB, 0x70]);
+  const ExternInternalize() : super(const [0xFB, 0x1A]);
 }
 
 class ExternExternalize extends MultiByteInstruction {
-  const ExternExternalize() : super(const [0xFB, 0x71]);
+  const ExternExternalize() : super(const [0xFB, 0x1B]);
 }
 
 class I32Const implements Instruction {
