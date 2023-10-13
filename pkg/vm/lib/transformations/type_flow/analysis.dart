@@ -154,7 +154,7 @@ abstract base class _Invocation extends _DependencyTracker
           (this.args == other.args);
 
   @override
-  int get hashCode => (selector.hashCode ^ args.hashCode + 31) & kHashMask;
+  int get hashCode => combineHashes(selector.hashCode, args.hashCode);
 
   @override
   String toString() => "_Invocation $selector $args";
