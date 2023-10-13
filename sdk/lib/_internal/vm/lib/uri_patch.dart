@@ -78,4 +78,10 @@ class _Uri {
     }
     return result.toString();
   }
+
+  @patch
+  static String _makeQueryFromParameters(
+      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    return _makeQueryFromParametersDefault(queryParameters);
+  }
 }

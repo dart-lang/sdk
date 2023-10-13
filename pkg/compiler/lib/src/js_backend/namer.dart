@@ -2448,6 +2448,7 @@ const Set<String> reservedCapitalizedGlobalSymbols = {
 
   // Some additional names
   "Isolate",
+  "URLSearchParams",
 };
 
 /// Symbols that we might be using in our JS snippets. Some of the symbols in
