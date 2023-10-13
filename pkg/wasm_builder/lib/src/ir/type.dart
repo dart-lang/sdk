@@ -94,19 +94,19 @@ class NumType extends ValueType {
   void serialize(Serializer s) {
     switch (kind) {
       case NumTypeKind.i32:
-        s.writeByte(0x7F);
+        s.writeByte(0x7F); // -0x01
         break;
       case NumTypeKind.i64:
-        s.writeByte(0x7E);
+        s.writeByte(0x7E); // -0x02
         break;
       case NumTypeKind.f32:
-        s.writeByte(0x7D);
+        s.writeByte(0x7D); // -0x03
         break;
       case NumTypeKind.f64:
-        s.writeByte(0x7C);
+        s.writeByte(0x7C); // -0x04
         break;
       case NumTypeKind.v128:
-        s.writeByte(0x7B);
+        s.writeByte(0x7B); // -0x05
         break;
     }
   }
@@ -206,7 +206,7 @@ class RefType extends ValueType {
   @override
   void serialize(Serializer s) {
     if (nullable != heapType.nullableByDefault) {
-      s.writeByte(nullable ? 0x6C : 0x6B);
+      s.writeByte(nullable ? 0x63 : 0x64); // -0x1d, -0x1c
     }
     s.write(heapType);
   }
@@ -334,7 +334,7 @@ class ExternHeapType extends HeapType {
       other == HeapType.common || other == HeapType.extern;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x6F);
+  void serialize(Serializer s) => s.writeByte(0x6F); // -0x11
 
   @override
   String toString() => "extern";
@@ -360,7 +360,7 @@ class AnyHeapType extends HeapType {
       other == HeapType.common || other == HeapType.any;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x6E);
+  void serialize(Serializer s) => s.writeByte(0x6E); // -0x12
 
   @override
   String toString() => "any";
@@ -386,7 +386,7 @@ class EqHeapType extends HeapType {
       other == HeapType.common || other == HeapType.any || other == HeapType.eq;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x6D);
+  void serialize(Serializer s) => s.writeByte(0x6D); // -0x13
 
   @override
   String toString() => "eq";
@@ -412,7 +412,7 @@ class FuncHeapType extends HeapType {
       other == HeapType.common || other == HeapType.func;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x70);
+  void serialize(Serializer s) => s.writeByte(0x70); // -0x10
 
   @override
   String toString() => "func";
@@ -441,7 +441,7 @@ class StructHeapType extends HeapType {
       other == HeapType.struct;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x67);
+  void serialize(Serializer s) => s.writeByte(0x6B); // -0x15
 
   @override
   String toString() => "struct";
@@ -470,7 +470,7 @@ class ArrayHeapType extends HeapType {
       other == HeapType.array;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x66);
+  void serialize(Serializer s) => s.writeByte(0x6A); // -0x16
 
   @override
   String toString() => "array";
@@ -499,7 +499,7 @@ class I31HeapType extends HeapType {
       other == HeapType.i31;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x6A);
+  void serialize(Serializer s) => s.writeByte(0x6C); // -0x14
 
   @override
   String toString() => "i31";
@@ -525,7 +525,7 @@ class NoneHeapType extends HeapType {
       other == HeapType.common || other.bottomType == HeapType.none;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x65);
+  void serialize(Serializer s) => s.writeByte(0x71); // -0x0f
 
   @override
   String toString() => "none";
@@ -554,7 +554,7 @@ class NoExternHeapType extends HeapType {
       other == HeapType.common || other.bottomType == HeapType.noextern;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x69);
+  void serialize(Serializer s) => s.writeByte(0x72); // -0x0e
 
   @override
   String toString() => "extern";
@@ -583,7 +583,7 @@ class NoFuncHeapType extends HeapType {
       other == HeapType.common || other.bottomType == HeapType.nofunc;
 
   @override
-  void serialize(Serializer s) => s.writeByte(0x68);
+  void serialize(Serializer s) => s.writeByte(0x73); // -0x0d
 
   @override
   String toString() => "nofunc";
@@ -634,12 +634,12 @@ abstract class DefType extends HeapType {
   // if any.
   void serializeDefinition(Serializer s) {
     if (hasSuperType) {
-      s.writeByte(hasAnySubtypes ? 0x50 : 0x4E);
+      s.writeByte(hasAnySubtypes ? 0x50 : 0x4F); // -0x30, -0x31
       s.writeUnsigned(1);
       assert(isStructuralSubtypeOf(superType!));
       s.write(superType!);
     } else if (hasAnySubtypes) {
-      s.writeByte(0x50);
+      s.writeByte(0x50); // -0x30
       s.writeUnsigned(0);
     }
     serializeDefinitionInner(s);
@@ -687,7 +687,7 @@ class FunctionType extends DefType {
 
   @override
   void serializeDefinitionInner(Serializer s) {
-    s.writeByte(0x60);
+    s.writeByte(0x60); // -0x20
     s.writeList(inputs);
     s.writeList(outputs);
   }
@@ -745,7 +745,7 @@ class StructType extends DataType {
 
   @override
   void serializeDefinitionInner(Serializer s) {
-    s.writeByte(0x5F);
+    s.writeByte(0x5F); // -0x21
     s.writeList(fields);
   }
 }
@@ -778,7 +778,7 @@ class ArrayType extends DataType {
 
   @override
   void serializeDefinitionInner(Serializer s) {
-    s.writeByte(0x5E);
+    s.writeByte(0x5E); // -0x22
     s.write(elementType);
   }
 }
@@ -867,10 +867,10 @@ class PackedType implements StorageType {
   void serialize(Serializer s) {
     switch (kind) {
       case PackedTypeKind.i8:
-        s.writeByte(0x7A);
+        s.writeByte(0x78); // -0x8
         break;
       case PackedTypeKind.i16:
-        s.writeByte(0x79);
+        s.writeByte(0x77); // -0x9
         break;
     }
   }

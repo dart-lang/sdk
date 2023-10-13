@@ -33,7 +33,7 @@ abstract class _EA&_Enum&A = core::_Enum with self::A /*isAnonymousMixin,hasCons
 class EA extends self::_EA&_Enum&A /*isEnum*/  {
   static const field core::List<self::EA> values = const <self::EA>[self::EA::element];
   enum-element static const field self::EA element = const self::EA::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::EA
+  const synthetic constructor •(core::int #index, core::String #name) → self::EA
     ;
   method _enumToString() → core::String
     return "EA.${this.{core::_Enum::_name}{core::String}}";
@@ -54,7 +54,7 @@ abstract class _EB&_Enum&B = core::_Enum with self::B /*isAnonymousMixin,hasCons
 class EB extends self::_EB&_Enum&B /*isEnum*/  {
   static const field core::List<self::EB> values = const <self::EB>[self::EB::element];
   enum-element static const field self::EB element = const self::EB::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::EB
+  const synthetic constructor •(core::int #index, core::String #name) → self::EB
     ;
   method _enumToString() → core::String
     return "EB.${this.{core::_Enum::_name}{core::String}}";
@@ -73,7 +73,7 @@ abstract class _EM&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasCons
 class EM extends self::_EM&_Enum&M /*isEnum*/  {
   static const field core::List<self::EM> values = const <self::EM>[self::EM::element];
   enum-element static const field self::EM element = const self::EM::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::EM
+  const synthetic constructor •(core::int #index, core::String #name) → self::EM
     ;
   method _enumToString() → core::String
     return "EM.${this.{core::_Enum::_name}{core::String}}";
@@ -92,7 +92,7 @@ abstract class _EN&_Enum&N = core::_Enum with self::N /*isAnonymousMixin,hasCons
 class EN extends self::_EN&_Enum&N /*isEnum*/  {
   static const field core::List<self::EN> values = const <self::EN>[self::EN::element];
   enum-element static const field self::EN element = const self::EN::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::EN
+  const synthetic constructor •(core::int #index, core::String #name) → self::EN
     ;
   method _enumToString() → core::String
     return "EN.${this.{core::_Enum::_name}{core::String}}";

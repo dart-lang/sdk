@@ -432,7 +432,7 @@ class E extends core::_Enum /*isEnum*/  {
   static const field core::List<uns::E> values = #C8;
   enum-element static const field uns::E e1 = #C3;
   enum-element static const field uns::E e2 = #C6;
-  const constructor •(core::int #index, core::String #name) → uns::E
+  const synthetic constructor •(core::int #index, core::String #name) → uns::E
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

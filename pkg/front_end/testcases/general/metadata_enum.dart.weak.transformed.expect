@@ -8,7 +8,7 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E E1 = #C4;
   enum-element static const field self::E E2 = #C7;
   enum-element static const field self::E E3 = #C10;
-  const constructor •(core::int #index, core::String #name) → self::E
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

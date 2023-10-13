@@ -64,7 +64,7 @@ final class ImplementsFinalClassTypedef2 extends core::Object implements mai::A 
 class EnumImplementsFinalClassTypedef extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalClassTypedef> values = const <self::EnumImplementsFinalClassTypedef>[self::EnumImplementsFinalClassTypedef::x];
   enum-element static const field self::EnumImplementsFinalClassTypedef x = const self::EnumImplementsFinalClassTypedef::•(0, "x");
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -73,7 +73,7 @@ class EnumImplementsFinalClassTypedef extends core::_Enum implements mai::A /*is
 class EnumImplementsFinalClassTypedef2 extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalClassTypedef2> values = const <self::EnumImplementsFinalClassTypedef2>[self::EnumImplementsFinalClassTypedef2::x];
   enum-element static const field self::EnumImplementsFinalClassTypedef2 x = const self::EnumImplementsFinalClassTypedef2::•(0, "x");
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef2
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -90,7 +90,7 @@ final class ImplementsFinalClassTypedefOutside extends core::Object implements m
 class EnumImplementsFinalClassTypedefOutside extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalClassTypedefOutside> values = const <self::EnumImplementsFinalClassTypedefOutside>[self::EnumImplementsFinalClassTypedefOutside::x];
   enum-element static const field self::EnumImplementsFinalClassTypedefOutside x = const self::EnumImplementsFinalClassTypedefOutside::•(0, "x");
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedefOutside
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedefOutside
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

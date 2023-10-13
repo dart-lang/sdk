@@ -47,7 +47,7 @@ class TypeSection extends Section {
     int typeIndex = 0;
     for (int split
         in types.recursionGroupSplits.followedBy([defTypes.length])) {
-      s.writeByte(0x4F);
+      s.writeByte(0x4E); // -0x32
       s.writeUnsigned(split - typeIndex);
       for (; typeIndex < split; typeIndex++) {
         ir.DefType defType = defTypes[typeIndex];

@@ -17,7 +17,7 @@ class E<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E<dynamic>> values = const <self::E<dynamic>>[self::E::element, self::E::element2];
   enum-element static const field self::E<core::int> element = const self::E::•<core::int>(0, "element");
   enum-element static const field self::E<core::int> element2 = const self::E::•<core::int>(1, "element2");
-  const constructor •(core::int #index, core::String #name) → self::E<self::E::T%>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E<self::E::T%>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

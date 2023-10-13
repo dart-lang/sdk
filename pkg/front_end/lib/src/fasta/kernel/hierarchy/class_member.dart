@@ -397,6 +397,15 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         classBuilder.cls.addProcedure(stub);
         SourceLibraryBuilder library =
             classBuilder.libraryBuilder as SourceLibraryBuilder;
+        if (library.fieldNonPromotabilityInfo
+                ?.individualPropertyReasons[canonicalMember]
+            case var reason?) {
+          // Transfer the non-promotability reason to the stub, so that accesses
+          // to the stub will still cause the appropriate "why not promoted"
+          // context message to be generated.
+          library.fieldNonPromotabilityInfo!.individualPropertyReasons[stub] =
+              reason;
+        }
         if (canonicalMember is Procedure) {
           library.forwardersOrigins
             ..add(stub)

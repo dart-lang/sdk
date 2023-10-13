@@ -12,7 +12,7 @@ import "dart:core" as core;
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
   enum-element static const field self::E1 element = const self::E1::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E1
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -23,7 +23,7 @@ class E1 extends core::_Enum /*isEnum*/  {
 class E2 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2> values = const <self::E2>[self::E2::element];
   enum-element static const field self::E2 element = const self::E2::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E2
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -38,7 +38,7 @@ abstract class I3 extends core::Object {
 class E3 extends core::_Enum implements self::I3 /*isEnum*/  {
   static const field core::List<self::E3> values = const <self::E3>[self::E3::element];
   enum-element static const field self::E3 element = const self::E3::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E3
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

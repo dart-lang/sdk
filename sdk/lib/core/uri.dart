@@ -2350,7 +2350,18 @@ class _Uri implements Uri {
           escapeDelimiters: true);
     }
     if (queryParameters == null) return null;
+    return _makeQueryFromParameters(queryParameters);
+  }
 
+  external static String _makeQueryFromParameters(
+      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters);
+
+  /// Default implementation of [_makeQueryFromParameters].
+  ///
+  /// This implementation is used from the patch for [_makeQueryFromParameters]
+  /// where there is not a more efficient native implementation available.
+  static String _makeQueryFromParametersDefault(
+      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
     var result = StringBuffer();
     var separator = "";
 
