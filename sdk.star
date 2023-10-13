@@ -9,6 +9,7 @@ load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
     "arm64",
+    "jammy",
     "mac",
     "no_android",
     "windows",
@@ -69,10 +70,8 @@ dart.try_builder(
 
 dart.try_builder(
     "dart-sdk-linux-arm64",
+    dimensions = [jammy, arm64],
     properties = {
-        "$dart/build": {
-            "timeout": 100 * 60,  # 100 minutes,
-        },
         "archs": ["arm", "arm64"],
         "disable_bcid": True,
     },
