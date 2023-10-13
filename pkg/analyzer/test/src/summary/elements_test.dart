@@ -67,10 +67,14 @@ import augment 'a.dart';
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
   augmentationImports
     package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
       definingUnit
+        reference: self::@augmentation::package:test/a.dart
         classes
           class A @36
             reference: self::@augmentation::package:test/a.dart::@class::A
@@ -1649,7 +1653,9 @@ class A {
       ..withPropertyLinking = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @31
         reference: self::@class::A
@@ -1679,7 +1685,9 @@ library
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
       definingUnit
+        reference: self::@augmentation::package:test/a.dart
         classes
           augment class A @43
             reference: self::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2114,7 +2122,9 @@ class A {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @31
         reference: self::@class::A
@@ -2134,7 +2144,9 @@ library
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
   augmentationImports
     package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
       definingUnit
+        reference: self::@augmentation::package:test/a.dart
         classes
           augment class A @43
             reference: self::@augmentation::package:test/a.dart::@classAugmentation::A
@@ -2173,7 +2185,9 @@ class A {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @31
         reference: self::@class::A
@@ -2193,7 +2207,9 @@ library
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
   augmentationImports
     package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
       definingUnit
+        reference: self::@augmentation::package:test/a.dart
         classes
           augment class A @43
             reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
@@ -3275,7 +3291,7 @@ library
     package:test/a.dart
       definingUnit
         classes
-          augment notSimplyBounded class A @43
+          augment class A @43
             typeParameters
               covariant T @45
                 bound: A<dynamic>
@@ -4546,7 +4562,9 @@ library
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class C @6
         reference: self::@class::C
@@ -12749,7 +12767,9 @@ class C = A with M;
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @6
         reference: self::@class::A
@@ -23462,7 +23482,9 @@ class A {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @6
         reference: self::@class::A::@def::0
@@ -23567,7 +23589,9 @@ class A {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @6
         reference: self::@class::A
@@ -23595,7 +23619,9 @@ class A {
       ..withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @6
         reference: self::@class::A
@@ -23655,7 +23681,9 @@ class A {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @6
         reference: self::@class::A
@@ -23733,7 +23761,9 @@ enum E {c, d, e}
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     enums
       enum E @5
         reference: self::@enum::E::@def::0
@@ -23906,7 +23936,9 @@ extension E on int {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     extensions
       E @10
         reference: self::@extension::E::@def::0
@@ -23957,7 +23989,9 @@ extension type E(double it) {}
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     extensionTypes
       E @15
         reference: self::@extensionType::E::@def::0
@@ -24015,7 +24049,9 @@ void f([int b, double c]) {}
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     functions
       f @5
         reference: self::@function::f::@def::0
@@ -24044,7 +24080,9 @@ void f({int a, double a}) {}
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     functions
       f @5
         reference: self::@function::f
@@ -24068,7 +24106,9 @@ typedef void F([int b, double c]);
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     typeAliases
       functionTypeAliasBased F @13
         reference: self::@typeAlias::F::@def::0
@@ -24109,7 +24149,9 @@ mixin A {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     mixins
       mixin A @6
         reference: self::@mixin::A::@def::0
@@ -24167,7 +24209,9 @@ var x = 2.3;
       ..withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     topLevelVariables
       static x @5
         reference: self::@variable::x::@def::0
@@ -24252,7 +24296,9 @@ double get foo {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     topLevelVariables
       synthetic static foo @-1
         reference: self::@variable::foo
@@ -24283,7 +24329,9 @@ set foo(double _) {}
       ..withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     topLevelVariables
       synthetic static foo @-1
         reference: self::@variable::foo
@@ -24751,7 +24799,9 @@ enum E {
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     enums
       enum E @5
         reference: self::@enum::E
@@ -29906,7 +29956,9 @@ library
       ..withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     topLevelVariables
       synthetic static x @-1
         reference: self::@variable::x
@@ -52045,7 +52097,7 @@ library
     package:test/a.dart
       definingUnit
         mixins
-          augment notSimplyBounded mixin A @43
+          augment mixin A @43
             typeParameters
               covariant T @45
                 bound: A<dynamic>

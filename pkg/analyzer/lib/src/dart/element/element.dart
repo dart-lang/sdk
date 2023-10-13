@@ -4173,9 +4173,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// See [fieldNameNonPromotabilityInfo].
   Map<String, FieldNameNonPromotabilityInfo>? _fieldNameNonPromotabilityInfo;
 
-  /// All augmentations of this library, in the depth-first pre-order order.
-  late final List<LibraryAugmentationElementImpl> augmentations =
-      _computeAugmentations();
+  /// The cache for [augmentations].
+  List<LibraryAugmentationElementImpl>? _augmentations;
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
@@ -4191,6 +4190,17 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<AugmentationImportElementImpl> get augmentationImports {
     _readLinkedData();
     return super.augmentationImports;
+  }
+
+  @override
+  set augmentationImports(List<AugmentationImportElementImpl> imports) {
+    super.augmentationImports = imports;
+    _augmentations = null;
+  }
+
+  /// All augmentations of this library, in the depth-first pre-order order.
+  List<LibraryAugmentationElementImpl> get augmentations {
+    return _augmentations ??= _computeAugmentations();
   }
 
   @override

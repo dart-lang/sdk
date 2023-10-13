@@ -15,14 +15,19 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer_utilities/package_root.dart';
+import 'package:args/args.dart';
 import 'package:heap_snapshot/analysis.dart';
 import 'package:heap_snapshot/format.dart';
+import 'package:path/path.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../../../test/util/tree_string_sink.dart';
 import 'result.dart';
 
-void main() async {
+void main(List<String> arguments) async {
+  final argParser = ArgParser()..addFlag('write-file');
+  final argResults = argParser.parse(arguments);
+
   final byteStore = MemoryByteStore();
 
   print('First pass, fill ByteStore');
@@ -62,20 +67,27 @@ void main() async {
   );
 
   final allResults = _analyzeSnapshot(heapBytes);
+  _printResults(allResults);
 
-  {
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
-    writeBenchmarkResult(sink, allResults);
-    print('All results');
-    print('-' * 32);
-    print(buffer);
+  if (argResults['write-file'] == true) {
+    _writeResultFile(allResults);
   }
 }
 
 const String includedPath = '/Users/scheglov/dart/flutter_elements/packages';
 
 final Stopwatch timer = Stopwatch();
+
+String get _resultFilePath {
+  return posix.join(
+    packageRoot,
+    'analyzer',
+    'tool',
+    'benchmark',
+    'heap',
+    'flutter_elements.xml',
+  );
+}
 
 /// Analyzes all included files.
 ///
@@ -258,6 +270,20 @@ Uint8List _getHeapSnapshot() {
   }
 }
 
+void _printResults(BenchmarkResultCompound allResults) {
+  BenchmarkResult? baseResult;
+  try {
+    final text = io.File(_resultFilePath).readAsStringSync();
+    baseResult = BenchmarkResult.fromXmlText(text);
+  } catch (e) {
+    // ignore
+  }
+
+  print('All results');
+  print('-' * 32);
+  print(allResults.asDisplayText(baseResult));
+}
+
 Future<T> _withNewAnalysisContext<T>(
   Future<T> Function(AnalysisContextCollectionImpl collection) f, {
   required ByteStore byteStore,
@@ -275,6 +301,10 @@ Future<T> _withNewAnalysisContext<T>(
   final result = await f(collection);
   collection.hashCode; // to keep it alive
   return result;
+}
+
+void _writeResultFile(BenchmarkResultCompound result) {
+  io.File(_resultFilePath).writeAsStringSync(result.asXmlText, flush: true);
 }
 
 class _AllElementVisitor extends GeneralizingElementVisitor<void> {
