@@ -142,8 +142,7 @@ class LibraryMacroApplier {
         .trim();
   }
 
-  /// TODO(scheglov) return results instead of code
-  Future<String?> executeDeclarationsPhase() async {
+  Future<List<macro.MacroExecutionResult>> executeDeclarationsPhase() async {
     final results = <macro.MacroExecutionResult>[];
     for (final target in _targets) {
       for (final application in target.applications) {
@@ -163,7 +162,7 @@ class LibraryMacroApplier {
         }
       }
     }
-    return buildAugmentationLibraryCode(results);
+    return results;
   }
 
   Future<List<macro.MacroExecutionResult>> executeTypesPhase() async {

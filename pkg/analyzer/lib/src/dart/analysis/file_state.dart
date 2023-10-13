@@ -1802,7 +1802,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// results in separate augmentation libraries with names `foo.macroX.dart`.
   /// For the merged augmentation we pass `null` here, so a single
   /// `foo.macro.dart` is created.
-  AugmentationImportWithFile? addMacroAugmentation(
+  AugmentationImportWithFile addMacroAugmentation(
     String code, {
     required bool addLibraryAugmentDirective,
     required int? partialIndex,
@@ -1839,9 +1839,7 @@ $code
     final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
 
     final macroFileResolution = file._fsState.getFileForUri(macroUri);
-    if (macroFileResolution is! UriResolutionFile) {
-      return null;
-    }
+    macroFileResolution as UriResolutionFile;
     final macroFile = macroFileResolution.file;
 
     final import = AugmentationImportWithFile(

@@ -148,6 +148,15 @@ class Linker {
     _collectMixinSuperInvokedNames();
     _buildElementNameUnions();
     _detachNodes();
+
+    await performance.runAsync(
+      'mergeMacroAugmentations',
+      (performance) async {
+        await _mergeMacroAugmentations(
+          performance: performance,
+        );
+      },
+    );
   }
 
   void _collectMixinSuperInvokedNames() {
@@ -264,6 +273,16 @@ class Linker {
   }) async {
     for (final library in builders.values) {
       await library.executeMacroDeclarationsPhase(
+        performance: performance,
+      );
+    }
+  }
+
+  Future<void> _mergeMacroAugmentations({
+    required OperationPerformanceImpl performance,
+  }) async {
+    for (final library in builders.values) {
+      await library.mergeMacroAugmentations(
         performance: performance,
       );
     }

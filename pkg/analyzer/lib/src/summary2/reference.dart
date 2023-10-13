@@ -119,11 +119,21 @@ class Reference {
   /// existing child is transferred to it and renamed to `0`, then a new child
   /// is added with name `1`. Additional duplicate children get names `2`, etc.
   Reference addChild(String name) {
+    final child = Reference._(null, name);
+    addChildReference(name, child);
+    return child;
+  }
+
+  /// Transfers [child] to this parent.
+  void addChildReference(String name, Reference child) {
+    child.parent = this;
+
     final existing = this[name];
 
     // If not a duplicate.
     if (existing == null) {
-      return getChild(name);
+      _addChild(name, child);
+      return;
     }
 
     var def = existing[_defName];
@@ -132,14 +142,15 @@ class Reference {
     if (def == null) {
       removeChild(name); // existing
       def = getChild(name).getChild(_defName);
-      def._addChild('0', existing);
       existing.parent = def;
       existing.name = '0';
+      def._addChild(existing.name, existing);
     }
 
     // Add a new child to the duplicates container.
-    final indexStr = '${def.children.length}';
-    return def.getChild(indexStr);
+    child.parent = def;
+    child.name = '${def.children.length}';
+    def._addChild(child.name, child);
   }
 
   /// Return the child with the given name, create if does not exist yet.
@@ -189,8 +200,6 @@ class Reference {
   String toString() => parent == null ? 'root' : '$parent::$name';
 
   void _addChild(String name, Reference child) {
-    name = _rewriteDartUi(name);
-
     final childrenUnion = _childrenUnion;
     if (childrenUnion == null) {
       // 0 -> 1 children.
