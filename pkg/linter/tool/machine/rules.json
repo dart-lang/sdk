@@ -384,11 +384,7 @@
     "group": "errors",
     "state": "stable",
     "incompatible": [],
-    "sets": [
-      "core",
-      "recommended",
-      "flutter"
-    ],
+    "sets": [],
     "fixStatus": "needsEvaluation",
     "details": "**DON'T** use wildcard parameters or variables.\n\nWildcard parameters and local variables\n(e.g. underscore-only names like `_`, `__`, `___`, etc.) will\nbecome non-binding in a future version of the Dart language.\nAny existing code that uses wildcard parameters or variables will\nbreak. In anticipation of this change, and to make adoption easier,\nthis lint disallows wildcard and variable parameter uses.\n\n\n**BAD:**\n```dart\nvar _ = 1;\nprint(_); // LINT\n```\n\n```dart\nvoid f(int __) {\n  print(__); // LINT multiple underscores too\n}\n```\n\n**GOOD:**\n```dart\nfor (var _ in [1, 2, 3]) count++;\n```\n\n```dart\nvar [a, _, b, _] = [1, 2, 3, 4];\n```\n",
     "sinceDartSdk": "3.1.0"
@@ -2646,7 +2642,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Top-level members and static members in an executable library should be used\ndirectly inside this library.  An executable library is a library that contains\na `main` top-level function or that contains a top-level function annotated with\n`@pragma('vm:entry-point')`).  Executable libraries are not usually imported\nand it's better to avoid defining unused members.\n\nThis rule assumes that an executable library isn't imported by other files\nexcept to execute its `main` function.\n\n**BAD:**\n\n```dart\nmain() {}\nvoid f() {}\n```\n\n**GOOD:**\n\n```dart\nmain() {\n  f();\n}\nvoid f() {}\n```\n\n",
+    "details": "Any member declared in an executable library should be used directly inside that\nlibrary.  An executable library is a library that contains a `main` top-level\nfunction or that contains a top-level function annotated with\n`@pragma('vm:entry-point')`).  Executable libraries are not usually imported\nand it's better to avoid defining unused members.\n\nThis rule assumes that an executable library isn't imported by other libraries\nexcept to execute its `main` function.\n\n**BAD:**\n\n```dart\nmain() {}\nvoid f() {}\n```\n\n**GOOD:**\n\n```dart\nmain() {\n  f();\n}\nvoid f() {}\n```\n\n",
     "sinceDartSdk": "2.19.0"
   },
   {

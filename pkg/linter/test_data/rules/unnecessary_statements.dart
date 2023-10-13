@@ -2,93 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void constructorTearOffs() {
-  MyClass.new; // LINT
-  MyClass.named; // LINT
-
-  var m = MyClass.new;
-  m().foo; // LINT
-  m().field; // LINT
-}
-
-String f(Object o) {
-  // See: https://github.com/dart-lang/linter/issues/2163
-  o as int; // OK
-  return '';
-}
-
-notReturned() {
-  1; // LINT
-  1 + 1; // LINT
-  foo; // LINT
-  new MyClass().foo; // LINT
-  new MyClass()..foo; // LINT
-  new MyClass()
-    ..getter // OK
-    ..foo() // OK
-    ..foo; // LINT
-  []; // LINT
-  <dynamic, dynamic>{}; // LINT
-  "blah"; // LINT
-  ~1; // LINT
-
-  getter; // OK
-  field; // LINT
-  new MyClass().getter; // OK
-  new MyClass().field; // LINT
-  var myClass = new MyClass();
-  myClass; // LINT
-  myClass.getter; // OK
-  myClass.field; // LINT
-
-  new MyClass(); // OK
-  foo(); // OK
-  new MyClass().foo(); // OK
-  var x = 2; // OK
-  x++; // OK
-  x--; // OK
-  ++x; // OK
-  --x; // OK
-  try {
-    throw new Exception(); // OK
-  } catch (x) {
-    rethrow; // OK
-  }
-}
-
-asConditionAndReturnOk() {
-  if (true == someBool) // OK
-  {
-    return 1 + 1; // OK
-  } else if (false == someBool) {
-    return foo; // OK
-  }
-  while (new MyClass() != null) // OK
-  {
-    return new MyClass().foo; // OK
-  }
-  while (null == someBool) // OK
-  {
-    return new MyClass()..foo; // LINT
-  }
-  for (; someBool ?? someBool;) // OK
-  {
-    return <dynamic, dynamic>{}; // OK
-  }
-  do {} while ("blah".isEmpty); // OK
-  for (var i in []) {} // OK
-  switch (~1) // OK
-      {
-  }
-
-  () => new MyClass().foo; // LINT
-  myfun() => new MyClass().foo; // OK
-  myfun2() => new MyClass()..foo; // LINT
-}
-
-myfun() => new MyClass().foo; // OK
-myfun2() => new MyClass()..foo; // LINT
-
 expressionBranching() {
   null ?? 1 + 1; // LINT
   null ?? foo; // LINT
@@ -175,15 +88,7 @@ inOtherStatements() {
 
 bool someBool = true;
 bool foo() => true;
-get getter => true;
-int field = 0;
 
 class MyClass {
-  int field = 0;
   bool foo() => true;
-
-  get getter => true;
-
-  MyClass();
-  MyClass.named();
 }

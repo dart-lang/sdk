@@ -16,20 +16,13 @@ import '../analyzer.dart';
 const _desc = 'Unreachable top-level members in executable libraries.';
 
 const _details = r'''
-Top-level members and static members in an executable library should be used
-'''
-// TODO(srawlins): Lasse
-// [suggests](https://github.com/dart-lang/linter/issues/3625#issuecomment-1735355630)
-// changing this to use "statically resolved" members, which I love. But it
-// will mean reporting additionally on extension instance members and extension
-// type instance members, so land carefully.
-    '''
-directly inside this library.  An executable library is a library that contains
-a `main` top-level function or that contains a top-level function annotated with
+Any member declared in an executable library should be used directly inside that
+library.  An executable library is a library that contains a `main` top-level
+function or that contains a top-level function annotated with
 `@pragma('vm:entry-point')`).  Executable libraries are not usually imported
 and it's better to avoid defining unused members.
 
-This rule assumes that an executable library isn't imported by other files
+This rule assumes that an executable library isn't imported by other libraries
 except to execute its `main` function.
 
 **BAD:**
