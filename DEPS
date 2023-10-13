@@ -71,7 +71,7 @@ vars = {
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:11.9.79",
+  "d8_tag": "version:11.9.95",
   "jsshell_tag": "version:95.0",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -205,7 +205,7 @@ vars = {
   # Pinned browser versions used by the testing infrastructure. These are not
   # meant to be downloaded by users for local testing.
   "download_chrome": False,
-  "chrome_tag": "118.0.5993.70",
+  "chrome_tag": "119.0.6045.9", # Beta version with WasmGC final encodings.
   "download_firefox": False,
   "firefox_tag": "112.0.2",
 
