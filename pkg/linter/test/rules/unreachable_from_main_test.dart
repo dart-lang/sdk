@@ -1020,6 +1020,35 @@ extension type E(int it) {}
 ''');
   }
 
+  test_instanceFieldOnExtension_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  E.f;
+}
+
+extension E on int {
+  static int f = 1;
+  void m() {}
+}
+''', [
+      lint(72, 1),
+    ]);
+  }
+
+  test_instanceMethod_unreachable_inExtensionType() async {
+    await assertDiagnostics(r'''
+void main() {
+  E(7);
+}
+
+extension type E(int it) {
+  void m() {}
+}
+''', [
+      lint(59, 1),
+    ]);
+  }
+
   test_mixin_reachable_implemented() async {
     await assertNoDiagnostics(r'''
 void main() {
