@@ -117,7 +117,6 @@ _nightly_builder(
 _extra_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|a6",
-    channels = ["try"],
     dimensions = [jammy, arm64],
     goma = False,
 )
@@ -227,7 +226,6 @@ _nightly_builder(
 _nightly_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|a6",
-    channels = ["try"],
     dimensions = [jammy, arm64],
     goma = False,
 )
