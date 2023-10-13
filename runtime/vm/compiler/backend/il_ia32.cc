@@ -183,13 +183,13 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Representation array_rep,
                                               Location start_loc) {
-  intptr_t offset;
-  if (IsTypedDataBaseClassId(array_cid)) {
-    __ movl(array_reg,
-            compiler::FieldAddress(
-                array_reg, compiler::target::PointerBase::data_offset()));
-    offset = 0;
+  intptr_t offset = 0;
+  if (array_rep != kTagged) {
+    // Do nothing, array_reg already contains the payload address.
+  } else if (IsTypedDataBaseClassId(array_cid)) {
+    __ LoadFromSlot(array_reg, array_reg, Slot::PointerBase_data());
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
@@ -205,14 +205,12 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                 compiler::FieldAddress(array_reg,
                                        compiler::target::ExternalOneByteString::
                                            external_data_offset()));
-        offset = 0;
         break;
       case kExternalTwoByteStringCid:
         __ movl(array_reg,
                 compiler::FieldAddress(array_reg,
                                        compiler::target::ExternalTwoByteString::
                                            external_data_offset()));
-        offset = 0;
         break;
       default:
         UNREACHABLE();
@@ -1467,9 +1465,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label rest, rest_loop, rest_loop_in, done;
 
   // Address of input bytes.
-  __ movl(bytes_reg,
-          compiler::FieldAddress(bytes_reg,
-                                 compiler::target::PointerBase::data_offset()));
+  __ LoadFromSlot(bytes_reg, bytes_reg, Slot::PointerBase_data());
 
   // Pointers to start, end and end-16.
   __ leal(bytes_ptr_reg, compiler::Address(bytes_reg, start_reg, TIMES_1, 0));
@@ -1585,24 +1581,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const auto scan_flags_field_offset = scan_flags_field_.offset_in_bytes();
   __ orl(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
          flags_reg);
-}
-
-LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::SameAsFirstInput(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register obj = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
-  if (object()->definition()->representation() == kUntagged) {
-    __ movl(result, compiler::Address(obj, offset()));
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ movl(result, compiler::FieldAddress(obj, offset()));
-  }
 }
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,

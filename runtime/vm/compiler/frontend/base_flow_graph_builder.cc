@@ -277,8 +277,22 @@ Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
   Value* dest = Pop();
   Value* src = Pop();
   auto copy =
-      new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length, src_cid,
-                              dest_cid, unboxed_inputs, can_overlap);
+      new (Z) MemoryCopyInstr(src, src_cid, dest, dest_cid, src_start,
+                              dest_start, length, unboxed_inputs, can_overlap);
+  return Fragment(copy);
+}
+
+Fragment BaseFlowGraphBuilder::MemoryCopyUntagged(intptr_t element_size,
+                                                  bool unboxed_inputs,
+                                                  bool can_overlap) {
+  Value* length = Pop();
+  Value* dest_start = Pop();
+  Value* src_start = Pop();
+  Value* dest = Pop();
+  Value* src = Pop();
+  auto copy =
+      new (Z) MemoryCopyInstr(element_size, src, dest, src_start, dest_start,
+                              length, unboxed_inputs, can_overlap);
   return Fragment(copy);
 }
 
@@ -429,29 +443,6 @@ Fragment BaseFlowGraphBuilder::ConvertUnboxedToUntagged(
   return Fragment(converted);
 }
 
-Fragment BaseFlowGraphBuilder::AddIntptrIntegers() {
-  Value* right = Pop();
-  Value* left = Pop();
-#if defined(TARGET_ARCH_IS_64_BIT)
-  auto add = new (Z) BinaryInt64OpInstr(
-      Token::kADD, left, right, DeoptId::kNone, Instruction::kNotSpeculative);
-#else
-  auto add =
-      new (Z) BinaryInt32OpInstr(Token::kADD, left, right, DeoptId::kNone);
-#endif
-  add->mark_truncating();
-  Push(add);
-  return Fragment(add);
-}
-
-Fragment BaseFlowGraphBuilder::UnboxSmiToIntptr() {
-  Value* value = Pop();
-  auto untagged = UnboxInstr::Create(kUnboxedIntPtr, value, DeoptId::kNone,
-                                     Instruction::kNotSpeculative);
-  Push(untagged);
-  return Fragment(untagged);
-}
-
 Fragment BaseFlowGraphBuilder::FloatToDouble() {
   Value* value = Pop();
   FloatToDoubleInstr* instr = new FloatToDoubleInstr(value, DeoptId::kNone);
@@ -473,11 +464,13 @@ Fragment BaseFlowGraphBuilder::LoadField(const Field& field,
                          calls_initializer);
 }
 
-Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
-                                               bool calls_initializer) {
+Fragment BaseFlowGraphBuilder::LoadNativeField(
+    const Slot& native_field,
+    InnerPointerAccess loads_inner_pointer,
+    bool calls_initializer) {
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
-      Pop(), native_field, InstructionSource(), calls_initializer,
-      calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
+      Pop(), native_field, loads_inner_pointer, InstructionSource(),
+      calls_initializer, calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
   Push(load);
   return Fragment(load);
 }
@@ -516,6 +509,7 @@ const Field& BaseFlowGraphBuilder::MayCloneField(Zone* zone,
 Fragment BaseFlowGraphBuilder::StoreNativeField(
     TokenPosition position,
     const Slot& slot,
+    InnerPointerAccess stores_inner_pointer,
     StoreFieldInstr::Kind kind /* = StoreFieldInstr::Kind::kOther */,
     StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
@@ -523,9 +517,9 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
-  StoreFieldInstr* store =
-      new (Z) StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
-                              InstructionSource(position), kind);
+  StoreFieldInstr* store = new (Z)
+      StoreFieldInstr(slot, Pop(), value, emit_store_barrier,
+                      stores_inner_pointer, InstructionSource(position), kind);
   return Fragment(store);
 }
 

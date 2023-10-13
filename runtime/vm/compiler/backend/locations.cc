@@ -60,8 +60,13 @@ bool RepresentationUtils::IsUnsigned(Representation rep) {
 #undef REP_IN_SET_CLAUSE
 
 compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
-  if (rep == kTagged || rep == kUntagged) {
+  if (rep == kTagged) {
     return compiler::kObjectBytes;
+  } else if (rep == kUntagged) {
+    // Untagged addresses are either loaded from and stored to word size native
+    // fields or generated from already-extended tagged addresses when
+    // compressed pointers are enabled.
+    return compiler::kWordBytes;
   }
   ASSERT(IsUnboxedInteger(rep));
   switch (ValueSize(rep)) {

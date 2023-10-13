@@ -145,17 +145,8 @@ NULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 #undef FOR_EACH_NATIVE_SLOT
 
-// Only define AOT-only unboxed native slots when in the precompiler. See
-// UNBOXED_NATIVE_SLOTS_LIST for the format.
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-#define AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                  \
-  V(Closure, UntaggedClosure, entry_point, Uword, FINAL)
-#else
-#define AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)
-#endif
-
-// List of slots that correspond to unboxed fields of native objects in the
-// following format:
+// List of slots that correspond to unboxed fields of native objects that
+// do not contain untagged addresses in the following format:
 //
 //     V(class_name, underlying_type, field_name, representation, FINAL|VAR)
 //
@@ -172,20 +163,62 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 //
 // Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
 // unboxed slots represent length loads.
-#define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
-  AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
+#define UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(V)                                \
   V(AbstractType, UntaggedAbstractType, flags, Uint32, FINAL)                  \
   V(ClosureData, UntaggedClosureData, packed_fields, Uint32, FINAL)            \
-  V(FinalizerBase, UntaggedFinalizerBase, isolate, IntPtr, VAR)                \
   V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
-  V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(FunctionType, UntaggedFunctionType, packed_parameter_counts, Uint32,       \
     FINAL)                                                                     \
   V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
     FINAL)                                                                     \
-  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)                       \
   V(SubtypeTestCache, UntaggedSubtypeTestCache, num_inputs, Uint32, FINAL)
+
+// Unboxed native slots containing untagged addresses that do not exist
+// in JIT mode. See UNBOXED_NATIVE_ADDRESS_SLOTS_LIST for the format.
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+#define AOT_ONLY_UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)                          \
+  V(Closure, UntaggedClosure, entry_point, false, FINAL)
+#else
+#define AOT_ONLY_UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)
+#endif
+
+// List of slots that correspond to unboxed fields of native objects containing
+// untagged addresses in the following format:
+//
+//     V(class_name, underlying_type, field_name, gc_may_move, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - underlying_type: the Raw class which holds the field;
+// - gc_may_move: whether the untagged address contained in this field is a
+//   pointer to memory that may be moved by the GC, which means a value loaded
+//   from this field is invalidated by any instruction that can cause GC;
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+//
+// Note: As the underlying field is unboxed, these slots cannot be nullable.
+//
+// Note: All slots for unboxed fields that contain untagged addresses are given
+// the kUntagged representation, and so a value loaded from these fields must
+// be converted explicitly to an unboxed integer representation for any
+// pointer arithmetic before use, and an unboxed integer must be converted
+// explicitly to an untagged address before being stored to these fields.
+//
+// Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
+// unboxed slots represent length loads.
+#define UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)                                   \
+  AOT_ONLY_UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)                                \
+  V(Function, UntaggedFunction, entry_point, false, FINAL)                     \
+  V(FinalizerBase, UntaggedFinalizerBase, isolate, false, VAR)                 \
+  V(PointerBase, UntaggedPointerBase, data, true, VAR)
+
+// For uses that do not need to know whether a given slot may contain an
+// inner pointer to a GC-able object or not. (Generally, such users only need
+// the class name, the underlying type, and/or the field name.)
+#define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
+  UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(V) UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(V)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
 // or whether a boxed native slot is nullable. (Generally, such users only need
@@ -317,6 +350,12 @@ class Slot : public ZoneAllocated {
 
   bool is_compressed() const { return IsCompressedBit::decode(flags_); }
 
+  // Returns true if the field is an unboxed native field that may contain an
+  // inner pointer to a GC-movable object.
+  bool may_contain_inner_pointer() const {
+    return MayContainInnerPointerBit::decode(flags_);
+  }
+
   // Type information about values that can be read from this slot.
   CompileType type() const { return type_; }
 
@@ -335,10 +374,7 @@ class Slot : public ZoneAllocated {
     return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
   }
 
-  bool is_unboxed() const {
-    return IsUnboxedBit::decode(flags_);
-  }
-  Representation UnboxedRepresentation() const;
+  bool is_unboxed() const { return IsUnboxedBit::decode(flags_); }
 
   void Write(FlowGraphSerializer* s) const;
   static const Slot& Read(FlowGraphDeserializer* d);
@@ -372,6 +408,8 @@ class Slot : public ZoneAllocated {
   using IsGuardedBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
   using IsCompressedBit = BitField<int8_t, bool, IsGuardedBit::kNextBit, 1>;
   using IsUnboxedBit = BitField<int8_t, bool, IsCompressedBit::kNextBit, 1>;
+  using MayContainInnerPointerBit =
+      BitField<int8_t, bool, IsUnboxedBit::kNextBit, 1>;
 
   template <typename T>
   const T* DataAs() const {

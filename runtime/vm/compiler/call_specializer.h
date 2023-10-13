@@ -222,7 +222,7 @@ class CallSpecializer : public FlowGraphVisitor {
 //
 //    // Directly access the byte, independent of whether `bytes` is
 //    // _Uint8List, _Uint8ArrayView or _ExternalUint8Array.
-//    v5 <- LoadUntagged(v1, "TypedDataBase.data");
+//    v5 <- LoadField(Slot::PointerBase_data(), v1);
 //    v5 <- LoadIndexed(v5, v4)
 //
 class TypedDataSpecializer : public FlowGraphVisitor {

@@ -990,6 +990,15 @@ Instruction* StoreFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       value()->BindsToConstantNull()) {
     return nullptr;
   }
+
+  if (slot().kind() == Slot::Kind::kPointerBase_data &&
+      stores_inner_pointer() == InnerPointerAccess::kMayBeInnerPointer) {
+    const intptr_t cid = instance()->Type()->ToNullableCid();
+    // Pointers and ExternalTypedData objects never contain inner pointers.
+    if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
+      set_stores_inner_pointer(InnerPointerAccess::kCannotBeInnerPointer);
+    }
+  }
   return this;
 }
 
@@ -2732,6 +2741,24 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
   return true;
 }
 
+bool LoadFieldInstr::MayCreateUntaggedAlias() const {
+  // If the load is guaranteed to never retrieve a GC-moveable address,
+  // then the returned address can't alias the (GC-moveable) instance.
+  if (loads_inner_pointer() != InnerPointerAccess::kMayBeInnerPointer) {
+    return false;
+  }
+  if (slot().IsIdentical(Slot::PointerBase_data())) {
+    // If we know statically that the instance is a Pointer, typed data view,
+    // or external typed data, then the data field doesn't alias the instance.
+    const intptr_t cid = instance()->Type()->ToNullableCid();
+    if (cid == kPointerCid) return false;
+    if (IsTypedDataViewClassId(cid)) return false;
+    if (IsUnmodifiableTypedDataViewClassId(cid)) return false;
+    if (IsExternalTypedDataClassId(cid)) return false;
+  }
+  return true;
+}
+
 bool LoadFieldInstr::Evaluate(const Object& instance, Object* result) {
   return TryEvaluateLoad(instance, slot(), result);
 }
@@ -2873,6 +2900,16 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
       break;
+    case Slot::Kind::kPointerBase_data:
+      ASSERT(!calls_initializer());
+      if (loads_inner_pointer() == InnerPointerAccess::kMayBeInnerPointer) {
+        const intptr_t cid = instance()->Type()->ToNullableCid();
+        // Pointers and ExternalTypedData objects never contain inner pointers.
+        if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
+          set_loads_inner_pointer(InnerPointerAccess::kCannotBeInnerPointer);
+        }
+      }
+      break;
     default:
       break;
   }
@@ -2887,7 +2924,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  if (instance()->definition()->IsAllocateObject() && slot().is_immutable()) {
+  if (instance()->definition()->IsAllocateObject() && IsImmutableLoad()) {
     StoreFieldInstr* initializing_store = nullptr;
     for (auto use : instance()->definition()->input_uses()) {
       if (auto store = use->instruction()->AsStoreField()) {
@@ -3330,11 +3367,14 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
     const auto intermediate_rep = first_converter->representation();
     // Only eliminate intermediate conversion if it does not change the value.
     auto src_defn = first_converter->value()->definition();
-    if (!Range::Fits(src_defn->range(), intermediate_rep)) {
+    if (intermediate_rep == kUntagged) {
+      // Both conversions are no-ops, as the other representations must be
+      // either kUnboxedIntPtr or kUnboxedFfiIntPtr.
+    } else if (!Range::Fits(src_defn->range(), intermediate_rep)) {
       return this;
     }
 
-    // Otherise it is safe to discard any other conversions from and then back
+    // Otherwise it is safe to discard any other conversions from and then back
     // to the same integer type.
     if (first_converter->from() == to()) {
       return src_defn;
@@ -4450,20 +4490,40 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register obj = locs()->in(0).reg();
+  Register result = locs()->out(0).reg();
+  if (object()->definition()->representation() == kUntagged) {
+    __ LoadFromOffset(result, obj, offset());
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ LoadFieldFromOffset(result, obj, offset());
+  }
+}
+
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
   LocationSummary* locs = nullptr;
-  if (slot().representation() != kTagged) {
+  auto const rep = slot().representation();
+  if (rep != kTagged) {
     ASSERT(!calls_initializer());
 
     const intptr_t kNumTemps = 0;
     locs = new (zone)
         LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
-    if (RepresentationUtils::IsUnboxedInteger(slot().representation())) {
-      const size_t value_size =
-          RepresentationUtils::ValueSize(slot().representation());
+    if (rep == kUntagged) {
+      locs->set_out(0, Location::RequiresRegister());
+    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+      const size_t value_size = RepresentationUtils::ValueSize(rep);
       if (value_size <= compiler::target::kWordSize) {
         locs->set_out(0, Location::RequiresRegister());
       } else {
@@ -4509,15 +4569,18 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register instance_reg = locs()->in(0).reg();
-  if (representation() != kTagged) {
-    if (RepresentationUtils::IsUnboxedInteger(representation())) {
-      const size_t value_size =
-          RepresentationUtils::ValueSize(representation());
+  auto const rep = slot().representation();
+  if (rep != kTagged) {
+    if (rep == kUntagged) {
+      const Register result = locs()->out(0).reg();
+      __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes(),
+                             RepresentationUtils::OperandSize(rep));
+    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+      const size_t value_size = RepresentationUtils::ValueSize(rep);
       if (value_size <= compiler::target::kWordSize) {
         const Register result = locs()->out(0).reg();
-        __ LoadFieldFromOffset(
-            result, instance_reg, OffsetInBytes(),
-            RepresentationUtils::OperandSize(representation()));
+        __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes(),
+                               RepresentationUtils::OperandSize(rep));
       } else {
         auto const result_pair = locs()->out(0).AsPairLocation();
         const Register result_lo = result_pair->At(0).reg();
@@ -6815,6 +6878,8 @@ Instruction* MemoryCopyInstr::Canonicalize(FlowGraph* flow_graph) {
 void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register src_reg = locs()->in(kSrcPos).reg();
   const Register dest_reg = locs()->in(kDestPos).reg();
+  const Representation src_rep = RequiredInputRepresentation(kSrcPos);
+  const Representation dest_rep = RequiredInputRepresentation(kDestPos);
   const Location& src_start_loc = locs()->in(kSrcStartPos);
   const Location& dest_start_loc = locs()->in(kDestStartPos);
   const Location& length_loc = locs()->in(kLengthPos);
@@ -6830,8 +6895,9 @@ void MemoryCopyInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The zero constant case should be handled via canonicalization.
   ASSERT(!constant_length || num_elements > 0);
 
-  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_start_loc);
-  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_start_loc);
+  EmitComputeStartPointer(compiler, src_cid_, src_reg, src_rep, src_start_loc);
+  EmitComputeStartPointer(compiler, dest_cid_, dest_reg, dest_rep,
+                          dest_start_loc);
 
   compiler::Label copy_forwards, done;
   if (!constant_length) {
@@ -7326,9 +7392,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
           compiler->zone(), pointer_loc.payload_type(),
           pointer_loc.container_type(), temp0);
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
-      __ LoadField(temp0,
-                   compiler::FieldAddress(
-                       temp0, compiler::target::PointerBase::data_offset()));
+      __ LoadFromSlot(temp0, temp0, Slot::PointerBase_data());
 
       // Copy chunks.
       const intptr_t sp_offset =
@@ -7396,9 +7460,7 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
       compiler->EmitMove(Location::RegisterLocation(temp0), typed_data_loc,
                          &no_temp);
     }
-    __ LoadField(temp0,
-                 compiler::FieldAddress(
-                     temp0, compiler::target::PointerBase::data_offset()));
+    __ LoadFromSlot(temp0, temp0, Slot::PointerBase_data());
 
     if (returnLocation.IsPointerToMemory()) {
       // Copy blocks from the stack location to TypedData.
@@ -7478,10 +7540,12 @@ LocationSummary* StoreFieldInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   summary->set_in(kInstancePos, Location::RequiresRegister());
-  if (slot().representation() != kTagged) {
-    if (RepresentationUtils::IsUnboxedInteger(slot().representation())) {
-      const size_t value_size =
-          RepresentationUtils::ValueSize(slot().representation());
+  const Representation rep = slot().representation();
+  if (rep != kTagged) {
+    if (rep == kUntagged) {
+      summary->set_in(kValuePos, Location::RequiresRegister());
+    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+      const size_t value_size = RepresentationUtils::ValueSize(rep);
       if (value_size <= compiler::target::kWordSize) {
         summary->set_in(kValuePos, Location::RequiresRegister());
       } else {
@@ -7539,17 +7603,20 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t offset_in_bytes = OffsetInBytes();
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
+  auto const rep = slot().representation();
   if (slot().representation() != kTagged) {
     // Unboxed field.
     ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
-    if (RepresentationUtils::IsUnboxedInteger(slot().representation())) {
-      const size_t value_size =
-          RepresentationUtils::ValueSize(slot().representation());
+    if (rep == kUntagged) {
+      const Register value = locs()->in(kValuePos).reg();
+      __ StoreFieldToOffset(value, instance_reg, offset_in_bytes,
+                            RepresentationUtils::OperandSize(rep));
+    } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
+      const size_t value_size = RepresentationUtils::ValueSize(rep);
       if (value_size <= compiler::target::kWordSize) {
         const Register value = locs()->in(kValuePos).reg();
-        __ StoreFieldToOffset(
-            value, instance_reg, offset_in_bytes,
-            RepresentationUtils::OperandSize(slot().representation()));
+        __ StoreFieldToOffset(value, instance_reg, offset_in_bytes,
+                              RepresentationUtils::OperandSize(rep));
       } else {
         auto const value_pair = locs()->in(kValuePos).AsPairLocation();
         const Register value_lo = value_pair->At(0).reg();
@@ -7669,10 +7736,7 @@ void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
   if (dst1.IsMultiple()) {
     Register typed_data_reg = locs()->in(0).reg();
     // Load the data pointer out of the TypedData/Pointer.
-    __ LoadField(
-        typed_data_reg,
-        compiler::FieldAddress(typed_data_reg,
-                               compiler::target::PointerBase::data_offset()));
+    __ LoadFromSlot(typed_data_reg, typed_data_reg, Slot::PointerBase_data());
 
     const auto& multiple = dst1.AsMultiple();
     int offset_in_bytes = 0;

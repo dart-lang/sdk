@@ -258,6 +258,7 @@ void generatePatchExtension(
       ? ""
       : """
   @patch
+  @pragma("vm:prefer-inline")
   $typedListType asTypedList(
     int length, {
      Pointer<NativeFinalizerFunction>? finalizer,
