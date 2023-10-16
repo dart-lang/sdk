@@ -300,6 +300,16 @@ foo() {
 ''', SnippetContext.inBlock);
   }
 
+  Future<void> test_importPrefixMember() async {
+    await testRequest(r'''
+import 'dart:async' as a;
+
+void f() {
+  a.[!^!]
+}
+''', SnippetContext.inQualifiedMemberAccess);
+  }
+
   Future<void> test_initializingFormal() async {
     await testRequest(r'''
 class A {
@@ -447,6 +457,21 @@ f(String a) => switch (a) {
     [!sw^!]
 };
 ''', SnippetContext.inPattern);
+  }
+
+  Future<void> test_prefixedEnumMember() async {
+    await testRequest(r'''
+import 'test.dart' as self;
+
+enum MyEnum {
+  one,
+  two,
+}
+
+void f() {
+  self.MyEnum.[!^!]
+}
+''', SnippetContext.inQualifiedMemberAccess);
   }
 
   Future<void> test_statement_forCondition() async {
