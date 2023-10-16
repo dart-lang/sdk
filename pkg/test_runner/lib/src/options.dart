@@ -21,8 +21,6 @@ const _legacyTestSelectors = [
   'language_2',
   'lib_2',
   'kernel',
-  'observatory_ui_2',
-  'service_2',
   'standalone_2',
   'utils',
   'vm',
