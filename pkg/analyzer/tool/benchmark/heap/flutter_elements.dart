@@ -169,6 +169,10 @@ BenchmarkResultCompound _analyzeSnapshot(Uint8List bytes) {
     _doInterfaceType(analysis),
   );
 
+  allResults.add(
+    _doLinkedData(analysis),
+  );
+
   print('[+${timer.elapsedMilliseconds} ms] Compute benchmark results');
   print('');
 
@@ -191,6 +195,26 @@ BenchmarkResult _doInterfaceType(Analysis analysis) {
     BenchmarkResultBytes(
       name: 'size(shallow)',
       value: measure.size,
+    ),
+  ]);
+}
+
+BenchmarkResult _doLinkedData(Analysis analysis) {
+  final readerUri = Uri.parse(
+    'package:analyzer/src/summary2/bundle_reader.dart',
+  );
+
+  final classSet = analysis.classByPredicate((e) {
+    return e.libraryUri == readerUri && e.name.endsWith('LinkedData');
+  });
+
+  final objects = analysis.filterByClassId(analysis.reachableObjects, classSet);
+
+  final measure = analysis.measureObjects(objects);
+  return BenchmarkResultCompound(name: 'LinkedData', children: [
+    BenchmarkResultCount(
+      name: 'count',
+      value: measure.count,
     ),
   ]);
 }
@@ -324,6 +348,17 @@ class _ObjectSetMeasure {
 }
 
 extension on Analysis {
+  IntSet classByPredicate(bool Function(HeapSnapshotClass) predicate) {
+    final allClasses = graph.classes;
+    final classSet = SpecializedIntSet(allClasses.length);
+    for (final class_ in allClasses) {
+      if (predicate(class_)) {
+        classSet.add(class_.classId);
+      }
+    }
+    return classSet;
+  }
+
   IntSet filterByClass(
     IntSet objectIds, {
     required Uri libraryUri,

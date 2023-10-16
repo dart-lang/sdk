@@ -4236,18 +4236,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   Namespace get exportNamespace {
-    if (_exportNamespace != null) return _exportNamespace!;
-
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      var elements = linkedData.elementFactory;
-      return _exportNamespace = elements.buildExportNamespace(
-        source.uri,
-        exportedReferences,
-      );
-    }
-
-    return _exportNamespace!;
+    linkedData?.read(this);
+    return _exportNamespace ??= Namespace({});
   }
 
   set exportNamespace(Namespace exportNamespace) {
