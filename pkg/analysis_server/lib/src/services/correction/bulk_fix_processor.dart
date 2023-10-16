@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
@@ -18,8 +19,8 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -34,18 +35,25 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceFileEdit;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:collection/collection.dart';
+import 'package:yaml/yaml.dart';
 
+import 'fix/pubspec/fix_generator.dart';
 import 'organize_imports.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
@@ -267,6 +275,11 @@ class BulkFixProcessor {
           List<AnalysisContext> contexts) =>
       _computeFixesUsingParsedResult(contexts);
 
+  /// Return a [PubspecFixRequestResult] that includes edits to the pubspec
+  /// files in the given [contexts].
+  Future<PubspecFixRequestResult> fixPubspec(List<AnalysisContext> contexts) =>
+      _computeChangesToPubspec(contexts);
+
   /// Return a [BulkFixRequestResult] that includes a change builder that has
   /// been used to format the dart files in the given [contexts].
   Future<BulkFixRequestResult> formatCode(List<AnalysisContext> contexts) =>
@@ -316,6 +329,77 @@ class BulkFixProcessor {
         }
       }
     }
+  }
+
+  Future<PubspecFixRequestResult> _computeChangesToPubspec(
+      List<AnalysisContext> contexts) async {
+    var fixes = <SourceFileEdit>[];
+    var details = <BulkFix>[];
+    for (var context in contexts) {
+      var workspace = context.contextRoot.workspace;
+      if (workspace is GnWorkspace || workspace is BlazeWorkspace) {
+        continue;
+      }
+      // Find the pubspec file
+      var rootFolder = context.contextRoot.root;
+      var pubspecFile = rootFolder.getChild('pubspec.yaml') as File;
+      if (!pubspecFile.exists) {
+        continue;
+      }
+      var packages = <String>{};
+      var devPackages = <String>{};
+
+      var pathContext = context.contextRoot.resourceProvider.pathContext;
+      final libPath = rootFolder.getChild('lib').path;
+      final binPath = rootFolder.getChild('bin').path;
+
+      bool isPublic(String path) {
+        if (path.startsWith(libPath) || path.startsWith(binPath)) {
+          return true;
+        }
+        return false;
+      }
+
+      for (var path in context.contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
+          continue;
+        }
+        // Get the list of imports used in the files.
+        var result = context.currentSession.getParsedLibrary(path)
+            as ParsedLibraryResult;
+        for (var unit in result.units) {
+          var directives = unit.unit.directives;
+          for (var directive in directives) {
+            var uri =
+                (directive is ImportDirective) ? directive.uri.stringValue : '';
+            if (uri!.startsWith('package:')) {
+              final name = Uri.parse(uri).pathSegments.first;
+              if (isPublic(path)) {
+                packages.add(name);
+              } else {
+                devPackages.add(name);
+              }
+            }
+          }
+        }
+      }
+
+      // Compute changes to pubspec.
+      var result = await _runPubspecValidatorAndFixGenerator(
+          FileSource(pubspecFile),
+          packages,
+          devPackages,
+          context.contextRoot.resourceProvider);
+      if (result.isNotEmpty) {
+        for (var fix in result) {
+          fixes.addAll(fix.change.edits);
+        }
+        details.add(BulkFix(pubspecFile.path,
+            [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
+      }
+    }
+    return PubspecFixRequestResult(fixes, details);
   }
 
   /// Implementation for [fixErrors] and [hasFixes].
@@ -373,7 +457,6 @@ class BulkFixProcessor {
         }
       }
     }
-
     return BulkFixRequestResult(builder);
   }
 
@@ -828,6 +911,28 @@ class BulkFixProcessor {
     }
     return null;
   }
+
+  Future<List<Fix>> _runPubspecValidatorAndFixGenerator(
+      Source pubspec,
+      Set<String> usedDeps,
+      Set<String> usedDevDeps,
+      ResourceProvider resourceProvider) async {
+    String contents = pubspec.contents.data;
+    YamlNode node = loadYamlNode(contents);
+    if (node is! YamlMap) {
+      // The file is empty.
+      node = YamlMap();
+    }
+
+    var errors = MissingDependencyValidator(node, pubspec, resourceProvider)
+        .validate(usedDeps, usedDevDeps);
+    if (errors.isNotEmpty) {
+      var generator =
+          PubspecFixGenerator(resourceProvider, errors[0], contents, node);
+      return await generator.computeFixes();
+    }
+    return [];
+  }
 }
 
 class BulkFixRequestResult {
@@ -944,6 +1049,13 @@ class IterativeBulkFixProcessor {
       return changes;
     });
   }
+}
+
+class PubspecFixRequestResult {
+  final List<SourceFileEdit> edits;
+  final List<BulkFix> details;
+
+  PubspecFixRequestResult(this.edits, this.details);
 }
 
 extension on String {

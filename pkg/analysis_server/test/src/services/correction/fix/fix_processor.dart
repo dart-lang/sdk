@@ -100,6 +100,23 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     return DartChangeWorkspace([await session]);
   }
 
+  /// Computes fixes for the pubspecs in the given contexts.
+  Future<void> assertFixPubspec(String original, String expected) async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    var processor = BulkFixProcessor(
+        TestInstrumentationService(), await workspace,
+        useConfigFiles: useConfigFiles);
+    var fixes = (await processor.fixPubspec([analysisContext])).edits;
+    var edits = <SourceEdit>[];
+    for (var fix in fixes) {
+      edits.addAll(fix.edits);
+    }
+    var result = SourceEdit.applySequence(original, edits);
+    expect(result, expected);
+  }
+
   Future<void> assertFormat(String expectedCode) async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
