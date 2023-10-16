@@ -12347,18 +12347,8 @@ class IntersectionType extends DartType {
 }
 
 /// Reference to a type variable.
-///
-/// A type variable has an optional bound because type promotion can change the
-/// bound.  A bound of `null` indicates that the bound has not been promoted and
-/// is the same as the [TypeParameter]'s bound.  This allows one to detect
-/// whether the bound has been promoted.  The case of promoted bound can be
-/// viewed as representing an intersection type between the type-parameter type
-/// and the promoted bound.
 class TypeParameterType extends DartType {
   /// The declared nullability of a type-parameter type.
-  ///
-  /// When a [TypeParameterType] represents an intersection,
-  /// [declaredNullability] is the nullability of the left-hand side.
   @override
   Nullability declaredNullability;
 
