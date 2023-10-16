@@ -77,6 +77,7 @@ dart.try_builder(
     },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
+    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
 )
 
 dart.try_builder(
