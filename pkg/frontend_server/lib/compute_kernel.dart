@@ -14,6 +14,8 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolated_executor;
+import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
+    as multi_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
     as process_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
@@ -116,9 +118,10 @@ final summaryArgsParser = ArgParser()
       help: 'Configuration for precompiled macro binaries or kernel files.\n'
           'Must be used in combination with --precompiled-macro-format.\n'
           'The expected format of this option is as follows: '
-          '<macro-library-uri>;<absolute-path-to-binary>\nFor example: '
-          '--precompiled-macro="package:some_macro/some_macro.dart;'
-          '/path/to/compiled/macro"')
+          '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
+          '--precompiled-macro="/path/to/compiled/macro;'
+          'package:some_macro/some_macro.dart". Multiple library uris may be '
+          'passed as well (separated by semicolons).')
   ..addOption('precompiled-macro-format',
       help: 'The format for precompiled macros.',
       allowed: ['aot', 'kernel'],
@@ -373,8 +376,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   // Either set up or reset the state for macros based on experiment status.
-  // TODO: Make this a part of `initializeCompiler`, if/when we want to make it
-  // more widely supported.
+  // TODO(jakemac,johnniwinther): Make this a part of `initializeCompiler`,
+  // if/when we want to make it more widely supported.
+  var registeredMacroExecutors = <multi_executor.ExecutorFactoryToken>[];
   if (state.processedOpts.globalFeatures.macros.isEnabled) {
     enableMacros = true;
     forceEnableMacros = true;
@@ -399,24 +403,28 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     var format = parsedArgs['precompiled-macro-format'];
     for (var parts in (parsedArgs['precompiled-macro'] as List<String>)
         .map((arg) => arg.split(';'))) {
-      var library = Uri.parse(parts[0]);
-      if (macroExecutor.libraryIsRegistered(library)) {
+      var libraries = parts
+          .skip(1)
+          .map(Uri.parse)
+          .where((library) => !macroExecutor.libraryIsRegistered(library))
+          .toSet();
+      if (libraries.isEmpty) {
         continue;
       }
-      var programUri = toUri(parts[1]);
+      var programUri = toUri(parts[0]);
       switch (format) {
         case 'kernel':
-          macroExecutor.registerExecutorFactory(
+          registeredMacroExecutors.add(macroExecutor.registerExecutorFactory(
               () => isolated_executor.start(serializationMode, programUri),
-              {library});
+              libraries));
           break;
         case 'aot':
-          macroExecutor.registerExecutorFactory(
+          registeredMacroExecutors.add(macroExecutor.registerExecutorFactory(
               () => process_executor.start(
                   serializationMode,
                   process_executor.CommunicationChannel.socket,
                   programUri.toFilePath()),
-              {library});
+              libraries));
           break;
         default:
           throw ArgumentError('Unrecognized precompiled macro format $format');
@@ -523,6 +531,15 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
+
+  // Unregister any macros executors so the processes can be shut down.
+  // TODO(jakemac,johnniwinther): A better cleanup mechanism? Should these be
+  // longer lived?
+  if (state.options.macroExecutor != null &&
+      registeredMacroExecutors.isNotEmpty) {
+    await Future.wait(registeredMacroExecutors.map((token) =>
+        state.options.macroExecutor!.unregisterExecutorFactory(token)));
+  }
 
   if (!wroteUsedDills && recordUsedInputs) {
     // The path taken didn't record inputs used: Say we used everything.
