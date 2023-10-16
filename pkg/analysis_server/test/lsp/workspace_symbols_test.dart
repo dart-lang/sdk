@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -19,9 +21,10 @@ void main() {
 class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_cancellation() async {
     const content = '''
-    void f() {}
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
+void f() {}
+''';
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize();
 
     final symbolsRequest1 = makeRequest(
@@ -92,10 +95,11 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_extensions() async {
     const content = '''
-    extension StringExtensions on String {}
-    extension on String {}
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
+extension StringExtensions on String {}
+extension on String {}
+''';
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize();
 
     final symbols = await getWorkspaceSymbols('S');
@@ -112,7 +116,8 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     const content = r'''
 extension type MyExtensionType(int it) {}
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize();
 
     final symbols = await getWorkspaceSymbols('MyExt');
@@ -129,7 +134,8 @@ extension type E(int it) {
   void foo() {}
 }
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize();
 
     final symbols = await getWorkspaceSymbols('foo');
@@ -142,14 +148,15 @@ extension type E(int it) {
 
   Future<void> test_fullMatch() async {
     const content = '''
-    [[String topLevel = '']];
-    class MyClass {
-      int myField;
-      MyClass(this.myField);
-      myMethod() {}
-    }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
+[!String topLevel = ''!];
+class MyClass {
+  int myField;
+  MyClass(this.myField);
+  myMethod() {}
+}
+''';
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize();
 
     final symbols = await getWorkspaceSymbols('topLevel');
@@ -158,23 +165,24 @@ extension type E(int it) {
     expect(topLevel.kind, equals(SymbolKind.Variable));
     expect(topLevel.containerName, isNull);
     expect(topLevel.location.uri, equals(mainFileUri));
-    expect(topLevel.location.range, equals(rangeFromMarkers(content)));
+    expect(topLevel.location.range, equals(code.range.range));
 
-    // Ensure we didn't get some things that definitely do not match.
+// Ensure we didn't get some things that definitely do not match.
     expect(symbols.any((s) => s.name.contains('MyClass')), isFalse);
     expect(symbols.any((s) => s.name.contains('myMethod')), isFalse);
   }
 
   Future<void> test_fuzzyMatch() async {
     const content = '''
-    String topLevel = '';
-    class MyClass {
-      [[int myField]];
-      MyClass(this.myField);
-      myMethod() {}
-    }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
+String topLevel = '';
+class MyClass {
+  [!int myField!];
+  MyClass(this.myField);
+  myMethod() {}
+}
+''';
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize();
 
     // meld should match myField
@@ -184,7 +192,7 @@ extension type E(int it) {
     expect(field.kind, equals(SymbolKind.Field));
     expect(field.containerName, equals('MyClass'));
     expect(field.location.uri, equals(mainFileUri));
-    expect(field.location.range, equals(rangeFromMarkers(content)));
+    expect(field.location.range, equals(code.range.range));
 
     // Ensure we didn't get some things that definitely do not match.
     expect(symbols.any((s) => s.name.contains('MyClass')), isFalse);
@@ -238,19 +246,20 @@ extension type E(int it) {
 
   Future<void> test_partialMatch() async {
     const content = '''
-    String topLevel = '';
-    class MyClass {
-      [[int myField]];
-      MyClass(this.myField);
-      [[myMethod() {}]]
-      [[myMethodWithArgs(int a) {}]]
-    }
-    ''';
-    newFile(mainFilePath, withoutMarkers(content));
+String topLevel = '';
+class MyClass {
+  /*[0*/int myField/*0]*/;
+  MyClass(this.myField);
+  /*[1*/myMethod() {}/*1]*/
+  /*[2*/myMethodWithArgs(int a) {}/*2]*/
+}
+''';
+    final code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
     await initialize();
 
     final symbols = await getWorkspaceSymbols('my');
-    final ranges = rangesFromMarkers(content);
+    final ranges = code.ranges.ranges;
     final fieldRange = ranges[0];
     final methodRange = ranges[1];
     final methodWithArgsRange = ranges[2];

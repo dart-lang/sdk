@@ -8,11 +8,13 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -31,35 +33,38 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_annotation() async {
     final content = '''
-    import 'other_file.dart' as other;
+import 'other_file.dart' as other;
 
-    @a
-    @A()
-    @A.n()
-    @B(A())
-    @other.C()
-    @other.C.n()
-    void foo() {}
+@a
+@A()
+@A.n()
+@B(A())
+@other.C()
+@other.C.n()
+void foo() {}
 
-    class A {
-      const A();
-      const A.n();
-    }
+class A {
+  const A();
+  const A.n();
+}
 
-    const a = A();
+const a = A();
 
-    class B {
-      final A a;
-      const B(this.a);
-    }
-    ''';
+class B {
+  final A a;
+  const B(this.a);
+}
+''';
 
     final otherContent = '''
-    class C {
-      const C();
-      const C.n();
-    }
-    ''';
+class C {
+  const C();
+  const C.n();
+}
+''';
+
+    final code = TestCode.parse(content);
+    final otherCode = TestCode.parse(otherContent);
 
     final expectedStart = [
       _Token('import', SemanticTokenTypes.keyword),
@@ -123,8 +128,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final otherFileUri = pathContext.toUri(otherFilePath);
 
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    await openFile(otherFileUri, withoutMarkers(otherContent));
+    await openFile(mainFileUri, code.code);
+    await openFile(otherFileUri, otherCode.code);
 
     final tokens = await getSemanticTokens(mainFileUri);
     final decoded = _decodeSemanticTokens(content, tokens);
@@ -138,13 +143,13 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class() async {
     final content = '''
-    /// class docs
-    class MyClass<T> {
-      // class comment
-    }
+/// class docs
+class MyClass<T> {
+  // class comment
+}
 
-    // Trailing comment
-    ''';
+// Trailing comment
+''';
 
     final expected = [
       _Token('/// class docs', SemanticTokenTypes.comment,
@@ -162,18 +167,18 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class_constructors() async {
     final content = '''
-    class MyClass {
-      const MyClass();
-      MyClass.named();
-      factory MyClass.factory() => MyClass();
-    }
+class MyClass {
+  const MyClass();
+  MyClass.named();
+  factory MyClass.factory() => MyClass();
+}
 
-    final a = MyClass();
-    final b = MyClass.named();
-    final c = MyClass.factory();
-    final d = MyClass.named;
-    const e = const MyClass();
-    ''';
+final a = MyClass();
+final b = MyClass.named();
+final c = MyClass.factory();
+final d = MyClass.named;
+const e = const MyClass();
+''';
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
@@ -241,19 +246,19 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class_fields() async {
     final content = '''
-    class MyClass {
-      /// field docs
-      String myField = 'FieldVal';
-      /// static field docs
-      static String myStaticField = 'StaticFieldVal';
-    }
+class MyClass {
+  /// field docs
+  String myField = 'FieldVal';
+  /// static field docs
+  static String myStaticField = 'StaticFieldVal';
+}
 
-    void f() {
-      final a = MyClass();
-      print(a.myField);
-      MyClass.myStaticField = 'a';
-    }
-    ''';
+void f() {
+  final a = MyClass();
+  print(a.myField);
+  MyClass.myStaticField = 'a';
+}
+''';
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
@@ -298,23 +303,23 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class_getterSetter() async {
     final content = '''
-    class MyClass {
-      /// getter docs
-      String get myGetter => 'GetterVal';
-      /// setter docs
-      set mySetter(String v) {};
-      /// static getter docs
-      static String get myStaticGetter => 'StaticGetterVal';
-      /// static setter docs
-      static set myStaticSetter(String staticV) {};
-    }
+class MyClass {
+  /// getter docs
+  String get myGetter => 'GetterVal';
+  /// setter docs
+  set mySetter(String v) {};
+  /// static getter docs
+  static String get myStaticGetter => 'StaticGetterVal';
+  /// static setter docs
+  static set myStaticSetter(String staticV) {};
+}
 
-    void f() {
-      final a = MyClass();
-      print(a.myGetter);
-      a.mySetter = 'a';
-    }
-    ''';
+void f() {
+  final a = MyClass();
+  print(a.myGetter);
+  a.mySetter = 'a';
+}
+''';
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
@@ -380,24 +385,24 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_class_method() async {
     final content = '''
-    class MyClass {
-      /// method docs
-      @override
-      void myMethod() {}
-      /// static method docs
-      static void myStaticMethod() {
-        // static method comment
-      }
-    }
+class MyClass {
+  /// method docs
+  @override
+  void myMethod() {}
+  /// static method docs
+  static void myStaticMethod() {
+    // static method comment
+  }
+}
 
-    void f() {
-      final a = MyClass();
-      a.myMethod();
-      MyClass.myStaticMethod();
-      final b = a.myMethod;
-      final c = MyClass.myStaticMethod;
-    }
-    ''';
+void f() {
+  final a = MyClass();
+  a.myMethod();
+  MyClass.myStaticMethod();
+  final b = a.myMethod;
+  final c = MyClass.myStaticMethod;
+}
+''';
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
@@ -456,14 +461,14 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dartdoc() async {
     final content = '''
-    /// before [aaa] after
-    class MyClass {
-      String aaa;
-    }
+/// before [aaa] after
+class MyClass {
+  String aaa;
+}
 
-    /// before [bbb] after
-    int double(int bbb) => bbb * 2;
-    ''';
+/// before [bbb] after
+int double(int bbb) => bbb * 2;
+''';
 
     final expected = [
       _Token('/// before [', SemanticTokenTypes.comment,
@@ -500,14 +505,14 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_directives() async {
     final content = '''
-    import 'package:flutter/material.dart';
-    export 'package:flutter/widgets.dart';
-    import '../file.dart'
-      if (dart.library.io) 'file_io.dart'
-      if (dart.library.html) 'file_html.dart';
+import 'package:flutter/material.dart';
+export 'package:flutter/widgets.dart';
+import '../file.dart'
+  if (dart.library.io) 'file_io.dart'
+  if (dart.library.html) 'file_html.dart';
 
-    library foo;
-    ''';
+library foo;
+''';
 
     final expected = [
       _Token('import', SemanticTokenTypes.keyword),
@@ -537,8 +542,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_extension() async {
     final content = '''
-    extension A on String {}
-    ''';
+extension A on String {}
+''';
 
     final expected = [
       _Token('extension', SemanticTokenTypes.keyword),
@@ -554,6 +559,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
     final content = 'CLASS STRING VARIABLE';
+    final code = TestCode.parse(content);
 
     final expected = [
       _Token('CLASS', SemanticTokenTypes.class_),
@@ -563,7 +569,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     ];
 
     await initialize();
-    await openFile(pluginAnalyzedFileUri, withoutMarkers(content));
+    await openFile(pluginAnalyzedFileUri, code.code);
 
     final pluginResult = plugin.AnalysisHighlightsParams(
       pluginAnalyzedFilePath,
@@ -583,22 +589,23 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_invalidSyntax() async {
     final content = '''
-    /// class docs
-    class MyClass {
-      // class comment
-    }
+/// class docs
+class MyClass {
+  // class comment
+}
 
-    this is not valid code.
+this is not valid code.
 
-    /// class docs 2
-    class MyClass2 {
-      // class comment 2
-    }
-    ''';
+/// class docs 2
+class MyClass2 {
+  // class comment 2
+}
+''';
+    final code = TestCode.parse(content);
 
-    // Expect the correct tokens for the valid code before/after but don't
-    // check the tokens for the invalid code as there are no concrete
-    // expectations for them.
+// Expect the correct tokens for the valid code before/after but don't
+// check the tokens for the invalid code as there are no concrete
+// expectations for them.
     final expected1 = [
       _Token('/// class docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
@@ -617,7 +624,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     ];
 
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
 
     final tokens = await getSemanticTokens(mainFileUri);
     final decoded = _decodeSemanticTokens(content, tokens);
@@ -632,18 +639,18 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     // "control" keywords should be tagged with a modifier so the client
     // can color them differently to other keywords.
     final content = r'''
-    void f() async {
-      var a = new Object();
-      await null;
-      if (false) {
-        print('test');
-      }
-      for (var item in []);
-      switch (1) {
-        case int(:var isEven) when isEven:
-      }
-    }
-    ''';
+void f() async {
+  var a = new Object();
+  await null;
+  if (false) {
+    print('test');
+  }
+  for (var item in []);
+  switch (1) {
+    case int(:var isEven) when isEven:
+  }
+}
+''';
 
     final expected = [
       _Token('void', SemanticTokenTypes.keyword,
@@ -713,7 +720,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_lastLine_multilineComment() async {
-    final content = '''/**
+    final content = '''
+/**
  * Trailing comment
  */''';
 
@@ -731,11 +739,11 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_local() async {
     final content = '''
-    void f() {
-      func(String a) => print(a);
-      final funcTearOff = func;
-    }
-    ''';
+void f() {
+  func(String a) => print(a);
+  final funcTearOff = func;
+}
+''';
 
     final expected = [
       _Token(
@@ -759,36 +767,36 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_manyBools_bug() async {
-    // Similar to test_manyImports_sortBug, this code triggered inconsistent tokens
-    // for "false" because tokens were sorted incorrectly (because both boolean and
-    // keyword had the same offset and length, which is all that were sorted by).
+// Similar to test_manyImports_sortBug, this code triggered inconsistent tokens
+// for "false" because tokens were sorted incorrectly (because both boolean and
+// keyword had the same offset and length, which is all that were sorted by).
     final content = '''
 class MyTestClass {
-  /// test
-  /// test
-  bool test1 = false;
+/// test
+/// test
+bool test1 = false;
 
-  /// test
-  /// test
-  bool test2 = false;
+/// test
+/// test
+bool test2 = false;
 
-  /// test
-  /// test
-  bool test3 = false;
+/// test
+/// test
+bool test3 = false;
 
-  /// test
-  /// test
-  bool test4 = false;
+/// test
+/// test
+bool test4 = false;
 
-  /// test
-  /// test
-  bool test5 = false;
+/// test
+/// test
+bool test5 = false;
 
-  /// test
-  /// test
-  bool test6 = false;
+/// test
+/// test
+bool test6 = false;
 }
-    ''';
+''';
 
     final expected = [
       _Token('class', SemanticTokenTypes.keyword),
@@ -812,12 +820,12 @@ class MyTestClass {
   }
 
   Future<void> test_manyImports_sortBug() async {
-    // This test is for a bug where some "import" tokens would not be highlighted
-    // correctly. Imports are made up of a DIRECTIVE token that spans a
-    // BUILT_IN ("import") and LITERAL_STRING. The original code sorted by only
-    // offset when handling overlapping tokens, which for certain lists (such as
-    // the one created for the code below) would result in the BUILTIN coming before
-    // the DIRECTIVE, which resulted in the DIRECTIVE overwriting it.
+// This test is for a bug where some "import" tokens would not be highlighted
+// correctly. Imports are made up of a DIRECTIVE token that spans a
+// BUILT_IN ("import") and LITERAL_STRING. The original code sorted by only
+// offset when handling overlapping tokens, which for certain lists (such as
+// the one created for the code below) would result in the BUILTIN coming before
+// the DIRECTIVE, which resulted in the DIRECTIVE overwriting it.
     final content = '''
 import 'dart:async';
 import 'dart:async';
@@ -832,7 +840,7 @@ import 'dart:async';
 import 'dart:async';
 import 'dart:async';
 import 'dart:async';
-    ''';
+''';
 
     final expected = [
       for (var i = 0; i < 13; i++) ...[
@@ -853,7 +861,7 @@ import 'dart:async';
  * multiple lines
  */
 class MyClass {}
-    ''';
+''';
 
     final expected = [
       _Token('/**\n', SemanticTokenTypes.comment,
@@ -878,10 +886,10 @@ class MyClass {}
 
   Future<void> test_namedArguments() async {
     final content = '''
-    f({String a}) {
-      f(a: a);
-    }
-    ''';
+f({String a}) {
+  f(a: a);
+}
+''';
 
     final expected = [
       _Token('f', SemanticTokenTypes.function,
@@ -900,9 +908,9 @@ class MyClass {}
 
   Future<void> test_never() async {
     final content = '''
-    Never f() => throw '';
-    Never? g() => throw '';
-    ''';
+Never f() => throw '';
+Never? g() => throw '';
+''';
 
     final expected = [
       _Token('Never', SemanticTokenTypes.type),
@@ -929,7 +937,7 @@ void f() {
   <int>[a, b] = [1, 2];
   var [c, d] = [1, 2];
 }
-    ''';
+''';
 
     final expected = [
       _Token('void', SemanticTokenTypes.keyword,
@@ -965,7 +973,7 @@ void f() {
     case [var c, == 'a'] when c != null:
   }
 }
-    ''';
+''';
 
     final expected = [
       _Token('void', SemanticTokenTypes.keyword,
@@ -997,7 +1005,7 @@ void f() {
     case int(isEven: var isEven) when isEven:
   }
 }
-    ''';
+''';
 
     final expected = [
       _Token('void', SemanticTokenTypes.keyword,
@@ -1030,7 +1038,7 @@ void f() {
     case int(:var isEven) when isEven:
   }
 }
-    ''';
+''';
 
     final expected = [
       _Token('void', SemanticTokenTypes.keyword,
@@ -1056,13 +1064,13 @@ void f() {
 
   Future<void> test_range() async {
     final content = '''
-    /// class docs
-    class [[MyClass<T> {
-      // class comment
-    }]]
+/// class docs
+class [!MyClass<T> {
+  // class comment
+}!]
 
-    // Trailing comment
-    ''';
+// Trailing comment
+''';
 
     final expected = [
       _Token('MyClass', SemanticTokenTypes.class_,
@@ -1075,14 +1083,14 @@ void f() {
   }
 
   Future<void> test_range_entireFile() async {
-    final content = '''[[
-    /// class docs
-    class MyClass<T> {
-      // class comment
-    }
+    final content = '''[!
+/// class docs
+class MyClass<T> {
+  // class comment
+}
 
-    // Trailing comment
-    ]]''';
+// Trailing comment
+!]''';
 
     final expected = [
       _Token('/// class docs', SemanticTokenTypes.comment,
@@ -1100,21 +1108,21 @@ void f() {
 
   Future<void> test_range_multilineRegions() async {
     final content = '''
-    /**
-     * This is my class comment
-     *
-     * [[There are
-     * multiple lines
-     */
-    class]] MyClass {}
-    ''';
+/**
+ * This is my class comment
+ *
+ * [!There are
+ * multiple lines
+ */
+class!] MyClass {}
+''';
 
     final expected = [
-      _Token('     * There are\n', SemanticTokenTypes.comment,
+      _Token(' * There are\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('     * multiple lines\n', SemanticTokenTypes.comment,
+      _Token(' * multiple lines\n', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('     */', SemanticTokenTypes.comment,
+      _Token(' */', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
     ];
@@ -1123,14 +1131,14 @@ void f() {
   }
 
   Future<void> test_sort_sameOffsets() async {
-    // This code initially (before merging) produces a String token starting at
-    // offset 11 (as it drops out of one interpolated variable) and then a new
-    // Interpolatation token.
-    // This test is to ensure the assertion in `offsetLengthPrioritySort` does
-    // not trigger (as it does if length is ignored, which was a bug).
+// This code initially (before merging) produces a String token starting at
+// offset 11 (as it drops out of one interpolated variable) and then a new
+// Interpolatation token.
+// This test is to ensure the assertion in `offsetLengthPrioritySort` does
+// not trigger (as it does if length is ignored, which was a bug).
     final content = r'''
 var a = '$s$s';
-    ''';
+''';
 
     final expected = [
       _Token('var', SemanticTokenTypes.keyword),
@@ -1269,24 +1277,24 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
 
   Future<void> test_topLevel() async {
     final content = '''
-    /// strings docs
-    const strings = <String>["test", 'test', r'test', \'''test\'''];
+/// strings docs
+const strings = <String>["test", 'test', r'test', \'''test\'''];
 
-    /// func docs
-    func(String a) => print(a);
+/// func docs
+func(String a) => print(a);
 
-    /// abc docs
-    bool get abc => true;
+/// abc docs
+bool get abc => true;
 
-    final funcTearOff = func;
+final funcTearOff = func;
 
-    void f() {
-      strings;
-      func;
-      abc;
-      funcTearOff;
-    }
-    ''';
+void f() {
+  strings;
+  func;
+  abc;
+  funcTearOff;
+}
+''';
 
     final expected = [
       _Token('/// strings docs', SemanticTokenTypes.comment,
@@ -1338,14 +1346,14 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     // clients other grammars would show through, losing the benefit from having
     // resolved the code).
     final content = '''
-    void f() {
-      int a;
-      a.foo().bar.baz();
+void f() {
+  int a;
+  a.foo().bar.baz();
 
-      dynamic b;
-      b.foo().bar.baz();
-    }
-    ''';
+  dynamic b;
+  b.foo().bar.baz();
+}
+''';
 
     final expected = [
       _Token(
@@ -1405,8 +1413,9 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
   }
 
   Future<void> _verifyTokens(String content, List<_Token> expected) async {
+    final code = TestCode.parse(content);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
 
     final tokens = await getSemanticTokens(mainFileUri);
     final decoded = _decodeSemanticTokens(content, tokens);
@@ -1415,12 +1424,12 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
 
   Future<void> _verifyTokensInRange(
       String content, List<_Token> expected) async {
+    final code = TestCode.parse(content);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
 
-    final tokens =
-        await getSemanticTokensRange(mainFileUri, rangeFromMarkers(content));
-    final decoded = _decodeSemanticTokens(withoutMarkers(content), tokens);
+    final tokens = await getSemanticTokensRange(mainFileUri, code.range.range);
+    final decoded = _decodeSemanticTokens(code.code, tokens);
     expect(decoded, equals(expected));
   }
 }
