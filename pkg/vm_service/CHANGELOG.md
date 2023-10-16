@@ -9,6 +9,7 @@ instance and connect it to a web socket URI.
 `isHttpTimelineLoggingAvailable`, `isHttpProfilingAvailable`.
 - Remove deprecated Dart IO extension methods: `startSocketProfiling`
 `pauseSocketProfiling`, `getHttpEnableTimelineLogging`, `setHttpEnableTimelineLogging`.
+- Update SDK constraint to ^3.0.0
 
 ## 12.0.1
 - Fix Java VM service version bug.

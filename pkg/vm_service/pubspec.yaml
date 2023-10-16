@@ -7,7 +7,7 @@ description: >-
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service
 
 environment:
-  sdk: '>=2.19.0 <4.0.0'
+  sdk: ^3.0.0
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
@@ -15,6 +15,7 @@ environment:
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
   async: any
+  collection: any
   expect: any
   lints: any
   markdown: any
@@ -26,5 +27,12 @@ dev_dependencies:
   vm_service_protos: any
 
 dependency_overrides:
+  coverage: 1.6.4
+  expect:
+    path: '../expect'
+  smith:
+    path: '../smith'
+  test: 1.24.7
+  test_core: 0.5.7
   test_package:
     path: 'test/test_package'

@@ -229,7 +229,6 @@ class Scrape {
         if (entry.path.contains('/analyzer_cli/test/')) continue;
         if (entry.path.contains('/compiler/test/')) continue;
         if (entry.path.contains('/dart/runtime/observatory/tests/')) continue;
-        if (entry.path.contains('/dart/runtime/observatory_2/tests/')) continue;
         if (entry.path.contains('/dart/runtime/tests/')) continue;
         if (entry.path.contains('/dart/tests/')) continue;
         if (entry.path.contains('/dev_compiler/test/')) continue;

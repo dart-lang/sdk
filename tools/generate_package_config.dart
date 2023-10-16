@@ -24,11 +24,8 @@ void main(List<String> args) {
     ...listSubdirectories(platform('third_party/pkg')),
     if (fluteExists) ...listSubdirectories(platform('third_party/flute')),
     platform('pkg/vm_service/test/test_package'),
-    platform(
-        'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
     platform('runtime/observatory'),
     platform('runtime/observatory/tests/service/observatory_test_package'),
-    platform('runtime/observatory_2'),
     platform('runtime/tools/heapsnapshot'),
     platform('sdk/lib/_internal/sdk_library_metadata'),
     platform('third_party/devtools/devtools_shared'),

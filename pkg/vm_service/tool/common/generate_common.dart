@@ -10,7 +10,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'src_gen_common.dart';
 
 /// [ApiParseUtil] contains top level parsing utilities.
-class ApiParseUtil {
+mixin class ApiParseUtil {
   /// Extract the current VM Service version number as a String.
   static String parseVersionString(List<Node> nodes) =>
       parseVersionSemVer(nodes).toString();
