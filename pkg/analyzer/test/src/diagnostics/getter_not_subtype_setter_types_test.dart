@@ -370,6 +370,63 @@ extension E on Object {
     ]);
   }
 
+  test_extensionType_instance() async {
+    await assertErrorsInCode('''
+extension type A(int it) {
+  int get foo => 0;
+  void set foo(String _) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 37, 3),
+    ]);
+  }
+
+  test_extensionType_instance_fromImplements() async {
+    await assertErrorsInCode('''
+extension type A(int it) {
+  void set foo(String _) {}
+}
+
+extension type B(int it) implements A {
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 108, 3),
+    ]);
+  }
+
+  test_extensionType_instance_representationField() async {
+    await assertErrorsInCode('''
+extension type A(int it) {
+  void set it(String _) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 38, 2),
+    ]);
+  }
+
+  test_extensionType_static() async {
+    await assertErrorsInCode('''
+extension type A(int it) {
+  static int get foo => 0;
+  static set foo(String v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 44, 3),
+    ]);
+  }
+
+  test_extensionType_static_field() async {
+    await assertErrorsInCode('''
+extension type A(int it) {
+  static final int foo = 0;
+  static set foo(String v) {}
+}
+''', [
+      error(CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 46, 3),
+    ]);
+  }
+
   test_topLevel() async {
     await assertErrorsInCode('''
 int get foo => 0;

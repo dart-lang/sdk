@@ -721,6 +721,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForExtensionTypeWithAbstractMember(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
 
+      final interface = _inheritanceManager.getInterface(element);
+      GetterSetterTypesVerifier(
+        typeSystem: typeSystem,
+        errorReporter: errorReporter,
+      ).checkExtensionType(element, interface);
+
       super.visitExtensionTypeDeclaration(node);
     } finally {
       _constructorFieldsVerifier.leaveClass();
