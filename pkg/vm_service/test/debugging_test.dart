@@ -1,19 +1,23 @@
-// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:test/test.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 int counter = 0;
+const LINE_A = 20;
+const LINE_B = LINE_A + 1;
+const LINE_C = LINE_A - 2;
 
 void periodicTask(_) {
   counter++;
-  counter++; // Line 16.  We set our breakpoint here.
+  counter++; // Line 19.  We set our breakpoint here.
   counter++;
   if (counter % 300 == 0) {
     print('counter = $counter');
@@ -21,221 +25,126 @@ void periodicTask(_) {
 }
 
 void startTimer() {
-  Timer.periodic(const Duration(milliseconds: 10), periodicTask);
+  new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
-int getLineNumberFromTokenPos(Script s, int token) =>
-    s.tokenPosTable![token].first;
+Future<void> waitForEvent(VmService service, String eventKind) {
+  final completer = Completer<void>();
+  late final subscription;
+  subscription = service.onDebugEvent.listen((Event event) {
+    if (event.kind == eventKind) {
+      subscription.cancel();
+      completer.complete();
+    }
+  });
+  return completer.future;
+}
 
-var tests = <IsolateTest>[
-// Pause
-  (VmService? service, IsolateRef? isolateRef) async {
-    final isolateId = isolateRef!.id!;
-    Completer completer = Completer();
-    var stream = service!.onDebugEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) {
-      if (event.kind == EventKind.kPauseInterrupted) {
-        subscription.cancel();
-        completer.complete();
-      }
-    });
+final tests = <IsolateTest>[
+  // Initialize stream.
+  (VmService service, IsolateRef isolateRef) async {
     await service.streamListen(EventStreams.kDebug);
-    await service.pause(isolateId);
-    await completer.future;
-    await service.streamCancel(EventStreams.kDebug);
   },
-
-// Resume
-  (VmService service, IsolateRef isolate) async {
-    final isolateId = isolate.id!;
-    Completer completer = Completer();
-    var stream = service.onDebugEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) {
-      if (event.kind == EventKind.kResume) {
-        subscription.cancel();
-        completer.complete();
-      }
-    });
-    await service.streamListen(EventStreams.kDebug);
-    await service.resume(isolateId);
-    await completer.future;
-    await service.streamCancel(EventStreams.kDebug);
-  },
-
-// Add breakpoint
+  // Pause
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    Isolate isolate = await service.getIsolate(isolateId);
-    final Library rootLib =
-        (await service.getObject(isolateId, isolate.rootLib!.id!)) as Library;
+    final event = waitForEvent(service, EventKind.kPauseInterrupted);
+    await service.pause(isolateId);
+    await event;
+  },
 
-    // Set up a listener to wait for breakpoint events.
-    Completer completer = Completer();
-    var stream = service.onDebugEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) {
-      if (event.kind == EventKind.kPauseBreakpoint) {
-        print('Breakpoint reached');
-        subscription.cancel();
-        completer.complete();
-      }
-    });
-    await service.streamListen(EventStreams.kDebug);
-    final Script script = (await service.getObject(
-        isolateId, rootLib.scripts!.first.id!)) as Script;
+  // Resume
+  resumeIsolate,
+
+  // Add breakpoint
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    var isolate = await service.getIsolate(isolateId);
+    final rootLib =
+        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
+    final scriptId = rootLib.scripts![0].id!;
+    final script = await service.getObject(isolateId, scriptId) as Script;
+
+    final event = waitForEvent(service, EventKind.kPauseBreakpoint);
+
     // Add the breakpoint.
-    final Breakpoint bpt =
-        await service.addBreakpoint(isolateId, script.id!, 16);
-    final SourceLocation location = bpt.location;
-    expect(location.script!.id, script.id);
-    expect(script.getLineNumberFromTokenPos(location.tokenPos!), 16);
-    expect(location.line, 16);
+    final bpt = await service.addBreakpoint(isolateId, scriptId, LINE_A);
+    expect(bpt.location!.script!.id, scriptId);
+    expect(script.getLineNumberFromTokenPos(bpt.location!.tokenPos), LINE_A);
 
     isolate = await service.getIsolate(isolateId);
     expect(isolate.breakpoints!.length, 1);
 
-    await completer.future; // Wait for breakpoint events.
-    await service.streamCancel(EventStreams.kDebug);
-  },
-// We are at the breakpoint on line 16.
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final stack = await service.getStack(isolateId);
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
-    final location = stack.frames![0].location!;
-    Script script =
-        (await service.getObject(isolateId, location.script!.id!)) as Script;
-    expect(script.uri, endsWith('debugging_test.dart'));
-    expect(script.getLineNumberFromTokenPos(location.tokenPos!), 16);
-    expect(location.line, 16);
+    await event; // Wait for breakpoint events.
   },
 
-// Stepping
-  (VmService service, IsolateRef isolate) async {
-    // Set up a listener to wait for breakpoint events.
-    final completer = Completer();
-    var stream = service.onDebugEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) {
-      if (event.kind == EventKind.kPauseBreakpoint) {
-        print('Breakpoint reached');
-        subscription.cancel();
-        completer.complete();
-      }
-    });
-    print('performing step over');
-    await stepOver(service, isolate);
-    print('step over done');
-    await completer.future; // Wait for breakpoint events.
-    print('breakpoint completed');
-  },
-// We are now at line 17.
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final stack = await service.getStack(isolateId);
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
-    final location = stack.frames![0].location!;
-    final Script script =
-        (await service.getObject(isolateId, location.script!.id!)) as Script;
-    expect(script.uri, endsWith('debugging_test.dart'));
-    expect(script.getLineNumberFromTokenPos(location.tokenPos!), 17);
-    expect(location.line, 17);
-  },
-// Remove breakpoint
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    // Set up a listener to wait for breakpoint events.
-    final completer = Completer();
-    var stream = service.onDebugEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) async {
-      if (event.kind == EventKind.kBreakpointRemoved) {
-        print('Breakpoint removed');
-        final isolate = await service.getIsolate(isolateId);
-        expect(isolate.breakpoints!.length, 0);
-        subscription.cancel();
-        completer.complete();
-      }
-    });
+  // We are at the breakpoint on LINE_A.
+  stoppedAtLine(LINE_A),
 
-    final Isolate isolate = await service.getIsolate(isolateId);
+  // Stepping
+  (VmService service, IsolateRef isolateRef) async {
+    final event = waitForEvent(service, EventKind.kPauseBreakpoint);
+    await service.resume(isolateRef.id!, step: StepOption.kOver);
+    await event; // Wait for breakpoint events.
+  },
+
+  // We are now at line LINE_B.
+  stoppedAtLine(LINE_B),
+
+  // Remove breakpoint
+  (VmService service, IsolateRef isolateRef) async {
+    final isolateId = isolateRef.id!;
+    var isolate = await service.getIsolate(isolateId);
+
+    // Set up a listener to wait for breakpoint events.
+    final event = waitForEvent(service, EventKind.kBreakpointRemoved);
+
     expect(isolate.breakpoints!.length, 1);
     final bpt = isolate.breakpoints!.first;
-    await service.streamListen(EventStreams.kDebug);
     await service.removeBreakpoint(isolateId, bpt.id!);
-    await completer.future;
-    await service.streamCancel(EventStreams.kDebug);
-  },
-// Resume
-  (VmService service, IsolateRef isolate) async {
-    final completer = Completer();
-    var stream = service.onDebugEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) {
-      if (event.kind == EventKind.kResume) {
-        subscription.cancel();
-        completer.complete();
-      }
-    });
-    await resumeIsolate(service, isolate);
-    await completer.future;
-  },
-// Add breakpoint at function entry
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    Isolate isolate = await service.getIsolate(isolateId);
-    // Set up a listener to wait for breakpoint events.
-    final completer = Completer();
-    var stream = service.onDebugEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) {
-      if (event.kind == EventKind.kPauseBreakpoint) {
-        print('Breakpoint reached');
-        subscription.cancel();
-        completer.complete();
-      }
-    });
+    await event;
 
-    await service.streamListen(EventStreams.kDebug);
-    final Library rootLib =
-        (await service.getObject(isolateId, isolate.rootLib!.id!)) as Library;
+    isolate = await service.getIsolate(isolateId);
+    expect(isolate.breakpoints!.length, 0);
+  },
+
+  // Resume
+  resumeIsolate,
+
+  // Add breakpoint at function entry
+  (VmService service, IsolateRef isolateRef) async {
+    // Set up a listener to wait for breakpoint events.
+    final event = waitForEvent(service, EventKind.kPauseBreakpoint);
+
+    final isolateId = isolateRef.id!;
+    var isolate = await service.getIsolate(isolateId);
+    final rootLib =
+        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
 
     // Find a specific function.
-    final FuncRef function =
-        rootLib.functions!.firstWhere((f) => f.name == 'periodicTask');
-    expect(function, isNotNull);
+    final function = rootLib.functions!.firstWhere(
+      (f) => f.name == 'periodicTask',
+    );
 
     // Add the breakpoint at function entry
     final bpt = await service.addBreakpointAtEntry(isolateId, function.id!);
-    final Script script =
-        (await service.getObject(isolateId, bpt.location.script.id)) as Script;
-    expect(script.uri, endsWith('debugging_test.dart'));
-    expect(script.getLineNumberFromTokenPos(bpt.location.tokenPos), 14);
-    expect(bpt.location.line, 14);
 
-    // Refresh isolate state.
+    final script =
+        await service.getObject(isolateId, bpt.location!.script!.id!) as Script;
+    expect(script.uri, endsWith('debugging_test.dart'));
+    expect(script.getLineNumberFromTokenPos(bpt.location!.tokenPos), LINE_C);
+
     isolate = await service.getIsolate(isolateId);
     expect(isolate.breakpoints!.length, 1);
 
-    await completer.future; // Wait for breakpoint events.
+    await event; // Wait for breakpoint events.
   },
-// We are now at line 14.
-  (VmService service, IsolateRef isolateRef) async {
-    final isolateId = isolateRef.id!;
-    final stack = await service.getStack(isolateId);
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
-    final location = stack.frames![0].location!;
-    final Script script =
-        (await service.getObject(isolateId, location.script!.id!)) as Script;
-    expect(script.uri, endsWith('debugging_test.dart'));
-    expect(script.getLineNumberFromTokenPos(location.tokenPos!), 14);
-    expect(location.line, 14);
-  },
+
+  // We are now at line LINE_C, the entrypoint for periodicTask.
+  stoppedAtLine(LINE_C),
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+void main(List<String> args) => runIsolateTests(
       args,
       tests,
       'debugging_test.dart',
