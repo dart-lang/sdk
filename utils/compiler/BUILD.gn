@@ -4,6 +4,7 @@
 
 import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
@@ -75,6 +76,13 @@ application_snapshot("dart2js") {
 
     rebase_path("../../pkg/compiler/lib/src/util/memory_compiler.dart"),
   ]
+}
+
+aot_snapshot("dart2js_aot") {
+  deps = [ ":dart2js_create_snapshot_entry" ]
+
+  main_dart = "$target_gen_dir/dart2js.dart"
+  name = "dart2js_aot"
 }
 
 compile_platform("compile_dart2js_platform_unsound") {
