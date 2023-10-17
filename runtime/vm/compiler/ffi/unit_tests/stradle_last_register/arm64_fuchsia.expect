@@ -1,0 +1,10 @@
+r0 int64
+r1 int64
+r2 int64
+r3 int64
+r4 int64
+r5 int64
+r6 int64
+M(r7 int64, S+0 int64) Struct(size: 12)
+=>
+r0 int64
