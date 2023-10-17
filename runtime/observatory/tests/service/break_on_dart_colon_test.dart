@@ -11,7 +11,7 @@ import 'service_test_common.dart';
 import 'test_helper.dart';
 
 // Line in core/print.dart
-const int LINE_A = 10;
+const int LINE_A = 19;
 
 testMain() {
   debugger();

@@ -19,7 +19,7 @@ library;
 // pkg/front_end/testcases/general/sdk_diagnostic.dart:12:8: Error: Too few positional arguments: 1 required, 0 given.
 //   print(incorrectArgument: "fisk");
 //        ^
-// sdk/lib/core/print.dart:8:6: Context: Found this candidate, but the arguments don't match.
+// sdk/lib/core/print.dart:19:6: Context: Found this candidate, but the arguments don't match.
 // void print(Object? object) {
 //      ^^^^^
 //
