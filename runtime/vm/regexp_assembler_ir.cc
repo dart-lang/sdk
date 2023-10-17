@@ -1725,17 +1725,19 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
   Value* pattern_val = BindLoadLocal(*string_param_);
   if (IsExternalStringClassId(specialization_cid_)) {
     // The data of an external string is stored through one indirection.
-    intptr_t external_offset = 0;
+    const Slot* slot = nullptr;
     if (specialization_cid_ == kExternalOneByteStringCid) {
-      external_offset = ExternalOneByteString::external_data_offset();
+      slot = &Slot::ExternalOneByteString_external_data();
     } else if (specialization_cid_ == kExternalTwoByteStringCid) {
-      external_offset = ExternalTwoByteString::external_data_offset();
+      slot = &Slot::ExternalTwoByteString_external_data();
     } else {
       UNREACHABLE();
     }
     // This pushes an untagged value on the stack which is immediately consumed
     // by LoadCodeUnitsAtInstr below.
-    pattern_val = Bind(new (Z) LoadUntaggedInstr(pattern_val, external_offset));
+    pattern_val = Bind(new (Z) LoadFieldInstr(
+        pattern_val, *slot, InnerPointerAccess::kCannotBeInnerPointer,
+        InstructionSource()));
   }
 
   // Here pattern_val might be untagged so this must not trigger a GC.
