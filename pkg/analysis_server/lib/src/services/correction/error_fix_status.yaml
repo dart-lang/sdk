@@ -2010,7 +2010,7 @@ LintCode.collection_methods_unrelated_type:
 LintCode.combinators_ordering:
   status: hasFix
 LintCode.comment_references:
-  status: noFix
+  status: hasFix
   notes: |-
     This lint should be deprecated when we have a doc-only form of import. At
     that point this will be a warning rather than a lint.
@@ -2037,13 +2037,9 @@ LintCode.deprecated_consistency:
   notes: |-
     The fix is to either remove deprecated or to add it in the missing places.
 LintCode.deprecated_member_use_from_same_package:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
+  status: hasFix
 LintCode.deprecated_member_use_from_same_package_with_message:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
+  status: hasFix
 LintCode.diagnostic_describe_all_properties:
   status: hasFix
 LintCode.directives_ordering:

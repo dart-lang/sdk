@@ -4,8 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -22,31 +21,6 @@ void main() {
 }
 
 PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-
-/// Returns whether the given error [code] has a fix associated with it.
-bool hasCodeFix(ErrorCode code) {
-  var producers = FixProcessor.nonLintProducerMap[code];
-  if (producers != null) {
-    return true;
-  }
-  var multiProducers = FixProcessor.nonLintMultiProducerMap[code];
-  if (multiProducers != null) {
-    for (var producer in multiProducers) {
-      if (producer is! DataDriven) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-/// Returns `true` if the lint rule with the given name has a fix associated
-/// with it.
-bool hasLintFix(String codeName) {
-  var name = codeName.substring('LintCode.'.length);
-  var producers = FixProcessor.lintProducerMap[name];
-  return producers != null;
-}
 
 /// Returns the path to the file containing the status information.
 String statusFilePath() {
@@ -69,9 +43,11 @@ String? verifyErrorFixStatus() {
   var errorCodeNames = {
     for (var code in errorCodeValues) code.uniqueName,
   };
+  var lintRuleCodes = {
+    for (var rule in Registry.ruleRegistry.rules) ...rule.lintCodes,
+  };
   var lintRuleNames = {
-    for (var rule in Registry.ruleRegistry.rules)
-      ...rule.lintCodes.map((e) => e.uniqueName),
+    for (var lintCode in lintRuleCodes) lintCode.uniqueName,
   };
 
   var errorData = ErrorData();
@@ -87,8 +63,7 @@ String? verifyErrorFixStatus() {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
       var markedAsHavingFix = info['status'] == 'hasFix';
-      var hasFix = hasCodeFix(code);
-      if (hasFix) {
+      if (hasFix(code)) {
         if (!markedAsHavingFix) {
           errorData.codesWithFixes.add(name);
         }
@@ -99,14 +74,14 @@ String? verifyErrorFixStatus() {
       }
     }
   }
-  for (var name in lintRuleNames) {
+  for (var lintCode in lintRuleCodes) {
+    var name = lintCode.uniqueName;
     var info = statusInfo.nodes[name];
     if (info == null) {
       errorData.codesWithNoEntry.add(name);
     } else if (info is YamlMap) {
       var markedAsHavingFix = info['status'] == 'hasFix';
-      var hasFix = hasLintFix(name);
-      if (hasFix) {
+      if (hasFix(lintCode)) {
         if (!markedAsHavingFix) {
           errorData.codesWithFixes.add(name);
         }

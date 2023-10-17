@@ -410,6 +410,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.deprecated_member_use_from_same_package_with_message: [
       DataDriven.new,
     ],
+    LintNames.comment_references: [
+      ImportLibrary.forType,
+    ],
   };
 
   /// A map from the names of lint rules to a list of the generators that are
@@ -1837,6 +1840,16 @@ class FixProcessor extends BaseProcessor {
       var generators = lintProducerMap[errorCode.uniqueLintName] ?? [];
       for (var generator in generators) {
         await compute(generator());
+      }
+      var multiGenerators = lintMultiProducerMap[errorCode.uniqueLintName];
+      if (multiGenerators != null) {
+        for (var multiGenerator in multiGenerators) {
+          var multiProducer = multiGenerator();
+          multiProducer.configure(context);
+          for (var producer in await multiProducer.producers) {
+            await compute(producer);
+          }
+        }
       }
     } else {
       var generators = nonLintProducerMap[errorCode] ?? [];
