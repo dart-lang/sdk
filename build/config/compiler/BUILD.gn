@@ -415,6 +415,9 @@ config("compiler") {
       } else if (current_cpu == "x64") {
         cflags += [ "--target=x86_64-linux-androideabi" ]
         ldflags += [ "--target=x86_64-linux-androideabi" ]
+      } else if (current_cpu == "riscv64") {
+        cflags += [ "--target=riscv64-linux-android" ]
+        ldflags += [ "--target=riscv64-linux-android" ]
       }
     }
   }
@@ -600,11 +603,6 @@ config("runtime_library") {
 
     lib_dirs += [ "$android_libcpp_root/libs/$android_app_abi" ]
 
-    libs += [
-      "$android_libcpp_library",
-      "c++abi",
-    ]
-
     if (android_api_level < 21) {
       libs += [ "android_support" ]
     }
@@ -619,6 +617,11 @@ config("runtime_library") {
       "dl",
       "m",
     ]
+    if (current_cpu == "riscv64") {
+      libs -= [ "gcc" ]
+      lib_dirs += [ "//third_party/canary_ndk/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}/lib/clang/17/lib/linux/" ]
+      libs += [ "clang_rt.builtins-riscv64-android" ]
+    }
 
     # Clang with libc++ does not require an explicit atomic library reference.
     if (!is_clang) {

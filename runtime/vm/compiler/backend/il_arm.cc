@@ -407,16 +407,12 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
-        __ ldr(array_reg,
-               compiler::FieldAddress(array_reg,
-                                      compiler::target::ExternalOneByteString::
-                                          external_data_offset()));
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalOneByteString_external_data());
         break;
       case kExternalTwoByteStringCid:
-        __ ldr(array_reg,
-               compiler::FieldAddress(array_reg,
-                                      compiler::target::ExternalTwoByteString::
-                                          external_data_offset()));
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalTwoByteString_external_data());
         break;
       default:
         UNREACHABLE();

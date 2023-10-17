@@ -3497,14 +3497,14 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
 
   // For external strings: Load backing store.
   if (cid == kExternalOneByteStringCid) {
-    str = new LoadUntaggedInstr(
-        new Value(str),
-        compiler::target::ExternalOneByteString::external_data_offset());
+    str = new LoadFieldInstr(
+        new Value(str), Slot::ExternalOneByteString_external_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, call->source());
     cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
   } else if (cid == kExternalTwoByteStringCid) {
-    str = new LoadUntaggedInstr(
-        new Value(str),
-        compiler::target::ExternalTwoByteString::external_data_offset());
+    str = new LoadFieldInstr(
+        new Value(str), Slot::ExternalTwoByteString_external_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, call->source());
     cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
   }
 

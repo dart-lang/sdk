@@ -1036,14 +1036,6 @@
           ]
         },
         {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=simriscv64",
-            "gen_snapshot"
-          ]
-        },
-        {
           "name": "vm unit tests",
           "arguments": [
             "-nvm-linux-${mode}-riscv64-qemu",
