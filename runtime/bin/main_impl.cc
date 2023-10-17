@@ -1297,6 +1297,9 @@ void main(int argc, char** argv) {
     // so generated code should not depend on the CPU features
     // of the system where snapshot was generated.
     vm_options.AddArgument("--target-unknown-cpu");
+#if !defined(TARGET_ARCH_IA32)
+    vm_options.AddArgument("--link_natives_lazily");
+#endif
   }
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.

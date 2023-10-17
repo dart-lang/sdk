@@ -68,7 +68,7 @@ class IsolateSpawnException implements Exception {
 /// The `Isolate` object provided by a spawn operation will have the
 /// control port and capabilities needed to control the isolate.
 /// New isolate objects can be created without some of these capabilities
-/// if necessary, using the [Isolate.Isolate] constructor.
+/// if necessary, using the [Isolate.new] constructor.
 ///
 /// An `Isolate` object cannot be sent over a `SendPort`, but the control port
 /// and capabilities can be sent, and can be used to create a new functioning

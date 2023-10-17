@@ -28,11 +28,12 @@ class ClosureIdMetadataRepository extends MetadataRepository<int> {
     return source.readUInt30();
   }
 
-  /// Return closure ID within the enclosing [Member].
+  /// Return closure ID within the enclosing [Member], or -1
+  /// if closure was not indexed.
   ///
   /// Closures should be indexed within enclosing [Member]
   /// using [indexClosures].
-  int getClosureId(LocalFunction closure) => mapping[closure]!;
+  int getClosureId(LocalFunction closure) => mapping[closure] ?? -1;
 
   /// Assign IDs for all closures within [member].
   void indexClosures(Member member) {

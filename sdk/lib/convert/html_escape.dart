@@ -36,7 +36,7 @@ const HtmlEscape htmlEscape = HtmlEscape();
 /// All modes require escaping of `&` (ampersand) characters, and may
 /// enable escaping of more characters.
 ///
-/// Custom escape modes can be created using the [HtmlEscapeMode.HtmlEscapeMode]
+/// Custom escape modes can be created using the [HtmlEscapeMode.new]
 /// constructor.
 ///
 /// Example:
