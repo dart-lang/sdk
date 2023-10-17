@@ -556,6 +556,28 @@ void f() {
 ''');
   }
 
+  Future<void> test_withClass_commentReference() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    newFile('$testPackageLibPath/lib.dart', '''
+library lib;
+class Test {
+  const Test(int p);
+}
+''');
+    await resolveTestCode('''
+/// [Test]
+void f() {
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+/// [Test]
+void f() {
+}
+''');
+  }
+
   Future<void> test_withClass_hasOtherLibraryWithPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
 library a;
