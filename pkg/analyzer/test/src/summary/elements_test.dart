@@ -49193,6 +49193,34 @@ library
 ''');
   }
 
+  test_interfaces_implicitObjectQuestion_fromTypeParameter() async {
+    var library = await buildLibrary(r'''
+extension type A<T>(T it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        typeParameters
+          covariant T @17
+            defaultType: dynamic
+        representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: T
+        interfaces
+          Object?
+        fields
+          final it @22
+            type: T
+        accessors
+          synthetic get it @-1
+            returnType: T
+''');
+  }
+
   test_interfaces_void() async {
     var library = await buildLibrary(r'''
 typedef A = void;

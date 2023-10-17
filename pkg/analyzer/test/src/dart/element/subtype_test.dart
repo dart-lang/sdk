@@ -109,6 +109,35 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(type, interfaceTypeNone(B));
   }
 
+  test_extensionType_typeArguments() {
+    final A = extensionType(
+      'A',
+      representationType: intNone,
+      typeParameters: [
+        typeParameter('T'),
+      ],
+    );
+
+    final A_object = interfaceTypeNone(
+      A,
+      typeArguments: [objectNone],
+    );
+
+    final A_int = interfaceTypeNone(
+      A,
+      typeArguments: [intNone],
+    );
+
+    final A_num = interfaceTypeNone(
+      A,
+      typeArguments: [numNone],
+    );
+
+    isSubtype(A_int, A_num);
+    isSubtype(A_int, A_object);
+    isNotSubtype(A_num, A_int);
+  }
+
   test_functionType_01() {
     var E0 = typeParameter('E0');
     var E1 = typeParameter('E1', bound: numStar);
