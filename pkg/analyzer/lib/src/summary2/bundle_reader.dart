@@ -113,6 +113,10 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
       return;
     }
 
+    // We might read class members before other properties.
+    element.linkedData?.read(element);
+    element.linkedData = null;
+
     if (element.isMixinApplication) {
       element.constructors;
     } else {
@@ -122,6 +126,11 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
       applyInformativeDataToMembers?.call();
       applyInformativeDataToMembers = null;
     }
+  }
+
+  @override
+  void _clearLinkedDataOnRead(ClassElementImpl element) {
+    // Don't clear yet, we use it to read members on demand.
   }
 
   @override
@@ -164,6 +173,11 @@ class CompilationUnitElementLinkedData
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
+  void _clearLinkedDataOnRead(CompilationUnitElementImpl element) {
+    element.linkedData = null;
+  }
+
+  @override
   void _read(element, reader) {}
 }
 
@@ -177,6 +191,11 @@ class ConstructorElementLinkedData
     required CompilationUnitElementImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _clearLinkedDataOnRead(ConstructorElementImpl element) {
+    element.linkedData = null;
+  }
 
   @override
   void _read(element, reader) {
@@ -211,6 +230,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
         _offset = offset;
 
   void read(ElementImpl element) {
+    _clearLinkedDataOnRead(element as E);
     if (_offset == -1) {
       return;
     }
@@ -224,7 +244,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
       dataReader,
     );
 
-    _read(element as E, reader);
+    _read(element, reader);
   }
 
   /// Ensure that all members of the [element] are available. This includes
@@ -253,6 +273,8 @@ abstract class ElementLinkedData<E extends ElementImpl> {
       throw UnimplementedError('${enclosing.runtimeType}');
     }
   }
+
+  void _clearLinkedDataOnRead(E element);
 
   void _read(E element, ResolutionReader reader);
 
@@ -308,6 +330,11 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
+  void _clearLinkedDataOnRead(EnumElementImpl element) {
+    element.linkedData = null;
+  }
+
+  @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
@@ -332,6 +359,11 @@ class ExtensionElementLinkedData
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
+  void _clearLinkedDataOnRead(ExtensionElementImpl element) {
+    element.linkedData = null;
+  }
+
+  @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
@@ -354,6 +386,11 @@ class ExtensionTypeElementLinkedData
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
+  void _clearLinkedDataOnRead(ExtensionTypeElementImpl element) {
+    element.linkedData = null;
+  }
+
+  @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
@@ -374,6 +411,11 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     required CompilationUnitElementImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _clearLinkedDataOnRead(FieldElementImpl element) {
+    element.linkedData = null;
+  }
 
   @override
   void _read(element, reader) {
@@ -409,6 +451,11 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
     required CompilationUnitElementImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _clearLinkedDataOnRead(FunctionElementImpl element) {
+    element.linkedData = null;
+  }
 
   @override
   void _read(element, reader) {
@@ -469,6 +516,11 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
   }
 
   @override
+  void _clearLinkedDataOnRead(LibraryElementImpl element) {
+    element.linkedData = null;
+  }
+
+  @override
   void _read(element, reader) {
     _readLibraryOrAugmentation(element, reader);
     for (final part in element.parts) {
@@ -481,6 +533,11 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
     element.fieldNameNonPromotabilityInfo =
         _readFieldNameNonPromotabilityInfo(reader);
+
+    element.exportNamespace = elementFactory.buildExportNamespace(
+      element.source.uri,
+      element.exportedReferences,
+    );
 
     applyConstantOffsets?.perform();
   }
@@ -1758,6 +1815,11 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
+  void _clearLinkedDataOnRead(MethodElementImpl element) {
+    element.linkedData = null;
+  }
+
+  @override
   void _read(element, reader) {
     _addEnclosingElementTypeParameters(reader, element);
     element.metadata = reader._readAnnotationList(
@@ -1781,6 +1843,11 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     required CompilationUnitElementImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _clearLinkedDataOnRead(MixinElementImpl element) {
+    element.linkedData = null;
+  }
 
   @override
   void _read(element, reader) {
@@ -1820,6 +1887,11 @@ class PropertyAccessorElementLinkedData
     required CompilationUnitElementImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _clearLinkedDataOnRead(PropertyAccessorElementImpl element) {
+    element.linkedData = null;
+  }
 
   @override
   void _read(element, reader) {
@@ -2330,6 +2402,11 @@ class TopLevelVariableElementLinkedData
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
+  void _clearLinkedDataOnRead(TopLevelVariableElementImpl element) {
+    element.linkedData = null;
+  }
+
+  @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
@@ -2356,6 +2433,11 @@ class TypeAliasElementLinkedData
     required CompilationUnitElementImpl unitElement,
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _clearLinkedDataOnRead(TypeAliasElementImpl element) {
+    element.linkedData = null;
+  }
 
   @override
   void _read(element, reader) {

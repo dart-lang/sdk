@@ -1859,6 +1859,16 @@ abstract class IntegrationTest {
   ///
   ///   If this field is omitted the flag defaults to false.
   ///
+  /// updatePubspec: bool (optional)
+  ///
+  ///   A flag indicating whether to validate that the dependencies used by the
+  ///   included files are listed in the pubspec file. If specified, the fix
+  ///   processor will compute the set of packages imported in the source and
+  ///   check to see if they are listed in the corresponding pubspec file, and
+  ///   compute the fixes, if any.
+  ///
+  ///   If this field is omitted the flag defaults to false.
+  ///
   /// codes: List<String> (optional)
   ///
   ///   A list of diagnostic codes to be fixed.
@@ -1878,10 +1888,10 @@ abstract class IntegrationTest {
   ///   Details that summarize the fixes associated with the recommended
   ///   changes.
   Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included,
-      {bool? inTestMode, List<String>? codes}) async {
-    var params =
-        EditBulkFixesParams(included, inTestMode: inTestMode, codes: codes)
-            .toJson();
+      {bool? inTestMode, bool? updatePubspec, List<String>? codes}) async {
+    var params = EditBulkFixesParams(included,
+            inTestMode: inTestMode, updatePubspec: updatePubspec, codes: codes)
+        .toJson();
     var result = await server.send('edit.bulkFixes', params);
     var decoder = ResponseDecoder(null);
     return EditBulkFixesResult.fromJson(decoder, 'result', result);

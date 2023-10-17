@@ -39,6 +39,11 @@ class GetterSetterTypesVerifier {
     }
   }
 
+  void checkExtensionType(ExtensionTypeElement element, Interface interface) {
+    checkInterface(element, interface);
+    checkStaticAccessors(element.accessors);
+  }
+
   void checkInterface(InterfaceElement element, Interface interface) {
     var libraryUri = element.library.source.uri;
 
@@ -54,7 +59,12 @@ class GetterSetterTypesVerifier {
           if (!_match(getterType, setterType)) {
             Element errorElement;
             if (getter.enclosingElement == element) {
-              errorElement = getter;
+              if (element is ExtensionTypeElement &&
+                  element.representation.getter == getter) {
+                errorElement = setter;
+              } else {
+                errorElement = getter;
+              }
             } else if (setter.enclosingElement == element) {
               errorElement = setter;
             } else {

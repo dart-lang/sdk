@@ -5962,6 +5962,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 /// {
 ///   "included": List<FilePath>
 ///   "inTestMode": optional bool
+///   "updatePubspec": optional bool
 ///   "codes": optional List<String>
 /// }
 ///
@@ -5985,10 +5986,20 @@ class EditBulkFixesParams implements RequestParams {
   /// If this field is omitted the flag defaults to false.
   bool? inTestMode;
 
+  /// A flag indicating whether to validate that the dependencies used by the
+  /// included files are listed in the pubspec file. If specified, the fix
+  /// processor will compute the set of packages imported in the source and
+  /// check to see if they are listed in the corresponding pubspec file, and
+  /// compute the fixes, if any.
+  ///
+  /// If this field is omitted the flag defaults to false.
+  bool? updatePubspec;
+
   /// A list of diagnostic codes to be fixed.
   List<String>? codes;
 
-  EditBulkFixesParams(this.included, {this.inTestMode, this.codes});
+  EditBulkFixesParams(this.included,
+      {this.inTestMode, this.updatePubspec, this.codes});
 
   factory EditBulkFixesParams.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -6006,13 +6017,18 @@ class EditBulkFixesParams implements RequestParams {
         inTestMode =
             jsonDecoder.decodeBool('$jsonPath.inTestMode', json['inTestMode']);
       }
+      bool? updatePubspec;
+      if (json.containsKey('updatePubspec')) {
+        updatePubspec = jsonDecoder.decodeBool(
+            '$jsonPath.updatePubspec', json['updatePubspec']);
+      }
       List<String>? codes;
       if (json.containsKey('codes')) {
         codes = jsonDecoder.decodeList(
             '$jsonPath.codes', json['codes'], jsonDecoder.decodeString);
       }
       return EditBulkFixesParams(included,
-          inTestMode: inTestMode, codes: codes);
+          inTestMode: inTestMode, updatePubspec: updatePubspec, codes: codes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'edit.bulkFixes params', json);
     }
@@ -6030,6 +6046,10 @@ class EditBulkFixesParams implements RequestParams {
     var inTestMode = this.inTestMode;
     if (inTestMode != null) {
       result['inTestMode'] = inTestMode;
+    }
+    var updatePubspec = this.updatePubspec;
+    if (updatePubspec != null) {
+      result['updatePubspec'] = updatePubspec;
     }
     var codes = this.codes;
     if (codes != null) {
@@ -6052,6 +6072,7 @@ class EditBulkFixesParams implements RequestParams {
       return listEqual(
               included, other.included, (String a, String b) => a == b) &&
           inTestMode == other.inTestMode &&
+          updatePubspec == other.updatePubspec &&
           listEqual(codes, other.codes, (String a, String b) => a == b);
     }
     return false;
@@ -6061,6 +6082,7 @@ class EditBulkFixesParams implements RequestParams {
   int get hashCode => Object.hash(
         Object.hashAll(included),
         inTestMode,
+        updatePubspec,
         Object.hashAll(codes ?? []),
       );
 }

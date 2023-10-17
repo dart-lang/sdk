@@ -4,10 +4,12 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -27,16 +29,16 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<List<TextEdit>> expectRangeFormattedContents(
-      Uri uri, String original, String expected) async {
-    final formatEdits = (await formatRange(uri, rangeFromMarkers(original)))!;
-    final formattedContents =
-        applyTextEdits(withoutMarkers(original), formatEdits);
+      Uri uri, TestCode code, String expected) async {
+    final formatEdits = (await formatRange(uri, code.range.range))!;
+    final formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
     return formatEdits;
   }
 
   Future<void> test_alreadyFormatted() async {
-    const contents = '''void f() {
+    const contents = '''
+void f() {
   print('test');
 }
 ''';
@@ -159,23 +161,23 @@ ErrorOr<Pair<A, List<B>>> c(
 
   Future<void> test_formatOnType_simple() async {
     const contents = '''
-    void f  ()
-    {
+void f  ()
+{
 
-        print('test');
-    ^}
+    print('test');
+^}
     ''';
     final expected = '''void f() {
   print('test');
 }
 ''';
+    final code = TestCode.parse(contents);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
+    await openFile(mainFileUri, code.code);
 
     final formatEdits =
-        (await formatOnType(mainFileUri, positionFromMarker(contents), '}'))!;
-    final formattedContents =
-        applyTextEdits(withoutMarkers(contents), formatEdits);
+        (await formatOnType(mainFileUri, code.position.position, '}'))!;
+    final formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
   }
 
@@ -185,9 +187,9 @@ ErrorOr<Pair<A, List<B>>> c(
     const contents = '''
 void f()
 {
-    [[    print('test');
+    [!    print('test');
         print('test');
-    ]]    print('test');
+    !]    print('test');
 }
 ''';
     final expected = '''
@@ -198,9 +200,10 @@ void f()
         print('test');
 }
 ''';
+    final code = TestCode.parse(contents);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    await expectRangeFormattedContents(mainFileUri, contents, expected);
+    await openFile(mainFileUri, code.code);
+    await expectRangeFormattedContents(mainFileUri, code, expected);
   }
 
   Future<void> test_formatRange_expandsLeadingWhitespaceToNearestLine() async {
@@ -208,9 +211,9 @@ void f()
 void f()
 {
 
-[[        print('test'); // line 2
+[!        print('test'); // line 2
         print('test'); // line 3
-        print('test'); // line 4]]
+        print('test'); // line 4!]
 }
 ''';
     const expected = '''
@@ -222,9 +225,10 @@ void f()
   print('test'); // line 4
 }
 ''';
+    final code = TestCode.parse(contents);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    await expectRangeFormattedContents(mainFileUri, contents, expected);
+    await openFile(mainFileUri, code.code);
+    await expectRangeFormattedContents(mainFileUri, code, expected);
   }
 
   Future<void> test_formatRange_invalidRange() async {
@@ -234,8 +238,9 @@ void f()
         print('test');
 }
 ''';
+    final code = TestCode.parse(contents);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
+    await openFile(mainFileUri, code.code);
     final formatRangeRequest = formatRange(
       mainFileUri,
       Range(
@@ -254,11 +259,11 @@ main  ()
     print('test');
 }
 
-[[main2  ()
+[!main2  ()
 {
 
     print('test');
-}]]
+}!]
 
 main3  ()
 {
@@ -283,9 +288,10 @@ main3  ()
     print('test');
 }
 ''';
+    final code = TestCode.parse(contents);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    await expectRangeFormattedContents(mainFileUri, contents, expected);
+    await openFile(mainFileUri, code.code);
+    await expectRangeFormattedContents(mainFileUri, code, expected);
   }
 
   Future<void> test_formatRange_trailingNewline_47702() async {
@@ -293,9 +299,9 @@ main3  ()
     // https://github.com/dart-lang/sdk/issues/47702
     const contents = '''
 int a;
-[[
+[!
     int b;
-]]
+!]
 ''';
     final expected = '''
 int a;
@@ -303,13 +309,15 @@ int a;
 int b;
 
 ''';
+    final code = TestCode.parse(contents);
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(contents));
-    await expectRangeFormattedContents(mainFileUri, contents, expected);
+    await openFile(mainFileUri, code.code);
+    await expectRangeFormattedContents(mainFileUri, code, expected);
   }
 
   Future<void> test_invalidSyntax() async {
-    const contents = '''void f(((( {
+    const contents = '''
+void f(((( {
   print('test');
 }
 ''';
@@ -322,15 +330,18 @@ int b;
 
   Future<void> test_lineLength() async {
     const contents = '''
-    void f() =>
-    print(
-    '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789'
-    );
+void f() =>
+print(
+'123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789'
+);
     ''';
-    final expectedDefault = '''void f() => print(
-    '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');\n''';
-    final expectedLongLines =
-        '''void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');\n''';
+    final expectedDefault = '''
+void f() => print(
+    '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
+''';
+    final expectedLongLines = '''
+void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');
+''';
 
     // Initialize with config support, supplying an empty config when requested.
     await provideConfig(
@@ -659,7 +670,8 @@ void f() {
         print('test');
     }
     ''';
-    final expected = '''void f() {
+    final expected = '''
+void f() {
   print('test');
 }
 ''';
@@ -676,7 +688,8 @@ void f() {
         print('test');
     }
     ''';
-    final expected = '''void f() {
+    final expected = '''
+void f() {
   print('test');
 }
 ''';
@@ -686,13 +699,15 @@ void f() {
   }
 
   Future<void> test_validSyntax_withErrors() async {
-    // We should still be able to format syntactically valid code even if it has analysis
-    // errors.
-    const contents = '''void f() {
+    // We should still be able to format syntactically valid code even if it has
+    // analysis errors.
+    const contents = '''
+void f() {
        print(a);
 }
 ''';
-    const expected = '''void f() {
+    const expected = '''
+void f() {
   print(a);
 }
 ''';

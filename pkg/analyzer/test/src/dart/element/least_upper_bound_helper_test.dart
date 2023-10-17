@@ -359,16 +359,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
-    ClassElementImpl classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    final classA = class_(name: 'A');
+    var instA = interfaceTypeNone(classA);
 
     var BT = typeParameter('T');
     var classB = class_(
       name: 'B',
       typeParameters: [BT],
-      interfaces: [instA.withNullabilitySuffixNone],
+      interfaces: [instA],
     );
 
     var CT = typeParameter('T');
@@ -376,10 +376,9 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
       name: 'C',
       typeParameters: [CT],
       interfaces: [
-        InstantiatedClass(
-          classB,
-          [typeParameterTypeStar(CT)],
-        ).withNullabilitySuffixNone,
+        interfaceTypeNone(classB, typeArguments: [
+          typeParameterTypeStar(CT),
+        ]),
       ],
     );
 
@@ -394,7 +393,9 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     // B<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
+        interfaceTypeNone(classB, typeArguments: [
+          interfaceTypeStar(classD),
+        ]),
       ),
       unorderedEquals([instObject, instA]),
     );
@@ -402,12 +403,16 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     // C<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classC, [interfaceTypeStar(classD)]),
+        interfaceTypeNone(classC, typeArguments: [
+          interfaceTypeStar(classD),
+        ]),
       ),
       unorderedEquals([
         instObject,
         instA,
-        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
+        interfaceTypeNone(classB, typeArguments: [
+          interfaceTypeStar(classD),
+        ]),
       ]),
     );
   }
@@ -423,25 +428,24 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
-    ClassElementImpl classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    final classA = class_(name: 'A');
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
       typeParameters: [typeParameter('T')],
-      superType: instA.withNullabilitySuffixNone,
+      superType: instA,
     );
 
     var typeParametersC = ElementFactory.typeParameters(['T']);
     var classC = class_(
       name: 'B',
       typeParameters: typeParametersC,
-      superType: InstantiatedClass(
-        classB,
-        [typeParameterTypeStar(typeParametersC[0])],
-      ).withNullabilitySuffixNone,
+      superType: interfaceTypeNone(classB, typeArguments: [
+        typeParameterTypeStar(typeParametersC[0]),
+      ]),
     );
 
     var classD = class_(name: 'D');
@@ -455,7 +459,9 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     // B<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
+        interfaceTypeNone(classB, typeArguments: [
+          interfaceTypeStar(classD),
+        ]),
       ),
       unorderedEquals([instObject, instA]),
     );
@@ -463,39 +469,43 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     // C<D>
     expect(
       _superInterfaces(
-        InstantiatedClass(classC, [interfaceTypeStar(classD)]),
+        interfaceTypeNone(classC, typeArguments: [
+          interfaceTypeStar(classD),
+        ]),
       ),
       unorderedEquals([
         instObject,
         instA,
-        InstantiatedClass(classB, [interfaceTypeStar(classD)]),
+        interfaceTypeNone(classB, typeArguments: [
+          interfaceTypeStar(classD),
+        ]),
       ]),
     );
   }
 
   void test_mixin_constraints() {
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
     var classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
-      interfaces: [instA.withNullabilitySuffixNone],
+      interfaces: [instA],
     );
-    var instB = InstantiatedClass(classB, const []);
+    var instB = interfaceTypeNone(classB);
 
     var classC = class_(name: 'C');
-    var instC = InstantiatedClass(classC, const []);
+    var instC = interfaceTypeNone(classC);
 
     var mixinM = mixin_(
       name: 'M',
       constraints: [
-        instB.withNullabilitySuffixNone,
-        instC.withNullabilitySuffixNone,
+        instB,
+        instC,
       ],
     );
-    var instM = InstantiatedClass(mixinM, const []);
+    var instM = interfaceTypeNone(mixinM);
 
     expect(
       _superInterfaces(instM),
@@ -504,10 +514,10 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_constraints_object() {
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
     var mixinM = mixin_(name: 'M');
-    var instM = InstantiatedClass(mixinM, const []);
+    var instM = interfaceTypeNone(mixinM);
 
     expect(
       _superInterfaces(instM),
@@ -516,28 +526,28 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_interfaces() {
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
     var classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
-      interfaces: [instA.withNullabilitySuffixNone],
+      interfaces: [instA],
     );
-    var instB = InstantiatedClass(classB, const []);
+    var instB = interfaceTypeNone(classB);
 
     var classC = class_(name: 'C');
-    var instC = InstantiatedClass(classC, const []);
+    var instC = interfaceTypeNone(classC);
 
     var mixinM = mixin_(
       name: 'M',
       interfaces: [
-        instB.withNullabilitySuffixNone,
-        instC.withNullabilitySuffixNone,
+        instB,
+        instC,
       ],
     );
-    var instM = InstantiatedClass(mixinM, const []);
+    var instM = interfaceTypeNone(mixinM);
 
     expect(
       _superInterfaces(instM),
@@ -546,37 +556,37 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_multipleInterfacePaths() {
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
     var classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
-      interfaces: [instA.withNullabilitySuffixNone],
+      interfaces: [instA],
     );
-    var instB = InstantiatedClass(classB, const []);
+    var instB = interfaceTypeNone(classB);
 
     var classC = class_(
       name: 'C',
-      interfaces: [instA.withNullabilitySuffixNone],
+      interfaces: [instA],
     );
-    var instC = InstantiatedClass(classC, const []);
+    var instC = interfaceTypeNone(classC);
 
     var classD = class_(
       name: 'D',
-      interfaces: [instC.withNullabilitySuffixNone],
+      interfaces: [instC],
     );
-    var instD = InstantiatedClass(classD, const []);
+    var instD = interfaceTypeNone(classD);
 
     var classE = class_(
       name: 'E',
       interfaces: [
-        instB.withNullabilitySuffixNone,
-        instD.withNullabilitySuffixNone,
+        instB,
+        instD,
       ],
     );
-    var instE = InstantiatedClass(classE, const []);
+    var instE = interfaceTypeNone(classE);
 
     // D
     expect(
@@ -592,37 +602,37 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_multipleSuperclassPaths() {
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
     var classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
-      superType: instA.withNullabilitySuffixNone,
+      superType: instA,
     );
-    var instB = InstantiatedClass(classB, const []);
+    var instB = interfaceTypeNone(classB);
 
     var classC = class_(
       name: 'C',
-      superType: instA.withNullabilitySuffixNone,
+      superType: instA,
     );
-    var instC = InstantiatedClass(classC, const []);
+    var instC = interfaceTypeNone(classC);
 
     var classD = class_(
       name: 'D',
-      superType: instC.withNullabilitySuffixNone,
+      superType: instC,
     );
-    var instD = InstantiatedClass(classD, const []);
+    var instD = interfaceTypeNone(classD);
 
     var classE = class_(
       name: 'E',
-      superType: instB.withNullabilitySuffixNone,
+      superType: instB,
       interfaces: [
-        instD.withNullabilitySuffixNone,
+        instD,
       ],
     );
-    var instE = InstantiatedClass(classE, const []);
+    var instE = interfaceTypeNone(classE);
 
     // D
     expect(
@@ -639,15 +649,15 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
 
   void test_recursion() {
     var classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
-      superType: instA.withNullabilitySuffixNone,
+      superType: instA,
     );
-    var instB = InstantiatedClass(classB, const []);
+    var instB = interfaceTypeNone(classB);
 
-    classA.supertype = instB.withNullabilitySuffixNone;
+    classA.supertype = instB;
 
     expect(
       _superInterfaces(instB),
@@ -661,22 +671,22 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_singleInterfacePath() {
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
     var classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
-      interfaces: [instA.withNullabilitySuffixNone],
+      interfaces: [instA],
     );
-    var instB = InstantiatedClass(classB, const []);
+    var instB = interfaceTypeNone(classB);
 
     var classC = class_(
       name: 'C',
-      interfaces: [instB.withNullabilitySuffixNone],
+      interfaces: [instB],
     );
-    var instC = InstantiatedClass(classC, const []);
+    var instC = interfaceTypeNone(classC);
 
     // A
     expect(
@@ -705,22 +715,22 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  |
     //  C
     //
-    var instObject = InstantiatedClass.of(typeProvider.objectType);
+    var instObject = typeProvider.objectType;
 
     var classA = class_(name: 'A');
-    var instA = InstantiatedClass(classA, const []);
+    var instA = interfaceTypeNone(classA);
 
     var classB = class_(
       name: 'B',
-      superType: instA.withNullabilitySuffixNone,
+      superType: instA,
     );
-    var instB = InstantiatedClass(classB, const []);
+    var instB = interfaceTypeNone(classB);
 
     var classC = class_(
       name: 'C',
-      superType: instB.withNullabilitySuffixNone,
+      superType: instB,
     );
-    var instC = InstantiatedClass(classC, const []);
+    var instC = interfaceTypeNone(classC);
 
     // A
     expect(
@@ -741,7 +751,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     );
   }
 
-  Set<InstantiatedClass> _superInterfaces(InstantiatedClass type) {
+  Set<InterfaceType> _superInterfaces(InterfaceType type) {
     var helper = InterfaceLeastUpperBoundHelper(typeSystem);
     return helper.computeSuperinterfaceSet(type);
   }
