@@ -384,6 +384,7 @@ def ProcessOptions(args):
                     'arm64',
                     'x64c',
                     'arm64c',
+                    'riscv64',
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."

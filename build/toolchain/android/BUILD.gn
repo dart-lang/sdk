@@ -45,6 +45,11 @@ template("android_gcc_toolchain") {
       not_needed([ "tool_prefix" ])
       prefix =
           rebase_path("//buildtools/${host_os}-x64/clang/bin", root_build_dir)
+      if (current_cpu == "riscv64") {
+        prefix = rebase_path(
+                "//third_party/canary_ndk/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}/bin",
+                root_build_dir)
+      }
 
       cc = compiler_prefix + prefix + "/clang"
       cxx = compiler_prefix + prefix + "/clang++"
@@ -129,4 +134,11 @@ android_gcc_toolchains_helper("arm64") {
 
   tool_prefix = "$llvm_android_toolchain_root/bin/aarch64-linux-android-"
   toolchain_cpu = "aarch64"
+}
+
+android_gcc_toolchains_helper("riscv64") {
+  android_ndk_lib_dir = riscv64_android_lib
+
+  tool_prefix = "$llvm_android_toolchain_root/bin/riscv64-linux-android-"
+  toolchain_cpu = "riscv64"
 }

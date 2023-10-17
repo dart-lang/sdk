@@ -605,6 +605,17 @@ Var("dart_root") + "/third_party/pkg/tar":
       "dep_type": "cipd",
   },
 
+  Var("dart_root") + "/third_party/canary_ndk": {
+      "packages": [
+          {
+            "package": "flutter/android/ndk/${{os}}-amd64",
+            "version": "version:r27.0.10869015"
+          }
+      ],
+      "condition": "download_android_deps",
+      "dep_type": "cipd",
+  },
+
   Var("dart_root") + "/third_party/android_tools": {
       "packages": [
           {
