@@ -316,6 +316,15 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitPatternField(PatternField node) {
+    var e = node.element;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitPatternField(node);
+  }
+
+  @override
   void visitPostfixExpression(PostfixExpression node) {
     _visitCompoundAssignmentExpression(node);
     super.visitPostfixExpression(node);
