@@ -7,9 +7,9 @@ r5 int64[double]
 r6 int64[double]
 r7 int64[double]
 S+0 float
-S+8 Struct(size: 12)
+M(S+8 int64, S+16 int64) Struct(size: 12)
 S+24 int64
 S+32 int32
-S+40 Struct(size: 12)
+M(S+40 int64, S+48 int64) Struct(size: 12)
 =>
 v0 double

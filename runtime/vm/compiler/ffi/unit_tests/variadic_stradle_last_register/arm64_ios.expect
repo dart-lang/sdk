@@ -5,6 +5,6 @@ S+16 int64
 S+24 int64
 S+32 int64
 S+40 int64
-S+48 Struct(size: 12)
+M(S+48 int64, S+56 int64) Struct(size: 12)
 =>
 r0 int64

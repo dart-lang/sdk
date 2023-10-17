@@ -41,6 +41,7 @@ void main() {
     testVariadicAt11Doublex8FloatStruct12BytesHomogeneousFLeaf();
     testVariadicAt1DoubleInt64Int32Struct20BytesHomogeneouLeaf();
     testVariadicAt5Doublex5Leaf();
+    testVariadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf();
   }
 }
 
@@ -749,4 +750,56 @@ void testVariadicAt5Doublex5Leaf() {
   print("result = $result");
 
   Expect.approxEquals(-3.0, result);
+}
+
+final variadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf =
+    ffiTestFunctions.lookupFunction<
+            Int64 Function(
+                Int64,
+                VarArgs<
+                    (
+                      Int64,
+                      Int64,
+                      Int64,
+                      Int64,
+                      Int64,
+                      Int64,
+                      Struct12BytesHomogeneousInt32
+                    )>),
+            int Function(int, int, int, int, int, int, int,
+                Struct12BytesHomogeneousInt32)>(
+        "VariadicAt1Int64x7Struct12BytesHomogeneousInt32",
+        isLeaf: true);
+
+/// Struct stradles last argument register, variadic
+void testVariadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf() {
+  int a0;
+  int a1;
+  int a2;
+  int a3;
+  int a4;
+  int a5;
+  int a6;
+  final a7Pointer = calloc<Struct12BytesHomogeneousInt32>();
+  final Struct12BytesHomogeneousInt32 a7 = a7Pointer.ref;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7.a0 = 8;
+  a7.a1 = -9;
+  a7.a2 = 10;
+
+  final result = variadicAt1Int64x7Struct12BytesHomogeneousInt32Leaf(
+      a0, a1, a2, a3, a4, a5, a6, a7);
+
+  print("result = $result");
+
+  Expect.equals(5, result);
+
+  calloc.free(a7Pointer);
 }

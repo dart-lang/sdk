@@ -137,6 +137,12 @@ struct Struct12BytesHomogeneousFloat {
   float a2;
 };
 
+struct Struct12BytesHomogeneousInt32 {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+};
+
 struct Struct16BytesHomogeneousFloat {
   float a0;
   float a1;
@@ -4827,6 +4833,41 @@ DART_EXPORT wchar_t PassWCharStructInlineArrayIntUintPtrx2LongUnsigned(
   result += a3;
   result += a4;
   result += a5;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
+// Struct stradles last argument register
+DART_EXPORT int64_t
+PassInt64x7Struct12BytesHomogeneousInt32(int64_t a0,
+                                         int64_t a1,
+                                         int64_t a2,
+                                         int64_t a3,
+                                         int64_t a4,
+                                         int64_t a5,
+                                         int64_t a6,
+                                         Struct12BytesHomogeneousInt32 a7) {
+  std::cout << "PassInt64x7Struct12BytesHomogeneousInt32"
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", (" << a7.a0 << ", " << a7.a1
+            << ", " << a7.a2 << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7.a0;
+  result += a7.a1;
+  result += a7.a2;
 
   std::cout << "result = " << result << "\n";
 
@@ -12497,6 +12538,67 @@ DART_EXPORT intptr_t TestPassWCharStructInlineArrayIntUintPtrx2LongUnsigned(
   a0 = 84;
 
   result = f(a0, a1, a2, a3, a4, a5);
+
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Struct stradles last argument register
+DART_EXPORT intptr_t TestPassInt64x7Struct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(int64_t a0,
+                 int64_t a1,
+                 int64_t a2,
+                 int64_t a3,
+                 int64_t a4,
+                 int64_t a5,
+                 int64_t a6,
+                 Struct12BytesHomogeneousInt32 a7)) {
+  int64_t a0;
+  int64_t a1;
+  int64_t a2;
+  int64_t a3;
+  int64_t a4;
+  int64_t a5;
+  int64_t a6;
+  Struct12BytesHomogeneousInt32 a7 = {};
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7.a0 = 8;
+  a7.a1 = -9;
+  a7.a2 = 10;
+
+  std::cout << "Calling TestPassInt64x7Struct12BytesHomogeneousInt32("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", (" << a7.a0 << ", " << a7.a1
+            << ", " << a7.a2 << "))"
+            << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(5, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7);
 
   CHECK_EQ(0, result);
 
@@ -21081,6 +21183,47 @@ DART_EXPORT void TestAsyncPassWCharStructInlineArrayIntUintPtrx2LongUnsigned(
 }
 
 // Used for testing structs and unions by value.
+// Struct stradles last argument register
+DART_EXPORT void TestAsyncPassInt64x7Struct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int64_t a0,
+              int64_t a1,
+              int64_t a2,
+              int64_t a3,
+              int64_t a4,
+              int64_t a5,
+              int64_t a6,
+              Struct12BytesHomogeneousInt32 a7)) {
+  int64_t a0;
+  int64_t a1;
+  int64_t a2;
+  int64_t a3;
+  int64_t a4;
+  int64_t a5;
+  int64_t a6;
+  Struct12BytesHomogeneousInt32 a7 = {};
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7.a0 = 8;
+  a7.a1 = -9;
+  a7.a2 = 10;
+
+  std::cout << "Calling TestAsyncPassInt64x7Struct12BytesHomogeneousInt32("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", (" << a7.a0 << ", " << a7.a1
+            << ", " << a7.a2 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7);
+}
+
+// Used for testing structs and unions by value.
 // Smallest struct with data.
 DART_EXPORT void TestAsyncReturnStruct1ByteInt(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -23372,6 +23515,46 @@ DART_EXPORT double VariadicAt5Doublex5(double a0,
 }
 
 // Used for testing structs and unions by value.
+// Struct stradles last argument register, variadic
+DART_EXPORT int64_t VariadicAt1Int64x7Struct12BytesHomogeneousInt32(int64_t a0,
+                                                                    ...) {
+  va_list var_args;
+  va_start(var_args, a0);
+  int64_t a1 = va_arg(var_args, int64_t);
+  int64_t a2 = va_arg(var_args, int64_t);
+  int64_t a3 = va_arg(var_args, int64_t);
+  int64_t a4 = va_arg(var_args, int64_t);
+  int64_t a5 = va_arg(var_args, int64_t);
+  int64_t a6 = va_arg(var_args, int64_t);
+  Struct12BytesHomogeneousInt32 a7 =
+      va_arg(var_args, Struct12BytesHomogeneousInt32);
+  va_end(var_args);
+
+  std::cout << "VariadicAt1Int64x7Struct12BytesHomogeneousInt32"
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", (" << a7.a0 << ", " << a7.a1
+            << ", " << a7.a2 << "))"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7.a0;
+  result += a7.a1;
+  result += a7.a2;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
+}
+
+// Used for testing structs and unions by value.
 // Single variadic argument.
 DART_EXPORT intptr_t TestVariadicAt1Int64x2(
     // NOLINTNEXTLINE(whitespace/parens)
@@ -24235,6 +24418,60 @@ DART_EXPORT intptr_t TestVariadicAt5Doublex5(
   result = f(a0, a1, a2, a3, a4);
 
   CHECK_APPROX(0.0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Struct stradles last argument register, variadic
+DART_EXPORT intptr_t TestVariadicAt1Int64x7Struct12BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    int64_t (*f)(int64_t a0, ...)) {
+  int64_t a0;
+  int64_t a1;
+  int64_t a2;
+  int64_t a3;
+  int64_t a4;
+  int64_t a5;
+  int64_t a6;
+  Struct12BytesHomogeneousInt32 a7 = {};
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7.a0 = 8;
+  a7.a1 = -9;
+  a7.a2 = 10;
+
+  std::cout << "Calling TestVariadicAt1Int64x7Struct12BytesHomogeneousInt32("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", (" << a7.a0 << ", " << a7.a1
+            << ", " << a7.a2 << "))"
+            << ")\n";
+
+  int64_t result = f(a0, a1, a2, a3, a4, a5, a6, a7);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(5, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7);
+
+  CHECK_EQ(0, result);
 
   return 0;
 }

@@ -433,31 +433,31 @@ class ArgumentAllocator : public ValueObject {
     }
 
     if (size <= 16) {
-      const intptr_t required_regs = size / 8;
-      const bool regs_available =
-          cpu_regs_used + required_regs <= CallingConventions::kNumArgRegs;
+      const intptr_t size_rounded = Utils::RoundUp(size, 8);
+      const intptr_t num_chunks = size_rounded / 8;
+      ASSERT((num_chunks == 1) || (num_chunks == 2));
 
-      if (regs_available) {
-        const intptr_t size_rounded =
-            Utils::RoundUp(payload_type.SizeInBytes(), 8);
-        const intptr_t num_chunks = size_rounded / 8;
-        const auto& chunk_type = *new (zone_) NativePrimitiveType(kInt64);
-
-        NativeLocations& multiple_locations =
-            *new (zone_) NativeLocations(zone_, num_chunks);
-        for (int i = 0; i < num_chunks; i++) {
-          const auto& allocated_chunk =
-              &AllocateArgument(chunk_type, is_vararg);
-          multiple_locations.Add(allocated_chunk);
-        }
-        return *new (zone_)
-            MultipleNativeLocations(compound_type, multiple_locations);
-
-      } else {
-        // Block all CPU registers.
+      // All-or-none: block any leftover registers.
+#if defined(DART_TARGET_OS_WINDOWS)
+      if (!HasAvailableCpuRegisters(num_chunks) && !is_vararg) {
         cpu_regs_used = CallingConventions::kNumArgRegs;
-        return AllocateStack(payload_type, is_vararg);
       }
+#else
+      if (!HasAvailableCpuRegisters(num_chunks)) {
+        cpu_regs_used = CallingConventions::kNumArgRegs;
+      }
+#endif
+
+      const auto& chunk_type = *new (zone_) NativePrimitiveType(kInt64);
+
+      NativeLocations& multiple_locations =
+          *new (zone_) NativeLocations(zone_, num_chunks);
+      for (int i = 0; i < num_chunks; i++) {
+        const auto& allocated_chunk = &AllocateArgument(chunk_type, is_vararg);
+        multiple_locations.Add(allocated_chunk);
+      }
+      return *new (zone_)
+          MultipleNativeLocations(compound_type, multiple_locations);
     }
 
     const auto& pointer_location =
