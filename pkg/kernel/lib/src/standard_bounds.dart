@@ -941,6 +941,7 @@ mixin StandardBounds {
     if (type1 is ExtensionType && type2 is ExtensionType) {
       if (type1.extensionTypeDeclaration == type2.extensionTypeDeclaration) {
         extensionTypeDeclaration = type1.extensionTypeDeclaration;
+        typeParameters = extensionTypeDeclaration.typeParameters;
         leftArguments = type1.typeArguments;
         rightArguments = type2.typeArguments;
       }
@@ -992,6 +993,27 @@ mixin StandardBounds {
 
   DartType _getLegacyLeastUpperBound(DartType type1, DartType type2,
       {required bool isNonNullableByDefault}) {
+    assert((type1 is InterfaceType || type1 is ExtensionType) &&
+        (type2 is InterfaceType || type2 is ExtensionType));
+
+    // This is a workaround for the case when `Object?` should be found as the
+    // upper bound of extension types. If the representation type of an
+    // extension type is nullable, then `Object` is not a supertype of that
+    // extension type, but `Object?` is.
+    //
+    // TODO(cstefantsova): Remove this workaround and account for extension
+    // types with nullable representation types directly.
+    Nullability type1NullabilityForResult = type1 is InterfaceType
+        ? type1.nullability
+        : (type1.isPotentiallyNullable
+            ? Nullability.nullable
+            : type1.nullability);
+    Nullability type2NullabilityForResult = type2 is InterfaceType
+        ? type2.nullability
+        : (type2.isPotentiallyNullable
+            ? Nullability.nullable
+            : type2.nullability);
+
     if (type1 is InterfaceType && type2 is InterfaceType) {
       return hierarchy.getLegacyLeastUpperBound(type1, type2,
           isNonNullableByDefault: isNonNullableByDefault);
@@ -1006,17 +1028,20 @@ mixin StandardBounds {
       Map<ExtensionTypeDeclaration, int> extensionTypeDeclarationDepth = {};
 
       int computeExtensionTypeDeclarationDepth(
-          ExtensionTypeDeclaration extensionTypeDeclaration) {
+          ExtensionTypeDeclaration extensionTypeDeclaration,
+          List<InterfaceType> superInterfaceType) {
         int? depth = extensionTypeDeclarationDepth[extensionTypeDeclaration];
         if (depth == null) {
           int maxDepth = 0;
           for (DartType implemented in extensionTypeDeclaration.implements) {
             if (implemented is ExtensionType) {
               int supertypeDepth = computeExtensionTypeDeclarationDepth(
-                  implemented.extensionTypeDeclaration);
+                  implemented.extensionTypeDeclaration, superInterfaceType);
               if (supertypeDepth >= maxDepth) {
                 maxDepth = supertypeDepth + 1;
               }
+            } else if (implemented is InterfaceType) {
+              superInterfaceType.add(implemented);
             }
           }
           depth = extensionTypeDeclarationDepth[extensionTypeDeclaration] =
@@ -1026,9 +1051,10 @@ mixin StandardBounds {
       }
 
       // TODO(johnniwinther): Handle non-extension type supertypes.
-      void computeSuperTypes(
-          ExtensionType type, List<ExtensionType> supertypes) {
-        computeExtensionTypeDeclarationDepth(type.extensionTypeDeclaration);
+      void computeSuperTypes(ExtensionType type, List<ExtensionType> supertypes,
+          List<InterfaceType> superInterfaceTypes) {
+        computeExtensionTypeDeclarationDepth(
+            type.extensionTypeDeclaration, superInterfaceTypes);
         supertypes.add(type);
         for (DartType implemented in type.extensionTypeDeclaration.implements) {
           if (implemented is ExtensionType) {
@@ -1036,15 +1062,17 @@ mixin StandardBounds {
                 hierarchy.getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
                     type, implemented.extensionTypeDeclaration,
                     isNonNullableByDefault: isNonNullableByDefault)!;
-            computeSuperTypes(supertype, supertypes);
+            computeSuperTypes(supertype, supertypes, superInterfaceTypes);
           }
         }
       }
 
       List<ExtensionType> supertypes1 = [];
-      computeSuperTypes(type1, supertypes1);
+      List<InterfaceType> superInterfaceTypes1 = [];
+      computeSuperTypes(type1, supertypes1, superInterfaceTypes1);
       List<ExtensionType> supertypes2 = [];
-      computeSuperTypes(type2, supertypes2);
+      List<InterfaceType> superInterfaceTypes2 = [];
+      computeSuperTypes(type2, supertypes2, superInterfaceTypes2);
 
       Set<ExtensionType> set = supertypes1.toSet()..retainAll(supertypes2);
       Map<int, List<ExtensionType>> commonSupertypesByDepth = {};
@@ -1065,9 +1093,13 @@ mixin StandardBounds {
       if (candidate != null) {
         return candidate;
       }
+
+      return hierarchy.getLegacyLeastUpperBoundFromSupertypeLists(
+          type1, type2, superInterfaceTypes1, superInterfaceTypes2,
+          isNonNullableByDefault: isNonNullableByDefault);
     }
-    return coreTypes.objectRawType(
-        uniteNullabilities(type1.nullability, type2.nullability));
+    return coreTypes.objectRawType(uniteNullabilities(
+        type1NullabilityForResult, type2NullabilityForResult));
   }
 
   /// Computes the nullability-aware lower bound of two function types.

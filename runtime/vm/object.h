@@ -3928,23 +3928,8 @@ class Function : public Object {
     return modifier() == UntaggedFunction::kAsyncGen;
   }
 
-  bool IsTypedDataViewFactory() const {
-    if (is_native() && kind() == UntaggedFunction::kConstructor) {
-      // This is a native factory constructor.
-      const Class& klass = Class::Handle(Owner());
-      return IsTypedDataViewClassId(klass.id());
-    }
-    return false;
-  }
-
-  bool IsUnmodifiableTypedDataViewFactory() const {
-    if (is_native() && kind() == UntaggedFunction::kConstructor) {
-      // This is a native factory constructor.
-      const Class& klass = Class::Handle(Owner());
-      return IsUnmodifiableTypedDataViewClassId(klass.id());
-    }
-    return false;
-  }
+  bool IsTypedDataViewFactory() const;
+  bool IsUnmodifiableTypedDataViewFactory() const;
 
   DART_WARN_UNUSED_RESULT
   ErrorPtr VerifyCallEntryPoint() const;

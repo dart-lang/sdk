@@ -106,8 +106,8 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
 
 #undef DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD
 
-#define DEFINE_UNBOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName,      \
-                                    representation, mutability)                \
+#define DEFINE_UNBOXED_NATIVE_NONADDRESS_FIELD(                                \
+    ClassName, UnderlyingType, FieldName, representation, mutability)          \
   case Slot::Kind::k##ClassName##_##FieldName:                                 \
     return new (zone_)                                                         \
         Slot(Slot::Kind::k##ClassName##_##FieldName,                           \
@@ -118,9 +118,24 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
              CompileType::FromUnboxedRepresentation(kUnboxed##representation), \
              kUnboxed##representation);
 
-    UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
+    UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_NONADDRESS_FIELD)
 
-#undef DEFINE_UNBOXED_NATIVE_FIELD
+#undef DEFINE_UNBOXED_NATIVE_NONADDRESS_FIELD
+
+#define DEFINE_UNBOXED_NATIVE_ADDRESS_FIELD(ClassName, UnderlyingType,         \
+                                            FieldName, GcMayMove, mutability)  \
+  case Slot::Kind::k##ClassName##_##FieldName:                                 \
+    return new (zone_)                                                         \
+        Slot(Slot::Kind::k##ClassName##_##FieldName,                           \
+             Slot::IsImmutableBit::encode(FIELD_##mutability) |                \
+                 Slot::MayContainInnerPointerBit::encode(GcMayMove) |          \
+                 Slot::IsUnboxedBit::encode(true),                             \
+             compiler::target::ClassName::FieldName##_offset(),                \
+             #ClassName "." #FieldName, CompileType::Object(), kUntagged);
+
+    UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_ADDRESS_FIELD)
+
+#undef DEFINE_UNBOXED_NATIVE_NONADDRESS_FIELD
 #undef FIELD_VAR
 #undef FIELD_FINAL
     default:
@@ -317,19 +332,6 @@ const Slot& Slot::GetCanonicalSlot(Thread* thread,
 FieldGuardState::FieldGuardState(const Field& field)
     : state_(GuardedCidBits::encode(field.guarded_cid()) |
              IsNullableBit::encode(field.is_nullable())) {}
-
-Representation Slot::UnboxedRepresentation() const {
-  switch (field_guard_state().guarded_cid()) {
-    case kDoubleCid:
-      return kUnboxedDouble;
-    case kFloat32x4Cid:
-      return kUnboxedFloat32x4;
-    case kFloat64x2Cid:
-      return kUnboxedFloat64x2;
-    default:
-      return kUnboxedInt64;
-  }
-}
 
 const Slot& Slot::Get(const Field& field,
                       const ParsedFunction* parsed_function) {

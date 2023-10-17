@@ -88,6 +88,24 @@ abstract class ClassHierarchyBase {
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2,
       {required bool isNonNullableByDefault});
+
+  /// Computes an upper bound of two types found in their given supertype lists
+  ///
+  /// This method can be seen as a generalization of [getLegacyLeastUpperBound].
+  /// It is expected to work exactly like [getLegacyLeastUpperBound] when
+  /// [supertypes1] is `[`[type1]`]` and [supertypes2] is `[`[type2]`]`.
+  ///
+  /// If either of [type1] or [type2] is an extension type, the corresponding
+  /// list of supertypes is its non-extension supertypes of maximal depth. In
+  /// that case, the method finds the upper bound for the extension type among
+  /// its non-extension supertypes. It is used as a part of the algorithm for
+  /// finding the upper bound of extension types.
+  InterfaceType getLegacyLeastUpperBoundFromSupertypeLists(
+      /* InterfaceType | ExtensionType */ DartType type1,
+      /* InterfaceType | ExtensionType */ DartType type2,
+      List<InterfaceType> supertypes1,
+      List<InterfaceType> supertypes2,
+      {required bool isNonNullableByDefault});
 }
 
 mixin ClassHierarchyExtensionTypeMixin implements ClassHierarchyBase {
@@ -782,6 +800,32 @@ class ClosedWorldClassHierarchy
     return chain;
   }
 
+  List<_ClassInfo> _getCombinedRankedSuperclassInfosFromList(
+      List<_ClassInfo> infos) {
+    if (infos.length == 1 && infos.single.leastUpperBoundInfos != null) {
+      return infos.single.leastUpperBoundInfos!;
+    }
+
+    _LubHeap heap = new _LubHeap();
+    for (_ClassInfo info in infos) {
+      heap.add(info);
+      if (info.leastUpperBoundInfos == null) {
+        List<_ClassInfo> chainForInfo = _getRankedSuperclassInfos(info);
+        for (_ClassInfo fromChain in chainForInfo) {
+          heap.add(fromChain);
+        }
+      }
+    }
+
+    List<_ClassInfo> chain = <_ClassInfo>[];
+    while (heap.isNotEmpty) {
+      _ClassInfo info = heap.remove();
+      chain.add(info);
+    }
+
+    return chain;
+  }
+
   @override
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2,
@@ -828,6 +872,35 @@ class ClosedWorldClassHierarchy
       classes2 = _getRankedSuperclassInfos(info2);
     }
 
+    return _getLegacyLeastUpperBoundInternal(
+        type1, type2, info1, info2, classes1, classes2,
+        isNonNullableByDefault: isNonNullableByDefault);
+  }
+
+  InterfaceType _getLegacyLeastUpperBoundInternal(
+      /* InterfaceType | ExtensionType */ DartType type1,
+      /* InterfaceType | ExtensionType */ DartType type2,
+      _ClassInfo? info1,
+      _ClassInfo? info2,
+      List<_ClassInfo> classInfos1,
+      List<_ClassInfo> classInfos2,
+      {required bool isNonNullableByDefault}) {
+    assert(type1 is InterfaceType || type1 is ExtensionType);
+    assert(type2 is InterfaceType || type2 is ExtensionType);
+    assert(type1 is! InterfaceType || info1 != null);
+    assert(type2 is! InterfaceType || info2 != null);
+
+    Nullability type1NullabilityForResult = type1 is InterfaceType
+        ? type1.nullability
+        : (type1.isPotentiallyNullable
+            ? Nullability.nullable
+            : type1.nullability);
+    Nullability type2NullabilityForResult = type2 is InterfaceType
+        ? type2.nullability
+        : (type2.isPotentiallyNullable
+            ? Nullability.nullable
+            : type2.nullability);
+
     // Walk the lists finding their intersection, looking for a depth that has a
     // single candidate.
     int i1 = 0;
@@ -836,8 +909,8 @@ class ClosedWorldClassHierarchy
     int currentDepth = -1;
     int numCandidatesAtThisDepth = 0;
     while (true) {
-      _ClassInfo next = classes1[i1];
-      _ClassInfo next2 = classes2[i2];
+      _ClassInfo next = classInfos1[i1];
+      _ClassInfo next2 = classInfos2[i2];
       if (!identical(next, next2)) {
         if (_LubHeap.sortsBeforeStatic(next, next2)) {
           ++i1;
@@ -875,32 +948,93 @@ class ClosedWorldClassHierarchy
       //   immediately.  Since all interface types are subtypes of Object, this
       //   ensures the loop terminates.
       if (next.classNode.typeParameters.isEmpty) {
-        candidate = coreTypes.rawType(next.classNode,
-            uniteNullabilities(type1.nullability, type2.nullability));
+        candidate = coreTypes.rawType(
+            next.classNode,
+            uniteNullabilities(
+                type1NullabilityForResult, type2NullabilityForResult));
         if (currentDepth == 0) return candidate;
         ++numCandidatesAtThisDepth;
       } else {
-        InterfaceType superType1 = identical(info1, next)
-            ? type1
-            : Substitution.fromInterfaceType(type1).substituteType(
-                    info1.genericSuperType![next.classNode]!.asInterfaceType)
-                as InterfaceType;
-        InterfaceType superType2 = identical(info2, next)
-            ? type2
-            : Substitution.fromInterfaceType(type2).substituteType(
-                    info2.genericSuperType![next.classNode]!.asInterfaceType)
-                as InterfaceType;
+        InterfaceType superType1;
+        if (type1 is InterfaceType) {
+          superType1 = identical(info1!, next)
+              ? type1
+              : Substitution.fromInterfaceType(type1).substituteType(
+                      info1.genericSuperType![next.classNode]!.asInterfaceType)
+                  as InterfaceType;
+        } else {
+          type1 as ExtensionType;
+          superType1 = getExtensionTypeAsInstanceOfClass(type1, next.classNode,
+              isNonNullableByDefault: isNonNullableByDefault)!;
+        }
+
+        InterfaceType superType2;
+        if (type2 is InterfaceType) {
+          superType2 = identical(info2!, next)
+              ? type2
+              : Substitution.fromInterfaceType(type2).substituteType(
+                      info2.genericSuperType![next.classNode]!.asInterfaceType)
+                  as InterfaceType;
+        } else {
+          type2 as ExtensionType;
+          superType2 = getExtensionTypeAsInstanceOfClass(type2, next.classNode,
+              isNonNullableByDefault: isNonNullableByDefault)!;
+        }
+
         if (!isNonNullableByDefault) {
           superType1 = legacyErasure(superType1) as InterfaceType;
           superType2 = legacyErasure(superType2) as InterfaceType;
         }
         if (superType1 == superType2) {
-          candidate = superType1.withDeclaredNullability(
-              uniteNullabilities(type1.nullability, type2.nullability));
+          candidate = superType1.withDeclaredNullability(uniteNullabilities(
+              type1NullabilityForResult, type2NullabilityForResult));
           ++numCandidatesAtThisDepth;
         }
       }
     }
+  }
+
+  @override
+  InterfaceType getLegacyLeastUpperBoundFromSupertypeLists(
+      /* InterfaceType | ExtensionType */ DartType type1,
+      /* InterfaceType | ExtensionType */ DartType type2,
+      List<InterfaceType> supertypes1,
+      List<InterfaceType> supertypes2,
+      {required bool isNonNullableByDefault}) {
+    assert(type1 is InterfaceType || type1 is ExtensionType);
+    assert(type2 is InterfaceType || type2 is ExtensionType);
+    assert(supertypes1.isNotEmpty || type1 is ExtensionType);
+    assert(supertypes2.isNotEmpty || type2 is ExtensionType);
+
+    Nullability type1NullabilityForResult = type1 is InterfaceType
+        ? type1.nullability
+        : (type1.isPotentiallyNullable
+            ? Nullability.nullable
+            : type1.nullability);
+
+    Nullability type2NullabilityForResult = type2 is InterfaceType
+        ? type2.nullability
+        : (type2.isPotentiallyNullable
+            ? Nullability.nullable
+            : type2.nullability);
+
+    if (supertypes1.isEmpty || supertypes2.isEmpty) {
+      return coreTypes.objectRawType(uniteNullabilities(
+          type1NullabilityForResult, type2NullabilityForResult));
+    }
+
+    List<_ClassInfo> combinedInfos1 =
+        _getCombinedRankedSuperclassInfosFromList(<_ClassInfo>[
+      for (InterfaceType supertype in supertypes1) infoFor(supertype.classNode)
+    ]);
+    List<_ClassInfo> combinedInfos2 =
+        _getCombinedRankedSuperclassInfosFromList(<_ClassInfo>[
+      for (InterfaceType supertype in supertypes2) infoFor(supertype.classNode)
+    ]);
+
+    return _getLegacyLeastUpperBoundInternal(
+        type1, type2, null, null, combinedInfos1, combinedInfos2,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override

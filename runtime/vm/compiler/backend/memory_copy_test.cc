@@ -224,12 +224,11 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
         Integer::ZoneHandle(zone, Integer::New(length, Heap::kOld)), rep);
 
     auto* const memory_copy_instr = new (zone) MemoryCopyInstr(
-        new (zone) Value(pointer), new (zone) Value(pointer2),
-        new (zone) Value(src_start_constant_instr),
+        new (zone) Value(pointer), /*src_cid=*/cid, new (zone) Value(pointer2),
+        /*dest_cid=*/cid, new (zone) Value(src_start_constant_instr),
         new (zone) Value(dest_start_constant_instr),
-        new (zone) Value(length_constant_instr),
-        /*src_cid=*/cid,
-        /*dest_cid=*/cid, unboxed_inputs, /*can_overlap=*/use_same_buffer);
+        new (zone) Value(length_constant_instr), unboxed_inputs,
+        /*can_overlap=*/use_same_buffer);
     flow_graph->InsertBefore(another_function_call, memory_copy_instr, nullptr,
                              FlowGraph::kEffect);
 
@@ -342,11 +341,12 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
     }
 
     auto* const memory_copy_instr = new (zone) MemoryCopyInstr(
-        new (zone) Value(param_ptr), new (zone) Value(param_ptr2),
+        new (zone) Value(param_ptr), /*src_cid=*/cid,
+        new (zone) Value(param_ptr2), /*dest_cid=*/cid,
         new (zone) Value(src_start_def), new (zone) Value(dest_start_def),
         new (zone) Value(length_def),
-        /*src_cid=*/cid,
-        /*dest_cid=*/cid, unboxed_inputs, /*can_overlap=*/use_same_buffer);
+
+        unboxed_inputs, /*can_overlap=*/use_same_buffer);
     flow_graph->InsertBefore(return_instr, memory_copy_instr, nullptr,
                              FlowGraph::kEffect);
 

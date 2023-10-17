@@ -158,20 +158,6 @@ namespace dart {
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportTaskEvent, 5)                                               \
-  V(TypedData_Int8Array_new, 2)                                                \
-  V(TypedData_Uint8Array_new, 2)                                               \
-  V(TypedData_Uint8ClampedArray_new, 2)                                        \
-  V(TypedData_Int16Array_new, 2)                                               \
-  V(TypedData_Uint16Array_new, 2)                                              \
-  V(TypedData_Int32Array_new, 2)                                               \
-  V(TypedData_Uint32Array_new, 2)                                              \
-  V(TypedData_Int64Array_new, 2)                                               \
-  V(TypedData_Uint64Array_new, 2)                                              \
-  V(TypedData_Float32Array_new, 2)                                             \
-  V(TypedData_Float64Array_new, 2)                                             \
-  V(TypedData_Float32x4Array_new, 2)                                           \
-  V(TypedData_Int32x4Array_new, 2)                                             \
-  V(TypedData_Float64x2Array_new, 2)                                           \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
   V(TypedData_GetInt8, 2)                                                      \
@@ -200,38 +186,8 @@ namespace dart {
   V(TypedData_SetInt32x4, 3)                                                   \
   V(TypedData_GetFloat64x2, 2)                                                 \
   V(TypedData_SetFloat64x2, 3)                                                 \
-  V(TypedDataView_ByteDataView_new, 4)                                         \
-  V(TypedDataView_Int8ArrayView_new, 4)                                        \
-  V(TypedDataView_Uint8ArrayView_new, 4)                                       \
-  V(TypedDataView_Uint8ClampedArrayView_new, 4)                                \
-  V(TypedDataView_Int16ArrayView_new, 4)                                       \
-  V(TypedDataView_Uint16ArrayView_new, 4)                                      \
-  V(TypedDataView_Int32ArrayView_new, 4)                                       \
-  V(TypedDataView_Uint32ArrayView_new, 4)                                      \
-  V(TypedDataView_Int64ArrayView_new, 4)                                       \
-  V(TypedDataView_Uint64ArrayView_new, 4)                                      \
-  V(TypedDataView_Float32ArrayView_new, 4)                                     \
-  V(TypedDataView_Float64ArrayView_new, 4)                                     \
-  V(TypedDataView_Float32x4ArrayView_new, 4)                                   \
-  V(TypedDataView_Int32x4ArrayView_new, 4)                                     \
-  V(TypedDataView_Float64x2ArrayView_new, 4)                                   \
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
-  V(TypedDataView_UnmodifiableByteDataView_new, 4)                             \
-  V(TypedDataView_UnmodifiableInt8ArrayView_new, 4)                            \
-  V(TypedDataView_UnmodifiableUint8ArrayView_new, 4)                           \
-  V(TypedDataView_UnmodifiableUint8ClampedArrayView_new, 4)                    \
-  V(TypedDataView_UnmodifiableInt16ArrayView_new, 4)                           \
-  V(TypedDataView_UnmodifiableUint16ArrayView_new, 4)                          \
-  V(TypedDataView_UnmodifiableInt32ArrayView_new, 4)                           \
-  V(TypedDataView_UnmodifiableUint32ArrayView_new, 4)                          \
-  V(TypedDataView_UnmodifiableInt64ArrayView_new, 4)                           \
-  V(TypedDataView_UnmodifiableUint64ArrayView_new, 4)                          \
-  V(TypedDataView_UnmodifiableFloat32ArrayView_new, 4)                         \
-  V(TypedDataView_UnmodifiableFloat64ArrayView_new, 4)                         \
-  V(TypedDataView_UnmodifiableFloat32x4ArrayView_new, 4)                       \
-  V(TypedDataView_UnmodifiableInt32x4ArrayView_new, 4)                         \
-  V(TypedDataView_UnmodifiableFloat64x2ArrayView_new, 4)                       \
   V(Float32x4_fromDoubles, 4)                                                  \
   V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 2)                                              \

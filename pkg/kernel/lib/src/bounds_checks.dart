@@ -336,68 +336,67 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     {required bool allowSuperBounded,
     required bool isNonNullableByDefault,
     required bool areGenericArgumentsAllowed}) {
-  List<TypeParameter> variables = const <TypeParameter>[];
-  List<DartType> arguments = const <DartType>[];
-  List<TypeArgumentIssue> typedefRhsResult = const <TypeArgumentIssue>[];
+  List<TypeParameter> variables;
+  List<DartType> arguments;
 
-  if (type is InterfaceType) {
-    variables = type.classNode.typeParameters;
-    arguments = type.typeArguments;
-  } else if (type is TypedefType) {
-    variables = type.typedefNode.typeParameters;
-    arguments = type.typeArguments;
-  } else if (type is ExtensionType) {
-    variables = type.extensionTypeDeclaration.typeParameters;
-    arguments = type.typeArguments;
-    // Extension types are never allowed to be super-bounded.
-    allowSuperBounded = false;
-  } else if (type is FunctionType) {
-    List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
-
-    for (DartType formal in type.positionalParameters) {
-      result.addAll(findTypeArgumentIssues(
-          formal, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true,
-          isNonNullableByDefault: isNonNullableByDefault,
-          areGenericArgumentsAllowed: areGenericArgumentsAllowed));
-    }
-
-    for (NamedType named in type.namedParameters) {
-      result.addAll(findTypeArgumentIssues(
-          named.type, typeEnvironment, subtypeCheckMode,
-          allowSuperBounded: true,
-          isNonNullableByDefault: isNonNullableByDefault,
-          areGenericArgumentsAllowed: areGenericArgumentsAllowed));
-    }
-
-    result.addAll(findTypeArgumentIssues(
-        type.returnType, typeEnvironment, subtypeCheckMode,
-        allowSuperBounded: true,
-        isNonNullableByDefault: isNonNullableByDefault,
-        areGenericArgumentsAllowed: areGenericArgumentsAllowed));
-
-    return result;
-  } else if (type is FutureOrType) {
-    variables = typeEnvironment.coreTypes.futureClass.typeParameters;
-    arguments = <DartType>[type.typeArgument];
-  } else {
-    assert(type is DynamicType ||
-        type is VoidType ||
-        type is IntersectionType ||
-        type is TypeParameterType ||
-        type is NeverType ||
-        type is NullType);
-    return const <TypeArgumentIssue>[];
+  switch (type) {
+    case InterfaceType(:var classNode, :var typeArguments):
+      variables = classNode.typeParameters;
+      arguments = typeArguments;
+    case TypedefType(:var typedefNode, :var typeArguments):
+      variables = typedefNode.typeParameters;
+      arguments = typeArguments;
+    case ExtensionType(:var extensionTypeDeclaration, :var typeArguments):
+      variables = extensionTypeDeclaration.typeParameters;
+      arguments = typeArguments;
+      // Extension types are never allowed to be super-bounded.
+      allowSuperBounded = false;
+    case FunctionType(
+        :var positionalParameters,
+        :var namedParameters,
+        :var returnType
+      ):
+      return <TypeArgumentIssue>[
+        for (DartType formal in positionalParameters)
+          ...findTypeArgumentIssues(formal, typeEnvironment, subtypeCheckMode,
+              allowSuperBounded: true,
+              isNonNullableByDefault: isNonNullableByDefault,
+              areGenericArgumentsAllowed: areGenericArgumentsAllowed),
+        for (NamedType named in namedParameters)
+          ...findTypeArgumentIssues(
+              named.type, typeEnvironment, subtypeCheckMode,
+              allowSuperBounded: true,
+              isNonNullableByDefault: isNonNullableByDefault,
+              areGenericArgumentsAllowed: areGenericArgumentsAllowed),
+        ...findTypeArgumentIssues(returnType, typeEnvironment, subtypeCheckMode,
+            allowSuperBounded: true,
+            isNonNullableByDefault: isNonNullableByDefault,
+            areGenericArgumentsAllowed: areGenericArgumentsAllowed)
+      ];
+    case FutureOrType(:var typeArgument):
+      variables = typeEnvironment.coreTypes.futureClass.typeParameters;
+      arguments = <DartType>[typeArgument];
+    case DynamicType():
+    case VoidType():
+    case IntersectionType():
+    case TypeParameterType():
+    case StructuralParameterType():
+    case NeverType():
+    case NullType():
+    case RecordType():
+      return const <TypeArgumentIssue>[];
+    case AuxiliaryType():
+      throw new StateError("AuxiliaryType");
+    case InvalidType():
+      // Assuming the error is reported elsewhere.
+      throw const <TypeArgumentIssue>[];
   }
 
   if (variables.isEmpty) {
-    return typedefRhsResult.isNotEmpty
-        ? typedefRhsResult
-        : const <TypeArgumentIssue>[];
+    return const <TypeArgumentIssue>[];
   }
 
   List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
-  List<TypeArgumentIssue> argumentsResult = <TypeArgumentIssue>[];
 
   Substitution substitution = Substitution.fromPairs(variables, arguments);
   for (int i = 0; i < arguments.length; ++i) {
@@ -419,8 +418,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       // reported already at the time of the creation of InvalidType.
     }
   }
-  result.addAll(argumentsResult);
-  result.addAll(typedefRhsResult);
 
   // [type] is regular-bounded.
   if (result.isEmpty) return const <TypeArgumentIssue>[];
@@ -460,13 +457,6 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       isCorrectSuperBounded = false;
     }
   }
-  if (argumentsResult.isNotEmpty) {
-    isCorrectSuperBounded = false;
-  }
-  if (typedefRhsResult.isNotEmpty) {
-    isCorrectSuperBounded = false;
-  }
-
   // The inverted type is regular-bounded, which means that [type] is
   // well-bounded.
   if (isCorrectSuperBounded) return const <TypeArgumentIssue>[];

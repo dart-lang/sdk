@@ -1331,6 +1331,7 @@ gathered
 gatherer
 gathering
 general
+generalization
 generalized
 generalizes
 generally

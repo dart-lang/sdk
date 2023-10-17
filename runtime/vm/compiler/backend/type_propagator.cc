@@ -760,6 +760,11 @@ CompileType CompileType::String() {
                           kCannotBeSentinel);
 }
 
+CompileType CompileType::Object() {
+  return FromAbstractType(Type::ZoneHandle(Type::ObjectType()), kCannotBeNull,
+                          kCannotBeSentinel);
+}
+
 intptr_t CompileType::ToCid() {
   if (cid_ == kIllegalCid) {
     // Make sure to initialize cid_ for Null type to consistently return

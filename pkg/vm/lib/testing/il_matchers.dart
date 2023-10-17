@@ -183,6 +183,10 @@ class Env {
   void bind(String name, Map<String, dynamic> instrOrBlock) {
     final id = instrOrBlock['v'] ?? instrOrBlock['b'];
 
+    if (id == null) {
+      throw 'Instruction is not a definition or a block: ${instrOrBlock['o']}';
+    }
+
     if (nameToId.containsKey(name)) {
       if (nameToId[name] != id) {
         throw 'Binding mismatch for $name: got ${nameToId[name]} and $id';
@@ -560,6 +564,14 @@ final dynamic match = Matchers();
 /// tests, which are compiled in AOT mode. So instead we let compare_il driver
 /// set this field.
 late String Function(Symbol) getName;
+
+final bool isSimulator = (() {
+  final configuration = Platform.environment['DART_CONFIGURATION'];
+  if (configuration == null) {
+    throw 'Expected DART_CONFIGURATION to be defined';
+  }
+  return configuration.contains('SIM');
+})();
 
 final bool is32BitConfiguration = (() {
   final configuration = Platform.environment['DART_CONFIGURATION'];

@@ -740,14 +740,15 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawStoreField) {
     }));
   }
   auto pointer_value = Value(pointer);
-  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
-      &pointer_value, compiler::target::PointerBase::data_offset());
-  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+  auto* const load_field_instr = new (zone) LoadFieldInstr(
+      &pointer_value, Slot::PointerBase_data(),
+      InnerPointerAccess::kCannotBeInnerPointer, InstructionSource());
+  flow_graph->InsertBefore(another_function_call, load_field_instr, nullptr,
                            FlowGraph::kValue);
-  auto load_untagged_value = Value(load_untagged_instr);
+  auto load_field_value = Value(load_field_instr);
   auto pointer_value2 = Value(pointer);
   auto* const raw_store_field_instr =
-      new (zone) RawStoreFieldInstr(&load_untagged_value, &pointer_value2, 0);
+      new (zone) RawStoreFieldInstr(&load_field_value, &pointer_value2, 0);
   flow_graph->InsertBefore(another_function_call, raw_store_field_instr,
                            nullptr, FlowGraph::kEffect);
   another_function_call->RemoveFromGraph();
@@ -758,7 +759,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawStoreField) {
     EXPECT(cursor.TryMatch({
         kMoveGlob,
         kMatchAndMoveStaticCall,
-        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveLoadField,
         kMatchAndMoveRawStoreField,
     }));
   }
@@ -835,18 +836,19 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
     }));
   }
   auto pointer_value = Value(pointer);
-  auto* const load_untagged_instr = new (zone) LoadUntaggedInstr(
-      &pointer_value, compiler::target::PointerBase::data_offset());
-  flow_graph->InsertBefore(another_function_call, load_untagged_instr, nullptr,
+  auto* const load_field_instr = new (zone) LoadFieldInstr(
+      &pointer_value, Slot::PointerBase_data(),
+      InnerPointerAccess::kCannotBeInnerPointer, InstructionSource());
+  flow_graph->InsertBefore(another_function_call, load_field_instr, nullptr,
                            FlowGraph::kValue);
-  auto load_untagged_value = Value(load_untagged_instr);
+  auto load_field_value = Value(load_field_instr);
   auto* const constant_instr = new (zone) UnboxedConstantInstr(
       Integer::ZoneHandle(zone, Integer::New(0, Heap::kOld)), kUnboxedIntPtr);
   flow_graph->InsertBefore(another_function_call, constant_instr, nullptr,
                            FlowGraph::kValue);
   auto constant_value = Value(constant_instr);
   auto* const load_indexed_instr = new (zone)
-      LoadIndexedInstr(&load_untagged_value, &constant_value,
+      LoadIndexedInstr(&load_field_value, &constant_value,
                        /*index_unboxed=*/true, /*index_scale=*/1, kArrayCid,
                        kAlignedAccess, DeoptId::kNone, InstructionSource());
   flow_graph->InsertBefore(another_function_call, load_indexed_instr, nullptr,
@@ -861,7 +863,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_RawLoadField) {
     EXPECT(cursor.TryMatch({
         kMoveGlob,
         kMatchAndMoveStaticCall,
-        kMatchAndMoveLoadUntagged,
+        kMatchAndMoveLoadField,
         kMatchAndMoveUnboxedConstant,
         kMatchAndMoveLoadIndexed,
         kMatchAndMoveStaticCall,
