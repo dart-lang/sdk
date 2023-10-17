@@ -176,26 +176,27 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<Uint8List> {
 }
 
 class _HttpDetachedIncoming extends Stream<Uint8List> {
-  final StreamSubscription<Uint8List>? subscription;
-  final Uint8List? bufferedData;
+  final StreamSubscription<Uint8List>? _subscription;
+  final Uint8List? _bufferedData;
 
-  _HttpDetachedIncoming(this.subscription, this.bufferedData);
+  _HttpDetachedIncoming(this._subscription, this._bufferedData);
 
   StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    var subscription = this.subscription;
+    var subscription = this._subscription;
     if (subscription != null) {
       subscription
         ..onData(onData)
         ..onError(onError)
         ..onDone(onDone);
-      if (bufferedData == null) {
+      if (_bufferedData == null) {
         return subscription..resume();
       }
-      return _HttpDetachedStreamSubscription(subscription, bufferedData, onData)
+      return _HttpDetachedStreamSubscription(
+          subscription, _bufferedData, onData)
         ..resume();
     } else {
-      return Stream<Uint8List>.fromIterable([bufferedData ?? Uint8List(0)])
+      return Stream<Uint8List>.fromIterable([_bufferedData ?? Uint8List(0)])
           .listen(onData,
               onError: onError, onDone: onDone, cancelOnError: cancelOnError);
     }
