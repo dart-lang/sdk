@@ -378,7 +378,14 @@ class AnnotateKernel extends RecursiveVisitor {
           if (function != null) {
             _closureIdMetadata.indexClosures(closureMember);
             closureId = _closureIdMetadata.getClosureId(function);
-            assert(closureId > 0);
+            if (closureId < 0) {
+              // Closure was tree-shaken and doesn't belong to
+              // the body of [closureMember].
+              closureMember = null;
+              closureId = 0;
+            } else {
+              assert(closureId > 0);
+            }
           } else {
             closureId = 0;
           }
