@@ -1,3 +1,10 @@
+## 3.1.4 -
+
+- Fixes an issue in the Dart VM, users are not being able to see
+  value of variables while debugging code (issue [#53654]).
+
+[#53654]: https://github.com/dart-lang/sdk/issues/53654
+
 ## 3.1.3 - 2023-09-27
 
 This is a patch release that:
