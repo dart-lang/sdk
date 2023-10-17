@@ -520,6 +520,10 @@ abstract interface class File implements FileSystemEntity {
   /// file if it already exists. In order to append the bytes to an existing
   /// file, pass [FileMode.append] as the optional mode parameter.
   ///
+  /// [bytes] is treated as a list of 8-bit values. Values outside of 0..255
+  /// are truncated by taking the low 8 bits. For example, `256` is treated
+  /// as `0`, `257` as `1`, `-1` as `255`, etc.
+  ///
   /// If the argument [flush] is set to `true`, the data written will be
   /// flushed to the file system before the returned future completes.
   Future<File> writeAsBytes(List<int> bytes,
@@ -535,6 +539,10 @@ abstract interface class File implements FileSystemEntity {
   ///
   /// If the [flush] argument is set to `true` data written will be
   /// flushed to the file system before returning.
+  ///
+  /// [bytes] is treated as a list of 8-bit values. Values outside of 0..255
+  /// are truncated by taking the low 8 bits. For example, `256` is treated
+  /// as `0`, `257` as `1`, `-1` as `255`, etc.
   ///
   /// Throws a [FileSystemException] if the operation fails.
   void writeAsBytesSync(List<int> bytes,
