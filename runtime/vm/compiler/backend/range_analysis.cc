@@ -2850,11 +2850,20 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       UNREACHABLE();
       break;
 
-#define UNBOXED_NATIVE_SLOT_CASE(Class, Untagged, Field, Rep, IsFinal)         \
+#define UNBOXED_NATIVE_NONADDRESS_SLOT_CASE(Class, Untagged, Field, Rep,       \
+                                            IsFinal)                           \
   case Slot::Kind::k##Class##_##Field:
-      UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
-#undef UNBOXED_NATIVE_SLOT_CASE
+      UNBOXED_NATIVE_NONADDRESS_SLOTS_LIST(UNBOXED_NATIVE_NONADDRESS_SLOT_CASE)
+#undef UNBOXED_NATIVE_NONADDRESS_SLOT_CASE
       *range = Range::Full(RepresentationToRangeSize(slot().representation()));
+      break;
+
+#define UNBOXED_NATIVE_ADDRESS_SLOT_CASE(Class, Untagged, Field, MayMove,      \
+                                         IsFinal)                              \
+  case Slot::Kind::k##Class##_##Field:
+      UNBOXED_NATIVE_ADDRESS_SLOTS_LIST(UNBOXED_NATIVE_ADDRESS_SLOT_CASE)
+#undef UNBOXED_NATIVE_ADDRESS_SLOT_CASE
+      UNREACHABLE();
       break;
 
     case Slot::Kind::kClosure_hash:

@@ -9020,6 +9020,52 @@ void Function::SetIsOptimizable(bool value) const {
   }
 }
 
+bool Function::IsTypedDataViewFactory() const {
+  switch (recognized_kind()) {
+    case MethodRecognizer::kTypedData_ByteDataView_factory:
+    case MethodRecognizer::kTypedData_Int8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_Int16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool Function::IsUnmodifiableTypedDataViewFactory() const {
+  switch (recognized_kind()) {
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
 bool Function::ForceOptimize() const {
   if (RecognizedKindForceOptimize() || IsFfiTrampoline() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
@@ -9107,6 +9153,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kTypedData_memMove4:
     case MethodRecognizer::kTypedData_memMove8:
     case MethodRecognizer::kTypedData_memMove16:
+    case MethodRecognizer::kMemCopy:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
     // kernel_to_il.cc that no GC can happen in between the relevant IL

@@ -219,6 +219,10 @@ class IlTestPrinter : public AllStatic {
       writer_->PrintValue(Token::Str(kind));
     }
 
+    void WriteAttribute(Representation rep) {
+      writer_->PrintValue(RepresentationToCString(rep));
+    }
+
     void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
 
     void WriteAttribute(const Function* function) {
@@ -927,6 +931,9 @@ void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   if (emit_store_barrier_ == kNoStoreBarrier) {
     f->AddString(", NoStoreBarrier");
   }
+  if (stores_inner_pointer() == InnerPointerAccess::kMayBeInnerPointer) {
+    f->AddString(", MayStoreInnerPointer");
+  }
 }
 
 void IfThenElseInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -992,9 +999,12 @@ void MaterializeObjectInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 
 void LoadFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
-  f->Printf(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+  f->Printf(" . %s%s", slot().Name(), IsImmutableLoad() ? " {final}" : "");
   if (calls_initializer()) {
     f->AddString(", CallsInitializer");
+  }
+  if (loads_inner_pointer() == InnerPointerAccess::kMayBeInnerPointer) {
+    f->AddString(", MayLoadInnerPointer");
   }
 }
 
@@ -1446,23 +1456,43 @@ void MemoryCopyInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   // kTypedDataUint8ArrayCid is used as the default cid for cases where
   // the destination object is a subclass of PointerBase and the arguments
   // are given in terms of bytes, so only print if the cid differs.
-  if (dest_cid_ != kTypedDataUint8ArrayCid) {
-    const Class& cls =
-        Class::Handle(IsolateGroup::Current()->class_table()->At(dest_cid_));
-    if (!cls.IsNull()) {
-      f->Printf(", dest_cid=%s (%d)", cls.ScrubbedNameCString(), dest_cid_);
-    } else {
-      f->Printf(", dest_cid=%d", dest_cid_);
-    }
+  switch (dest_representation_) {
+    case kUntagged:
+      f->Printf(", dest untagged");
+      break;
+    case kTagged:
+      if (dest_cid_ != kTypedDataUint8ArrayCid) {
+        const Class& cls = Class::Handle(
+            IsolateGroup::Current()->class_table()->At(dest_cid_));
+        if (!cls.IsNull()) {
+          f->Printf(", dest_cid=%s (%d)", cls.ScrubbedNameCString(), dest_cid_);
+        } else {
+          f->Printf(", dest_cid=%d", dest_cid_);
+        }
+      }
+      break;
+    default:
+      UNREACHABLE();
   }
-  if (src_cid_ != dest_cid_) {
-    const Class& cls =
-        Class::Handle(IsolateGroup::Current()->class_table()->At(src_cid_));
-    if (!cls.IsNull()) {
-      f->Printf(", src_cid=%s (%d)", cls.ScrubbedNameCString(), src_cid_);
-    } else {
-      f->Printf(", src_cid=%d", src_cid_);
-    }
+  switch (src_representation_) {
+    case kUntagged:
+      f->Printf(", src untagged");
+      break;
+    case kTagged:
+      if ((dest_representation_ == kTagged && dest_cid_ != src_cid_) ||
+          (dest_representation_ != kTagged &&
+           src_cid_ != kTypedDataUint8ArrayCid)) {
+        const Class& cls =
+            Class::Handle(IsolateGroup::Current()->class_table()->At(src_cid_));
+        if (!cls.IsNull()) {
+          f->Printf(", src_cid=%s (%d)", cls.ScrubbedNameCString(), src_cid_);
+        } else {
+          f->Printf(", src_cid=%d", src_cid_);
+        }
+      }
+      break;
+    default:
+      UNREACHABLE();
   }
   if (element_size() != 1) {
     f->Printf(", element_size=%" Pd "", element_size());

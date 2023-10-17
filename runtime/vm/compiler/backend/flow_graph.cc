@@ -2082,16 +2082,15 @@ class PhiUnboxingHeuristic : public ValueObject {
       : worklist_(flow_graph, 10) {}
 
   void Process(PhiInstr* phi) {
-    Representation unboxed = phi->representation();
-
+    auto new_representation = kTagged;
     switch (phi->Type()->ToCid()) {
       case kDoubleCid:
         if (CanUnboxDouble()) {
-          // Could be UnboxedDouble or UnboxedFloat
-          unboxed = DetermineIfAnyIncomingUnboxedFloats(phi) ? kUnboxedFloat
-                                                             : kUnboxedDouble;
+          new_representation = DetermineIfAnyIncomingUnboxedFloats(phi)
+                                   ? kUnboxedFloat
+                                   : kUnboxedDouble;
 #if defined(DEBUG)
-          if (unboxed == kUnboxedFloat) {
+          if (new_representation == kUnboxedFloat) {
             for (auto input : phi->inputs()) {
               ASSERT(input->representation() != kUnboxedDouble);
             }
@@ -2101,78 +2100,86 @@ class PhiUnboxingHeuristic : public ValueObject {
         break;
       case kFloat32x4Cid:
         if (ShouldInlineSimd()) {
-          unboxed = kUnboxedFloat32x4;
+          new_representation = kUnboxedFloat32x4;
         }
         break;
       case kInt32x4Cid:
         if (ShouldInlineSimd()) {
-          unboxed = kUnboxedInt32x4;
+          new_representation = kUnboxedInt32x4;
         }
         break;
       case kFloat64x2Cid:
         if (ShouldInlineSimd()) {
-          unboxed = kUnboxedFloat64x2;
+          new_representation = kUnboxedFloat64x2;
         }
         break;
     }
 
-    // If all the inputs are unboxed, leave the Phi unboxed.
-    if ((unboxed == kTagged) && phi->Type()->IsInt()) {
-      bool should_unbox = true;
-      Representation new_representation = kTagged;
+    // If all the inputs are untagged or all the inputs are compatible unboxed
+    // integers, leave the Phi unboxed.
+    if (new_representation == kTagged && phi->Type()->IsInt()) {
       for (auto input : phi->inputs()) {
         if (input == phi) continue;
 
-        if (!IsUnboxedInteger(input->representation())) {
-          should_unbox = false;
+        if (input->representation() != kUntagged &&
+            !IsUnboxedInteger(input->representation())) {
+          new_representation = kTagged;  // Reset to a boxed phi.
           break;
         }
 
         if (new_representation == kTagged) {
           new_representation = input->representation();
+        } else if (new_representation == kUntagged) {
+          // Don't allow mixing of untagged and unboxed values.
+          ASSERT_EQUAL(input->representation(), kUntagged);
         } else if (new_representation != input->representation()) {
+          // Don't allow mixing of untagged and unboxed values.
+          ASSERT(IsUnboxedInteger(input->representation()));
+          // It's unclear which representation to use yet, so use
+          // kNoRepresentation as a "unknown but unboxed int" marker for now.
           new_representation = kNoRepresentation;
         }
       }
 
-      if (should_unbox) {
-        unboxed =
-            new_representation != kNoRepresentation ? new_representation
-            : RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
-                ? kUnboxedInt32
-                : kUnboxedInt64;
-      }
-    }
-
-    // Decide if it is worth to unbox an integer phi.
-    if ((unboxed == kTagged) && phi->Type()->IsInt() &&
-        !phi->Type()->can_be_sentinel()) {
-#if defined(TARGET_ARCH_IS_64_BIT)
-      // In AOT mode on 64-bit platforms always unbox integer typed phis
-      // (similar to how we treat doubles and other boxed numeric types).
-      // In JIT mode only unbox phis which are not fully known to be Smi.
-      if (is_aot_ || phi->Type()->ToCid() != kSmiCid) {
-        unboxed = kUnboxedInt64;
-      }
-#else
-      // If we are on a 32-bit platform check if there are unboxed values
-      // flowing into the phi and the phi value itself is flowing into an
-      // unboxed operation prefer to keep it unboxed.
-      // We use this heuristic instead of eagerly unboxing all the phis
-      // because we are concerned about the code size and register pressure.
-      const bool has_unboxed_incoming_value = HasUnboxedIncomingValue(phi);
-      const bool flows_into_unboxed_use = FlowsIntoUnboxedUse(phi);
-
-      if (has_unboxed_incoming_value && flows_into_unboxed_use) {
-        unboxed =
+      if (new_representation == kNoRepresentation) {
+        // If all the inputs are unboxed integers but with different
+        // representations, then pick a representation based on the range
+        // of values that flow into the phi node.
+        new_representation =
             RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
                 ? kUnboxedInt32
                 : kUnboxedInt64;
       }
+
+      // Decide if it is worth to unbox an boxed integer phi.
+      if (new_representation == kTagged && !phi->Type()->can_be_sentinel()) {
+#if defined(TARGET_ARCH_IS_64_BIT)
+        // In AOT mode on 64-bit platforms always unbox integer typed phis
+        // (similar to how we treat doubles and other boxed numeric types).
+        // In JIT mode only unbox phis which are not fully known to be Smi.
+        if (is_aot_ || phi->Type()->ToCid() != kSmiCid) {
+          new_representation = kUnboxedInt64;
+        }
+#else
+        // If we are on a 32-bit platform check if there are unboxed values
+        // flowing into the phi and the phi value itself is flowing into an
+        // unboxed operation prefer to keep it unboxed.
+        // We use this heuristic instead of eagerly unboxing all the phis
+        // because we are concerned about the code size and register pressure.
+        const bool has_unboxed_incoming_value = HasUnboxedIncomingValue(phi);
+        const bool flows_into_unboxed_use = FlowsIntoUnboxedUse(phi);
+
+        if (has_unboxed_incoming_value && flows_into_unboxed_use) {
+          new_representation =
+              RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
+                  ? kUnboxedInt32
+                  : kUnboxedInt64;
+        }
 #endif
+      }
     }
 
-    phi->set_representation(unboxed);
+    phi->set_representation(new_representation);
   }
 
  private:

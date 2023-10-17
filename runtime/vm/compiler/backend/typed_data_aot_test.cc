@@ -42,7 +42,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
   CheckNullInstr* check_null = nullptr;
   LoadFieldInstr* load_field = nullptr;
   GenericCheckBoundInstr* bounds_check = nullptr;
-  Instruction* load_untagged = nullptr;
+  LoadFieldInstr* load_untagged = nullptr;
   LoadIndexedInstr* load_indexed = nullptr;
 
   ILMatcher cursor(flow_graph, entry);
@@ -54,7 +54,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
         kMatchAndMoveBranchTrue,
         kMoveGlob,
         {kMatchAndMoveGenericCheckBound, &bounds_check},
-        {kMatchAndMoveLoadUntagged, &load_untagged},
+        {kMatchAndMoveLoadField, &load_untagged},
         kMoveParallelMoves,
         {kMatchAndMoveLoadIndexed, &load_indexed},
         kMoveGlob,
@@ -69,7 +69,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
         kMatchAndMoveBranchTrue,
         kMoveGlob,
         {kMatchAndMoveGenericCheckBound, &bounds_check},
-        {kMatchAndMoveLoadUntagged, &load_untagged},
+        {kMatchAndMoveLoadField, &load_untagged},
         kMoveParallelMoves,
         {kMatchAndMoveLoadIndexed, &load_indexed},
         kMoveGlob,
@@ -140,27 +140,27 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
           // Load 1
           kMatchAndMoveGenericCheckBound,
           kMoveGlob,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveLoadIndexed,
           kMoveGlob,
           // Load 2
           kMatchAndMoveGenericCheckBound,
           kMoveGlob,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveLoadIndexed,
           kMoveGlob,
           // Store 1
           kMatchAndMoveCheckWritable,
           kMoveParallelMoves,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveStoreIndexed,
           kMoveGlob,
           // Store 2
           kMoveParallelMoves,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveStoreIndexed,
           kMoveGlob,
@@ -184,27 +184,27 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
           // Load 1
           kMatchAndMoveGenericCheckBound,
           kMoveGlob,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveLoadIndexed,
           kMoveGlob,
           // Load 2
           kMatchAndMoveGenericCheckBound,
           kMoveGlob,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveLoadIndexed,
           kMoveGlob,
           // Store 1
           kMatchAndMoveCheckWritable,
           kMoveParallelMoves,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveStoreIndexed,
           kMoveGlob,
           // Store 2
           kMoveParallelMoves,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveStoreIndexed,
           kMoveGlob,
@@ -282,7 +282,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
 
           // Store value.
           kMoveGlob,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveOptionalUnbox,
           kMoveParallelMoves,
@@ -316,7 +316,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
 
           // Store value.
           kMoveGlob,
-          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadField,
           kMoveParallelMoves,
           kMatchAndMoveOptionalUnbox,
           kMoveParallelMoves,

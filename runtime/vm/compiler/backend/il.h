@@ -3080,29 +3080,47 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
 class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
  public:
   MemoryCopyInstr(Value* src,
+                  classid_t src_cid,
+                  Value* dest,
+                  classid_t dest_cid,
+                  Value* src_start,
+                  Value* dest_start,
+                  Value* length,
+                  bool unboxed_inputs,
+                  bool can_overlap = true)
+      : MemoryCopyInstr(Instance::ElementSizeFor(src_cid),
+                        src,
+                        kTagged,
+                        src_cid,
+                        dest,
+                        kTagged,
+                        dest_cid,
+                        src_start,
+                        dest_start,
+                        length,
+                        unboxed_inputs,
+                        can_overlap) {}
+
+  MemoryCopyInstr(intptr_t element_size,
+                  Value* src,
                   Value* dest,
                   Value* src_start,
                   Value* dest_start,
                   Value* length,
-                  classid_t src_cid,
-                  classid_t dest_cid,
                   bool unboxed_inputs,
                   bool can_overlap = true)
-      : src_cid_(src_cid),
-        dest_cid_(dest_cid),
-        element_size_(Instance::ElementSizeFor(src_cid)),
-        unboxed_inputs_(unboxed_inputs),
-        can_overlap_(can_overlap) {
-    ASSERT(IsArrayTypeSupported(src_cid));
-    ASSERT(IsArrayTypeSupported(dest_cid));
-    ASSERT(Instance::ElementSizeFor(src_cid) ==
-           Instance::ElementSizeFor(dest_cid));
-    SetInputAt(kSrcPos, src);
-    SetInputAt(kDestPos, dest);
-    SetInputAt(kSrcStartPos, src_start);
-    SetInputAt(kDestStartPos, dest_start);
-    SetInputAt(kLengthPos, length);
-  }
+      : MemoryCopyInstr(element_size,
+                        src,
+                        kUntagged,
+                        kIllegalCid,
+                        dest,
+                        kUntagged,
+                        kIllegalCid,
+                        src_start,
+                        dest_start,
+                        length,
+                        unboxed_inputs,
+                        can_overlap) {}
 
   enum {
     kSrcPos = 0,
@@ -3115,9 +3133,11 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   DECLARE_INSTRUCTION(MemoryCopy)
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const {
-    if (index == kSrcPos || index == kDestPos) {
-      // The object inputs are always tagged.
-      return kTagged;
+    if (index == kSrcPos) {
+      return src_representation_;
+    }
+    if (index == kDestPos) {
+      return dest_representation_;
     }
     return unboxed_inputs() ? kUnboxedIntPtr : kTagged;
   }
@@ -3125,7 +3145,19 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return true; }
 
-  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const {
+    if (auto* const copy = other.AsMemoryCopy()) {
+      if (element_size_ != copy->element_size_) return false;
+      if (unboxed_inputs_ != copy->unboxed_inputs_) return false;
+      if (can_overlap_ != copy->can_overlap_) return false;
+      if (src_representation_ != copy->src_representation_) return false;
+      if (dest_representation_ != copy->dest_representation_) return false;
+      if (src_cid_ != copy->src_cid_) return false;
+      if (dest_cid_ != copy->dest_cid_) return false;
+      return true;
+    }
+    return false;
+  }
 
   Value* src() const { return inputs_[kSrcPos]; }
   Value* dest() const { return inputs_[kDestPos]; }
@@ -3142,12 +3174,16 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
+  DECLARE_ATTRIBUTE(element_size());
+
 #define FIELD_LIST(F)                                                          \
-  F(classid_t, src_cid_)                                                       \
-  F(classid_t, dest_cid_)                                                      \
+  F(const classid_t, src_cid_)                                                 \
+  F(const classid_t, dest_cid_)                                                \
   F(intptr_t, element_size_)                                                   \
   F(bool, unboxed_inputs_)                                                     \
-  F(bool, can_overlap_)
+  F(const bool, can_overlap_)                                                  \
+  F(const Representation, src_representation_)                                 \
+  F(const Representation, dest_representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(MemoryCopyInstr,
                                           TemplateInstruction,
@@ -3155,11 +3191,55 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 #undef FIELD_LIST
 
  private:
+  MemoryCopyInstr(intptr_t element_size,
+                  Value* src,
+                  Representation src_representation,
+                  classid_t src_cid,
+                  Value* dest,
+                  Representation dest_representation,
+                  classid_t dest_cid,
+                  Value* src_start,
+                  Value* dest_start,
+                  Value* length,
+                  bool unboxed_inputs,
+                  bool can_overlap = true)
+      : src_cid_(src_cid),
+        dest_cid_(dest_cid),
+        element_size_(element_size),
+        unboxed_inputs_(unboxed_inputs),
+        can_overlap_(can_overlap),
+        src_representation_(src_representation),
+        dest_representation_(dest_representation) {
+    if (src_representation == kTagged) {
+      ASSERT(IsArrayTypeSupported(src_cid));
+      ASSERT_EQUAL(Instance::ElementSizeFor(src_cid), element_size);
+    } else {
+      ASSERT_EQUAL(src_representation, kUntagged);
+      ASSERT_EQUAL(src_cid, kIllegalCid);
+    }
+    if (dest_representation == kTagged) {
+      ASSERT(IsArrayTypeSupported(dest_cid));
+      ASSERT_EQUAL(Instance::ElementSizeFor(dest_cid), element_size);
+    } else {
+      ASSERT_EQUAL(dest_representation, kUntagged);
+      ASSERT_EQUAL(dest_cid, kIllegalCid);
+    }
+    SetInputAt(kSrcPos, src);
+    SetInputAt(kDestPos, dest);
+    SetInputAt(kSrcStartPos, src_start);
+    SetInputAt(kDestStartPos, dest_start);
+    SetInputAt(kLengthPos, length);
+  }
+
   // Set array_reg to point to the index indicated by start (contained in
   // start_loc) of the typed data or string in array (contained in array_reg).
+  // If array_rep is tagged, then the payload address is retrieved according
+  // to array_cid, otherwise the register is assumed to already have the
+  // payload address.
   void EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                classid_t array_cid,
                                Register array_reg,
+                               Representation array_rep,
                                Location start_loc);
 
   // Generates an unrolled loop for copying a known amount of data from
@@ -6031,6 +6111,12 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
 };
 
+enum class InnerPointerAccess {
+  kNotUntagged,
+  kMayBeInnerPointer,
+  kCannotBeInnerPointer,
+};
+
 enum StoreBarrierType { kNoStoreBarrier, kEmitStoreBarrier };
 
 // StoreField instruction represents a store of the given [value] into
@@ -6078,6 +6164,7 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
                   Value* instance,
                   Value* value,
                   StoreBarrierType emit_store_barrier,
+                  InnerPointerAccess stores_inner_pointer,
                   const InstructionSource& source,
                   Kind kind = Kind::kOther,
                   compiler::Assembler::MemoryOrder memory_order =
@@ -6087,10 +6174,41 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
         emit_store_barrier_(emit_store_barrier),
         memory_order_(memory_order),
         token_pos_(source.token_pos),
-        is_initialization_(kind == Kind::kInitializing) {
+        is_initialization_(kind == Kind::kInitializing),
+        stores_inner_pointer_(stores_inner_pointer) {
+    switch (stores_inner_pointer) {
+      case InnerPointerAccess::kNotUntagged:
+        ASSERT(slot.representation() != kUntagged);
+        break;
+      case InnerPointerAccess::kMayBeInnerPointer:
+        ASSERT(slot.representation() == kUntagged);
+        ASSERT(slot.may_contain_inner_pointer());
+        break;
+      case InnerPointerAccess::kCannotBeInnerPointer:
+        ASSERT(slot.representation() == kUntagged);
+        break;
+    }
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
   }
+
+  // Convenience constructor for slots not containing an untagged address.
+  StoreFieldInstr(const Slot& slot,
+                  Value* instance,
+                  Value* value,
+                  StoreBarrierType emit_store_barrier,
+                  const InstructionSource& source,
+                  Kind kind = Kind::kOther,
+                  compiler::Assembler::MemoryOrder memory_order =
+                      compiler::Assembler::kRelaxedNonAtomic)
+      : StoreFieldInstr(slot,
+                        instance,
+                        value,
+                        emit_store_barrier,
+                        InnerPointerAccess::kNotUntagged,
+                        source,
+                        kind,
+                        memory_order) {}
 
   // Convenience constructor that looks up an IL Slot for the given [field].
   StoreFieldInstr(const Field& field,
@@ -6128,7 +6246,7 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   bool is_initialization() const { return is_initialization_; }
 
   bool ShouldEmitStoreBarrier() const {
-    if (RepresentationUtils::IsUnboxed(slot().representation())) {
+    if (slot().representation() != kTagged) {
       // The target field is native and unboxed, so not traversed by the GC.
       return false;
     }
@@ -6147,6 +6265,17 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   void set_emit_store_barrier(StoreBarrierType value) {
     emit_store_barrier_ = value;
+  }
+
+  InnerPointerAccess stores_inner_pointer() const {
+    return stores_inner_pointer_;
+  }
+  void set_stores_inner_pointer(InnerPointerAccess value) {
+    // We should never change this for a non-untagged field.
+    ASSERT(stores_inner_pointer_ != InnerPointerAccess::kNotUntagged);
+    // We only convert from may to cannot, never the other direction.
+    ASSERT(value == InnerPointerAccess::kCannotBeInnerPointer);
+    stores_inner_pointer_ = value;
   }
 
   virtual bool CanTriggerGC() const { return false; }
@@ -6173,7 +6302,8 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   F(compiler::Assembler::MemoryOrder, memory_order_)                           \
   F(const TokenPosition, token_pos_)                                           \
   /* Marks initializing stores. E.g. in the constructor. */                    \
-  F(const bool, is_initialization_)
+  F(const bool, is_initialization_)                                            \
+  F(InnerPointerAccess, stores_inner_pointer_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(StoreFieldInstr,
                                           TemplateInstruction,
@@ -7547,11 +7677,12 @@ class AllocateTypedDataInstr : public TemplateArrayAllocation<1> {
   DISALLOW_COPY_AND_ASSIGN(AllocateTypedDataInstr);
 };
 
-// Note: This instruction must not be moved without the indexed access that
-// depends on it (e.g. out of loops). GC may collect the array while the
-// external data-array is still accessed.
-// TODO(vegorov) enable LICMing this instruction by ensuring that array itself
-// is kept alive.
+// This instruction is used to access fields in non-Dart objects, such as Thread
+// and IsolateGroup.
+//
+// Note: The instruction must not be moved without the indexed access or store
+// that depends on it (e.g. out of loops), as the GC may collect or move the
+// object containing that address.
 class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
  public:
   LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
@@ -7646,6 +7777,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
  public:
   LoadFieldInstr(Value* instance,
                  const Slot& slot,
+                 InnerPointerAccess loads_inner_pointer,
                  const InstructionSource& source,
                  bool calls_initializer = false,
                  intptr_t deopt_id = DeoptId::kNone)
@@ -7653,12 +7785,49 @@ class LoadFieldInstr : public TemplateLoadField<1> {
                           calls_initializer,
                           deopt_id,
                           slot.IsDartField() ? &slot.field() : nullptr),
-        slot_(slot) {
+        slot_(slot),
+        loads_inner_pointer_(loads_inner_pointer) {
+    switch (loads_inner_pointer) {
+      case InnerPointerAccess::kNotUntagged:
+        ASSERT(slot.representation() != kUntagged);
+        break;
+      case InnerPointerAccess::kMayBeInnerPointer:
+        ASSERT(slot.representation() == kUntagged);
+        ASSERT(slot.may_contain_inner_pointer());
+        break;
+      case InnerPointerAccess::kCannotBeInnerPointer:
+        ASSERT(slot.representation() == kUntagged);
+        break;
+    }
     SetInputAt(0, instance);
   }
 
+  // Convenience function for slots that cannot hold untagged addresses.
+  LoadFieldInstr(Value* instance,
+                 const Slot& slot,
+                 const InstructionSource& source,
+                 bool calls_initializer = false,
+                 intptr_t deopt_id = DeoptId::kNone)
+      : LoadFieldInstr(instance,
+                       slot,
+                       InnerPointerAccess::kNotUntagged,
+                       source,
+                       calls_initializer,
+                       deopt_id) {}
+
   Value* instance() const { return inputs_[0]; }
   const Slot& slot() const { return slot_; }
+
+  InnerPointerAccess loads_inner_pointer() const {
+    return loads_inner_pointer_;
+  }
+  void set_loads_inner_pointer(InnerPointerAccess value) {
+    // We should never change this for a non-untagged field.
+    ASSERT(loads_inner_pointer_ != InnerPointerAccess::kNotUntagged);
+    // We only convert from may to cannot, never the other direction.
+    ASSERT(value == InnerPointerAccess::kCannotBeInnerPointer);
+    loads_inner_pointer_ = value;
+  }
 
   virtual Representation representation() const;
 
@@ -7668,6 +7837,18 @@ class LoadFieldInstr : public TemplateLoadField<1> {
   virtual CompileType ComputeType() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  bool MayCreateUntaggedAlias() const;
+
+  bool IsImmutableLoad() const {
+    // The data() field in PointerBase is marked mutable, but is not actually
+    // mutable if it doesn't contain an inner pointer (e.g., for external
+    // typed data and Pointer objects).
+    if (slot().IsIdentical(Slot::PointerBase_data())) {
+      return loads_inner_pointer() != InnerPointerAccess::kMayBeInnerPointer;
+    }
+    return slot().is_immutable();
+  }
 
   bool IsImmutableLengthLoad() const { return slot().IsImmutableLengthSlot(); }
 
@@ -7700,7 +7881,9 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-#define FIELD_LIST(F) F(const Slot&, slot_)
+#define FIELD_LIST(F)                                                          \
+  F(const Slot&, slot_)                                                        \
+  F(InnerPointerAccess, loads_inner_pointer_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadFieldInstr,
                                           TemplateLoadField,
@@ -10538,6 +10721,9 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   }
 
   DECLARE_INSTRUCTION(IntConverter);
+
+  DECLARE_ATTRIBUTES_NAMED(("from", "to", "is_truncating"),
+                           (from(), to(), is_truncating()))
 
   PRINT_OPERANDS_TO_SUPPORT
 

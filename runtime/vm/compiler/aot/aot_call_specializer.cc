@@ -395,45 +395,74 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
          TryOptimizeDoubleOperation(instr, op_kind);
 }
 
-// Modulo against a constant power-of-two can be optimized into a mask.
-// x % y -> x & (|y| - 1)  for smi masks only
-Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
-                                               Token::Kind op_kind,
-                                               Value* left_value,
-                                               Value* right_value) {
+Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
+    TemplateDartCall<0>* instr,
+    Token::Kind op_kind,
+    Value* left_value,
+    Value* right_value) {
   if (!right_value->BindsToConstant()) {
     return nullptr;
   }
 
   const Object& rhs = right_value->BoundConstant();
   const int64_t value = Integer::Cast(rhs).AsInt64Value();  // smi and mint
-  if (value == kMinInt64) {
-    return nullptr;  // non-smi mask
-  }
-  const int64_t modulus = Utils::Abs(value);
-  if (!Utils::IsPowerOfTwo(modulus) || !compiler::target::IsSmi(modulus - 1)) {
+
+  auto unboxed_constant = [&](int64_t value) -> Definition* {
+    ASSERT(compiler::target::IsSmi(value));
+#if defined(TARGET_ARCH_ARM)
+    Definition* const const_def = new (Z) UnboxedConstantInstr(
+        Smi::ZoneHandle(Z, Smi::New(value)), kUnboxedInt32);
+    InsertBefore(instr, const_def, /*env=*/nullptr, FlowGraph::kValue);
+    return new (Z) IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
+                                     new (Z) Value(const_def), DeoptId::kNone);
+#else
+    return new (Z) UnboxedConstantInstr(Smi::ZoneHandle(Z, Smi::New(value)),
+                                        kUnboxedInt64);
+#endif
+  };
+
+  if (op_kind == Token::kMOD) {
+    // Modulo against a constant power-of-two can be optimized into a mask.
+    // x % y -> x & (|y| - 1)  for smi masks only
+
+    if (value == kMinInt64) {
+      return nullptr;  // non-smi mask
+    }
+    const int64_t modulus = Utils::Abs(value);
+    if (!Utils::IsPowerOfTwo(modulus) ||
+        !compiler::target::IsSmi(modulus - 1)) {
+      return nullptr;
+    }
+
+    left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+
+    Definition* right_definition = unboxed_constant(modulus - 1);
+    if (modulus == 1) return right_definition;
+    InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
+    right_value = new (Z) Value(right_definition);
+    return new (Z)
+        BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
+                           DeoptId::kNone, Instruction::kNotSpeculative);
+
+  } else {
+    ASSERT_EQUAL(op_kind, Token::kTRUNCDIV);
+    // Since we can't create a BinaryInt64Op(kTRUNCDIV, ...) instruction,
+    // check the following cases before falling back to the native call:
+    //   m ~/ 1 => m     (here, m >> 0, which will get canonicalized to m)
+    //   m ~/ -1 => -m
+    if (value == 1) {
+      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+      auto* zero = unboxed_constant(0);
+      InsertBefore(instr, zero, /*env=*/nullptr, FlowGraph::kValue);
+      return new (Z) ShiftInt64OpInstr(Token::kSHR, left_value,
+                                       new (Z) Value(zero), DeoptId::kNone);
+    } else if (value == -1) {
+      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+      return new (Z)
+          UnaryInt64OpInstr(Token::kNEGATE, left_value, DeoptId::kNone);
+    }
     return nullptr;
   }
-
-  left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-
-#if defined(TARGET_ARCH_ARM)
-  Definition* right_definition = new (Z) UnboxedConstantInstr(
-      Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt32);
-  InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
-  right_definition = new (Z)
-      IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
-                        new (Z) Value(right_definition), DeoptId::kNone);
-#else
-  Definition* right_definition = new (Z) UnboxedConstantInstr(
-      Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt64);
-#endif
-  if (modulus == 1) return right_definition;
-  InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
-  right_value = new (Z) Value(right_definition);
-  return new (Z)
-      BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
-                         DeoptId::kNone, Instruction::kNotSpeculative);
 }
 
 bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
@@ -487,12 +516,14 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
             DeoptId::kNone, Instruction::kNotSpeculative);
         break;
       case Token::kMOD:
-        replacement = TryOptimizeMod(instr, op_kind, left_value, right_value);
-        if (replacement != nullptr) break;
-        FALL_THROUGH;
       case Token::kTRUNCDIV:
-#if !defined(TARGET_ARCH_IS_64_BIT)
-        // TODO(ajcbik): 32-bit archs too?
+        replacement = TryOptimizeDivisionOperation(instr, op_kind, left_value,
+                                                   right_value);
+        if (replacement != nullptr) break;
+#if defined(TARGET_ARCH_IS_32_BIT)
+        // Truncating 64-bit division and modulus via BinaryInt64OpInstr are
+        // not implemented on 32-bit architectures, so we can only optimize
+        // certain cases and otherwise must leave the call in.
         break;
 #else
         FALL_THROUGH;

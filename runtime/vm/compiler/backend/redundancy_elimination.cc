@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "vm/bit_vector.h"
+#include "vm/class_id.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -1120,6 +1121,8 @@ class AliasedSet : public ZoneAllocated {
          use = use->next_use()) {
       Instruction* instr = use->instruction();
       if (instr->HasUnknownSideEffects() || instr->IsLoadUntagged() ||
+          (instr->IsLoadField() &&
+           instr->AsLoadField()->MayCreateUntaggedAlias()) ||
           (instr->IsStoreIndexed() &&
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {
@@ -1415,8 +1418,9 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
 
 // Load instructions handled by load elimination.
 static bool IsLoadEliminationCandidate(Instruction* instr) {
-  return instr->IsLoadField() || instr->IsLoadIndexed() ||
-         instr->IsLoadStaticField();
+  return (instr->IsLoadField() && instr->AsLoadField()->loads_inner_pointer() !=
+                                      InnerPointerAccess::kMayBeInnerPointer) ||
+         instr->IsLoadIndexed() || instr->IsLoadStaticField();
 }
 
 static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
@@ -3832,8 +3836,23 @@ void AllocationSinking::CreateMaterializationAt(
           /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
           array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
     } else {
-      load =
-          new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
+      auto loads_inner_pointer =
+          slot->representation() != kUntagged ? InnerPointerAccess::kNotUntagged
+          : slot->may_contain_inner_pointer()
+              ? InnerPointerAccess::kMayBeInnerPointer
+              : InnerPointerAccess::kCannotBeInnerPointer;
+      // PointerBase.data loads for external typed data and pointers never
+      // access an inner pointer.
+      if (slot->IsIdentical(Slot::PointerBase_data())) {
+        if (auto* const alloc_obj = alloc->AsAllocateObject()) {
+          const classid_t cid = alloc_obj->cls().id();
+          if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
+            loads_inner_pointer = InnerPointerAccess::kCannotBeInnerPointer;
+          }
+        }
+      }
+      load = new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot,
+                                    loads_inner_pointer, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values.Add(new (Z) Value(load));
