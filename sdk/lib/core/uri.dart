@@ -26,7 +26,7 @@ const String _hexDigits = "0123456789ABCDEF";
 
 /// A parsed URI, such as a URL.
 ///
-/// To create a URI with specific components, use [new Uri]:
+/// To create a URI with specific components, use [Uri.new]:
 /// ```dart
 /// var httpsUri = Uri(
 ///     scheme: 'https',
