@@ -287,6 +287,26 @@ class TopMergeTest extends AbstractTypeSystemTest {
     _check(objectStar, dynamicType, objectQuestion);
   }
 
+  test_record() {
+    _check(
+      recordTypeNone(positionalTypes: [dynamicType]),
+      recordTypeNone(positionalTypes: [objectQuestion]),
+      recordTypeNone(positionalTypes: [objectQuestion]),
+    );
+
+    _check(
+      recordTypeNone(positionalTypes: [voidNone]),
+      recordTypeNone(positionalTypes: [objectQuestion]),
+      recordTypeNone(positionalTypes: [objectQuestion]),
+    );
+
+    _check(
+      recordTypeNone(namedTypes: {'f': dynamicType}),
+      recordTypeNone(namedTypes: {'f': objectQuestion}),
+      recordTypeNone(namedTypes: {'f': objectQuestion}),
+    );
+  }
+
   test_typeParameter() {
     var T = typeParameter('T');
 
