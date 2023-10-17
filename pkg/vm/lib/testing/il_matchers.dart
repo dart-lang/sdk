@@ -565,18 +565,34 @@ final dynamic match = Matchers();
 /// set this field.
 late String Function(Symbol) getName;
 
+const testRunnerKey = 'test_runner.configuration';
+
 final bool isSimulator = (() {
-  final configuration = Platform.environment['DART_CONFIGURATION'];
-  if (configuration == null) {
+  if (bool.hasEnvironment(testRunnerKey)) {
+    const config = String.fromEnvironment(testRunnerKey);
+    return config.contains('-sim');
+  }
+  final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
+  if (runtimeConfiguration == null) {
     throw 'Expected DART_CONFIGURATION to be defined';
   }
-  return configuration.contains('SIM');
+  return runtimeConfiguration.contains('SIM');
 })();
 
 final bool is32BitConfiguration = (() {
-  final configuration = Platform.environment['DART_CONFIGURATION'];
-  if (configuration == null) {
+  if (bool.hasEnvironment(testRunnerKey)) {
+    const config = String.fromEnvironment(testRunnerKey);
+    // No IA32 as AOT mode is unsupported there.
+    return config.endsWith('arm') ||
+        config.endsWith('arm_x64') ||
+        config.endsWith('riscv32');
+  }
+  final runtimeConfiguration = Platform.environment['DART_CONFIGURATION'];
+  if (runtimeConfiguration == null) {
     throw 'Expected DART_CONFIGURATION to be defined';
   }
-  return configuration.endsWith('ARM') || configuration.endsWith('ARM_X64');
+  // No IA32 as AOT mode is unsupported there.
+  return runtimeConfiguration.endsWith('ARM') ||
+      runtimeConfiguration.endsWith('ARM_X64') ||
+      runtimeConfiguration.endsWith('RISCV32');
 })();
