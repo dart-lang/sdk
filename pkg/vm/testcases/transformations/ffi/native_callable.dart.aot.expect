@@ -26,7 +26,7 @@ static method testNativeCallableListener() → void {
     [@vm.call-site-attributes.metadata=receiverType:dart.ffi::NativeCallable<dart.ffi::Void Function(dart.ffi::Int32)>] [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase._pointer] #t1.{ffi::_NativeCallableBase::_pointer} = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableListener<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>(ffi::_nativeAsyncCallbackFunction<(ffi::Int32) → ffi::Void>(), [@vm.direct-call.metadata=dart.ffi::_NativeCallableListener._port] [@vm.inferred-type.metadata=dart.isolate::_RawReceivePort] #t1.{ffi::_NativeCallableListener::_port}{iso::RawReceivePort});
   } =>#t1;
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableListener.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 [@vm.closure-id=2]static method testNativeCallableListenerClosure() → void {
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 123)] core::int j = 123;
@@ -39,12 +39,12 @@ static method testNativeCallableListener() → void {
     [@vm.call-site-attributes.metadata=receiverType:dart.ffi::NativeCallable<dart.ffi::Void Function(dart.ffi::Int32)>] [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase._pointer] #t2.{ffi::_NativeCallableBase::_pointer} = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableListener<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>(ffi::_nativeAsyncCallbackFunction<(ffi::Int32) → ffi::Void>(), [@vm.direct-call.metadata=dart.ffi::_NativeCallableListener._port] [@vm.inferred-type.metadata=dart.isolate::_RawReceivePort] #t2.{ffi::_NativeCallableListener::_port}{iso::RawReceivePort});
   } =>#t2;
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableListener.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 static method testNativeCallableIsolateLocalVoid() → void {
   final ffi::NativeCallable<(ffi::Int32) → ffi::Void> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>(ffi::_nativeCallbackFunction<(ffi::Int32) → ffi::Void>(#C1, null), null, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableIsolateLocal.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 static method testNativeCallableIsolateLocalVoidClosure() → void {
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 123)] core::int j = 123;
@@ -52,14 +52,14 @@ static method testNativeCallableIsolateLocalVoidClosure() → void {
     return core::print([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(j){(core::num) → core::int});
   final ffi::NativeCallable<(ffi::Int32) → ffi::Void> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>(ffi::_nativeIsolateLocalCallbackFunction<(ffi::Int32) → ffi::Void>(null), closure, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableIsolateLocal.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 static method intToPointer(core::int i) → ffi::Pointer<ffi::NativeType>
   return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeType>(i);
 static method testNativeCallableIsolateLocalPointer() → void {
   final ffi::NativeCallable<(ffi::Int32) → ffi::Pointer<ffi::NativeType>> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>>(ffi::_nativeCallbackFunction<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>(#C2, null), null, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableIsolateLocal.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 static method testNativeCallableIsolateLocalPointerClosure() → void {
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 123)] core::int j = 123;
@@ -67,14 +67,14 @@ static method testNativeCallableIsolateLocalPointerClosure() → void {
     return ffi::Pointer::fromAddress<ffi::NativeType>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(j){(core::num) → core::int});
   final ffi::NativeCallable<(ffi::Int32) → ffi::Pointer<ffi::NativeType>> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>>(ffi::_nativeIsolateLocalCallbackFunction<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>(null), closure, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Pointer<ffi::NativeType>>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableIsolateLocal.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 [@vm.unboxing-info.metadata=(b)->i]static method negateInt(core::int i) → core::int
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] i.{core::int::unary-}(){() → core::int};
 static method testNativeCallableIsolateLocalInt() → void {
   final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeCallbackFunction<(ffi::Int32) → ffi::Int>(#C3, 123), null, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableIsolateLocal.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 static method testNativeCallableIsolateLocalIntClosure() → void {
   [@vm.inferred-type.metadata=dart.core::_Smi (value: 123)] core::int j = 123;
@@ -82,7 +82,7 @@ static method testNativeCallableIsolateLocalIntClosure() → void {
     return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=!? (skip check)] i.{core::num::+}(j){(core::num) → core::int};
   final ffi::NativeCallable<(ffi::Int32) → ffi::Int> callback = new ffi::_NativeCallableIsolateLocal::•<(ffi::Int32) → ffi::Int>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>(ffi::_nativeIsolateLocalCallbackFunction<(ffi::Int32) → ffi::Int>(123), closure, true));
   core::print([@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.nativeFunction] [@vm.inferred-type.metadata=dart.ffi::Pointer] callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Int>>});
-  [@vm.direct-call.metadata=dart.ffi::_NativeCallableIsolateLocal.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
+  [@vm.direct-call.metadata=dart.ffi::_NativeCallableBase.close] [@vm.inferred-type.metadata=!? (skip check)] callback.{ffi::NativeCallable::close}(){() → void};
 }
 constants  {
   #C1 = static-tearoff self::printInt

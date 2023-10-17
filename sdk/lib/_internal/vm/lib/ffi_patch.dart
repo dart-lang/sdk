@@ -237,6 +237,7 @@ abstract final class _NativeCallableBase<T extends Function>
   @override
   void close() {
     if (!_isClosed) {
+      _close();
       _deleteNativeCallable(_pointer);
       _pointer = nullptr;
     }
@@ -245,40 +246,39 @@ abstract final class _NativeCallableBase<T extends Function>
   @override
   void set keepIsolateAlive(bool value) {
     if (!_isClosed) {
-      _setKeepIsolateAlive(value);
+      _keepIsolateAlive = value;
     }
   }
 
   @override
-  bool get keepIsolateAlive => _isClosed ? false : _getKeepIsolateAlive();
+  bool get keepIsolateAlive => !_isClosed && _keepIsolateAlive;
 
-  void _setKeepIsolateAlive(bool value);
-  bool _getKeepIsolateAlive();
+  abstract bool _keepIsolateAlive;
+  void _close();
   bool get _isClosed => _pointer == nullptr;
 }
 
 final class _NativeCallableIsolateLocal<T extends Function>
     extends _NativeCallableBase<T> {
-  bool _keepIsolateAlive = true;
+  bool _isKeepingIsolateAlive = true;
 
   _NativeCallableIsolateLocal(super._pointer);
 
   @override
-  void close() {
-    super.close();
-    _setKeepIsolateAlive(false);
+  void _close() {
+    _keepIsolateAlive = false;
   }
 
   @override
-  void _setKeepIsolateAlive(bool value) {
-    if (_keepIsolateAlive != value) {
-      _keepIsolateAlive = value;
+  void set _keepIsolateAlive(bool value) {
+    if (_isKeepingIsolateAlive != value) {
+      _isKeepingIsolateAlive = value;
       _updateNativeCallableKeepIsolateAliveCounter(value ? 1 : -1);
     }
   }
 
   @override
-  bool _getKeepIsolateAlive() => _keepIsolateAlive;
+  bool get _keepIsolateAlive => _isKeepingIsolateAlive;
 }
 
 final class _NativeCallableListener<T extends Function>
@@ -291,18 +291,17 @@ final class _NativeCallableListener<T extends Function>
         super(nullptr);
 
   @override
-  void close() {
-    super.close();
+  void _close() {
     _port.close();
   }
 
   @override
-  void _setKeepIsolateAlive(bool value) {
+  void set _keepIsolateAlive(bool value) {
     _port.keepIsolateAlive = value;
   }
 
   @override
-  bool _getKeepIsolateAlive() => _port.keepIsolateAlive;
+  bool get _keepIsolateAlive => _port.keepIsolateAlive;
 }
 
 @patch
