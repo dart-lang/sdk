@@ -1168,14 +1168,6 @@ class CoreTypes {
       return isTop(type.typeArgument);
     }
 
-    // If the instantiated representation type, R, is a top type then the
-    // extension type, V0, is a top type, otherwise V0 is a proper subtype of
-    // Object?.
-    // TODO(johnniwinther): Is this correct?
-    if (type is ExtensionType) {
-      return isTop(type.extensionTypeErasure);
-    }
-
     return false;
   }
 

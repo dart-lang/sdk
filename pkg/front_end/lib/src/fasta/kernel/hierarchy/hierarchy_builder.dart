@@ -132,6 +132,102 @@ class ClassHierarchyBuilder
     return getClassAsInstanceOf(subtype, superclass) != null;
   }
 
+  InterfaceType _getLegacyLeastUpperBoundInternal(
+      /* InterfaceType | ExtensionType */ DartType type1,
+      /* InterfaceType | ExtensionType */ DartType type2,
+      List<ClassHierarchyNode> supertypeNodes1,
+      List<ClassHierarchyNode> supertypeNodes2,
+      {required bool isNonNullableByDefault}) {
+    assert(type1 is InterfaceType || type1 is ExtensionType);
+    assert(type2 is InterfaceType || type2 is ExtensionType);
+
+    // This is a workaround for the case when `Object?` should be found as the
+    // upper bound of extension types. If the representation type of an
+    // extension type is nullable, then `Object` is not a supertype of that
+    // extension type, but `Object?` is.
+    //
+    // TODO(cstefantsova): Remove this workaround and account for extension
+    // types with nullable representation types directly.
+    Nullability type1NullabilityForResult = type1 is InterfaceType
+        ? type1.nullability
+        : (type2.isPotentiallyNullable
+            ? Nullability.nullable
+            : type2.nullability);
+    Nullability type2NullabilityForResult = type2 is InterfaceType
+        ? type2.nullability
+        : (type2.isPotentiallyNullable
+            ? Nullability.nullable
+            : type2.nullability);
+
+    Set<ClassHierarchyNode> supertypeNodesSet1 = supertypeNodes1.toSet();
+    List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
+
+    for (int i = 0; i < supertypeNodes2.length; i++) {
+      ClassHierarchyNode node = supertypeNodes2[i];
+      if (node.classBuilder.cls.isAnonymousMixin) {
+        // Never find unnamed mixin application in least upper bound.
+        continue;
+      }
+      if (supertypeNodesSet1.contains(node)) {
+        DartType candidate1;
+        if (type1 is InterfaceType) {
+          candidate1 = getTypeAsInstanceOf(type1, node.classBuilder.cls,
+              isNonNullableByDefault: isNonNullableByDefault);
+        } else {
+          type1 as ExtensionType;
+          candidate1 = getExtensionTypeAsInstanceOfClass(
+              type1, node.classBuilder.cls,
+              isNonNullableByDefault: isNonNullableByDefault)!;
+        }
+
+        DartType candidate2;
+        if (type2 is InterfaceType) {
+          candidate2 = getTypeAsInstanceOf(type2, node.classBuilder.cls,
+              isNonNullableByDefault: isNonNullableByDefault);
+        } else {
+          type2 as ExtensionType;
+          candidate2 = getExtensionTypeAsInstanceOfClass(
+              type2, node.classBuilder.cls,
+              isNonNullableByDefault: isNonNullableByDefault)!;
+        }
+        if (candidate1 == candidate2) {
+          common.add(node);
+        }
+      }
+    }
+
+    if (common.length == 1) {
+      assert(common.single.classBuilder.cls == coreTypes.objectClass);
+      return coreTypes.objectRawType(uniteNullabilities(
+          type1NullabilityForResult, type2NullabilityForResult));
+    }
+    common.sort(ClassHierarchyNode.compareMaxInheritancePath);
+
+    for (int i = 0; i < common.length - 1; i++) {
+      ClassHierarchyNode node = common[i];
+      if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
+        if (type1 is InterfaceType) {
+          return getTypeAsInstanceOf(type1, node.classBuilder.cls,
+                  isNonNullableByDefault: isNonNullableByDefault)
+              .withDeclaredNullability(uniteNullabilities(
+                  type1NullabilityForResult, type2NullabilityForResult));
+        } else {
+          type1 as ExtensionType;
+          return getExtensionTypeAsInstanceOfClass(type1, node.classBuilder.cls,
+                  isNonNullableByDefault: isNonNullableByDefault)!
+              .withDeclaredNullability(uniteNullabilities(
+                  type1NullabilityForResult, type2NullabilityForResult));
+        }
+      } else {
+        do {
+          i++;
+        } while (node.maxInheritancePath == common[i + 1].maxInheritancePath);
+      }
+    }
+    return coreTypes.objectRawType(uniteNullabilities(
+        type1NullabilityForResult, type2NullabilityForResult));
+  }
+
   @override
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2,
@@ -151,50 +247,30 @@ class ClassHierarchyBuilder
       }
     }
 
-    ClassHierarchyNode node1 = getNodeFromClass(type1.classNode);
-    ClassHierarchyNode node2 = getNodeFromClass(type2.classNode);
-    Set<ClassHierarchyNode> nodes1 = node1.computeAllSuperNodes(this).toSet();
-    List<ClassHierarchyNode> nodes2 = node2.computeAllSuperNodes(this);
-    List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
+    return getLegacyLeastUpperBoundFromSupertypeLists(
+        type1, type2, <InterfaceType>[type1], <InterfaceType>[type2],
+        isNonNullableByDefault: isNonNullableByDefault);
+  }
 
-    for (int i = 0; i < nodes2.length; i++) {
-      ClassHierarchyNode node = nodes2[i];
-      if (node.classBuilder.cls.isAnonymousMixin) {
-        // Never find unnamed mixin application in least upper bound.
-        continue;
-      }
-      if (nodes1.contains(node)) {
-        DartType candidate1 = getTypeAsInstanceOf(type1, node.classBuilder.cls,
-            isNonNullableByDefault: isNonNullableByDefault);
-        DartType candidate2 = getTypeAsInstanceOf(type2, node.classBuilder.cls,
-            isNonNullableByDefault: isNonNullableByDefault);
-        if (candidate1 == candidate2) {
-          common.add(node);
-        }
-      }
-    }
+  @override
+  InterfaceType getLegacyLeastUpperBoundFromSupertypeLists(
+      /* InterfaceType | ExtensionType */ DartType type1,
+      /* InterfaceType | ExtensionType */ DartType type2,
+      List<InterfaceType> supertypes1,
+      List<InterfaceType> supertypes2,
+      {required bool isNonNullableByDefault}) {
+    List<ClassHierarchyNode> supertypeNodes1 = <ClassHierarchyNode>[
+      for (InterfaceType supertype in supertypes1)
+        ...getNodeFromClass(supertype.classNode).computeAllSuperNodes(this)
+    ];
+    List<ClassHierarchyNode> supertypeNodes2 = <ClassHierarchyNode>[
+      for (InterfaceType supertype in supertypes2)
+        ...getNodeFromClass(supertype.classNode).computeAllSuperNodes(this)
+    ];
 
-    if (common.length == 1) {
-      return coreTypes.objectRawType(
-          uniteNullabilities(type1.nullability, type2.nullability));
-    }
-    common.sort(ClassHierarchyNode.compareMaxInheritancePath);
-
-    for (int i = 0; i < common.length - 1; i++) {
-      ClassHierarchyNode node = common[i];
-      if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        return getTypeAsInstanceOf(type1, node.classBuilder.cls,
-                isNonNullableByDefault: isNonNullableByDefault)
-            .withDeclaredNullability(
-                uniteNullabilities(type1.nullability, type2.nullability));
-      } else {
-        do {
-          i++;
-        } while (node.maxInheritancePath == common[i + 1].maxInheritancePath);
-      }
-    }
-    return coreTypes.objectRawType(
-        uniteNullabilities(type1.nullability, type2.nullability));
+    return _getLegacyLeastUpperBoundInternal(
+        type1, type2, supertypeNodes1, supertypeNodes2,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   static ClassHierarchyBuilder build(
