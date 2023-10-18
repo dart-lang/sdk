@@ -1053,11 +1053,9 @@ final class OneByteString extends StringBase {
 
   @override
   String _substringUncheckedInternal(int startIndex, int endIndex) {
-    int length = endIndex - startIndex;
-    var result = OneByteString.withLength(length);
-    for (int i = 0; i < length; i++) {
-      result._setAt(i, codeUnitAt(startIndex + i));
-    }
+    final length = endIndex - startIndex;
+    final result = OneByteString.withLength(length);
+    result._array.copy(0, _array, startIndex, length);
     return result;
   }
 
@@ -1087,14 +1085,12 @@ final class OneByteString extends StringBase {
     final result = OneByteString.withLength(totalLength);
     final to = result._array;
     final stringsLength = strings.length;
-    int j = 0;
+    int resultOffset = 0;
     for (int s = 0; s < stringsLength; s++) {
       final OneByteString e = unsafeCast<OneByteString>(strings[s]);
-      final from = e._array;
-      final length = from.length;
-      for (int i = 0; i < length; i++) {
-        to.write(j++, from.readUnsigned(i));
-      }
+      final length = e._array.length;
+      to.copy(resultOffset, e._array, 0, length);
+      resultOffset += length;
     }
     return result;
   }
@@ -1313,9 +1309,6 @@ final class OneByteString extends StringBase {
     return this;
   }
 
-  external static OneByteString allocateFromOneByteList(
-      List<int> list, int start, int end);
-
   /// This is internal helper method. Code point value must be a valid Latin1
   /// value (0..0xFF), index must be valid.
   @pragma('wasm:prefer-inline')
@@ -1397,23 +1390,15 @@ final class TwoByteString extends StringBase {
 
   @override
   String _substringUncheckedInternal(int startIndex, int endIndex) {
-    int length = endIndex - startIndex;
-    var result = TwoByteString.withLength(length);
-    for (int i = 0; i < length; i++) {
-      result._setAt(i, codeUnitAt(startIndex + i));
-    }
+    final length = endIndex - startIndex;
+    final result = TwoByteString.withLength(length);
+    result._array.copy(0, _array, startIndex, length);
     return result;
   }
 
   @override
   int _copyIntoTwoByteString(TwoByteString result, int offset) {
-    final from = _array;
-    final int length = from.length;
-    final to = result._array;
-    int j = offset;
-    for (int i = 0; i < length; i++) {
-      to.write(j++, from.readUnsigned(i));
-    }
-    return j;
+    result._array.copy(offset, _array, 0, length);
+    return offset + length;
   }
 }
