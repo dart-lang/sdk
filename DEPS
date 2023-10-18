@@ -142,7 +142,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "1a2def95a3c04dafd27b85d17e6e828bd4afa1a3", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "8c103397734f4dba75915e40c734a88e29a35f26",
+  "dartdoc_rev": "f7e9b17897e69dd5e43d3f0a785bb5b6e5c973ed",
   "ecosystem_rev": "dcbd2ee5aeed0515204c76d6ba04f340fdc33161",
   "ffi_rev": "2faec288966d8f564049adb86a7ca43fd6e01fbf",
   "file_rev": "7418131cfe3c5e063166bc3d7cca98985a6d8eeb",
@@ -605,7 +605,7 @@ Var("dart_root") + "/third_party/pkg/tar":
       "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/third_party/canary_ndk": {
+  Var("dart_root") + "/third_party/android_tools/ndk": {
       "packages": [
           {
             "package": "flutter/android/ndk/${{os}}-amd64",
@@ -615,12 +615,11 @@ Var("dart_root") + "/third_party/pkg/tar":
       "condition": "download_android_deps",
       "dep_type": "cipd",
   },
-
-  Var("dart_root") + "/third_party/android_tools": {
+  Var("dart_root") + "/third_party/android_tools/sdk/platform-tools": {
       "packages": [
           {
-            "package": "flutter/android/sdk/all/${{os}}-amd64",
-            "version": "version:33v6"
+            "package": "flutter/android/sdk/platform-tools/linux-amd64",
+            "version": "1tZc4sOxZS6FQIvT5i0wwdycmM8AO7QZY32FC9_HfR4C"
           }
       ],
       "condition": "download_android_deps",

@@ -509,9 +509,12 @@ class _PSNode implements PSNode {
         span = node.span;
 
   @override
-  Source get source => (resourceProvider ?? PhysicalResourceProvider.INSTANCE)
-      .getFile(span.sourceUrl!.toFilePath())
-      .createSource(span.sourceUrl);
+  Source get source {
+    final provider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+    return provider
+        .getFile(provider.pathContext.fromUri(span.sourceUrl!))
+        .createSource(span.sourceUrl);
+  }
 
   @override
   String toString() => '$text';

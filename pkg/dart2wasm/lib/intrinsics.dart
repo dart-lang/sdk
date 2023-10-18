@@ -622,68 +622,6 @@ class Intrinsifier {
         case "_nativeEffect":
           // Ignore argument
           return translator.voidMarker;
-        case "allocateOneByteString":
-          ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
-          translator.functions.allocateClass(info.classId);
-          w.ArrayType arrayType =
-              translator.wasmArrayType(w.PackedType.i8, "WasmI8");
-          Expression length = node.arguments.positional[0];
-          b.i32_const(info.classId);
-          b.i32_const(initialIdentityHash);
-          codeGen.wrap(length, w.NumType.i64);
-          b.i32_wrap_i64();
-          b.array_new_default(arrayType);
-          b.struct_new(info.struct);
-          return info.nonNullableType;
-        case "writeIntoOneByteString":
-          ClassInfo info = translator.classInfo[translator.oneByteStringClass]!;
-          w.ArrayType arrayType =
-              translator.wasmArrayType(w.PackedType.i8, "WasmI8");
-          Field arrayField = translator.oneByteStringClass.fields
-              .firstWhere((f) => f.name.text == '_array');
-          int arrayFieldIndex = translator.fieldIndex[arrayField]!;
-          Expression string = node.arguments.positional[0];
-          Expression index = node.arguments.positional[1];
-          Expression codePoint = node.arguments.positional[2];
-          codeGen.wrap(string, info.nonNullableType);
-          b.struct_get(info.struct, arrayFieldIndex);
-          codeGen.wrap(index, w.NumType.i64);
-          b.i32_wrap_i64();
-          codeGen.wrap(codePoint, w.NumType.i64);
-          b.i32_wrap_i64();
-          b.array_set(arrayType);
-          return codeGen.voidMarker;
-        case "allocateTwoByteString":
-          ClassInfo info = translator.classInfo[translator.twoByteStringClass]!;
-          translator.functions.allocateClass(info.classId);
-          w.ArrayType arrayType =
-              translator.wasmArrayType(w.PackedType.i16, "WasmI16");
-          Expression length = node.arguments.positional[0];
-          b.i32_const(info.classId);
-          b.i32_const(initialIdentityHash);
-          codeGen.wrap(length, w.NumType.i64);
-          b.i32_wrap_i64();
-          b.array_new_default(arrayType);
-          b.struct_new(info.struct);
-          return info.nonNullableType;
-        case "writeIntoTwoByteString":
-          ClassInfo info = translator.classInfo[translator.twoByteStringClass]!;
-          w.ArrayType arrayType =
-              translator.wasmArrayType(w.PackedType.i16, "WasmI16");
-          Field arrayField = translator.oneByteStringClass.fields
-              .firstWhere((f) => f.name.text == '_array');
-          int arrayFieldIndex = translator.fieldIndex[arrayField]!;
-          Expression string = node.arguments.positional[0];
-          Expression index = node.arguments.positional[1];
-          Expression codePoint = node.arguments.positional[2];
-          codeGen.wrap(string, info.nonNullableType);
-          b.struct_get(info.struct, arrayFieldIndex);
-          codeGen.wrap(index, w.NumType.i64);
-          b.i32_wrap_i64();
-          codeGen.wrap(codePoint, w.NumType.i64);
-          b.i32_wrap_i64();
-          b.array_set(arrayType);
-          return codeGen.voidMarker;
         case "floatToIntBits":
           codeGen.wrap(node.arguments.positional.single, w.NumType.f64);
           b.f32_demote_f64();

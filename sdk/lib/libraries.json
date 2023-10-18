@@ -31,7 +31,7 @@
       },
       "convert": {
         "uri": "convert/convert.dart",
-        "patches": "_internal/vm_shared/lib/convert_patch.dart"
+        "patches": "_internal/vm/lib/convert_patch.dart"
       },
       "core": {
         "uri": "core/core.dart",
@@ -184,6 +184,12 @@
       }
     ],
     "libraries": {
+      "convert": {
+        "uri": "convert/convert.dart",
+        "patches": [
+          "_internal/wasm_js_compatibility/lib/convert_patch.dart"
+        ]
+      },
       "core": {
         "uri": "core/core.dart",
         "patches": [
@@ -207,11 +213,13 @@
       "typed_data": {
         "uri": "typed_data/typed_data.dart",
         "patches": [
-          "_internal/wasm/lib/simd.dart",
           "_internal/wasm/lib/simd_patch.dart",
           "_internal/wasm_js_compatibility/lib/typed_data.dart",
           "_internal/wasm_js_compatibility/lib/typed_data_patch.dart"
         ]
+      },
+      "_simd": {
+        "uri": "_internal/wasm/lib/simd.dart"
       }
     }
   },
@@ -222,14 +230,24 @@
       }
     ],
     "libraries": {
+      "convert": {
+        "uri": "convert/convert.dart",
+        "patches": [
+          "_internal/wasm/lib/convert_patch.dart"
+        ]
+      },
       "typed_data": {
         "uri": "typed_data/typed_data.dart",
         "patches": [
-          "_internal/wasm/lib/simd.dart",
           "_internal/wasm/lib/simd_patch.dart",
-          "_internal/wasm/lib/typed_data.dart",
           "_internal/wasm/lib/typed_data_patch.dart"
         ]
+      },
+      "_simd": {
+        "uri": "_internal/wasm/lib/simd.dart"
+      },
+      "_typed_data": {
+        "uri": "_internal/wasm/lib/typed_data.dart"
       }
     }
   },
@@ -285,13 +303,6 @@
           "_internal/vm_shared/lib/collection_patch.dart",
           "_internal/vm_shared/lib/compact_hash.dart",
           "_internal/wasm/lib/hash_factories.dart"
-        ]
-      },
-      "convert": {
-        "uri": "convert/convert.dart",
-        "patches": [
-          "_internal/vm_shared/lib/convert_patch.dart",
-          "_internal/wasm/lib/convert_patch.dart"
         ]
       },
       "developer": {

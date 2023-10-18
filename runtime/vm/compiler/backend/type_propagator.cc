@@ -877,7 +877,7 @@ bool CompileType::IsAssignableTo(const AbstractType& other) {
   //
   // We might consider using an approximation of the uninstantiated type,
   // like the instantiation to bounds, and compare to that. However, in
-  // vm/dart_2/regress_b_230945329_test.dart we have a case where the compared
+  // vm/dart/regress_b_230945329_test.dart we have a case where the compared
   // uninstantiated type is the same as the one in the CompileType. Thus, no
   // approach will be able to distinguish the two types, and so we fail the
   // comparison in all cases.

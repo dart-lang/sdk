@@ -5,8 +5,10 @@
 #include "vm/compiler/assembler/assembler_base.h"
 
 #include "platform/utils.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/cpu.h"
+#include "vm/flags.h"
 #include "vm/heap/heap.h"
 #include "vm/memory_region.h"
 #include "vm/os.h"
@@ -375,15 +377,17 @@ void ObjectPoolBuilder::Reset() {
 
 intptr_t ObjectPoolBuilder::AddObject(
     const Object& obj,
-    ObjectPoolBuilderEntry::Patchability patchable) {
+    ObjectPoolBuilderEntry::Patchability patchable,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   DEBUG_ASSERT(IsNotTemporaryScopedHandle(obj));
-  return AddObject(ObjectPoolBuilderEntry(&obj, patchable));
+  return AddObject(ObjectPoolBuilderEntry(&obj, patchable, snapshot_behavior));
 }
 
 intptr_t ObjectPoolBuilder::AddImmediate(uword imm) {
   return AddObject(
       ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate,
-                             ObjectPoolBuilderEntry::kNotPatchable));
+                             ObjectPoolBuilderEntry::kNotPatchable,
+                             ObjectPoolBuilderEntry::kSnapshotable));
 }
 
 intptr_t ObjectPoolBuilder::AddImmediate64(uint64_t imm) {
@@ -483,8 +487,9 @@ intptr_t ObjectPoolBuilder::FindObject(ObjectPoolBuilderEntry entry) {
 
 intptr_t ObjectPoolBuilder::FindObject(
     const Object& obj,
-    ObjectPoolBuilderEntry::Patchability patchable) {
-  return FindObject(ObjectPoolBuilderEntry(&obj, patchable));
+    ObjectPoolBuilderEntry::Patchability patchable,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  return FindObject(ObjectPoolBuilderEntry(&obj, patchable, snapshot_behavior));
 }
 
 intptr_t ObjectPoolBuilder::FindObject(const Object& obj,

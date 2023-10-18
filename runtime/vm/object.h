@@ -5506,8 +5506,11 @@ class ObjectPool : public Object {
  public:
   using EntryType = compiler::ObjectPoolBuilderEntry::EntryType;
   using Patchability = compiler::ObjectPoolBuilderEntry::Patchability;
+  using SnapshotBehavior = compiler::ObjectPoolBuilderEntry::SnapshotBehavior;
   using TypeBits = compiler::ObjectPoolBuilderEntry::TypeBits;
   using PatchableBit = compiler::ObjectPoolBuilderEntry::PatchableBit;
+  using SnapshotBehaviorBit =
+      compiler::ObjectPoolBuilderEntry::SnapshotBehaviorBit;
 
   struct Entry {
     Entry() : raw_value_(), type_() {}
@@ -5555,13 +5558,24 @@ class ObjectPool : public Object {
     return PatchableBit::decode(untag()->entry_bits()[index]);
   }
 
-  static uint8_t EncodeBits(EntryType type, Patchability patchable) {
-    return PatchableBit::encode(patchable) | TypeBits::encode(type);
+  SnapshotBehavior SnapshotBehaviorAt(intptr_t index) const {
+    ASSERT((index >= 0) && (index <= Length()));
+    return SnapshotBehaviorBit::decode(untag()->entry_bits()[index]);
   }
 
-  void SetTypeAt(intptr_t index, EntryType type, Patchability patchable) const {
+  static uint8_t EncodeBits(EntryType type,
+                            Patchability patchable,
+                            SnapshotBehavior snapshot_behavior) {
+    return PatchableBit::encode(patchable) | TypeBits::encode(type) |
+           SnapshotBehaviorBit::encode(snapshot_behavior);
+  }
+
+  void SetTypeAt(intptr_t index,
+                 EntryType type,
+                 Patchability patchable,
+                 SnapshotBehavior snapshot_behavior) const {
     ASSERT(index >= 0 && index <= Length());
-    const uint8_t bits = EncodeBits(type, patchable);
+    const uint8_t bits = EncodeBits(type, patchable, snapshot_behavior);
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 

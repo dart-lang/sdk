@@ -1,4 +1,11 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/field_access.dart:83:36: Error: Each extension type should have exactly one representation field.
+// extension type ErroneousInlineClass(int a, String b) {
+//                                    ^
+//
 import self as self;
 import "dart:core" as core;
 

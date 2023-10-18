@@ -4,11 +4,8 @@
 
 import "dart:_internal"
     show
-        allocateOneByteString,
-        allocateTwoByteString,
         CodeUnits,
         ClassID,
-        copyRangeFromUint8ListToOneByteString,
         doubleToIntBits,
         EfficientLengthIterable,
         FixedLengthListMixin,
@@ -24,9 +21,7 @@ import "dart:_internal"
         makeFixedListUnmodifiable,
         makeListFixedLength,
         patch,
-        unsafeCast,
-        writeIntoOneByteString,
-        writeIntoTwoByteString;
+        unsafeCast;
 
 import "dart:_internal" as _internal show Symbol;
 

@@ -21,6 +21,14 @@ main() {
 
 @reflectiveTest
 class ToSourceVisitorTest extends ParserDiagnosticsTest {
+  void test_representationDeclaration() {
+    final code = '(@foo int it)';
+    final findNode = _parseStringToFindNode('''
+extension type E$code {}
+''');
+    _assertSource(code, findNode.singleRepresentationDeclaration);
+  }
+
   void test_visitAdjacentStrings() {
     var findNode = _parseStringToFindNode(r'''
 var v = 'a' 'b';
@@ -1279,6 +1287,30 @@ $code
     //             [AstTestFactory.namedType4('A')]),
     //         argumentList: AstTestFactory.argumentList(
     //             [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionType() {
+    final code = 'extension type E(int it) {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.singleExtensionTypeDeclaration);
+  }
+
+  void test_visitExtensionType_implements() {
+    final code = 'extension type E(int it) implements num {}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.singleExtensionTypeDeclaration);
+  }
+
+  void test_visitExtensionType_method() {
+    final code = 'extension type E(int it) {void foo() {}}';
+    final findNode = _parseStringToFindNode('''
+$code
+''');
+    _assertSource(code, findNode.singleExtensionTypeDeclaration);
   }
 
   void test_visitFieldDeclaration_abstract() {

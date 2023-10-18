@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch;
-import "dart:_string" show StringBase, OneByteString, TwoByteString;
+import "dart:_string";
 
 @patch
 class String {
@@ -17,18 +17,23 @@ class String {
   factory String.fromCharCode(int charCode) {
     if (charCode >= 0) {
       if (charCode <= 0xff) {
-        return OneByteString.allocate(1)..setAt(0, charCode);
+        final string = OneByteString.withLength(1);
+        writeIntoOneByteString(string, 0, charCode);
+        return string;
       }
       if (charCode <= 0xffff) {
-        return TwoByteString.allocate(1)..setAt(0, charCode);
+        final string = TwoByteString.withLength(1);
+        writeIntoTwoByteString(string, 0, charCode);
+        return string;
       }
       if (charCode <= 0x10ffff) {
         int low = 0xDC00 | (charCode & 0x3ff);
         int bits = charCode - 0x10000;
         int high = 0xD800 | (bits >> 10);
-        return TwoByteString.allocate(2)
-          ..setAt(0, high)
-          ..setAt(1, low);
+        final string = TwoByteString.withLength(2);
+        writeIntoTwoByteString(string, 0, high);
+        writeIntoTwoByteString(string, 1, low);
+        return string;
       }
     }
     throw RangeError.range(charCode, 0, 0x10ffff);

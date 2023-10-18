@@ -1635,8 +1635,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           UntaggedObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
-      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
+      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -1658,8 +1658,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       uword new_tags = UntaggedObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
-      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
+      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -2799,8 +2799,8 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::SizeTag::update(size, tags);
   const bool is_old =
       (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
+  tags = UntaggedObject::OldBit::update(is_old, tags);
+  tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
@@ -15603,7 +15603,8 @@ ObjectPoolPtr ObjectPool::NewFromBuilder(
     auto entry = builder.EntryAt(i);
     auto type = entry.type();
     auto patchable = entry.patchable();
-    result.SetTypeAt(i, type, patchable);
+    auto snapshot_behavior = entry.snapshot_behavior();
+    result.SetTypeAt(i, type, patchable, snapshot_behavior);
     if (type == EntryType::kTaggedObject) {
       result.SetObjectAt(i, *entry.obj_);
     } else {
@@ -15622,16 +15623,18 @@ void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
   for (intptr_t i = 0; i < Length(); i++) {
     auto type = TypeAt(i);
     auto patchable = PatchableAt(i);
+    auto snapshot_behavior = SnapshotBehaviorAt(i);
     switch (type) {
       case compiler::ObjectPoolBuilderEntry::kTaggedObject: {
         compiler::ObjectPoolBuilderEntry entry(&Object::ZoneHandle(ObjectAt(i)),
-                                               patchable);
+                                               patchable, snapshot_behavior);
         builder->AddObject(entry);
         break;
       }
       case compiler::ObjectPoolBuilderEntry::kImmediate:
       case compiler::ObjectPoolBuilderEntry::kNativeFunction: {
-        compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable);
+        compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable,
+                                               snapshot_behavior);
         builder->AddObject(entry);
         break;
       }
@@ -26689,10 +26692,12 @@ SuspendStatePtr SuspendState::Clone(Thread* thread,
     dst.set_pc(src.pc());
     // Trigger write barrier if needed.
     if (dst.ptr()->IsOldObject()) {
-      dst.untag()->EnsureInRememberedSet(thread);
-    }
-    if (thread->is_marking()) {
-      thread->DeferredMarkingStackAddObject(dst.ptr());
+      if (!dst.untag()->IsRemembered()) {
+        dst.untag()->EnsureInRememberedSet(thread);
+      }
+      if (thread->is_marking()) {
+        thread->DeferredMarkingStackAddObject(dst.ptr());
+      }
     }
   }
   return dst.ptr();

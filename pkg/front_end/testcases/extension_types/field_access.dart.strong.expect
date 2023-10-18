@@ -2,6 +2,10 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/extension_types/field_access.dart:83:36: Error: Each extension type should have exactly one representation field.
+// extension type ErroneousInlineClass(int a, String b) {
+//                                    ^
+//
 // pkg/front_end/testcases/extension_types/field_access.dart:15:21: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
 // Try changing the operand or remove the type arguments.
 //     var b1 = this.it<int>; // Error

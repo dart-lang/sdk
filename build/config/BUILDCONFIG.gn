@@ -222,7 +222,7 @@ if (!is_clang && (is_asan || is_lsan || is_msan || is_tsan || is_ubsan)) {
   is_clang = true
 }
 
-use_flutter_cxx = is_msan || is_tsan || is_android
+use_flutter_cxx = is_msan || is_tsan
 
 # =============================================================================
 # TARGET DEFAULTS

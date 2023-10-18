@@ -1496,13 +1496,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      link_lazily() ? ObjectPool::Patchability::kPatchable
                                    : ObjectPool::Patchability::kNotPatchable);
   if (link_lazily()) {
-    compiler->GeneratePatchableCall(source(), *stub,
-                                    UntaggedPcDescriptors::kOther, locs());
+    compiler->GeneratePatchableCall(
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kResetToBootstrapNative);
   } else {
     // We can never lazy-deopt here because natives are never optimized.
     ASSERT(!compiler->is_optimizing());
     compiler->GenerateNonLazyDeoptableStubCall(
-        source(), *stub, UntaggedPcDescriptors::kOther, locs());
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kNotSnapshotable);
   }
   __ lx(result, compiler::Address(SP, 0));
   compiler->EmitDropArguments(ArgumentCount());

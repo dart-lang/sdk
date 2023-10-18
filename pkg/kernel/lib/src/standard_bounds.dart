@@ -996,28 +996,10 @@ mixin StandardBounds {
     assert((type1 is InterfaceType || type1 is ExtensionType) &&
         (type2 is InterfaceType || type2 is ExtensionType));
 
-    // This is a workaround for the case when `Object?` should be found as the
-    // upper bound of extension types. If the representation type of an
-    // extension type is nullable, then `Object` is not a supertype of that
-    // extension type, but `Object?` is.
-    //
-    // TODO(cstefantsova): Remove this workaround and account for extension
-    // types with nullable representation types directly.
-    Nullability type1NullabilityForResult = type1 is InterfaceType
-        ? type1.nullability
-        : (type1.isPotentiallyNullable
-            ? Nullability.nullable
-            : type1.nullability);
-    Nullability type2NullabilityForResult = type2 is InterfaceType
-        ? type2.nullability
-        : (type2.isPotentiallyNullable
-            ? Nullability.nullable
-            : type2.nullability);
-
     if (type1 is InterfaceType && type2 is InterfaceType) {
       return hierarchy.getLegacyLeastUpperBound(type1, type2,
           isNonNullableByDefault: isNonNullableByDefault);
-    } else if (type1 is ExtensionType && type2 is ExtensionType) {
+    } else if (type1 is ExtensionType || type2 is ExtensionType) {
       // This mimics the legacy least upper bound implementation for regular
       // classes, where the least upper bound is found as the single common
       // supertype with the highest class hierarchy depth.
@@ -1069,10 +1051,20 @@ mixin StandardBounds {
 
       List<ExtensionType> supertypes1 = [];
       List<InterfaceType> superInterfaceTypes1 = [];
-      computeSuperTypes(type1, supertypes1, superInterfaceTypes1);
+      if (type1 is ExtensionType) {
+        computeSuperTypes(type1, supertypes1, superInterfaceTypes1);
+      } else {
+        type1 as InterfaceType;
+        superInterfaceTypes1 = <InterfaceType>[type1];
+      }
       List<ExtensionType> supertypes2 = [];
       List<InterfaceType> superInterfaceTypes2 = [];
-      computeSuperTypes(type2, supertypes2, superInterfaceTypes2);
+      if (type2 is ExtensionType) {
+        computeSuperTypes(type2, supertypes2, superInterfaceTypes2);
+      } else {
+        type2 as InterfaceType;
+        superInterfaceTypes2 = <InterfaceType>[type2];
+      }
 
       Set<ExtensionType> set = supertypes1.toSet()..retainAll(supertypes2);
       Map<int, List<ExtensionType>> commonSupertypesByDepth = {};
@@ -1098,8 +1090,13 @@ mixin StandardBounds {
           type1, type2, superInterfaceTypes1, superInterfaceTypes2,
           isNonNullableByDefault: isNonNullableByDefault);
     }
-    return coreTypes.objectRawType(uniteNullabilities(
-        type1NullabilityForResult, type2NullabilityForResult));
+    if (type1 is ExtensionType && type1.isPotentiallyNullable ||
+        type2 is ExtensionType && type2.isPotentiallyNullable) {
+      return coreTypes.objectNullableRawType;
+    } else {
+      return coreTypes.objectRawType(
+          uniteNullabilities(type1.nullability, type2.nullability));
+    }
   }
 
   /// Computes the nullability-aware lower bound of two function types.

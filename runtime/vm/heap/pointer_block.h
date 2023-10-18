@@ -103,8 +103,7 @@ class BlockStack {
   Block* PopNonEmptyBlock();
 
   // Pops and returns all non-empty blocks as a linked list (owned by caller).
-  Block* PopAll();
-  void PushAll(Block* blocks);
+  Block* TakeBlocks();
 
   // Discards the contents of all non-empty blocks.
   void Reset();
@@ -112,8 +111,6 @@ class BlockStack {
   bool IsEmpty();
 
   Block* WaitForWork(RelaxedAtomic<uintptr_t>* num_busy, bool abort);
-
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  protected:
   class List {
@@ -277,6 +274,8 @@ class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
   // action).
   bool Overflowed();
   intptr_t Size();
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
 };
 
 typedef StoreBuffer::Block StoreBufferBlock;

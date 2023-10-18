@@ -941,8 +941,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     void Function(EvaluateResponseBody) sendResponse,
   ) async {
     final frameId = args.frameId;
-    // TODO(dantup): Special handling for clipboard/watch (see Dart-Code DAP) to
-    // avoid wrapping strings in quotes, etc.
 
     // If the frameId was supplied, it maps to an ID we provided from stored
     // data so we need to look up the isolate + frame index for it.
@@ -957,13 +955,26 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
 
     // To support global evaluation, we allow passing a file:/// URI in the
-    // context argument.
+    // context argument. This is always from the repl.
     final context = args.context;
     final targetScriptFileUri = context != null &&
             context.startsWith('file://') &&
             context.endsWith('.dart')
         ? Uri.tryParse(context)
         : null;
+
+    /// Clipboard context means the user has chosen to copy the value to the
+    /// clipboard, so we should strip any quotes and expand to the full string.
+    final isClipboard = args.context == 'clipboard';
+
+    /// In the repl, we should also expand the full string, but keep the quotes
+    /// because that's our indicator it is a string (eg. "1" vs 1). Since
+    /// we override context with script IDs for global evaluation, we must
+    /// also treat presence of targetScriptFileUri as repl.
+    final isRepl = args.context == 'repl' || targetScriptFileUri != null;
+
+    final shouldSuppressQuotes = isClipboard;
+    final shouldExpandTruncatedValues = isClipboard || isRepl;
 
     if ((thread == null || frameIndex == null) && targetScriptFileUri == null) {
       throw UnimplementedError(
@@ -980,10 +991,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           .replaceFirst(_trailingSemicolonPattern, ''),
     );
     final expression = expressionData.expression;
-    final format = expressionData.format ??
+    var format = expressionData.format ??
         // If we didn't parse a format specifier, fall back to the format in
         // the arguments.
         VariableFormat.fromDapValueFormat(args.format);
+
+    if (shouldSuppressQuotes) {
+      format = format != null
+          ? VariableFormat.from(format, noQuotes: true)
+          : VariableFormat.noQuotes();
+    }
 
     final exceptionReference = thread?.exceptionReference;
     // The value in the constant `frameExceptionExpression` is used as a special
@@ -1056,8 +1073,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       final resultString = await _converter.convertVmInstanceRefToDisplayString(
         thread,
         result,
-        allowCallingToString: evaluateToStringInDebugViews,
+        allowCallingToString:
+            evaluateToStringInDebugViews || shouldExpandTruncatedValues,
         format: format,
+        allowTruncatedValue: !shouldExpandTruncatedValues,
       );
 
       final variablesReference = _converter.isSimpleKind(result.kind)

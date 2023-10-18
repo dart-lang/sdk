@@ -376,39 +376,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     open(newBlock);
   }
 
-  /// Helper to implement JS_GET_FLAG.
-  ///
-  /// The concrete SSA graph builder will extract a flag parameter from the
-  /// JS_GET_FLAG call and then push a boolean result onto the stack. This
-  /// function provides the boolean value corresponding to the given [flagName].
-  /// If [flagName] is not recognized, this function returns `null` and the
-  /// concrete SSA builder reports an error.
-  bool? _getFlagValue(String flagName) {
-    switch (flagName) {
-      case 'FALSE':
-        return false;
-      case 'DEV_COMPILER':
-        return false;
-      case 'MINIFIED':
-        return options.enableMinification;
-      case 'MUST_RETAIN_METADATA':
-        return false;
-      case 'USE_CONTENT_SECURITY_POLICY':
-        return options.features.useContentSecurityPolicy.isEnabled;
-      case 'VARIANCE':
-        return options.enableVariance;
-      case 'LEGACY':
-        return options.useLegacySubtyping;
-      case 'EXTRA_NULL_SAFETY_CHECKS':
-        // TODO(fishythefish): Handle this flag as needed.
-        return false;
-      case 'PRINT_LEGACY_STARS':
-        return options.printLegacyStars;
-      default:
-        return null;
-    }
-  }
-
   StaticType _getStaticType(ir.Expression node) {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
@@ -4474,8 +4441,8 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       _handleForeignJsEmbeddedGlobal(invocation);
     } else if (name == 'JS_BUILTIN') {
       _handleForeignJsBuiltin(invocation);
-    } else if (name == 'JS_GET_FLAG') {
-      _handleForeignJsGetFlag(invocation);
+    } else if (name == 'JS_FALSE') {
+      _handleForeignJsFalse(invocation);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(closedWorld));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
@@ -4987,24 +4954,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     }
   }
 
-  void _handleForeignJsGetFlag(ir.StaticInvocation invocation) {
-    if (_unexpectedForeignArguments(invocation,
-        minPositional: 1, maxPositional: 1)) {
-      stack.add(
-          // Result expected on stack.
-          graph.addConstantBool(false, closedWorld));
-      return;
-    }
-    String name = _foreignConstantStringArgument(invocation, 0, 'JS_GET_FLAG')!;
-    final value = _getFlagValue(name);
-    if (value == null) {
-      reporter.reportErrorMessage(
-          _elementMap.getSpannable(targetElement, invocation),
-          MessageKind.GENERIC,
-          {'text': 'Error: Unknown internal flag "$name".'});
-    } else {
-      stack.add(graph.addConstantBool(value, closedWorld));
-    }
+  void _handleForeignJsFalse(ir.StaticInvocation invocation) {
+    _unexpectedForeignArguments(invocation, minPositional: 0, maxPositional: 0);
+    stack.add(graph.addConstantBool(false, closedWorld));
   }
 
   void _handleJsInterceptorConstant(ir.StaticInvocation invocation) {

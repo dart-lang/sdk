@@ -1,0 +1,170 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:5:23: Error: Expected a representation type.
+// extension type E1(var foo) {} // Error.
+//                       ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:6:25: Error: Expected a representation type.
+// extension type E2(final foo) {} // Error.
+//                         ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:6:25: Error: Representation fields can't have modifiers.
+// extension type E2(final foo) {} // Error.
+//                         ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:7:32: Error: Representation fields can't have modifiers.
+// extension type E3(final String foo) {} // Error.
+//                                ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:8:33: Error: Representation fields can't have modifiers.
+// extension type E4(covariant num foo) {} // Error.
+//                                 ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:9:19: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+// extension type E5(const bool foo) {} // Error.
+//                   ^^^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:9:30: Error: Representation fields can't have modifiers.
+// extension type E5(const bool foo) {} // Error.
+//                              ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:10:42: Error: Representation fields can't have modifiers.
+// extension type E6(covariant final double foo) {} // Error.
+//                                          ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:25: Error: Members can't be declared to be both 'var' and 'const'.
+// Try removing one of the keywords.
+// extension type E7(const var foo) {} // Error.
+//                         ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:19: Error: Can't have modifier 'const' here.
+// Try removing 'const'.
+// extension type E7(const var foo) {} // Error.
+//                   ^^^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:29: Error: Expected a representation type.
+// extension type E7(const var foo) {} // Error.
+//                             ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:11:29: Error: Representation fields can't have modifiers.
+// extension type E7(const var foo) {} // Error.
+//                             ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:12:18: Error: Expected a representation field.
+// extension type E8() {} // Error.
+//                  ^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:13:18: Error: Each extension type should have exactly one representation field.
+// extension type E9(int foo, String bar) {} // Error.
+//                  ^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:14:19: Error: Each extension type should have exactly one representation field.
+// extension type E10(num foo, bool bar, double baz) {} // Error.
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type E1(dynamic foo) {
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(dynamic foo) {
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+extension type E3(core::String foo) {
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+extension type E4(core::num foo) {
+  constructor • = self::E4|constructor#;
+  constructor tearoff • = self::E4|constructor#_#new#tearOff;
+}
+extension type E5(core::bool foo) {
+  constructor • = self::E5|constructor#;
+  constructor tearoff • = self::E5|constructor#_#new#tearOff;
+}
+extension type E6(core::double foo) {
+  constructor • = self::E6|constructor#;
+  constructor tearoff • = self::E6|constructor#_#new#tearOff;
+}
+extension type E7(dynamic foo) {
+  constructor • = self::E7|constructor#;
+  constructor tearoff • = self::E7|constructor#_#new#tearOff;
+}
+extension type E8(invalid-type #) {
+  constructor • = self::E8|constructor#;
+  constructor tearoff • = self::E8|constructor#_#new#tearOff;
+}
+extension type E9(core::int foo) {
+  constructor • = self::E9|constructor#;
+  constructor tearoff • = self::E9|constructor#_#new#tearOff;
+}
+extension type E10(core::num foo) {
+  constructor • = self::E10|constructor#;
+  constructor tearoff • = self::E10|constructor#_#new#tearOff;
+}
+static inline-class-member method E1|constructor#(dynamic foo) → self::E1 /* = dynamic */ {
+  lowered final self::E1 /* = dynamic */ #this = foo;
+  return #this;
+}
+static inline-class-member method E1|constructor#_#new#tearOff(dynamic foo) → self::E1 /* = dynamic */
+  return self::E1|constructor#(foo);
+static inline-class-member method E2|constructor#(final dynamic foo) → self::E2 /* = dynamic */ {
+  lowered final self::E2 /* = dynamic */ #this = foo;
+  return #this;
+}
+static inline-class-member method E2|constructor#_#new#tearOff(dynamic foo) → self::E2 /* = dynamic */
+  return self::E2|constructor#(foo);
+static inline-class-member method E3|constructor#(final core::String foo) → self::E3 /* = core::String */ {
+  lowered final self::E3 /* = core::String */ #this = foo;
+  return #this;
+}
+static inline-class-member method E3|constructor#_#new#tearOff(core::String foo) → self::E3 /* = core::String */
+  return self::E3|constructor#(foo);
+static inline-class-member method E4|constructor#(covariant-by-declaration core::num foo) → self::E4 /* = core::num */ {
+  lowered final self::E4 /* = core::num */ #this = foo;
+  return #this;
+}
+static inline-class-member method E4|constructor#_#new#tearOff(core::num foo) → self::E4 /* = core::num */
+  return self::E4|constructor#(foo);
+static inline-class-member method E5|constructor#(core::bool foo) → self::E5 /* = core::bool */ {
+  lowered final self::E5 /* = core::bool */ #this = foo;
+  return #this;
+}
+static inline-class-member method E5|constructor#_#new#tearOff(core::bool foo) → self::E5 /* = core::bool */
+  return self::E5|constructor#(foo);
+static inline-class-member method E6|constructor#(covariant-by-declaration final core::double foo) → self::E6 /* = core::double */ {
+  lowered final self::E6 /* = core::double */ #this = foo;
+  return #this;
+}
+static inline-class-member method E6|constructor#_#new#tearOff(core::double foo) → self::E6 /* = core::double */
+  return self::E6|constructor#(foo);
+static inline-class-member method E7|constructor#(dynamic foo) → self::E7 /* = dynamic */ {
+  lowered final self::E7 /* = dynamic */ #this = foo;
+  return #this;
+}
+static inline-class-member method E7|constructor#_#new#tearOff(dynamic foo) → self::E7 /* = dynamic */
+  return self::E7|constructor#(foo);
+static inline-class-member method E8|constructor#() → self::E8 /* = invalid-type */ {
+  lowered final self::E8 /* = invalid-type */ #this;
+  return #this;
+}
+static inline-class-member method E8|constructor#_#new#tearOff() → self::E8 /* = invalid-type */
+  return self::E8|constructor#();
+static inline-class-member method E9|constructor#(core::int foo, core::String bar) → self::E9 /* = core::int */ {
+  lowered final self::E9 /* = core::int */ #this = bar;
+  return #this;
+}
+static inline-class-member method E9|constructor#_#new#tearOff(core::int foo, core::String bar) → self::E9 /* = core::int */
+  return self::E9|constructor#(foo, bar);
+static inline-class-member method E10|constructor#(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */ {
+  lowered final self::E10 /* = core::num */ #this = baz;
+  return #this;
+}
+static inline-class-member method E10|constructor#_#new#tearOff(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */
+  return self::E10|constructor#(foo, bar, baz);

@@ -1187,11 +1187,13 @@ extension DapTestClientExtension on DapTestClient {
     int frameId,
     String expression,
     String expectedResult, {
+    String? context,
     ValueFormat? format,
   }) async {
     final response = await evaluate(
       expression,
       frameId: frameId,
+      context: context,
       format: format,
     );
     expect(response.success, isTrue);

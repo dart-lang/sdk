@@ -446,22 +446,80 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
 
   } else {
     ASSERT_EQUAL(op_kind, Token::kTRUNCDIV);
-    // Since we can't create a BinaryInt64Op(kTRUNCDIV, ...) instruction,
-    // check the following cases before falling back to the native call:
-    //   m ~/ 1 => m     (here, m >> 0, which will get canonicalized to m)
-    //   m ~/ -1 => -m
-    if (value == 1) {
-      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-      auto* zero = unboxed_constant(0);
-      InsertBefore(instr, zero, /*env=*/nullptr, FlowGraph::kValue);
-      return new (Z) ShiftInt64OpInstr(Token::kSHR, left_value,
-                                       new (Z) Value(zero), DeoptId::kNone);
-    } else if (value == -1) {
-      left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-      return new (Z)
-          UnaryInt64OpInstr(Token::kNEGATE, left_value, DeoptId::kNone);
+    if (value == kMinInt64) {
+      return nullptr;  // Can't represent absolute value of divisor in 64 bits.
     }
-    return nullptr;
+    // The algorithm below assumes the divisor is a positive power of two,
+    // but if it's negative, then we just need to negate the final result.
+    const int64_t divisor = Utils::Abs(value);
+    const bool negate = value < 0;
+
+#if !defined(TARGET_ARCH_IS_32_BIT)
+    // If BinaryInt64Op(kTRUNCDIV, ...) is supported, then only perform the
+    // simplest replacements and use the instruction otherwise.
+    if (divisor != 1) return nullptr;
+#else
+    // We're replacing a runtime call, so perform any replacement we can
+    // before giving up and leaving the runtime call in place.
+    if (!Utils::IsPowerOfTwo(divisor)) return nullptr;
+#endif
+
+    Definition* result = nullptr;
+    left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+    if (divisor > 1) {
+      // For two's complement signed arithmetic where the bit width is k
+      // and the divisor is 2^n for some n in [0, k), we can perform a simple
+      // shift if m is non-negative:
+      //   m ~/ 2^n => m >> n
+      // For negative m, however, this won't work since just shifting m rounds
+      // towards negative infinity. Instead, we add (2^n - 1) first before
+      // shifting, which rounds the result towards positive infinity
+      // (and thus rounding towards zero, since m is negative):
+      //   m ~/ 2^n => (m + (2^n - 1)) >> n
+      // By sign extending the sign bit (the (k-1)-bit) and using that as a
+      // mask, we get a non-branching computation that only adds (2^n - 1)
+      // when m is negative, rounding towards zero in both cases:
+      //   m ~/ 2^n => (m + ((m >> (k - 1)) & (2^n - 1))) >> n
+      auto* const sign_bit_position = unboxed_constant(63);
+      InsertBefore(instr, sign_bit_position, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      auto* const sign_bit_extended = new (Z)
+          ShiftInt64OpInstr(Token::kSHR, left_value,
+                            new (Z) Value(sign_bit_position), DeoptId::kNone);
+      InsertBefore(instr, sign_bit_extended, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      auto* rounding_adjustment = unboxed_constant(divisor - 1);
+      InsertBefore(instr, rounding_adjustment, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      rounding_adjustment = new (Z)
+          BinaryInt64OpInstr(Token::kBIT_AND, new (Z) Value(sign_bit_extended),
+                             new (Z) Value(rounding_adjustment), DeoptId::kNone,
+                             Instruction::kNotSpeculative);
+      InsertBefore(instr, rounding_adjustment, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      auto* const left_definition = new (Z)
+          BinaryInt64OpInstr(Token::kADD, left_value->CopyWithType(Z),
+                             new (Z) Value(rounding_adjustment), DeoptId::kNone,
+                             Instruction::kNotSpeculative);
+      InsertBefore(instr, left_definition, /*env=*/nullptr, FlowGraph::kValue);
+      left_value = new (Z) Value(left_definition);
+      auto* const right_definition =
+          unboxed_constant(Utils::ShiftForPowerOfTwo(divisor));
+      InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
+      right_value = new (Z) Value(right_definition);
+      result = new (Z) ShiftInt64OpInstr(Token::kSHR, left_value, right_value,
+                                         DeoptId::kNone);
+    } else {
+      ASSERT_EQUAL(divisor, 1);
+      // No division needed, just redefine the value.
+      result = new (Z) RedefinitionInstr(left_value);
+    }
+    if (negate) {
+      InsertBefore(instr, result, /*env=*/nullptr, FlowGraph::kValue);
+      result = new (Z) UnaryInt64OpInstr(Token::kNEGATE, new (Z) Value(result),
+                                         DeoptId::kNone);
+    }
+    return result;
   }
 }
 

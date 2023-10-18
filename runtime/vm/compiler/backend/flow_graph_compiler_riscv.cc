@@ -348,13 +348,16 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
   } else {
-    __ JumpAndLink(stub);
+    __ JumpAndLink(stub, compiler::ObjectPoolBuilderEntry::kNotPatchable,
+                   CodeEntryKind::kNormal, snapshot_behavior);
     AddStubCallTarget(stub);
   }
 }
@@ -396,11 +399,13 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   }
 }
 
-void FlowGraphCompiler::GeneratePatchableCall(const InstructionSource& source,
-                                              const Code& stub,
-                                              UntaggedPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  __ JumpAndLinkPatchable(stub);
+void FlowGraphCompiler::GeneratePatchableCall(
+    const InstructionSource& source,
+    const Code& stub,
+    UntaggedPcDescriptors::Kind kind,
+    LocationSummary* locs,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
+  __ JumpAndLinkPatchable(stub, CodeEntryKind::kNormal, snapshot_behavior);
   EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs,
                        pending_deoptimization_env_);
 }

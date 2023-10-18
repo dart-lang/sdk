@@ -104,7 +104,7 @@ main() {
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
-      [firstType, secondType],
+      [firstType, secondType, ''],
     );
 
     var error = listener.errors[0];
@@ -142,7 +142,7 @@ main() {
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
-      [firstType, secondType],
+      [firstType, secondType, ''],
     );
 
     var error = listener.errors[0];
@@ -175,7 +175,7 @@ main() {
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
-      [fa.variables.type!.type!, fb.variables.type!.type!],
+      [fa.variables.type!.type!, fb.variables.type!.type!, ''],
     );
 
     var error = listener.errors[0];
@@ -210,7 +210,7 @@ main() {
     reporter.reportErrorForNode(
       CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
       findNode.simple('x'),
-      [ba.variables.type!.type!, bb.variables.type!.type!],
+      [ba.variables.type!.type!, bb.variables.type!.type!, ''],
     );
 
     var error = listener.errors[0];

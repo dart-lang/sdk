@@ -86,30 +86,34 @@ class YieldStatementResolver {
     }
 
     var imposedReturnType = bodyContext.imposedType;
-    if (imposedReturnType != null &&
-        !_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType)) {
+    if (imposedReturnType != null) {
       if (isYieldEach) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
-          expression,
-          [impliedReturnType, imposedReturnType],
+        if (!_typeSystem.isAssignableTo(impliedReturnType, imposedReturnType)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+            expression,
+            [impliedReturnType, imposedReturnType],
+          );
+          return;
+        }
+      } else {
+        var imposedSequenceType = imposedReturnType.asInstanceOf(
+          bodyContext.isSynchronous
+              ? _typeProvider.iterableElement
+              : _typeProvider.streamElement,
         );
-        return;
+        if (imposedSequenceType != null) {
+          var imposedValueType = imposedSequenceType.typeArguments[0];
+          if (!_typeSystem.isAssignableTo(expressionType, imposedValueType)) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+              expression,
+              [expressionType, imposedValueType],
+            );
+            return;
+          }
+        }
       }
-      var imposedSequenceType = imposedReturnType.asInstanceOf(
-        bodyContext.isSynchronous
-            ? _typeProvider.iterableElement
-            : _typeProvider.streamElement,
-      );
-      if (imposedSequenceType != null) {
-        var imposedValueType = imposedSequenceType.typeArguments[0];
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
-          expression,
-          [expressionType, imposedValueType],
-        );
-      }
-      return;
     }
 
     if (isYieldEach) {

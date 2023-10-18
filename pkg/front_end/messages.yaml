@@ -7405,3 +7405,31 @@ ImplementMultipleExtensionTypeMembers:
       void method() {}
     }
     extension type ExtensionType3(int i) implements ExtensionType1, ExtensionType2 {}
+
+RepresentationFieldModifier:
+  problemMessage: "Representation fields can't have modifiers."
+  experiments: inline-class
+  script: |
+    extension type E(final int foo) {}
+  analyzerCode: REPRESENTATION_FIELD_MODIFIER
+
+ExpectedRepresentationType:
+  problemMessage: "Expected a representation type."
+  experiments: inline-class
+  script: |
+    extension type E(var foo) {}
+  analyzerCode: EXPECTED_REPRESENTATION_TYPE
+
+ExpectedRepresentationField:
+  problemMessage: "Expected a representation field."
+  experiments: inline-class
+  script: |
+    extension type E() {}
+  analyzerCode: EXPECTED_REPRESENTATION_FIELD
+
+MultipleRepresentationFields:
+  problemMessage: "Each extension type should have exactly one representation field."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, String bar) {}
+  analyzerCode: MULTIPLE_REPRESENTATION_FIELDS

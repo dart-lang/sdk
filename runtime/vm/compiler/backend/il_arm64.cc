@@ -707,7 +707,6 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsFpuRegister()) {
     const VRegister dst = destination.fpu_reg();
-    __ LoadDImmediate(dst, Double::Cast(value_).value());
     if (representation() == kUnboxedFloat) {
       __ LoadSImmediate(dst, Double::Cast(value_).value());
     } else {
@@ -1338,13 +1337,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                      link_lazily() ? ObjectPool::Patchability::kPatchable
                                    : ObjectPool::Patchability::kNotPatchable);
   if (link_lazily()) {
-    compiler->GeneratePatchableCall(source(), *stub,
-                                    UntaggedPcDescriptors::kOther, locs());
+    compiler->GeneratePatchableCall(
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kResetToBootstrapNative);
   } else {
     // We can never lazy-deopt here because natives are never optimized.
     ASSERT(!compiler->is_optimizing());
     compiler->GenerateNonLazyDeoptableStubCall(
-        source(), *stub, UntaggedPcDescriptors::kOther, locs());
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kNotSnapshotable);
   }
   __ LoadFromOffset(result, SP, 0);
 

@@ -15,7 +15,7 @@ import 'dart:_js_helper'
         unwrapException;
 
 import 'dart:_foreign_helper'
-    show JS, JS_GET_FLAG, JS_RAW_EXCEPTION, RAW_DART_FUNCTION_REF;
+    show JS, JS_FALSE, JS_RAW_EXCEPTION, RAW_DART_FUNCTION_REF;
 
 import 'dart:_async_status_codes' as async_status_codes;
 
@@ -597,7 +597,7 @@ class _SyncStarIterator<T> implements Iterator<T> {
   }
 
   bool moveNext() {
-    if (JS_GET_FLAG('FALSE')) _modelGeneratedCode();
+    if (JS_FALSE()) _modelGeneratedCode();
     Object? errorValue;
     int errorCode = async_status_codes.SUCCESS;
     while (true) {

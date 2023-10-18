@@ -1789,6 +1789,16 @@ class AstBuilder extends StackListener {
         startToken: requiredKeyword,
       );
     }
+    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/53324
+    // If the issue fixed, we can remove this from the analyzer.
+    if (_classLikeBuilder is _ExtensionTypeDeclarationBuilder &&
+        covariantKeyword != null) {
+      errorReporter.errorReporter?.reportErrorForToken(
+        ParserErrorCode.EXTRANEOUS_MODIFIER,
+        covariantKeyword,
+        [covariantKeyword.lexeme],
+      );
+    }
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);

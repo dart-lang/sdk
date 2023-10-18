@@ -773,7 +773,7 @@ int Function(int) fromPointer(Pointer<NativeFunction<Int8 Function(Int8)>> p) {
 
 ### argument_type_not_assignable
 
-_The argument type '{0}' can't be assigned to the parameter type '{1}'._
+_The argument type '{0}' can't be assigned to the parameter type '{1}'. {2}_
 
 #### Description
 
