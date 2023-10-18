@@ -481,7 +481,8 @@ _extra_builder(
 _extra_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
-    dimensions = jammy,
+    dimensions = [jammy, arm64],
+    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
 )
 
 # vm|legacy|jit
