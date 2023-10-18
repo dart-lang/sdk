@@ -2,12 +2,12 @@ M(r0 int64, r1 int64) Struct(size: 9)
 M(r2 int64, r3 int64) Struct(size: 9)
 M(r4 int64, r5 int64) Struct(size: 9)
 M(r6 int64, r7 int64) Struct(size: 9)
-S+0 Struct(size: 9)
-S+16 Struct(size: 9)
-S+32 Struct(size: 9)
-S+48 Struct(size: 9)
-S+64 Struct(size: 9)
-S+80 Struct(size: 9)
+M(S+0 int64, S+8 int64) Struct(size: 9)
+M(S+16 int64, S+24 int64) Struct(size: 9)
+M(S+32 int64, S+40 int64) Struct(size: 9)
+M(S+48 int64, S+56 int64) Struct(size: 9)
+M(S+64 int64, S+72 int64) Struct(size: 9)
+M(S+80 int64, S+88 int64) Struct(size: 9)
 v0 double
 S+96 int32
 S+104 int32

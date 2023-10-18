@@ -8362,6 +8362,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingGetters
+        self::@class::B::@getter::_foo
 ''');
   }
 
@@ -8414,6 +8418,10 @@ library
         fields
           final _foo @38
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingGetters
+        self::@class::B::@getter::_foo
 ''');
   }
 
@@ -8462,6 +8470,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingFields
+        self::@class::B::@field::_foo
 ''');
   }
 
@@ -8560,6 +8572,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8680,6 +8696,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::E
 ''');
   }
 
@@ -8717,6 +8737,10 @@ library
           final _foo @71
             type: int?
             shouldUseTypeForInitializerInference: true
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@enum::E
 ''');
   }
 
@@ -8746,6 +8770,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8814,6 +8842,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8856,6 +8888,10 @@ library
           final _foo @71
             type: int?
             shouldUseTypeForInitializerInference: true
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8905,6 +8941,10 @@ library
         fields
           _foo @17
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingFields
+        self::@class::A::@field::_foo
 ''');
   }
 

@@ -372,6 +372,11 @@ final testCases = [
           passWCharStructInlineArrayIntUintPtrx2LongUnsigned, 0),
       passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback),
   CallbackTest.withCheck(
+      "PassInt64x7Struct12BytesHomogeneousInt32",
+      Pointer.fromFunction<PassInt64x7Struct12BytesHomogeneousInt32Type>(
+          passInt64x7Struct12BytesHomogeneousInt32, 0),
+      passInt64x7Struct12BytesHomogeneousInt32AfterCallback),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -7973,6 +7978,81 @@ void passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback() {
   print("after callback result = $result");
 
   Expect.equals(120, result);
+}
+
+typedef PassInt64x7Struct12BytesHomogeneousInt32Type = Int64 Function(Int64,
+    Int64, Int64, Int64, Int64, Int64, Int64, Struct12BytesHomogeneousInt32);
+
+// Global variables to be able to test inputs after callback returned.
+int passInt64x7Struct12BytesHomogeneousInt32_a0 = 0;
+int passInt64x7Struct12BytesHomogeneousInt32_a1 = 0;
+int passInt64x7Struct12BytesHomogeneousInt32_a2 = 0;
+int passInt64x7Struct12BytesHomogeneousInt32_a3 = 0;
+int passInt64x7Struct12BytesHomogeneousInt32_a4 = 0;
+int passInt64x7Struct12BytesHomogeneousInt32_a5 = 0;
+int passInt64x7Struct12BytesHomogeneousInt32_a6 = 0;
+Struct12BytesHomogeneousInt32 passInt64x7Struct12BytesHomogeneousInt32_a7 =
+    Pointer<Struct12BytesHomogeneousInt32>.fromAddress(0).ref;
+
+// Result variable also global, so we can delete it after the callback.
+int passInt64x7Struct12BytesHomogeneousInt32Result = 0;
+
+int passInt64x7Struct12BytesHomogeneousInt32CalculateResult() {
+  int result = 0;
+
+  result += passInt64x7Struct12BytesHomogeneousInt32_a0;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a1;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a2;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a3;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a4;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a5;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a6;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a7.a0;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a7.a1;
+  result += passInt64x7Struct12BytesHomogeneousInt32_a7.a2;
+
+  passInt64x7Struct12BytesHomogeneousInt32Result = result;
+
+  return result;
+}
+
+/// Struct stradles last argument register
+int passInt64x7Struct12BytesHomogeneousInt32(int a0, int a1, int a2, int a3,
+    int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7) {
+  print(
+      "passInt64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})");
+
+  // In legacy mode, possibly return null.
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassInt64x7Struct12BytesHomogeneousInt32 throwing on purpose!");
+  }
+
+  passInt64x7Struct12BytesHomogeneousInt32_a0 = a0;
+  passInt64x7Struct12BytesHomogeneousInt32_a1 = a1;
+  passInt64x7Struct12BytesHomogeneousInt32_a2 = a2;
+  passInt64x7Struct12BytesHomogeneousInt32_a3 = a3;
+  passInt64x7Struct12BytesHomogeneousInt32_a4 = a4;
+  passInt64x7Struct12BytesHomogeneousInt32_a5 = a5;
+  passInt64x7Struct12BytesHomogeneousInt32_a6 = a6;
+  passInt64x7Struct12BytesHomogeneousInt32_a7 = a7;
+
+  final result = passInt64x7Struct12BytesHomogeneousInt32CalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passInt64x7Struct12BytesHomogeneousInt32AfterCallback() {
+  final result = passInt64x7Struct12BytesHomogeneousInt32CalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(5, result);
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);

@@ -234,6 +234,19 @@ class Struct12BytesHomogeneousFloat extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
+class Struct12BytesHomogeneousInt32 extends Struct {
+  @Int32()
+  int a0;
+
+  @Int32()
+  int a1;
+
+  @Int32()
+  int a2;
+
+  String toString() => "(${a0}, ${a1}, ${a2})";
+}
+
 class Struct16BytesHomogeneousFloat extends Struct {
   @Float()
   double a0;

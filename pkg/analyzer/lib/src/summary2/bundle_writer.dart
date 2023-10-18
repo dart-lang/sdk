@@ -396,28 +396,19 @@ class BundleWriter {
 
   void _writeFieldNameNonPromotabilityInfo(
       Map<String, FieldNameNonPromotabilityInfo>? info) {
-    // The summary format for `LibraryElementImpl.fieldNameNonPromotabilityInfo`
-    // is as follows:
-    // - bool: `true` if field name non-promotability information is present,
-    //   `false` if not.
-    // - If information is present:
-    //   - Uint30: number of entries in the map.
-    //   - For each map entry:
-    //     - String reference: key
-    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingFields`
-    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingGetters`
-    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingNsmClasses`
-    _resolutionSink.writeBool(info != null);
-    if (info == null) {
-      return;
-    }
-    _resolutionSink.writeUInt30(info.length);
-    for (var MapEntry(:key, :value) in info.entries) {
-      _resolutionSink._writeStringReference(key);
-      _resolutionSink._writeElementList(value.conflictingFields);
-      _resolutionSink._writeElementList(value.conflictingGetters);
-      _resolutionSink._writeElementList(value.conflictingNsmClasses);
-    }
+    _resolutionSink.writeOptionalObject(info, (info) {
+      _resolutionSink.writeMap(
+        info,
+        writeKey: (key) {
+          _resolutionSink._writeStringReference(key);
+        },
+        writeValue: (value) {
+          _resolutionSink._writeElementList(value.conflictingFields);
+          _resolutionSink._writeElementList(value.conflictingGetters);
+          _resolutionSink._writeElementList(value.conflictingNsmClasses);
+        },
+      );
+    });
   }
 
   void _writeFunctionElement(FunctionElementImpl element) {
@@ -772,6 +763,18 @@ class ResolutionSink extends _SummaryDataWriter {
     } else {
       writeByte(Tag.RawElement);
       _writeElement(element);
+    }
+  }
+
+  void writeMap<K, V>(
+    Map<K, V> map, {
+    required void Function(K key) writeKey,
+    required void Function(V value) writeValue,
+  }) {
+    writeUInt30(map.length);
+    for (final entry in map.entries) {
+      writeKey(entry.key);
+      writeValue(entry.value);
     }
   }
 

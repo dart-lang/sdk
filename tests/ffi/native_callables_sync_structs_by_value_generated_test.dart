@@ -372,6 +372,11 @@ final testCases = [
           passWCharStructInlineArrayIntUintPtrx2LongUnsigned),
       passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback),
   AsyncCallbackTest(
+      "PassInt64x7Struct12BytesHomogeneousInt32",
+      Pointer.fromFunction<PassInt64x7Struct12BytesHomogeneousInt32Type>(
+          passInt64x7Struct12BytesHomogeneousInt32),
+      passInt64x7Struct12BytesHomogeneousInt32AfterCallback),
+  AsyncCallbackTest(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -5092,6 +5097,41 @@ Future<void>
       await PassWCharStructInlineArrayIntUintPtrx2LongUnsignedResult.future;
   print("after callback result = $result");
   Expect.approxEquals(120, result);
+}
+
+typedef PassInt64x7Struct12BytesHomogeneousInt32Type = Void Function(Int64,
+    Int64, Int64, Int64, Int64, Int64, Int64, Struct12BytesHomogeneousInt32);
+
+// Global variable that stores the result.
+final PassInt64x7Struct12BytesHomogeneousInt32Result = Completer<double>();
+
+/// Struct stradles last argument register
+void passInt64x7Struct12BytesHomogeneousInt32(int a0, int a1, int a2, int a3,
+    int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7) {
+  print(
+      "passInt64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})");
+
+  double result = 0;
+
+  result += a0;
+  result += a1;
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+  result += a6;
+  result += a7.a0;
+  result += a7.a1;
+  result += a7.a2;
+
+  print("result = $result");
+  PassInt64x7Struct12BytesHomogeneousInt32Result.complete(result);
+}
+
+Future<void> passInt64x7Struct12BytesHomogeneousInt32AfterCallback() async {
+  final result = await PassInt64x7Struct12BytesHomogeneousInt32Result.future;
+  print("after callback result = $result");
+  Expect.approxEquals(5, result);
 }
 
 typedef ReturnStruct1ByteIntType = Void Function(Int8);

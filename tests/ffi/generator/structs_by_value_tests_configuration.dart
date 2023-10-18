@@ -436,6 +436,20 @@ Returning a bool."""),
       wchar,
       """
 Returning a wchar."""),
+  FunctionType(
+      [
+        int64,
+        int64,
+        int64,
+        int64,
+        int64,
+        int64,
+        int64,
+        struct12bytesInt,
+      ],
+      int64,
+      """
+Struct stradles last argument register"""),
 ];
 
 /// Functions that return a struct by value.
@@ -638,6 +652,7 @@ final compounds = [
   struct9bytesInt2,
   struct10bytesBool,
   struct12bytesFloat,
+  struct12bytesInt,
   struct16bytesFloat,
   struct16bytesMixed,
   struct16bytesMixed2,
@@ -817,6 +832,21 @@ https://github.com/dart-lang/sdk/issues/49460""",
     double_,
     "Variadic arguments function definition, but not passing any.",
   ),
+  FunctionType(
+    varArgsIndex: 1,
+    [
+      int64,
+      int64,
+      int64,
+      int64,
+      int64,
+      int64,
+      int64,
+      struct12bytesInt,
+    ],
+    int64,
+    "Struct stradles last argument register, variadic",
+  ),
 ];
 
 final struct1byteBool = StructType([bool_]);
@@ -837,6 +867,7 @@ final struct9bytesInt2 =
     StructType.disambiguate([int64, int8], "4Or8ByteAligned");
 final struct10bytesBool = StructType(List.filled(10, bool_));
 final struct12bytesFloat = StructType([float, float, float]);
+final struct12bytesInt = StructType([int32, int32, int32]);
 
 /// The largest homogenous float that goes into FPU registers on softfp and
 /// arm64.

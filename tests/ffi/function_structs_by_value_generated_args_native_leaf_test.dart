@@ -93,6 +93,7 @@ void main() {
     testPassUint8Boolx9Struct10BytesInlineArrayBoolBoolNativeLeaf();
     testPassUint8Struct1ByteBoolNativeLeaf();
     testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf();
+    testPassInt64x7Struct12BytesHomogeneousInt32NativeLeaf();
   }
 }
 
@@ -5419,4 +5420,44 @@ void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedNativeLeaf() {
   Expect.equals(120, result);
 
   calloc.free(a1Pointer);
+}
+
+@Native<
+        Int64 Function(Int64, Int64, Int64, Int64, Int64, Int64, Int64,
+            Struct12BytesHomogeneousInt32)>(
+    symbol: 'PassInt64x7Struct12BytesHomogeneousInt32', isLeaf: true)
+external int passInt64x7Struct12BytesHomogeneousInt32NativeLeaf(int a0, int a1,
+    int a2, int a3, int a4, int a5, int a6, Struct12BytesHomogeneousInt32 a7);
+
+/// Struct stradles last argument register
+void testPassInt64x7Struct12BytesHomogeneousInt32NativeLeaf() {
+  int a0;
+  int a1;
+  int a2;
+  int a3;
+  int a4;
+  int a5;
+  int a6;
+  final a7Pointer = calloc<Struct12BytesHomogeneousInt32>();
+  final Struct12BytesHomogeneousInt32 a7 = a7Pointer.ref;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7.a0 = 8;
+  a7.a1 = -9;
+  a7.a2 = 10;
+
+  final result = passInt64x7Struct12BytesHomogeneousInt32NativeLeaf(
+      a0, a1, a2, a3, a4, a5, a6, a7);
+
+  print("result = $result");
+
+  Expect.equals(5, result);
+
+  calloc.free(a7Pointer);
 }
