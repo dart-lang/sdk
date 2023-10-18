@@ -49290,6 +49290,44 @@ library
 ''');
   }
 
+  test_isPromotable_representationField_private() async {
+    var library = await buildLibrary(r'''
+extension type A(int? _it) {}
+
+class B {
+  int _it = 0;
+}
+
+class C {
+  int get _it => 0;
+}
+''');
+
+    configuration
+      ..forPromotableFields(extensionTypeNames: {'A'})
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::_it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: int?
+        interfaces
+          Object?
+        fields
+          final promotable _it @22
+            type: int?
+  fieldNameNonPromotabilityInfo
+    _it
+      conflictingFields
+        self::@class::B::@field::_it
+      conflictingGetters
+        self::@class::C::@getter::_it
+''');
+  }
+
   test_metadata() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const foo = 0;
@@ -52179,6 +52217,7 @@ extension on ElementTextConfiguration {
   void forPromotableFields({
     Set<String> classNames = const {},
     Set<String> enumNames = const {},
+    Set<String> extensionTypeNames = const {},
     Set<String> mixinNames = const {},
     Set<String> fieldNames = const {},
   }) {
@@ -52189,6 +52228,8 @@ extension on ElementTextConfiguration {
         return false;
       } else if (e is EnumElement) {
         return enumNames.contains(e.name);
+      } else if (e is ExtensionTypeElement) {
+        return extensionTypeNames.contains(e.name);
       } else if (e is FieldElement) {
         return fieldNames.isEmpty || fieldNames.contains(e.name);
       } else if (e is MixinElement) {
