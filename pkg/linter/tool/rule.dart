@@ -54,8 +54,6 @@ void main(List<String> args) {
   generateRule(ruleName as String, outDir: outDir);
 }
 
-var _supportsTestMode = ['use_build_context_synchronously'];
-
 String get _thisYear => DateTime.now().year.toString();
 
 String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
@@ -279,9 +277,8 @@ void registerLintRules({bool inTestMode = false}) {
 
   for (var (i, name) in names.indexed) {
     var className = toClassName(name);
-    var args = _supportsTestMode.contains(name) ? 'inTestMode: inTestMode' : '';
     var suffix = i == names.length - 1 ? ';' : '';
-    sb.writeln('    ..register($className($args))$suffix');
+    sb.writeln('    ..register($className())$suffix');
   }
   sb.writeln('}');
   return (file: 'rules.dart', contents: sb.toString());
