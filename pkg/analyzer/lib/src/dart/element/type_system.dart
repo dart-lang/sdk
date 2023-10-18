@@ -140,6 +140,10 @@ class TypeSystemImpl implements TypeSystem {
   /// type that implements both [left] and [right], regardless of whether
   /// [left] is a subtype of [right], or [right] is a subtype of [left].
   bool canBeSubtypeOf(DartType left, DartType right) {
+    if (left case InterfaceTypeImpl(:final representationTypeErasure?)) {
+      left = representationTypeErasure;
+    }
+
     // If one is `Null`, then the other must be nullable.
     final leftIsNullable = isPotentiallyNullable(left);
     final rightIsNullable = isPotentiallyNullable(right);
