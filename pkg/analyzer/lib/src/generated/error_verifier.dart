@@ -714,6 +714,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
       _checkForExtensionTypeRepresentationDependsOnItself(node, element);
+      _checkForExtensionTypeRepresentationTypeBottom(node, element);
       _checkForExtensionTypeImplementsDeferred(node);
       _checkForExtensionTypeImplementsItself(node, element);
       _checkForExtensionTypeMemberConflicts(
@@ -2961,6 +2962,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
         node.name,
+      );
+    }
+  }
+
+  void _checkForExtensionTypeRepresentationTypeBottom(
+    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeElementImpl element,
+  ) {
+    final representationType = element.representation.type;
+    if (typeSystem.isBottom(representationType)) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,
+        node.representation.fieldType,
       );
     }
   }
