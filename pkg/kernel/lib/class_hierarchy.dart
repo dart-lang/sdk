@@ -890,17 +890,6 @@ class ClosedWorldClassHierarchy
     assert(type1 is! InterfaceType || info1 != null);
     assert(type2 is! InterfaceType || info2 != null);
 
-    Nullability type1NullabilityForResult = type1 is InterfaceType
-        ? type1.nullability
-        : (type1.isPotentiallyNullable
-            ? Nullability.nullable
-            : type1.nullability);
-    Nullability type2NullabilityForResult = type2 is InterfaceType
-        ? type2.nullability
-        : (type2.isPotentiallyNullable
-            ? Nullability.nullable
-            : type2.nullability);
-
     // Walk the lists finding their intersection, looking for a depth that has a
     // single candidate.
     int i1 = 0;
@@ -948,10 +937,8 @@ class ClosedWorldClassHierarchy
       //   immediately.  Since all interface types are subtypes of Object, this
       //   ensures the loop terminates.
       if (next.classNode.typeParameters.isEmpty) {
-        candidate = coreTypes.rawType(
-            next.classNode,
-            uniteNullabilities(
-                type1NullabilityForResult, type2NullabilityForResult));
+        candidate = coreTypes.rawType(next.classNode,
+            uniteNullabilities(type1.nullability, type2.nullability));
         if (currentDepth == 0) return candidate;
         ++numCandidatesAtThisDepth;
       } else {
@@ -986,8 +973,8 @@ class ClosedWorldClassHierarchy
           superType2 = legacyErasure(superType2) as InterfaceType;
         }
         if (superType1 == superType2) {
-          candidate = superType1.withDeclaredNullability(uniteNullabilities(
-              type1NullabilityForResult, type2NullabilityForResult));
+          candidate = superType1.withDeclaredNullability(
+              uniteNullabilities(type1.nullability, type2.nullability));
           ++numCandidatesAtThisDepth;
         }
       }
@@ -1006,21 +993,14 @@ class ClosedWorldClassHierarchy
     assert(supertypes1.isNotEmpty || type1 is ExtensionType);
     assert(supertypes2.isNotEmpty || type2 is ExtensionType);
 
-    Nullability type1NullabilityForResult = type1 is InterfaceType
-        ? type1.nullability
-        : (type1.isPotentiallyNullable
-            ? Nullability.nullable
-            : type1.nullability);
-
-    Nullability type2NullabilityForResult = type2 is InterfaceType
-        ? type2.nullability
-        : (type2.isPotentiallyNullable
-            ? Nullability.nullable
-            : type2.nullability);
-
     if (supertypes1.isEmpty || supertypes2.isEmpty) {
-      return coreTypes.objectRawType(uniteNullabilities(
-          type1NullabilityForResult, type2NullabilityForResult));
+      if (type1 is ExtensionType && type1.isPotentiallyNullable ||
+          type2 is ExtensionType && type2.isPotentiallyNullable) {
+        return coreTypes.objectNullableRawType;
+      } else {
+        return coreTypes.objectRawType(
+            uniteNullabilities(type1.nullability, type2.nullability));
+      }
     }
 
     List<_ClassInfo> combinedInfos1 =
@@ -1033,7 +1013,12 @@ class ClosedWorldClassHierarchy
     ]);
 
     return _getLegacyLeastUpperBoundInternal(
-        type1, type2, null, null, combinedInfos1, combinedInfos2,
+        type1,
+        type2,
+        type1 is InterfaceType ? infoFor(type1.classNode) : null,
+        type2 is InterfaceType ? infoFor(type2.classNode) : null,
+        combinedInfos1,
+        combinedInfos2,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
