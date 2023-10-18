@@ -141,24 +141,6 @@ class ClassHierarchyBuilder
     assert(type1 is InterfaceType || type1 is ExtensionType);
     assert(type2 is InterfaceType || type2 is ExtensionType);
 
-    // This is a workaround for the case when `Object?` should be found as the
-    // upper bound of extension types. If the representation type of an
-    // extension type is nullable, then `Object` is not a supertype of that
-    // extension type, but `Object?` is.
-    //
-    // TODO(cstefantsova): Remove this workaround and account for extension
-    // types with nullable representation types directly.
-    Nullability type1NullabilityForResult = type1 is InterfaceType
-        ? type1.nullability
-        : (type2.isPotentiallyNullable
-            ? Nullability.nullable
-            : type2.nullability);
-    Nullability type2NullabilityForResult = type2 is InterfaceType
-        ? type2.nullability
-        : (type2.isPotentiallyNullable
-            ? Nullability.nullable
-            : type2.nullability);
-
     Set<ClassHierarchyNode> supertypeNodesSet1 = supertypeNodes1.toSet();
     List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
 
@@ -198,8 +180,13 @@ class ClassHierarchyBuilder
 
     if (common.length == 1) {
       assert(common.single.classBuilder.cls == coreTypes.objectClass);
-      return coreTypes.objectRawType(uniteNullabilities(
-          type1NullabilityForResult, type2NullabilityForResult));
+      if (type1 is ExtensionType && type1.isPotentiallyNullable ||
+          type2 is ExtensionType && type2.isPotentiallyNullable) {
+        return coreTypes.objectNullableRawType;
+      } else {
+        return coreTypes.objectRawType(
+            uniteNullabilities(type1.nullability, type2.nullability));
+      }
     }
     common.sort(ClassHierarchyNode.compareMaxInheritancePath);
 
@@ -209,14 +196,14 @@ class ClassHierarchyBuilder
         if (type1 is InterfaceType) {
           return getTypeAsInstanceOf(type1, node.classBuilder.cls,
                   isNonNullableByDefault: isNonNullableByDefault)
-              .withDeclaredNullability(uniteNullabilities(
-                  type1NullabilityForResult, type2NullabilityForResult));
+              .withDeclaredNullability(
+                  uniteNullabilities(type1.nullability, type2.nullability));
         } else {
           type1 as ExtensionType;
           return getExtensionTypeAsInstanceOfClass(type1, node.classBuilder.cls,
                   isNonNullableByDefault: isNonNullableByDefault)!
-              .withDeclaredNullability(uniteNullabilities(
-                  type1NullabilityForResult, type2NullabilityForResult));
+              .withDeclaredNullability(
+                  uniteNullabilities(type1.nullability, type2.nullability));
         }
       } else {
         do {
@@ -224,8 +211,13 @@ class ClassHierarchyBuilder
         } while (node.maxInheritancePath == common[i + 1].maxInheritancePath);
       }
     }
-    return coreTypes.objectRawType(uniteNullabilities(
-        type1NullabilityForResult, type2NullabilityForResult));
+    if (type1 is ExtensionType && type1.isPotentiallyNullable ||
+        type2 is ExtensionType && type2.isPotentiallyNullable) {
+      return coreTypes.objectNullableRawType;
+    } else {
+      return coreTypes.objectRawType(
+          uniteNullabilities(type1.nullability, type2.nullability));
+    }
   }
 
   @override

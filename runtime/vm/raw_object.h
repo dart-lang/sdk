@@ -162,9 +162,9 @@ class UntaggedObject {
   enum TagBits {
     kCardRememberedBit = 0,
     kCanonicalBit = 1,
-    kNotMarkedBit = 2,            // Incremental barrier target.
+    kOldAndNotMarkedBit = 2,      // Incremental barrier target.
     kNewBit = 3,                  // Generational barrier target.
-    kAlwaysSetBit = 4,            // Incremental barrier source.
+    kOldBit = 4,                  // Incremental barrier source.
     kOldAndNotRememberedBit = 5,  // Generational barrier source.
     kImmutableBit = 6,
     kReservedBit = 7,
@@ -178,9 +178,9 @@ class UntaggedObject {
   };
 
   static constexpr intptr_t kGenerationalBarrierMask = 1 << kNewBit;
-  static constexpr intptr_t kIncrementalBarrierMask = 1 << kNotMarkedBit;
+  static constexpr intptr_t kIncrementalBarrierMask = 1 << kOldAndNotMarkedBit;
   static constexpr intptr_t kBarrierOverlapShift = 2;
-  COMPILE_ASSERT(kNotMarkedBit + kBarrierOverlapShift == kAlwaysSetBit);
+  COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
   COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
   // The bit in the Smi tag position must be something that can be set to 0
@@ -244,13 +244,14 @@ class UntaggedObject {
   class CardRememberedBit
       : public BitField<uword, bool, kCardRememberedBit, 1> {};
 
-  class NotMarkedBit : public BitField<uword, bool, kNotMarkedBit, 1> {};
+  class OldAndNotMarkedBit
+      : public BitField<uword, bool, kOldAndNotMarkedBit, 1> {};
 
   class NewBit : public BitField<uword, bool, kNewBit, 1> {};
 
   class CanonicalBit : public BitField<uword, bool, kCanonicalBit, 1> {};
 
-  class AlwaysSetBit : public BitField<uword, bool, kAlwaysSetBit, 1> {};
+  class OldBit : public BitField<uword, bool, kOldBit, 1> {};
 
   class OldAndNotRememberedBit
       : public BitField<uword, bool, kOldAndNotRememberedBit, 1> {};
@@ -277,34 +278,41 @@ class UntaggedObject {
 
   // Support for GC marking bit. Marked objects are either grey (not yet
   // visited) or black (already visited).
-  static bool IsMarked(uword tags) { return !NotMarkedBit::decode(tags); }
-  bool IsMarked() const { return !tags_.Read<NotMarkedBit>(); }
+  static bool IsMarked(uword tags) { return !OldAndNotMarkedBit::decode(tags); }
+  bool IsMarked() const {
+    ASSERT(IsOldObject());
+    return !tags_.Read<OldAndNotMarkedBit>();
+  }
   bool IsMarkedIgnoreRace() const {
-    return !tags_.ReadIgnoreRace<NotMarkedBit>();
+    ASSERT(IsOldObject());
+    return !tags_.ReadIgnoreRace<OldAndNotMarkedBit>();
   }
   void SetMarkBit() {
+    ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    tags_.UpdateBool<NotMarkedBit>(false);
+    tags_.UpdateBool<OldAndNotMarkedBit>(false);
   }
   void SetMarkBitUnsynchronized() {
+    ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    tags_.UpdateUnsynchronized<NotMarkedBit>(false);
+    tags_.UpdateUnsynchronized<OldAndNotMarkedBit>(false);
   }
   void SetMarkBitRelease() {
+    ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    tags_.UpdateBool<NotMarkedBit, std::memory_order_release>(false);
+    tags_.UpdateBool<OldAndNotMarkedBit, std::memory_order_release>(false);
   }
   void ClearMarkBit() {
+    ASSERT(IsOldObject());
     ASSERT(IsMarked());
-    tags_.UpdateBool<NotMarkedBit>(true);
-  }
-  void ClearMarkBitUnsynchronized() {
-    ASSERT(IsMarked());
-    tags_.UpdateUnsynchronized<NotMarkedBit>(true);
+    tags_.UpdateBool<OldAndNotMarkedBit>(true);
   }
   // Returns false if the bit was already set.
   DART_WARN_UNUSED_RESULT
-  bool TryAcquireMarkBit() { return tags_.TryClear<NotMarkedBit>(); }
+  bool TryAcquireMarkBit() {
+    ASSERT(IsOldObject());
+    return tags_.TryClear<OldAndNotMarkedBit>();
+  }
 
   // Canonical objects have the property that two canonical objects are
   // logically equal iff they are the same object (pointer equal).
@@ -330,10 +338,6 @@ class UntaggedObject {
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
     tags_.UpdateBool<OldAndNotRememberedBit>(true);
-  }
-  void ClearRememberedBitUnsynchronized() {
-    ASSERT(IsOldObject());
-    tags_.UpdateUnsynchronized<OldAndNotRememberedBit>(true);
   }
 
   DART_FORCE_INLINE
@@ -701,17 +705,16 @@ class UntaggedObject {
   void CheckHeapPointerStore(ObjectPtr value, Thread* thread) {
     uword source_tags = this->tags_;
     uword target_tags = value->untag()->tags_;
-    uword overlap = (source_tags >> kBarrierOverlapShift) & target_tags &
-                    thread->write_barrier_mask();
-    if (overlap != 0) {
-      if ((overlap & kGenerationalBarrierMask) != 0) {
+    if (((source_tags >> kBarrierOverlapShift) & target_tags &
+         thread->write_barrier_mask()) != 0) {
+      if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
         EnsureInRememberedSet(thread);
-      }
-      if ((overlap & kIncrementalBarrierMask) != 0) {
+      } else {
         // Incremental barrier: record when a store creates an
-        // any -> not-marked reference.
+        // old -> old-and-not-marked reference.
+        ASSERT(value->IsOldObject());
         if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
           // Instruction pages may be non-writable. Defer marking.
           thread->DeferredMarkingStackAddObject(value);
@@ -730,10 +733,9 @@ class UntaggedObject {
                                                 Thread* thread) {
     uword source_tags = this->tags_;
     uword target_tags = value->untag()->tags_;
-    uword overlap = (source_tags >> kBarrierOverlapShift) & target_tags &
-                    thread->write_barrier_mask();
-    if (overlap != 0) {
-      if ((overlap & kGenerationalBarrierMask) != 0) {
+    if (((source_tags >> kBarrierOverlapShift) & target_tags &
+         thread->write_barrier_mask()) != 0) {
+      if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
         if (this->IsCardRemembered()) {
@@ -741,10 +743,10 @@ class UntaggedObject {
         } else if (this->TryAcquireRememberedBit()) {
           thread->StoreBufferAddObject(static_cast<ObjectPtr>(this));
         }
-      }
-      if ((overlap & kIncrementalBarrierMask) != 0) {
+      } else {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
+        ASSERT(value->IsOldObject());
         if (ClassIdTag::decode(target_tags) == kInstructionsCid) {
           // Instruction pages may be non-writable. Defer marking.
           thread->DeferredMarkingStackAddObject(value);
@@ -1805,7 +1807,6 @@ class UntaggedWeakArray : public UntaggedObject {
   friend class MarkingVisitorBase;
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class Scavenger;
 };
 
 // WeakArray is special in that it has a pointer field which is not
@@ -3556,7 +3557,6 @@ class UntaggedWeakProperty : public UntaggedInstance {
   friend class MarkingVisitorBase;
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class Scavenger;
   friend class FastObjectCopy;  // For OFFSET_OF
   friend class SlowObjectCopy;  // For OFFSET_OF
 };
@@ -3589,7 +3589,6 @@ class UntaggedWeakReference : public UntaggedInstance {
   friend class MarkingVisitorBase;
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class Scavenger;
   friend class ObjectGraph;
   friend class FastObjectCopy;  // For OFFSET_OF
   friend class SlowObjectCopy;  // For OFFSET_OF
@@ -3703,7 +3702,6 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   friend class MarkingVisitorBase;
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class Scavenger;
   friend class ObjectGraph;
 };
 

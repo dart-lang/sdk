@@ -527,18 +527,25 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
                           uword /*ObjectPtr*/ object_in,
                           Thread* thread) {
   ObjectPtr object = static_cast<ObjectPtr>(object_in);
+  // The allocation stubs will call this leaf method for newly allocated
+  // old space objects.
+  RELEASE_ASSERT(object->IsOldObject());
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
   // the remembered set.
   //
-  // NOTE: We use static_cast<>() instead of ::RawCast() to avoid handle
+  // NOTE: We use reinterpret_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
   // memory leaks because they will allocate into a handle scope from the next
   // outermost runtime code (to which the generated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
-  if (object->IsNewObject()) {
+  if (object->untag()->IsRemembered()) {
+    // Objects must not be added to the remembered set twice because the
+    // scavenger's visitor is not idempotent.
+    // Might already be remembered because of type argument store in
+    // AllocateArray or any field in CloneContext.
     add_to_remembered_set = false;
   } else if (object->IsArray()) {
     const intptr_t length = Array::LengthOf(static_cast<ArrayPtr>(object));

@@ -174,14 +174,7 @@ class WasmTarget extends Target {
       ];
 
   @override
-  bool mayDefineRestrictedType(Uri uri) =>
-      uri.isScheme('dart') &&
-      (uri.path == 'core' ||
-          uri.path == '_string' ||
-          uri.path == 'typed_data' ||
-          uri.path == '_typed_data' ||
-          uri.path == '_js_types' ||
-          uri.path == '_typed_data_helper');
+  bool mayDefineRestrictedType(Uri uri) => uri.isScheme('dart');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>

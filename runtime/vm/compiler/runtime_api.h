@@ -418,7 +418,7 @@ class UntaggedObject : public AllStatic {
   static const word kCanonicalBit;
   static const word kNewBit;
   static const word kOldAndNotRememberedBit;
-  static const word kNotMarkedBit;
+  static const word kOldAndNotMarkedBit;
   static const word kImmutableBit;
   static const word kSizeTagPos;
   static const word kSizeTagSize;
@@ -1498,8 +1498,6 @@ class Page : public AllStatic {
   static const word kBytesPerCardLog2;
 
   static word card_table_offset();
-  static word original_top_offset();
-  static word original_end_offset();
 };
 
 class Heap : public AllStatic {

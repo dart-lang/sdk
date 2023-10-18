@@ -849,11 +849,6 @@ void Thread::MarkingStackAcquire() {
                         UntaggedObject::kIncrementalBarrierMask;
 }
 
-void Thread::MarkingStackFlush() {
-  isolate_group()->marking_stack()->PushBlock(marking_stack_block_);
-  marking_stack_block_ = isolate_group()->marking_stack()->PopEmptyBlock();
-}
-
 void Thread::DeferredMarkingStackRelease() {
   MarkingStackBlock* block = deferred_marking_stack_block_;
   deferred_marking_stack_block_ = nullptr;
@@ -861,13 +856,6 @@ void Thread::DeferredMarkingStackRelease() {
 }
 
 void Thread::DeferredMarkingStackAcquire() {
-  deferred_marking_stack_block_ =
-      isolate_group()->deferred_marking_stack()->PopEmptyBlock();
-}
-
-void Thread::DeferredMarkingStackFlush() {
-  isolate_group()->deferred_marking_stack()->PushBlock(
-      deferred_marking_stack_block_);
   deferred_marking_stack_block_ =
       isolate_group()->deferred_marking_stack()->PopEmptyBlock();
 }
@@ -965,7 +953,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
     for (; first != last + 1; first++) {
       ObjectPtr obj = *first;
       // Stores into new-space objects don't need a write barrier.
-      if (obj->IsImmediateObject()) continue;
+      if (obj->IsImmediateOrNewObject()) continue;
 
       // To avoid adding too much work into the remembered set, skip large
       // arrays. Write barrier elimination will not remove the barrier
@@ -994,16 +982,13 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 
       switch (op_) {
         case Thread::RestoreWriteBarrierInvariantOp::kAddToRememberedSet:
-          if (obj->IsOldObject()) {
-            obj->untag()->EnsureInRememberedSet(current_);
-          }
+          obj->untag()->EnsureInRememberedSet(current_);
           if (current_->is_marking()) {
             current_->DeferredMarkingStackAddObject(obj);
           }
           break;
         case Thread::RestoreWriteBarrierInvariantOp::kAddToDeferredMarkingStack:
           // Re-scan obj when finalizing marking.
-          ASSERT(current_->is_marking());
           current_->DeferredMarkingStackAddObject(obj);
           break;
       }
@@ -1036,7 +1021,8 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 // Dart frames preceding an exit frame to the store buffer or deferred
 // marking stack.
 void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
-  ASSERT(IsAtSafepoint() || OwnsGCSafepoint() || this == Thread::Current());
+  ASSERT(IsAtSafepoint() || OwnsGCSafepoint());
+  ASSERT(IsDartMutatorThread());
 
   const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
       StackFrameIterator::kAllowCrossThreadIteration;
