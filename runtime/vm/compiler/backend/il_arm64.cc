@@ -707,7 +707,6 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     }
   } else if (destination.IsFpuRegister()) {
     const VRegister dst = destination.fpu_reg();
-    __ LoadDImmediate(dst, Double::Cast(value_).value());
     if (representation() == kUnboxedFloat) {
       __ LoadSImmediate(dst, Double::Cast(value_).value());
     } else {
