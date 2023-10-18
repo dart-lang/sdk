@@ -1,4 +1,15 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue52119.dart:15:30: Error: Expected a representation type.
+// extension type Bar<T>._(this.i) {
+//                              ^
+//
+// pkg/front_end/testcases/extension_types/issue52119.dart:15:30: Error: Representation fields can't have modifiers.
+// extension type Bar<T>._(this.i) {
+//                              ^
+//
 import self as self;
 import "dart:core" as core;
 

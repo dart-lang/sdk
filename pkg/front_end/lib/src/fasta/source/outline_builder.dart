@@ -1622,6 +1622,14 @@ class OutlineBuilder extends StackListenerImpl {
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
+        if (formal.type is ImplicitTypeBuilder) {
+          libraryBuilder.addProblem(messageExpectedRepresentationType,
+              formal.charOffset, formal.name.length, formal.fileUri);
+        }
+        if (Modifier.maskContainsActualModifiers(formal.modifiers)) {
+          libraryBuilder.addProblem(messageRepresentationFieldModifier,
+              formal.charOffset, formal.name.length, formal.fileUri);
+        }
         libraryBuilder.addPrimaryConstructorField(
             // TODO(johnniwinther): Support annotations on annotations on fields
             // defined through a primary constructor. This is not needed for

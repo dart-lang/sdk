@@ -3784,6 +3784,16 @@ const MessageCode messageExpectedOpenParens = const MessageCode(
     problemMessage: r"""Expected '('.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedRepresentationType =
+    messageExpectedRepresentationType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedRepresentationType = const MessageCode(
+    "ExpectedRepresentationType",
+    analyzerCodes: <String>["EXPECTED_REPRESENTATION_TYPE"],
+    problemMessage: r"""Expected a representation type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedStatement = messageExpectedStatement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12411,6 +12421,16 @@ const MessageCode messageRefutablePatternInIrrefutableContext = const MessageCod
         r"""Refutable patterns can't be used in an irrefutable context.""",
     correctionMessage:
         r"""Try using an if-case, a 'switch' statement, or a 'switch' expression instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRepresentationFieldModifier =
+    messageRepresentationFieldModifier;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRepresentationFieldModifier = const MessageCode(
+    "RepresentationFieldModifier",
+    analyzerCodes: <String>["REPRESENTATION_FIELD_MODIFIER"],
+    problemMessage: r"""Representation fields can't have modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
