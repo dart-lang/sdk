@@ -39,14 +39,11 @@ namespace compiler {
 // WARNING: This might clobber all registers except for [RAX], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
 void StubCodeCompiler::EnsureIsNewOrRemembered() {
-  // If the object is not in an active TLAB, we call a leaf-runtime to add it to
-  // the remembered set and/or deferred marking worklist. This test assumes a
-  // Page's TLAB use is always ascending.
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
   Label done;
-  __ AndImmediate(TMP, RAX, target::kPageMask);
-  __ LoadFromOffset(TMP, Address(TMP, target::Page::original_top_offset()));
-  __ CompareRegisters(RAX, TMP);
-  __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
+  __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
+  __ BranchIf(NOT_ZERO, &done);
 
   {
     LeafRuntimeScope rt(assembler, /*frame_size=*/0,
@@ -1913,7 +1910,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   __ j(ZERO, &skip_marking);
 
   {
-    // Atomically clear kNotMarkedBit.
+    // Atomically clear kOldAndNotMarkedBit.
     Label retry, done;
     __ pushq(RAX);      // Spill.
     __ pushq(RCX);      // Spill.
@@ -1922,10 +1919,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     __ Bind(&retry);
     __ movq(RCX, RAX);
-    __ testq(RCX, Immediate(1 << target::UntaggedObject::kNotMarkedBit));
+    __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
     __ j(ZERO, &done);  // Marked by another thread.
 
-    __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kNotMarkedBit)));
+    __ andq(RCX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
     // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
     // On failure, RAX is updated with the current value.
     __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);

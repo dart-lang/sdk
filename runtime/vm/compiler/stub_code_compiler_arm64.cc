@@ -36,14 +36,10 @@ namespace compiler {
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
 void StubCodeCompiler::EnsureIsNewOrRemembered() {
-  // If the object is not in an active TLAB, we call a leaf-runtime to add it to
-  // the remembered set and/or deferred marking worklist. This test assumes a
-  // Page's TLAB use is always ascending.
+  // If the object is not remembered we call a leaf-runtime to add it to the
+  // remembered set.
   Label done;
-  __ AndImmediate(TMP, R0, target::kPageMask);
-  __ LoadFromOffset(TMP, Address(TMP, target::Page::original_top_offset()));
-  __ CompareRegisters(R0, TMP);
-  __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
+  __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
   {
     LeafRuntimeScope rt(assembler, /*frame_size=*/0,
@@ -1991,20 +1987,21 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ b(&skip_marking, ZERO);
 
   {
-    // Atomically clear kNotMarkedBit.
+    // Atomically clear kOldAndNotMarkedBit.
     Label retry, done;
     __ PushRegisters(spill_set);
     __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
     // R3: Untagged address of header word (atomics do not support offsets).
     if (TargetCPUFeatures::atomic_memory_supported()) {
-      __ LoadImmediate(TMP, 1 << target::UntaggedObject::kNotMarkedBit);
+      __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
       __ ldclr(TMP, TMP, R3);
-      __ tbz(&done, TMP, target::UntaggedObject::kNotMarkedBit);
+      __ tbz(&done, TMP, target::UntaggedObject::kOldAndNotMarkedBit);
     } else {
       __ Bind(&retry);
       __ ldxr(R2, R3, kEightBytes);
-      __ tbz(&done, R2, target::UntaggedObject::kNotMarkedBit);
-      __ AndImmediate(R2, R2, ~(1 << target::UntaggedObject::kNotMarkedBit));
+      __ tbz(&done, R2, target::UntaggedObject::kOldAndNotMarkedBit);
+      __ AndImmediate(R2, R2,
+                      ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
       __ stxr(R4, R2, R3, kEightBytes);
       __ cbnz(&retry, R4);
     }
