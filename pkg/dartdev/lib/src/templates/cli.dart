@@ -44,10 +44,10 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  args: ^2.4.2
+  args: ^2.4.0
 
 dev_dependencies:
-  lints: ^2.1.0
+  lints: ^3.0.0
   test: ^1.24.0
 ''';
 
