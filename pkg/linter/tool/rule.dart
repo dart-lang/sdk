@@ -165,7 +165,8 @@ linter:
 ''');
 
   var names = Registry.ruleRegistry.rules
-      .where((r) => !r.state.isDeprecated && !r.state.isRemoved)
+      .where((r) =>
+          !r.state.isDeprecated && !r.state.isInternal && !r.state.isRemoved)
       .map((r) => r.name)
       .toList();
   names.add(libName);
