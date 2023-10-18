@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart';
 
 class ConvertPartOfToUri extends ResolvedCorrectionProducer {
   @override
@@ -26,10 +25,12 @@ class ConvertPartOfToUri extends ResolvedCorrectionProducer {
       return;
     }
 
+    var pathContext = resourceProvider.pathContext;
     var libraryPath = unitResult.libraryElement.source.fullName;
     var partPath = unitResult.path;
-    var relativePath = relative(libraryPath, from: dirname(partPath));
-    var uri = Uri.file(relativePath).toString();
+    var relativePath =
+        pathContext.relative(libraryPath, from: pathContext.dirname(partPath));
+    var uri = pathContext.toUri(relativePath).toString();
     var replacementRange = range.node(libraryName);
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(replacementRange, "'$uri'");

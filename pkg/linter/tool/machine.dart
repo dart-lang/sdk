@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -67,7 +68,7 @@ Future<String> getMachineListing(
   ) = await _fetchSetRules(fetch: includeSetInfo);
 
   var json = encoder.convert([
-    for (var rule in rules)
+    for (var rule in rules.where((rule) => !rule.state.isInternal))
       {
         'name': rule.name,
         'description': rule.description,

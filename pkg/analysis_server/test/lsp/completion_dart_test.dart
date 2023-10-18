@@ -2564,6 +2564,32 @@ void f() { }
     expect(updated, contains('a.abcdefghij'));
   }
 
+  @FailingTest(reason: 'https://github.com/Dart-Code/Dart-Code/issues/4794')
+  Future<void> test_prefixed_enumMember() async {
+    // If the first character of the enum member is typed (`self.MyEnum.o^`)
+    // this test passes. Without any charactres typed (`self.MyEnum.^`) the
+    // dotTarget on the completion is `null`. The containingNode is a
+    // ConstructorName.
+    final content = '''
+import 'main.dart' as self;
+
+enum MyEnum {
+  one,
+  two,
+}
+
+void main() {
+  final x = self.MyEnum.^
+}
+''';
+
+    await initialize();
+    final code = TestCode.parse(content);
+    await openFile(mainFileUri, code.code);
+    final res = await getCompletion(mainFileUri, code.position.position);
+    expect(res.any((c) => c.label == 'one'), isTrue);
+  }
+
   Future<void> test_prefixFilter_endOfSymbol() async {
     final content = '''
     class UniqueNamedClassForLspOne {}
@@ -4148,8 +4174,6 @@ void f() {
   }
 
   Future<void> test_snippets_testGroupBlock() async {
-    // This test fails when running on macOS using Windows style paths. See
-    // explanation in test_snippets_testBlock.
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
     mainFileUri = pathContext.toUri(mainFilePath);
     final content = '''

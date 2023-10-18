@@ -7419,3 +7419,17 @@ ExpectedRepresentationType:
   script: |
     extension type E(var foo) {}
   analyzerCode: EXPECTED_REPRESENTATION_TYPE
+
+ExpectedRepresentationField:
+  problemMessage: "Expected a representation field."
+  experiments: inline-class
+  script: |
+    extension type E() {}
+  analyzerCode: EXPECTED_REPRESENTATION_FIELD
+
+MultipleRepresentationFields:
+  problemMessage: "Each extension type should have exactly one representation field."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, String bar) {}
+  analyzerCode: MULTIPLE_REPRESENTATION_FIELDS

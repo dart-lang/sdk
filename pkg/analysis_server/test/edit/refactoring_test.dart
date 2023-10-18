@@ -1405,7 +1405,7 @@ import 'new_folder/file.dart';
   }
 
   void _setOptions(String newFile) {
-    options = MoveFileOptions(newFile);
+    options = MoveFileOptions(convertPath(newFile));
   }
 }
 

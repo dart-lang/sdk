@@ -30,7 +30,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   path.Context get pathContext => resourceProvider.pathContext;
 
   @override
-  String get projectFolderPath => testPackageRootPath;
+  String get projectFolderPath => convertPath(testPackageRootPath);
 
   Uri get testFileUri => toUri(convertPath(testFilePath));
 

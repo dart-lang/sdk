@@ -40,6 +40,57 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_error_fieldModifier_covariant() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(covariant int it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 9),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_error_fieldModifier_covariant_final() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(covariant final int it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 9),
+      error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 27, 5),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_error_fieldModifier_final() {
     final parseResult = parseStringWithErrors(r'''
 extension type A(final int it) {}
@@ -171,6 +222,32 @@ extension type A(it) {}
 ''');
     parseResult.assertErrors([
       error(ParserErrorCode.EXPECTED_REPRESENTATION_TYPE, 17, 2),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: <empty> <synthetic>
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_error_noFieldType_var() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(var it) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_REPRESENTATION_TYPE, 17, 3),
+      error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 3),
     ]);
 
     final node = parseResult.findNode.singleExtensionTypeDeclaration;

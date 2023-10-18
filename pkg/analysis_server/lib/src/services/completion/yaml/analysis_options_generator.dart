@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/task/options.dart';
 
 /// A completion generator that can produce completion suggestions for analysis
@@ -103,7 +104,10 @@ class _LintRuleProducer extends Producer {
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
     for (var rule in Registry.ruleRegistry.rules) {
-      yield identifier(rule.name);
+      // todo(pq): consider suggesting internal lints if editing an SDK options file
+      if (!rule.state.isInternal) {
+        yield identifier(rule.name);
+      }
     }
   }
 }

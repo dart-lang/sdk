@@ -216,6 +216,74 @@ void foo() {
       );
     });
 
+    test('returns truncated strings by default', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedTruncatedString = 'a' * 128;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        '"$expectedTruncatedString…"',
+      );
+    });
+
+    test('returns whole string without quotes when context is "clipboard"',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedStringValue = 'a' * 200;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        expectedStringValue,
+        context: 'clipboard',
+      );
+    });
+
+    test('returns whole string with quotes when context is "repl"', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedStringValue = 'a' * 200;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        '"$expectedStringValue"',
+        context: 'repl',
+      );
+    });
+
+    test('returns whole string with quotes when context is a script', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+
+      final expectedStringValue = 'a' * 200;
+      await client.expectEvalResult(
+        topFrameId,
+        '"a" * 200',
+        '"$expectedStringValue"',
+        context: Uri.file(testFile.path).toString(),
+      );
+    });
+
     group('global evaluation', () {
       test('can evaluate when not paused given a script URI', () async {
         final client = dap.client;

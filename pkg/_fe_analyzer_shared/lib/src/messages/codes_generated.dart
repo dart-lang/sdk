@@ -3784,6 +3784,16 @@ const MessageCode messageExpectedOpenParens = const MessageCode(
     problemMessage: r"""Expected '('.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedRepresentationField =
+    messageExpectedRepresentationField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedRepresentationField = const MessageCode(
+    "ExpectedRepresentationField",
+    analyzerCodes: <String>["EXPECTED_REPRESENTATION_FIELD"],
+    problemMessage: r"""Expected a representation field.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedRepresentationType =
     messageExpectedRepresentationType;
 
@@ -10216,6 +10226,17 @@ const MessageCode messageMultipleOnClauses = const MessageCode(
         r"""Each mixin definition can have at most one on clause.""",
     correctionMessage:
         r"""Try combining all of the on clauses into a single clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleRepresentationFields =
+    messageMultipleRepresentationFields;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleRepresentationFields = const MessageCode(
+    "MultipleRepresentationFields",
+    analyzerCodes: <String>["MULTIPLE_REPRESENTATION_FIELDS"],
+    problemMessage:
+        r"""Each extension type should have exactly one representation field.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleVarianceModifiers =

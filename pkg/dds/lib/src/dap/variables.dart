@@ -79,6 +79,19 @@ class VariableFormat {
     this.decimal = false,
   });
 
+  factory VariableFormat.from(
+    VariableFormat base, {
+    bool? noQuotes,
+    bool? hex,
+    bool? decimal,
+  }) {
+    return VariableFormat(
+      noQuotes: noQuotes ?? base.noQuotes,
+      hex: hex ?? base.hex,
+      decimal: decimal ?? base.decimal,
+    );
+  }
+
   const VariableFormat.noQuotes() : this(noQuotes: true);
   const VariableFormat.hex() : this(hex: true);
 

@@ -1619,14 +1619,25 @@ class OutlineBuilder extends StackListenerImpl {
       charOffset = identifier.nameOffset;
       constructorName = identifier.name;
     }
+    bool inExtensionType =
+        declarationContext == DeclarationContext.ExtensionType;
     if (formals != null) {
+      if (inExtensionType && formals.isEmpty) {
+        libraryBuilder.addProblem(
+            messageExpectedRepresentationField, charOffset, 1, uri);
+      }
+      if (inExtensionType && formals.length > 1) {
+        libraryBuilder.addProblem(
+            messageMultipleRepresentationFields, charOffset, 1, uri);
+      }
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
-        if (formal.type is ImplicitTypeBuilder) {
+        if (inExtensionType && formal.type is ImplicitTypeBuilder) {
           libraryBuilder.addProblem(messageExpectedRepresentationType,
               formal.charOffset, formal.name.length, formal.fileUri);
         }
-        if (Modifier.maskContainsActualModifiers(formal.modifiers)) {
+        if (inExtensionType &&
+            Modifier.maskContainsActualModifiers(formal.modifiers)) {
           libraryBuilder.addProblem(messageRepresentationFieldModifier,
               formal.charOffset, formal.name.length, formal.fileUri);
         }
@@ -2763,6 +2774,16 @@ class OutlineBuilder extends StackListenerImpl {
           }
         }
       }
+    }
+    if (formals == null &&
+        declarationContext == DeclarationContext.ExtensionType &&
+        kind == MemberKind.PrimaryConstructor) {
+      // In case of primary constructors of extension types, an error is
+      // reported by the parser if the formals together with the parentheses
+      // around them are missing. To distinguish that case from the case of the
+      // formal parameters present, but lacking the representation field, we
+      // pass the empty list further along instead of `null`.
+      formals = const [];
     }
     push(beginToken.charOffset);
     push(formals ?? NullValues.FormalParameters);

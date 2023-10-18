@@ -2,15 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:path/path.dart' as path;
 
-/// A mixin for test classes that adds a [ResourceProvider] and utility methods
-/// for manipulating the file system. The utility methods all take a posix style
-/// path and convert it as appropriate for the actual platform.
+/// A mixin for test classes that adds a memory-backed [ResourceProvider] and
+/// utility methods for manipulating the file system.
+///
+/// The resource provider will use paths in the same style as the current
+/// platform unless the `TEST_ANALYZER_WINDOWS_PATHS` environment variable is
+/// set to `true`, in which case it will use Windows-style paths.
+///
+/// The utility methods all take a posix style path and convert it as
+/// appropriate for the actual platform.
 mixin ResourceProviderMixin {
-  MemoryResourceProvider resourceProvider = MemoryResourceProvider();
+  MemoryResourceProvider resourceProvider =
+      Platform.environment['TEST_ANALYZER_WINDOWS_PATHS'] == 'true'
+          ? MemoryResourceProvider(context: path.windows)
+          : MemoryResourceProvider();
 
   String convertPath(String path) => resourceProvider.convertPath(path);
 
