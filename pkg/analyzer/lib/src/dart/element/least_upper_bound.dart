@@ -132,6 +132,9 @@ class InterfaceLeastUpperBoundHelper {
 
     final representationType = type.representationType;
     if (representationType != null) {
+      // TODO(scheglov) See https://github.com/dart-lang/language/pull/3402
+      // When it lands, we might need to remove `Object` from the element
+      // interfaces, and return from the type interfaces.
       final first = type.interfaces.singleOrNull;
       if (first != null && first.isDartCoreObject) {
         final replacement = typeSystem.isNonNullable(representationType)
@@ -145,31 +148,25 @@ class InterfaceLeastUpperBoundHelper {
     }
 
     for (var interface in type.interfaces) {
-      if (!interface.isDartCoreFunction) {
-        if (set.add(interface)) {
-          _addSuperinterfaces(set, interface);
-        }
+      if (set.add(interface)) {
+        _addSuperinterfaces(set, interface);
       }
     }
 
     for (var mixin in type.mixins) {
-      if (!mixin.isDartCoreFunction) {
-        if (set.add(mixin)) {
-          _addSuperinterfaces(set, mixin);
-        }
+      if (set.add(mixin)) {
+        _addSuperinterfaces(set, mixin);
       }
     }
 
     for (var constraint in type.superclassConstraints) {
-      if (!constraint.isDartCoreFunction) {
-        if (set.add(constraint)) {
-          _addSuperinterfaces(set, constraint);
-        }
+      if (set.add(constraint)) {
+        _addSuperinterfaces(set, constraint);
       }
     }
 
     var supertype = type.superclass;
-    if (supertype != null && !supertype.isDartCoreFunction) {
+    if (supertype != null) {
       if (set.add(supertype)) {
         _addSuperinterfaces(set, supertype);
       }
