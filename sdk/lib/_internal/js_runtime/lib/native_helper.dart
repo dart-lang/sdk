@@ -451,7 +451,7 @@ function() {
 
   // The difference for a browser here is that HTMLElement gets special
   // treatment in [getUnknownTagGenericBrowser].
-  var isBrowser = typeof self.HTMLElement == "function";
+  var isBrowser = typeof HTMLElement == "function";
 
   return {
     getTag: getTag,
