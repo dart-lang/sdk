@@ -53,6 +53,18 @@ library;
 // extension type E7(const var foo) {} // Error.
 //                             ^^^
 //
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:12:18: Error: Expected a representation field.
+// extension type E8() {} // Error.
+//                  ^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:13:18: Error: Each extension type should have exactly one representation field.
+// extension type E9(int foo, String bar) {} // Error.
+//                  ^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:14:19: Error: Each extension type should have exactly one representation field.
+// extension type E10(num foo, bool bar, double baz) {} // Error.
+//                   ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -84,6 +96,18 @@ extension type E7(dynamic foo) {
   constructor • = self::E7|constructor#;
   constructor tearoff • = self::E7|constructor#_#new#tearOff;
 }
+extension type E8(invalid-type #) {
+  constructor • = self::E8|constructor#;
+  constructor tearoff • = self::E8|constructor#_#new#tearOff;
+}
+extension type E9(core::int foo) {
+  constructor • = self::E9|constructor#;
+  constructor tearoff • = self::E9|constructor#_#new#tearOff;
+}
+extension type E10(core::num foo) {
+  constructor • = self::E10|constructor#;
+  constructor tearoff • = self::E10|constructor#_#new#tearOff;
+}
 static inline-class-member method E1|constructor#(dynamic foo) → self::E1 /* = dynamic */
   ;
 static inline-class-member method E1|constructor#_#new#tearOff(dynamic foo) → self::E1 /* = dynamic */
@@ -112,3 +136,15 @@ static inline-class-member method E7|constructor#(dynamic foo) → self::E7 /* =
   ;
 static inline-class-member method E7|constructor#_#new#tearOff(dynamic foo) → self::E7 /* = dynamic */
   return self::E7|constructor#(foo);
+static inline-class-member method E8|constructor#() → self::E8 /* = invalid-type */
+  ;
+static inline-class-member method E8|constructor#_#new#tearOff() → self::E8 /* = invalid-type */
+  return self::E8|constructor#();
+static inline-class-member method E9|constructor#(core::int foo, core::String bar) → self::E9 /* = core::int */
+  ;
+static inline-class-member method E9|constructor#_#new#tearOff(core::int foo, core::String bar) → self::E9 /* = core::int */
+  return self::E9|constructor#(foo, bar);
+static inline-class-member method E10|constructor#(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */
+  ;
+static inline-class-member method E10|constructor#_#new#tearOff(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */
+  return self::E10|constructor#(foo, bar, baz);

@@ -9,3 +9,6 @@ extension type E4(covariant num foo) {} // Error.
 extension type E5(const bool foo) {} // Error.
 extension type E6(covariant final double foo) {} // Error.
 extension type E7(const var foo) {} // Error.
+extension type E8() {} // Error.
+extension type E9(int foo, String bar) {} // Error.
+extension type E10(num foo, bool bar, double baz) {} // Error.
