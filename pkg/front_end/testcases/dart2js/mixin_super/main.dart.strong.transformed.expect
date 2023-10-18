@@ -201,35 +201,26 @@ abstract class _Class1b&Class1a&Mixin1 = self::Class1a with self::Mixin1 /*isAno
   synthetic constructor •() → self::_Class1b&Class1a&Mixin1
     : super self::Class1a::•()
     ;
+  mixin-super-stub get field1() → core::int
+    return super.{self::Mixin1::field1};
   mixin-super-stub set field1(core::int value) → void
     return super.{self::Mixin1::field1} = value;
   mixin-super-stub get field2() → core::int
     return super.{self::Mixin1::field2};
   mixin-super-stub set field2(core::int value) → void
     return super.{self::Mixin1::field2} = value;
+  mixin-super-stub get property1() → core::int
+    return super.{self::Mixin1::property1};
+  mixin-super-stub set property1(core::int value) → void
+    return super.{self::Mixin1::property1} = value;
   mixin-super-stub get property2() → core::int
     return super.{self::Mixin1::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
+  mixin-super-stub method method1() → void
+    return super.{self::Mixin1::method1}();
   mixin-super-stub method method2() → void
     return super.{self::Mixin1::method2}();
-  method method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  get property1() → core::int {
-    return super.{mai::Super1::property1};
-  }
-  set property1(core::int value) → void {
-    super.{mai::Super1::property1} = value;
-  }
-  get field1() → core::int {
-    synthesized core::int value = this.{self::Mixin1::_#Mixin1#field1#AI}{core::int};
-    if(_in::isSentinel(value))
-      value = this.{self::Mixin1::_#Mixin1#field1#AI} = (() → core::int {
-        return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
-      })(){() → core::int};
-    return value;
-  }
 }
 class Class1b extends self::_Class1b&Class1a&Mixin1 {
   synthetic constructor •() → self::Class1b
@@ -247,35 +238,26 @@ abstract class _Class2b&Class2a&Mixin1 = self::Class2a with self::Mixin1 /*isAno
   synthetic constructor •() → self::_Class2b&Class2a&Mixin1
     : super self::Class2a::•()
     ;
+  mixin-super-stub get field1() → core::int
+    return super.{self::Mixin1::field1};
   mixin-super-stub set field1(core::int value) → void
     return super.{self::Mixin1::field1} = value;
   mixin-super-stub get field2() → core::int
     return super.{self::Mixin1::field2};
   mixin-super-stub set field2(core::int value) → void
     return super.{self::Mixin1::field2} = value;
+  mixin-super-stub get property1() → core::int
+    return super.{self::Mixin1::property1};
+  mixin-super-stub set property1(core::int value) → void
+    return super.{self::Mixin1::property1} = value;
   mixin-super-stub get property2() → core::int
     return super.{self::Mixin1::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
+  mixin-super-stub method method1() → void
+    return super.{self::Mixin1::method1}();
   mixin-super-stub method method2() → void
     return super.{self::Mixin1::method2}();
-  method method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  get property1() → core::int {
-    return super.{mai::Super1::property1};
-  }
-  set property1(core::int value) → void {
-    super.{mai::Super1::property1} = value;
-  }
-  get field1() → core::int {
-    synthesized core::int value = this.{self::Mixin1::_#Mixin1#field1#AI}{core::int};
-    if(_in::isSentinel(value))
-      value = this.{self::Mixin1::_#Mixin1#field1#AI} = (() → core::int {
-        return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
-      })(){() → core::int};
-    return value;
-  }
 }
 class Class2b extends self::_Class2b&Class2a&Mixin1 {
   synthetic constructor •() → self::Class2b
@@ -293,35 +275,26 @@ abstract class _Class3b&Class3a&Mixin1 = self::Class3a with self::Mixin1 /*isAno
   synthetic constructor •() → self::_Class3b&Class3a&Mixin1
     : super self::Class3a::•()
     ;
+  mixin-super-stub get field1() → core::int
+    return super.{self::Mixin1::field1};
   mixin-super-stub set field1(core::int value) → void
     return super.{self::Mixin1::field1} = value;
   mixin-super-stub get field2() → core::int
     return super.{self::Mixin1::field2};
   mixin-super-stub set field2(core::int value) → void
     return super.{self::Mixin1::field2} = value;
+  mixin-super-stub get property1() → core::int
+    return super.{self::Mixin1::property1};
+  mixin-super-stub set property1(core::int value) → void
+    return super.{self::Mixin1::property1} = value;
   mixin-super-stub get property2() → core::int
     return super.{self::Mixin1::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{self::Mixin1::property2} = value;
+  mixin-super-stub method method1() → void
+    return super.{self::Mixin1::method1}();
   mixin-super-stub method method2() → void
     return super.{self::Mixin1::method2}();
-  method method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  get property1() → core::int {
-    return super.{mai::Super1::property1};
-  }
-  set property1(core::int value) → void {
-    super.{mai::Super1::property1} = value;
-  }
-  get field1() → core::int {
-    synthesized core::int value = this.{self::Mixin1::_#Mixin1#field1#AI}{core::int};
-    if(_in::isSentinel(value))
-      value = this.{self::Mixin1::_#Mixin1#field1#AI} = (() → core::int {
-        return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
-      })(){() → core::int};
-    return value;
-  }
 }
 class Class3b extends self::_Class3b&Class3a&Mixin1 {
   synthetic constructor •() → self::Class3b
@@ -339,10 +312,16 @@ abstract class _Class4b&Class4a&Mixin2 = self::Class4a with mai::Mixin2 /*isAnon
   synthetic constructor •() → self::_Class4b&Class4a&Mixin2
     : super self::Class4a::•()
     ;
+  mixin-super-stub get property1() → core::int
+    return super.{mai::Mixin2::property1};
+  mixin-super-stub set property1(core::int value) → void
+    return super.{mai::Mixin2::property1} = value;
   mixin-super-stub get property2() → core::int
     return super.{mai::Mixin2::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{mai::Mixin2::property2} = value;
+  mixin-super-stub get field1() → core::int
+    return super.{mai::Mixin2::field1};
   mixin-super-stub set field1(core::int value) → void
     return super.{mai::Mixin2::field1} = value;
   mixin-super-stub get field2() → core::int
@@ -357,25 +336,10 @@ abstract class _Class4b&Class4a&Mixin2 = self::Class4a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::_#Mixin2#field2#AI};
   mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
     return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
+  mixin-super-stub method method1() → void
+    return super.{mai::Mixin2::method1}();
   mixin-super-stub method method2() → void
     return super.{mai::Mixin2::method2}();
-  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  get /* from org-dartlang-testcase:///main_lib.dart */ property1() → core::int {
-    return super.{mai::Super1::property1};
-  }
-  set /* from org-dartlang-testcase:///main_lib.dart */ property1(core::int value) → void {
-    super.{mai::Super1::property1} = value;
-  }
-  get /* from org-dartlang-testcase:///main_lib.dart */ field1() → core::int {
-    synthesized core::int value = this.{mai::Mixin2::_#Mixin2#field1#AI}{core::int};
-    if(_in::isSentinel(value))
-      value = this.{mai::Mixin2::_#Mixin2#field1#AI} = (() → core::int {
-        return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
-      })(){() → core::int};
-    return value;
-  }
 }
 class Class4b extends self::_Class4b&Class4a&Mixin2 {
   synthetic constructor •() → self::Class4b
@@ -393,10 +357,16 @@ abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnon
   synthetic constructor •() → self::_Class5b&Class5a&Mixin2
     : super self::Class5a::•()
     ;
+  mixin-super-stub get property1() → core::int
+    return super.{mai::Mixin2::property1};
+  mixin-super-stub set property1(core::int value) → void
+    return super.{mai::Mixin2::property1} = value;
   mixin-super-stub get property2() → core::int
     return super.{mai::Mixin2::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{mai::Mixin2::property2} = value;
+  mixin-super-stub get field1() → core::int
+    return super.{mai::Mixin2::field1};
   mixin-super-stub set field1(core::int value) → void
     return super.{mai::Mixin2::field1} = value;
   mixin-super-stub get field2() → core::int
@@ -411,25 +381,10 @@ abstract class _Class5b&Class5a&Mixin2 = self::Class5a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::_#Mixin2#field2#AI};
   mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
     return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
+  mixin-super-stub method method1() → void
+    return super.{mai::Mixin2::method1}();
   mixin-super-stub method method2() → void
     return super.{mai::Mixin2::method2}();
-  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  get /* from org-dartlang-testcase:///main_lib.dart */ property1() → core::int {
-    return super.{mai::Super1::property1};
-  }
-  set /* from org-dartlang-testcase:///main_lib.dart */ property1(core::int value) → void {
-    super.{mai::Super1::property1} = value;
-  }
-  get /* from org-dartlang-testcase:///main_lib.dart */ field1() → core::int {
-    synthesized core::int value = this.{mai::Mixin2::_#Mixin2#field1#AI}{core::int};
-    if(_in::isSentinel(value))
-      value = this.{mai::Mixin2::_#Mixin2#field1#AI} = (() → core::int {
-        return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
-      })(){() → core::int};
-    return value;
-  }
 }
 class Class5b extends self::_Class5b&Class5a&Mixin2 {
   synthetic constructor •() → self::Class5b
@@ -447,10 +402,16 @@ abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnon
   synthetic constructor •() → self::_Class6b&Class6a&Mixin2
     : super self::Class6a::•()
     ;
+  mixin-super-stub get property1() → core::int
+    return super.{mai::Mixin2::property1};
+  mixin-super-stub set property1(core::int value) → void
+    return super.{mai::Mixin2::property1} = value;
   mixin-super-stub get property2() → core::int
     return super.{mai::Mixin2::property2};
   mixin-super-stub set property2(core::int value) → void
     return super.{mai::Mixin2::property2} = value;
+  mixin-super-stub get field1() → core::int
+    return super.{mai::Mixin2::field1};
   mixin-super-stub set field1(core::int value) → void
     return super.{mai::Mixin2::field1} = value;
   mixin-super-stub get field2() → core::int
@@ -465,25 +426,10 @@ abstract class _Class6b&Class6a&Mixin2 = self::Class6a with mai::Mixin2 /*isAnon
     return super.{mai::Mixin2::_#Mixin2#field2#AI};
   mixin-super-stub set _#Mixin2#field2#AI(core::int value) → void
     return super.{mai::Mixin2::_#Mixin2#field2#AI} = value;
+  mixin-super-stub method method1() → void
+    return super.{mai::Mixin2::method1}();
   mixin-super-stub method method2() → void
     return super.{mai::Mixin2::method2}();
-  method /* from org-dartlang-testcase:///main_lib.dart */ method1() → void {
-    super.{mai::Super1::method1}();
-  }
-  get /* from org-dartlang-testcase:///main_lib.dart */ property1() → core::int {
-    return super.{mai::Super1::property1};
-  }
-  set /* from org-dartlang-testcase:///main_lib.dart */ property1(core::int value) → void {
-    super.{mai::Super1::property1} = value;
-  }
-  get /* from org-dartlang-testcase:///main_lib.dart */ field1() → core::int {
-    synthesized core::int value = this.{mai::Mixin2::_#Mixin2#field1#AI}{core::int};
-    if(_in::isSentinel(value))
-      value = this.{mai::Mixin2::_#Mixin2#field1#AI} = (() → core::int {
-        return super.{mai::Super1::field1} = super.{mai::Super1::field1}.{core::num::+}(1){(core::num) → core::int};
-      })(){() → core::int};
-    return value;
-  }
 }
 class Class6b extends self::_Class6b&Class6a&Mixin2 {
   synthetic constructor •() → self::Class6b

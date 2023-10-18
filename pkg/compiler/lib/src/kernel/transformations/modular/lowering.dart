@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import '../../options.dart';
+import '../../../options.dart';
 import 'async_lowering.dart';
 import 'await_lowering.dart';
 import 'factory_specializer.dart';
