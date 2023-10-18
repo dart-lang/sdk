@@ -118,10 +118,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the actual argument type
   ///  1: the name of the expected type
+  ///  2: additional information, if any, when problem is associated with records
   static const CompileTimeErrorCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
     'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-    "The argument type '{0}' can't be assigned to the parameter type '{1}'.",
+    "The argument type '{0}' can't be assigned to the parameter type '{1}'. "
+        "{2}",
     hasPublishedDocs: true,
   );
 
