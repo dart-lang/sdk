@@ -232,6 +232,11 @@ external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
 /// when the program has been analyzed.
 external bool JS_GET_FLAG(String name);
 
+/// Always returns `false`. Because this method is opaque until SSA, it can be
+/// used to guard code which should be treated as live but not emitted by
+/// default.
+external bool JS_FALSE();
+
 /// Returns the underlying JavaScript exception. Must be used in a catch block.
 ///
 ///     try {

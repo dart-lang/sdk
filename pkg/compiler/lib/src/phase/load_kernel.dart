@@ -124,12 +124,13 @@ class _LoadFromKernelResult {
 // serialized components and components from source.
 void _doTransformsOnKernelLoad(Component component, CompilerOptions options) {
   if (options.stage.shouldRunGlobalTransforms) {
-    globalTransforms.transformLibraries(component.libraries);
+    ir.CoreTypes coreTypes = ir.CoreTypes(component);
+    globalTransforms.transformLibraries(
+        component.libraries, coreTypes, options);
     // referenceFromIndex is only necessary in the case where a module
     // containing a stub definition is invalidated, and then reloaded, because
     // we need to keep existing references to that stub valid. Here, we have the
     // whole program, and therefore do not need it.
-    ir.CoreTypes coreTypes = ir.CoreTypes(component);
     StaticInteropClassEraser(coreTypes, null,
             additionalCoreLibraries: {'_js_types', 'js_interop'})
         .visitComponent(component);

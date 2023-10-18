@@ -340,7 +340,7 @@ final class JSNumber extends Interceptor implements double {
 
   int operator ~/(num other) {
     if (other is! num) throw argumentErrorValue(other);
-    if (JS_GET_FLAG('FALSE')) _tdivFast(other); // Ensure resolution.
+    if (JS_FALSE()) _tdivFast(other); // Ensure resolution.
     if (_isInt32(this)) {
       if (other >= 1 || other < -1) {
         return JS('int', r'(# / #) | 0', this, other);
@@ -400,7 +400,7 @@ final class JSNumber extends Interceptor implements double {
   num operator >>(num other) {
     if (other is! num) throw argumentErrorValue(other);
     if (other < 0) throw argumentErrorValue(other);
-    if (JS_GET_FLAG('FALSE')) _shrReceiverPositive(other);
+    if (JS_FALSE()) _shrReceiverPositive(other);
     return _shrOtherPositive(other);
   }
 

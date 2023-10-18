@@ -353,6 +353,9 @@ class CoreTypes {
   late final Field enumNameField =
       index.getField('dart:core', '_Enum', '_name');
 
+  late final Procedure jsGetFlag =
+      index.getTopLevelProcedure('dart:_foreign_helper', 'JS_GET_FLAG');
+
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
         new InterfaceType(objectClass, Nullability.legacy, const <DartType>[]);
