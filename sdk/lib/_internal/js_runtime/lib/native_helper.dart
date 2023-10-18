@@ -449,7 +449,7 @@ function() {
   }
   function discriminator(tag) { return null; }
 
-  var isBrowser = typeof navigator == "object";
+  var isBrowser = typeof window == "object" && getTag(window) == "Window" && self.HTMLElement;
 
   return {
     getTag: getTag,
@@ -475,12 +475,9 @@ function(getTagFallback) {
   return function(hooks) {
     // If we are not in a browser, assume we are in d8.
     // TODO(sra): Recognize jsshell.
-    if (typeof navigator != "object") return hooks;
-
-    var ua = navigator.userAgent;
     // TODO(antonm): remove a reference to DumpRenderTree.
-    if (ua.indexOf("DumpRenderTree") >= 0) return hooks;
-    if (ua.indexOf("Chrome") >= 0) {
+    if (typeof navigator != "object" || typeof navigator.userAgent != "string" || navigator.userAgent.indexOf("DumpRenderTree") >= 0) return hooks;
+    if (navigator.userAgent.indexOf("Chrome") >= 0) {
       // Confirm constructor name is usable for dispatch.
       function confirm(p) {
         return typeof window == "object" && window[p] && window[p].name == p;
@@ -494,8 +491,7 @@ function(getTagFallback) {
 
 const _ieHooksTransformer = const JS_CONST(r'''
 function(hooks) {
-  var userAgent = typeof navigator == "object" ? navigator.userAgent : "";
-  if (userAgent.indexOf("Trident/") == -1) return hooks;
+  if (typeof navigator != "object" || typeof navigator.userAgent != "string" || navigator.userAgent.indexOf("Trident/") == -1) return hooks;
 
   var getTag = hooks.getTag;
 
@@ -558,8 +554,7 @@ function(hooks) {
 
 const _firefoxHooksTransformer = const JS_CONST(r'''
 function(hooks) {
-  var userAgent = typeof navigator == "object" ? navigator.userAgent : "";
-  if (userAgent.indexOf("Firefox") == -1) return hooks;
+  if (typeof navigator != "object" || typeof navigator.userAgent != "string" || navigator.userAgent.indexOf("Firefox") == -1) return hooks;
 
   var getTag = hooks.getTag;
 
