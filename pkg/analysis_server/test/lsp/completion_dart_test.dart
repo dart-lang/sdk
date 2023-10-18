@@ -4174,8 +4174,6 @@ void f() {
   }
 
   Future<void> test_snippets_testGroupBlock() async {
-    // This test fails when running on macOS using Windows style paths. See
-    // explanation in test_snippets_testBlock.
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
     mainFileUri = pathContext.toUri(mainFilePath);
     final content = '''
