@@ -829,9 +829,14 @@ class Assembler : public AssemblerBase {
   void JmpPatchable(const Code& code, Register pp);
   void Jmp(const Code& code, Register pp = PP);
   void J(Condition condition, const Code& code, Register pp);
-  void CallPatchable(const Code& code,
-                     CodeEntryKind entry_kind = CodeEntryKind::kNormal);
-  void Call(const Code& stub_entry);
+  void CallPatchable(
+      const Code& code,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
+  void Call(const Code& stub_entry,
+            ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+                ObjectPoolBuilderEntry::kSnapshotable);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.

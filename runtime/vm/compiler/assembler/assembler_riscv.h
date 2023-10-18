@@ -19,6 +19,7 @@
 #include "platform/utils.h"
 #include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler_base.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/constants.h"
 #include "vm/hash_map.h"
 #include "vm/simulator.h"
@@ -1013,11 +1014,17 @@ class Assembler : public MicroAssembler {
   void JumpAndLink(const Code& code,
                    ObjectPoolBuilderEntry::Patchability patchable =
                        ObjectPoolBuilderEntry::kNotPatchable,
-                   CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+                   CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+                   ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+                       ObjectPoolBuilderEntry::kSnapshotable);
 
-  void JumpAndLinkPatchable(const Code& code,
-                            CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
-    JumpAndLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind);
+  void JumpAndLinkPatchable(
+      const Code& code,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable) {
+    JumpAndLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind,
+                snapshot_behavior);
   }
 
   // Emit a call that shares its object pool entries with other calls

@@ -2992,11 +2992,13 @@ void Assembler::Jump(const Code& target,
   Jump(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 }
 
-void Assembler::JumpAndLink(const Code& target,
-                            ObjectPoolBuilderEntry::Patchability patchable,
-                            CodeEntryKind entry_kind) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
+void Assembler::JumpAndLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
   LoadWordFromPoolIndex(CODE_REG, index);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }

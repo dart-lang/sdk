@@ -62,10 +62,13 @@ void Assembler::call(const ExternalLabel* label) {
   call(TMP);
 }
 
-void Assembler::CallPatchable(const Code& target, CodeEntryKind entry_kind) {
+void Assembler::CallPatchable(
+    const Code& target,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(constant_pool_allowed());
   const intptr_t idx = object_pool_builder().AddObject(
-      ToObject(target), ObjectPoolBuilderEntry::kPatchable);
+      ToObject(target), ObjectPoolBuilderEntry::kPatchable, snapshot_behavior);
   LoadWordFromPoolIndex(CODE_REG, idx);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
@@ -80,10 +83,13 @@ void Assembler::CallWithEquivalence(const Code& target,
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::Call(const Code& target) {
+void Assembler::Call(
+    const Code& target,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(constant_pool_allowed());
   const intptr_t idx = object_pool_builder().FindObject(
-      ToObject(target), ObjectPoolBuilderEntry::kNotPatchable);
+      ToObject(target), ObjectPoolBuilderEntry::kNotPatchable,
+      snapshot_behavior);
   LoadWordFromPoolIndex(CODE_REG, idx);
   call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 }

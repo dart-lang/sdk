@@ -1234,8 +1234,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler::ExternalLabel label(NativeEntry::LinkNativeCallEntry());
     __ LoadNativeEntry(RBX, &label,
                        compiler::ObjectPoolBuilderEntry::kPatchable);
-    compiler->GeneratePatchableCall(source(), *stub,
-                                    UntaggedPcDescriptors::kOther, locs());
+    compiler->GeneratePatchableCall(
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kResetToBootstrapNative);
   } else {
     if (is_bootstrap_native()) {
       stub = &StubCode::CallBootstrapNative();
@@ -1251,7 +1252,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // We can never lazy-deopt here because natives are never optimized.
     ASSERT(!compiler->is_optimizing());
     compiler->GenerateNonLazyDeoptableStubCall(
-        source(), *stub, UntaggedPcDescriptors::kOther, locs());
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kNotSnapshotable);
   }
   __ LoadFromOffset(result, RSP, 0);
   compiler->EmitDropArguments(ArgumentCount());  // Drop the arguments.

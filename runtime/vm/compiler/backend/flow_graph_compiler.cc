@@ -1464,8 +1464,9 @@ void FlowGraphCompiler::GenerateNonLazyDeoptableStubCall(
     const InstructionSource& source,
     const Code& stub,
     UntaggedPcDescriptors::Kind kind,
-    LocationSummary* locs) {
-  EmitCallToStub(stub);
+    LocationSummary* locs,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
+  EmitCallToStub(stub, snapshot_behavior);
   EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs, /*env=*/nullptr);
 }
 

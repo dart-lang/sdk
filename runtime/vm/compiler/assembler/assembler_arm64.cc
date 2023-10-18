@@ -709,11 +709,13 @@ void Assembler::Branch(const Code& target,
   br(TMP);
 }
 
-void Assembler::BranchLink(const Code& target,
-                           ObjectPoolBuilderEntry::Patchability patchable,
-                           CodeEntryKind entry_kind) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
+void Assembler::BranchLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
   LoadWordFromPoolIndex(CODE_REG, index);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
@@ -998,7 +1000,7 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   ldr(dest, slot);
 #else
-  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+  ldr(dest, slot, kUnsignedFourBytes);                     // Zero-extension.
 #endif
 #if defined(DEBUG)
   Label done;

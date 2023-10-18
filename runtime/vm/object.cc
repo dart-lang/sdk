@@ -15603,7 +15603,8 @@ ObjectPoolPtr ObjectPool::NewFromBuilder(
     auto entry = builder.EntryAt(i);
     auto type = entry.type();
     auto patchable = entry.patchable();
-    result.SetTypeAt(i, type, patchable);
+    auto snapshot_behavior = entry.snapshot_behavior();
+    result.SetTypeAt(i, type, patchable, snapshot_behavior);
     if (type == EntryType::kTaggedObject) {
       result.SetObjectAt(i, *entry.obj_);
     } else {
@@ -15622,16 +15623,18 @@ void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
   for (intptr_t i = 0; i < Length(); i++) {
     auto type = TypeAt(i);
     auto patchable = PatchableAt(i);
+    auto snapshot_behavior = SnapshotBehaviorAt(i);
     switch (type) {
       case compiler::ObjectPoolBuilderEntry::kTaggedObject: {
         compiler::ObjectPoolBuilderEntry entry(&Object::ZoneHandle(ObjectAt(i)),
-                                               patchable);
+                                               patchable, snapshot_behavior);
         builder->AddObject(entry);
         break;
       }
       case compiler::ObjectPoolBuilderEntry::kImmediate:
       case compiler::ObjectPoolBuilderEntry::kNativeFunction: {
-        compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable);
+        compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable,
+                                               snapshot_behavior);
         builder->AddObject(entry);
         break;
       }
