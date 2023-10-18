@@ -45,7 +45,7 @@ ExtensionTypeDeclaration
 extension type A(covariant int it) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 9),
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 9),
     ]);
 
     final node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -70,7 +70,7 @@ ExtensionTypeDeclaration
 extension type A(covariant final int it) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 17, 9),
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 9),
       error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 27, 5),
     ]);
 
@@ -162,6 +162,95 @@ ExtensionTypeDeclaration
     fieldName: it
     rightParenthesis: )
   leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_error_formalParameterModifier_covariant_method_instance() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  void foo(covariant int a) {}
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 38, 9),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  members
+    MethodDeclaration
+      returnType: NamedType
+        name: void
+      name: foo
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+          name: a
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  rightBracket: }
+''');
+  }
+
+  test_error_formalParameterModifier_covariant_method_static() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  static void foo(covariant int a) {}
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 45, 9),
+    ]);
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  members
+    MethodDeclaration
+      modifierKeyword: static
+      returnType: NamedType
+        name: void
+      name: foo
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+          name: a
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
   rightBracket: }
 ''');
   }
