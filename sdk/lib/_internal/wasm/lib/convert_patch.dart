@@ -2,18 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal"
-    show
-        allocateOneByteString,
-        allocateTwoByteString,
-        ClassID,
-        copyRangeFromUint8ListToOneByteString,
-        patch,
-        POWERS_OF_TEN,
-        unsafeCast,
-        writeIntoOneByteString,
-        writeIntoTwoByteString;
-
+import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
+import "dart:_string";
 import "dart:typed_data" show Uint8List, Uint16List;
 
 /// This patch library has no additional parts.
@@ -1717,7 +1707,7 @@ class _Utf8Decoder {
     if (flags == 0) {
       // Pure ASCII.
       assert(size == end - start);
-      String result = allocateOneByteString(size);
+      OneByteString result = OneByteString.withLength(size);
       copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
       return result;
     }
@@ -1811,7 +1801,7 @@ class _Utf8Decoder {
       // Pure ASCII.
       assert(_state == accept);
       assert(size == end - start);
-      String result = allocateOneByteString(size);
+      OneByteString result = OneByteString.withLength(size);
       copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
       return result;
     }
@@ -1896,7 +1886,7 @@ class _Utf8Decoder {
 
   String decode8(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
-    String result = allocateOneByteString(size);
+    OneByteString result = OneByteString.withLength(size);
     int i = start;
     int j = 0;
     if (_state == X1) {
@@ -1948,7 +1938,7 @@ class _Utf8Decoder {
     assert(start < end);
     final String typeTable = _Utf8Decoder.typeTable;
     final String transitionTable = _Utf8Decoder.transitionTable;
-    String result = allocateTwoByteString(size);
+    TwoByteString result = TwoByteString.withLength(size);
     int i = start;
     int j = 0;
     int state = _state;

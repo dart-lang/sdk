@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_internal';
+import 'dart:_string';
 
 @pragma("wasm:entry-point")
 final class _BoxedInt extends int {
@@ -449,7 +450,7 @@ String _intToRadixString(int value, int radix) {
   } while (value > 0);
   if (isNegative) temp.add(0x2d); // '-'.
 
-  final string = allocateOneByteString(temp.length);
+  final string = OneByteString.withLength(temp.length);
   for (int i = 0, j = temp.length; j > 0; i++) {
     writeIntoOneByteString(string, i, temp[--j]);
   }
@@ -474,7 +475,7 @@ String _toPow2String(int value, int radix) {
   }
   // Integer division, rounding up, to find number of _digits.
   length += (value.bitLength + bitsPerDigit - 1) ~/ bitsPerDigit;
-  final string = allocateOneByteString(length);
+  final string = OneByteString.withLength(length);
   writeIntoOneByteString(
       string, 0, 0x2d); // '-'. Is overwritten if not negative.
   var mask = radix - 1;
@@ -498,7 +499,7 @@ String _minInt64ToRadixString(int value, int radix) {
   } while (value != 0);
   temp.add(0x2d); // '-'.
 
-  final string = allocateOneByteString(temp.length);
+  final string = OneByteString.withLength(temp.length);
   for (int i = 0, j = temp.length; j > 0; i++) {
     writeIntoOneByteString(string, i, temp[--j]);
   }
@@ -603,7 +604,7 @@ String _intToString(int value) {
   // one digit at a time.
   const int DIGIT_ZERO = 0x30;
   int length = _positiveBase10Length(value);
-  final result = allocateOneByteString(length);
+  final result = OneByteString.withLength(length);
   int index = length - 1;
   int smi = value;
   do {
@@ -662,7 +663,7 @@ String _negativeToString(int negSmi) {
   const int DIGIT_ZERO = 0x30;
   // Number of digits, not including minus.
   int digitCount = _negativeBase10Length(negSmi);
-  final result = allocateOneByteString(digitCount + 1);
+  final result = OneByteString.withLength(digitCount + 1);
   writeIntoOneByteString(result, 0, MINUS_SIGN); // '-'.
   int index = digitCount;
   do {
