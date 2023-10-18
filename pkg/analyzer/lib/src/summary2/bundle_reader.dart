@@ -544,27 +544,18 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
   Map<String, FieldNameNonPromotabilityInfo>?
       _readFieldNameNonPromotabilityInfo(ResolutionReader reader) {
-    // The summary format for `LibraryElementImpl.fieldNameNonPromotabilityInfo`
-    // is as follows:
-    // - bool: `true` if field name non-promotability information is present,
-    //   `false` if not.
-    // - If information is present:
-    //   - Uint30: number of entries in the map.
-    //   - For each map entry:
-    //     - String reference: key
-    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingFields`
-    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingGetters`
-    //     - Element list: `FieldNameNonPromotabilityInfo.conflictingNsmClasses`
-    if (!reader.readBool()) return null;
-    int length = reader.readUInt30();
-    if (length == 0) return const {};
-    return {
-      for (int i = 0; i < length; i++)
-        reader.readStringReference(): FieldNameNonPromotabilityInfo(
+    return reader.readOptionalObject((_) {
+      return reader.readMap(
+        readKey: () => reader.readStringReference(),
+        readValue: () {
+          return FieldNameNonPromotabilityInfo(
             conflictingFields: reader.readElementList(),
             conflictingGetters: reader.readElementList(),
-            conflictingNsmClasses: reader.readElementList())
-    };
+            conflictingNsmClasses: reader.readElementList(),
+          );
+        },
+      );
+    });
   }
 
   void _readLibraryOrAugmentation(
@@ -1990,6 +1981,20 @@ class ResolutionReader {
 
   List<T> readElementList<T extends Element>() {
     return _reader.readTypedListCast<T>(readElement);
+  }
+
+  Map<K, V> readMap<K, V>({
+    required K Function() readKey,
+    required V Function() readValue,
+  }) {
+    final length = readUInt30();
+    if (length == 0) {
+      return const {};
+    }
+
+    return {
+      for (var i = 0; i < length; i++) readKey(): readValue(),
+    };
   }
 
   FunctionType? readOptionalFunctionType() {

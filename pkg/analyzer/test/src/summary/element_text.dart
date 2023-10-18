@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
@@ -77,9 +78,7 @@ class _ElementWriter {
   })  : _sink = sink,
         _elementPrinter = elementPrinter;
 
-  void writeLibraryElement(LibraryElement e) {
-    e as LibraryElementImpl;
-
+  void writeLibraryElement(LibraryElementImpl e) {
     _sink.writelnWithIndent('library');
     _sink.withIndent(() {
       var name = e.name;
@@ -106,6 +105,8 @@ class _ElementWriter {
           _writeExportNamespace(e);
         });
       }
+
+      _writeFieldNameNonPromotabilityInfo(e.fieldNameNonPromotabilityInfo);
     });
   }
 
@@ -489,6 +490,35 @@ class _ElementWriter {
         _sink.writelnWithIndent('field: <null>');
       }
     }
+  }
+
+  void _writeFieldNameNonPromotabilityInfo(
+    Map<String, FieldNameNonPromotabilityInfo>? info,
+  ) {
+    if (info == null || info.isEmpty) {
+      return;
+    }
+
+    _sink.writelnWithIndent('fieldNameNonPromotabilityInfo');
+    _sink.withIndent(() {
+      for (final entry in info.entries) {
+        _sink.writelnWithIndent(entry.key);
+        _sink.withIndent(() {
+          _elementPrinter.writeElementList(
+            'conflictingFields',
+            entry.value.conflictingFields,
+          );
+          _elementPrinter.writeElementList(
+            'conflictingGetters',
+            entry.value.conflictingGetters,
+          );
+          _elementPrinter.writeElementList(
+            'conflictingNsmClasses',
+            entry.value.conflictingNsmClasses,
+          );
+        });
+      }
+    });
   }
 
   void _writeFunctionElement(FunctionElementImpl e) {
