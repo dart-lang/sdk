@@ -934,11 +934,24 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var buildDir = _configuration.buildDirectory;
     var exec = _configuration.genSnapshotPath;
     if (exec == null) {
+      var gcc32 = "<does-not-exist>";
+      var gcc64 = "<does-not-exist>";
+      var clang32 = "<does-not-exist>";
+      var clang64 = "<does-not-exist>";
+      if (Architecture.host == Architecture.x64) {
+        gcc32 = "x86";
+        gcc64 = "x64";
+        clang32 = "clang_x86";
+        clang64 = "clang_x64";
+      } else if (Architecture.host == Architecture.arm64) {
+        gcc64 = "arm64";
+        clang64 = "clang_arm64";
+      }
       if (_isAndroid) {
         if (_isArm || _isIA32) {
-          exec = "$buildDir/clang_x86/gen_snapshot";
+          exec = "$buildDir/$clang32/gen_snapshot";
         } else if (_isArm64 || _isX64 || _isArmX64) {
-          exec = "$buildDir/clang_x64/gen_snapshot";
+          exec = "$buildDir/$clang64/gen_snapshot";
         } else {
           // Guaranteed by package:test_runner/src/configuration.dart's
           // TestConfiguration.validate().
@@ -951,11 +964,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         final simBuildDir = buildDir.replaceAll("XARM", "SIMARM_X64");
         exec = "$simBuildDir/gen_snapshot";
       } else if (_isArm64 && _configuration.useQemu) {
-        exec = "$buildDir/clang_x64/gen_snapshot";
+        exec = "$buildDir/$clang64/gen_snapshot";
       } else if (_isRiscv32 && _configuration.useQemu) {
-        exec = "$buildDir/x86/gen_snapshot";
+        exec = "$buildDir/$gcc32/gen_snapshot";
       } else if (_isRiscv64 && _configuration.useQemu) {
-        exec = "$buildDir/x64/gen_snapshot";
+        exec = "$buildDir/$gcc64/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }
