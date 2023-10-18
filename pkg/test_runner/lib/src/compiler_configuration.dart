@@ -950,7 +950,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (_isAndroid) {
         if (_isArm || _isIA32) {
           exec = "$buildDir/$clang32/gen_snapshot";
-        } else if (_isArm64 || _isX64 || _isArmX64) {
+        } else if (_isArm64 || _isX64 || _isArmX64 || _isRiscv64) {
           exec = "$buildDir/$clang64/gen_snapshot";
         } else {
           // Guaranteed by package:test_runner/src/configuration.dart's
@@ -1046,19 +1046,22 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var ldFlags = <String>[];
     List<String>? target;
     if (_isAndroid) {
-      if (_isArm || _isArmX64) {
-        cc =
-            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/armv7a-linux-androideabi21-clang';
-      } else if (_isArm64) {
-        cc =
-            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/aarch64-linux-android21-clang';
+      cc = '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/clang';
+      if (_isIA32) {
+        ldFlags.add('--target=i686-linux-androideabi');
       } else if (_isX64) {
-        cc =
-            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/x86_64-linux-android21-clang';
+        ldFlags.add('--target=x86_64-linux-androideabi');
+      } else if (_isArm || _isArmX64) {
+        ldFlags.add('--target=arm-linux-androideabi');
+      } else if (_isArm64) {
+        ldFlags.add('--target=aarch64-linux-android');
+      } else if (_isRiscv64) {
+        ldFlags.add('--target=riscv64-linux-android');
       } else {
         throw 'Unimplemented';
       }
       shared = '-shared';
+      ldFlags.add('-nostdlib');
       ldFlags.add('-Wl,--no-undefined');
       ldFlags.add('-Wl,-z,max-page-size=65536');
     } else if (Platform.isLinux) {
@@ -1129,8 +1132,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   Command computeStripCommand(
       String tempDir, Map<String, String> environmentOverrides) {
-    var stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
-        "$host-x86_64/bin/$abiTriple-strip";
+    var stripTool = "$ndkPath/toolchains/llvm/prebuilt/"
+        "$host-x86_64/bin/llvm-strip";
     var args = ['--strip-unneeded', "$tempDir/out.aotsnapshot"];
     return CompilationCommand('strip', tempDir, bootstrapDependencies(),
         stripTool, args, environmentOverrides,
