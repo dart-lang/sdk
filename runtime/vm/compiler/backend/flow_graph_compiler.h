@@ -15,6 +15,7 @@
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/locations.h"
@@ -554,15 +555,21 @@ class FlowGraphCompiler : public ValueObject {
                         intptr_t deopt_id,
                         Environment* env);
 
-  void GenerateNonLazyDeoptableStubCall(const InstructionSource& source,
-                                        const Code& stub,
-                                        UntaggedPcDescriptors::Kind kind,
-                                        LocationSummary* locs);
+  void GenerateNonLazyDeoptableStubCall(
+      const InstructionSource& source,
+      const Code& stub,
+      UntaggedPcDescriptors::Kind kind,
+      LocationSummary* locs,
+      ObjectPool::SnapshotBehavior snapshot_behavior =
+          compiler::ObjectPoolBuilderEntry::kSnapshotable);
 
-  void GeneratePatchableCall(const InstructionSource& source,
-                             const Code& stub,
-                             UntaggedPcDescriptors::Kind kind,
-                             LocationSummary* locs);
+  void GeneratePatchableCall(
+      const InstructionSource& source,
+      const Code& stub,
+      UntaggedPcDescriptors::Kind kind,
+      LocationSummary* locs,
+      ObjectPool::SnapshotBehavior snapshot_behavior =
+          compiler::ObjectPoolBuilderEntry::kSnapshotable);
 
   void GenerateDartCall(intptr_t deopt_id,
                         const InstructionSource& source,
@@ -720,7 +727,9 @@ class FlowGraphCompiler : public ValueObject {
 
   void RecordCatchEntryMoves(Environment* env);
 
-  void EmitCallToStub(const Code& stub);
+  void EmitCallToStub(const Code& stub,
+                      ObjectPool::SnapshotBehavior snapshot_behavior =
+                          compiler::ObjectPoolBuilderEntry::kSnapshotable);
   void EmitJumpToStub(const Code& stub);
   void EmitTailCallToStub(const Code& stub);
 

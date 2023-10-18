@@ -2509,9 +2509,9 @@ void Assembler::PushNativeCalleeSavedRegisters() {
   PushList(kAbiPreservedCpuRegs);
 
   const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
-    ASSERT(2 * kAbiPreservedFpuRegCount < 16);
-    // Save FPU registers. 2 D registers per Q register.
-    vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  ASSERT(2 * kAbiPreservedFpuRegCount < 16);
+  // Save FPU registers. 2 D registers per Q register.
+  vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
 }
 
 void Assembler::PopNativeCalleeSavedRegisters() {
@@ -2695,22 +2695,27 @@ void Assembler::Branch(const Address& address, Condition cond) {
   ldr(PC, address, cond);
 }
 
-void Assembler::BranchLink(const Code& target,
-                           ObjectPoolBuilderEntry::Patchability patchable,
-                           CodeEntryKind entry_kind) {
+void Assembler::BranchLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
   LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
 
-void Assembler::BranchLinkPatchable(const Code& target,
-                                    CodeEntryKind entry_kind) {
-  BranchLink(target, ObjectPoolBuilderEntry::kPatchable, entry_kind);
+void Assembler::BranchLinkPatchable(
+    const Code& target,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  BranchLink(target, ObjectPoolBuilderEntry::kPatchable, entry_kind,
+             snapshot_behavior);
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,

@@ -1,0 +1,7 @@
+extension type E1(var foo) {}
+extension type E2(final foo) {}
+extension type E3(final String foo) {}
+extension type E4(covariant num foo) {}
+extension type E5(const bool foo) {}
+extension type E6(covariant final double foo) {}
+extension type E7(const var foo) {}

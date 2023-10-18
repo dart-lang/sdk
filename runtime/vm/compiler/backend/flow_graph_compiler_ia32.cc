@@ -437,10 +437,13 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   if (stub.InVMIsolateHeap()) {
     __ CallVmStub(stub);
   } else {
+    // Ignore snapshot_behavior, ia32 doesn't do snapshots.
     __ Call(stub);
   }
   AddStubCallTarget(stub);

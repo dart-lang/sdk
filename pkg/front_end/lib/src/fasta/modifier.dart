@@ -126,4 +126,23 @@ class Modifier {
     }
     return modifiers;
   }
+
+  /// Returns `true` if the modifier mask contains modifier bits
+  ///
+  /// Some of the bits stored in modified masks don't represent actual
+  /// modifiers, as noted in their comments (see [mixinDeclarationMask],
+  /// [hasInitializerMask], [initializingFormalMask],
+  /// [declaresConstConstructorMask], [superInitializingFormalMask], [varMask]).
+  /// Method [maskContainsActualModifiers] returns `true` if the mask has any of
+  /// the actual modifier bits set, and `false` otherwise.
+  static bool maskContainsActualModifiers(int mask) {
+    mask &= ~(1 << mixinDeclarationMask);
+    mask &= ~(1 << hasInitializerMask);
+    mask &= ~(1 << initializingFormalMask);
+    mask &= ~(1 << declaresConstConstructorMask);
+    mask &= ~(1 << superInitializingFormalMask);
+    mask &= ~(1 << varMask);
+
+    return mask != 0;
+  }
 }
