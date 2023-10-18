@@ -24,6 +24,7 @@ import 'dart:_internal'
         unsafeCast,
         WhereIterable,
         WhereTypeIterable;
+import 'dart:_simd';
 import 'dart:_wasm';
 
 import 'dart:collection' show ListBase;
@@ -93,11 +94,11 @@ final class _TypedListIterator<E> implements Iterator<E> {
 /// and [_setUint8Unchecked] methods. Implementations should implement these
 /// methods and override get/set methods for elements matching the buffer
 /// element type to provide fast access.
-abstract class _ByteDataBase implements ByteData {
+abstract class ByteDataBase implements ByteData {
   final int offsetInBytes;
   final int lengthInBytes;
 
-  _ByteDataBase(this.offsetInBytes, this.lengthInBytes);
+  ByteDataBase(this.offsetInBytes, this.lengthInBytes);
 
   UnmodifiableByteDataView immutable();
 
@@ -404,7 +405,7 @@ abstract class _ByteDataBase implements ByteData {
   }
 }
 
-mixin _UnmodifiableByteDataMixin on _ByteDataBase {
+mixin _UnmodifiableByteDataMixin on ByteDataBase {
   @override
   void setInt8(int byteOffset, int value) {
     throw UnsupportedError("Cannot modify an unmodifiable byte data");
@@ -456,20 +457,20 @@ mixin _UnmodifiableByteDataMixin on _ByteDataBase {
   }
 }
 
-class _I8ByteData extends _ByteDataBase {
+class I8ByteData extends ByteDataBase {
   final WasmIntArray<WasmI8> _data;
 
-  _I8ByteData(int length)
+  I8ByteData(int length)
       : _data = WasmIntArray(_newArrayLengthCheck(length)),
         super(0, length);
 
-  _I8ByteData._(this._data, int offsetInBytes, int lengthInBytes)
+  I8ByteData._(this._data, int offsetInBytes, int lengthInBytes)
       : super(offsetInBytes, lengthInBytes);
 
-  factory _I8ByteData._withMutability(WasmIntArray<WasmI8> data,
+  factory I8ByteData._withMutability(WasmIntArray<WasmI8> data,
           int offsetInBytes, int lengthInBytes, bool mutable) =>
       mutable
-          ? _I8ByteData._(data, offsetInBytes, lengthInBytes)
+          ? I8ByteData._(data, offsetInBytes, lengthInBytes)
           : _UnmodifiableI8ByteData._(data, offsetInBytes, lengthInBytes);
 
   @override
@@ -493,7 +494,7 @@ class _I8ByteData extends _ByteDataBase {
   }
 }
 
-class _I16ByteData extends _ByteDataBase {
+class _I16ByteData extends ByteDataBase {
   final WasmIntArray<WasmI16> _data;
 
   _I16ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -558,7 +559,7 @@ class _I16ByteData extends _ByteDataBase {
   }
 }
 
-class _I32ByteData extends _ByteDataBase {
+class _I32ByteData extends ByteDataBase {
   final WasmIntArray<WasmI32> _data;
 
   _I32ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -646,7 +647,7 @@ class _I32ByteData extends _ByteDataBase {
   }
 }
 
-class _I64ByteData extends _ByteDataBase {
+class _I64ByteData extends ByteDataBase {
   final WasmIntArray<WasmI64> _data;
 
   _I64ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -745,7 +746,7 @@ class _I64ByteData extends _ByteDataBase {
   }
 }
 
-class _F32ByteData extends _ByteDataBase {
+class _F32ByteData extends ByteDataBase {
   final WasmFloatArray<WasmF32> _data;
 
   _F32ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -811,7 +812,7 @@ class _F32ByteData extends _ByteDataBase {
   }
 }
 
-class _F64ByteData extends _ByteDataBase {
+class _F64ByteData extends ByteDataBase {
   final WasmFloatArray<WasmF64> _data;
 
   _F64ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -888,7 +889,7 @@ class _F64ByteData extends _ByteDataBase {
   }
 }
 
-class _UnmodifiableI8ByteData extends _I8ByteData
+class _UnmodifiableI8ByteData extends I8ByteData
     with _UnmodifiableByteDataMixin
     implements UnmodifiableByteDataView {
   _UnmodifiableI8ByteData._(
@@ -961,13 +962,13 @@ class _UnmodifiableF64ByteData extends _F64ByteData
 /// Base class for [ByteBuffer] implementations. Returns slow lists in all
 /// methods. Implementations should override relevant methods to return fast
 /// lists when possible and implement [asByteData].
-abstract class _ByteBufferBase extends ByteBuffer {
+abstract class ByteBufferBase extends ByteBuffer {
   final int lengthInBytes;
   final bool _mutable;
 
-  _ByteBufferBase(this.lengthInBytes, this._mutable);
+  ByteBufferBase(this.lengthInBytes, this._mutable);
 
-  _ByteBufferBase _immutable();
+  ByteBufferBase _immutable();
 
   @override
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
@@ -1056,7 +1057,7 @@ abstract class _ByteBufferBase extends ByteBuffer {
         lengthInBytes, offsetInBytes, length * Int32x4List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
     // TODO: mutability
-    return _NaiveInt32x4List.externalStorage(
+    return NaiveInt32x4List.externalStorage(
         _SlowI32List._(this, offsetInBytes, length * 4));
   }
 
@@ -1075,7 +1076,7 @@ abstract class _ByteBufferBase extends ByteBuffer {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Float64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
-    return _SlowF64List._withMutability(this, offsetInBytes, length, _mutable);
+    return SlowF64List._withMutability(this, offsetInBytes, length, _mutable);
   }
 
   @override
@@ -1085,7 +1086,7 @@ abstract class _ByteBufferBase extends ByteBuffer {
         lengthInBytes, offsetInBytes, length * Float32x4List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
     // TODO: mutability
-    return _NaiveFloat32x4List.externalStorage(
+    return NaiveFloat32x4List.externalStorage(
         _SlowF32List._(this, offsetInBytes, length * 4));
   }
 
@@ -1096,12 +1097,12 @@ abstract class _ByteBufferBase extends ByteBuffer {
         lengthInBytes, offsetInBytes, length * Float64x2List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
     // TODO: mutability
-    return _NaiveFloat64x2List.externalStorage(
-        _SlowF64List._(this, offsetInBytes, length * 2));
+    return NaiveFloat64x2List.externalStorage(
+        SlowF64List._(this, offsetInBytes, length * 2));
   }
 }
 
-class _I8ByteBuffer extends _ByteBufferBase {
+class _I8ByteBuffer extends ByteBufferBase {
   final WasmIntArray<WasmI8> _data;
 
   _I8ByteBuffer(this._data) : super(_data.length, true);
@@ -1120,7 +1121,7 @@ class _I8ByteBuffer extends _ByteBufferBase {
     length ??= (lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Int8List.bytesPerElement);
-    return _I8List._withMutability(_data, offsetInBytes, length, _mutable);
+    return I8List._withMutability(_data, offsetInBytes, length, _mutable);
   }
 
   @override
@@ -1128,18 +1129,18 @@ class _I8ByteBuffer extends _ByteBufferBase {
     length ??= (lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Uint8List.bytesPerElement);
-    return _U8List._withMutability(_data, offsetInBytes, length, _mutable);
+    return U8List._withMutability(_data, offsetInBytes, length, _mutable);
   }
 
   @override
   ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= lengthInBytes - offsetInBytes;
     _rangeCheck(lengthInBytes, offsetInBytes, length);
-    return _I8ByteData._withMutability(_data, offsetInBytes, length, _mutable);
+    return I8ByteData._withMutability(_data, offsetInBytes, length, _mutable);
   }
 }
 
-class _I16ByteBuffer extends _ByteBufferBase {
+class _I16ByteBuffer extends ByteBufferBase {
   final WasmIntArray<WasmI16> _data;
 
   _I16ByteBuffer(this._data) : super(_data.length * 2, true);
@@ -1163,7 +1164,7 @@ class _I16ByteBuffer extends _ByteBufferBase {
       return _SlowI16List._withMutability(
           this, offsetInBytes, length, _mutable);
     } else {
-      return _I16List._withMutability(
+      return I16List._withMutability(
           _data, offsetInBytes ~/ Int16List.bytesPerElement, length, _mutable);
     }
   }
@@ -1178,7 +1179,7 @@ class _I16ByteBuffer extends _ByteBufferBase {
       return _SlowU16List._withMutability(
           this, offsetInBytes, length, _mutable);
     } else {
-      return _U16List._withMutability(
+      return U16List._withMutability(
           _data, offsetInBytes ~/ Uint16List.bytesPerElement, length, _mutable);
     }
   }
@@ -1191,7 +1192,7 @@ class _I16ByteBuffer extends _ByteBufferBase {
   }
 }
 
-class _I32ByteBuffer extends _ByteBufferBase {
+class _I32ByteBuffer extends ByteBufferBase {
   final WasmIntArray<WasmI32> _data;
 
   _I32ByteBuffer(this._data) : super(_data.length * 4, true);
@@ -1215,7 +1216,7 @@ class _I32ByteBuffer extends _ByteBufferBase {
       return _SlowI32List._withMutability(
           this, offsetInBytes, length, _mutable);
     } else {
-      return _I32List._withMutability(
+      return I32List._withMutability(
           _data, offsetInBytes ~/ Int32List.bytesPerElement, length, _mutable);
     }
   }
@@ -1230,7 +1231,7 @@ class _I32ByteBuffer extends _ByteBufferBase {
       return _SlowU32List._withMutability(
           this, offsetInBytes, length, _mutable);
     } else {
-      return _U32List._withMutability(
+      return U32List._withMutability(
           _data, offsetInBytes ~/ Uint32List.bytesPerElement, length, _mutable);
     }
   }
@@ -1243,7 +1244,7 @@ class _I32ByteBuffer extends _ByteBufferBase {
   }
 }
 
-class _I64ByteBuffer extends _ByteBufferBase {
+class _I64ByteBuffer extends ByteBufferBase {
   final WasmIntArray<WasmI64> _data;
 
   _I64ByteBuffer(this._data) : super(_data.length * 8, true);
@@ -1267,7 +1268,7 @@ class _I64ByteBuffer extends _ByteBufferBase {
       return _SlowI64List._withMutability(
           this, offsetInBytes, length, _mutable);
     } else {
-      return _I64List._withMutability(
+      return I64List._withMutability(
           _data, offsetInBytes ~/ Int64List.bytesPerElement, length, _mutable);
     }
   }
@@ -1282,7 +1283,7 @@ class _I64ByteBuffer extends _ByteBufferBase {
       return _SlowU64List._withMutability(
           this, offsetInBytes, length, _mutable);
     } else {
-      return _U64List._withMutability(
+      return U64List._withMutability(
           _data, offsetInBytes ~/ Uint64List.bytesPerElement, length, _mutable);
     }
   }
@@ -1295,7 +1296,7 @@ class _I64ByteBuffer extends _ByteBufferBase {
   }
 }
 
-class _F32ByteBuffer extends _ByteBufferBase {
+class _F32ByteBuffer extends ByteBufferBase {
   final WasmFloatArray<WasmF32> _data;
 
   _F32ByteBuffer(this._data) : super(_data.length * 4, true);
@@ -1319,7 +1320,7 @@ class _F32ByteBuffer extends _ByteBufferBase {
       return _SlowF32List._withMutability(
           this, offsetInBytes, length, _mutable);
     } else {
-      return _F32List._withMutability(_data,
+      return F32List._withMutability(_data,
           offsetInBytes ~/ Float32List.bytesPerElement, length, _mutable);
     }
   }
@@ -1332,7 +1333,7 @@ class _F32ByteBuffer extends _ByteBufferBase {
   }
 }
 
-class _F64ByteBuffer extends _ByteBufferBase {
+class _F64ByteBuffer extends ByteBufferBase {
   final WasmFloatArray<WasmF64> _data;
 
   _F64ByteBuffer(this._data) : super(_data.length * 8, true);
@@ -1353,10 +1354,9 @@ class _F64ByteBuffer extends _ByteBufferBase {
         lengthInBytes, offsetInBytes, length * Float64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
     if (offsetInBytes % Float64List.bytesPerElement != 0) {
-      return _SlowF64List._withMutability(
-          this, offsetInBytes, length, _mutable);
+      return SlowF64List._withMutability(this, offsetInBytes, length, _mutable);
     } else {
-      return _F64List._withMutability(
+      return F64List._withMutability(
           _data, offsetInBytes ~/ Int64List.bytesPerElement, length, _mutable);
     }
   }
@@ -1369,11 +1369,10 @@ class _F64ByteBuffer extends _ByteBufferBase {
   }
 }
 
-class _UnmodifiableByteBuffer implements UnmodifiableByteBufferView {
-  final _ByteBufferBase _buffer;
+class UnmodifiableByteBuffer implements UnmodifiableByteBufferView {
+  final ByteBufferBase _buffer;
 
-  _UnmodifiableByteBuffer(_ByteBufferBase buffer)
-      : _buffer = buffer._immutable();
+  UnmodifiableByteBuffer(ByteBufferBase buffer) : _buffer = buffer._immutable();
 
   @override
   int get lengthInBytes => _buffer.lengthInBytes;
@@ -1822,7 +1821,7 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
         if (destDartElementSizeInBytes == 1 &&
             destBuffer is _I8ByteBuffer &&
             fromBuffer is _I8ByteBuffer) {
-          if (destTypedData is! _U8ClampedList &&
+          if (destTypedData is! U8ClampedList &&
               destTypedData is! _SlowU8ClampedList) {
             destBuffer._data.copy(destBufferByteOffset, fromBuffer._data,
                 fromBufferByteOffset, count);
@@ -2388,25 +2387,25 @@ abstract class _WasmF64ArrayBase {
   ByteBuffer get buffer => _F64ByteBuffer(_data);
 }
 
-class _I8List extends _WasmI8ArrayBase
+class I8List extends _WasmI8ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I8List>,
+        _TypedIntListMixin<I8List>,
         _TypedListCommonOperationsMixin
     implements Int8List {
-  _I8List(int length) : super(length);
+  I8List(int length) : super(length);
 
-  _I8List._(WasmIntArray<WasmI8> data, int offsetInElements, int length)
+  I8List._(WasmIntArray<WasmI8> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _I8List._withMutability(WasmIntArray<WasmI8> buffer,
-          int offsetInBytes, int length, bool mutable) =>
+  factory I8List._withMutability(WasmIntArray<WasmI8> buffer, int offsetInBytes,
+          int length, bool mutable) =>
       mutable
-          ? _I8List._(buffer, offsetInBytes, length)
-          : _UnmodifiableI8List._(buffer, offsetInBytes, length);
+          ? I8List._(buffer, offsetInBytes, length)
+          : UnmodifiableI8List._(buffer, offsetInBytes, length);
 
   @override
-  _I8List _createList(int length) => _I8List(length);
+  I8List _createList(int length) => I8List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2429,25 +2428,27 @@ class _I8List extends _WasmI8ArrayBase
   }
 }
 
-class _U8List extends _WasmI8ArrayBase
+class U8List extends _WasmI8ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U8List>,
+        _TypedIntListMixin<U8List>,
         _TypedListCommonOperationsMixin
     implements Uint8List {
-  _U8List(int length) : super(length);
+  U8List(int length) : super(length);
 
-  _U8List._(WasmIntArray<WasmI8> data, int offsetInElements, int length)
+  U8List._(WasmIntArray<WasmI8> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _U8List._withMutability(WasmIntArray<WasmI8> buffer,
-          int offsetInBytes, int length, bool mutable) =>
+  WasmIntArray<WasmI8> get data => _data;
+
+  factory U8List._withMutability(WasmIntArray<WasmI8> buffer, int offsetInBytes,
+          int length, bool mutable) =>
       mutable
-          ? _U8List._(buffer, offsetInBytes, length)
-          : _UnmodifiableU8List._(buffer, offsetInBytes, length);
+          ? U8List._(buffer, offsetInBytes, length)
+          : UnmodifiableU8List._(buffer, offsetInBytes, length);
 
   @override
-  _U8List _createList(int length) => _U8List(length);
+  U8List _createList(int length) => U8List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2470,25 +2471,25 @@ class _U8List extends _WasmI8ArrayBase
   }
 }
 
-class _U8ClampedList extends _WasmI8ArrayBase
+class U8ClampedList extends _WasmI8ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U8ClampedList>,
+        _TypedIntListMixin<U8ClampedList>,
         _TypedListCommonOperationsMixin
     implements Uint8ClampedList {
-  _U8ClampedList(int length) : super(length);
+  U8ClampedList(int length) : super(length);
 
-  _U8ClampedList._(WasmIntArray<WasmI8> data, int offsetInElements, int length)
+  U8ClampedList._(WasmIntArray<WasmI8> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _U8ClampedList._withMutability(WasmIntArray<WasmI8> buffer,
+  factory U8ClampedList._withMutability(WasmIntArray<WasmI8> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _U8ClampedList._(buffer, offsetInBytes, length)
-          : _UnmodifiableU8ClampedList._(buffer, offsetInBytes, length);
+          ? U8ClampedList._(buffer, offsetInBytes, length)
+          : UnmodifiableU8ClampedList._(buffer, offsetInBytes, length);
 
   @override
-  _U8ClampedList _createList(int length) => _U8ClampedList(length);
+  U8ClampedList _createList(int length) => U8ClampedList(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2511,25 +2512,25 @@ class _U8ClampedList extends _WasmI8ArrayBase
   }
 }
 
-class _I16List extends _WasmI16ArrayBase
+class I16List extends _WasmI16ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I16List>,
+        _TypedIntListMixin<I16List>,
         _TypedListCommonOperationsMixin
     implements Int16List {
-  _I16List(int length) : super(length);
+  I16List(int length) : super(length);
 
-  _I16List._(WasmIntArray<WasmI16> data, int offsetInElements, int length)
+  I16List._(WasmIntArray<WasmI16> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _I16List._withMutability(WasmIntArray<WasmI16> buffer,
+  factory I16List._withMutability(WasmIntArray<WasmI16> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _I16List._(buffer, offsetInBytes, length)
-          : _UnmodifiableI16List._(buffer, offsetInBytes, length);
+          ? I16List._(buffer, offsetInBytes, length)
+          : UnmodifiableI16List._(buffer, offsetInBytes, length);
 
   @override
-  _I16List _createList(int length) => _I16List(length);
+  I16List _createList(int length) => I16List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2552,25 +2553,25 @@ class _I16List extends _WasmI16ArrayBase
   }
 }
 
-class _U16List extends _WasmI16ArrayBase
+class U16List extends _WasmI16ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U16List>,
+        _TypedIntListMixin<U16List>,
         _TypedListCommonOperationsMixin
     implements Uint16List {
-  _U16List(int length) : super(length);
+  U16List(int length) : super(length);
 
-  _U16List._(WasmIntArray<WasmI16> data, int offsetInElements, int length)
+  U16List._(WasmIntArray<WasmI16> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _U16List._withMutability(WasmIntArray<WasmI16> buffer,
+  factory U16List._withMutability(WasmIntArray<WasmI16> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _U16List._(buffer, offsetInBytes, length)
-          : _UnmodifiableU16List._(buffer, offsetInBytes, length);
+          ? U16List._(buffer, offsetInBytes, length)
+          : UnmodifiableU16List._(buffer, offsetInBytes, length);
 
   @override
-  _U16List _createList(int length) => _U16List(length);
+  U16List _createList(int length) => U16List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2593,25 +2594,25 @@ class _U16List extends _WasmI16ArrayBase
   }
 }
 
-class _I32List extends _WasmI32ArrayBase
+class I32List extends _WasmI32ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I32List>,
+        _TypedIntListMixin<I32List>,
         _TypedListCommonOperationsMixin
     implements Int32List {
-  _I32List(int length) : super(length);
+  I32List(int length) : super(length);
 
-  _I32List._(WasmIntArray<WasmI32> data, int offsetInElements, int length)
+  I32List._(WasmIntArray<WasmI32> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _I32List._withMutability(WasmIntArray<WasmI32> buffer,
+  factory I32List._withMutability(WasmIntArray<WasmI32> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _I32List._(buffer, offsetInBytes, length)
-          : _UnmodifiableI32List._(buffer, offsetInBytes, length);
+          ? I32List._(buffer, offsetInBytes, length)
+          : UnmodifiableI32List._(buffer, offsetInBytes, length);
 
   @override
-  _I32List _createList(int length) => _I32List(length);
+  I32List _createList(int length) => I32List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2634,25 +2635,25 @@ class _I32List extends _WasmI32ArrayBase
   }
 }
 
-class _U32List extends _WasmI32ArrayBase
+class U32List extends _WasmI32ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U32List>,
+        _TypedIntListMixin<U32List>,
         _TypedListCommonOperationsMixin
     implements Uint32List {
-  _U32List(int length) : super(length);
+  U32List(int length) : super(length);
 
-  _U32List._(WasmIntArray<WasmI32> data, int offsetInElements, int length)
+  U32List._(WasmIntArray<WasmI32> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _U32List._withMutability(WasmIntArray<WasmI32> buffer,
+  factory U32List._withMutability(WasmIntArray<WasmI32> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _U32List._(buffer, offsetInBytes, length)
-          : _UnmodifiableU32List._(buffer, offsetInBytes, length);
+          ? U32List._(buffer, offsetInBytes, length)
+          : UnmodifiableU32List._(buffer, offsetInBytes, length);
 
   @override
-  _U32List _createList(int length) => _U32List(length);
+  U32List _createList(int length) => U32List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2675,25 +2676,25 @@ class _U32List extends _WasmI32ArrayBase
   }
 }
 
-class _I64List extends _WasmI64ArrayBase
+class I64List extends _WasmI64ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I64List>,
+        _TypedIntListMixin<I64List>,
         _TypedListCommonOperationsMixin
     implements Int64List {
-  _I64List(int length) : super(length);
+  I64List(int length) : super(length);
 
-  _I64List._(WasmIntArray<WasmI64> data, int offsetInElements, int length)
+  I64List._(WasmIntArray<WasmI64> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _I64List._withMutability(WasmIntArray<WasmI64> buffer,
+  factory I64List._withMutability(WasmIntArray<WasmI64> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _I64List._(buffer, offsetInBytes, length)
-          : _UnmodifiableI64List._(buffer, offsetInBytes, length);
+          ? I64List._(buffer, offsetInBytes, length)
+          : UnmodifiableI64List._(buffer, offsetInBytes, length);
 
   @override
-  _I64List _createList(int length) => _I64List(length);
+  I64List _createList(int length) => I64List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2716,25 +2717,25 @@ class _I64List extends _WasmI64ArrayBase
   }
 }
 
-class _U64List extends _WasmI64ArrayBase
+class U64List extends _WasmI64ArrayBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U64List>,
+        _TypedIntListMixin<U64List>,
         _TypedListCommonOperationsMixin
     implements Uint64List {
-  _U64List(int length) : super(length);
+  U64List(int length) : super(length);
 
-  _U64List._(WasmIntArray<WasmI64> data, int offsetInElements, int length)
+  U64List._(WasmIntArray<WasmI64> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _U64List._withMutability(WasmIntArray<WasmI64> buffer,
+  factory U64List._withMutability(WasmIntArray<WasmI64> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _U64List._(buffer, offsetInBytes, length)
-          : _UnmodifiableU64List._(buffer, offsetInBytes, length);
+          ? U64List._(buffer, offsetInBytes, length)
+          : UnmodifiableU64List._(buffer, offsetInBytes, length);
 
   @override
-  _U64List _createList(int length) => _U64List(length);
+  U64List _createList(int length) => U64List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2757,25 +2758,25 @@ class _U64List extends _WasmI64ArrayBase
   }
 }
 
-class _F32List extends _WasmF32ArrayBase
+class F32List extends _WasmF32ArrayBase
     with
         _DoubleListMixin,
         _TypedDoubleListMixin<Float32List>,
         _TypedListCommonOperationsMixin
     implements Float32List {
-  _F32List(int length) : super(length);
+  F32List(int length) : super(length);
 
-  _F32List._(WasmFloatArray<WasmF32> data, int offsetInElements, int length)
+  F32List._(WasmFloatArray<WasmF32> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _F32List._withMutability(WasmFloatArray<WasmF32> buffer,
+  factory F32List._withMutability(WasmFloatArray<WasmF32> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _F32List._(buffer, offsetInBytes, length)
-          : _UnmodifiableF32List._(buffer, offsetInBytes, length);
+          ? F32List._(buffer, offsetInBytes, length)
+          : UnmodifiableF32List._(buffer, offsetInBytes, length);
 
   @override
-  _F32List _createList(int length) => _F32List(length);
+  F32List _createList(int length) => F32List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2798,25 +2799,25 @@ class _F32List extends _WasmF32ArrayBase
   }
 }
 
-class _F64List extends _WasmF64ArrayBase
+class F64List extends _WasmF64ArrayBase
     with
         _DoubleListMixin,
         _TypedDoubleListMixin<Float64List>,
         _TypedListCommonOperationsMixin
     implements Float64List {
-  _F64List(int length) : super(length);
+  F64List(int length) : super(length);
 
-  _F64List._(WasmFloatArray<WasmF64> data, int offsetInElements, int length)
+  F64List._(WasmFloatArray<WasmF64> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
-  factory _F64List._withMutability(WasmFloatArray<WasmF64> buffer,
+  factory F64List._withMutability(WasmFloatArray<WasmF64> buffer,
           int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _F64List._(buffer, offsetInBytes, length)
-          : _UnmodifiableF64List._(buffer, offsetInBytes, length);
+          ? F64List._(buffer, offsetInBytes, length)
+          : UnmodifiableF64List._(buffer, offsetInBytes, length);
 
   @override
-  _F64List _createList(int length) => _F64List(length);
+  F64List _createList(int length) => F64List(length);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2843,13 +2844,13 @@ class _F64List extends _WasmF64ArrayBase
 // Unmodifiable fast lists
 //
 
-class _UnmodifiableI8List extends _I8List
+class UnmodifiableI8List extends I8List
     with _UnmodifiableIntListMixin
     implements UnmodifiableInt8ListView {
-  _UnmodifiableI8List(_I8List list)
+  UnmodifiableI8List(I8List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableI8List._(
+  UnmodifiableI8List._(
       WasmIntArray<WasmI8> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2857,13 +2858,13 @@ class _UnmodifiableI8List extends _I8List
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableU8List extends _U8List
+class UnmodifiableU8List extends U8List
     with _UnmodifiableIntListMixin
     implements UnmodifiableUint8ListView {
-  _UnmodifiableU8List(_U8List list)
+  UnmodifiableU8List(U8List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableU8List._(
+  UnmodifiableU8List._(
       WasmIntArray<WasmI8> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2871,13 +2872,13 @@ class _UnmodifiableU8List extends _U8List
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableU8ClampedList extends _U8ClampedList
+class UnmodifiableU8ClampedList extends U8ClampedList
     with _UnmodifiableIntListMixin
     implements UnmodifiableUint8ClampedListView {
-  _UnmodifiableU8ClampedList(_U8ClampedList list)
+  UnmodifiableU8ClampedList(U8ClampedList list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableU8ClampedList._(
+  UnmodifiableU8ClampedList._(
       WasmIntArray<WasmI8> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2885,13 +2886,13 @@ class _UnmodifiableU8ClampedList extends _U8ClampedList
   _I8ByteBuffer get buffer => _I8ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableI16List extends _I16List
+class UnmodifiableI16List extends I16List
     with _UnmodifiableIntListMixin
     implements UnmodifiableInt16ListView {
-  _UnmodifiableI16List(_I16List list)
+  UnmodifiableI16List(I16List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableI16List._(
+  UnmodifiableI16List._(
       WasmIntArray<WasmI16> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2899,13 +2900,13 @@ class _UnmodifiableI16List extends _I16List
   _I16ByteBuffer get buffer => _I16ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableU16List extends _U16List
+class UnmodifiableU16List extends U16List
     with _UnmodifiableIntListMixin
     implements UnmodifiableUint16ListView {
-  _UnmodifiableU16List(_U16List list)
+  UnmodifiableU16List(U16List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableU16List._(
+  UnmodifiableU16List._(
       WasmIntArray<WasmI16> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2913,13 +2914,13 @@ class _UnmodifiableU16List extends _U16List
   _I16ByteBuffer get buffer => _I16ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableI32List extends _I32List
+class UnmodifiableI32List extends I32List
     with _UnmodifiableIntListMixin
     implements UnmodifiableInt32ListView {
-  _UnmodifiableI32List(_I32List list)
+  UnmodifiableI32List(I32List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableI32List._(
+  UnmodifiableI32List._(
       WasmIntArray<WasmI32> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2927,13 +2928,13 @@ class _UnmodifiableI32List extends _I32List
   _I32ByteBuffer get buffer => _I32ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableU32List extends _U32List
+class UnmodifiableU32List extends U32List
     with _UnmodifiableIntListMixin
     implements UnmodifiableUint32ListView {
-  _UnmodifiableU32List(_U32List list)
+  UnmodifiableU32List(U32List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableU32List._(
+  UnmodifiableU32List._(
       WasmIntArray<WasmI32> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2941,13 +2942,13 @@ class _UnmodifiableU32List extends _U32List
   _I32ByteBuffer get buffer => _I32ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableI64List extends _I64List
+class UnmodifiableI64List extends I64List
     with _UnmodifiableIntListMixin
     implements UnmodifiableInt64ListView {
-  _UnmodifiableI64List(_I64List list)
+  UnmodifiableI64List(I64List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableI64List._(
+  UnmodifiableI64List._(
       WasmIntArray<WasmI64> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2955,13 +2956,13 @@ class _UnmodifiableI64List extends _I64List
   _I64ByteBuffer get buffer => _I64ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableU64List extends _U64List
+class UnmodifiableU64List extends U64List
     with _UnmodifiableIntListMixin
     implements UnmodifiableUint64ListView {
-  _UnmodifiableU64List(_U64List list)
+  UnmodifiableU64List(U64List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableU64List._(
+  UnmodifiableU64List._(
       WasmIntArray<WasmI64> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2969,13 +2970,13 @@ class _UnmodifiableU64List extends _U64List
   _I64ByteBuffer get buffer => _I64ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableF32List extends _F32List
+class UnmodifiableF32List extends F32List
     with _UnmodifiableDoubleListMixin
     implements UnmodifiableFloat32ListView {
-  _UnmodifiableF32List(_F32List list)
+  UnmodifiableF32List(F32List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableF32List._(
+  UnmodifiableF32List._(
       WasmFloatArray<WasmF32> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -2983,13 +2984,13 @@ class _UnmodifiableF32List extends _F32List
   _F32ByteBuffer get buffer => _F32ByteBuffer._(_data, false);
 }
 
-class _UnmodifiableF64List extends _F64List
+class UnmodifiableF64List extends F64List
     with _UnmodifiableDoubleListMixin
     implements UnmodifiableFloat64ListView {
-  _UnmodifiableF64List(_F64List list)
+  UnmodifiableF64List(F64List list)
       : super._(list._data, list._offsetInElements, list.length);
 
-  _UnmodifiableF64List._(
+  UnmodifiableF64List._(
       WasmFloatArray<WasmF64> data, int offsetInElements, int length)
       : super._(data, offsetInElements, length);
 
@@ -3022,7 +3023,7 @@ class _SlowListBase {
 class _SlowI8List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I8List>,
+        _TypedIntListMixin<I8List>,
         _TypedListCommonOperationsMixin
     implements Int8List {
   _SlowI8List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3032,10 +3033,10 @@ class _SlowI8List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowI8List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowI8List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowI8List._(buffer, offsetInBytes, length);
 
   @override
-  _I8List _createList(int length) => _I8List(length);
+  I8List _createList(int length) => I8List(length);
 
   @override
   int get elementSizeInBytes => Int8List.bytesPerElement;
@@ -3056,7 +3057,7 @@ class _SlowI8List extends _SlowListBase
 class _SlowU8List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U8List>,
+        _TypedIntListMixin<U8List>,
         _TypedListCommonOperationsMixin
     implements Uint8List {
   _SlowU8List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3066,10 +3067,10 @@ class _SlowU8List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowU8List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowU8List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowU8List._(buffer, offsetInBytes, length);
 
   @override
-  _U8List _createList(int length) => _U8List(length);
+  U8List _createList(int length) => U8List(length);
 
   @override
   int get elementSizeInBytes => Uint8List.bytesPerElement;
@@ -3090,7 +3091,7 @@ class _SlowU8List extends _SlowListBase
 class _SlowU8ClampedList extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U8ClampedList>,
+        _TypedIntListMixin<U8ClampedList>,
         _TypedListCommonOperationsMixin
     implements Uint8ClampedList {
   _SlowU8ClampedList._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3100,10 +3101,10 @@ class _SlowU8ClampedList extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowU8ClampedList._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowU8ClampedList._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowU8ClampedList._(buffer, offsetInBytes, length);
 
   @override
-  _U8ClampedList _createList(int length) => _U8ClampedList(length);
+  U8ClampedList _createList(int length) => U8ClampedList(length);
 
   @override
   int get elementSizeInBytes => Uint8ClampedList.bytesPerElement;
@@ -3125,7 +3126,7 @@ class _SlowU8ClampedList extends _SlowListBase
 class _SlowI16List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I16List>,
+        _TypedIntListMixin<I16List>,
         _TypedListCommonOperationsMixin
     implements Int16List {
   _SlowI16List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3135,10 +3136,10 @@ class _SlowI16List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowI16List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowI16List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowI16List._(buffer, offsetInBytes, length);
 
   @override
-  _I16List _createList(int length) => _I16List(length);
+  I16List _createList(int length) => I16List(length);
 
   @override
   int get elementSizeInBytes => Int16List.bytesPerElement;
@@ -3161,7 +3162,7 @@ class _SlowI16List extends _SlowListBase
 class _SlowU16List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U16List>,
+        _TypedIntListMixin<U16List>,
         _TypedListCommonOperationsMixin
     implements Uint16List {
   _SlowU16List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3171,10 +3172,10 @@ class _SlowU16List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowU16List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowU16List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowU16List._(buffer, offsetInBytes, length);
 
   @override
-  _U16List _createList(int length) => _U16List(length);
+  U16List _createList(int length) => U16List(length);
 
   @override
   int get elementSizeInBytes => Uint16List.bytesPerElement;
@@ -3197,7 +3198,7 @@ class _SlowU16List extends _SlowListBase
 class _SlowI32List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I32List>,
+        _TypedIntListMixin<I32List>,
         _TypedListCommonOperationsMixin
     implements Int32List {
   _SlowI32List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3207,10 +3208,10 @@ class _SlowI32List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowI32List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowI32List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowI32List._(buffer, offsetInBytes, length);
 
   @override
-  _I32List _createList(int length) => _I32List(length);
+  I32List _createList(int length) => I32List(length);
 
   @override
   int get elementSizeInBytes => Int32List.bytesPerElement;
@@ -3233,7 +3234,7 @@ class _SlowI32List extends _SlowListBase
 class _SlowU32List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U32List>,
+        _TypedIntListMixin<U32List>,
         _TypedListCommonOperationsMixin
     implements Uint32List {
   _SlowU32List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3243,10 +3244,10 @@ class _SlowU32List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowU32List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowU32List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowU32List._(buffer, offsetInBytes, length);
 
   @override
-  _U32List _createList(int length) => _U32List(length);
+  U32List _createList(int length) => U32List(length);
 
   @override
   int get elementSizeInBytes => Uint32List.bytesPerElement;
@@ -3269,7 +3270,7 @@ class _SlowU32List extends _SlowListBase
 class _SlowI64List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_I64List>,
+        _TypedIntListMixin<I64List>,
         _TypedListCommonOperationsMixin
     implements Int64List {
   _SlowI64List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3279,10 +3280,10 @@ class _SlowI64List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowI64List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowI64List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowI64List._(buffer, offsetInBytes, length);
 
   @override
-  _I64List _createList(int length) => _I64List(length);
+  I64List _createList(int length) => I64List(length);
 
   @override
   int get elementSizeInBytes => Int64List.bytesPerElement;
@@ -3305,7 +3306,7 @@ class _SlowI64List extends _SlowListBase
 class _SlowU64List extends _SlowListBase
     with
         _IntListMixin,
-        _TypedIntListMixin<_U64List>,
+        _TypedIntListMixin<U64List>,
         _TypedListCommonOperationsMixin
     implements Uint64List {
   _SlowU64List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3315,10 +3316,10 @@ class _SlowU64List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowU64List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowU64List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowU64List._(buffer, offsetInBytes, length);
 
   @override
-  _U64List _createList(int length) => _U64List(length);
+  U64List _createList(int length) => U64List(length);
 
   @override
   int get elementSizeInBytes => Uint64List.bytesPerElement;
@@ -3341,7 +3342,7 @@ class _SlowU64List extends _SlowListBase
 class _SlowF32List extends _SlowListBase
     with
         _DoubleListMixin,
-        _TypedDoubleListMixin<_F32List>,
+        _TypedDoubleListMixin<F32List>,
         _TypedListCommonOperationsMixin
     implements Float32List {
   _SlowF32List._(ByteBuffer buffer, int offsetInBytes, int length)
@@ -3351,10 +3352,10 @@ class _SlowF32List extends _SlowListBase
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
           ? _SlowF32List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowF32List._(buffer, offsetInBytes, length);
+          : UnmodifiableSlowF32List._(buffer, offsetInBytes, length);
 
   @override
-  _F32List _createList(int length) => _F32List(length);
+  F32List _createList(int length) => F32List(length);
 
   @override
   int get elementSizeInBytes => Float32List.bytesPerElement;
@@ -3374,23 +3375,23 @@ class _SlowF32List extends _SlowListBase
   }
 }
 
-class _SlowF64List extends _SlowListBase
+class SlowF64List extends _SlowListBase
     with
         _DoubleListMixin,
-        _TypedDoubleListMixin<_F64List>,
+        _TypedDoubleListMixin<F64List>,
         _TypedListCommonOperationsMixin
     implements Float64List {
-  _SlowF64List._(ByteBuffer buffer, int offsetInBytes, int length)
+  SlowF64List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super(buffer, offsetInBytes, length);
 
-  factory _SlowF64List._withMutability(
+  factory SlowF64List._withMutability(
           ByteBuffer buffer, int offsetInBytes, int length, bool mutable) =>
       mutable
-          ? _SlowF64List._(buffer, offsetInBytes, length)
-          : _UnmodifiableSlowF64List._(buffer, offsetInBytes, length);
+          ? SlowF64List._(buffer, offsetInBytes, length)
+          : UnmodifiableSlowF64List._(buffer, offsetInBytes, length);
 
   @override
-  _F64List _createList(int length) => _F64List(length);
+  F64List _createList(int length) => F64List(length);
 
   @override
   int get elementSizeInBytes => Float64List.bytesPerElement;
@@ -3416,116 +3417,116 @@ class _SlowF64List extends _SlowListBase
 
 mixin _UnmodifiableSlowListMixin on _SlowListBase {
   ByteBuffer get buffer =>
-      unsafeCast<_ByteBufferBase>(super.buffer)._immutable();
+      unsafeCast<ByteBufferBase>(super.buffer)._immutable();
 }
 
-class _UnmodifiableSlowI8List extends _SlowI8List
+class UnmodifiableSlowI8List extends _SlowI8List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableInt8ListView {
-  _UnmodifiableSlowI8List(Int8List list)
+  UnmodifiableSlowI8List(Int8List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowI8List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowI8List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowU8List extends _SlowU8List
+class UnmodifiableSlowU8List extends _SlowU8List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableUint8ListView {
-  _UnmodifiableSlowU8List(Uint8List list)
+  UnmodifiableSlowU8List(Uint8List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowU8List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowU8List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowU8ClampedList extends _SlowU8ClampedList
+class UnmodifiableSlowU8ClampedList extends _SlowU8ClampedList
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableUint8ClampedListView {
-  _UnmodifiableSlowU8ClampedList(Uint8ClampedList list)
+  UnmodifiableSlowU8ClampedList(Uint8ClampedList list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowU8ClampedList._(
+  UnmodifiableSlowU8ClampedList._(
       ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowI16List extends _SlowI16List
+class UnmodifiableSlowI16List extends _SlowI16List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableInt16ListView {
-  _UnmodifiableSlowI16List(Int16List list)
+  UnmodifiableSlowI16List(Int16List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowI16List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowI16List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowU16List extends _SlowU16List
+class UnmodifiableSlowU16List extends _SlowU16List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableUint16ListView {
-  _UnmodifiableSlowU16List(Uint16List list)
+  UnmodifiableSlowU16List(Uint16List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowU16List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowU16List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowI32List extends _SlowI32List
+class UnmodifiableSlowI32List extends _SlowI32List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableInt32ListView {
-  _UnmodifiableSlowI32List(Int32List list)
+  UnmodifiableSlowI32List(Int32List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowI32List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowI32List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowU32List extends _SlowU32List
+class UnmodifiableSlowU32List extends _SlowU32List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableUint32ListView {
-  _UnmodifiableSlowU32List(Uint32List list)
+  UnmodifiableSlowU32List(Uint32List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowU32List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowU32List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowI64List extends _SlowI64List
+class UnmodifiableSlowI64List extends _SlowI64List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableInt64ListView {
-  _UnmodifiableSlowI64List(Int64List list)
+  UnmodifiableSlowI64List(Int64List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowI64List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowI64List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowU64List extends _SlowU64List
+class UnmodifiableSlowU64List extends _SlowU64List
     with _UnmodifiableIntListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableUint64ListView {
-  _UnmodifiableSlowU64List(Uint64List list)
+  UnmodifiableSlowU64List(Uint64List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowU64List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowU64List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowF32List extends _SlowF32List
+class UnmodifiableSlowF32List extends _SlowF32List
     with _UnmodifiableDoubleListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableFloat32ListView {
-  _UnmodifiableSlowF32List(Float32List list)
+  UnmodifiableSlowF32List(Float32List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowF32List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowF32List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
 
-class _UnmodifiableSlowF64List extends _SlowF64List
+class UnmodifiableSlowF64List extends SlowF64List
     with _UnmodifiableDoubleListMixin, _UnmodifiableSlowListMixin
     implements UnmodifiableFloat64ListView {
-  _UnmodifiableSlowF64List(Float64List list)
+  UnmodifiableSlowF64List(Float64List list)
       : super._(list.buffer, list.offsetInBytes, list.length);
 
-  _UnmodifiableSlowF64List._(ByteBuffer buffer, int offsetInBytes, int length)
+  UnmodifiableSlowF64List._(ByteBuffer buffer, int offsetInBytes, int length)
       : super._(buffer, offsetInBytes, length);
 }
