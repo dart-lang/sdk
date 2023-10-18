@@ -100,7 +100,10 @@ class InterfaceLeastUpperBoundHelper {
     }
 
     var result = _computeLeastUpperBound(type1, type2);
-    return result.withNullability(nullability);
+    if (nullability != NullabilitySuffix.none) {
+      result = result.withNullability(nullability);
+    }
+    return result;
   }
 
   /// Return all of the superinterfaces of the given [type].
@@ -118,38 +121,29 @@ class InterfaceLeastUpperBoundHelper {
     }
   }
 
-  /// Compute the least upper bound of types [i] and [j], both of which are
-  /// known to be interface types.
-  ///
-  /// In the event that the algorithm fails (which might occur due to a bug in
-  /// the analyzer), `null` is returned.
-  InterfaceTypeImpl _computeLeastUpperBound(
-    InterfaceTypeImpl i,
-    InterfaceTypeImpl j,
-  ) {
-    // compute set of supertypes
-    var si = computeSuperinterfaceSet(i);
-    var sj = computeSuperinterfaceSet(j);
-
-    // union si with i and sj with j
-    si.add(i);
-    sj.add(j);
-
-    // compute intersection, reference as set 's'
-    var s = si.intersection(sj).toList();
-    return _computeTypeAtMaxUniqueDepth(s);
-  }
-
-  /// Return the length of the longest inheritance path from the [element] to
-  /// Object.
-  @visibleForTesting
-  static int computeLongestInheritancePathToObject(InterfaceElement element) {
-    return _computeLongestInheritancePathToObject(
-        element, <InterfaceElement>{});
-  }
-
   /// Add all of the superinterfaces of the given [type] to the given [set].
-  static void _addSuperinterfaces(Set<InterfaceType> set, InterfaceType type) {
+  void _addSuperinterfaces(Set<InterfaceType> set, InterfaceType type) {
+    type as InterfaceTypeImpl;
+
+    if (type.isDartCoreObjectNone || type.isDartCoreNull) {
+      set.add(typeSystem.objectQuestion);
+      return;
+    }
+
+    final representationType = type.representationType;
+    if (representationType != null) {
+      final first = type.interfaces.singleOrNull;
+      if (first != null && first.isDartCoreObject) {
+        final replacement = typeSystem.isNonNullable(representationType)
+            ? typeSystem.objectNone
+            : typeSystem.objectQuestion;
+        if (set.add(replacement)) {
+          _addSuperinterfaces(set, replacement);
+        }
+        return;
+      }
+    }
+
     for (var interface in type.interfaces) {
       if (!interface.isDartCoreFunction) {
         if (set.add(interface)) {
@@ -182,6 +176,35 @@ class InterfaceLeastUpperBoundHelper {
     }
   }
 
+  /// Compute the least upper bound of types [i] and [j], both of which are
+  /// known to be interface types.
+  ///
+  /// In the event that the algorithm fails (which might occur due to a bug in
+  /// the analyzer), `null` is returned.
+  InterfaceTypeImpl _computeLeastUpperBound(
+    InterfaceTypeImpl i,
+    InterfaceTypeImpl j,
+  ) {
+    // compute set of supertypes
+    var si = computeSuperinterfaceSet(i);
+    var sj = computeSuperinterfaceSet(j);
+
+    // union si with i and sj with j
+    si.add(i);
+    sj.add(j);
+
+    // compute intersection, reference as set 's'
+    var s = si.intersection(sj).toList();
+    return _computeTypeAtMaxUniqueDepth(s);
+  }
+
+  /// Return the length of the longest inheritance path from the [type] to
+  /// Object.
+  @visibleForTesting
+  static int computeLongestInheritancePathToObject(InterfaceType type) {
+    return _computeLongestInheritancePathToObject(type, <InterfaceElement>{});
+  }
+
   static NullabilitySuffix _chooseNullability(
     InterfaceTypeImpl type1,
     InterfaceTypeImpl type2,
@@ -204,11 +227,21 @@ class InterfaceLeastUpperBoundHelper {
   /// is used to prevent infinite recursion in the case of a cyclic type
   /// structure.
   static int _computeLongestInheritancePathToObject(
-      InterfaceElement element, Set<InterfaceElement> visitedElements) {
-    // Object case
-    if (element is ClassElement && element.isDartCoreObject ||
-        visitedElements.contains(element)) {
+      InterfaceType type, Set<InterfaceElement> visitedElements) {
+    final element = type.element;
+    // recursion
+    if (visitedElements.contains(element)) {
       return 0;
+    }
+    // Null, direct subtype of Object?
+    if (type.isDartCoreNull) {
+      return 1;
+    }
+    // Object case
+    if (element is ClassElement) {
+      if (element.isDartCoreObject) {
+        return type.nullabilitySuffix == NullabilitySuffix.none ? 1 : 0;
+      }
     }
     int longestPath = 0;
     try {
@@ -219,7 +252,7 @@ class InterfaceLeastUpperBoundHelper {
       if (element is MixinElement) {
         for (InterfaceType interface in element.superclassConstraints) {
           var pathLength = _computeLongestInheritancePathToObject(
-              interface.element, visitedElements);
+              interface, visitedElements);
           longestPath = max(longestPath, 1 + pathLength);
         }
       }
@@ -227,8 +260,8 @@ class InterfaceLeastUpperBoundHelper {
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.interfaces) {
-        var pathLength = _computeLongestInheritancePathToObject(
-            interface.element, visitedElements);
+        var pathLength =
+            _computeLongestInheritancePathToObject(interface, visitedElements);
         longestPath = max(longestPath, 1 + pathLength);
       }
 
@@ -241,15 +274,15 @@ class InterfaceLeastUpperBoundHelper {
         return longestPath;
       }
 
-      var superLength = _computeLongestInheritancePathToObject(
-          supertype.element, visitedElements);
+      var superLength =
+          _computeLongestInheritancePathToObject(supertype, visitedElements);
 
       var mixins = element.mixins;
       for (var i = 0; i < mixins.length; i++) {
         // class _X&S&M extends S implements M {}
         // So, we choose the maximum length from S and M.
         var mixinLength = _computeLongestInheritancePathToObject(
-          mixins[i].element,
+          mixins[i],
           visitedElements,
         );
         superLength = max(superLength, mixinLength);
@@ -273,7 +306,7 @@ class InterfaceLeastUpperBoundHelper {
     List<int> depths = List<int>.filled(types.length, 0);
     int maxDepth = 0;
     for (int i = 0; i < types.length; i++) {
-      depths[i] = computeLongestInheritancePathToObject(types[i].element);
+      depths[i] = computeLongestInheritancePathToObject(types[i]);
       if (depths[i] > maxDepth) {
         maxDepth = depths[i];
       }

@@ -20,6 +20,22 @@ class UnreachableFromMainTest extends LintRuleTest {
   @override
   String get lintRule => 'unreachable_from_main';
 
+  test_class_instanceField_reachable_matchedInPattern() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  var x = switch (C(1)) {
+    C(:final f) => f.round(),
+  };
+  print(x);
+}
+
+class C {
+  final int f;
+  C(this.f);
+}
+''');
+  }
+
   test_class_instanceField_reachable_overrides_local() async {
     await assertDiagnostics(r'''
 void main() {
