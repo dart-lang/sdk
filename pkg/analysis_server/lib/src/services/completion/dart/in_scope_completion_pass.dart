@@ -529,6 +529,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset >= node.representation.end &&
         (offset <= node.leftBracket.offset || node.leftBracket.isSynthetic)) {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
+    } else if (offset >= node.leftBracket.end &&
+        offset <= node.rightBracket.offset) {
+      _forExtensionTypeMember();
     }
   }
 
@@ -1566,6 +1569,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of an extension member.
   void _forExtensionMember() {
     keywordHelper.addExtensionMemberKeywords(isStatic: false);
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of an extension type member.
+  void _forExtensionTypeMember() {
+    keywordHelper.addExtensionTypeMemberKeywords(isStatic: false);
   }
 
   /// Return `true` if the preceding member is incomplete and no other
