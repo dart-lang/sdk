@@ -400,13 +400,6 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
     Token::Kind op_kind,
     Value* left_value,
     Value* right_value) {
-  if (!right_value->BindsToConstant()) {
-    return nullptr;
-  }
-
-  const Object& rhs = right_value->BoundConstant();
-  const int64_t value = Integer::Cast(rhs).AsInt64Value();  // smi and mint
-
   auto unboxed_constant = [&](int64_t value) -> Definition* {
     ASSERT(compiler::target::IsSmi(value));
 #if defined(TARGET_ARCH_ARM)
@@ -421,52 +414,52 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
 #endif
   };
 
+  if (!right_value->BindsToConstant()) {
+    return nullptr;
+  }
+
+  const Object& rhs = right_value->BoundConstant();
+  const int64_t value = Integer::Cast(rhs).AsInt64Value();  // smi and mint
+
+  if (value == kMinInt64) {
+    return nullptr;  // The absolute value can't be held in an int64_t.
+  }
+
+  const int64_t magnitude = Utils::Abs(value);
+  // The replacements for both operations assume that the magnitude of the
+  // value is a power of two and that the mask derived from the magnitude
+  // can fit in a Smi.
+  if (!Utils::IsPowerOfTwo(magnitude) ||
+      !compiler::target::IsSmi(magnitude - 1)) {
+    return nullptr;
+  }
+
   if (op_kind == Token::kMOD) {
     // Modulo against a constant power-of-two can be optimized into a mask.
     // x % y -> x & (|y| - 1)  for smi masks only
-
-    if (value == kMinInt64) {
-      return nullptr;  // non-smi mask
-    }
-    const int64_t modulus = Utils::Abs(value);
-    if (!Utils::IsPowerOfTwo(modulus) ||
-        !compiler::target::IsSmi(modulus - 1)) {
-      return nullptr;
-    }
-
     left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
 
-    Definition* right_definition = unboxed_constant(modulus - 1);
-    if (modulus == 1) return right_definition;
+    Definition* right_definition = unboxed_constant(magnitude - 1);
+    if (magnitude == 1) return right_definition;
     InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
     right_value = new (Z) Value(right_definition);
     return new (Z)
         BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
                            DeoptId::kNone, Instruction::kNotSpeculative);
-
   } else {
     ASSERT_EQUAL(op_kind, Token::kTRUNCDIV);
-    if (value == kMinInt64) {
-      return nullptr;  // Can't represent absolute value of divisor in 64 bits.
-    }
-    // The algorithm below assumes the divisor is a positive power of two,
-    // but if it's negative, then we just need to negate the final result.
-    const int64_t divisor = Utils::Abs(value);
-    const bool negate = value < 0;
-
 #if !defined(TARGET_ARCH_IS_32_BIT)
     // If BinaryInt64Op(kTRUNCDIV, ...) is supported, then only perform the
     // simplest replacements and use the instruction otherwise.
-    if (divisor != 1) return nullptr;
-#else
-    // We're replacing a runtime call, so perform any replacement we can
-    // before giving up and leaving the runtime call in place.
-    if (!Utils::IsPowerOfTwo(divisor)) return nullptr;
+    if (magnitude != 1) return nullptr;
 #endif
 
+    // If the divisor is negative, then we need to negate the final result.
+    const bool negate = value < 0;
     Definition* result = nullptr;
+
     left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
-    if (divisor > 1) {
+    if (magnitude > 1) {
       // For two's complement signed arithmetic where the bit width is k
       // and the divisor is 2^n for some n in [0, k), we can perform a simple
       // shift if m is non-negative:
@@ -488,7 +481,7 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
                             new (Z) Value(sign_bit_position), DeoptId::kNone);
       InsertBefore(instr, sign_bit_extended, /*env=*/nullptr,
                    FlowGraph::kValue);
-      auto* rounding_adjustment = unboxed_constant(divisor - 1);
+      auto* rounding_adjustment = unboxed_constant(magnitude - 1);
       InsertBefore(instr, rounding_adjustment, /*env=*/nullptr,
                    FlowGraph::kValue);
       rounding_adjustment = new (Z)
@@ -504,13 +497,13 @@ Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
       InsertBefore(instr, left_definition, /*env=*/nullptr, FlowGraph::kValue);
       left_value = new (Z) Value(left_definition);
       auto* const right_definition =
-          unboxed_constant(Utils::ShiftForPowerOfTwo(divisor));
+          unboxed_constant(Utils::ShiftForPowerOfTwo(magnitude));
       InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
       right_value = new (Z) Value(right_definition);
       result = new (Z) ShiftInt64OpInstr(Token::kSHR, left_value, right_value,
                                          DeoptId::kNone);
     } else {
-      ASSERT_EQUAL(divisor, 1);
+      ASSERT_EQUAL(magnitude, 1);
       // No division needed, just redefine the value.
       result = new (Z) RedefinitionInstr(left_value);
     }

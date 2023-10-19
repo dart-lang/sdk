@@ -156,6 +156,17 @@ doTruncDivConstants() {
   Expect.equals(1, truncdiv(maxInt32 + 1, maxInt32));
   Expect.equals(-1, truncdiv(minInt32 - 1, maxInt32));
   Expect.equals(-1, truncdiv(minInt32 + 1, maxInt32));
+
+  // Regression test for dartbug.com/53801 on 32-bit architectures.
+  Expect.equals(0, truncdiv((maxInt32 + 1) - 1, maxInt32 + 1));
+  Expect.equals(1, truncdiv((maxInt32 + 1) + 0, maxInt32 + 1));
+  Expect.equals(1, truncdiv((maxInt32 + 1) + 1, maxInt32 + 1));
+  Expect.equals(0, truncdiv(((maxInt32 + 1) << 3) - 1, (maxInt32 + 1) << 3));
+  Expect.equals(1, truncdiv(((maxInt32 + 1) << 3) + 0, (maxInt32 + 1) << 3));
+  Expect.equals(1, truncdiv(((maxInt32 + 1) << 3) + 1, (maxInt32 + 1) << 3));
+  Expect.equals(0, truncdiv(((maxInt64 >> 1) + 1) - 1, (maxInt64 >> 1) + 1));
+  Expect.equals(1, truncdiv(((maxInt64 >> 1) + 1) + 0, (maxInt64 >> 1) + 1));
+  Expect.equals(1, truncdiv(((maxInt64 >> 1) + 1) + 1, (maxInt64 >> 1) + 1));
 }
 
 int acc = -1;
