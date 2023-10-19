@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/super_context.dart';
 
 /// Helper for resolving [BinaryExpression]s.
 class BinaryExpressionResolver {
@@ -270,6 +271,18 @@ class BinaryExpressionResolver {
       {required DartType? contextType}) {
     _resolver.analyzeExpression(node.leftOperand, null);
     var left = _resolver.popRewrite()!;
+
+    if (left is SuperExpressionImpl) {
+      if (SuperContext.of(left) != SuperContext.valid) {
+        _resolver.analyzeExpression(
+          node.rightOperand,
+          InvalidTypeImpl.instance,
+        );
+        _resolver.popRewrite();
+        node.staticType = InvalidTypeImpl.instance;
+        return;
+      }
+    }
 
     var operator = node.operator;
     _resolveUserDefinableElement(node, operator.lexeme);

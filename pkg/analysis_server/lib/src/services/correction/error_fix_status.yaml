@@ -1488,6 +1488,12 @@ CompileTimeErrorCode.SUPER_IN_EXTENSION:
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what function they were trying to invoke
     and why in order to really fix the issue.
+CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE:
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what function they were trying to invoke
+    and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
   status: noFix
   notes: |-

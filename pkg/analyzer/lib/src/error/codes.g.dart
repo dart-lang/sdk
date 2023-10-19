@@ -4855,6 +4855,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode SUPER_IN_EXTENSION_TYPE =
+      CompileTimeErrorCode(
+    'SUPER_IN_EXTENSION_TYPE',
+    "The 'super' keyword can't be used in an extension type because an "
+        "extension type doesn't have a superclass.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT =
       CompileTimeErrorCode(
     'SUPER_IN_INVALID_CONTEXT',

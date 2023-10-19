@@ -798,6 +798,7 @@ import 'super_formal_parameter_without_associated_positional_test.dart'
     as super_formal_parameter_without_associated_positional;
 import 'super_in_enum_constructor_test.dart' as super_in_enum_constructor;
 import 'super_in_extension_test.dart' as super_in_extension;
+import 'super_in_extension_type_test.dart' as super_in_extension_type;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
     as super_in_redirecting_constructor;
@@ -1429,6 +1430,7 @@ main() {
     super_formal_parameter_without_associated_positional.main();
     super_in_enum_constructor.main();
     super_in_extension.main();
+    super_in_extension_type.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();
     super_initializer_in_object.main();

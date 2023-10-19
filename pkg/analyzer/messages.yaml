@@ -15241,6 +15241,9 @@ CompileTimeErrorCode:
         String get displayString => toString();
       }
       ```
+  SUPER_IN_EXTENSION_TYPE:
+    problemMessage: "The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass."
+    comment: No parameters.
   SUPER_IN_INVALID_CONTEXT:
     problemMessage: "Invalid context for 'super' invocation."
     hasPublishedDocs: true

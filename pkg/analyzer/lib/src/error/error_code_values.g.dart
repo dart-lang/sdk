@@ -495,6 +495,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
   CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR,
   CompileTimeErrorCode.SUPER_IN_EXTENSION,
+  CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE,
   CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
