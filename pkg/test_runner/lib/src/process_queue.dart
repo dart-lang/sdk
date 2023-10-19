@@ -645,8 +645,12 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps.add(() => device.pushCachedData('$buildPath/dart_precompiled_runtime',
+    steps.add(() => device.pushCachedData(
+        '$buildPath/exe.stripped/dart_precompiled_runtime',
         '$devicedir/dart_precompiled_runtime'));
+    steps.add(() => device.pushCachedData(
+        '$buildPath/dart_precompiled_runtime.sym',
+        '$devicedir/dart_precompiled_runtime.sym'));
     steps.add(
         () => device.pushCachedData(processTest, '$devicedir/process_test'));
     steps.add(() => device.pushCachedData(

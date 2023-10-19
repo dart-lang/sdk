@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
-import '../../options.dart';
+import '../../../options.dart';
 
 class _Reader {
   final Procedure _procedure;

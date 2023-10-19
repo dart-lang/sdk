@@ -20,6 +20,7 @@ enum FeatureStatus {
   canary,
 }
 
+// TODO(fishythefish): Add an API to associate numbered phases with stages.
 enum Dart2JSStage {
   all(null,
       fromDillFlag: Dart2JSStage.allFromDill,
@@ -76,6 +77,21 @@ enum Dart2JSStage {
   bool get shouldComputeModularAnalysis =>
       this == Dart2JSStage.modularAnalysis ||
       this == Dart2JSStage.modularAnalysisFromDill;
+
+  /// Global kernel transformations should be run in phase 0b, i.e. after
+  /// concatenating dills, but before serializing the output of phase 0.
+  /// We also need to include modular analysis, or else the modular test suite
+  /// breaks when it deserializes module data because it reads transformed AST
+  /// nodes when it's expecting untransformed ones.
+  // TODO(fishythefish, natebiggs): Address the modular analysis inconsistency.
+  // Ideally, modular analysis shouldn't require global transformations to be
+  // run again, so we need to either delete modular analysis or make the data
+  // less brittle in the presence of AST modifications.
+  // TODO(fishythefish): Add AST metadata to ensure transformations aren't rerun
+  // unnecessarily.
+  bool get shouldRunGlobalTransforms =>
+      this.index <= Dart2JSStage.modularAnalysisFromDill.index;
+
   bool get canUseModularAnalysis =>
       this == Dart2JSStage.modularAnalysis ||
       this.index >= Dart2JSStage.modularAnalysisFromDill.index;

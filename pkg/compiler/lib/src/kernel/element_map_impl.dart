@@ -41,7 +41,7 @@ import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/elements.dart';
 import '../js_model/locals.dart';
 import '../kernel/dart2js_target.dart';
-import '../kernel/transformations/late_lowering.dart' as late_lowering
+import '../kernel/transformations/modular/late_lowering.dart' as late_lowering
     show
         isBackingFieldForLateInstanceField,
         isBackingFieldForLateFinalInstanceField;
