@@ -20,6 +20,17 @@ testWriteAsBytesSync(dir) {
   Expect.listEquals(expected, f.readAsBytesSync());
 }
 
+void testWriteAsBytesOutsideOf0to256Sync(dir) {
+  final f =
+      new File('${dir.path}${Platform.pathSeparator}outside_bytes_sync.txt');
+  final data = [-256, -255, -1, 0, 255, 256];
+
+  f.writeAsBytesSync(data);
+  final readData = f.readAsBytesSync();
+
+  Expect.listEquals([0, 1, 255, 0, 255, 0], readData);
+}
+
 testWriteAsStringSync(dir) {
   var f = new File('${dir.path}${Platform.pathSeparator}string_sync.txt');
   var data = 'asdf';
@@ -74,6 +85,16 @@ Future testWriteAsBytes(dir) {
     });
   });
   return completer.future;
+}
+
+Future testWriteAsBytesOutsideOf0to256(dir) async {
+  final f = new File('${dir.path}${Platform.pathSeparator}outside_bytes.txt');
+  final data = [-256, -255, -1, 0, 255, 256];
+
+  await f.writeAsBytes(data);
+  final readData = await f.readAsBytes();
+
+  Expect.listEquals([0, 1, 255, 0, 255, 0], readData);
 }
 
 Future testWriteAsString(dir) {
@@ -136,19 +157,19 @@ void testCustomizedSubtypeSync(Directory dir) {
   Expect.listEquals(input, bytes);
 }
 
-main() {
+main() async {
   asyncStart();
   var tempDir = Directory.systemTemp.createTempSync('dart_file_write_as');
   testWriteAsBytesSync(tempDir);
+  testWriteAsBytesOutsideOf0to256Sync(tempDir);
   testWriteAsStringSync(tempDir);
   testWriteAsStringSyncLineEndings(tempDir);
   testWriteWithLargeList(tempDir);
   testWriteAsSubtypeSync(tempDir);
   testCustomizedSubtypeSync(tempDir);
-  testWriteAsBytes(tempDir).then((_) {
-    return testWriteAsString(tempDir);
-  }).then((_) {
-    tempDir.deleteSync(recursive: true);
-    asyncEnd();
-  });
+  await testWriteAsBytes(tempDir);
+  await testWriteAsBytesOutsideOf0to256(tempDir);
+  await testWriteAsString(tempDir);
+  tempDir.deleteSync(recursive: true);
+  asyncEnd();
 }
