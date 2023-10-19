@@ -88,75 +88,90 @@ class C2 extends core::Object implements self::C1 {
     ;
 }
 extension type I1(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   method x = self::I1|x;
   method tearoff x = self::I1|get#x;
   constructor • = self::I1|constructor#;
   constructor tearoff • = self::I1|constructor#_#new#tearOff;
 }
 extension type I2(core::int id1) {
+  abstract inline-class-member representation-field get id1() → core::int;
   constructor • = self::I2|constructor#;
   constructor tearoff • = self::I2|constructor#_#new#tearOff;
 }
 extension type I3(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   get property = self::I3|get#property;
   constructor • = self::I3|constructor#;
   constructor tearoff • = self::I3|constructor#_#new#tearOff;
 }
 extension type I4(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   static set property = set self::I4|property;
   constructor • = self::I4|constructor#;
   constructor tearoff • = self::I4|constructor#_#new#tearOff;
 }
 extension type ET1(core::int id) implements self::I1 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static get x = get self::ET1|x;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2(core::int id) implements self::I1 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static method x = self::ET2|x;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
 extension type ET3(core::int id) implements self::I1 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static set x = set self::ET3|x;
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4(core::int id) implements self::I1 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static field x = self::ET4|x;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
 extension type ET5(core::int id) implements self::I2 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static method id1 = self::ET5|id1;
   constructor • = self::ET5|constructor#;
   constructor tearoff • = self::ET5|constructor#_#new#tearOff;
 }
 extension type ET6(core::int id) implements self::I2 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static get id1 = get self::ET6|id1;
   constructor • = self::ET6|constructor#;
   constructor tearoff • = self::ET6|constructor#_#new#tearOff;
 }
 extension type ET7(core::int id) implements self::I2 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static field id1 = self::ET7|id1;
   constructor • = self::ET7|constructor#;
   constructor tearoff • = self::ET7|constructor#_#new#tearOff;
 }
 extension type ET8(core::int id) implements self::I2 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static set id1 = set self::ET8|id1;
   constructor • = self::ET8|constructor#;
   constructor tearoff • = self::ET8|constructor#_#new#tearOff;
 }
 extension type ET9(core::int id) implements self::I3 /* = core::int */, self::I4 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::ET9|constructor#;
   constructor tearoff • = self::ET9|constructor#_#new#tearOff;
 }
 extension type ET10(core::int id) implements self::I3 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   static set property = set self::ET10|property;
   constructor • = self::ET10|constructor#;
   constructor tearoff • = self::ET10|constructor#_#new#tearOff;
 }
 extension type ET11(core::int id) implements self::I4 /* = core::int */ {
+  abstract inline-class-member representation-field get id() → core::int;
   get property = self::ET11|get#property;
   constructor • = self::ET11|constructor#;
   constructor tearoff • = self::ET11|constructor#_#new#tearOff;

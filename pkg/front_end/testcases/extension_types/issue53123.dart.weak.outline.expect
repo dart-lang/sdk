@@ -13,6 +13,7 @@ library;
 import self as self;
 
 extension type V<T extends self::V<T%> /* = T% */ = self::V<dynamic> /* = dynamic */>(T% id) {
+  abstract inline-class-member representation-field get id() → T%;
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }

@@ -123,78 +123,94 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///implements_conflicts_lib.dart";
 
 extension type ExtensionType1a(imp::ClassA c) implements imp::ClassA, imp::ExtensionTypeA /* = imp::ClassA */ {
+  abstract inline-class-member representation-field get c() → imp::ClassA;
   constructor • = self::ExtensionType1a|constructor#;
   constructor tearoff • = self::ExtensionType1a|constructor#_#new#tearOff;
 }
 extension type ExtensionType1b(imp::ClassA c) implements imp::ClassA, imp::ExtensionTypeA /* = imp::ClassA */ {
+  abstract inline-class-member representation-field get c() → imp::ClassA;
   method method1 = self::ExtensionType1b|method1;
   method tearoff method1 = self::ExtensionType1b|get#method1;
   constructor • = self::ExtensionType1b|constructor#;
   constructor tearoff • = self::ExtensionType1b|constructor#_#new#tearOff;
 }
 extension type ExtensionType2a(imp::ClassC c) implements imp::ClassC, imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType2a|constructor#;
   constructor tearoff • = self::ExtensionType2a|constructor#_#new#tearOff;
 }
 extension type ExtensionType2b(imp::ClassC c) implements imp::ClassC, imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   method method1 = self::ExtensionType2b|method1;
   method tearoff method1 = self::ExtensionType2b|get#method1;
   constructor • = self::ExtensionType2b|constructor#;
   constructor tearoff • = self::ExtensionType2b|constructor#_#new#tearOff;
 }
 extension type ExtensionType3a(imp::ClassC c) implements imp::ClassA, imp::ClassB, imp::ExtensionTypeA /* = imp::ClassA */ {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType3a|constructor#;
   constructor tearoff • = self::ExtensionType3a|constructor#_#new#tearOff;
 }
 extension type ExtensionType3b(imp::ClassC c) implements imp::ClassA, imp::ClassB, imp::ExtensionTypeA /* = imp::ClassA */ {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   method method1 = self::ExtensionType3b|method1;
   method tearoff method1 = self::ExtensionType3b|get#method1;
   constructor • = self::ExtensionType3b|constructor#;
   constructor tearoff • = self::ExtensionType3b|constructor#_#new#tearOff;
 }
 extension type ExtensionType4a(imp::ClassC c) implements imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType4a|constructor#;
   constructor tearoff • = self::ExtensionType4a|constructor#_#new#tearOff;
 }
 extension type ExtensionType4b(imp::ClassC c) implements imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   method method1 = self::ExtensionType4b|method1;
   method tearoff method1 = self::ExtensionType4b|get#method1;
   constructor • = self::ExtensionType4b|constructor#;
   constructor tearoff • = self::ExtensionType4b|constructor#_#new#tearOff;
 }
 extension type ExtensionType5(imp::ClassC c) implements imp::ExtensionTypeA1 /* = imp::ClassA */, imp::ExtensionTypeA2 /* = imp::ClassA */ {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType5|constructor#;
   constructor tearoff • = self::ExtensionType5|constructor#_#new#tearOff;
 }
 extension type ExtensionType6a(imp::ClassF c) implements imp::ClassD, imp::ClassE {
+  abstract inline-class-member representation-field get c() → imp::ClassF;
   constructor • = self::ExtensionType6a|constructor#;
   constructor tearoff • = self::ExtensionType6a|constructor#_#new#tearOff;
 }
 extension type ExtensionType6b(imp::ClassF c) implements imp::ClassD, imp::ClassE {
+  abstract inline-class-member representation-field get c() → imp::ClassF;
   method method2 = self::ExtensionType6b|method2;
   method tearoff method2 = self::ExtensionType6b|get#method2;
   constructor • = self::ExtensionType6b|constructor#;
   constructor tearoff • = self::ExtensionType6b|constructor#_#new#tearOff;
 }
 extension type ExtensionType7a(imp::ClassF c) implements imp::ExtensionTypeD /* = imp::ClassD */, imp::ExtensionTypeE /* = imp::ClassE */ {
+  abstract inline-class-member representation-field get c() → imp::ClassF;
   constructor • = self::ExtensionType7a|constructor#;
   constructor tearoff • = self::ExtensionType7a|constructor#_#new#tearOff;
 }
 extension type ExtensionType7b(imp::ClassF c) implements imp::ExtensionTypeD /* = imp::ClassD */, imp::ExtensionTypeE /* = imp::ClassE */ {
+  abstract inline-class-member representation-field get c() → imp::ClassF;
   method method2 = self::ExtensionType7b|method2;
   method tearoff method2 = self::ExtensionType7b|get#method2;
   constructor • = self::ExtensionType7b|constructor#;
   constructor tearoff • = self::ExtensionType7b|constructor#_#new#tearOff;
 }
 extension type ExtensionType8a(imp::ClassI c) implements imp::ClassG, imp::ClassH {
+  abstract inline-class-member representation-field get c() → imp::ClassI;
   constructor • = self::ExtensionType8a|constructor#;
   constructor tearoff • = self::ExtensionType8a|constructor#_#new#tearOff;
 }
 extension type ExtensionType8b(imp::ClassI c) implements imp::ExtensionTypeG /* = imp::ClassG */, imp::ExtensionTypeH /* = imp::ClassH */ {
+  abstract inline-class-member representation-field get c() → imp::ClassI;
   constructor • = self::ExtensionType8b|constructor#;
   constructor tearoff • = self::ExtensionType8b|constructor#_#new#tearOff;
 }
 extension type ExtensionType9(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   method method4 = self::ExtensionType9|method4;
   method tearoff method4 = self::ExtensionType9|get#method4;
   set method4 = self::ExtensionType9|set#method4;
@@ -202,66 +218,79 @@ extension type ExtensionType9(core::int i) {
   constructor tearoff • = self::ExtensionType9|constructor#_#new#tearOff;
 }
 extension type ExtensionType9a(Never n) implements imp::ClassJ, imp::ClassK {
+  abstract inline-class-member representation-field get n() → Never;
   constructor • = self::ExtensionType9a|constructor#;
   constructor tearoff • = self::ExtensionType9a|constructor#_#new#tearOff;
 }
 extension type ExtensionType9b(Never n) implements imp::ClassJ, imp::ClassK {
+  abstract inline-class-member representation-field get n() → Never;
   get method4 = self::ExtensionType9b|get#method4;
   set method4 = self::ExtensionType9b|set#method4;
   constructor • = self::ExtensionType9b|constructor#;
   constructor tearoff • = self::ExtensionType9b|constructor#_#new#tearOff;
 }
 extension type ExtensionType10a(core::int i) implements imp::ExtensionTypeJ /* = core::int */, imp::ExtensionTypeK /* = core::int */ {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ExtensionType10a|constructor#;
   constructor tearoff • = self::ExtensionType10a|constructor#_#new#tearOff;
 }
 extension type ExtensionType10b(core::int i) implements imp::ExtensionTypeJ /* = core::int */, imp::ExtensionTypeK /* = core::int */ {
+  abstract inline-class-member representation-field get i() → core::int;
   get method4 = self::ExtensionType10b|get#method4;
   set method4 = self::ExtensionType10b|set#method4;
   constructor • = self::ExtensionType10b|constructor#;
   constructor tearoff • = self::ExtensionType10b|constructor#_#new#tearOff;
 }
 extension type ExtensionType11(Never n) {
+  abstract inline-class-member representation-field get n() → Never;
   get property = self::ExtensionType11|get#property;
   set property = self::ExtensionType11|set#property;
   constructor • = self::ExtensionType11|constructor#;
   constructor tearoff • = self::ExtensionType11|constructor#_#new#tearOff;
 }
 extension type ExtensionType12a(Never n) implements imp::ClassL, imp::ClassM {
+  abstract inline-class-member representation-field get n() → Never;
   constructor • = self::ExtensionType12a|constructor#;
   constructor tearoff • = self::ExtensionType12a|constructor#_#new#tearOff;
 }
 extension type ExtensionType12b(Never n) implements imp::ClassL {
+  abstract inline-class-member representation-field get n() → Never;
   set property = self::ExtensionType12b|set#property;
   constructor • = self::ExtensionType12b|constructor#;
   constructor tearoff • = self::ExtensionType12b|constructor#_#new#tearOff;
 }
 extension type ExtensionType12c(Never n) implements imp::ClassM {
+  abstract inline-class-member representation-field get n() → Never;
   get property = self::ExtensionType12c|get#property;
   constructor • = self::ExtensionType12c|constructor#;
   constructor tearoff • = self::ExtensionType12c|constructor#_#new#tearOff;
 }
 extension type ExtensionType12d(Never n) implements imp::ClassL, imp::ClassM {
+  abstract inline-class-member representation-field get n() → Never;
   get property = self::ExtensionType12d|get#property;
   set property = self::ExtensionType12d|set#property;
   constructor • = self::ExtensionType12d|constructor#;
   constructor tearoff • = self::ExtensionType12d|constructor#_#new#tearOff;
 }
 extension type ExtensionType13a(core::int i) implements imp::ExtensionTypeL /* = core::int */, imp::ExtensionTypeM /* = core::int */ {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ExtensionType13a|constructor#;
   constructor tearoff • = self::ExtensionType13a|constructor#_#new#tearOff;
 }
 extension type ExtensionType13b(core::int i) implements imp::ExtensionTypeL /* = core::int */ {
+  abstract inline-class-member representation-field get i() → core::int;
   set property = self::ExtensionType13b|set#property;
   constructor • = self::ExtensionType13b|constructor#;
   constructor tearoff • = self::ExtensionType13b|constructor#_#new#tearOff;
 }
 extension type ExtensionType13c(core::int i) implements imp::ExtensionTypeM /* = core::int */ {
+  abstract inline-class-member representation-field get i() → core::int;
   get property = self::ExtensionType13c|get#property;
   constructor • = self::ExtensionType13c|constructor#;
   constructor tearoff • = self::ExtensionType13c|constructor#_#new#tearOff;
 }
 extension type ExtensionType13d(core::int i) implements imp::ExtensionTypeL /* = core::int */, imp::ExtensionTypeM /* = core::int */ {
+  abstract inline-class-member representation-field get i() → core::int;
   get property = self::ExtensionType13d|get#property;
   set property = self::ExtensionType13d|set#property;
   constructor • = self::ExtensionType13d|constructor#;
@@ -536,64 +565,77 @@ class ClassM extends core::Object {
     ;
 }
 extension type ExtensionTypeA(imp::ClassA c) {
+  abstract inline-class-member representation-field get c() → imp::ClassA;
   method method1 = imp::ExtensionTypeA|method1;
   method tearoff method1 = imp::ExtensionTypeA|get#method1;
   constructor • = imp::ExtensionTypeA|constructor#;
   constructor tearoff • = imp::ExtensionTypeA|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeA1(imp::ClassA c) implements imp::ExtensionTypeA /* = imp::ClassA */ {
+  abstract inline-class-member representation-field get c() → imp::ClassA;
   constructor • = imp::ExtensionTypeA1|constructor#;
   constructor tearoff • = imp::ExtensionTypeA1|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeA2(imp::ClassA c) implements imp::ExtensionTypeA /* = imp::ClassA */ {
+  abstract inline-class-member representation-field get c() → imp::ClassA;
   constructor • = imp::ExtensionTypeA2|constructor#;
   constructor tearoff • = imp::ExtensionTypeA2|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeB(imp::ClassB c) {
+  abstract inline-class-member representation-field get c() → imp::ClassB;
   method method1 = imp::ExtensionTypeB|method1;
   method tearoff method1 = imp::ExtensionTypeB|get#method1;
   constructor • = imp::ExtensionTypeB|constructor#;
   constructor tearoff • = imp::ExtensionTypeB|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeC(imp::ClassC c) {
+  abstract inline-class-member representation-field get c() → imp::ClassC;
   method method1 = imp::ExtensionTypeC|method1;
   method tearoff method1 = imp::ExtensionTypeC|get#method1;
   constructor • = imp::ExtensionTypeC|constructor#;
   constructor tearoff • = imp::ExtensionTypeC|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeD(imp::ClassD c) implements imp::ClassD {
+  abstract inline-class-member representation-field get c() → imp::ClassD;
   constructor • = imp::ExtensionTypeD|constructor#;
   constructor tearoff • = imp::ExtensionTypeD|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeE(imp::ClassE c) implements imp::ClassE {
+  abstract inline-class-member representation-field get c() → imp::ClassE;
   constructor • = imp::ExtensionTypeE|constructor#;
   constructor tearoff • = imp::ExtensionTypeE|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeG(imp::ClassG c) implements imp::ClassG {
+  abstract inline-class-member representation-field get c() → imp::ClassG;
   constructor • = imp::ExtensionTypeG|constructor#;
   constructor tearoff • = imp::ExtensionTypeG|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeH(imp::ClassH c) implements imp::ClassH {
+  abstract inline-class-member representation-field get c() → imp::ClassH;
   constructor • = imp::ExtensionTypeH|constructor#;
   constructor tearoff • = imp::ExtensionTypeH|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeJ(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   method method4 = imp::ExtensionTypeJ|method4;
   method tearoff method4 = imp::ExtensionTypeJ|get#method4;
   constructor • = imp::ExtensionTypeJ|constructor#;
   constructor tearoff • = imp::ExtensionTypeJ|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeK(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   set method4 = imp::ExtensionTypeK|set#method4;
   constructor • = imp::ExtensionTypeK|constructor#;
   constructor tearoff • = imp::ExtensionTypeK|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeL(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   get property = imp::ExtensionTypeL|get#property;
   constructor • = imp::ExtensionTypeL|constructor#;
   constructor tearoff • = imp::ExtensionTypeL|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeM(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   set property = imp::ExtensionTypeM|set#property;
   constructor • = imp::ExtensionTypeM|constructor#;
   constructor tearoff • = imp::ExtensionTypeM|constructor#_#new#tearOff;

@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 @core::Deprecated::•("")
 extension type A(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   method m = self::A|m;
   method tearoff m = self::A|get#m;
   constructor • = self::A|constructor#;

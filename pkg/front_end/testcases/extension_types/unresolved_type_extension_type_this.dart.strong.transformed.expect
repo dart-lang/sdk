@@ -13,6 +13,7 @@ library;
 import self as self;
 
 extension type Extension(invalid-type it) {
+  abstract inline-class-member representation-field get it() → invalid-type;
   constructor • = self::Extension|constructor#;
   constructor tearoff • = self::Extension|constructor#_#new#tearOff;
 }

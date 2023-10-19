@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/reference_from_index.dart' show IndexedClass;
+import 'package:kernel/reference_from_index.dart' show IndexedContainer;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/types.dart' show Types;
@@ -59,7 +59,7 @@ Class initializeClass(
     int startCharOffset,
     int charOffset,
     int charEndOffset,
-    IndexedClass? referencesFrom,
+    IndexedContainer? referencesFrom,
     {required bool isAugmentation}) {
   cls ??= new Class(
       name: name,
@@ -69,7 +69,7 @@ Class initializeClass(
       // from index even when available.
       // TODO(johnniwinther): Avoid creating [Class] so early in the builder
       // that we end up creating unneeded nodes.
-      reference: isAugmentation ? null : referencesFrom?.cls.reference,
+      reference: isAugmentation ? null : referencesFrom?.reference,
       fileUri: parent.fileUri);
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -107,7 +107,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? mixedInTypeBuilder;
 
-  final IndexedClass? referencesFromIndexed;
+  final IndexedContainer? referencesFromIndexed;
 
   @override
   final bool isMacro;

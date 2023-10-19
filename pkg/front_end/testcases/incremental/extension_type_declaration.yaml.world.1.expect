@@ -2,6 +2,7 @@ main = main::main;
 library from "org-dartlang-test:///main.dart" as main {
 
   extension type ExtensionType(dart.core::int i) {
+    abstract inline-class-member representation-field get i() → dart.core::int;
     method method = main::ExtensionType|method;
     method tearoff method = main::ExtensionType|get#method;
     get getter = main::ExtensionType|get#getter;

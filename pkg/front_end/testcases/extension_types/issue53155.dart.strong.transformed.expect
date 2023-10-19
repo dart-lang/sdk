@@ -11,6 +11,7 @@ class C<T extends self::V<core::num, core::Object> /* = core::num */> extends co
     ;
 }
 extension type V<X1 extends core::num, X2 extends core::Object>(X1 id) {
+  abstract inline-class-member representation-field get id() → X1;
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }

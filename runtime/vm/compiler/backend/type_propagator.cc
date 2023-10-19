@@ -765,6 +765,12 @@ CompileType CompileType::Object() {
                           kCannotBeSentinel);
 }
 
+bool CompileType::IsObject() const {
+  if (is_nullable()) return false;
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid) return false;
+  return type_ != nullptr && type_->IsObjectType();
+}
+
 intptr_t CompileType::ToCid() {
   if (cid_ == kIllegalCid) {
     // Make sure to initialize cid_ for Null type to consistently return
@@ -1696,7 +1702,7 @@ CompileType AllocateSmallRecordInstr::ComputeType() const {
 }
 
 CompileType LoadUntaggedInstr::ComputeType() const {
-  return CompileType::Dynamic();
+  return CompileType::Object();
 }
 
 CompileType LoadClassIdInstr::ComputeType() const {

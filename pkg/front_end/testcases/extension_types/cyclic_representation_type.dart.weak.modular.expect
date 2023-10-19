@@ -212,122 +212,152 @@ typedef Alias22b = core::int;
 typedef Alias23<T extends self::E23 /* = invalid-type */> = core::List<T%>;
 typedef Alias24<T extends self::E24<T%> /* = invalid-type */ = self::E24<dynamic> /* = invalid-type */> = core::List<T%>;
 extension type E1(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E1 /* = invalid-type */;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
 extension type E2a(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E2b /* = invalid-type */;
   constructor • = self::E2a|constructor#;
   constructor tearoff • = self::E2a|constructor#_#new#tearOff;
 }
 extension type E2b(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E2a /* = invalid-type */;
   constructor • = self::E2b|constructor#;
   constructor tearoff • = self::E2b|constructor#_#new#tearOff;
 }
 extension type E3a(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E3b /* = invalid-type */;
   constructor • = self::E3a|constructor#;
   constructor tearoff • = self::E3a|constructor#_#new#tearOff;
 }
 extension type E3b(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E3c /* = invalid-type */;
   constructor • = self::E3b|constructor#;
   constructor tearoff • = self::E3b|constructor#_#new#tearOff;
 }
 extension type E3c(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E3a /* = invalid-type */;
   constructor • = self::E3c|constructor#;
   constructor tearoff • = self::E3c|constructor#_#new#tearOff;
 }
 extension type E4(invalid-type it) {
+  abstract inline-class-member representation-field get it() → () → self::E4 /* = invalid-type */;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
 extension type E5(invalid-type it) {
+  abstract inline-class-member representation-field get it() → (self::E5 /* = invalid-type */) → void;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }
 extension type E6(invalid-type it) {
+  abstract inline-class-member representation-field get it() → (self::E6 /* = invalid-type */, core::int);
   constructor • = self::E6|constructor#;
   constructor tearoff • = self::E6|constructor#_#new#tearOff;
 }
 extension type E7(invalid-type it) {
+  abstract inline-class-member representation-field get it() → <T extends self::E7 /* = invalid-type */ = dynamic>() → void;
   constructor • = self::E7|constructor#;
   constructor tearoff • = self::E7|constructor#_#new#tearOff;
 }
 extension type E8<T extends core::Object? = dynamic>(invalid-type it) {
+  abstract inline-class-member representation-field get it() → core::List<self::E8<dynamic> /* = invalid-type */>;
   constructor • = self::E8|constructor#;
   constructor tearoff • = self::E8|constructor#_#new#tearOff;
 }
 extension type E9(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E9% /* = invalid-type */;
   constructor • = self::E9|constructor#;
   constructor tearoff • = self::E9|constructor#_#new#tearOff;
 }
 extension type E10<T extends core::Object? = dynamic>(invalid-type it) {
+  abstract inline-class-member representation-field get it() → self::E10<T%>% /* = invalid-type */;
   constructor • = self::E10|constructor#;
   constructor tearoff • = self::E10|constructor#_#new#tearOff;
 }
 extension type E11(invalid-type it) {
+  abstract inline-class-member representation-field get it() → () → self::E11 /* = invalid-type */;
   constructor • = self::E11|constructor#;
   constructor tearoff • = self::E11|constructor#_#new#tearOff;
 }
 extension type E12(invalid-type it) {
+  abstract inline-class-member representation-field get it() → (self::E12 /* = invalid-type */) → void;
   constructor • = self::E12|constructor#;
   constructor tearoff • = self::E12|constructor#_#new#tearOff;
 }
 extension type E13(invalid-type it) {
+  abstract inline-class-member representation-field get it() → <T extends self::E13 /* = invalid-type */ = dynamic>() → void;
   constructor • = self::E13|constructor#;
   constructor tearoff • = self::E13|constructor#_#new#tearOff;
 }
 extension type E14(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::E14|constructor#;
   constructor tearoff • = self::E14|constructor#_#new#tearOff;
 }
 extension type E15a(invalid-type it) {
+  abstract inline-class-member representation-field get it() → core::List<self::E15b% /* = invalid-type */>;
   constructor • = self::E15a|constructor#;
   constructor tearoff • = self::E15a|constructor#_#new#tearOff;
 }
 extension type E15b(invalid-type it) {
+  abstract inline-class-member representation-field get it() → core::List<self::E15a% /* = invalid-type */>;
   constructor • = self::E15b|constructor#;
   constructor tearoff • = self::E15b|constructor#_#new#tearOff;
 }
 extension type E16a(invalid-type it) {
+  abstract inline-class-member representation-field get it() → core::List<self::E16b /* = invalid-type */>;
   constructor • = self::E16a|constructor#;
   constructor tearoff • = self::E16a|constructor#_#new#tearOff;
 }
 extension type E16b(invalid-type it) {
+  abstract inline-class-member representation-field get it() → core::List<self::E16a /* = invalid-type */>;
   constructor • = self::E16b|constructor#;
   constructor tearoff • = self::E16b|constructor#_#new#tearOff;
 }
 extension type E17(invalid-type it) {
+  abstract inline-class-member representation-field get it() → (core::int, {required a: self::E17 /* = invalid-type */});
   constructor • = self::E17|constructor#;
   constructor tearoff • = self::E17|constructor#_#new#tearOff;
 }
 extension type E18(invalid-type it) {
+  abstract inline-class-member representation-field get it() → (self::E18% /* = invalid-type */) → void;
   constructor • = self::E18|constructor#;
   constructor tearoff • = self::E18|constructor#_#new#tearOff;
 }
 extension type E19a((self::E19b /* = core::int */, self::E19b /* = core::int */) it) {
+  abstract inline-class-member representation-field get it() → (self::E19b /* = core::int */, self::E19b /* = core::int */);
   constructor • = self::E19a|constructor#;
   constructor tearoff • = self::E19a|constructor#_#new#tearOff;
 }
 extension type E19b(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::E19b|constructor#;
   constructor tearoff • = self::E19b|constructor#_#new#tearOff;
 }
 extension type E20(invalid-type it) {
+  abstract inline-class-member representation-field get it() → invalid-type;
   constructor • = self::E20|constructor#;
   constructor tearoff • = self::E20|constructor#_#new#tearOff;
 }
 extension type E21(invalid-type it) {
+  abstract inline-class-member representation-field get it() → invalid-type;
   constructor • = self::E21|constructor#;
   constructor tearoff • = self::E21|constructor#_#new#tearOff;
 }
 extension type E22(invalid-type it) {
+  abstract inline-class-member representation-field get it() → invalid-type;
   constructor • = self::E22|constructor#;
   constructor tearoff • = self::E22|constructor#_#new#tearOff;
 }
 extension type E23(invalid-type it) {
+  abstract inline-class-member representation-field get it() → core::List<self::E23% /* = invalid-type */>;
   constructor • = self::E23|constructor#;
   constructor tearoff • = self::E23|constructor#_#new#tearOff;
 }
 extension type E24<T extends core::Object? = dynamic>(invalid-type it) {
+  abstract inline-class-member representation-field get it() → core::List<self::E24<dynamic>% /* = invalid-type */>;
   constructor • = self::E24|constructor#;
   constructor tearoff • = self::E24|constructor#_#new#tearOff;
 }

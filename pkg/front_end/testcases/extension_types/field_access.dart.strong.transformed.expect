@@ -355,36 +355,43 @@ extension /* unnamed */ _extension#0 on dynamic {
   set it = self::_extension#0|set#it;
 }
 extension type InlineClass(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   method test = self::InlineClass|test;
   method tearoff test = self::InlineClass|get#test;
   constructor • = self::InlineClass|constructor#;
   constructor tearoff • = self::InlineClass|constructor#_#new#tearOff;
 }
 extension type GenericInlineClass<T extends core::Object? = dynamic>(T% it) {
+  abstract inline-class-member representation-field get it() → T%;
   method test = self::GenericInlineClass|test;
   method tearoff test = self::GenericInlineClass|get#test;
   constructor • = self::GenericInlineClass|constructor#;
   constructor tearoff • = self::GenericInlineClass|constructor#_#new#tearOff;
 }
 extension type FunctionInlineClass<T extends core::Object? = dynamic>(() → T% it) {
+  abstract inline-class-member representation-field get it() → () → T%;
   method test = self::FunctionInlineClass|test;
   method tearoff test = self::FunctionInlineClass|get#test;
   constructor • = self::FunctionInlineClass|constructor#;
   constructor tearoff • = self::FunctionInlineClass|constructor#_#new#tearOff;
 }
 extension type GenericFunctionInlineClass(<T extends core::Object? = dynamic>() → T% it) {
+  abstract inline-class-member representation-field get it() → <T extends core::Object? = dynamic>() → T%;
   method test = self::GenericFunctionInlineClass|test;
   method tearoff test = self::GenericFunctionInlineClass|get#test;
   constructor • = self::GenericFunctionInlineClass|constructor#;
   constructor tearoff • = self::GenericFunctionInlineClass|constructor#_#new#tearOff;
 }
 extension type DynamicInlineClass(dynamic it) {
+  abstract inline-class-member representation-field get it() → dynamic;
   method test = self::DynamicInlineClass|test;
   method tearoff test = self::DynamicInlineClass|get#test;
   constructor • = self::DynamicInlineClass|constructor#;
   constructor tearoff • = self::DynamicInlineClass|constructor#_#new#tearOff;
 }
 extension type ErroneousInlineClass(core::int a) {
+  abstract inline-class-member representation-field get a() → core::int;
+  abstract inline-class-member representation-field get b() → core::String;
   method test = self::ErroneousInlineClass|test;
   method tearoff test = self::ErroneousInlineClass|get#test;
   constructor • = self::ErroneousInlineClass|constructor#;
@@ -758,6 +765,7 @@ import self as self2;
 import "dart:core" as core;
 
 extension type PrivateInlineClass(core::int _it) {
+  abstract inline-class-member representation-field get _it() → core::int;
   method test = self2::PrivateInlineClass|test;
   method tearoff test = self2::PrivateInlineClass|get#test;
   constructor • = self2::PrivateInlineClass|constructor#;

@@ -10716,6 +10716,9 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual CompileType ComputeType() const {
+    if (to() == kUntagged) {
+      return CompileType::Object();
+    }
     // TODO(vegorov) use range information to improve type.
     return CompileType::Int();
   }
@@ -10809,7 +10812,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
     UNREACHABLE();
   }
 
-  virtual CompileType ComputeType() const { return CompileType::Int(); }
+  virtual CompileType ComputeType() const { return CompileType::Object(); }
 
   // CSE is allowed. The thread should always be the same value.
   virtual bool AttributesEqual(const Instruction& other) const {

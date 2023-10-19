@@ -1974,7 +1974,18 @@ void FlowGraph::InsertConversion(Representation from,
     // Handled in FlowGraph::InsertRecordBoxing.
     UNREACHABLE();
   } else {
-    // We have failed to find a suitable conversion instruction.
+    // We have failed to find a suitable conversion instruction. If either
+    // representations is not boxable, then fail immediately.
+    if (!Boxing::Supports(from) || !Boxing::Supports(to)) {
+      if (FLAG_support_il_printer) {
+        FATAL("Illegal conversion %s->%s for the use of %s at %s\n",
+              RepresentationToCString(from), RepresentationToCString(to),
+              use->definition()->ToCString(), use->instruction()->ToCString());
+      } else {
+        FATAL("Illegal representation conversion for a use of v%" Pd "\n",
+              use->definition()->ssa_temp_index());
+      }
+    }
     // Insert two "dummy" conversion instructions with the correct
     // "from" and "to" representation. The inserted instructions will
     // trigger a deoptimization if executed. See #12417 for a discussion.
@@ -1987,8 +1998,6 @@ void FlowGraph::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != nullptr)
                                   ? deopt_target->DeoptimizationTarget()
                                   : DeoptId::kNone;
-    ASSERT(Boxing::Supports(from));
-    ASSERT(Boxing::Supports(to));
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
     use->BindTo(boxed);
     InsertBefore(insert_before, boxed, nullptr, FlowGraph::kValue);
@@ -2082,7 +2091,7 @@ class PhiUnboxingHeuristic : public ValueObject {
       : worklist_(flow_graph, 10) {}
 
   void Process(PhiInstr* phi) {
-    auto new_representation = kTagged;
+    auto new_representation = phi->representation();
     switch (phi->Type()->ToCid()) {
       case kDoubleCid:
         if (CanUnboxDouble()) {
@@ -2115,23 +2124,20 @@ class PhiUnboxingHeuristic : public ValueObject {
         break;
     }
 
-    // If all the inputs are untagged or all the inputs are compatible unboxed
-    // integers, leave the Phi unboxed.
     if (new_representation == kTagged && phi->Type()->IsInt()) {
+      // Check to see if all the (non-self) inputs are unboxed integers. If so,
+      // mark the phi as an unboxed integer that can hold the possible values
+      // that flow into the phi.
       for (auto input : phi->inputs()) {
         if (input == phi) continue;
 
-        if (input->representation() != kUntagged &&
-            !IsUnboxedInteger(input->representation())) {
+        if (!IsUnboxedInteger(input->representation())) {
           new_representation = kTagged;  // Reset to a boxed phi.
           break;
         }
 
         if (new_representation == kTagged) {
           new_representation = input->representation();
-        } else if (new_representation == kUntagged) {
-          // Don't allow mixing of untagged and unboxed values.
-          ASSERT_EQUAL(input->representation(), kUntagged);
         } else if (new_representation != input->representation()) {
           // Don't allow mixing of untagged and unboxed values.
           ASSERT(IsUnboxedInteger(input->representation()));
@@ -2176,6 +2182,19 @@ class PhiUnboxingHeuristic : public ValueObject {
                   : kUnboxedInt64;
         }
 #endif
+      }
+    }
+
+    // If any non-self input of the phi node is untagged, then the phi node
+    // should only have untagged inputs and thus is marked as untagged.
+    //
+    // Note: we can't assert that all inputs are untagged at this point because
+    // one of the inputs might be a different unvisited phi node. If this
+    // assumption is broken, then fail later in the SelectRepresentations pass.
+    for (auto input : phi->inputs()) {
+      if (input != phi && input->representation() == kUntagged) {
+        new_representation = kUntagged;
+        break;
       }
     }
 

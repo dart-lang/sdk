@@ -530,7 +530,7 @@ class Library extends NamedNode
       extensions[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < extensionTypeDeclarations.length; ++i) {
-      extensionTypeDeclarations[i].bindCanonicalNames(canonicalName);
+      extensionTypeDeclarations[i].ensureCanonicalNames(canonicalName);
     }
   }
 
@@ -1844,8 +1844,17 @@ class ExtensionTypeDeclaration extends NamedNode
   }
 
   @override
-  void bindCanonicalNames(CanonicalName parent) {
-    parent.getChild(name).bindTo(reference);
+  CanonicalName bindCanonicalNames(CanonicalName parent) {
+    return parent.getChild(name)..bindTo(reference);
+  }
+
+  /// Computes the canonical name for this extension type declarations and all
+  /// its members.
+  void ensureCanonicalNames(CanonicalName parent) {
+    CanonicalName canonicalName = bindCanonicalNames(parent);
+    for (int i = 0; i < procedures.length; ++i) {
+      procedures[i].bindCanonicalNames(canonicalName);
+    }
   }
 
   Library get enclosingLibrary => parent as Library;
@@ -2039,8 +2048,16 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   Member(this.name, this.fileUri, Reference? reference) : super(reference);
 
   Class? get enclosingClass => parent is Class ? parent as Class : null;
-  Library get enclosingLibrary =>
-      (parent is Class ? parent!.parent : parent) as Library;
+
+  Library get enclosingLibrary {
+    TreeNode? parent = this.parent;
+    if (parent is Class) {
+      return parent.enclosingLibrary;
+    } else if (parent is ExtensionTypeDeclaration) {
+      return parent.enclosingLibrary;
+    }
+    return parent as Library;
+  }
 
   @override
   R accept<R>(MemberVisitor<R> v);
@@ -2845,6 +2862,12 @@ enum ProcedureStubKind {
   ///
   /// The stub target is the called mixin member.
   ConcreteMixinStub,
+
+  /// The representation field of an extension type declaration, encoded as
+  /// an abstract getter.
+  ///
+  /// The stub target is `null`.
+  RepresentationField,
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,

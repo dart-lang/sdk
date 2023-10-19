@@ -188,6 +188,13 @@ class ForwardingNode {
               case ProcedureStubKind.ConcreteMixinStub:
                 finalTarget = interfaceMember.stubTarget!;
                 break;
+              case ProcedureStubKind.RepresentationField:
+                assert(
+                    false,
+                    "Unexpected representation field as forwarding stub target "
+                    "$interfaceMember.");
+                finalTarget = interfaceMember;
+                break;
             }
           } else {
             finalTarget = interfaceMember;

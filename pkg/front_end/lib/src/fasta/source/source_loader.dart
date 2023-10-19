@@ -2580,8 +2580,7 @@ severity: $severity
       Library target = library.buildOutlineNodes(coreLibrary);
       if (library.referencesFrom != null) {
         referenceFromIndex ??= new ReferenceFromIndex();
-        referenceFromIndex!
-            .addIndexedLibrary(target, library.referencesFromIndexed!);
+        referenceFromIndex!.addIndexedLibrary(target, library.indexedLibrary!);
       }
       libraries.add(target);
     }

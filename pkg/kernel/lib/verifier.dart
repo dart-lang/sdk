@@ -560,11 +560,21 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     assert(node.isExtensionTypeMember);
     Map<Reference, ExtensionTypeMemberDescriptor> extensionTypeMembers =
         _computeExtensionTypeMembers(node.enclosingLibrary);
-    if (!extensionTypeMembers.containsKey(node.reference)) {
-      problem(
-          node,
-          "Extension type member $node is not found in any extension type "
-          "declaration of the enclosing library.");
+    if (node is Procedure &&
+        node.stubKind == ProcedureStubKind.RepresentationField) {
+      if (extensionTypeMembers.containsKey(node.reference)) {
+        problem(
+            node,
+            "Extension type representation field $node is found amongst the "
+            "lowered extension type members of the enclosing library.");
+      }
+    } else {
+      if (!extensionTypeMembers.containsKey(node.reference)) {
+        problem(
+            node,
+            "Extension type member $node is not found in any extension type "
+            "declaration of the enclosing library.");
+      }
     }
   }
 

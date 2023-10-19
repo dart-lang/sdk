@@ -18,18 +18,22 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     ;
 }
 extension type B<T extends core::Object? = dynamic>(self::A<T%> it) implements self::A<T%> {
+  abstract inline-class-member representation-field get it() → self::A<T%>;
   constructor • = self::B|constructor#;
   constructor tearoff • = self::B|constructor#_#new#tearOff;
 }
 extension type C<T extends core::Object? = dynamic>(self::A<T%> it) {
+  abstract inline-class-member representation-field get it() → self::A<T%>;
   constructor • = self::C|constructor#;
   constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
 extension type D(self::A<Never> it) implements self::A<core::int>, self::B<core::String> /* = self::A<core::String> */ {
+  abstract inline-class-member representation-field get it() → self::A<Never>;
   constructor • = self::D|constructor#;
   constructor tearoff • = self::D|constructor#_#new#tearOff;
 }
 extension type E(self::A<Never> it) {
+  abstract inline-class-member representation-field get it() → self::A<Never>;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }

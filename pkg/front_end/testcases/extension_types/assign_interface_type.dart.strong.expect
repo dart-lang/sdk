@@ -295,22 +295,27 @@ class B extends self::A {
     ;
 }
 extension type C(core::Object? o) {
+  abstract inline-class-member representation-field get o() → core::Object?;
   constructor • = self::C|constructor#;
   constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
 extension type D(core::Object o) {
+  abstract inline-class-member representation-field get o() → core::Object;
   constructor • = self::D|constructor#;
   constructor tearoff • = self::D|constructor#_#new#tearOff;
 }
 extension type E(self::B it) implements self::A {
+  abstract inline-class-member representation-field get it() → self::B;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */, self::B {
+  abstract inline-class-member representation-field get it() → self::B;
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
 extension type G<T extends core::Object? = dynamic>(T% o) {
+  abstract inline-class-member representation-field get o() → T%;
   constructor • = self::G|constructor#;
   constructor tearoff • = self::G|constructor#_#new#tearOff;
 }

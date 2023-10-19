@@ -33,15 +33,20 @@ class ReferenceFromIndex {
 }
 
 abstract class IndexedContainer {
-  final Map<Name, Reference> _fieldReferences = new Map<Name, Reference>();
+  Library get library;
+
+  /// Reference to this container node.
+  Reference get reference;
+
+  Reference? lookupConstructorReference(Name name);
+  Reference? lookupFieldReference(Name name);
+  Reference? lookupGetterReference(Name name);
+  Reference? lookupSetterReference(Name name);
+}
+
+mixin _IndexedProceduresMixin {
   final Map<Name, Reference> _getterReferences = new Map<Name, Reference>();
   final Map<Name, Reference> _setterReferences = new Map<Name, Reference>();
-
-  Reference? lookupFieldReference(Name name) => _fieldReferences[name];
-  Reference? lookupGetterReference(Name name) => _getterReferences[name];
-  Reference? lookupSetterReference(Name name) => _setterReferences[name];
-
-  Library get library;
 
   void _addProcedures(List<Procedure> procedures) {
     for (int i = 0; i < procedures.length; i++) {
@@ -62,6 +67,22 @@ abstract class IndexedContainer {
       _getterReferences[name] = procedure.reference;
     }
   }
+}
+
+abstract class IndexedContainerImpl
+    with _IndexedProceduresMixin
+    implements IndexedContainer {
+  final Map<Name, Reference> _fieldReferences = new Map<Name, Reference>();
+
+  @override
+  Reference? lookupFieldReference(Name name) => _fieldReferences[name];
+  @override
+  Reference? lookupGetterReference(Name name) => _getterReferences[name];
+  @override
+  Reference? lookupSetterReference(Name name) => _setterReferences[name];
+
+  @override
+  Library get library;
 
   void _addFields(List<Field> fields) {
     for (int i = 0; i < fields.length; i++) {
@@ -79,14 +100,12 @@ abstract class IndexedContainer {
   }
 }
 
-class IndexedLibrary extends IndexedContainer {
-  final Map<String, Typedef> _typedefs = new Map<String, Typedef>();
-  final Map<String, Class> _classes = new Map<String, Class>();
-  final Map<String, IndexedClass> _indexedClasses =
-      new Map<String, IndexedClass>();
-  final Map<String, Extension> _extensions = new Map<String, Extension>();
-  final Map<String, ExtensionTypeDeclaration> _extensionTypeDeclarations =
-      new Map<String, ExtensionTypeDeclaration>();
+class IndexedLibrary extends IndexedContainerImpl {
+  final Map<String, Typedef> _typedefs = {};
+  final Map<String, IndexedClass> _indexedClasses = {};
+  final Map<String, IndexedExtensionTypeDeclaration>
+      _indexedExtensionTypeDeclarations = {};
+  final Map<String, Extension> _extensions = {};
   @override
   final Library library;
 
@@ -98,8 +117,6 @@ class IndexedLibrary extends IndexedContainer {
     }
     for (int i = 0; i < library.classes.length; i++) {
       Class c = library.classes[i];
-      assert(_classes[c.name] == null);
-      _classes[c.name] = c;
       assert(_indexedClasses[c.name] == null);
       _indexedClasses[c.name] = new IndexedClass._(c, library);
     }
@@ -116,9 +133,10 @@ class IndexedLibrary extends IndexedContainer {
     for (int i = 0; i < library.extensionTypeDeclarations.length; i++) {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           library.extensionTypeDeclarations[i];
-      assert(_extensionTypeDeclarations[extensionTypeDeclaration.name] == null);
-      _extensionTypeDeclarations[extensionTypeDeclaration.name] =
-          extensionTypeDeclaration;
+      assert(_indexedExtensionTypeDeclarations[extensionTypeDeclaration.name] ==
+          null);
+      _indexedExtensionTypeDeclarations[extensionTypeDeclaration.name] =
+          new IndexedExtensionTypeDeclaration(this, extensionTypeDeclaration);
     }
     _addProcedures(library.procedures);
     _addFields(library.fields);
@@ -145,17 +163,30 @@ class IndexedLibrary extends IndexedContainer {
     }
   }
 
+  @override
+  Reference get reference => library.reference;
+
   Typedef? lookupTypedef(String name) => _typedefs[name];
-  Class? lookupClass(String name) => _classes[name];
+  Class? lookupClass(String name) => _indexedClasses[name]?.cls;
   IndexedClass? lookupIndexedClass(String name) => _indexedClasses[name];
+
   Extension? lookupExtension(String name) => _extensions[name];
+
+  IndexedExtensionTypeDeclaration? lookupIndexedExtensionTypeDeclaration(
+          String name) =>
+      _indexedExtensionTypeDeclarations[name];
   ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(String name) =>
-      _extensionTypeDeclarations[name];
+      _indexedExtensionTypeDeclarations[name]?.extensionTypeDeclaration;
+
+  @override
+  Reference? lookupConstructorReference(Name name) {
+    throw new UnsupportedError("$runtimeType.lookupConstructorReference");
+  }
 }
 
-class IndexedClass extends IndexedContainer {
+class IndexedClass extends IndexedContainerImpl {
   final Class cls;
-  final Map<Name, Reference> _constructors = new Map<Name, Reference>();
+  final Map<Name, Reference> _constructors = {};
   @override
   final Library library;
 
@@ -175,5 +206,49 @@ class IndexedClass extends IndexedContainer {
     _addFields(cls.fields);
   }
 
+  @override
+  Reference get reference => cls.reference;
+
+  @override
   Reference? lookupConstructorReference(Name name) => _constructors[name];
+}
+
+class IndexedExtensionTypeDeclaration
+    with _IndexedProceduresMixin
+    implements IndexedContainer {
+  final IndexedLibrary _indexedLibrary;
+  final ExtensionTypeDeclaration extensionTypeDeclaration;
+
+  IndexedExtensionTypeDeclaration(
+      this._indexedLibrary, this.extensionTypeDeclaration) {
+    _addProcedures(extensionTypeDeclaration.procedures);
+  }
+
+  @override
+  Library get library => _indexedLibrary.library;
+
+  @override
+  Reference get reference => extensionTypeDeclaration.reference;
+
+  @override
+  Reference? lookupConstructorReference(Name name) =>
+      // Constructors are stored as methods in the library.
+      _indexedLibrary.lookupGetterReference(name);
+
+  @override
+  Reference? lookupFieldReference(Name name) =>
+      // Static fields are stored in the library.
+      _indexedLibrary.lookupFieldReference(name);
+
+  @override
+  Reference? lookupGetterReference(Name name) {
+    return _getterReferences[name] ??
+        _indexedLibrary.lookupGetterReference(name);
+  }
+
+  @override
+  Reference? lookupSetterReference(Name name) {
+    return _setterReferences[name] ??
+        _indexedLibrary.lookupSetterReference(name);
+  }
 }

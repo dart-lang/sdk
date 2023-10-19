@@ -17,6 +17,7 @@ class A extends core::Object {
 }
 @js_::JS::•()
 extension type B(self::A a) {
+  abstract inline-class-member representation-field get a() → self::A;
   get field = self::B|get#field;
   set field = self::B|set#field;
   method method = self::B|method;

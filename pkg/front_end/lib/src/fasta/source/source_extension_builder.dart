@@ -108,6 +108,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind, Member member, Member? tearOff) {
+    unhandled("${memberBuilder.runtimeType}:${memberKind}", "addMemberInternal",
+        memberBuilder.charOffset, memberBuilder.fileUri);
+  }
+
+  @override
   void addMemberDescriptorInternal(
       SourceMemberBuilder memberBuilder,
       BuiltMemberKind memberKind,
@@ -128,8 +135,12 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionTypeOperator:
       case BuiltMemberKind.ExtensionTypeFactory:
       case BuiltMemberKind.ExtensionTypeRedirectingFactory:
-        unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
-            memberBuilder.charOffset, memberBuilder.fileUri);
+      case BuiltMemberKind.ExtensionTypeRepresentationField:
+        unhandled(
+            "${memberBuilder.runtimeType}:${memberKind}",
+            "addMemberDescriptorInternal",
+            memberBuilder.charOffset,
+            memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
         kind = ExtensionMemberKind.Field;
