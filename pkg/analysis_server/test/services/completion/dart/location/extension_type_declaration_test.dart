@@ -61,4 +61,99 @@ extension type ^
 suggestions
 ''');
   }
+
+  Future<void> test_emptyRepresentationField() async {
+    await computeSuggestions('''
+extension type E(^)
+
+class C0 {}
+''');
+    assertResponse(r'''
+suggestions
+  C0
+    kind: class
+''');
+  }
+
+  Future<void> test_representationField_annotation() async {
+    await computeSuggestions('''
+extension type E(@^)
+
+const a0 = 0;
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: topLevelVariable
+''');
+  }
+
+  Future<void> test_representationField_identifier_empty() async {
+    await computeSuggestions('''
+extension type E(C0 ^)
+
+class C0 {}
+''');
+    assertResponse(r'''
+suggestions
+  c0
+    kind: identifier
+''');
+  }
+
+  Future<void>
+      test_representationField_identifier_empty_withSuggestions() async {
+    allowedIdentifiers = {'buffer', 'stringBuffer'};
+    await computeSuggestions('''
+extension type E(StringBuffer ^) {}
+''');
+    assertResponse(r'''
+suggestions
+  buffer
+    kind: identifier
+  stringBuffer
+    kind: identifier
+''');
+  }
+
+  Future<void> test_representationField_identifier_partial() async {
+    allowedIdentifiers = {'buffer', 'stringBuffer'};
+    await computeSuggestions('''
+extension type E(StringBuffer s^) {}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  stringBuffer
+    kind: identifier
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  buffer
+    kind: identifier
+  stringBuffer
+    kind: identifier
+''');
+    }
+  }
+
+  Future<void> test_representationField_type_partial() async {
+    await computeSuggestions('''
+extension type E(C^)
+
+class C0 {}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  C0
+    kind: class
+''');
+  }
 }

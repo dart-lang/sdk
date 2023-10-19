@@ -1428,6 +1428,20 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    if (identical(entity, node.fieldType) ||
+        (identical(entity, node.fieldName) && node.fieldType.isSynthetic)) {
+      optype.completionLocation = 'RepresentationDeclaration_fieldType';
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.fieldName) ||
+        (identical(entity, node.rightParenthesis) &&
+            node.fieldType.isSynthetic)) {
+      optype.completionLocation = 'RepresentationDeclaration_fieldName';
+      optype.includeVarNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitRestPatternElement(RestPatternElement node) {
     if (identical(entity, node.pattern)) {
       optype._forPattern('RestPatternElement_pattern');

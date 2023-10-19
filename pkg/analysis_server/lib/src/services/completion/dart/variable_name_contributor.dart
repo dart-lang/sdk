@@ -41,6 +41,16 @@ class VariableNameContributor extends DartCompletionContributor {
         }
       } else if (node is RecordTypeAnnotationField) {
         strName = _namedType(node.type)?.name2.lexeme;
+      } else if (node is RepresentationDeclaration) {
+        var fieldType = node.fieldType;
+        if (fieldType.isSynthetic) {
+          var fieldName = node.fieldName;
+          if (!fieldName.isSynthetic) {
+            strName = fieldName.lexeme;
+          }
+        } else {
+          strName = _namedType(fieldType)?.name2.lexeme;
+        }
       } else if (node is SimpleFormalParameter) {
         final namedType = _formalParameterNamedType(node);
         if (namedType != null) {
