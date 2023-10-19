@@ -1350,8 +1350,12 @@ class Assembler : public MicroAssembler {
     LoadObjectHelper(dst, obj, false);
   }
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadUniqueObject(Register dst, const Object& obj) {
-    LoadObjectHelper(dst, obj, true);
+  void LoadUniqueObject(
+      Register dst,
+      const Object& obj,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable) {
+    LoadObjectHelper(dst, obj, true, snapshot_behavior);
   }
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadImmediate(Register reg, intx_t imm);
@@ -1654,7 +1658,12 @@ class Assembler : public MicroAssembler {
   intptr_t deferred_imm_ = 0;
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
+  void LoadObjectHelper(
+      Register dst,
+      const Object& obj,
+      bool is_unique,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

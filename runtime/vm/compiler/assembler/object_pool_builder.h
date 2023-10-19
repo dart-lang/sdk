@@ -28,23 +28,28 @@ struct ObjectPoolBuilderEntry {
 
   enum SnapshotBehavior {
     kSnapshotable,
+
     // This should never be snapshot. Typically an memory address in the current
     // process.
     kNotSnapshotable,
+
     // Set the value to StubCode::CallBootstrapNative() on snapshot reading.
     kResetToBootstrapNative,
+
+    // Only used in AOT. Every switchable call site will put (`ic_data`,
+    // [kTaggedObject] `code`) into the object pool. The `code` is initialized
+    // (at AOT compile-time) to be [StubCode::SwitchableCallMiss].
+    //
+    // The extra indirection via the `code` object is removed by storing
+    // (`ic_data`, [kImmediate] `entrypoint`) in the object pool instead on
+    // deserialization.
+    kResetToSwitchableCallMissEntryPoint,
   };
 
   enum EntryType {
     kImmediate = 0,
     kTaggedObject,
     kNativeFunction,
-
-    // Used only during AOT snapshot serialization/deserialization.
-    // Denotes kImmediate entry with
-    //  - StubCode::SwitchableCallMiss().MonomorphicEntryPoint()
-    // values which become known only at run time.
-    kSwitchableCallMissEntryPoint,
 
   // Used only during object pool building to find duplicates. Become multiple
   // kImmediate in the final pool.
@@ -54,10 +59,10 @@ struct ObjectPoolBuilderEntry {
     kImmediate128,
   };
 
-  using TypeBits = BitField<uint8_t, EntryType, 0, 5>;
+  using TypeBits = BitField<uint8_t, EntryType, 0, 4>;
   using PatchableBit = BitField<uint8_t, Patchability, TypeBits::kNextBit, 1>;
-  using SnapshotBehaviorBit =
-      BitField<uint8_t, SnapshotBehavior, PatchableBit::kNextBit, 2>;
+  using SnapshotBehaviorBits =
+      BitField<uint8_t, SnapshotBehavior, PatchableBit::kNextBit, 3>;
 
   static inline uint8_t EncodeTraits(
       EntryType type,
@@ -65,7 +70,7 @@ struct ObjectPoolBuilderEntry {
       SnapshotBehavior snapshot_behavior = SnapshotBehavior::kSnapshotable) {
     return TypeBits::encode(type) | PatchableBit::encode(patchable) |
            PatchableBit::encode(patchable) |
-           SnapshotBehaviorBit::encode(snapshot_behavior);
+           SnapshotBehaviorBits::encode(snapshot_behavior);
   }
 
   ObjectPoolBuilderEntry() : imm128_(), entry_bits_(0), equivalence_() {}
@@ -106,7 +111,7 @@ struct ObjectPoolBuilderEntry {
   Patchability patchable() const { return PatchableBit::decode(entry_bits_); }
 
   SnapshotBehavior snapshot_behavior() const {
-    return SnapshotBehaviorBit::decode(entry_bits_);
+    return SnapshotBehaviorBits::decode(entry_bits_);
   }
 
   union {

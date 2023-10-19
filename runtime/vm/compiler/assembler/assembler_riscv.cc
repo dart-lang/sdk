@@ -4684,9 +4684,11 @@ void Assembler::LoadFieldAddressForRegOffset(Register address,
 }
 
 // Note: the function never clobbers TMP, TMP2 scratch registers.
-void Assembler::LoadObjectHelper(Register dst,
-                                 const Object& object,
-                                 bool is_unique) {
+void Assembler::LoadObjectHelper(
+    Register dst,
+    const Object& object,
+    bool is_unique,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
   // `is_unique == true` effectively means object has to be patchable.
   // (even if the object is null)
@@ -4715,10 +4717,12 @@ void Assembler::LoadObjectHelper(Register dst,
   }
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   const intptr_t index =
-      is_unique ? object_pool_builder().AddObject(
-                      object, ObjectPoolBuilderEntry::kPatchable)
-                : object_pool_builder().FindObject(
-                      object, ObjectPoolBuilderEntry::kNotPatchable);
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(dst, index);
 }
 

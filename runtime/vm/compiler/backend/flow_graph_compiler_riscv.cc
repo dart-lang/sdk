@@ -574,7 +574,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
-    __ LoadUniqueObject(RA, initial_stub);
+    const auto snapshot_behavior =
+        compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
+    __ LoadUniqueObject(RA, initial_stub, snapshot_behavior);
   } else {
     __ LoadUniqueObject(CODE_REG, initial_stub);
     const intptr_t entry_point_offset =

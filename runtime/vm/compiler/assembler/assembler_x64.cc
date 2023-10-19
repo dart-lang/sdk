@@ -1396,9 +1396,11 @@ void Assembler::LoadDispatchTable(Register dst) {
   movq(dst, Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
-void Assembler::LoadObjectHelper(Register dst,
-                                 const Object& object,
-                                 bool is_unique) {
+void Assembler::LoadObjectHelper(
+    Register dst,
+    const Object& object,
+    bool is_unique,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
 
   // `is_unique == true` effectively means object has to be patchable.
@@ -1415,10 +1417,12 @@ void Assembler::LoadObjectHelper(Register dst,
   }
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   const intptr_t index =
-      is_unique ? object_pool_builder().AddObject(
-                      object, ObjectPoolBuilderEntry::kPatchable)
-                : object_pool_builder().FindObject(
-                      object, ObjectPoolBuilderEntry::kNotPatchable);
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(dst, index);
 }
 
@@ -1426,8 +1430,11 @@ void Assembler::LoadObject(Register dst, const Object& object) {
   LoadObjectHelper(dst, object, false);
 }
 
-void Assembler::LoadUniqueObject(Register dst, const Object& object) {
-  LoadObjectHelper(dst, object, true);
+void Assembler::LoadUniqueObject(
+    Register dst,
+    const Object& object,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  LoadObjectHelper(dst, object, true, snapshot_behavior);
 }
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {

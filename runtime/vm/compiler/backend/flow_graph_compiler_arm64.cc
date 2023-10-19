@@ -591,10 +591,14 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   __ LoadImmediate(R4, 0);
   __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
 
+  const auto snapshot_behavior =
+      FLAG_precompiled_mode ? compiler::ObjectPoolBuilderEntry::
+                                  kResetToSwitchableCallMissEntryPoint
+                            : compiler::ObjectPoolBuilderEntry::kSnapshotable;
   const intptr_t data_index =
       op.AddObject(data, ObjectPool::Patchability::kPatchable);
-  const intptr_t initial_stub_index =
-      op.AddObject(initial_stub, ObjectPool::Patchability::kPatchable);
+  const intptr_t initial_stub_index = op.AddObject(
+      initial_stub, ObjectPool::Patchability::kPatchable, snapshot_behavior);
   ASSERT((data_index + 1) == initial_stub_index);
 
   if (FLAG_precompiled_mode) {
