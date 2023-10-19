@@ -28,8 +28,24 @@ import 'dart:_js_names'
 import 'dart:_js_shared_embedded_names';
 import 'dart:_recipe_syntax';
 
-// TODO(fishythefish): Replace with user-definable callback.
-void onExtraNullSafetyError(TypeError error, StackTrace trace) {}
+typedef OnExtraNullSafetyError = void Function(TypeError, StackTrace);
+
+Object? onExtraNullSafetyError;
+
+bool _reportingExtraNullSafetyError = false;
+
+@pragma('dart2js:as:trust')
+void _onExtraNullSafetyError(TypeError error, StackTrace trace) {
+  // If [onExtraNullSafetyError] itself produces an extra null safety error,
+  // this avoids blowing the stack.
+  if (!_reportingExtraNullSafetyError) {
+    _reportingExtraNullSafetyError = true;
+    if (onExtraNullSafetyError != null) {
+      (onExtraNullSafetyError as OnExtraNullSafetyError)(error, trace);
+    }
+    _reportingExtraNullSafetyError = false;
+  }
+}
 
 /// The name of a property on the constructor function of Dart Object
 /// and interceptor types, used for caching Rti types.
@@ -1329,7 +1345,7 @@ Object? _generalAsCheckImplementation(Object? object) {
     }
     if (JS_GET_FLAG('LEGACY')) {
       if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-        onExtraNullSafetyError(
+        _onExtraNullSafetyError(
             _failedAsCheckError(object, testRti), StackTrace.current);
       }
       return object;
@@ -1430,7 +1446,7 @@ Object? _asObject(Object? object) {
   if (object != null) return object;
   if (JS_GET_FLAG('LEGACY')) {
     if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      onExtraNullSafetyError(
+      _onExtraNullSafetyError(
           _TypeError.forType(object, 'Object'), StackTrace.current);
     }
     return object;
@@ -1479,7 +1495,7 @@ bool? _asBoolS(dynamic object) {
   if (false == object) return false;
   if (object == null) {
     if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      onExtraNullSafetyError(
+      _onExtraNullSafetyError(
           _TypeError.forType(object, 'bool'), StackTrace.current);
     }
     return _Utils.asNull(object);
@@ -1509,7 +1525,7 @@ double? _asDoubleS(dynamic object) {
   if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) {
     if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      onExtraNullSafetyError(
+      _onExtraNullSafetyError(
           _TypeError.forType(object, 'double'), StackTrace.current);
     }
     return _Utils.asNull(object);
@@ -1545,7 +1561,7 @@ int? _asIntS(dynamic object) {
   if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) {
     if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      onExtraNullSafetyError(
+      _onExtraNullSafetyError(
           _TypeError.forType(object, 'int'), StackTrace.current);
     }
     return _Utils.asNull(object);
@@ -1580,7 +1596,7 @@ num? _asNumS(dynamic object) {
   if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) {
     if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      onExtraNullSafetyError(
+      _onExtraNullSafetyError(
           _TypeError.forType(object, 'num'), StackTrace.current);
     }
     return _Utils.asNull(object);
@@ -1615,7 +1631,7 @@ String? _asStringS(dynamic object) {
   if (_isString(object)) return _Utils.asString(object);
   if (object == null) {
     if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
-      onExtraNullSafetyError(
+      _onExtraNullSafetyError(
           _TypeError.forType(object, 'String'), StackTrace.current);
     }
     return _Utils.asNull(object);
@@ -3246,7 +3262,7 @@ bool isSubtype(Object? universe, Rti s, Rti t) {
   }
   if (result == _subtypeResultFalse) return false;
   if (result == _subtypeResultTrue) return true;
-  onExtraNullSafetyError(
+  _onExtraNullSafetyError(
       _InconsistentSubtypingError._forTypes(s, t), StackTrace.current);
   return true;
 }
