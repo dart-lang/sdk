@@ -2062,6 +2062,8 @@ LintCode.enable_null_safety:
     Removed.
 LintCode.eol_at_end_of_file:
   status: hasFix
+LintCode.erase_dart_type_extension_types:
+  status: needsEvaluation
 LintCode.exhaustive_cases:
   status: hasFix
 LintCode.file_names:
