@@ -202,6 +202,7 @@ class CreateGetter extends CreateFieldOrGetter {
     if (targetNode is CompilationUnitMember) {
       if (targetDeclarationResult.node is! ClassDeclaration &&
           targetDeclarationResult.node is! ExtensionDeclaration &&
+          targetDeclarationResult.node is! ExtensionTypeDeclaration &&
           targetDeclarationResult.node is! MixinDeclaration) {
         return;
       }

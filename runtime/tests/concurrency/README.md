@@ -24,4 +24,4 @@ non-NNBD) that can be used to generate a stress test.
 To ensure the list doesn't get out-of-date we have two tests on regular bots
 that will try to compile the stress test to kernel, thereby ensuring that the
 files at least exist and compile, see
-`runtime/tests/vm/{dart,dart_2}/isolates/concurrency_stress_sanity_test.dart`.
+`runtime/tests/vm/dart/isolates/concurrency_stress_sanity_test.dart`.

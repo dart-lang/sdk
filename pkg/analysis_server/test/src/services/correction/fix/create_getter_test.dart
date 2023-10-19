@@ -80,6 +80,26 @@ class CreateGetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_GETTER;
 
+  Future<void> test_extension_type() async {
+    await resolveTestCode('''
+extension type A(String s) {
+}
+void f(A a) {
+  int v = a.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+extension type A(String s) {
+  int get test => null;
+}
+void f(A a) {
+  int v = a.test;
+  print(v);
+}
+''');
+  }
+
   Future<void> test_hint_getter() async {
     await resolveTestCode('''
 class A {

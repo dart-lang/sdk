@@ -224,6 +224,8 @@ class B implements I<num> {}
 extension type C(Never it) implements A, B {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 87, 1),
+      error(CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM, 89,
+          5),
     ]);
   }
 

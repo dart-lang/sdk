@@ -44,7 +44,6 @@ final testSuiteDirectories = [
   Path('tests/lib'),
   Path('tests/lib_2'),
   Path('tests/standalone'),
-  Path('tests/standalone_2'),
   Path('tests/web'),
   Path('tests/web_2'),
   Path('third_party/pkg/dart_style'),

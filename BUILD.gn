@@ -227,7 +227,6 @@ if (is_fuchsia) {
   dart_fuchsia_test_component("fuchsia_test_component") {
     manifest = "build/fuchsia/fuchsia_test_component.cmx"
     resource_dirs = [
-      "tests/standalone_2",
       "pkg/async_helper",
       "pkg/expect",
       "pkg/meta",

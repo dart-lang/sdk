@@ -1373,6 +1373,8 @@ class CorrectionUtils {
       return declaration.leftBracket;
     } else if (declaration is MixinDeclaration) {
       return declaration.leftBracket;
+    } else if (declaration is ExtensionTypeDeclaration) {
+      return declaration.leftBracket;
     }
     return null;
   }
@@ -1384,6 +1386,8 @@ class CorrectionUtils {
       return declaration.members;
     } else if (declaration is MixinDeclaration) {
       return declaration.members;
+    } else if (declaration is ExtensionTypeDeclaration) {
+      return declaration.members;
     }
     return null;
   }
@@ -1394,6 +1398,8 @@ class CorrectionUtils {
     } else if (declaration is ExtensionDeclaration) {
       return declaration.rightBracket;
     } else if (declaration is MixinDeclaration) {
+      return declaration.rightBracket;
+    } else if (declaration is ExtensionTypeDeclaration) {
       return declaration.rightBracket;
     }
     return null;

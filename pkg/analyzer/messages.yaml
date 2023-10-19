@@ -5165,6 +5165,10 @@ CompileTimeErrorCode:
     problemMessage: "The extension type representation can't depend on itself."
     correctionMessage: Try specifying a different type.
     comment: No parameters.
+  EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
+    problemMessage: "The representation type can't be a bottom type."
+    correctionMessage: Try specifying a different type.
+    comment: No parameters.
   EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
     problemMessage: "'{0}' must have a method body because '{1}' is an extension type."
     correctionMessage: "Try adding a body to '{0}'."

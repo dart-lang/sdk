@@ -1731,6 +1731,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try specifying a different type.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
+    "The representation type can't be a bottom type.",
+    correctionMessage: "Try specifying a different type.",
+  );
+
   ///  Parameters:
   ///  0: the name of the abstract method
   ///  1: the name of the enclosing extension type

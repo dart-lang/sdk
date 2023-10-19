@@ -1220,6 +1220,14 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
       for (var mixin_ in unitElement.mixins) {
         _handleMembers(addClass(mixin_, isAbstract: true), mixin_);
       }
+      // Private representation fields of extension types are always promotable.
+      // They also don't affect promotability of any other fields.
+      for (final extensionType in unitElement.extensionTypes) {
+        final representation = extensionType.representation;
+        if (representation.name.startsWith('_')) {
+          representation.isPromotable = true;
+        }
+      }
     }
 
     // Compute the set of field names that are not promotable.

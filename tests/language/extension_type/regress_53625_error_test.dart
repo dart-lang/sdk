@@ -47,7 +47,7 @@ extension type E04(final x) {}
 
 extension type E05(covariant int x) {}
 //                 ^^^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.REPRESENTATION_FIELD_MODIFIER
+// [analyzer] SYNTACTIC_ERROR.EXTRANEOUS_MODIFIER
 // [cfe] unspecified
 
 extension type E06(required int x) {}

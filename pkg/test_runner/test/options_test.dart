@@ -110,7 +110,6 @@ void testSelectors() {
   ]) {
     var configuration = parseConfiguration(arguments);
     Expect.setEquals({
-      'standalone_2',
       'corelib_2',
       'language_2',
       'vm',
