@@ -1002,7 +1002,7 @@ lsp.CompletionItem toCompletionItem(
         ? CompletionItemLabelDetails(
             detail: labelDetails.truncatedSignature.nullIfEmpty,
             description: labelDetails.autoImportUri,
-          )
+          ).nullIfEmpty
         : null,
     documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
@@ -1515,3 +1515,9 @@ typedef CompletionDetail = ({
   /// The URI that will be auto-imported if this item is selected.
   String? autoImportUri,
 });
+
+extension on CompletionItemLabelDetails {
+  /// Returns `null` if no fields are set, otherwise `this`.
+  CompletionItemLabelDetails? get nullIfEmpty =>
+      detail != null || description != null ? this : null;
+}

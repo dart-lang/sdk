@@ -261,15 +261,21 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
           '\n    ${completions.map((c) => c.label).join('\n    ')}');
     }
 
-    final labelDetails = completion.labelDetails;
-    if (labelDetails == null) {
-      fail('Completion "$label" does not have labelDetails');
-    }
-
     expect(completion.detail, detail);
     expect(completion.filterText, filterText);
-    expect(labelDetails.detail, labelDetail);
-    expect(labelDetails.description, labelDescription);
+
+    // If both fields are expected to be null, expect the whole object to be
+    // null (to reduce payload size).
+    if (labelDetail == null && labelDescription == null) {
+      expect(completion.labelDetails, isNull);
+    } else {
+      final labelDetails = completion.labelDetails;
+      if (labelDetails == null) {
+        fail('Completion "$label" does not have labelDetails');
+      }
+      expect(labelDetails.detail, labelDetail);
+      expect(labelDetails.description, labelDescription);
+    }
 
     // Verify that resolution does not modify these results.
     final resolved = await resolveCompletion(completion);
@@ -277,7 +283,9 @@ class CompletionLabelDetailsTest extends AbstractCompletionTest {
     expect(resolved.filterText, completion.filterText);
     expect(
       resolved.detail,
-      '${resolvedDetailPrefix ?? ''}${completion.detail}',
+      resolvedDetailPrefix != null
+          ? '$resolvedDetailPrefix${completion.detail ?? ''}'
+          : completion.detail,
     );
     expect(resolved.labelDetails?.detail, completion.labelDetails?.detail);
     expect(
@@ -572,6 +580,23 @@ void f() {
         filterText: null,
         detail: '() → void',
         resolvedDetailPrefix: "Auto import from 'package:test/a.dart'\n\n");
+  }
+
+  Future<void> test_nullNotEmpty() async {
+    final content = '''
+bool a = ^
+''';
+
+    /// expectLabels verifies the whole labelDetails object is null if
+    /// both fields are expected to be null.
+    await expectLabels(
+      content,
+      label: 'true',
+      labelDetail: null,
+      labelDescription: null,
+      filterText: null,
+      detail: null,
+    );
   }
 }
 
