@@ -1,0 +1,15 @@
+name: OSV-Scanner PR Scan
+
+# Change "main" to your default branch if you use a different name, i.e. "master"
+on:
+  pull_request:
+    branches: [ main ]
+  merge_group:
+    branches: [ main ]
+
+# Declare default permissions as read only.
+permissions: read-all
+
+jobs:
+  scan-pr:
+    uses: "google/osv-scanner/.github/workflows/osv-scanner-reusable-pr.yml@main"
