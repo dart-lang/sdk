@@ -28,7 +28,12 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const List<String> intNames = ['i', 'j', 'index', 'length'];
 const List<String> listNames = ['list', 'items'];
+
+/// The maximum relevance score a completion can have.
+const int maximumRelevance = 1000;
+
 const List<String> numNames = ['height', 'width'];
+
 const List<String> stringNames = [
   'key',
   'text',
@@ -40,10 +45,10 @@ const List<String> stringNames = [
 ];
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
-/// to a relevance value between `0` and `1000`.
+/// to a relevance value between `0` and `1000` ([maximumRelevance]).
 int toRelevance(double score) {
   assert(score.between(0.0, 1.0));
-  return (score * 1000).truncate();
+  return (score * maximumRelevance).truncate();
 }
 
 /// Return the weighted average of the given values, applying some constant and

@@ -4580,7 +4580,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
       // Additional TextEdits come first, because if they have the same offset
       // as edits in the normal edit, they will be inserted first.
       // https://github.com/microsoft/vscode/issues/143888.
-      snippet.additionalTextEdits!
+      (snippet.additionalTextEdits ?? [])
           .followedBy([toTextEdit(snippet.textEdit!)]).toList(),
     );
     return updated;
@@ -4618,7 +4618,10 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     await openFile(mainFileUri, code.code);
     final res = await getCompletion(mainFileUri, code.position.position);
     final item = res.singleWhere(
-      (c) => c.filterText == prefix && c.label == label,
+      (c) =>
+          c.kind == CompletionItemKind.Snippet &&
+          (c.filterText ?? c.label) == prefix &&
+          c.label == label,
     );
     expect(item.insertTextFormat, InsertTextFormat.Snippet);
     expect(item.insertText, isNull);
