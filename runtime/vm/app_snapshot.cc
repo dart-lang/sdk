@@ -3348,42 +3348,6 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   }
 
   void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (d->is_non_root_unit()) {
-      // If this is a non-root unit, some pool entries that should be canonical
-      // may have been replaced be with other objects during canonicalization.
-
-      intptr_t restore_position = d->position();
-      d->set_position(fill_position_);
-
-      auto Z = d->zone();
-      ObjectPool& pool = ObjectPool::Handle(Z);
-      Object& entry = Object::Handle(Z);
-      for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-        pool ^= refs.At(id);
-        const intptr_t length = d->ReadUnsigned();
-        for (intptr_t j = 0; j < length; j++) {
-          const uint8_t entry_bits = d->Read<uint8_t>();
-          switch (ObjectPool::TypeBits::decode(entry_bits)) {
-            case ObjectPool::EntryType::kTaggedObject:
-              entry = refs.At(d->ReadUnsigned());
-              pool.SetObjectAt(j, entry);
-              break;
-            case ObjectPool::EntryType::kImmediate:
-              d->Read<intptr_t>();
-              break;
-            case ObjectPool::EntryType::kNativeFunction: {
-              // Read nothing.
-              break;
-            }
-            default:
-              UNREACHABLE();
-          }
-        }
-      }
-
-      d->set_position(restore_position);
-    }
-
 #if defined(DART_PRECOMPILED_RUNTIME) &&                                       \
     (!defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER))
     if (FLAG_disassemble) {
