@@ -36,9 +36,11 @@ bool _reportingExtraNullSafetyError = false;
 
 @pragma('dart2js:as:trust')
 void _onExtraNullSafetyError(TypeError error, StackTrace trace) {
-  // If [onExtraNullSafetyError] itself produces an extra null safety error,
-  // this avoids blowing the stack.
-  if (!_reportingExtraNullSafetyError) {
+  if (JS_GET_FLAG('DEV_COMPILER')) {
+    throw error;
+  } else if (!_reportingExtraNullSafetyError) {
+    // If [onExtraNullSafetyError] itself produces an extra null safety error,
+    // this avoids blowing the stack.
     _reportingExtraNullSafetyError = true;
     if (onExtraNullSafetyError != null) {
       (onExtraNullSafetyError as OnExtraNullSafetyError)(error, trace);

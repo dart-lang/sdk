@@ -7238,22 +7238,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     }
 
-    if (_options.newRuntimeTypes) {
-      // When using the new runtime type system with sound null safety we can
-      // call to the library directly. In weak mode we call a DDC only method
-      // that can optionally produce warnings or errors when the check passes
-      // but would fail with sound null safety.
-      return _options.soundNullSafety
-          ? js.call('#.#(#)', [
-              _emitType(type),
-              _emitMemberName(js_ast.FixedNames.rtiIsField,
-                  memberClass: rtiClass),
-              lhs
-            ])
-          : runtimeCall('is(#, #)', [lhs, _emitType(type)]);
-    }
-
-    return js.call('#.is(#)', [_emitType(type), lhs]);
+    return _options.newRuntimeTypes
+        ? js.call('#.#(#)', [
+            _emitType(type),
+            _emitMemberName(js_ast.FixedNames.rtiIsField,
+                memberClass: rtiClass),
+            lhs
+          ])
+        : js.call('#.is(#)', [_emitType(type), lhs]);
   }
 
   @override
@@ -7331,21 +7323,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
     if (_types.isTop(type)) return expr;
-    if (_options.newRuntimeTypes) {
-      // When using the new runtime type system with sound null safety we can
-      // call to the library directly. In weak mode we call a DDC only method
-      // that can optionally produce warnings or errors when the cast passes but
-      // would fail with sound null safety.
-      return _options.soundNullSafety
-          ? js.call('#.#(#)', [
-              _emitType(type),
-              _emitMemberName(js_ast.FixedNames.rtiAsField,
-                  memberClass: rtiClass),
-              expr
-            ])
-          : runtimeCall('as(#, #)', [expr, _emitType(type)]);
-    }
-    return js.call('#.as(#)', [_emitType(type), expr]);
+    return _options.newRuntimeTypes
+        ? js.call('#.#(#)', [
+            _emitType(type),
+            _emitMemberName(js_ast.FixedNames.rtiAsField,
+                memberClass: rtiClass),
+            expr
+          ])
+        : js.call('#.as(#)', [_emitType(type), expr]);
   }
 
   @override
