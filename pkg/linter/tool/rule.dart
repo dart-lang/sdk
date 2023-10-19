@@ -270,7 +270,7 @@ import 'analyzer.dart';
 
   sb.write('''
 
-void registerLintRules({bool inTestMode = false}) {
+void registerLintRules() {
   Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
 ''');
