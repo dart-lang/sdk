@@ -105,90 +105,112 @@ class GenericClass<T extends core::Object? = dynamic> extends core::Object {
 extension Extension on core::int {
 }
 extension type ExtensionType(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ExtensionType|constructor#;
   constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
 }
 extension type GenericExtensionType<T extends core::Object? = dynamic>(T% it) {
+  abstract inline-class-member representation-field get it() → T%;
   constructor • = self::GenericExtensionType|constructor#;
   constructor tearoff • = self::GenericExtensionType|constructor#_#new#tearOff;
 }
 extension type ET_Null(Null it) {
+  abstract inline-class-member representation-field get it() → Null;
   constructor • = self::ET_Null|constructor#;
   constructor tearoff • = self::ET_Null|constructor#_#new#tearOff;
 }
 extension type ET_Dynamic(dynamic it) {
+  abstract inline-class-member representation-field get it() → dynamic;
   constructor • = self::ET_Dynamic|constructor#;
   constructor tearoff • = self::ET_Dynamic|constructor#_#new#tearOff;
 }
 extension type ET_Void(Never it) {
+  abstract inline-class-member representation-field get it() → Never;
   constructor • = self::ET_Void|constructor#;
   constructor tearoff • = self::ET_Void|constructor#_#new#tearOff;
 }
 extension type ET_Never(Never it) {
+  abstract inline-class-member representation-field get it() → Never;
   constructor • = self::ET_Never|constructor#;
   constructor tearoff • = self::ET_Never|constructor#_#new#tearOff;
 }
 extension type ET_Object(core::Object it) {
+  abstract inline-class-member representation-field get it() → core::Object;
   constructor • = self::ET_Object|constructor#;
   constructor tearoff • = self::ET_Object|constructor#_#new#tearOff;
 }
 extension type ET_Record(core::Record it) {
+  abstract inline-class-member representation-field get it() → core::Record;
   constructor • = self::ET_Record|constructor#;
   constructor tearoff • = self::ET_Record|constructor#_#new#tearOff;
 }
 extension type ET_RecordType((core::int, core::String) it) {
+  abstract inline-class-member representation-field get it() → (core::int, core::String);
   constructor • = self::ET_RecordType|constructor#;
   constructor tearoff • = self::ET_RecordType|constructor#_#new#tearOff;
 }
 extension type ET_Function(core::Function it) {
+  abstract inline-class-member representation-field get it() → core::Function;
   constructor • = self::ET_Function|constructor#;
   constructor tearoff • = self::ET_Function|constructor#_#new#tearOff;
 }
 extension type ET_FunctionType(() → void it) {
+  abstract inline-class-member representation-field get it() → () → void;
   constructor • = self::ET_FunctionType|constructor#;
   constructor tearoff • = self::ET_FunctionType|constructor#_#new#tearOff;
 }
 extension type ET_NullableInterfaceType(core::String? it) {
+  abstract inline-class-member representation-field get it() → core::String?;
   constructor • = self::ET_NullableInterfaceType|constructor#;
   constructor tearoff • = self::ET_NullableInterfaceType|constructor#_#new#tearOff;
 }
 extension type ET_NullableExtensionType(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ET_NullableExtensionType|constructor#;
   constructor tearoff • = self::ET_NullableExtensionType|constructor#_#new#tearOff;
 }
 extension type ET_FutureOr(FutureOr<core::int>it) {
+  abstract inline-class-member representation-field get it() → FutureOr<core::int>;
   constructor • = self::ET_FutureOr|constructor#;
   constructor tearoff • = self::ET_FutureOr|constructor#_#new#tearOff;
 }
 extension type ET_Extension(Never it) {
+  abstract inline-class-member representation-field get it() → Never;
   constructor • = self::ET_Extension|constructor#;
   constructor tearoff • = self::ET_Extension|constructor#_#new#tearOff;
 }
 extension type ET_TypeVariable<T extends core::Object? = dynamic>(T% it) {
+  abstract inline-class-member representation-field get it() → T%;
   constructor • = self::ET_TypeVariable|constructor#;
   constructor tearoff • = self::ET_TypeVariable|constructor#_#new#tearOff;
 }
 extension type ET_Class(self::Class it) implements self::Class {
+  abstract inline-class-member representation-field get it() → self::Class;
   constructor • = self::ET_Class|constructor#;
   constructor tearoff • = self::ET_Class|constructor#_#new#tearOff;
 }
 extension type ET_GenericClass<T extends core::Object? = dynamic>(self::GenericClass<T%> it) implements self::GenericClass<T%> {
+  abstract inline-class-member representation-field get it() → self::GenericClass<T%>;
   constructor • = self::ET_GenericClass|constructor#;
   constructor tearoff • = self::ET_GenericClass|constructor#_#new#tearOff;
 }
 extension type ET_Alias(self::Class it) implements self::Class {
+  abstract inline-class-member representation-field get it() → self::Class;
   constructor • = self::ET_Alias|constructor#;
   constructor tearoff • = self::ET_Alias|constructor#_#new#tearOff;
 }
 extension type ET_GenericAlias<T extends core::Object? = dynamic>(self::GenericClass<T%> it) implements self::GenericClass<T%> {
+  abstract inline-class-member representation-field get it() → self::GenericClass<T%>;
   constructor • = self::ET_GenericAlias|constructor#;
   constructor tearoff • = self::ET_GenericAlias|constructor#_#new#tearOff;
 }
 extension type ET_ExtensionType(core::int it) implements self::ExtensionType /* = core::int */ {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ET_ExtensionType|constructor#;
   constructor tearoff • = self::ET_ExtensionType|constructor#_#new#tearOff;
 }
 extension type ET_GenericExtensionType<T extends core::Object? = dynamic>(T% it) implements self::GenericExtensionType<T%> /* = T% */ {
+  abstract inline-class-member representation-field get it() → T%;
   constructor • = self::ET_GenericExtensionType|constructor#;
   constructor tearoff • = self::ET_GenericExtensionType|constructor#_#new#tearOff;
 }

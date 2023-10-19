@@ -114,6 +114,14 @@ class UnboxingInfoManager {
           addMember(member);
         }
       }
+      for (ExtensionTypeDeclaration extensionTypeDeclaration
+          in library.extensionTypeDeclarations) {
+        for (Procedure procedure in extensionTypeDeclaration.procedures) {
+          if (procedure.stubKind != ProcedureStubKind.RepresentationField) {
+            addMember(procedure);
+          }
+        }
+      }
       for (Member member in library.members) {
         addMember(member);
       }

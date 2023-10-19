@@ -1206,6 +1206,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       case ProcedureStubKind.ConcreteMixinStub:
         writeWord('mixin-super-stub');
         break;
+      case ProcedureStubKind.RepresentationField:
+        writeWord('representation-field');
+        break;
     }
     writeWord(procedureKindToString(node.kind));
     List<String> features = <String>[];
@@ -1237,6 +1240,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       case ProcedureStubKind.ConcreteForwardingStub:
       case ProcedureStubKind.NoSuchMethodForwarder:
       case ProcedureStubKind.ConcreteMixinStub:
+      case ProcedureStubKind.RepresentationField:
         writeFunction(node.function, name: getMemberName(node));
         break;
       case ProcedureStubKind.MemberSignature:

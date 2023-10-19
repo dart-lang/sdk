@@ -2056,7 +2056,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InitializerInferenceResult visitShadowInvalidFieldInitializer(
       ShadowInvalidFieldInitializer node) {
     ExpressionInferenceResult initializerResult =
-        inferExpression(node.value, node.field.type, isVoidAllowed: false);
+        inferExpression(node.value, node.fieldType, isVoidAllowed: false);
     node.value = initializerResult.expression..parent = node;
     return const SuccessfulInitializerInferenceResult();
   }
@@ -7868,6 +7868,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         staticTarget: node.target);
     return new InitializerInferenceResult.fromInvocationInferenceResult(
         inferenceResult);
+  }
+
+  InitializerInferenceResult visitExtensionTypeRepresentationFieldInitializer(
+      ExtensionTypeRepresentationFieldInitializer node) {
+    DartType fieldType = node.field.getterType;
+    fieldType = constructorDeclaration!.substituteFieldType(fieldType);
+    ExpressionInferenceResult initializerResult =
+        inferExpression(node.value, fieldType);
+    Expression initializer = ensureAssignableResult(
+            fieldType, initializerResult,
+            fileOffset: node.fileOffset)
+        .expression;
+    node.value = initializer..parent = node;
+    return const SuccessfulInitializerInferenceResult();
   }
 
   @override

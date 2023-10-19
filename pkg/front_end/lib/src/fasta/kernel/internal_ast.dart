@@ -899,12 +899,11 @@ class ShadowInvalidInitializer extends LocalInitializer
 /// Concrete shadow object representing an invalid initializer in kernel form.
 class ShadowInvalidFieldInitializer extends LocalInitializer
     implements InitializerJudgment {
-  Field field;
+  DartType fieldType;
   Expression value;
 
-  ShadowInvalidFieldInitializer(
-      this.field, this.value, VariableDeclaration variable)
-      : super(variable) {
+  ShadowInvalidFieldInitializer(this.fieldType, this.value, Expression effect)
+      : super(new VariableDeclaration.forValue(effect)) {
     value.parent = this;
   }
 
@@ -3439,4 +3438,36 @@ class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   @override
   String toString() =>
       'ExtensionTypeRedirectingInitializer(${toStringInternal()})';
+}
+
+/// Internal expression for an explicit initialization of an extension type
+/// declaration representation field.
+class ExtensionTypeRepresentationFieldInitializer extends InternalInitializer {
+  Reference fieldReference;
+  Expression value;
+
+  ExtensionTypeRepresentationFieldInitializer(Procedure field, this.value)
+      : assert(field.stubKind == ProcedureStubKind.RepresentationField),
+        this.fieldReference = field.reference {
+    value.parent = this;
+  }
+
+  /// [Procedure] that represents the representation field.
+  Procedure get field => fieldReference.asProcedure;
+
+  @override
+  InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitExtensionTypeRepresentationFieldInitializer(this);
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(fieldReference);
+    printer.write(" = ");
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() =>
+      'ExtensionTypeRepresentationFieldInitializer(${toStringInternal()})';
 }

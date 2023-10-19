@@ -19,11 +19,13 @@ class Run<T extends core::Object? = dynamic> extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method execute([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int> (skip check)] covariant-by-class final core::List<self::Run::T%> list) → void {}
 }
 extension type IC2(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   method foo1 = self::IC2|foo1;
   static method bar1 = self::IC2|bar1;
   constructor • = self::IC2|constructor#;
 }
 extension type SomeExtensionType(core::int foo) {
+  abstract inline-class-member representation-field get foo() → core::int;
   constructor • = self::SomeExtensionType|constructor#;
 }
 [@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {

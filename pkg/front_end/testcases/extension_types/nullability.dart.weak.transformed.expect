@@ -151,22 +151,27 @@ class A extends core::Object {
     ;
 }
 extension type E1<T extends core::Object? = dynamic>(T% foo) {
+  abstract inline-class-member representation-field get foo() → T%;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
 extension type E2(core::Object? foo) {
+  abstract inline-class-member representation-field get foo() → core::Object?;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
 extension type E3(self::E1<core::String?> /* = core::String? */ foo) {
+  abstract inline-class-member representation-field get foo() → self::E1<core::String?> /* = core::String? */;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
 extension type E4(self::E1<core::int> /* = core::int */ foo) {
+  abstract inline-class-member representation-field get foo() → self::E1<core::int> /* = core::int */;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
 extension type E5(self::E2 /* = core::Object? */ foo) {
+  abstract inline-class-member representation-field get foo() → self::E2 /* = core::Object? */;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }

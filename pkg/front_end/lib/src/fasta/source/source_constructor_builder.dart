@@ -1339,6 +1339,11 @@ class ExtensionTypeInitializerToStatementConverter
             ..fileOffset = node.fileOffset)
         ..fileOffset = node.fileOffset);
       return;
+    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
+      thisVariable
+        ..initializer = (node.value..parent = thisVariable)
+        ..fileOffset = node.fileOffset;
+      return;
     }
     throw new UnsupportedError(
         "Unexpected initializer $node (${node.runtimeType})");

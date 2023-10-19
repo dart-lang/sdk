@@ -269,11 +269,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               Name targetName =
                   new Name(constructorName, declaration.libraryBuilder.library);
               Reference? tearOffReference;
-              if (libraryBuilder.referencesFromIndexed != null) {
+              if (libraryBuilder.indexedLibrary != null) {
                 Name tearOffName = new Name(
                     typedefTearOffName(name, constructorName),
-                    libraryBuilder.referencesFromIndexed!.library);
-                tearOffReference = libraryBuilder.referencesFromIndexed!
+                    libraryBuilder.indexedLibrary!.library);
+                tearOffReference = libraryBuilder.indexedLibrary!
                     .lookupGetterReference(tearOffName);
               }
 

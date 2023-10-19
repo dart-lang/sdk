@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type Class1(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::Class1|constructor#;
   constructor tearoff • = self::Class1|constructor#_#new#tearOff;
   constructor named1 = self::Class1|constructor#named1;
@@ -19,6 +20,7 @@ extension type Class1(core::int it) {
   constructor tearoff named6 = self::Class1|constructor#_#named6#tearOff;
 }
 extension type Class2<T extends core::Object? = dynamic>(T% it) {
+  abstract inline-class-member representation-field get it() → T%;
   constructor • = self::Class2|constructor#;
   constructor tearoff • = self::Class2|constructor#_#new#tearOff;
   constructor named1 = self::Class2|constructor#named1;

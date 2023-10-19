@@ -3,18 +3,21 @@ import self as self;
 import "dart:core" as core;
 
 extension type I(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor _ = self::I|constructor#_;
   constructor tearoff _ = self::I|constructor#_#_#tearOff;
   static factory • = self::I|constructor#;
   static factory tearoff • = self::I|constructor#_#new#tearOff;
 }
 extension type J(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor _ = self::J|constructor#_;
   constructor tearoff _ = self::J|constructor#_#_#tearOff;
   static factory • = self::J|constructor#;
   static factory tearoff • = self::J|constructor#_#new#tearOff;
 }
 extension type K<T extends core::Object? = dynamic>(T% i) {
+  abstract inline-class-member representation-field get i() → T%;
   constructor _ = self::K|constructor#_;
   constructor tearoff _ = self::K|constructor#_#_#tearOff;
   static factory • = self::K|constructor#;

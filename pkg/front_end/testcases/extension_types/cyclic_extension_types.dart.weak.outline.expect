@@ -30,26 +30,32 @@ import self as self;
 import "dart:core" as core;
 
 extension type A(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::A|constructor#;
   constructor tearoff • = self::A|constructor#_#new#tearOff;
 }
 extension type B(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::B|constructor#;
   constructor tearoff • = self::B|constructor#_#new#tearOff;
 }
 extension type C(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::C|constructor#;
   constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
 extension type D(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::D|constructor#;
   constructor tearoff • = self::D|constructor#_#new#tearOff;
 }
 extension type E(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }

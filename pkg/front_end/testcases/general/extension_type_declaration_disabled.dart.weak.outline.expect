@@ -22,10 +22,12 @@ import self as self;
 import "dart:core" as core;
 
 extension type ExtensionType1(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ExtensionType1|constructor#;
   constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
 }
 extension type ExtensionType2<T extends core::Object? = dynamic>(core::int it) implements core::int, self::ExtensionType1 /* = core::int */ {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor _ = self::ExtensionType2|constructor#_;
   constructor tearoff _ = self::ExtensionType2|constructor#_#_#tearOff;
 }

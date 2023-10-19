@@ -456,6 +456,41 @@ class SourceExtensionTypeDeclarationBuilder
   }
 
   @override
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind, Member member, Member? tearOff) {
+    switch (memberKind) {
+      case BuiltMemberKind.Constructor:
+      case BuiltMemberKind.RedirectingFactory:
+      case BuiltMemberKind.Field:
+      case BuiltMemberKind.Method:
+      case BuiltMemberKind.Factory:
+      case BuiltMemberKind.ExtensionMethod:
+      case BuiltMemberKind.ExtensionGetter:
+      case BuiltMemberKind.ExtensionSetter:
+      case BuiltMemberKind.ExtensionOperator:
+      case BuiltMemberKind.ExtensionField:
+      case BuiltMemberKind.LateIsSetField:
+      case BuiltMemberKind.ExtensionTypeConstructor:
+      case BuiltMemberKind.ExtensionTypeFactory:
+      case BuiltMemberKind.ExtensionTypeRedirectingFactory:
+      case BuiltMemberKind.ExtensionTypeMethod:
+      case BuiltMemberKind.ExtensionTypeGetter:
+      case BuiltMemberKind.LateGetter:
+      case BuiltMemberKind.ExtensionTypeSetter:
+      case BuiltMemberKind.LateSetter:
+      case BuiltMemberKind.ExtensionTypeOperator:
+        unhandled(
+            "${memberBuilder.runtimeType}:${memberKind}",
+            "addMemberInternal",
+            memberBuilder.charOffset,
+            memberBuilder.fileUri);
+      case BuiltMemberKind.ExtensionTypeRepresentationField:
+        assert(tearOff == null, "Unexpected tear-off $tearOff");
+        extensionTypeDeclaration.addProcedure(member as Procedure);
+    }
+  }
+
+  @override
   void addMemberDescriptorInternal(
       SourceMemberBuilder memberBuilder,
       BuiltMemberKind memberKind,
@@ -473,6 +508,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionGetter:
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
+      case BuiltMemberKind.ExtensionTypeRepresentationField:
         unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:

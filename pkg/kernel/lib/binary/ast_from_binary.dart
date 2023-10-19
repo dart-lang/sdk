@@ -1617,7 +1617,7 @@ class BinaryBuilder {
 
   ExtensionTypeDeclaration readExtensionTypeDeclaration() {
     int tag = readByte();
-    assert(tag == Tag.ExtensionTypeDeclaration);
+    assert(tag == Tag.ExtensionTypeDeclaration, "Unexpected tag $tag");
 
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
@@ -1877,10 +1877,11 @@ class BinaryBuilder {
     }());
 
     int functionNodeSize = endOffset - _byteOffset;
-    // Read small factories up front. Postpone everything else.
-    bool readFunctionNodeNow =
+    // Read small factories and extension type declaration procedures
+    // (where `endOffset == -1`) up front. Postpone everything else.
+    bool readFunctionNodeNow = endOffset == -1 ||
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
-            _disableLazyReading;
+        _disableLazyReading;
     Reference? stubTargetReference = readNullableMemberReference();
     FunctionType? signatureType = readDartTypeOption() as FunctionType?;
     FunctionNode function = readFunctionNode(

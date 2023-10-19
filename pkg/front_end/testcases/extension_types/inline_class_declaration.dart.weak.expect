@@ -5,10 +5,12 @@ import "dart:core" as core;
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 extension type Class1(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::Class1|constructor#;
   constructor tearoff • = self::Class1|constructor#_#new#tearOff;
 }
 extension type Class3<T extends core::Object? = dynamic>(core::List<T%> it) {
+  abstract inline-class-member representation-field get it() → core::List<T%>;
   constructor • = self::Class3|constructor#;
   constructor tearoff • = self::Class3|constructor#_#new#tearOff;
 }

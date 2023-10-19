@@ -213,8 +213,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final LibraryBuilder? _nameOrigin;
 
   final Library? referencesFrom;
-  final IndexedLibrary? referencesFromIndexed;
-  IndexedClass? _currentClassReferencesFromIndexed;
+
+  final IndexedLibrary? indexedLibrary;
+  // TODO(johnniwinther): Use [_indexedContainer] for library members and make
+  // it [null] when there is null corresponding [IndexedContainer].
+  IndexedContainer? _indexedContainer;
 
   /// Exports that can't be serialized.
   ///
@@ -320,7 +323,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Map<String, Builder>? omittedTypes})
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
-        referencesFromIndexed =
+        indexedLibrary =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         _immediateOrigin = origin,
         _omittedTypeDeclarationBuilders = omittedTypes,
@@ -1156,9 +1159,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (unserializableExports != null) {
       Name fieldName = new Name(unserializableExportName, library);
       Reference? fieldReference =
-          referencesFromIndexed?.lookupFieldReference(fieldName);
+          indexedLibrary?.lookupFieldReference(fieldName);
       Reference? getterReference =
-          referencesFromIndexed?.lookupGetterReference(fieldName);
+          indexedLibrary?.lookupGetterReference(fieldName);
       library.addField(new Field.immutable(fieldName,
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
@@ -2051,7 +2054,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         startOffset,
         nameOffset,
         endOffset,
-        _currentClassReferencesFromIndexed,
+        _indexedContainer,
         isMixinDeclaration: isMixinDeclaration,
         isMacro: isMacro,
         isSealed: isSealed,
@@ -2092,7 +2095,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(className, classBuilder, nameOffset,
-        getterReference: _currentClassReferencesFromIndexed?.cls.reference);
+        getterReference: _indexedContainer?.reference);
   }
 
   Map<String, NominalVariableBuilder>? checkTypeVariables(
@@ -2307,7 +2310,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Extension? referenceFrom;
     ExtensionName extensionName = declaration.extensionName!;
     if (name != null) {
-      referenceFrom = referencesFromIndexed?.lookupExtension(name);
+      referenceFrom = indexedLibrary?.lookupExtension(name);
     }
 
     ExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
@@ -2385,7 +2388,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new ConstructorScope(name, constructors);
 
     ExtensionTypeDeclaration? referenceFrom =
-        referencesFromIndexed?.lookupExtensionTypeDeclaration(name);
+        indexedLibrary?.lookupExtensionTypeDeclaration(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2481,7 +2484,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new ConstructorScope(name, constructors);
 
     ExtensionTypeDeclaration? referenceFrom =
-        referencesFromIndexed?.lookupExtensionTypeDeclaration(name);
+        indexedLibrary?.lookupExtensionTypeDeclaration(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2799,9 +2802,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 : metadata.first.charOffset;
 
         IndexedClass? referencesFromIndexedClass;
-        if (referencesFromIndexed != null) {
+        if (indexedLibrary != null) {
           referencesFromIndexedClass =
-              referencesFromIndexed!.lookupIndexedClass(fullname);
+              indexedLibrary!.lookupIndexedClass(fullname);
         }
 
         SourceClassBuilder application = new SourceClassBuilder(
@@ -2959,6 +2962,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         (modifiers & staticMask) == 0;
     final bool isExtensionMember = currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.extensionDeclaration;
+    final bool isExtensionTypeMember = currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.extensionTypeDeclaration;
     ContainerType containerType =
         currentTypeParameterScopeBuilder.containerType;
     ContainerName? containerName =
@@ -2977,21 +2982,29 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isInstanceMember: isInstanceMember,
         containerName: containerName,
         containerType: containerType,
-        libraryName: referencesFrom != null
-            ? new LibraryName(referencesFrom!.reference)
+        libraryName: indexedLibrary != null
+            ? new LibraryName(indexedLibrary!.reference)
             : libraryName);
-    if (referencesFrom != null) {
-      IndexedContainer indexedContainer =
-          (_currentClassReferencesFromIndexed ?? referencesFromIndexed)!;
-      if (isExtensionMember && isInstanceMember && isExternal) {
-        /// An external extension instance field is special. It is treated
-        /// as an external getter/setter pair and is therefore encoded as a pair
-        /// of top level methods using the extension instance member naming
-        /// convention.
+    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
+    if (indexedContainer != null) {
+      if ((isExtensionMember || isExtensionTypeMember) &&
+          isInstanceMember &&
+          isExternal) {
+        /// An external extension (type) instance field is special. It is
+        /// treated as an external getter/setter pair and is therefore encoded
+        /// as a pair of top level methods using the extension instance member
+        /// naming convention.
         fieldGetterReference = indexedContainer.lookupGetterReference(
             nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name);
         fieldSetterReference = indexedContainer.lookupGetterReference(
             nameScheme.getProcedureMemberName(ProcedureKind.Setter, name).name);
+      } else if (isExtensionTypeMember && isInstanceMember) {
+        Name nameToLookup = nameScheme
+            .getFieldMemberName(FieldNameType.RepresentationField, name,
+                isSynthesized: true)
+            .name;
+        fieldGetterReference =
+            indexedContainer.lookupGetterReference(nameToLookup);
       } else {
         Name nameToLookup = nameScheme
             .getFieldMemberName(FieldNameType.Field, name,
@@ -3119,21 +3132,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Reference? constructorReference;
     Reference? tearOffReference;
 
-    if (_currentClassReferencesFromIndexed != null) {
-      constructorReference = _currentClassReferencesFromIndexed!
-          .lookupConstructorReference(nameScheme
-              .getConstructorMemberName(constructorName, isTearOff: false)
-              .name);
-      tearOffReference = _currentClassReferencesFromIndexed!
-          .lookupGetterReference(nameScheme
-              .getConstructorMemberName(constructorName, isTearOff: true)
-              .name);
-    } else if (referencesFromIndexed != null) {
-      constructorReference = referencesFromIndexed!.lookupGetterReference(
+    IndexedContainer? indexedContainer = _indexedContainer;
+    if (indexedContainer != null) {
+      constructorReference = indexedContainer.lookupConstructorReference(
           nameScheme
               .getConstructorMemberName(constructorName, isTearOff: false)
               .name);
-      tearOffReference = referencesFromIndexed!.lookupGetterReference(nameScheme
+      tearOffReference = indexedContainer.lookupGetterReference(nameScheme
           .getConstructorMemberName(constructorName, isTearOff: true)
           .name);
     }
@@ -3244,33 +3249,26 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     Reference? procedureReference;
     Reference? tearOffReference;
-    if (referencesFrom != null) {
+    IndexedContainer? indexedContainer = _indexedContainer ?? indexedLibrary;
+    if (indexedContainer != null) {
       Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
-      if (_currentClassReferencesFromIndexed != null) {
-        if (kind == ProcedureKind.Setter) {
-          procedureReference = _currentClassReferencesFromIndexed!
-              .lookupSetterReference(nameToLookup);
+      if (kind == ProcedureKind.Setter) {
+        if ((isExtensionMember || isExtensionTypeMember) && isInstanceMember) {
+          // Extension (type) instance setters are encoded as methods.
+          procedureReference =
+              indexedContainer.lookupGetterReference(nameToLookup);
         } else {
-          procedureReference = _currentClassReferencesFromIndexed!
-              .lookupGetterReference(nameToLookup);
+          procedureReference =
+              indexedContainer.lookupSetterReference(nameToLookup);
         }
       } else {
-        if (kind == ProcedureKind.Setter &&
-            // Extension (type) instance setters are encoded as methods.
-            !((isExtensionMember || isExtensionTypeMember) &&
-                isInstanceMember)) {
-          procedureReference =
-              referencesFromIndexed!.lookupSetterReference(nameToLookup);
-        } else {
-          procedureReference =
-              referencesFromIndexed!.lookupGetterReference(nameToLookup);
-        }
+        procedureReference =
+            indexedContainer.lookupGetterReference(nameToLookup);
         if ((isExtensionMember || isExtensionTypeMember) &&
             kind == ProcedureKind.Method) {
-          tearOffReference = referencesFromIndexed!.lookupGetterReference(
-              nameScheme
-                  .getProcedureMemberName(ProcedureKind.Getter, name)
-                  .name);
+          tearOffReference = indexedContainer.lookupGetterReference(nameScheme
+              .getProcedureMemberName(ProcedureKind.Getter, name)
+              .name);
         }
       }
     }
@@ -3356,28 +3354,26 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isInstanceMember: false,
         libraryName: referencesFrom != null
             ? new LibraryName(
-                (_currentClassReferencesFromIndexed ?? referencesFromIndexed)!
-                    .library
-                    .reference)
+                (_indexedContainer ?? indexedLibrary)!.library.reference)
             : libraryName);
 
     Reference? constructorReference;
     Reference? tearOffReference;
-    if (_currentClassReferencesFromIndexed != null) {
-      constructorReference = _currentClassReferencesFromIndexed!
-          .lookupConstructorReference(procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: false)
-              .name);
-      tearOffReference = _currentClassReferencesFromIndexed!
-          .lookupGetterReference(procedureNameScheme
-              .getConstructorMemberName(procedureName, isTearOff: true)
-              .name);
-    } else if (referencesFromIndexed != null) {
-      constructorReference = referencesFromIndexed!.lookupGetterReference(
+    if (_indexedContainer != null) {
+      constructorReference = _indexedContainer!.lookupConstructorReference(
           procedureNameScheme
               .getConstructorMemberName(procedureName, isTearOff: false)
               .name);
-      tearOffReference = referencesFromIndexed!.lookupGetterReference(
+      tearOffReference = _indexedContainer!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: true)
+              .name);
+    } else if (indexedLibrary != null) {
+      constructorReference = indexedLibrary!.lookupGetterReference(
+          procedureNameScheme
+              .getConstructorMemberName(procedureName, isTearOff: false)
+              .name);
+      tearOffReference = indexedLibrary!.lookupGetterReference(
           procedureNameScheme
               .getConstructorMemberName(procedureName, isTearOff: true)
               .name);
@@ -3469,8 +3465,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset) {
     IndexedClass? referencesFromIndexedClass;
     if (referencesFrom != null) {
-      referencesFromIndexedClass =
-          referencesFromIndexed!.lookupIndexedClass(name);
+      referencesFromIndexedClass = indexedLibrary!.lookupIndexedClass(name);
     }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
     TypeParameterScopeBuilder declaration =
@@ -3565,7 +3560,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeVariable.variance = pendingVariance;
       }
     }
-    Typedef? referenceFrom = referencesFromIndexed?.lookupTypedef(name);
+    Typedef? referenceFrom = indexedLibrary?.lookupTypedef(name);
     TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset,
         referenceFrom: referenceFrom);
@@ -5302,20 +5297,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _extensionsInScope = null;
   }
 
-  /// Set to some non-null name when entering a class; set to null when leaving
-  /// the class.
+  /// Call this when entering a class, mixin, enum, or extension type
+  /// declaration.
   ///
-  /// Called in OutlineBuilder.beginClassDeclaration,
-  /// OutlineBuilder.endClassDeclaration,
-  /// OutlineBuilder.beginMixinDeclaration,
-  /// OutlineBuilder.endMixinDeclaration.
-  void setCurrentClassName(String? name) {
-    if (name == null) {
-      _currentClassReferencesFromIndexed = null;
-    } else if (referencesFrom != null) {
-      _currentClassReferencesFromIndexed =
-          referencesFromIndexed!.lookupIndexedClass(name);
+  /// This is done to set up the current [_indexedContainer] used to lookup
+  /// references of members from a previous incremental compilation.
+  ///
+  /// Called in `OutlineBuilder.beginClassDeclaration`,
+  /// `OutlineBuilder.beginEnum`, `OutlineBuilder.beginMixinDeclaration` and
+  /// `OutlineBuilder.beginExtensionTypeDeclaration`.
+  void beginIndexedContainer(String name,
+      {required bool isExtensionTypeDeclaration}) {
+    if (indexedLibrary != null) {
+      if (isExtensionTypeDeclaration) {
+        _indexedContainer =
+            indexedLibrary!.lookupIndexedExtensionTypeDeclaration(name);
+      } else {
+        _indexedContainer = indexedLibrary!.lookupIndexedClass(name);
+      }
     }
+  }
+
+  /// Call this when leaving a class, mixin, enum, or extension type
+  /// declaration.
+  ///
+  /// Called in `OutlineBuilder.endClassDeclaration`,
+  /// `OutlineBuilder.endEnum`, `OutlineBuilder.endMixinDeclaration` and
+  /// `OutlineBuilder.endExtensionTypeDeclaration`.
+  void endIndexedContainer() {
+    _indexedContainer = null;
   }
 
   void registerPendingNullability(

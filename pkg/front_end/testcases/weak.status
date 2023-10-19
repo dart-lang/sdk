@@ -15,8 +15,6 @@ dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://
 macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 
 # INCREMENTAL COMPILATION ERRORS
-dart2js/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
-dartdevc/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/annotations: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/constructor_formal_parameters: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/external: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.

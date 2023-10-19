@@ -807,7 +807,8 @@ class ClosureLayouter extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    if (node.isInstanceMember) {
+    if (node.isInstanceMember &&
+        node.stubKind != ProcedureStubKind.RepresentationField) {
       ProcedureAttributesMetadata metadata = procedureAttributeMetadata[node]!;
       if (metadata.hasTearOffUses) {
         _visitFunctionNode(node.function);

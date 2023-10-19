@@ -3,82 +3,102 @@ import self as self;
 import "dart:core" as core;
 
 extension type A(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::A|constructor#;
   constructor tearoff • = self::A|constructor#_#new#tearOff;
 }
 extension type Ba(self::A /* = core::int */ it) {
+  abstract inline-class-member representation-field get it() → self::A /* = core::int */;
   constructor • = self::Ba|constructor#;
   constructor tearoff • = self::Ba|constructor#_#new#tearOff;
 }
 extension type Bb(self::A? /* = core::int? */ it) {
+  abstract inline-class-member representation-field get it() → self::A? /* = core::int? */;
   constructor • = self::Bb|constructor#;
   constructor tearoff • = self::Bb|constructor#_#new#tearOff;
 }
 extension type C<T extends core::Object? = dynamic>(T% it) {
+  abstract inline-class-member representation-field get it() → T%;
   constructor • = self::C|constructor#;
   constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
 extension type Da<T extends core::Object? = dynamic>(self::C<T%> /* = T% */ it) {
+  abstract inline-class-member representation-field get it() → self::C<T%> /* = T% */;
   constructor • = self::Da|constructor#;
   constructor tearoff • = self::Da|constructor#_#new#tearOff;
 }
 extension type Db<T extends core::Object? = dynamic>(self::C<T?> /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::C<T?> /* = T? */;
   constructor • = self::Db|constructor#;
   constructor tearoff • = self::Db|constructor#_#new#tearOff;
 }
 extension type Dc<T extends core::Object? = dynamic>(self::C<T%>? /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::C<T%>? /* = T? */;
   constructor • = self::Dc|constructor#;
   constructor tearoff • = self::Dc|constructor#_#new#tearOff;
 }
 extension type E(core::int? it) {
+  abstract inline-class-member representation-field get it() → core::int?;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type Fa(self::E /* = core::int? */ it) {
+  abstract inline-class-member representation-field get it() → self::E /* = core::int? */;
   constructor • = self::Fa|constructor#;
   constructor tearoff • = self::Fa|constructor#_#new#tearOff;
 }
 extension type Fb(self::E? /* = core::int? */ it) {
+  abstract inline-class-member representation-field get it() → self::E? /* = core::int? */;
   constructor • = self::Fb|constructor#;
   constructor tearoff • = self::Fb|constructor#_#new#tearOff;
 }
 extension type G<T extends core::Object? = dynamic>(T? it) {
+  abstract inline-class-member representation-field get it() → T?;
   constructor • = self::G|constructor#;
   constructor tearoff • = self::G|constructor#_#new#tearOff;
 }
 extension type Ha<T extends core::Object? = dynamic>(self::G<T%> /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::G<T%> /* = T? */;
   constructor • = self::Ha|constructor#;
   constructor tearoff • = self::Ha|constructor#_#new#tearOff;
 }
 extension type Hb<T extends core::Object? = dynamic>(self::G<T?> /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::G<T?> /* = T? */;
   constructor • = self::Hb|constructor#;
   constructor tearoff • = self::Hb|constructor#_#new#tearOff;
 }
 extension type Hc<T extends core::Object? = dynamic>(self::G<T%>? /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::G<T%>? /* = T? */;
   constructor • = self::Hc|constructor#;
   constructor tearoff • = self::Hc|constructor#_#new#tearOff;
 }
 extension type I<T extends core::Object>(T it) {
+  abstract inline-class-member representation-field get it() → T;
   constructor • = self::I|constructor#;
   constructor tearoff • = self::I|constructor#_#new#tearOff;
 }
 extension type Ja<T extends core::Object>(self::I<T> /* = T */ it) {
+  abstract inline-class-member representation-field get it() → self::I<T> /* = T */;
   constructor • = self::Ja|constructor#;
   constructor tearoff • = self::Ja|constructor#_#new#tearOff;
 }
 extension type Jc<T extends core::Object>(self::I<T>? /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::I<T>? /* = T? */;
   constructor • = self::Jc|constructor#;
   constructor tearoff • = self::Jc|constructor#_#new#tearOff;
 }
 extension type K<T extends core::Object>(T? it) {
+  abstract inline-class-member representation-field get it() → T?;
   constructor • = self::K|constructor#;
   constructor tearoff • = self::K|constructor#_#new#tearOff;
 }
 extension type La<T extends core::Object>(self::K<T> /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::K<T> /* = T? */;
   constructor • = self::La|constructor#;
   constructor tearoff • = self::La|constructor#_#new#tearOff;
 }
 extension type Lc<T extends core::Object>(self::K<T>? /* = T? */ it) {
+  abstract inline-class-member representation-field get it() → self::K<T>? /* = T? */;
   constructor • = self::Lc|constructor#;
   constructor tearoff • = self::Lc|constructor#_#new#tearOff;
 }

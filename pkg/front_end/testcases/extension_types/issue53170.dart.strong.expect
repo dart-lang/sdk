@@ -21,34 +21,42 @@ import self as self;
 import "dart:core" as core;
 
 extension type S1(core::num id) implements core::String {
+  abstract inline-class-member representation-field get id() → core::num;
   constructor • = self::S1|constructor#;
   constructor tearoff • = self::S1|constructor#_#new#tearOff;
 }
 extension type S2(core::int id) implements core::num {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::S2|constructor#;
   constructor tearoff • = self::S2|constructor#_#new#tearOff;
 }
 extension type V1(core::num id) {
+  abstract inline-class-member representation-field get id() → core::num;
   constructor • = self::V1|constructor#;
   constructor tearoff • = self::V1|constructor#_#new#tearOff;
 }
 extension type V2(core::String id) implements self::V1 /* = core::num */ {
+  abstract inline-class-member representation-field get id() → core::String;
   constructor • = self::V2|constructor#;
   constructor tearoff • = self::V2|constructor#_#new#tearOff;
 }
 extension type V3(core::int id) implements self::V1 /* = core::num */ {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::V3|constructor#;
   constructor tearoff • = self::V3|constructor#_#new#tearOff;
 }
 extension type W1<T extends core::Object? = dynamic>(T% id) {
+  abstract inline-class-member representation-field get id() → T%;
   constructor • = self::W1|constructor#;
   constructor tearoff • = self::W1|constructor#_#new#tearOff;
 }
 extension type W2(core::String id) implements self::W1<core::num> /* = core::num */ {
+  abstract inline-class-member representation-field get id() → core::String;
   constructor • = self::W2|constructor#;
   constructor tearoff • = self::W2|constructor#_#new#tearOff;
 }
 extension type W3(core::int id) implements self::W1<core::num> /* = core::num */ {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::W3|constructor#;
   constructor tearoff • = self::W3|constructor#_#new#tearOff;
 }

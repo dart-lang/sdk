@@ -3,30 +3,35 @@ import self as self;
 import "dart:core" as core;
 
 extension type A(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   method methodA = self::A|methodA;
   method tearoff methodA = self::A|get#methodA;
   constructor • = self::A|constructor#;
   constructor tearoff • = self::A|constructor#_#new#tearOff;
 }
 extension type B<T extends core::Object? = dynamic>(T% it) {
+  abstract inline-class-member representation-field get it() → T%;
   method methodB = self::B|methodB;
   method tearoff methodB = self::B|get#methodB;
   constructor • = self::B|constructor#;
   constructor tearoff • = self::B|constructor#_#new#tearOff;
 }
 extension type C1(core::int it) implements self::A /* = core::int */ {
+  abstract inline-class-member representation-field get it() → core::int;
   method methodC1 = self::C1|methodC1;
   method tearoff methodC1 = self::C1|get#methodC1;
   constructor • = self::C1|constructor#;
   constructor tearoff • = self::C1|constructor#_#new#tearOff;
 }
 extension type C2(core::int it) implements self::A /* = core::int */, self::B<core::int> /* = core::int */ {
+  abstract inline-class-member representation-field get it() → core::int;
   method methodC2 = self::C2|methodC2;
   method tearoff methodC2 = self::C2|get#methodC2;
   constructor • = self::C2|constructor#;
   constructor tearoff • = self::C2|constructor#_#new#tearOff;
 }
 extension type D1(core::int it) implements self::C1 /* = core::int */ {
+  abstract inline-class-member representation-field get it() → core::int;
   method methodD1 = self::D1|methodD1;
   method tearoff methodD1 = self::D1|get#methodD1;
   constructor • = self::D1|constructor#;

@@ -7,6 +7,7 @@ extension /* unnamed */ _extension#0 on core::Object {
   set getter = self::_extension#0|set#getter;
 }
 extension type InlineClass(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   method test = self::InlineClass|test;
   method tearoff test = self::InlineClass|get#test;
   operator + = self::InlineClass|+;

@@ -16,10 +16,6 @@ extension_types/representation_type: SemiFuzzCrash # https://github.com/dart-lan
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 
-# INCREMENTAL COMPILATION ERRORS
-dart2js/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
-dartdevc/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
-
 # EXPECTED FAILURES DUE TO PRIVACY ETC:
 dart2js/native_legacy: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
 dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.

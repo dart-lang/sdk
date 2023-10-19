@@ -224,6 +224,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
             features.add(Tag.concreteMixinStub);
             features[Tag.stubTarget] = memberQualifiedName(member.stubTarget!);
             break;
+          case ProcedureStubKind.RepresentationField:
+            // TODO: Handle this case.
+            break;
         }
       }
 
@@ -361,6 +364,9 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
           case ProcedureStubKind.ConcreteMixinStub:
             features.add(Tag.concreteMixinStub);
             features[Tag.stubTarget] = memberQualifiedName(member.stubTarget!);
+            break;
+          case ProcedureStubKind.RepresentationField:
+            // TODO: Handle this case.
             break;
         }
       }

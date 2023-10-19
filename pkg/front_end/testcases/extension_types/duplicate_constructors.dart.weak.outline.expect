@@ -41,22 +41,27 @@ import self as self;
 import "dart:core" as core;
 
 extension type ET1(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2<T extends core::Object? = dynamic>(T% id) {
+  abstract inline-class-member representation-field get id() → T%;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
 extension type ET3(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4<T extends core::Object? = dynamic>(T% id) {
+  abstract inline-class-member representation-field get id() → T%;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
 extension type ET5(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor n = self::ET5|constructor#n;
   constructor tearoff n = self::ET5|constructor#_#n#tearOff;
 }

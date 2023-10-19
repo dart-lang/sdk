@@ -49,6 +49,7 @@ import self as mai2;
 import "dart:core" as core;
 
 extension type ExtensionType(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   static field staticField = mai2::ExtensionType|staticField;
   method instanceMethod = mai2::ExtensionType|instanceMethod;
   method tearoff instanceMethod = mai2::ExtensionType|get#instanceMethod;

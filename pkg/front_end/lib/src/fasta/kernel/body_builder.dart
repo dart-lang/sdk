@@ -8881,17 +8881,20 @@ class BodyBuilder extends StackListenerImpl
       ..fileOffset = charOffset;
   }
 
-  Initializer buildDuplicatedInitializer(Field field, Expression value,
-      String name, int offset, int previousInitializerOffset) {
-    return new ShadowInvalidFieldInitializer(
-        field,
-        value,
-        new VariableDeclaration.forValue(buildProblem(
+  Initializer buildDuplicatedInitializer(
+      SourceFieldBuilder fieldBuilder,
+      Expression value,
+      String name,
+      int offset,
+      int previousInitializerOffset) {
+    return fieldBuilder.buildErroneousInitializer(
+        buildProblem(
             fasta.templateConstructorInitializeSameInstanceVariableSeveralTimes
                 .withArguments(name),
             offset,
-            noLength)))
-      ..fileOffset = offset;
+            noLength),
+        value,
+        fileOffset: offset);
   }
 
   /// Parameter [formalType] should only be passed in the special case of
@@ -8923,7 +8926,7 @@ class BodyBuilder extends StackListenerImpl
       initializedFields ??= <String, int>{};
       if (initializedFields!.containsKey(name)) {
         return <Initializer>[
-          buildDuplicatedInitializer(builder.field, expression, name,
+          buildDuplicatedInitializer(builder, expression, name,
               assignmentOffset, initializedFields![name]!)
         ];
       }
@@ -8964,12 +8967,9 @@ class BodyBuilder extends StackListenerImpl
             charOffset: assignmentOffset,
             isConstructorInvocation: true);
         return <Initializer>[
-          new ShadowInvalidFieldInitializer(
-              builder.field,
-              expression,
-              new VariableDeclaration.forValue(
-                  forest.createThrow(assignmentOffset, invocation)))
-            ..fileOffset = assignmentOffset
+          builder.buildErroneousInitializer(
+              forest.createThrow(assignmentOffset, invocation), expression,
+              fileOffset: assignmentOffset)
         ];
       } else {
         if (formal != null && formal.type is! OmittedTypeBuilder) {

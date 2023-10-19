@@ -36,10 +36,13 @@ extension type Missing(invalid-type #) {
   constructor tearoff • = self::Missing|constructor#_#new#tearOff;
 }
 extension type Multiple(core::bool instanceField1) {
+  abstract inline-class-member representation-field get instanceField1() → core::bool;
+  abstract inline-class-member representation-field get instanceField2() → core::int;
   constructor • = self::Multiple|constructor#;
   constructor tearoff • = self::Multiple|constructor#_#new#tearOff;
 }
 extension type Duplicate(core::bool instanceField) {
+  abstract inline-class-member representation-field get instanceField() → core::bool;
   constructor • = self::Duplicate|constructor#;
   constructor tearoff • = self::Duplicate|constructor#_#new#tearOff;
 }

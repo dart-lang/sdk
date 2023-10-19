@@ -12,22 +12,27 @@ extension DoubleToJSNumber on core::double {
   get toJS = self::DoubleToJSNumber|get#toJS;
 }
 extension type JSAny(core::Object value) {
+  abstract inline-class-member representation-field get value() → core::Object;
   constructor • = self::JSAny|constructor#;
   constructor tearoff • = self::JSAny|constructor#_#new#tearOff;
 }
 extension type JSObject(core::Object value) implements self::JSAny /* = core::Object */ {
+  abstract inline-class-member representation-field get value() → core::Object;
   constructor • = self::JSObject|constructor#;
   constructor tearoff • = self::JSObject|constructor#_#new#tearOff;
 }
 extension type JSArray(core::List<self::JSAny? /* = core::Object? */> value) implements self::JSObject /* = core::Object */ {
+  abstract inline-class-member representation-field get value() → core::List<self::JSAny? /* = core::Object? */>;
   constructor • = self::JSArray|constructor#;
   constructor tearoff • = self::JSArray|constructor#_#new#tearOff;
 }
 extension type JSExportedDartObject(core::Object value) implements self::JSObject /* = core::Object */ {
+  abstract inline-class-member representation-field get value() → core::Object;
   constructor • = self::JSExportedDartObject|constructor#;
   constructor tearoff • = self::JSExportedDartObject|constructor#_#new#tearOff;
 }
 extension type JSNumber(core::double value) implements self::JSAny /* = core::Object */ {
+  abstract inline-class-member representation-field get value() → core::double;
   constructor • = self::JSNumber|constructor#;
   constructor tearoff • = self::JSNumber|constructor#_#new#tearOff;
 }

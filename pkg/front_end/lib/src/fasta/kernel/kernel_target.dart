@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/reference_from_index.dart' show IndexedClass;
+import 'package:kernel/reference_from_index.dart' show IndexedContainer;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
@@ -849,7 +849,7 @@ class KernelTarget extends TargetImplementation {
       if (proc.isFactory) return;
     }
 
-    IndexedClass? indexedClass = builder.referencesFromIndexed;
+    IndexedContainer? indexedClass = builder.referencesFromIndexed;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -907,7 +907,7 @@ class KernelTarget extends TargetImplementation {
       installForwardingConstructors(supertype);
     }
 
-    IndexedClass? indexedClass = builder.referencesFromIndexed;
+    IndexedContainer? indexedClass = builder.referencesFromIndexed;
     Reference? constructorReference;
     Reference? tearOffReference;
     if (indexedClass != null) {
@@ -1458,8 +1458,7 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.fileUri);
             }
           }
-          fieldBuilder.field.initializer = new NullLiteral()
-            ..parent = fieldBuilder.field;
+          fieldBuilder.buildImplicitDefaultValue();
         }
       }
     }
@@ -1473,9 +1472,7 @@ class KernelTarget extends TargetImplementation {
       for (SourceFieldBuilder fieldBuilder
           in initializedFieldBuilders!.difference(fieldBuilders)) {
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
-          FieldInitializer initializer =
-              new FieldInitializer(fieldBuilder.field, new NullLiteral())
-                ..isSynthetic = true;
+          Initializer initializer = fieldBuilder.buildImplicitInitializer();
           constructorBuilder.prependInitializer(initializer);
           if (fieldBuilder.isFinal) {
             libraryBuilder.addProblem(

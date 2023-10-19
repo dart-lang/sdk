@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type I<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(X% value) {
+  abstract inline-class-member representation-field get value() → X%;
   constructor • = self::I|constructor#;
   constructor tearoff • = self::I|constructor#_#new#tearOff;
 }

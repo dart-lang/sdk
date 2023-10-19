@@ -2679,6 +2679,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeDartType(node.declaredRepresentationType);
     writeStringReference(node.representationName);
     writeNodeList(node.implements);
+    // Ensure that [procedureOffsets] is initialized before serializing the
+    // procedures. These offsets are not used for the extension type declaration
+    // encoding.
+    procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
     leaveScope(typeParameters: node.typeParameters);
 

@@ -18,10 +18,12 @@ class B extends self::A {
     ;
 }
 extension type E(self::B it) implements self::B {
+  abstract inline-class-member representation-field get it() → self::B;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */ {
+  abstract inline-class-member representation-field get it() → self::B;
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }

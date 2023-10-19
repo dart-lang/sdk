@@ -600,7 +600,9 @@ class AnnotateKernel extends RecursiveVisitor {
 
   @override
   visitProcedure(Procedure node) {
-    _annotateMember(node);
+    if (node.stubKind != ProcedureStubKind.RepresentationField) {
+      _annotateMember(node);
+    }
     super.visitProcedure(node);
   }
 
@@ -1959,6 +1961,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
         switch (node.stubKind) {
           case ProcedureStubKind.Regular:
           case ProcedureStubKind.NoSuchMethodForwarder:
+          case ProcedureStubKind.RepresentationField:
             break;
           case ProcedureStubKind.MemberSignature:
           case ProcedureStubKind.AbstractForwardingStub:
