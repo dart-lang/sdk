@@ -135,9 +135,9 @@ abstract class ObjectAccessTarget {
       List<DartType> extensionTypeArguments,
       {bool isPotentiallyNullable}) = ExtensionTypeAccessTarget;
 
-  /// Creates an access to the representation field of the [extensionType].
-  factory ObjectAccessTarget.extensionTypeRepresentation(
-          DartType receiverType, ExtensionType extensionType,
+  /// Creates an access to the [representationField] of the [extensionType].
+  factory ObjectAccessTarget.extensionTypeRepresentation(DartType receiverType,
+          ExtensionType extensionType, Procedure representationField,
           {required bool isPotentiallyNullable}) =
       ExtensionTypeRepresentationAccessTarget;
 
@@ -1341,8 +1341,10 @@ class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
   @override
   final DartType receiverType;
   final ExtensionType extensionType;
+  final Procedure representationField;
 
-  ExtensionTypeRepresentationAccessTarget(this.receiverType, this.extensionType,
+  ExtensionTypeRepresentationAccessTarget(
+      this.receiverType, this.extensionType, this.representationField,
       {required bool isPotentiallyNullable})
       : super.internal(isPotentiallyNullable
             ? ObjectAccessTargetKind.nullableExtensionTypeRepresentation
@@ -1362,8 +1364,7 @@ class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
   DartType getGetterType(InferenceVisitorBase base) {
     ExtensionTypeDeclaration extensionTypeDeclaration =
         extensionType.extensionTypeDeclaration;
-    DartType representationType =
-        extensionTypeDeclaration.declaredRepresentationType;
+    DartType representationType = representationField.getterType;
     if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
       representationType = Substitution.fromExtensionType(extensionType)
           .substituteType(representationType);
