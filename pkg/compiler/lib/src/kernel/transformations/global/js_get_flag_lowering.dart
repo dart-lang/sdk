@@ -66,8 +66,7 @@ class JsGetFlagLowering {
       case 'LEGACY':
         return _options.useLegacySubtyping;
       case 'EXTRA_NULL_SAFETY_CHECKS':
-        // TODO(fishythefish): Handle this flag as needed.
-        return false;
+        return _options.experimentNullSafetyChecks;
       case 'PRINT_LEGACY_STARS':
         return _options.printLegacyStars;
       default:

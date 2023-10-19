@@ -256,16 +256,23 @@ Future<_LoadFromSourceResult> _loadFromSource(
     Uri resolvedUri = options.compilationTarget;
     bool isLegacy =
         await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
+    if (isLegacy && options.experimentNullSafetyChecks) {
+      reporter.reportErrorMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+        'text': 'The ${Flags.experimentNullSafetyChecks} option may be used '
+            'only after all libraries have been migrated to null safety. Some '
+            'libraries reached from $resolvedUri are still opted out of null '
+            'safety. Please migrate these libraries before passing '
+            '${Flags.experimentNullSafetyChecks}.',
+      });
+    }
     if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
-      reporter.reportError(
-          reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
-        'text': "Starting with Dart 3.0, `dart compile js` expects programs to be "
-            "null safe by default. Some libraries reached from "
-            "$resolvedUri opted-out of null safety. "
-            "You can temporarily compile this application using the deprecated "
-            "'${Flags.noSoundNullSafety}' option (which will be removed before "
-            "the Dart 3.0 stable release)."
-      }));
+      reporter.reportErrorMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+        'text': "Starting with Dart 3.0, `dart compile js` expects programs to "
+            "be null-safe by default. Some libraries reached from $resolvedUri "
+            "are opted out of null safety. You can temporarily compile this "
+            "application using the deprecated '${Flags.noSoundNullSafety}' "
+            "option."
+      });
     }
     sources.add(options.compilationTarget);
   }

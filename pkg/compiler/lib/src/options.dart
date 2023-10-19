@@ -701,6 +701,19 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
+  /// Experiment to add additional runtime checks to detect code whose semantics
+  /// will change when sound null safety is enabled.
+  ///
+  /// In particular, runtime subtype checks (including those via `is` and `as`)
+  /// will produce diagnostics when they would provide different results in
+  /// sound vs. unsound mode. Note that this adds overhead, both to perform the
+  /// extra checks and because some checks that may have been optimized away
+  /// will be emitted.
+  ///
+  /// We assume this option will only be provided when all files have been
+  /// migrated to null safety (but before sound null safety is enabled).
+  bool experimentNullSafetyChecks = false;
+
   /// Whether the compiler should emit code with unsound or sound semantics.
   /// Since Dart 3.0 this is no longer inferred from sources, but defaults to
   /// sound semantics.
@@ -958,6 +971,8 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
+      ..experimentNullSafetyChecks =
+          _hasOption(options, Flags.experimentNullSafetyChecks)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       .._outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -1194,6 +1209,10 @@ class CompilerOptions implements DiagnosticOptions {
     if (nativeNullAssertions && _noNativeNullAssertions) {
       throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "
           "'${Flags.noNativeNullAssertions}'");
+    }
+    if (nullSafetyMode == NullSafetyMode.sound && experimentNullSafetyChecks) {
+      throw ArgumentError('${Flags.experimentNullSafetyChecks} is incompatible '
+          'with sound null safety.');
     }
   }
 
