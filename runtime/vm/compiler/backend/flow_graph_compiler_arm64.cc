@@ -529,6 +529,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -545,30 +546,21 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const intptr_t stub_index = op.AddObject(
       StubCode::MegamorphicCall(), ObjectPool::Patchability::kPatchable);
   ASSERT((data_index + 1) == stub_index);
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(IC_DATA_REG, LR, data_index));
-  } else {
-    __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, data_index);
-    CLOBBERS_LR(__ ldr(LR, compiler::FieldAddress(
-                               CODE_REG, Code::entry_point_offset(
-                                             Code::EntryKind::kMonomorphic))));
-  }
+  __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, data_index);
+  CLOBBERS_LR(__ ldr(LR, compiler::FieldAddress(
+                             CODE_REG, Code::entry_point_offset(
+                                           Code::EntryKind::kMonomorphic))));
   CLOBBERS_LR(__ blr(LR));
 
   RecordSafepoint(locs);
   AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
-                           source);
-    }
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
   EmitDropArguments(args_desc.SizeWithTypeArgs());

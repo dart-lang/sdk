@@ -43,10 +43,8 @@ struct ObjectPoolBuilderEntry {
     // Used only during AOT snapshot serialization/deserialization.
     // Denotes kImmediate entry with
     //  - StubCode::SwitchableCallMiss().MonomorphicEntryPoint()
-    //  - StubCode::MegamorphicCall().MonomorphicEntryPoint()
     // values which become known only at run time.
     kSwitchableCallMissEntryPoint,
-    kMegamorphicCallEntryPoint,
 
   // Used only during object pool building to find duplicates. Become multiple
   // kImmediate in the final pool.

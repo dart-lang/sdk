@@ -3210,11 +3210,6 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             bits = ObjectPool::EncodeBits(
                 type, ObjectPool::Patchability::kPatchable,
                 ObjectPool::SnapshotBehavior::kSnapshotable);
-          } else if (entry.raw_obj_ == StubCode::MegamorphicCall().ptr()) {
-            type = ObjectPool::EntryType::kMegamorphicCallEntryPoint;
-            bits = ObjectPool::EncodeBits(
-                type, ObjectPool::Patchability::kPatchable,
-                ObjectPool::SnapshotBehavior::kSnapshotable);
           }
         }
         s->Write<uint8_t>(bits);
@@ -3242,7 +3237,6 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             break;
           }
           case ObjectPool::EntryType::kSwitchableCallMissEntryPoint:
-          case ObjectPool::EntryType::kMegamorphicCallEntryPoint:
             // Write nothing. Entry point is initialized during
             // snapshot deserialization.
             break;
@@ -3282,12 +3276,8 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
     const uint8_t immediate_bits = ObjectPool::EncodeBits(
         ObjectPool::EntryType::kImmediate, ObjectPool::Patchability::kPatchable,
         ObjectPool::SnapshotBehavior::kSnapshotable);
-    uword switchable_call_miss_entry_point = 0;
-    uword megamorphic_call_entry_point = 0;
-    switchable_call_miss_entry_point =
+    uword switchable_call_miss_entry_point =
         StubCode::SwitchableCallMiss().MonomorphicEntryPoint();
-    megamorphic_call_entry_point =
-        StubCode::MegamorphicCall().MonomorphicEntryPoint();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
@@ -3333,11 +3323,6 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             pool->untag()->entry_bits()[j] = immediate_bits;
             entry.raw_value_ =
                 static_cast<intptr_t>(switchable_call_miss_entry_point);
-            break;
-          case ObjectPool::EntryType::kMegamorphicCallEntryPoint:
-            pool->untag()->entry_bits()[j] = immediate_bits;
-            entry.raw_value_ =
-                static_cast<intptr_t>(megamorphic_call_entry_point);
             break;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
           default:

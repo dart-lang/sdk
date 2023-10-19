@@ -353,7 +353,6 @@ uword ObjIndexPair::Hash(Key key) {
     case ObjectPoolBuilderEntry::kImmediate:
     case ObjectPoolBuilderEntry::kNativeFunction:
     case ObjectPoolBuilderEntry::kSwitchableCallMissEntryPoint:
-    case ObjectPoolBuilderEntry::kMegamorphicCallEntryPoint:
       return key.imm_;
     case ObjectPoolBuilderEntry::kTaggedObject:
       return ObjectHash(*key.obj_);
