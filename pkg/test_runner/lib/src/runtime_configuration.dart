@@ -476,12 +476,15 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
       arguments.insert(0, '--suppress-core-dump');
     }
     var command = FuchsiaEmulator.instance().getTestCommand(
-        _configuration.mode.name, _configuration.architecture.name, arguments);
+        _configuration.buildDirectory,
+        _configuration.mode.name,
+        _configuration.architecture.name,
+        arguments);
     command.arguments
         .insert(command.arguments.length - 1, '--disable-dart-dev');
-    return [
-      VMCommand(command.executable, command.arguments, environmentOverrides)
-    ];
+    command.environmentOverrides.addAll(environmentOverrides);
+    print("+ About to run command $command to test against fuchsia vm");
+    return [command];
   }
 }
 
