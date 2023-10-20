@@ -4,7 +4,6 @@
 
 // ignore_for_file: annotate_overrides
 // ignore_for_file: avoid_init_to_null
-// ignore_for_file: avoid_function_literals_in_foreach_calls
 // ignore_for_file: empty_constructor_bodies
 // ignore_for_file: prefer_is_not_empty
 // ignore_for_file: unnecessary_brace_in_string_interps
@@ -490,11 +489,11 @@ class Analysis {
   IntSet filter(IntSet objectIds, bool Function(HeapSnapshotObject) filter) {
     final result = IntSet();
     final objects = graph.objects;
-    objectIds.forEach((int objId) {
+    for (final objId in objectIds) {
       if (filter(objects[objId])) {
         result.add(objId);
       }
-    });
+    }
     return result;
   }
 
