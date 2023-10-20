@@ -622,6 +622,130 @@ $declarationCode
 }
 
 abstract class MacroDeclarationsTest extends MacroElementsBaseTest {
+  test_addClass_addMethod_addMethod() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class AddClassB implements ClassTypesMacro {
+  const AddClassB();
+
+  FutureOr<void> buildTypesForClass(clazz, builder) async {
+    final identifier = await builder.resolveIdentifier(
+      Uri.parse('package:test/a.dart'),
+      'AddMethodFoo',
+    );
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromParts([
+        '@',
+        identifier,
+        '()\nclass B {}\n',
+      ]),
+    );
+  }
+}
+
+macro class AddMethodFoo implements ClassDeclarationsMacro {
+  const AddMethodFoo();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInType(
+      DeclarationCode.fromString('  void foo() {}'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddClassB()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @37
+        reference: self::@class::A
+        metadata
+          Annotation
+            atSign: @ @18
+            name: SimpleIdentifier
+              token: AddClassB @19
+              staticElement: package:test/a.dart::@class::AddClassB
+              staticType: null
+            arguments: ArgumentList
+              leftParenthesis: ( @28
+              rightParenthesis: ) @29
+            element: package:test/a.dart::@class::AddClassB::@constructor::new
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+@prefix0.AddMethodFoo()
+class B {}
+
+augment class B {
+  void foo() {}
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class B @102
+            reference: self::@augmentation::package:test/test.macro.dart::@class::B
+            metadata
+              Annotation
+                atSign: @ @72
+                name: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: prefix0 @73
+                    staticElement: <null>
+                    staticType: null
+                  period: . @80
+                  identifier: SimpleIdentifier
+                    token: AddMethodFoo @81
+                    staticElement: <null>
+                    staticType: null
+                  staticElement: <null>
+                  staticType: null
+                arguments: ArgumentList
+                  leftParenthesis: ( @93
+                  rightParenthesis: ) @94
+                element: <null>
+            augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+            augmented
+              constructors
+                self::@augmentation::package:test/test.macro.dart::@class::B::@constructor::new
+              methods
+                self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+          augment class B @122
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
+            augmentationTarget: self::@augmentation::package:test/test.macro.dart::@class::B
+            methods
+              foo @133
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                returnType: void
+''');
+  }
+
   /// TODO(scheglov) Not quite correct - we should not add a synthetic one.
   test_class_constructor_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
