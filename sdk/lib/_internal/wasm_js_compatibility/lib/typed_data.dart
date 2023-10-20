@@ -80,6 +80,9 @@ final class _UnmodifiableByteDataViewImpl
 
   _UnmodifiableByteDataViewImpl(ByteData data) : _data = data;
 
+  @override
+  ByteData asUnmodifiableView() => this;
+
   int getInt8(int byteOffset) => _data.getInt8(byteOffset);
 
   void setInt8(int byteOffset, int value) => _unsupported();
@@ -186,6 +189,9 @@ final class _UnmodifiableUint8ListViewImpl extends UnmodifiableListBase<int>
   _UnmodifiableUint8ListViewImpl(Uint8List list) : _list = list;
 
   @override
+  Uint8List asUnmodifiableView() => this;
+
+  @override
   Uint8List createList(int length) => Uint8List(length);
 }
 
@@ -198,6 +204,9 @@ final class _UnmodifiableInt8ListViewImpl extends UnmodifiableListBase<int>
     implements UnmodifiableInt8ListView {
   final Int8List _list;
   _UnmodifiableInt8ListViewImpl(Int8List list) : _list = list;
+
+  @override
+  Int8List asUnmodifiableView() => this;
 
   @override
   Int8List createList(int length) => Int8List(length);
@@ -215,6 +224,9 @@ final class _UnmodifiableUint8ClampedListViewImpl
   _UnmodifiableUint8ClampedListViewImpl(Uint8ClampedList list) : _list = list;
 
   @override
+  Uint8ClampedList asUnmodifiableView() => this;
+
+  @override
   Uint8ClampedList createList(int length) => Uint8ClampedList(length);
 }
 
@@ -227,6 +239,9 @@ final class _UnmodifiableUint16ListViewImpl extends UnmodifiableListBase<int>
     implements UnmodifiableUint16ListView {
   final Uint16List _list;
   _UnmodifiableUint16ListViewImpl(Uint16List list) : _list = list;
+
+  @override
+  Uint16List asUnmodifiableView() => this;
 
   @override
   Uint16List createList(int length) => Uint16List(length);
@@ -243,6 +258,9 @@ final class _UnmodifiableInt16ListViewImpl extends UnmodifiableListBase<int>
   _UnmodifiableInt16ListViewImpl(Int16List list) : _list = list;
 
   @override
+  Int16List asUnmodifiableView() => this;
+
+  @override
   Int16List createList(int length) => Int16List(length);
 }
 
@@ -255,6 +273,9 @@ final class _UnmodifiableUint32ListViewImpl extends UnmodifiableListBase<int>
     implements UnmodifiableUint32ListView {
   final Uint32List _list;
   _UnmodifiableUint32ListViewImpl(Uint32List list) : _list = list;
+
+  @override
+  Uint32List asUnmodifiableView() => this;
 
   @override
   Uint32List createList(int length) => Uint32List(length);
@@ -271,6 +292,9 @@ final class _UnmodifiableInt32ListViewImpl extends UnmodifiableListBase<int>
   _UnmodifiableInt32ListViewImpl(Int32List list) : _list = list;
 
   @override
+  Int32List asUnmodifiableView() => this;
+
+  @override
   Int32List createList(int length) => Int32List(length);
 }
 
@@ -285,6 +309,9 @@ final class _UnmodifiableUint64ListViewImpl extends UnmodifiableListBase<int>
   _UnmodifiableUint64ListViewImpl(Uint64List list) : _list = list;
 
   @override
+  Uint64List asUnmodifiableView() => this;
+
+  @override
   Uint64List createList(int length) => Uint64List(length);
 }
 
@@ -297,6 +324,9 @@ final class _UnmodifiableInt64ListViewImpl extends UnmodifiableListBase<int>
     implements UnmodifiableInt64ListView {
   final Int64List _list;
   _UnmodifiableInt64ListViewImpl(Int64List list) : _list = list;
+
+  @override
+  Int64List asUnmodifiableView() => this;
 
   @override
   Int64List createList(int length) => Int64List(length);
@@ -314,6 +344,9 @@ final class _UnmodifiableInt32x4ListViewImpl
   _UnmodifiableInt32x4ListViewImpl(Int32x4List list) : _list = list;
 
   @override
+  Int32x4List asUnmodifiableView() => this;
+
+  @override
   Int32x4List createList(int length) => Int32x4List(length);
 }
 
@@ -327,6 +360,9 @@ final class _UnmodifiableFloat32x4ListViewImpl
     implements UnmodifiableFloat32x4ListView {
   final Float32x4List _list;
   _UnmodifiableFloat32x4ListViewImpl(Float32x4List list) : _list = list;
+
+  @override
+  Float32x4List asUnmodifiableView() => this;
 
   @override
   Float32x4List createList(int length) => Float32x4List(length);
@@ -344,6 +380,9 @@ final class _UnmodifiableFloat64x2ListViewImpl
   _UnmodifiableFloat64x2ListViewImpl(Float64x2List list) : _list = list;
 
   @override
+  Float64x2List asUnmodifiableView() => this;
+
+  @override
   Float64x2List createList(int length) => Float64x2List(length);
 }
 
@@ -359,6 +398,9 @@ final class _UnmodifiableFloat32ListViewImpl
   _UnmodifiableFloat32ListViewImpl(Float32List list) : _list = list;
 
   @override
+  Float32List asUnmodifiableView() => this;
+
+  @override
   Float32List createList(int length) => Float32List(length);
 }
 
@@ -372,6 +414,9 @@ final class _UnmodifiableFloat64ListViewImpl
     implements UnmodifiableFloat64ListView {
   final Float64List _list;
   _UnmodifiableFloat64ListViewImpl(Float64List list) : _list = list;
+
+  @override
+  Float64List asUnmodifiableView() => this;
 
   @override
   Float64List createList(int length) => Float64List(length);

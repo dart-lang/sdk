@@ -498,6 +498,10 @@ abstract final class ByteData implements TypedData {
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
 
+  /// A read-only view of this [ByteData].
+  @Since("3.3")
+  ByteData asUnmodifiableView();
+
   /// Returns the (possibly negative) integer represented by the byte at the
   /// specified [byteOffset] in this object, in two's complement binary
   /// representation.
@@ -795,6 +799,10 @@ abstract final class Int8List implements List<int>, _TypedIntList {
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
 
+  /// A read-only view of this [Int8List];
+  @Since("3.3")
+  Int8List asUnmodifiableView();
+
   /// Returns a new list containing the elements between [start] and [end].
   ///
   /// The new list is an `Int8List` containing the elements of this list at
@@ -908,6 +916,10 @@ abstract final class Uint8List implements List<int>, _TypedIntList {
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
 
+  /// A read-only view of this [Uint8List].
+  @Since("3.3")
+  Uint8List asUnmodifiableView();
+
   /// Returns a concatenation of this list and [other].
   ///
   /// If [other] is also a typed-data list, then the return list will be a
@@ -1020,7 +1032,7 @@ abstract final class Uint8ClampedList implements List<int>, _TypedIntList {
   /// is the same as the [List.length] of a typed data list.
   ///
   /// If omitted, [start] defaults to zero and [end] to *elementCount*.
-  @Since("2.8")
+  @Since("3.3")
   factory Uint8ClampedList.sublistView(TypedData data,
       [int start = 0, int? end]) {
     int elementSize = data.elementSizeInBytes;
@@ -1029,6 +1041,10 @@ abstract final class Uint8ClampedList implements List<int>, _TypedIntList {
     return data.buffer.asUint8ClampedList(
         data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
+
+  /// A read-only view of this [Uint8ClampedList].
+  @Since("3.3")
+  Uint8ClampedList asUnmodifiableView();
 
   /// Returns a new list containing the elements between [start] and [end].
   ///
@@ -1154,6 +1170,10 @@ abstract final class Int16List implements List<int>, _TypedIntList {
     return data.buffer.asInt16List(data.offsetInBytes + start * elementSize,
         byteLength ~/ bytesPerElement);
   }
+
+  /// A read-only view of this [Int16List].
+  @Since("3.3")
+  Int16List asUnmodifiableView();
 
   /// Returns a new list containing the elements between [start] and [end].
   ///
@@ -1281,6 +1301,10 @@ abstract final class Uint16List implements List<int>, _TypedIntList {
         byteLength ~/ bytesPerElement);
   }
 
+  /// A read-only view of this [Uint16List].
+  @Since("3.3")
+  Uint16List asUnmodifiableView();
+
   /// Returns a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint16List` containing the elements of this
@@ -1405,6 +1429,10 @@ abstract final class Int32List implements List<int>, _TypedIntList {
     return data.buffer.asInt32List(data.offsetInBytes + start * elementSize,
         byteLength ~/ bytesPerElement);
   }
+
+  /// A read-only view of this [Int16List].
+  @Since("3.3")
+  Int32List asUnmodifiableView();
 
   /// Returns a new list containing the elements between [start] and [end].
   ///
@@ -1532,6 +1560,10 @@ abstract final class Uint32List implements List<int>, _TypedIntList {
         byteLength ~/ bytesPerElement);
   }
 
+  /// A read-only view of this [Uint32List].
+  @Since("3.3")
+  Uint32List asUnmodifiableView();
+
   /// Returns a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint32List` containing the elements of this
@@ -1656,6 +1688,10 @@ abstract final class Int64List implements List<int>, _TypedIntList {
     return data.buffer.asInt64List(data.offsetInBytes + start * elementSize,
         byteLength ~/ bytesPerElement);
   }
+
+  /// A read-only view of this [Int64List].
+  @Since("3.3")
+  Int64List asUnmodifiableView();
 
   /// Returns a new list containing the elements between [start] and [end].
   ///
@@ -1783,6 +1819,10 @@ abstract final class Uint64List implements List<int>, _TypedIntList {
         byteLength ~/ bytesPerElement);
   }
 
+  /// A read-only view of this [Uint64List].
+  @Since("3.3")
+  Uint64List asUnmodifiableView();
+
   /// Returns a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Uint64List` containing the elements of this
@@ -1909,6 +1949,10 @@ abstract final class Float32List implements List<double>, _TypedFloatList {
         byteLength ~/ bytesPerElement);
   }
 
+  /// A read-only view of this [Float32List].
+  @Since("3.3")
+  Float32List asUnmodifiableView();
+
   /// Returns a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Float32List` containing the elements of this
@@ -2028,6 +2072,10 @@ abstract final class Float64List implements List<double>, _TypedFloatList {
         byteLength ~/ bytesPerElement);
   }
 
+  /// A read-only view of this [Float64List].
+  @Since("3.3")
+  Float64List asUnmodifiableView();
+
   /// Returns a new list containing the elements between [start] and [end].
   ///
   /// The new list is a `Float64List` containing the elements of this
@@ -2145,6 +2193,10 @@ abstract final class Float32x4List implements List<Float32x4>, TypedData {
     return data.buffer.asFloat32x4List(data.offsetInBytes + start * elementSize,
         byteLength ~/ bytesPerElement);
   }
+
+  /// A read-only view of this [Float32x4List].
+  @Since("3.3")
+  Float32x4List asUnmodifiableView();
 
   /// Returns the concatenation of this list and [other].
   ///
@@ -2266,6 +2318,10 @@ abstract final class Int32x4List implements List<Int32x4>, TypedData {
     return data.buffer.asInt32x4List(data.offsetInBytes + start * elementSize,
         byteLength ~/ bytesPerElement);
   }
+
+  /// A read-only view of this [Int32x4List].
+  @Since("3.3")
+  Int32x4List asUnmodifiableView();
 
   /// Returns the concatenation of this list and [other].
   ///
@@ -2396,6 +2452,10 @@ abstract final class Float64x2List implements List<Float64x2>, TypedData {
     return data.buffer.asFloat64x2List(data.offsetInBytes + start * elementSize,
         byteLength ~/ bytesPerElement);
   }
+
+  /// A read-only view of this [Float64x2List].
+  @Since("3.3")
+  Float64x2List asUnmodifiableView();
 
   /// Returns a new list containing the elements between [start] and [end].
   ///
