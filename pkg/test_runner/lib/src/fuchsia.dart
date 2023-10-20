@@ -17,7 +17,8 @@ abstract class FuchsiaEmulator {
   void stop();
   // Returns a command to execute a set of tests against the running Fuchsia
   // environment.
-  VMCommand getTestCommand(String mode, String arch, List<String> arguments);
+  VMCommand getTestCommand(
+      String buildDir, String mode, String arch, List<String> arguments);
 
   static final FuchsiaEmulator _instance = _create();
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
@@ -29,11 +27,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /// The instance of macro executor that is used for all macros.
-  final macro.MultiMacroExecutor macroExecutor = macro.MultiMacroExecutor();
-
-  /// The instance of the macro kernel builder.
-  final MacroKernelBuilder macroKernelBuilder = MacroKernelBuilder();
+  /// The support for executing macros.
+  late final MacroSupport macroSupport;
 
   /// The shared container into which drivers record files ownership.
   final OwnedFiles ownedFiles = OwnedFiles();
@@ -70,6 +65,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       required ContextRoot contextRoot,
       required DartSdk sdk,
     })? updateAnalysisOptions2,
+    MacroSupport? macroSupport,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
@@ -82,6 +78,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
           'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
           'given, but not both.');
     }
+
+    this.macroSupport = macroSupport ??= KernelMacroSupport();
 
     var contextLocator = ContextLocator(
       resourceProvider: this.resourceProvider,
@@ -114,8 +112,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         infoDeclarationStore: infoDeclarationStore,
-        macroKernelBuilder: macroKernelBuilder,
-        macroExecutor: macroExecutor,
+        macroSupport: macroSupport,
         ownedFiles: ownedFiles,
       );
       contexts.add(context);
@@ -155,7 +152,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     for (final analysisContext in contexts) {
       await analysisContext.driver.dispose2();
     }
-    await macroExecutor.close();
+    await macroSupport.dispose();
     // If there are other collections, they will have to start it again.
     if (!forTesting) {
       await KernelCompilationService.dispose();

@@ -132,6 +132,9 @@ final class JSDataViewImpl extends JSArrayBufferViewImpl implements ByteData {
   @override
   int get elementSizeInBytes => 1;
 
+  @override
+  ByteData asUnmodifiableView() => UnmodifiableByteDataView(this);
+
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
       js.JS<double>('(b, o, e) => b.getFloat32(o, e)', toExternRef,
           byteOffset.toDouble(), Endian.little == endian);
@@ -300,6 +303,9 @@ final class JSUint8ArrayImpl extends JSIntArrayImpl implements Uint8List {
   }
 
   @override
+  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
+
+  @override
   Uint8List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     final source = js.JS<WasmExternRef?>(
@@ -326,6 +332,9 @@ final class JSInt8ArrayImpl extends JSIntArrayImpl implements Int8List {
     }
     return JSInt8ArrayImpl(jsBuffer);
   }
+
+  @override
+  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
 
   @override
   Int8List sublist(int start, [int? end]) {
@@ -360,6 +369,10 @@ final class JSUint8ClampedArrayImpl extends JSIntArrayImpl
   }
 
   @override
+  Uint8ClampedList asUnmodifiableView() =>
+      UnmodifiableUint8ClampedListView(this);
+
+  @override
   Uint8ClampedList sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     final source = js.JS<WasmExternRef?>(
@@ -385,6 +398,9 @@ final class JSUint16ArrayImpl extends JSIntArrayImpl implements Uint16List {
         length.toDouble());
     return JSUint16ArrayImpl(jsBuffer);
   }
+
+  @override
+  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
 
   @override
   Uint16List sublist(int start, [int? end]) {
@@ -414,6 +430,9 @@ final class JSInt16ArrayImpl extends JSIntArrayImpl implements Int16List {
   }
 
   @override
+  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
+
+  @override
   Int16List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     final source = js.JS<WasmExternRef?>(
@@ -441,6 +460,9 @@ final class JSUint32ArrayImpl extends JSIntArrayImpl implements Uint32List {
   }
 
   @override
+  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
+
+  @override
   Uint32List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     final source = js.JS<WasmExternRef?>(
@@ -466,6 +488,9 @@ final class JSInt32ArrayImpl extends JSIntArrayImpl implements Int32List {
         length.toDouble());
     return JSInt32ArrayImpl(jsBuffer);
   }
+
+  @override
+  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
 
   @override
   Int32List sublist(int start, [int? end]) {
@@ -524,6 +549,9 @@ final class JSInt32x4ArrayImpl
   }
 
   @override
+  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
+
+  @override
   Int32x4List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     return JSInt32x4ArrayImpl.externalStorage(
@@ -566,6 +594,9 @@ final class JSBigUint64ArrayImpl extends JSBigIntArrayImpl
   }
 
   @override
+  Uint64List asUnmodifiableView() => UnmodifiableUint64ListView(this);
+
+  @override
   Uint64List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     final source = js.JS<WasmExternRef?>(
@@ -591,6 +622,9 @@ final class JSBigInt64ArrayImpl extends JSBigIntArrayImpl implements Int64List {
         length.toDouble());
     return JSBigInt64ArrayImpl(jsBuffer);
   }
+
+  @override
+  Int64List asUnmodifiableView() => UnmodifiableInt64ListView(this);
 
   @override
   Int64List sublist(int start, [int? end]) {
@@ -677,6 +711,9 @@ final class JSFloat32ArrayImpl extends JSFloatArrayImpl implements Float32List {
   }
 
   @override
+  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
+
+  @override
   Float32List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     final source = js.JS<WasmExternRef?>(
@@ -703,6 +740,9 @@ final class JSFloat64ArrayImpl extends JSFloatArrayImpl implements Float64List {
         length.toDouble());
     return JSFloat64ArrayImpl(jsBuffer);
   }
+
+  @override
+  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
 
   @override
   Float64List sublist(int start, [int? end]) {
@@ -761,6 +801,9 @@ final class JSFloat32x4ArrayImpl
   }
 
   @override
+  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
+
+  @override
   Float32x4List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
     return JSFloat32x4ArrayImpl.externalStorage(
@@ -807,6 +850,9 @@ final class JSFloat64x2ArrayImpl
     _storage[(index * 2) + 0] = value.x;
     _storage[(index * 2) + 1] = value.y;
   }
+
+  @override
+  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
 
   @override
   Float64x2List sublist(int start, [int? end]) {

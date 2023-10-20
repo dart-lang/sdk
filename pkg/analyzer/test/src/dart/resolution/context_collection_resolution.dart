@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/summary2/kernel_compilation_service.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -136,6 +137,9 @@ abstract class ContextResolutionTest
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
+  /// By default the kernel implementation is used, this can override it.
+  MacroSupport? macroSupport;
+
   AnalyzerStatePrinterConfiguration analyzerStatePrinterConfiguration =
       AnalyzerStatePrinterConfiguration();
 
@@ -166,6 +170,7 @@ abstract class ContextResolutionTest
       sdkSummaryPath: sdkSummaryFile?.path,
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions2: updateAnalysisOptions,
+      macroSupport: macroSupport,
     );
 
     _analysisContextCollection = collection;

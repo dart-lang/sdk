@@ -74,7 +74,8 @@ class FuchsiaEmulatorCFv1 extends FuchsiaEmulator {
   }
 
   @override
-  VMCommand getTestCommand(String mode, String arch, List<String> arguments) {
+  VMCommand getTestCommand(
+      String buildDir, String mode, String arch, List<String> arguments) {
     arguments = arguments
         .map((arg) => arg.replaceAll(Repository.uri.toFilePath(), '/pkg/data/'))
         .toList();
