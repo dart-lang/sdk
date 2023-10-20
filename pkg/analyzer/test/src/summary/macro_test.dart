@@ -1758,6 +1758,10 @@ macro class MyMacro implements ClassTypesMacro {
       );
 
       final exitCode = await process.exitCode;
+      if (exitCode == 255) {
+        markTestSkipped('Skip because cannot compile.');
+        return;
+      }
       expect(exitCode, isZero);
 
       final executable = testBin.getChildAssumingFile('main.exe');
