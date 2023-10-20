@@ -447,31 +447,31 @@ struct simd128_value_t {
 #endif
 
 // Byte sizes.
-constexpr int kInt8SizeLog2 = 0;
-constexpr int kInt8Size = 1 << kInt8SizeLog2;
+constexpr intptr_t kInt8SizeLog2 = 0;
+constexpr intptr_t kInt8Size = 1 << kInt8SizeLog2;
 static_assert(kInt8Size == sizeof(int8_t), "Mismatched int8 size constant");
-constexpr int kInt16SizeLog2 = 1;
-constexpr int kInt16Size = 1 << kInt16SizeLog2;
+constexpr intptr_t kInt16SizeLog2 = 1;
+constexpr intptr_t kInt16Size = 1 << kInt16SizeLog2;
 static_assert(kInt16Size == sizeof(int16_t), "Mismatched int16 size constant");
-constexpr int kInt32SizeLog2 = 2;
-constexpr int kInt32Size = 1 << kInt32SizeLog2;
+constexpr intptr_t kInt32SizeLog2 = 2;
+constexpr intptr_t kInt32Size = 1 << kInt32SizeLog2;
 static_assert(kInt32Size == sizeof(int32_t), "Mismatched int32 size constant");
-constexpr int kInt64SizeLog2 = 3;
-constexpr int kInt64Size = 1 << kInt64SizeLog2;
+constexpr intptr_t kInt64SizeLog2 = 3;
+constexpr intptr_t kInt64Size = 1 << kInt64SizeLog2;
 static_assert(kInt64Size == sizeof(int64_t), "Mismatched int64 size constant");
 
-constexpr int kDoubleSize = sizeof(double);
-constexpr int kFloatSize = sizeof(float);
-constexpr int kQuadSize = 4 * kFloatSize;
-constexpr int kSimd128Size = sizeof(simd128_value_t);
+constexpr intptr_t kDoubleSize = sizeof(double);
+constexpr intptr_t kFloatSize = sizeof(float);
+constexpr intptr_t kQuadSize = 4 * kFloatSize;
+constexpr intptr_t kSimd128Size = sizeof(simd128_value_t);
 
 // Bit sizes.
-constexpr int kBitsPerByteLog2 = 3;
-constexpr int kBitsPerByte = 1 << kBitsPerByteLog2;
-constexpr int kBitsPerInt8 = kInt8Size * kBitsPerByte;
-constexpr int kBitsPerInt16 = kInt16Size * kBitsPerByte;
-constexpr int kBitsPerInt32 = kInt32Size * kBitsPerByte;
-constexpr int kBitsPerInt64 = kInt64Size * kBitsPerByte;
+constexpr intptr_t kBitsPerByteLog2 = 3;
+constexpr intptr_t kBitsPerByte = 1 << kBitsPerByteLog2;
+constexpr intptr_t kBitsPerInt8 = kInt8Size * kBitsPerByte;
+constexpr intptr_t kBitsPerInt16 = kInt16Size * kBitsPerByte;
+constexpr intptr_t kBitsPerInt32 = kInt32Size * kBitsPerByte;
+constexpr intptr_t kBitsPerInt64 = kInt64Size * kBitsPerByte;
 
 // The following macro works on both 32 and 64-bit platforms.
 // Usage: instead of writing 0x1234567890123456ULL
@@ -509,16 +509,16 @@ typedef uintptr_t uword;
 
 // Byte sizes for native machine words.
 #ifdef ARCH_IS_32_BIT
-constexpr int kWordSizeLog2 = kInt32SizeLog2;
+constexpr intptr_t kWordSizeLog2 = kInt32SizeLog2;
 #else
-constexpr int kWordSizeLog2 = kInt64SizeLog2;
+constexpr intptr_t kWordSizeLog2 = kInt64SizeLog2;
 #endif
-constexpr int kWordSize = 1 << kWordSizeLog2;
+constexpr intptr_t kWordSize = 1 << kWordSizeLog2;
 static_assert(kWordSize == sizeof(word), "Mismatched word size constant");
 
 // Bit sizes for native machine words.
-constexpr int kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
-constexpr int kBitsPerWord = 1 << kBitsPerWordLog2;
+constexpr intptr_t kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
+constexpr intptr_t kBitsPerWord = 1 << kBitsPerWordLog2;
 
 // Integer constants for native machine words.
 constexpr word kWordMin = static_cast<uword>(1) << (kBitsPerWord - 1);
@@ -564,14 +564,14 @@ constexpr intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));
 constexpr intptr_t kIntptrMax = ~kIntptrMin;
 
 // Time constants.
-constexpr int kMillisecondsPerSecond = 1000;
-constexpr int kMicrosecondsPerMillisecond = 1000;
-constexpr int kMicrosecondsPerSecond =
+constexpr intptr_t kMillisecondsPerSecond = 1000;
+constexpr intptr_t kMicrosecondsPerMillisecond = 1000;
+constexpr intptr_t kMicrosecondsPerSecond =
     (kMicrosecondsPerMillisecond * kMillisecondsPerSecond);
-constexpr int kNanosecondsPerMicrosecond = 1000;
-constexpr int kNanosecondsPerMillisecond =
+constexpr intptr_t kNanosecondsPerMicrosecond = 1000;
+constexpr intptr_t kNanosecondsPerMillisecond =
     (kNanosecondsPerMicrosecond * kMicrosecondsPerMillisecond);
-constexpr int kNanosecondsPerSecond =
+constexpr intptr_t kNanosecondsPerSecond =
     (kNanosecondsPerMicrosecond * kMicrosecondsPerSecond);
 
 // Helpers to scale micro second times to human understandable values.
