@@ -2,11 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' as io;
+import 'dart:typed_data';
+
+import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
+    as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
+import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
+import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1437,8 +1448,23 @@ $declarationCode
 }
 
 abstract class MacroTypesTest extends MacroElementsBaseTest {
+  final List<io.Directory> _ioDirectoriesToDelete = [];
+
   @override
   bool get retainDataForTesting => true;
+
+  @override
+  Future<void> tearDown() async {
+    for (final directory in _ioDirectoriesToDelete) {
+      try {
+        directory.deleteSync(
+          recursive: true,
+        );
+      } catch (_) {}
+    }
+
+    return super.tearDown();
+  }
 
   test_application_newInstance_withoutPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -1641,6 +1667,186 @@ class MyClass {}
             constructors
               synthetic @-1
 ''');
+  }
+
+  test_executable() async {
+    // We use AOT executables only on Linux.
+    if (resourceProvider.pathContext.style != package_path.Style.posix) {
+      return;
+    }
+
+    // No need to verify reading elements for this test.
+    if (!keepLinkingLibraries) {
+      return;
+    }
+
+    const macroCode = r'''
+import 'dart:async';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  FutureOr<void> buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      'MyClass',
+      DeclarationCode.fromString('class MyClass {}'),
+    );
+  }
+}
+''';
+
+    // Compile the macro to executable.
+    io.File macroExecutable;
+    {
+      final macroMainContent = macro.bootstrapMacroIsolate(
+        {
+          'package:test/a.dart': {
+            'MyMacro': ['']
+          },
+        },
+        macro.SerializationMode.byteData,
+      );
+
+      final tempCompileDirectory =
+          io.Directory.systemTemp.createTempSync('dartAnalyzerMacro');
+      _ioDirectoriesToDelete.add(tempCompileDirectory);
+
+      final fileSystem = PhysicalResourceProvider.INSTANCE;
+      final compileRoot = fileSystem.getFolder(tempCompileDirectory.path);
+
+      final testRoot = compileRoot.getChildAssumingFolder('test');
+      testRoot.newFile('lib/a.dart').writeAsStringSync(macroCode);
+
+      final testBin = testRoot.getChildAssumingFolder('bin');
+      final testMain = testBin.newFile('main.dart');
+      testMain.writeAsStringSync(macroMainContent);
+
+      final metaDir = compileRoot.getChildAssumingFolder('meta');
+      MockPackages.addMetaPackageFiles(metaDir);
+
+      MacrosEnvironment.instance.packageSharedFolder.copyTo(compileRoot);
+
+      compileRoot
+          .newFile('.dart_tool/package_config.json')
+          .writeAsStringSync(r'''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../test",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "_fe_analyzer_shared",
+      "rootUri": "../_fe_analyzer_shared",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "meta",
+      "rootUri": "../meta",
+      "packageUri": "lib/"
+    }
+  ]
+}
+''');
+
+      final process = await io.Process.start(
+        io.Platform.executable,
+        ['compile', 'exe', '--enable-experiment=macros', testMain.path],
+      );
+
+      final exitCode = await process.exitCode;
+      expect(exitCode, isZero);
+
+      final executable = testBin.getChildAssumingFile('main.exe');
+      expect(executable.exists, isTrue);
+
+      // Convert to io.File
+      macroExecutable = io.File(executable.path);
+    }
+
+    // Build the summary for `a.dart`, with the macro.
+    // We always have summaries for libraries with macro executable.
+    final Uint8List aBundleBytes;
+    {
+      final a = newFile('$testPackageLibPath/a.dart', macroCode);
+
+      // Disable compilation to kernel.
+      macroSupport = ExecutableMacroSupport();
+
+      final analysisDriver = driverFor(a);
+      aBundleBytes = await analysisDriver.buildPackageBundle(
+        uriList: [
+          Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart'),
+          Uri.parse('package:test/a.dart'),
+        ],
+      );
+
+      // We should not read the file anyway, but we make it explicit.
+      a.delete();
+    }
+
+    await disposeAnalysisContextCollection();
+    useEmptyByteStore();
+
+    // Configure summaries.
+    {
+      sdkSummaryFile = await writeSdkSummary();
+
+      final aBundleFile = getFile('/home/summaries/a.sum');
+      aBundleFile.writeAsBytesSync(aBundleBytes);
+      librarySummaryFiles = [aBundleFile];
+    }
+
+    // Configure the macro executor.
+    macroSupport = ExecutableMacroSupport()
+      ..add(
+        executable: macroExecutable,
+        libraries: {
+          Uri.parse('package:test/a.dart'),
+        },
+      );
+
+    // Verify that we can use the executable to run the macro.
+    {
+      var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''');
+      configuration
+        ..withConstructors = false
+        ..withMetadata = false
+        ..withReferences = true;
+      checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @35
+        reference: self::@class::A
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class MyClass {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class MyClass @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::MyClass
+''');
+    }
   }
 
   test_imports_class() async {
@@ -2238,5 +2444,13 @@ extension on ClassElement {
   void assertNoErrorsForClassElement() {
     final actual = errorsStrForClassElement;
     expect(actual, isEmpty);
+  }
+}
+
+extension on Folder {
+  File newFile(String relPath) {
+    final file = getChildAssumingFile(relPath);
+    file.parent.create();
+    return file;
   }
 }

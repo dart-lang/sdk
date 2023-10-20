@@ -773,8 +773,7 @@ class FileResolver {
         fileSystemState: fsState!,
         sourceFactory: sourceFactory,
         externalSummaries: SummaryDataStore(),
-        macroExecutor: null,
-        macroKernelBuilder: null,
+        macroSupport: null,
         testData: testData?.libraryContext,
       );
 

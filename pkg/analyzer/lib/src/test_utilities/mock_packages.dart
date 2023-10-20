@@ -80,6 +80,7 @@ class InterfaceType extends DartType {}
   /// Create a fake 'meta' package that can be used by tests.
   static void addMetaPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.create();
     libFolder.getChildAssumingFile('meta.dart').writeAsStringSync(r'''
 library meta;
 
@@ -266,6 +267,10 @@ class _Protected {
 
 class _Sealed {
   const _Sealed();
+}
+
+class _Virtual {
+  const _Virtual();
 }
 
 class _VisibleForOverriding {

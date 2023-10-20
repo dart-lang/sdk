@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -139,10 +137,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// from file paths.
   final SourceFactory _sourceFactory;
 
-  final MacroKernelBuilder? macroKernelBuilder;
-
-  /// The instance of macro executor that is used for all macros.
-  final macro.MultiMacroExecutor? macroExecutor;
+  /// The support for executing macros.
+  final MacroSupport? macroSupport;
 
   /// The container, shared with other drivers within the same collection,
   /// into which all drivers record files ownership.
@@ -281,8 +277,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     required SourceFactory sourceFactory,
     required AnalysisOptionsImpl analysisOptions,
     required Packages packages,
-    this.macroKernelBuilder,
-    this.macroExecutor,
+    this.macroSupport,
     this.ownedFiles,
     this.analysisContext,
     FileContentCache? fileContentCache,
@@ -362,8 +357,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       analysisOptions: _analysisOptions,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
-      macroKernelBuilder: macroKernelBuilder,
-      macroExecutor: macroExecutor,
+      macroSupport: macroSupport,
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
     );
