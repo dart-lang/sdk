@@ -27,9 +27,9 @@ final class bool {
   /// The string values can be directly accessed using [String.fromEnvironment].
   ///
   /// This constructor parses the string value associated with [name] as
-  /// a boolean, as if by [`bool.tryParse(value)`](bool.tryParse),
+  /// a boolean, as if by [`bool.tryParse(value)`][bool.tryParse],
   /// meaning that it accepts only the strings `"true"` and `"false"`.
-  /// If [name]
+  ///
   /// If there is no value associated with [name] in the compilation
   /// configuration environment, or if the associated string value is not one
   /// of `"true"` or `"false"`, the value of the constructor invocation
@@ -41,6 +41,7 @@ final class bool {
   /// (const String.fromEnvironment(name) == "true")
   ///     || ((const String.fromEnvironment(name) != "false") && defaultValue)
   /// ```
+  ///
   /// Example:
   /// ```dart
   /// const bool loggingEnabled = bool.fromEnvironment("logging");
