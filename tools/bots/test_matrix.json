@@ -2494,7 +2494,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 13,
@@ -2528,7 +2528,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 12,
@@ -2561,7 +2561,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 6,
@@ -2601,7 +2601,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect|js_ast)",
             "web"
           ],
           "shards": 6,
@@ -2614,7 +2614,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 6,
@@ -2659,7 +2659,7 @@
             "language",
             "lib",
             "observatory_ui",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 6,
@@ -2699,7 +2699,7 @@
             "-ndart2js-hostasserts-linux-chrome-unsound",
             "co19",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 10,
