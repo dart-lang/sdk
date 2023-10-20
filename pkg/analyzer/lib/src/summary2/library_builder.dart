@@ -374,6 +374,7 @@ class LibraryBuilder {
         return await macroApplier.executeDeclarationsPhase();
       },
     );
+    macroApplier.disposeApplications();
     if (macroResults.isEmpty) {
       return;
     }
@@ -974,6 +975,7 @@ class LibraryBuilder {
         return await macroApplier.executeTypesPhase();
       },
     );
+    macroApplier.disposeApplications();
     if (macroResults.isEmpty) {
       return null;
     }

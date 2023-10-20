@@ -142,6 +142,16 @@ class LibraryMacroApplier {
         .trim();
   }
 
+  /// Disposes all instantiated macros.
+  void disposeApplications() {
+    for (final target in _targets) {
+      for (final application in target.applications) {
+        macroExecutor.disposeMacro(application.instanceIdentifier);
+      }
+    }
+    _targets.clear();
+  }
+
   Future<List<macro.MacroExecutionResult>> executeDeclarationsPhase() async {
     final results = <macro.MacroExecutionResult>[];
     for (final target in _targets) {

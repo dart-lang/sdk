@@ -64,8 +64,6 @@ class ExecutableBundleMacroExecutor extends BundleMacroExecutor {
     required String constructorName,
     required macro.Arguments arguments,
   }) async {
-    // TODO: Dispose of these instances using `macroExecutor.disposeMacro` once
-    // we are done with them.
     return await support.executor
         .instantiateMacro(libraryUri, className, constructorName, arguments);
   }
@@ -136,8 +134,6 @@ class KernelBundleMacroExecutor extends BundleMacroExecutor {
     required String constructorName,
     required macro.Arguments arguments,
   }) async {
-    // TODO: Dispose of these instances using `macroExecutor.disposeMacro` once
-    // we are done with them.
     return await support.executor
         .instantiateMacro(libraryUri, className, constructorName, arguments);
   }
