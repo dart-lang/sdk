@@ -129,6 +129,9 @@ GeneratedFile _generateAllTestsFile(String libName, String className) {
 
 ''');
 
+  sb.writeln('// ignore_for_file: library_prefixes');
+  sb.writeln();
+
   var paths = Directory(ruleTestDir).listSync().map((f) => f.path).toList()
     ..sort();
 
@@ -136,7 +139,7 @@ GeneratedFile _generateAllTestsFile(String libName, String className) {
   for (var file in paths) {
     if (!file.endsWith('_test.dart')) continue;
     var filePath = path.relative(file, from: path.join('test', 'rules'));
-    var testName = path.split(filePath).last.split('_test').first;
+    var testName = path.split(filePath).last.split('_test.dart').first;
     testNames.add(testName);
     sb.writeln("import '$filePath' as $testName;");
   }
@@ -270,7 +273,7 @@ import 'analyzer.dart';
 
   sb.write('''
 
-void registerLintRules({bool inTestMode = false}) {
+void registerLintRules() {
   Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
 ''');
@@ -294,8 +297,6 @@ GeneratedFile _generateTest(String libName, String className) => (
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
-
-// TODO: add to all.dart
 
 main() {
   defineReflectiveSuite(() {

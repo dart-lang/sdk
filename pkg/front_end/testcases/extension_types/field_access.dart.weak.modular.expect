@@ -146,16 +146,6 @@ library;
 //     var d4 = it.call();
 //              ^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:87:19: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-//     var a3 = this.b; // Error
-//                   ^
-//
-// pkg/front_end/testcases/extension_types/field_access.dart:88:14: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-//     var a4 = b; // Error
-//              ^
-//
 // pkg/front_end/testcases/extension_types/field_access.dart:89:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
 // Try changing the operand or remove the type arguments.
 //     var b1 = this.a<int>; // Error
@@ -166,22 +156,12 @@ library;
 //     var b2 = a<int>; // Error
 //               ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:91:19: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-//     var b3 = this.b<int>; // Error
-//                   ^
-//
-// pkg/front_end/testcases/extension_types/field_access.dart:91:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+// pkg/front_end/testcases/extension_types/field_access.dart:91:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 // Try changing the operand or remove the type arguments.
 //     var b3 = this.b<int>; // Error
 //                    ^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:92:14: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-//     var b4 = b<int>; // Error
-//              ^
-//
-// pkg/front_end/testcases/extension_types/field_access.dart:92:15: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+// pkg/front_end/testcases/extension_types/field_access.dart:92:15: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 // Try changing the operand or remove the type arguments.
 //     var b4 = b<int>; // Error
 //               ^
@@ -226,25 +206,25 @@ library;
 //     var d4 = a.call(); // Error
 //                ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:101:19: Error: The method 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing method, or defining a method named 'b'.
+// pkg/front_end/testcases/extension_types/field_access.dart:101:20: Error: The method 'call' isn't defined for the class 'String'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e1 = this.b(); // Error
-//                   ^
+//                    ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:102:14: Error: The method 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing method, or defining a method named 'b'.
+// pkg/front_end/testcases/extension_types/field_access.dart:102:15: Error: The method 'call' isn't defined for the class 'String'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e2 = b(); // Error
-//              ^
+//               ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:103:19: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
+// pkg/front_end/testcases/extension_types/field_access.dart:103:21: Error: The method 'call' isn't defined for the class 'String'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e3 = this.b.call(); // Error
-//                   ^
+//                     ^^^^
 //
-// pkg/front_end/testcases/extension_types/field_access.dart:104:14: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
+// pkg/front_end/testcases/extension_types/field_access.dart:104:16: Error: The method 'call' isn't defined for the class 'String'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //     var e4 = b.call(); // Error
-//              ^
+//                ^^^^
 //
 // pkg/front_end/testcases/extension_types/field_access.dart:118:26: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
 // Try changing the operand or remove the type arguments.
@@ -309,11 +289,6 @@ library;
 // pkg/front_end/testcases/extension_types/field_access.dart:150:33: Error: The setter 'a' isn't defined for the class 'ErroneousInlineClass'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
 //   var f3 = erroneousInlineClass.a = 42; // Error, should not resolve
-//                                 ^
-//
-// pkg/front_end/testcases/extension_types/field_access.dart:152:33: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-//   var g1 = erroneousInlineClass.b;
 //                                 ^
 //
 // pkg/front_end/testcases/extension_types/field_access.dart:153:34: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
@@ -575,14 +550,8 @@ static inline-class-member method ErroneousInlineClass|constructor#_#new#tearOff
 static inline-class-member method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → void {
   core::int a1 = #this as{Unchecked} core::int;
   core::int a2 = #this as{Unchecked} core::int;
-  dynamic a3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:87:19: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-    var a3 = this.b; // Error
-                  ^" in #this{<unresolved>}.b;
-  dynamic a4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:88:14: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-    var a4 = b; // Error
-             ^" in #this{<unresolved>}.b;
+  core::String a3 = #this as{Unchecked} core::String;
+  core::String a4 = #this as{Unchecked} core::String;
   invalid-type b1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:89:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
 Try changing the operand or remove the type arguments.
     var b1 = this.a<int>; // Error
@@ -591,11 +560,11 @@ Try changing the operand or remove the type arguments.
 Try changing the operand or remove the type arguments.
     var b2 = a<int>; // Error
               ^";
-  invalid-type b3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:91:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+  invalid-type b3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:91:20: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 Try changing the operand or remove the type arguments.
     var b3 = this.b<int>; // Error
                    ^";
-  invalid-type b4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:92:15: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+  invalid-type b4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:92:15: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String'.
 Try changing the operand or remove the type arguments.
     var b4 = b<int>; // Error
               ^";
@@ -631,22 +600,22 @@ Try correcting the name to the name of an existing method, or defining a method 
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var d4 = a.call(); // Error
                ^^^^" in (#this as{Unchecked} core::int){<unresolved>}.call();
-  dynamic e1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:101:19: Error: The method 'b' isn't defined for the class 'ErroneousInlineClass'.
-Try correcting the name to the name of an existing method, or defining a method named 'b'.
+  dynamic e1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:101:20: Error: The method 'call' isn't defined for the class 'String'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e1 = this.b(); // Error
-                  ^" in #this{<unresolved>}.b();
-  dynamic e2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:102:14: Error: The method 'b' isn't defined for the class 'ErroneousInlineClass'.
-Try correcting the name to the name of an existing method, or defining a method named 'b'.
+                   ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
+  dynamic e2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:102:15: Error: The method 'call' isn't defined for the class 'String'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e2 = b(); // Error
-             ^" in #this{<unresolved>}.b();
-  dynamic e3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:103:19: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
+              ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
+  dynamic e3 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:103:21: Error: The method 'call' isn't defined for the class 'String'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e3 = this.b.call(); // Error
-                  ^" in #this{<unresolved>}.b{dynamic}.call();
-  dynamic e4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:104:14: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
+                    ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
+  dynamic e4 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:104:16: Error: The method 'call' isn't defined for the class 'String'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
     var e4 = b.call(); // Error
-             ^" in #this{<unresolved>}.b{dynamic}.call();
+               ^^^^" in (#this as{Unchecked} core::String){<unresolved>}.call();
 }
 static inline-class-member method ErroneousInlineClass|get#test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → () → void
   return () → void => self::ErroneousInlineClass|test(#this);
@@ -711,10 +680,7 @@ Try changing the operand or remove the type arguments.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'a'.
   var f3 = erroneousInlineClass.a = 42; // Error, should not resolve
                                 ^" in erroneousInlineClass{<unresolved>}.a = 42;
-  dynamic g1 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:152:33: Error: The getter 'b' isn't defined for the class 'ErroneousInlineClass'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
-  var g1 = erroneousInlineClass.b;
-                                ^" in erroneousInlineClass{<unresolved>}.b;
+  core::String g1 = erroneousInlineClass as{Unchecked} core::String;
   invalid-type g2 = invalid-expression "pkg/front_end/testcases/extension_types/field_access.dart:153:34: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
 Try changing the operand or remove the type arguments.
   var g2 = erroneousInlineClass.a<int>; // Error

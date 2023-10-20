@@ -985,7 +985,12 @@ class Assembler : public AssemblerBase {
                              Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
+  void LoadUniqueObject(
+      Register rd,
+      const Object& object,
+      Condition cond = AL,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable,
@@ -1667,11 +1672,14 @@ class Assembler : public AssemblerBase {
 
   void BranchLink(const ExternalLabel* label);
 
-  void LoadObjectHelper(Register rd,
-                        const Object& object,
-                        Condition cond,
-                        bool is_unique,
-                        Register pp);
+  void LoadObjectHelper(
+      Register rd,
+      const Object& object,
+      Condition cond,
+      bool is_unique,
+      Register pp,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   void EmitType01(Condition cond,
                   int type,

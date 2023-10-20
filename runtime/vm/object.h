@@ -5509,8 +5509,8 @@ class ObjectPool : public Object {
   using SnapshotBehavior = compiler::ObjectPoolBuilderEntry::SnapshotBehavior;
   using TypeBits = compiler::ObjectPoolBuilderEntry::TypeBits;
   using PatchableBit = compiler::ObjectPoolBuilderEntry::PatchableBit;
-  using SnapshotBehaviorBit =
-      compiler::ObjectPoolBuilderEntry::SnapshotBehaviorBit;
+  using SnapshotBehaviorBits =
+      compiler::ObjectPoolBuilderEntry::SnapshotBehaviorBits;
 
   struct Entry {
     Entry() : raw_value_(), type_() {}
@@ -5560,14 +5560,14 @@ class ObjectPool : public Object {
 
   SnapshotBehavior SnapshotBehaviorAt(intptr_t index) const {
     ASSERT((index >= 0) && (index <= Length()));
-    return SnapshotBehaviorBit::decode(untag()->entry_bits()[index]);
+    return SnapshotBehaviorBits::decode(untag()->entry_bits()[index]);
   }
 
   static uint8_t EncodeBits(EntryType type,
                             Patchability patchable,
                             SnapshotBehavior snapshot_behavior) {
     return PatchableBit::encode(patchable) | TypeBits::encode(type) |
-           SnapshotBehaviorBit::encode(snapshot_behavior);
+           SnapshotBehaviorBits::encode(snapshot_behavior);
   }
 
   void SetTypeAt(intptr_t index,

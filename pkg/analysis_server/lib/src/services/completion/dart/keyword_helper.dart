@@ -340,6 +340,20 @@ class KeywordHelper {
   }
 
   /// Add the keywords that are appropriate when the selection is at the
+  /// beginning of a member in an extension type.
+  void addExtensionTypeMemberKeywords({required bool isStatic}) {
+    addKeyword(Keyword.CONST);
+    addKeyword(Keyword.DYNAMIC);
+    addKeyword(Keyword.FINAL);
+    addKeyword(Keyword.GET);
+    if (!isStatic) addKeyword(Keyword.OPERATOR);
+    addKeyword(Keyword.SET);
+    if (!isStatic) addKeyword(Keyword.STATIC);
+    addKeyword(Keyword.VAR);
+    addKeyword(Keyword.VOID);
+  }
+
+  /// Add the keywords that are appropriate when the selection is at the
   /// beginning of field declaration.
   ///
   /// If the declaration consists of a single variable and the name of the

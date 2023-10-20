@@ -822,7 +822,11 @@ class Assembler : public AssemblerBase {
   void LoadIsolateGroup(Register dst);
   void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
-  void LoadUniqueObject(Register dst, const Object& obj);
+  void LoadUniqueObject(
+      Register dst,
+      const Object& obj,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
@@ -1477,7 +1481,12 @@ class Assembler : public AssemblerBase {
   bool constant_pool_allowed_;
 
   bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
+  void LoadObjectHelper(
+      Register dst,
+      const Object& obj,
+      bool is_unique,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   void LoadWordFromPoolIndex(Register dst, intptr_t index);
 
   void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);

@@ -712,18 +712,14 @@ void f() {
         ],
         failingTests: '1');
 
-    buildTests(
-        'testCompletion_annotation_topLevelVar',
-        '''
+    buildTests('testCompletion_annotation_topLevelVar', '''
 const fooConst = null;
 final fooNotConst = null;
 const bar = null;
 
 @foo!1
 void f() {
-}''',
-        <String>['1+fooConst', '1-fooNotConst', '1-bar'],
-        failingTests: '1');
+}''', <String>['1+fooConst', '1-fooNotConst', '1-bar']);
 
     buildTests('testCompletion_annotation_type', '''
 class AAA {

@@ -250,14 +250,13 @@ suggestions
         _printKeywordsOrClass();
 
         final keywords = {
-          // TODO(scheglov) Not quite right, without static.
           Keyword.CONST,
           if (context.isClass || context.isMixin) Keyword.COVARIANT,
           Keyword.DYNAMIC,
           if (context.isClass) Keyword.FACTORY,
           Keyword.FINAL,
           Keyword.GET,
-          if (!context.isExtension) Keyword.LATE,
+          if (!context.isExtension && !context.isExtensionType) Keyword.LATE,
           Keyword.OPERATOR,
           Keyword.SET,
           Keyword.STATIC,
@@ -556,6 +555,15 @@ extension on Object {
 }
 ''');
       validator(_Context(isExtension: true));
+    }
+    // extension type
+    {
+      await computeSuggestions('''
+extension type E(Object it) {
+  $line
+}
+''');
+      validator(_Context(isExtensionType: true));
     }
     // mixin
     {
@@ -1180,12 +1188,14 @@ class _Context {
   final bool isClass;
   final bool isEnum;
   final bool isExtension;
+  final bool isExtensionType;
   final bool isMixin;
 
   _Context({
     this.isClass = false,
     this.isEnum = false,
     this.isExtension = false,
+    this.isExtensionType = false,
     this.isMixin = false,
   });
 
@@ -1195,7 +1205,9 @@ class _Context {
           ? ' in enum'
           : isExtension
               ? ' in extension'
-              : ' in mixin';
+              : isExtensionType
+                  ? ' in extension type'
+                  : ' in mixin';
 }
 
 extension on Iterable<Keyword> {

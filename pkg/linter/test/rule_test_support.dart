@@ -165,6 +165,8 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get addJsPackageDep => false;
 
+  bool get addKernelPackageDep => false;
+
   bool get addMetaPackageDep => false;
 
   @override
@@ -408,6 +410,14 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
         getFolder(jsPath),
       );
       configCopy.add(name: 'js', rootPath: jsPath);
+    }
+
+    if (addKernelPackageDep) {
+      var kernelPath = '/packages/kernel';
+      MockPackages.addKernelPackageFiles(
+        getFolder(kernelPath),
+      );
+      configCopy.add(name: 'kernel', rootPath: kernelPath);
     }
 
     if (addMetaPackageDep) {

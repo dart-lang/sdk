@@ -968,17 +968,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ExtensionType extensionType, Name name, int fileOffset,
       {required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
-    if (name.text ==
-        extensionType.extensionTypeDeclaration.representationName) {
-      if (isSetter ||
-          name.isPrivate &&
-              name.library !=
-                  extensionType.extensionTypeDeclaration.enclosingLibrary) {
-        return null;
+    for (Procedure procedure
+        in extensionType.extensionTypeDeclaration.procedures) {
+      if (isSetter != procedure.isSetter) {
+        continue;
       }
-      return new ObjectAccessTarget.extensionTypeRepresentation(
-          receiverType, extensionType,
-          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+      if (procedure.name == name) {
+        if (procedure.stubKind == ProcedureStubKind.RepresentationField) {
+          return new ObjectAccessTarget.extensionTypeRepresentation(
+              receiverType, extensionType, procedure,
+              isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+        }
+        // TODO(johnniwinther): Support other extension type declaration
+        // procedures.
+      }
     }
 
     // TODO(johnniwinther): Cache this to speed up the lookup.

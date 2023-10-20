@@ -1,0 +1,176 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "inherited_representation_field_lib.dart" as inh;
+
+import "org-dartlang-testcase:///inherited_representation_field_lib.dart";
+
+extension type A(core::int a) {
+  abstract inline-class-member representation-field get a() → core::int;
+  constructor • = self::A|constructor#;
+  constructor tearoff • = self::A|constructor#_#new#tearOff;
+}
+extension type B(core::int b) implements self::A /* = core::int */ {
+  abstract inline-class-member representation-field get b() → core::int;
+  method methodA = self::B|methodA;
+  method tearoff methodA = self::B|get#methodA;
+  method methodB = self::B|methodB;
+  method tearoff methodB = self::B|get#methodB;
+  constructor • = self::B|constructor#;
+  constructor tearoff • = self::B|constructor#_#new#tearOff;
+}
+extension type C(core::int _c) {
+  abstract inline-class-member representation-field get _c() → core::int;
+  constructor • = self::C|constructor#;
+  constructor tearoff • = self::C|constructor#_#new#tearOff;
+}
+extension type E(core::int _e) implements inh::D /* = core::int */ {
+  abstract inline-class-member representation-field get _e() → core::int;
+  method methodC = self::E|methodC;
+  method tearoff methodC = self::E|get#methodC;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+extension type G<T extends core::Object? = dynamic>(T% g) {
+  abstract inline-class-member representation-field get g() → T%;
+  constructor • = self::G|constructor#;
+  constructor tearoff • = self::G|constructor#_#new#tearOff;
+}
+extension type H<T extends core::Object? = dynamic>(core::List<T%> h) implements self::G<core::List<T%>> /* = core::List<T%> */ {
+  abstract inline-class-member representation-field get h() → core::List<T%>;
+  constructor • = self::H|constructor#;
+  constructor tearoff • = self::H|constructor#_#new#tearOff;
+}
+static inline-class-member method A|constructor#(core::int a) → self::A /* = core::int */ {
+  lowered final self::A /* = core::int */ #this = a;
+  return #this;
+}
+static inline-class-member method A|constructor#_#new#tearOff(core::int a) → self::A /* = core::int */
+  return self::A|constructor#(a);
+static inline-class-member method B|constructor#(core::int b) → self::B /* = core::int */ {
+  lowered final self::B /* = core::int */ #this = b;
+  return #this;
+}
+static inline-class-member method B|constructor#_#new#tearOff(core::int b) → self::B /* = core::int */
+  return self::B|constructor#(b);
+static inline-class-member method B|methodA(lowered final self::B /* = core::int */ #this) → dynamic
+  return #this as{Unchecked} core::int;
+static inline-class-member method B|get#methodA(lowered final self::B /* = core::int */ #this) → () → dynamic
+  return () → dynamic => self::B|methodA(#this);
+static inline-class-member method B|methodB(lowered final self::B /* = core::int */ #this) → dynamic
+  return #this as{Unchecked} core::int;
+static inline-class-member method B|get#methodB(lowered final self::B /* = core::int */ #this) → () → dynamic
+  return () → dynamic => self::B|methodB(#this);
+static inline-class-member method C|constructor#(core::int _c) → self::C /* = core::int */ {
+  lowered final self::C /* = core::int */ #this = _c;
+  return #this;
+}
+static inline-class-member method C|constructor#_#new#tearOff(core::int _c) → self::C /* = core::int */
+  return self::C|constructor#(_c);
+static inline-class-member method E|constructor#(core::int _e) → self::E /* = core::int */ {
+  lowered final self::E /* = core::int */ #this = _e;
+  return #this;
+}
+static inline-class-member method E|constructor#_#new#tearOff(core::int _e) → self::E /* = core::int */
+  return self::E|constructor#(_e);
+static inline-class-member method E|methodC(lowered final self::E /* = core::int */ #this) → dynamic
+  return #this as{Unchecked} core::int;
+static inline-class-member method E|get#methodC(lowered final self::E /* = core::int */ #this) → () → dynamic
+  return () → dynamic => self::E|methodC(#this);
+static inline-class-member method G|constructor#<T extends core::Object? = dynamic>(self::G|constructor#::T% g) → self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ {
+  lowered final self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ #this = g;
+  return #this;
+}
+static inline-class-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% g) → self::G<self::G|constructor#_#new#tearOff::T%>% /* = self::G|constructor#_#new#tearOff::T% */
+  return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(g);
+static inline-class-member method H|constructor#<T extends core::Object? = dynamic>(core::List<self::H|constructor#::T%> h) → self::H<self::H|constructor#::T%> /* = core::List<self::H|constructor#::T%> */ {
+  lowered final self::H<self::H|constructor#::T%> /* = core::List<self::H|constructor#::T%> */ #this = h;
+  return #this;
+}
+static inline-class-member method H|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::H|constructor#_#new#tearOff::T%> h) → self::H<self::H|constructor#_#new#tearOff::T%> /* = core::List<self::H|constructor#_#new#tearOff::T%> */
+  return self::H|constructor#<self::H|constructor#_#new#tearOff::T%>(h);
+static method main() → dynamic {
+  self::A /* = core::int */ a = self::A|constructor#(42);
+  self::expect(42, a as{Unchecked} core::int);
+  self::B /* = core::int */ b = self::B|constructor#(87);
+  self::expect(87, b as{Unchecked} core::int);
+  self::expect(87, b as{Unchecked} core::int);
+  self::expect(87, self::B|methodA(b));
+  self::expect(87, self::B|methodB(b));
+  self::C /* = core::int */ c = self::C|constructor#(123);
+  self::expect(123, c as{Unchecked} core::int);
+  inh::D /* = core::int */ d = inh::D|constructor#(442);
+  self::expect(442, d as{Unchecked} core::int);
+  self::E /* = core::int */ e = self::E|constructor#(872);
+  self::expect(872, e as{Unchecked} core::int);
+  self::expect(872, e as{Unchecked} core::int);
+  self::expect(872, self::E|methodC(e));
+  inh::F /* = core::int */ f = inh::F|constructor#(1023);
+  self::expect(1023, f as{Unchecked} core::int);
+  self::expect(1023, f as{Unchecked} core::int);
+  self::expect(1023, self::E|methodC(f));
+  self::expect(1023, inh::F|methodD(f));
+  self::G<core::int> /* = core::int */ g1 = self::G|constructor#<core::int>(72);
+  core::int g1_g = g1 as{Unchecked} core::int;
+  core::int g1_alias = g1_g;
+  self::expect(72, g1 as{Unchecked} core::int);
+  self::G<core::String> /* = core::String */ g2 = self::G|constructor#<core::String>("72");
+  core::String g2_g = g2 as{Unchecked} core::String;
+  core::String g2_alias = g2_g;
+  self::expect("72", g2 as{Unchecked} core::String);
+  core::List<core::int> list1 = core::_GrowableList::_literal1<core::int>(97);
+  self::H<core::int> /* = core::List<core::int> */ h1 = self::H|constructor#<core::int>(list1);
+  core::List<core::int> h1_g = h1 as{Unchecked} core::List<core::int>;
+  core::List<core::int> h1_g_alias = h1_g;
+  self::expect(list1, h1 as{Unchecked} core::List<core::int>);
+  core::List<core::int> h1_h = h1 as{Unchecked} core::List<core::int>;
+  core::List<core::int> h1_h_alias = h1_h;
+  self::expect(list1, h1 as{Unchecked} core::List<core::int>);
+  core::List<core::String> list2 = core::_GrowableList::_literal1<core::String>("foo");
+  self::H<core::String> /* = core::List<core::String> */ h2 = self::H|constructor#<core::String>(list2);
+  core::List<core::String> h2_g = h2 as{Unchecked} core::List<core::String>;
+  core::List<core::String> h2_g_alias = h2_g;
+  self::expect(list2, h2 as{Unchecked} core::List<core::String>);
+  core::List<core::String> h2_h = h2 as{Unchecked} core::List<core::String>;
+  core::List<core::String> h2_h_alias = h2_h;
+  self::expect(list2, h2 as{Unchecked} core::List<core::String>);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+library;
+import self as inh;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///inherited_representation_field.dart";
+
+extension type D(core::int _d) implements #lib1::C /* = core::int */ {
+  abstract inline-class-member representation-field get _d() → core::int;
+  constructor • = inh::D|constructor#;
+  constructor tearoff • = inh::D|constructor#_#new#tearOff;
+}
+extension type F(core::int _f) implements #lib1::E /* = core::int */ {
+  abstract inline-class-member representation-field get _f() → core::int;
+  method methodD = inh::F|methodD;
+  method tearoff methodD = inh::F|get#methodD;
+  constructor • = inh::F|constructor#;
+  constructor tearoff • = inh::F|constructor#_#new#tearOff;
+}
+static inline-class-member method D|constructor#(core::int _d) → inh::D /* = core::int */ {
+  lowered final inh::D /* = core::int */ #this = _d;
+  return #this;
+}
+static inline-class-member method D|constructor#_#new#tearOff(core::int _d) → inh::D /* = core::int */
+  return inh::D|constructor#(_d);
+static inline-class-member method F|constructor#(core::int _f) → inh::F /* = core::int */ {
+  lowered final inh::F /* = core::int */ #this = _f;
+  return #this;
+}
+static inline-class-member method F|constructor#_#new#tearOff(core::int _f) → inh::F /* = core::int */
+  return inh::F|constructor#(_f);
+static inline-class-member method F|methodD(lowered final inh::F /* = core::int */ #this) → dynamic
+  return #this as{Unchecked} core::int;
+static inline-class-member method F|get#methodD(lowered final inh::F /* = core::int */ #this) → () → dynamic
+  return () → dynamic => inh::F|methodD(#this);

@@ -62,12 +62,14 @@ void main(List<String> args) {
     // malloc/calloc aren't defined for simulators, so pass null instead.
     copyPointerContents(null, null, n);
   } else {
-    final src = malloc<Uint8>(n);
-    for (int i = 0; i < n; i++) {
-      src[i] = n - i;
-    }
-    final dest = calloc<Uint8>(n);
-    copyPointerContents(dest, src, n);
-    Expect.listEquals(src.asTypedList(n), dest.asTypedList(n));
+    using((arena) {
+      final src = arena.allocate<Uint8>(n);
+      for (int i = 0; i < n; i++) {
+        src[i] = n - i;
+      }
+      final dest = arena.allocate<Uint8>(n);
+      copyPointerContents(dest, src, n);
+      Expect.listEquals(src.asTypedList(n), dest.asTypedList(n));
+    });
   }
 }

@@ -1636,11 +1636,13 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   return true;
 }
 
-void Assembler::LoadObjectHelper(Register rd,
-                                 const Object& object,
-                                 Condition cond,
-                                 bool is_unique,
-                                 Register pp) {
+void Assembler::LoadObjectHelper(
+    Register rd,
+    const Object& object,
+    Condition cond,
+    bool is_unique,
+    Register pp,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
   // `is_unique == true` effectively means object has to be patchable.
   if (!is_unique) {
@@ -1660,11 +1662,13 @@ void Assembler::LoadObjectHelper(Register rd,
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   // Make sure that class CallPattern is able to decode this load from the
   // object pool.
-  const auto index = is_unique
-                         ? object_pool_builder().AddObject(
-                               object, ObjectPoolBuilderEntry::kPatchable)
-                         : object_pool_builder().FindObject(
-                               object, ObjectPoolBuilderEntry::kNotPatchable);
+  const auto index =
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(rd, index, pp, cond);
 }
 
@@ -1672,10 +1676,13 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ false, PP);
 }
 
-void Assembler::LoadUniqueObject(Register rd,
-                                 const Object& object,
-                                 Condition cond) {
-  LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
+void Assembler::LoadUniqueObject(
+    Register rd,
+    const Object& object,
+    Condition cond,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP,
+                   snapshot_behavior);
 }
 
 void Assembler::LoadNativeEntry(Register rd,

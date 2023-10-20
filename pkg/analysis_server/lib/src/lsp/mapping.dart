@@ -16,6 +16,7 @@ import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
@@ -49,6 +50,10 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
     lsp.DiagnosticTag.Deprecated
   ],
 };
+
+/// The value to subtract relevance from to get the correct sortText for a
+/// completion item.
+final sortTextMaxValue = int.parse('9' * maximumRelevance.toString().length);
 
 /// A regex used for splitting the display text in a completion so that
 /// filterText only includes the symbol name and not any additional text (such
@@ -632,18 +637,20 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
 /// Converts a numeric relevance to a sortable string.
 ///
 /// The servers relevance value is a number with highest being best. LSP uses a
-/// a string sort on the `sortText` field. Subtracting the relevance from a large
-/// number will produce text that will sort correctly.
+/// a string sort on the `sortText` field. Subtracting the relevance from a
+/// large number will produce text that will sort correctly.
 ///
 /// Relevance can be 0, so it's important to subtract from a number like 999
 /// and not 1000 or the 0 relevance items will sort at the top instead of the
 /// bottom.
 ///
-/// 555 -> 9999999 - 555 -> 9 999 444
-///  10 -> 9999999 -  10 -> 9 999 989
-///   1 -> 9999999 -   1 -> 9 999 998
-///   0 -> 9999999 -   0 -> 9 999 999
-String relevanceToSortText(int relevance) => (9999999 - relevance).toString();
+/// 1000000 -> 9999999 - 1000000 -> 8 999 999
+///     555 -> 9999999 -     555 -> 9 999 444
+///      10 -> 9999999 -      10 -> 9 999 989
+///       1 -> 9999999 -       1 -> 9 999 998
+///       0 -> 9999999 -       0 -> 9 999 999
+String relevanceToSortText(int relevance) =>
+    (sortTextMaxValue - relevance).toString();
 
 /// Creates a SnippetTextEdit for a set of edits using Linked Edit Groups.
 ///
@@ -753,7 +760,7 @@ lsp.CompletionItem snippetToCompletionItem(
 
   return lsp.CompletionItem(
     label: snippet.label,
-    filterText: snippet.prefix,
+    filterText: snippet.prefix.orNullIfSameAs(snippet.label),
     kind: lsp.CompletionItemKind.Snippet,
     command: command,
     documentation: documentation != null
@@ -767,7 +774,7 @@ lsp.CompletionItem snippetToCompletionItem(
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
     textEdit: Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
-    additionalTextEdits: nonMainEdits,
+    additionalTextEdits: nonMainEdits.nullIfEmpty,
   );
 }
 
@@ -1002,7 +1009,7 @@ lsp.CompletionItem toCompletionItem(
         ? CompletionItemLabelDetails(
             detail: labelDetails.truncatedSignature.nullIfEmpty,
             description: labelDetails.autoImportUri,
-          )
+          ).nullIfEmpty
         : null,
     documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
@@ -1011,9 +1018,8 @@ lsp.CompletionItem toCompletionItem(
         ? true
         : null,
     sortText: relevanceToSortText(suggestion.relevance),
-    filterText: filterText != label
-        ? filterText
-        : null, // filterText uses label if not set
+    filterText:
+        filterText.orNullIfSameAs(label), // filterText uses label if not set
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
@@ -1039,8 +1045,7 @@ lsp.CompletionItem toCompletionItem(
                 ),
               ),
     // When using defaults for edit range, use textEditText.
-    textEditText:
-        hasDefaultEditRange && insertText != label ? insertText : null,
+    textEditText: hasDefaultEditRange ? insertText.orNullIfSameAs(label) : null,
   );
 }
 
@@ -1515,3 +1520,19 @@ typedef CompletionDetail = ({
   /// The URI that will be auto-imported if this item is selected.
   String? autoImportUri,
 });
+
+extension on CompletionItemLabelDetails {
+  /// Returns `null` if no fields are set, otherwise `this`.
+  CompletionItemLabelDetails? get nullIfEmpty =>
+      detail != null || description != null ? this : null;
+}
+
+extension on String? {
+  /// Returns `null` if this string is the same as [other], otherwise `this`.
+  String? orNullIfSameAs(String other) => this == other ? null : this;
+}
+
+extension _ListExtensions<T> on List<T> {
+  /// Returns `null` if this list is empty, otherwise `this`.
+  List<T>? get nullIfEmpty => isEmpty ? null : this;
+}

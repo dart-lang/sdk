@@ -1,0 +1,14 @@
+import 'inherited_representation_field_lib.dart';
+expect(expected, actual) {}
+extension type A(int a) {}
+extension type B(int b) implements A {
+  methodA() => a;
+  methodB() => b;
+}
+extension type C(int _c) {}
+extension type E(int _e) implements D {
+  methodC() => _c;
+}
+extension type G<T>(T g) {}
+extension type H<T>(List<T> h) implements G<List<T>> {}
+main() {}

@@ -1,3 +1,16 @@
+## 3.3.0
+
+### Tools
+
+#### Dart command line
+
+- The `dart create` command now uses v3 of `package:lints`,
+  including multiple new recommended lints by default.
+  To learn more about the updated collection of lints,
+  check out the `package:lints` [3.0.0 changelog entry][lints-3-0].
+
+[lints-3-0]: https://pub.dev/packages/lints/changelog#300
+
 ## 3.2.0
 
 ### Language

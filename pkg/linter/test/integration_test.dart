@@ -71,7 +71,10 @@ void coreTests() {
         registerLintRules();
 
         var registered = Analyzer.facade.registeredRules
-            .where((r) => !r.state.isDeprecated && !r.state.isRemoved)
+            .where((r) =>
+                !r.state.isDeprecated &&
+                !r.state.isInternal &&
+                !r.state.isRemoved)
             .map((r) => r.name);
 
         for (var l in configuredLints) {

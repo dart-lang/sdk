@@ -366,7 +366,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var variableElement = varDecl.declaredElement;
     if (variableElement is TopLevelVariableElement &&
         visibilityTracker._isVisible(variableElement) &&
-        opType.includeReturnValueSuggestions) {
+        (opType.includeReturnValueSuggestions ||
+            (opType.includeAnnotationSuggestions && variableElement.isConst))) {
       var getter = variableElement.getter;
       if (getter != null) {
         builder.suggestTopLevelPropertyAccessor(getter);

@@ -540,6 +540,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -550,31 +551,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadFromOffset(R0, SP,
                     (args_desc.Count() - 1) * compiler::target::kWordSize);
   // Use same code pattern as instance call so it can be parsed by code patcher.
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadUniqueObject(LR, StubCode::MegamorphicCall()));
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    CLOBBERS_LR(__ blx(LR));
-  } else {
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-    __ Call(compiler::FieldAddress(
-        CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
-  }
+  __ LoadUniqueObject(IC_DATA_REG, cache);
+  __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+  __ Call(compiler::FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 
   RecordSafepoint(locs);
   AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
-                           source);
-    }
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
   EmitDropArguments(args_desc.SizeWithTypeArgs());
@@ -606,7 +596,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub));
+    const auto snapshot_behavior =
+        compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
+    CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub, AL, snapshot_behavior));
   } else {
     __ LoadUniqueObject(CODE_REG, initial_stub);
     const intptr_t entry_point_offset =
