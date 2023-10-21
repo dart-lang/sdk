@@ -7,6 +7,7 @@ library dart2js.compiler_base;
 import 'dart:async' show Future;
 import 'dart:convert' show jsonEncode;
 
+import 'package:compiler/src/serialization/indexed_sink_source.dart';
 import 'package:compiler/src/universe/use.dart' show StaticUse;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
@@ -100,7 +101,6 @@ class Compiler {
 
   late ir.Component componentForTesting;
   late JClosedWorld? backendClosedWorldForTesting;
-  late DataSourceIndices? closedWorldIndicesForTesting;
   late ResolutionEnqueuer resolutionEnqueuerForTesting;
   late CodegenEnqueuer codegenEnqueuerForTesting;
   late DumpInfoStateData dumpInfoStateForTesting;
@@ -559,40 +559,43 @@ class Compiler {
     return programSize;
   }
 
-  DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResultsTestMode(
-      DataAndIndices<GlobalTypeInferenceResults> results) {
+  GlobalTypeInferenceResults globalTypeInferenceResultsTestMode(
+      GlobalTypeInferenceResults results) {
+    SerializationIndices indices = SerializationIndices(testMode: true);
     final strategy =
         const BytesInMemorySerializationStrategy(useDataKinds: true);
-    final resultData = results.data!;
-    List<int> irData = strategy.unpackAndSerializeComponent(resultData);
+    List<int> irData = strategy.unpackAndSerializeComponent(results);
     List<int> closedWorldData =
-        strategy.serializeClosedWorld(resultData.closedWorld, options);
-    var component = strategy.deserializeComponent(irData);
-    var closedWorldAndIndices = strategy.deserializeClosedWorld(
+        strategy.serializeClosedWorld(results.closedWorld, options, indices);
+    final component = strategy.deserializeComponent(irData);
+    final closedWorld = strategy.deserializeClosedWorld(
         options,
         reporter,
         environment,
         abstractValueStrategy,
         component,
-        closedWorldData);
+        closedWorldData,
+        indices);
+    // Reset indices to clear references to old Kernel entities.
+    indices = SerializationIndices(testMode: true);
     List<int> globalTypeInferenceResultsData =
-        strategy.serializeGlobalTypeInferenceResults(
-            closedWorldAndIndices.indices!, resultData, options);
+        strategy.serializeGlobalTypeInferenceResults(results, options, indices);
+
     return strategy.deserializeGlobalTypeInferenceResults(
         options,
         reporter,
         environment,
         abstractValueStrategy,
         component,
-        closedWorldAndIndices.data!,
-        closedWorldAndIndices.indices!,
-        globalTypeInferenceResultsData);
+        closedWorld,
+        globalTypeInferenceResultsData,
+        indices);
   }
 
-  Future<DataAndIndices<JClosedWorld>?> produceClosedWorld(
-      load_kernel.Output output, ModuleData? moduleData) async {
+  Future<JClosedWorld?> produceClosedWorld(load_kernel.Output output,
+      ModuleData? moduleData, SerializationIndices indices) async {
     ir.Component component = output.component;
-    DataAndIndices<JClosedWorld> closedWorldAndIndices;
+    JClosedWorld? closedWorld;
     if (!stage.shouldReadClosedWorld) {
       if (!usingModularAnalysis) {
         // If we're deserializing the closed world, the input .dill already
@@ -611,48 +614,40 @@ class Compiler {
 
       Uri rootLibraryUri = output.rootLibraryUri!;
       List<Uri> libraries = output.libraries!;
-      final closedWorld =
+      closedWorld =
           computeClosedWorld(component, moduleData, rootLibraryUri, libraries);
-      closedWorldAndIndices = DataAndIndices<JClosedWorld>(closedWorld, null);
       if (stage == Dart2JSStage.closedWorld && closedWorld != null) {
         serializationTask.serializeComponent(
             closedWorld.elementMap.programEnv.mainComponent,
             includeSourceBytes: false);
-        serializationTask.serializeClosedWorld(closedWorld);
+        serializationTask.serializeClosedWorld(closedWorld, indices);
       }
     } else {
-      closedWorldAndIndices = await serializationTask.deserializeClosedWorld(
-          environment,
-          abstractValueStrategy,
-          component,
-          useDeferredSourceReads);
+      closedWorld = await serializationTask.deserializeClosedWorld(environment,
+          abstractValueStrategy, component, useDeferredSourceReads, indices);
     }
     if (retainDataForTesting) {
-      backendClosedWorldForTesting = closedWorldAndIndices.data;
-      closedWorldIndicesForTesting = closedWorldAndIndices.indices;
+      backendClosedWorldForTesting = closedWorld;
     }
-    return closedWorldAndIndices;
+    return closedWorld;
   }
 
-  bool shouldStopAfterClosedWorld(
-          DataAndIndices<JClosedWorld>? closedWorldAndIndices) =>
-      closedWorldAndIndices == null ||
-      closedWorldAndIndices.data == null ||
+  bool shouldStopAfterClosedWorld(JClosedWorld? closedWorld) =>
+      closedWorld == null ||
       stage == Dart2JSStage.closedWorld ||
       stage == Dart2JSStage.deferredLoadIds ||
       stopAfterClosedWorldForTesting;
 
-  Future<DataAndIndices<GlobalTypeInferenceResults>>
-      produceGlobalTypeInferenceResults(
-          DataAndIndices<JClosedWorld> closedWorldAndIndices) async {
-    JClosedWorld closedWorld = closedWorldAndIndices.data!;
-    DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults;
+  Future<GlobalTypeInferenceResults> produceGlobalTypeInferenceResults(
+      JClosedWorld closedWorld,
+      ir.Component component,
+      SerializationIndices indices) async {
+    GlobalTypeInferenceResults globalTypeInferenceResults;
     if (!stage.shouldReadGlobalInference) {
-      globalTypeInferenceResults =
-          DataAndIndices(performGlobalTypeInference(closedWorld), null);
+      globalTypeInferenceResults = performGlobalTypeInference(closedWorld);
       if (stage == Dart2JSStage.globalInference) {
         serializationTask.serializeGlobalTypeInference(
-            globalTypeInferenceResults.data!, closedWorldAndIndices.indices!);
+            globalTypeInferenceResults, indices);
       } else if (options.testMode) {
         globalTypeInferenceResults =
             globalTypeInferenceResultsTestMode(globalTypeInferenceResults);
@@ -663,8 +658,9 @@ class Compiler {
               environment,
               abstractValueStrategy,
               closedWorld.elementMap.programEnv.mainComponent,
-              closedWorldAndIndices,
-              useDeferredSourceReads);
+              closedWorld,
+              useDeferredSourceReads,
+              indices);
     }
     return globalTypeInferenceResults;
   }
@@ -682,26 +678,26 @@ class Compiler {
   }
 
   Future<CodegenResults> produceCodegenResults(
-      DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults,
-      SourceLookup sourceLookup) async {
-    final globalTypeInferenceData = globalTypeInferenceResults.data!;
-    CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceData);
+      GlobalTypeInferenceResults globalTypeInferenceResults,
+      SourceLookup sourceLookup,
+      SerializationIndices indices) async {
+    CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceResults);
     CodegenResults codegenResults;
     if (!stage.shouldReadCodegenShards) {
-      codegenResults = OnDemandCodegenResults(globalTypeInferenceData,
+      codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
           codegenInputs, backendStrategy.functionCompiler);
       if (stage == Dart2JSStage.codegenSharded) {
-        serializationTask.serializeCodegen(backendStrategy, codegenResults,
-            globalTypeInferenceResults.indices!);
+        serializationTask.serializeCodegen(
+            backendStrategy, codegenResults, indices);
       }
     } else {
       codegenResults = await serializationTask.deserializeCodegen(
           backendStrategy,
-          globalTypeInferenceData,
+          globalTypeInferenceResults,
           codegenInputs,
-          globalTypeInferenceResults.indices!,
           useDeferredSourceReads,
-          sourceLookup);
+          sourceLookup,
+          indices);
     }
     return codegenResults;
   }
@@ -725,38 +721,38 @@ class Compiler {
       moduleData = await produceModuleData(output!);
     }
     if (shouldStopAfterModularAnalysis) return;
+    final indices = SerializationIndices();
 
     // Compute closed world.
-    DataAndIndices<JClosedWorld>? closedWorldAndIndices =
-        await produceClosedWorld(output!, moduleData);
-    if (shouldStopAfterClosedWorld(closedWorldAndIndices)) return;
+    JClosedWorld? closedWorld =
+        await produceClosedWorld(output!, moduleData, indices);
+    if (shouldStopAfterClosedWorld(closedWorld)) return;
 
     // Run global analysis.
-    DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResults =
-        await produceGlobalTypeInferenceResults(closedWorldAndIndices!);
+    GlobalTypeInferenceResults globalTypeInferenceResults =
+        await produceGlobalTypeInferenceResults(
+            closedWorld!, output.component, indices);
     if (shouldStopAfterGlobalTypeInference) return;
 
     // Allow the original references to these to be GCed and only hold
     // references to them if we are actually running the dump info task later.
     JClosedWorld? closedWorldForDumpInfo;
-    DataSourceIndices? globalInferenceIndicesForDumpInfo;
+    SerializationIndices? indicesForDumpInfo;
     if (options.dumpInfoWriteUri != null || options.dumpInfoReadUri != null) {
-      closedWorldForDumpInfo = closedWorldAndIndices.data;
-      globalInferenceIndicesForDumpInfo = globalTypeInferenceResults.indices;
+      closedWorldForDumpInfo = closedWorld;
+      indicesForDumpInfo = indices;
     }
 
     // Run codegen.
     final sourceLookup = SourceLookup(output.component);
-    CodegenResults codegenResults =
-        await produceCodegenResults(globalTypeInferenceResults, sourceLookup);
+    CodegenResults codegenResults = await produceCodegenResults(
+        globalTypeInferenceResults, sourceLookup, indices);
     if (shouldStopAfterCodegen) return;
 
     if (options.dumpInfoReadUri != null) {
       final dumpInfoData =
           await serializationTask.deserializeDumpInfoProgramData(
-              backendStrategy,
-              closedWorldForDumpInfo!,
-              globalInferenceIndicesForDumpInfo);
+              backendStrategy, closedWorldForDumpInfo!, indicesForDumpInfo!);
       await runDumpInfo(codegenResults, dumpInfoData);
     } else {
       // Link.
@@ -768,11 +764,8 @@ class Compiler {
         if (options.dumpInfo) {
           await runDumpInfo(codegenResults, dumpInfoData);
         } else {
-          serializationTask.serializeDumpInfoProgramData(
-              backendStrategy,
-              dumpInfoData,
-              closedWorldForDumpInfo!,
-              globalInferenceIndicesForDumpInfo);
+          serializationTask.serializeDumpInfoProgramData(backendStrategy,
+              dumpInfoData, closedWorldForDumpInfo!, indicesForDumpInfo!);
         }
       }
     }

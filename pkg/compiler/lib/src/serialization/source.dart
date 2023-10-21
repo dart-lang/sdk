@@ -38,6 +38,9 @@ abstract class DataSource {
   /// The length of the underlying data source.
   int get length;
 
+  /// The current offset being read from.
+  int get currentOffset;
+
   /// Returns a string representation of the current state of the data source
   /// useful for debugging in consistencies between serialization and
   /// deserialization.
@@ -60,7 +63,7 @@ class DataSourceReader {
   final bool useDeferredStrategy;
   final bool useDataKinds;
   final ValueInterner? interner;
-  DataSourceIndices? importedIndices;
+  final SerializationIndices importedIndices;
   EntityReader _entityReader = const EntityReader();
   ComponentLookup? _componentLookup;
   EntityLookup? _entityLookup;
@@ -79,6 +82,7 @@ class DataSourceReader {
   ir.Member? _currentMemberContext;
   MemberData? _currentMemberData;
 
+  int get currentOffset => _sourceReader.currentOffset;
   int get length => _sourceReader.length;
 
   /// Defines the beginning of this block in the address space created by all
@@ -88,76 +92,19 @@ class DataSourceReader {
   /// shifted. That is the length of all the sources read before this one.
   ///
   /// See [UnorderedIndexedSource] for more info.
-  int get startOffset => importedIndices?.previousSourceReader?.endOffset ?? 0;
+  late int startOffset;
 
-  /// Defines the end of this block in the address space created by all
-  /// instances of [DataSourceReader].
-  ///
-  /// Indexed values read from this source will all have offsets less than this
-  /// value.
-  ///
-  /// See [UnorderedIndexedSource] for more info.
-  final int endOffset;
-
-  UnorderedIndexedSource<T>? _getPreviousUncreatedSource<T>() {
-    final previousSourceReader = importedIndices?.previousSourceReader;
-    if (previousSourceReader == null) return null;
-    return UnorderedIndexedSource<T>(previousSourceReader,
-        previousSource: previousSourceReader._getPreviousUncreatedSource<T>());
-  }
-
-  IndexedSource<T> _createSource<T>() {
-    final indices = importedIndices;
-    if (indices != null) {
-      if (indices.caches.containsKey(T)) {
-        final index = indices.caches.remove(T);
-        return UnorderedIndexedSource<T>(this,
-            previousSource: index!.source as UnorderedIndexedSource<T>);
-      }
-      final newPreviousSource = _getPreviousUncreatedSource<T>();
-      if (newPreviousSource != null) {
-        return UnorderedIndexedSource<T>(this,
-            previousSource: newPreviousSource);
-      }
-    }
-    return UnorderedIndexedSource<T>(this);
-  }
-
-  DataSourceReader(this._sourceReader, CompilerOptions options,
+  DataSourceReader(
+      this._sourceReader, CompilerOptions options, this.importedIndices,
       {this.useDataKinds = false,
-      DataSourceIndices? importedIndices,
       this.interner,
-      this.useDeferredStrategy = false})
-      : this.importedIndices = importedIndices == null
-            ? null
-            : (DataSourceIndices(importedIndices.previousSourceReader)
-              ..caches.addAll(importedIndices.caches)),
-        endOffset = (importedIndices?.previousSourceReader?.endOffset ?? 0) +
-            _sourceReader.length {
-    _stringIndex = _createSource<String>();
-    _uriIndex = _createSource<Uri>();
-    _importIndex = _createSource<ImportEntity>();
-    _memberNodeIndex = _createSource<MemberData>();
-    _constantIndex = _createSource<ConstantValue>();
-  }
-
-  /// Exports [DataSourceIndices] for use in other [DataSourceReader]s and
-  /// [DataSinkWriter]s.
-  DataSourceIndices exportIndices() {
-    final indices = DataSourceIndices(this);
-    indices.caches[String] = DataSourceTypeIndices(_stringIndex);
-    indices.caches[Uri] = DataSourceTypeIndices(_uriIndex);
-    indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex);
-    // _memberNodeIndex needs two entries depending on if the indices will be
-    // consumed by a [DataSource] or [DataSink].
-    indices.caches[MemberData] = DataSourceTypeIndices(_memberNodeIndex);
-    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member?, MemberData>(
-        _memberNodeIndex, (MemberData? data) => data?.node);
-    indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex);
-    _generalCaches.forEach((type, indexedSource) {
-      indices.caches[type] = DataSourceTypeIndices(indexedSource);
-    });
-    return indices;
+      this.useDeferredStrategy = false}) {
+    startOffset = importedIndices.registerSource(this);
+    _stringIndex = importedIndices.getIndexedSource<String>();
+    _uriIndex = importedIndices.getIndexedSource<Uri>();
+    _importIndex = importedIndices.getIndexedSource<ImportEntity>();
+    _memberNodeIndex = importedIndices.getIndexedSource<MemberData>();
+    _constantIndex = importedIndices.getIndexedSource<ConstantValue>();
   }
 
   /// Registers that the section [tag] starts.
@@ -237,12 +184,14 @@ class DataSourceReader {
     final lastLocalLookup = _localLookup;
     final lastComponentLookup = _componentLookup;
     final lastCodegenReader = _codegenReader;
+    final lastStartOffset = startOffset;
     _sourceReader = source._sourceReader;
     _entityReader = source._entityReader;
     _entityLookup = source._entityLookup;
     _localLookup = source._localLookup;
     _componentLookup = source._componentLookup;
     _codegenReader = source._codegenReader;
+    startOffset = source.startOffset;
     final value = f();
     _sourceReader = lastSource;
     _entityReader = lastEntityReader;
@@ -250,6 +199,7 @@ class DataSourceReader {
     _localLookup = lastLocalLookup;
     _componentLookup = lastComponentLookup;
     _codegenReader = lastCodegenReader;
+    startOffset = lastStartOffset;
     return value;
   }
 
@@ -297,7 +247,7 @@ class DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E readCached<E>(E f()) {
+  E readCached<E extends Object>(E f()) {
     E? value = readCachedOrNull(f);
     if (value == null) throw StateError("Unexpected 'null' for $E");
     return value;
@@ -305,10 +255,10 @@ class DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E? readCachedOrNull<E>(E f()) {
-    IndexedSource<E> source =
-        (_generalCaches[E] ??= _createSource<E>()) as IndexedSource<E>;
-    return source.read(f);
+  E? readCachedOrNull<E extends Object>(E f()) {
+    IndexedSource<E> source = (_generalCaches[E] ??=
+        importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
+    return source.read(this, f);
   }
 
   /// Reads a potentially `null` [E] value from this data source, calling [f] to
@@ -386,7 +336,9 @@ class DataSourceReader {
   }
 
   String _readString() {
-    return _stringIndex.read(() => _sourceReader.readString())!;
+    // Cannot use a tear-off for `_sourceReader.readString` because the data
+    // source may be different at the time of reading.
+    return _stringIndex.read(this, () => _sourceReader.readString())!;
   }
 
   /// Reads a potentially `null` string value from this data source.
@@ -473,7 +425,7 @@ class DataSourceReader {
   }
 
   Uri _readUri() {
-    return _uriIndex.read(_doReadUri)!;
+    return _uriIndex.read(this, _doReadUri)!;
   }
 
   Uri _doReadUri() {
@@ -535,7 +487,7 @@ class DataSourceReader {
   }
 
   MemberData _readMemberData() {
-    return _memberNodeIndex.read(_readMemberDataInternal)!;
+    return _memberNodeIndex.read(this, _readMemberDataInternal)!;
   }
 
   MemberData _readMemberDataInternal() {
@@ -1269,7 +1221,7 @@ class DataSourceReader {
   }
 
   ConstantValue _readConstant() {
-    return _constantIndex.read(_readConstantInternal)!;
+    return _constantIndex.read(this, _readConstantInternal)!;
   }
 
   ConstantValue _readConstantInternal() {
@@ -1438,7 +1390,7 @@ class DataSourceReader {
 
   /// Reads a import from this data source.
   ImportEntity _readImport() {
-    return _importIndex.read(_readImportInternal)!;
+    return _importIndex.read(this, _readImportInternal)!;
   }
 
   ImportEntity _readImportInternal() {

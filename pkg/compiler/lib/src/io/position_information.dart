@@ -42,8 +42,8 @@ class PositionSourceInformation extends SourceInformation {
         () => SourceLocation.readFromDataSource(source));
     SourceLocation? innerPosition = source.readCachedOrNull<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    List<FrameContext>? inliningContext = source
-        .readCachedOrNull<List<FrameContext>?>(() => source.readListOrNull(() =>
+    List<FrameContext>? inliningContext =
+        source.readCachedOrNull<List<FrameContext>>(() => source.readList(() =>
             source.readCached(() => FrameContext.readFromDataSource(source))));
     source.end(tag);
     return PositionSourceInformation(

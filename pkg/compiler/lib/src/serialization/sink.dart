@@ -48,7 +48,7 @@ class DataSinkWriter {
   /// and deserialization.
   final bool useDataKinds;
 
-  DataSourceIndices? importedIndices;
+  final SerializationIndices importedIndices;
 
   /// Visitor used for serializing [ir.DartType]s.
   late final DartTypeNodeWriter _dartTypeNodeWriter;
@@ -66,9 +66,9 @@ class DataSinkWriter {
   late final IndexedSink<ImportEntity> _importIndex;
   late final IndexedSink<ConstantValue> _constantIndex;
 
+  EntityWriter _entityWriter = const EntityWriter();
   final Map<Type, IndexedSink> _generalCaches = {};
 
-  EntityWriter _entityWriter = const EntityWriter();
   late CodegenWriter _codegenWriter;
 
   final Map<String, int>? tagFrequencyMap;
@@ -76,30 +76,16 @@ class DataSinkWriter {
   ir.Member? _currentMemberContext;
   MemberData? _currentMemberData;
 
-  IndexedSink<T> _createSink<T>({bool identity = false}) {
-    final indices = importedIndices;
-    if (indices == null)
-      return UnorderedIndexedSink<T>(this, identity: identity);
-    final sourceInfo = indices.caches[T];
-    if (sourceInfo == null) {
-      return UnorderedIndexedSink<T>(this,
-          startOffset: indices.previousSourceReader?.endOffset,
-          identity: identity);
-    }
-    return UnorderedIndexedSink<T>(this,
-        cache: Map.from(sourceInfo.cache),
-        startOffset: indices.previousSourceReader?.endOffset,
-        identity: identity);
-  }
-
-  DataSinkWriter(this._sinkWriter, CompilerOptions options,
-      {this.useDataKinds = false, this.tagFrequencyMap, this.importedIndices}) {
+  DataSinkWriter(
+      this._sinkWriter, CompilerOptions options, this.importedIndices,
+      {this.useDataKinds = false, this.tagFrequencyMap}) {
     _dartTypeNodeWriter = DartTypeNodeWriter(this);
-    _stringIndex = _createSink<String>();
-    _uriIndex = _createSink<Uri>();
-    _memberNodeIndex = _createSink<ir.Member>();
-    _importIndex = _createSink<ImportEntity>();
-    _constantIndex = _createSink<ConstantValue>();
+    _stringIndex = importedIndices.getIndexedSink<String>();
+    _uriIndex = importedIndices.getIndexedSink<Uri>();
+    _memberNodeIndex = importedIndices
+        .getMappedIndexedSink<MemberData, ir.Member>((data) => data.node);
+    _importIndex = importedIndices.getIndexedSink<ImportEntity>();
+    _constantIndex = importedIndices.getIndexedSink<ConstantValue>();
   }
 
   /// The amount of data written to this data sink.
@@ -150,9 +136,12 @@ class DataSinkWriter {
   /// [identity] is true then the cache is backed by a [Map] created using
   /// [Map.identity]. (i.e. comparisons are done using [identical] rather than
   /// `==`)
-  void writeCached<E>(E? value, void f(E value), {bool identity = false}) {
-    IndexedSink sink = _generalCaches[E] ??= _createSink<E>(identity: identity);
-    sink.write(value, (v) => f(v));
+  void writeCached<E extends Object>(E? value, void f(E value),
+      {bool identity = false}) {
+    IndexedSink<E> sink = (_generalCaches[E] ??=
+            importedIndices.getIndexedSink<E>(identity: identity))
+        as IndexedSink<E>;
+    sink.write(this, value, f);
   }
 
   /// Writes the potentially `null` [value] to this data sink. If [value] is
@@ -218,7 +207,7 @@ class DataSinkWriter {
   }
 
   void _writeString(String value) {
-    _stringIndex.write(value, _sinkWriter.writeString);
+    _stringIndex.write(this, value, _sinkWriter.writeString);
   }
 
   /// Writes the potentially `null` string [value] to this data sink.
@@ -306,7 +295,7 @@ class DataSinkWriter {
   }
 
   void _writeUri(Uri value) {
-    _uriIndex.write(value, _doWriteUri);
+    _uriIndex.write(this, value, _doWriteUri);
   }
 
   void _doWriteUri(Uri value) {
@@ -364,7 +353,7 @@ class DataSinkWriter {
   }
 
   void _writeMemberNode(ir.Member value) {
-    _memberNodeIndex.write(value, _writeMemberNodeInternal);
+    _memberNodeIndex.write(this, value, _writeMemberNodeInternal);
   }
 
   void _writeMemberNodeInternal(ir.Member value) {
@@ -958,7 +947,7 @@ class DataSinkWriter {
   }
 
   void _writeConstant(ConstantValue value) {
-    _constantIndex.write(value, _writeConstantInternal);
+    _constantIndex.write(this, value, _writeConstantInternal);
   }
 
   void _writeConstantInternal(ConstantValue value) {
@@ -1137,7 +1126,7 @@ class DataSinkWriter {
   }
 
   void _writeImport(ImportEntity value) {
-    _importIndex.write(value, _writeImportInternal);
+    _importIndex.write(this, value, _writeImportInternal);
   }
 
   void _writeImportInternal(ImportEntity value) {

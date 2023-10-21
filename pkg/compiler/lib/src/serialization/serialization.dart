@@ -32,6 +32,7 @@ import 'tags.dart';
 
 export 'binary_sink.dart';
 export 'binary_source.dart';
+export 'indexed_sink_source.dart' show SerializationIndices;
 export 'member_data.dart' show ComponentLookup, computeMemberName;
 export 'object_sink.dart';
 export 'object_source.dart';
@@ -56,32 +57,6 @@ class ValueInterner {
   ir.DartType? internDartTypeNode(ir.DartType? dartType) {
     return _dartTypeNodeMap[dartType] ??= dartType;
   }
-}
-
-/// Data class representing cache information for a given [T] which can be
-/// passed from a [DataSourceReader] to other [DataSourceReader]s and [DataSinkWriter]s.
-class DataSourceTypeIndices<E, T> {
-  Map<E?, int> get cache => _cache ??= source.reshapeCacheAsMap(_getValue);
-
-  final E Function(T? value)? _getValue;
-  Map<E?, int>? _cache;
-  final IndexedSource<T> source;
-
-  /// Uses the cache from the provided [source] and reshapes it if necessary
-  /// to create a lookup map of cached entities. If [_getValue] is provided,
-  /// the function will be used to map the cached entities into lookup keys.
-  DataSourceTypeIndices(this.source, [this._getValue]) {
-    assert(_getValue != null || T == E);
-  }
-}
-
-/// Data class representing the sum of all cache information for a given
-/// [DataSourceReader].
-class DataSourceIndices {
-  final Map<Type, DataSourceTypeIndices> caches = {};
-  final DataSourceReader? previousSourceReader;
-
-  DataSourceIndices(this.previousSourceReader);
 }
 
 /// Interface used for looking up locals by index during deserialization.

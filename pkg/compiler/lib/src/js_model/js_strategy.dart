@@ -333,17 +333,18 @@ class JsBackendStrategy {
     MemberEntity member = work.element;
     CodegenResult result = codegenResults.getCodegenResults(member);
     if (_compiler.options.testMode) {
+      final indices = SerializationIndices(testMode: true);
       bool useDataKinds = true;
       List<Object> data = [];
       DataSinkWriter sink = DataSinkWriter(
-          ObjectDataSink(data), _compiler.options,
+          ObjectDataSink(data), _compiler.options, indices,
           useDataKinds: useDataKinds);
       sink.registerCodegenWriter(
           CodegenWriterImpl(closedWorld, result.deferredExpressionData));
       result.writeToDataSink(sink);
       sink.close();
       DataSourceReader source = DataSourceReader(
-          ObjectDataSource(data), _compiler.options,
+          ObjectDataSource(data), _compiler.options, indices,
           useDataKinds: useDataKinds);
       source.registerCodegenReader(CodegenReaderImpl(closedWorld));
       source.registerEntityLookup(entityLookup);
