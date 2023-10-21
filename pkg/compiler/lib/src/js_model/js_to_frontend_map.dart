@@ -7,7 +7,6 @@ import '../common.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/types.dart';
 import 'element_map_impl.dart';
 import 'elements.dart';
@@ -69,7 +68,7 @@ class JsToFrontendMap {
   }
 
   MemberEntity? toBackendMember(MemberEntity member) =>
-      _backend.members.getEntity((member as IndexedMember).memberIndex);
+      _backend.kToJMembers[member];
 
   DartType? toBackendType(DartType? type, {bool allowFreeVariables = false}) =>
       type == null

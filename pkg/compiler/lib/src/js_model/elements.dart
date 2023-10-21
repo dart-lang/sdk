@@ -385,6 +385,17 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 
   @override
   String get _kind => 'constructor_body';
+
+  /// These lazy member bodies implement `==` since different SSA shards can
+  /// create different copies of the same constructor body. Upon deserialization
+  /// we should consider the different copies equivalent.
+  @override
+  bool operator ==(Object other) {
+    return other is JConstructorBody && constructor == other.constructor;
+  }
+
+  @override
+  int get hashCode => constructor.hashCode + 7;
 }
 
 class JMethod extends JFunction {
@@ -490,6 +501,14 @@ class JGeneratorBody extends JFunction {
 
   @override
   String get _kind => 'generator_body';
+
+  /// These lazy member bodies implement `==` since different SSA shards can
+  /// create different copies of the same constructor body. Upon deserialization
+  /// we should consider the different copies equivalent.
+  @override
+  bool operator ==(Object other) {
+    return other is JGeneratorBody && function == other.function;
+  }
 }
 
 class JGetter extends JFunction {

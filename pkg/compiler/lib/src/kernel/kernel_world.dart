@@ -6,7 +6,6 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/names.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
 import '../js_backend/field_analysis.dart' show KFieldAnalysis;
@@ -15,6 +14,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types_resolution.dart';
+import '../js_model/elements.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/member_usage.dart';
@@ -131,7 +131,7 @@ class KClosedWorld implements BuiltWorld {
     for (MemberEntity member in liveMemberUsage.keys) {
       if (member.enclosingClass != null) {
         if (!elementMap.classes
-            .getEnv(member.enclosingClass as IndexedClass)
+            .getEnv(member.enclosingClass as JClass)
             .checkHasMember(elementMap.getMemberNode(member))) {
           throw SpannableAssertionFailure(
               member,

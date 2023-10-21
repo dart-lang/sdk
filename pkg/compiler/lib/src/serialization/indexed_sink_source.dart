@@ -61,7 +61,11 @@ class SerializationIndices {
       /// type will be different from the read type.
       final sink = _indexedSinks[E] as IndexedSink<E>?;
       sink?.cache.forEach((value, offset) {
-        source.cache[offset] = value;
+        // We convert local offsets to relative offsets because source caching
+        // uses the relative address space. We want to ensure objects that are
+        // serialized and immediately deserialized during testing share the same
+        // cached references.
+        source.cache[_localToGlobalForTesting(offset)] = value;
       });
     }
     return source;
@@ -103,6 +107,7 @@ int _globalToRealOffset(int offset, DataSourceReader source) =>
     (offset >> 1) - source.startOffset;
 int _localToGlobalOffset(int offset, DataSourceReader source) =>
     _realToGlobalOffset(offset >> 1, source);
+int _localToGlobalForTesting(int offset) => offset & ~1;
 
 /// Data sink helper that canonicalizes [E?] values using IDs.
 ///

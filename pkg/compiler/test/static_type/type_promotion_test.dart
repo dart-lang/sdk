@@ -7,8 +7,8 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/elements/indexed.dart';
 import 'package:compiler/src/ir/static_type.dart';
+import 'package:compiler/src/js_model/elements.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -50,7 +50,7 @@ class TypePromotionDataComputer extends DataComputer<String> {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     Map<ir.Expression, TypeMap> typeMaps =
-        elementMap.getTypeMapsForTesting(member as IndexedMember)!;
+        elementMap.getTypeMapsForTesting(member as JMember)!;
     ir.Member node = elementMap.getMemberNode(member);
     TypePromotionIrComputer(compiler.reporter, actualMap, typeMaps).run(node);
   }

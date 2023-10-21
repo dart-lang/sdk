@@ -22,7 +22,6 @@ import '../io/source_information.dart';
 import '../ir/modular.dart';
 import '../js_backend/codegen_inputs.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_model/element_map_impl.dart';
 import '../js_model/js_world.dart';
 import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
@@ -275,7 +274,7 @@ class SerializationTask extends CompilerTask {
     int shards = _options.codegenShards!;
     Map<MemberEntity, CodegenResult> results = {};
     int index = 0;
-    EntityWriter entityWriter =
+    final lazyMemberBodies =
         backendStrategy.forEachCodegenMember((MemberEntity member) {
       if (index % shards == shard) {
         CodegenResult codegenResult = codegenResults.getCodegenResults(member);
@@ -291,7 +290,7 @@ class SerializationTask extends CompilerTask {
       DataSinkWriter sink =
           DataSinkWriter(BinaryDataSink(dataOutput), _options, indices);
       _reporter.log('Writing data to ${uri}');
-      sink.registerEntityWriter(entityWriter);
+      sink.writeMembers(lazyMemberBodies);
       sink.writeMemberMap(results, (MemberEntity member, CodegenResult result) {
         sink.registerCodegenWriter(
             CodegenWriterImpl(closedWorld, result.deferredExpressionData));
@@ -354,6 +353,8 @@ class SerializationTask extends CompilerTask {
         useDeferredStrategy: useDeferredSourceReads);
     backendStrategy.prepareCodegenReader(source);
     source.registerSourceLookup(sourceLookup);
+    final lazyMemberBodies = source.readMembers();
+    closedWorld.elementMap.registerLazyMemberBodies(lazyMemberBodies);
     Map<MemberEntity, Deferrable<CodegenResult>> codegenResults =
         source.readMemberMap((MemberEntity member) {
       return source.readDeferrableWithArg(_readCodegenResult, closedWorld,
@@ -372,8 +373,6 @@ class SerializationTask extends CompilerTask {
     api.BinaryOutputSink dataOutput =
         _outputProvider.createBinarySink(outputUri);
     final sink = DataSinkWriter(BinaryDataSink(dataOutput), _options, indices);
-    EntityWriter entityWriter = backendStrategy.forEachCodegenMember((_) {});
-    sink.registerEntityWriter(entityWriter);
     sink.registerCodegenWriter(
         CodegenWriterImpl(closedWorld, DeferredExpressionData([], [])));
     dumpInfoProgramData.writeToDataSink(sink);
@@ -418,7 +417,6 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
     JClosedWorld closedWorld,
     DataSourceReader source) {
   source.registerComponentLookup(ComponentLookup(component));
-  source.registerEntityLookup(ClosedEntityLookup(closedWorld.elementMap));
   GlobalLocalsMap globalLocalsMap = GlobalLocalsMap.readFromDataSource(
       closedWorld.closureDataLookup.getEnclosingMember, source);
   InferredData inferredData =

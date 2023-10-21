@@ -298,14 +298,10 @@ JClosedWorld cloneClosedWorld(Compiler compiler, JClosedWorld closedWorld,
 /// compared for consistency.
 GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
     GlobalTypeInferenceResults results, SerializationStrategy strategy) {
-  SerializationIndices indices = SerializationIndices();
+  SerializationIndices indices = SerializationIndices(testMode: true);
   List<int> irData = strategy.unpackAndSerializeComponent(results);
   final closedWorldData = strategy.serializeClosedWorld(
       results.closedWorld, compiler.options, indices) as List<int>;
-  indices = SerializationIndices();
-  final worldData = strategy.serializeGlobalTypeInferenceResults(
-      results, compiler.options, indices) as List<int>;
-  print('data size: ${worldData.length}');
   ir.Component newComponent = strategy.deserializeComponent(irData);
   var newClosedWorld = strategy.deserializeClosedWorld(
       compiler.options,
@@ -315,6 +311,10 @@ GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
       newComponent,
       closedWorldData,
       indices);
+  indices = SerializationIndices(testMode: true);
+  final worldData = strategy.serializeGlobalTypeInferenceResults(
+      results, compiler.options, indices) as List<int>;
+  print('data size: ${worldData.length}');
   GlobalTypeInferenceResults initialResults =
       strategy.deserializeGlobalTypeInferenceResults(
           compiler.options,
@@ -325,7 +325,7 @@ GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
           newClosedWorld,
           worldData,
           indices);
-  indices = SerializationIndices();
+  indices = SerializationIndices(testMode: true);
   final initialWorldData = strategy.serializeGlobalTypeInferenceResults(
       initialResults, compiler.options, indices) as List<int>;
   GlobalTypeInferenceResults finalResults =
@@ -338,7 +338,7 @@ GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
           newClosedWorld,
           worldData,
           indices);
-  indices = SerializationIndices();
+  indices = SerializationIndices(testMode: true);
   final finalWorldData = strategy.serializeGlobalTypeInferenceResults(
       finalResults, compiler.options, indices) as List<int>;
   checkData(initialWorldData, finalWorldData);

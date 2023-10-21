@@ -64,10 +64,7 @@ class DataSourceReader {
   final bool useDataKinds;
   final ValueInterner? interner;
   final SerializationIndices importedIndices;
-  EntityReader _entityReader = const EntityReader();
   ComponentLookup? _componentLookup;
-  EntityLookup? _entityLookup;
-  LocalLookup? _localLookup;
   CodegenReader? _codegenReader;
   SourceLookup? _sourceLookup;
 
@@ -141,34 +138,6 @@ class DataSourceReader {
 
   SourceLookup get sourceLookup => _sourceLookup!;
 
-  /// Registers an [EntityLookup] object with this data source to support
-  /// deserialization of references to entities.
-  void registerEntityLookup(EntityLookup entityLookup) {
-    assert(_entityLookup == null);
-    _entityLookup = entityLookup;
-  }
-
-  EntityLookup get entityLookup {
-    return _entityLookup!;
-  }
-
-  /// Registers an [EntityReader] with this data source for non-default encoding
-  /// of entity references.
-  void registerEntityReader(EntityReader reader) {
-    _entityReader = reader;
-  }
-
-  /// Registers a [LocalLookup] object with this data source to support
-
-  void registerLocalLookup(LocalLookup localLookup) {
-    _localLookup = localLookup;
-  }
-
-  LocalLookup get localLookup {
-    return _localLookup!;
-  }
-
-  /// Registers a [CodegenReader] with this data source to support
   /// deserialization of codegen only data.
   void registerCodegenReader(CodegenReader reader) {
     _codegenReader = reader;
@@ -179,24 +148,15 @@ class DataSourceReader {
   /// from a file other than the one currently being read from.
   E readWithSource<E>(DataSourceReader source, E f()) {
     final lastSource = _sourceReader;
-    final lastEntityReader = _entityReader;
-    final lastEntityLookup = _entityLookup;
-    final lastLocalLookup = _localLookup;
     final lastComponentLookup = _componentLookup;
     final lastCodegenReader = _codegenReader;
     final lastStartOffset = startOffset;
     _sourceReader = source._sourceReader;
-    _entityReader = source._entityReader;
-    _entityLookup = source._entityLookup;
-    _localLookup = source._localLookup;
     _componentLookup = source._componentLookup;
     _codegenReader = source._codegenReader;
     startOffset = source.startOffset;
     final value = f();
     _sourceReader = lastSource;
-    _entityReader = lastEntityReader;
-    _entityLookup = lastEntityLookup;
-    _localLookup = lastLocalLookup;
     _componentLookup = lastComponentLookup;
     _codegenReader = lastCodegenReader;
     startOffset = lastStartOffset;
@@ -978,7 +938,7 @@ class DataSourceReader {
 
   /// Reads a reference to a library entity from this data source.
   LibraryEntity readLibrary() {
-    return _entityReader.readLibraryFromDataSource(this, entityLookup);
+    return readCached<LibraryEntity>(() => JLibrary.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` library entity from this data
@@ -1020,7 +980,7 @@ class DataSourceReader {
 
   /// Reads a reference to an class entity from this data source.
   ClassEntity readClass() {
-    return _entityReader.readClassFromDataSource(this, entityLookup);
+    return readCached<ClassEntity>(() => JClass.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` class entity from this data
@@ -1082,7 +1042,7 @@ class DataSourceReader {
 
   /// Reads a reference to an member entity from this data source.
   MemberEntity readMember() {
-    return _entityReader.readMemberFromDataSource(this, entityLookup);
+    return readCached<MemberEntity>(() => JMember.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` member entity from this data
@@ -1145,7 +1105,8 @@ class DataSourceReader {
 
   /// Reads a reference to an type variable entity from this data source.
   TypeVariableEntity readTypeVariable() {
-    return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
+    return readCached<TypeVariableEntity>(
+        () => JTypeVariable.readFromDataSource(this));
   }
 
   /// Reads a map from type variable entities to [V] values from this data
@@ -1170,9 +1131,7 @@ class DataSourceReader {
     LocalKind kind = readEnum(LocalKind.values);
     switch (kind) {
       case LocalKind.jLocal:
-        MemberEntity memberContext = readMember();
-        int localIndex = readInt();
-        return localLookup.getLocalByIndex(memberContext, localIndex);
+        return readCached<Local>(() => JLocal.readFromDataSource(this));
       case LocalKind.thisLocal:
         ClassEntity cls = readClass();
         return ThisLocal(cls);

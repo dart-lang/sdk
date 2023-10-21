@@ -109,12 +109,11 @@ class TestBackendStrategy extends JsBackendStrategy {
       WorkItem work,
       JClosedWorld closedWorld,
       CodegenResults codegenResults,
-      EntityLookup entityLookup,
       ComponentLookup componentLookup,
       SourceLookup sourceLookup) {
     compiler.test('Compiler.codegen');
-    return super.generateCode(work, closedWorld, codegenResults, entityLookup,
-        componentLookup, sourceLookup);
+    return super.generateCode(
+        work, closedWorld, codegenResults, componentLookup, sourceLookup);
   }
 }
 

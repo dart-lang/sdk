@@ -66,7 +66,6 @@ class DataSinkWriter {
   late final IndexedSink<ImportEntity> _importIndex;
   late final IndexedSink<ConstantValue> _constantIndex;
 
-  EntityWriter _entityWriter = const EntityWriter();
   final Map<Type, IndexedSink> _generalCaches = {};
 
   late CodegenWriter _codegenWriter;
@@ -710,8 +709,8 @@ class DataSinkWriter {
 
   /// Writes a reference to the library entity [value] to this data sink.
   void writeLibrary(LibraryEntity value) {
-    if (value is IndexedLibrary) {
-      _entityWriter.writeLibraryToDataSink(this, value);
+    if (value is JLibrary) {
+      writeCached<LibraryEntity>(value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(value, 'Unexpected library entity type ${value.runtimeType}');
     }
@@ -751,8 +750,8 @@ class DataSinkWriter {
 
   /// Writes a reference to the class entity [value] to this data sink.
   void writeClass(ClassEntity value) {
-    if (value is IndexedClass) {
-      _entityWriter.writeClassToDataSink(this, value);
+    if (value is JClass) {
+      writeCached<ClassEntity>(value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(value, 'Unexpected class entity type ${value.runtimeType}');
     }
@@ -809,8 +808,8 @@ class DataSinkWriter {
 
   /// Writes a reference to the member entity [value] to this data sink.
   void writeMember(MemberEntity value) {
-    if (value is IndexedMember) {
-      _entityWriter.writeMemberToDataSink(this, value);
+    if (value is JMember) {
+      writeCached<MemberEntity>(value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(value, 'Unexpected member entity type ${value.runtimeType}');
     }
@@ -868,8 +867,9 @@ class DataSinkWriter {
 
   /// Writes a reference to the type variable entity [value] to this data sink.
   void writeTypeVariable(TypeVariableEntity value) {
-    if (value is IndexedTypeVariable) {
-      _entityWriter.writeTypeVariableToDataSink(this, value);
+    if (value is JTypeVariable) {
+      writeCached<TypeVariableEntity>(
+          value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(
           value, 'Unexpected type variable entity type ${value.runtimeType}');
@@ -891,12 +891,11 @@ class DataSinkWriter {
     });
   }
 
-  /// Writes a reference to the local [value] to this data sink.
+  /// Writes a reference to the local [local] to this data sink.
   void writeLocal(Local local) {
     if (local is JLocal) {
       writeEnum(LocalKind.jLocal);
-      writeMember(local.memberContext);
-      writeInt(local.localIndex);
+      writeCached<Local>(local, (_) => local.writeToDataSink(this));
     } else if (local is ThisLocal) {
       writeEnum(LocalKind.thisLocal);
       writeClass(local.enclosingClass);
@@ -1218,12 +1217,6 @@ class DataSinkWriter {
   /// This feature is only available a [CodegenWriter] has been registered.
   void writeTypeRecipe(TypeRecipe value) {
     _codegenWriter.writeTypeRecipe(this, value);
-  }
-
-  /// Register an [EntityWriter] with this data sink for non-default encoding
-  /// of entity references.
-  void registerEntityWriter(EntityWriter writer) {
-    _entityWriter = writer;
   }
 
   /// Register a [CodegenWriter] with this data sink to support serialization

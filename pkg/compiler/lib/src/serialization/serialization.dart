@@ -11,7 +11,6 @@ import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -20,6 +19,7 @@ import '../ir/constants.dart';
 import '../ir/static_type_base.dart';
 import '../js/js.dart' as js;
 import '../js_model/closure.dart';
+import '../js_model/elements.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../universe/record_shape.dart' show RecordShape;
@@ -59,11 +59,6 @@ class ValueInterner {
   }
 }
 
-/// Interface used for looking up locals by index during deserialization.
-abstract class LocalLookup {
-  Local getLocalByIndex(MemberEntity memberContext, int index);
-}
-
 /// Interface used for reading codegen only data during deserialization.
 abstract class CodegenReader {
   AbstractValue readAbstractValue(DataSourceReader source);
@@ -78,66 +73,4 @@ abstract class CodegenWriter {
   void writeOutputUnitReference(DataSinkWriter sink, OutputUnit value);
   void writeJsNode(DataSinkWriter sink, js.Node node);
   void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe);
-}
-
-/// Interface used for looking up entities by index during deserialization.
-abstract class EntityLookup {
-  /// Returns the indexed library corresponding to [index].
-  IndexedLibrary getLibraryByIndex(int index);
-
-  /// Returns the indexed class corresponding to [index].
-  IndexedClass getClassByIndex(int index);
-
-  /// Returns the indexed member corresponding to [index].
-  IndexedMember getMemberByIndex(int index);
-
-  /// Returns the indexed type variable corresponding to [index].
-  IndexedTypeVariable getTypeVariableByIndex(int index);
-}
-
-/// Decoding strategy for entity references.
-class EntityReader {
-  const EntityReader();
-
-  IndexedLibrary readLibraryFromDataSource(
-      DataSourceReader source, EntityLookup entityLookup) {
-    return entityLookup.getLibraryByIndex(source.readInt());
-  }
-
-  IndexedClass readClassFromDataSource(
-      DataSourceReader source, EntityLookup entityLookup) {
-    return entityLookup.getClassByIndex(source.readInt());
-  }
-
-  IndexedMember readMemberFromDataSource(
-      DataSourceReader source, EntityLookup entityLookup) {
-    return entityLookup.getMemberByIndex(source.readInt());
-  }
-
-  IndexedTypeVariable readTypeVariableFromDataSource(
-      DataSourceReader source, EntityLookup entityLookup) {
-    return entityLookup.getTypeVariableByIndex(source.readInt());
-  }
-}
-
-/// Encoding strategy for entity references.
-class EntityWriter {
-  const EntityWriter();
-
-  void writeLibraryToDataSink(DataSinkWriter sink, IndexedLibrary value) {
-    sink.writeInt(value.libraryIndex);
-  }
-
-  void writeClassToDataSink(DataSinkWriter sink, IndexedClass value) {
-    sink.writeInt(value.classIndex);
-  }
-
-  void writeMemberToDataSink(DataSinkWriter sink, IndexedMember value) {
-    sink.writeInt(value.memberIndex);
-  }
-
-  void writeTypeVariableToDataSink(
-      DataSinkWriter sink, IndexedTypeVariable value) {
-    sink.writeInt(value.typeVariableIndex);
-  }
 }
