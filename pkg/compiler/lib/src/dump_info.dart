@@ -23,7 +23,8 @@ import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common/ram_usage.dart';
 import 'constants/values.dart'
     show ConstantValue, ConstantValueKind, DeferredGlobalConstantValue;
-import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
+import 'deferred_load/output_unit.dart'
+    show OutputUnit, OutputUnitData, deferredPartFileName;
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
 import 'elements/names.dart';
@@ -49,12 +50,15 @@ class DumpInfoJsAstRegistry {
   final bool _disabled;
   final CompilerOptions options;
 
-  final Map<ConstantValue, jsAst.Node> _constantRegistry = {};
-  final Map<Entity, List<jsAst.Node>> _entityRegistry = {};
-  final Map<jsAst.Node, CodeSpan> _codeRegistry = {};
+  final Map<Entity, List<CodeSpan>> _entityCode = {};
+  final Map<ConstantValue, CodeSpan> _constantCode = {};
   final Map<MemberEntity, WorldImpact> _impactRegistry = {};
-  // TODO(sigmund): delete the stack once we stop emitting the source text.
-  final List<_CodeData> _stack = [];
+
+  // Temporary structures used to collect data during the visit process with a
+  // low memory footprint.
+  final Map<jsAst.Node, ConstantValue> _constantRegistry = {};
+  final Map<jsAst.Node, List<Entity>> _entityRegistry = {};
+  final List<CodeSpan> _stack = [];
 
   DumpInfoJsAstRegistry(this.options)
       : _disabled = !options.dumpInfo && options.dumpInfoWriteUri == null;
@@ -64,17 +68,15 @@ class DumpInfoJsAstRegistry {
   void registerEntityAst(Entity? entity, jsAst.Node code) {
     if (_disabled) return;
     if (entity != null) {
-      _entityRegistry.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
+      (_entityRegistry[code] ??= []).add(entity);
     }
-    _codeRegistry[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
   }
 
   void registerConstantAst(ConstantValue constant, jsAst.Node code) {
     if (_disabled) return;
     assert(_constantRegistry[constant] == null ||
         _constantRegistry[constant] == code);
-    _constantRegistry[constant] = code;
-    _codeRegistry[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
+    _constantRegistry[code] = constant;
   }
 
   void registerImpact(MemberEntity member, WorldImpact impact) {
@@ -85,12 +87,14 @@ class DumpInfoJsAstRegistry {
   bool get shouldEmitText => !useBinaryFormat;
 
   void enterNode(jsAst.Node node, int start) {
-    var data = _codeRegistry[node];
-    data?.start = start;
-
-    if (shouldEmitText && data != null) {
-      _stack.add(data as _CodeData);
+    if (_disabled) return;
+    if (!_entityRegistry.containsKey(node) &&
+        !_constantRegistry.containsKey(node)) {
+      return;
     }
+    final data = useBinaryFormat ? CodeSpan() : _CodeData();
+    data.start = start;
+    _stack.add(data);
   }
 
   void emit(String string) {
@@ -98,25 +102,32 @@ class DumpInfoJsAstRegistry {
       // Note: historically we emitted the full body of classes and methods, so
       // instance methods ended up emitted twice.  Once we use a different
       // encoding of dump info, we also plan to remove this duplication.
-      _stack.forEach((f) => f._text.write(string));
+      _stack.forEach((f) => (f as _CodeData)._text.write(string));
     }
   }
 
   void exitNode(jsAst.Node node, int start, int end, int? closing) {
-    var data = _codeRegistry[node];
-    data?.end = end;
-    if (shouldEmitText && data != null) {
-      var last = _stack.removeLast();
-      assert(data == last);
-      assert(data.start == start);
+    if (_disabled) return;
+    final entities = _entityRegistry.remove(node);
+    final constant = _constantRegistry.remove(node);
+    if (entities == null && constant == null) return;
+    final data = _stack.removeLast();
+    data.end = end;
+    if (entities != null) {
+      entities.forEach((e) => (_entityCode[e] ??= []).add(data));
+    }
+    if (constant != null) {
+      _constantCode[constant] = data;
     }
   }
 
   void clear() {
-    _constantRegistry.clear();
-    _entityRegistry.clear();
-    _codeRegistry.clear();
+    assert(_stack.isEmpty);
+    assert(_entityRegistry.isEmpty);
+    assert(_constantRegistry.isEmpty);
     _impactRegistry.clear();
+    _entityCode.clear();
+    _constantCode.clear();
   }
 }
 
@@ -159,24 +170,13 @@ class DumpInfoProgramData {
         fragmentMerger.computeDeferredMap(fragmentsToLoad);
     final neededClasses = emitterTask.neededClasses;
     final neededClassTypes = emitterTask.neededClassTypes;
-    final entityCode = <Entity, List<CodeSpan>>{};
+    final entityCode = Map.of(dumpInfoRegistry._entityCode);
     final entityCodeSize = <Entity, int>{};
-    dumpInfoRegistry._entityRegistry.forEach((entity, nodes) {
-      final codeSpans = <CodeSpan>[];
-      int size = 0;
-      for (final node in nodes) {
-        final span = dumpInfoRegistry._codeRegistry[node]!;
-        codeSpans.add(span);
-        size += span.end! - span.start!;
-      }
-      entityCode[entity] = codeSpans;
-      entityCodeSize[entity] = size;
+    entityCode.forEach((entity, spans) {
+      entityCodeSize[entity] =
+          spans.fold(0, (size, span) => size + (span.end! - span.start!));
     });
-    final constantCode = <ConstantValue, CodeSpan>{};
-    dumpInfoRegistry._constantRegistry.forEach((constant, node) {
-      final span = dumpInfoRegistry._codeRegistry[node]!;
-      constantCode[constant] = span;
-    });
+    final constantCode = Map.of(dumpInfoRegistry._constantCode);
     return DumpInfoProgramData._(
         programSize,
         outputUnitSizes,
@@ -231,7 +231,7 @@ class DumpInfoProgramData {
   }
 
   factory DumpInfoProgramData.readFromDataSource(
-      DataSourceReader source, JClosedWorld closedWorld,
+      DataSourceReader source, OutputUnitData outputUnitData,
       {required bool includeCodeText}) {
     final programSize = source.readInt();
     final outputUnitSizesLength = source.readInt();
@@ -275,7 +275,7 @@ class DumpInfoProgramData {
           .readList(() => ConstantUse.readFromDataSource(source))
           .forEach((use) {
         assert(use.value.kind == ConstantValueKind.DEFERRED_GLOBAL);
-        closedWorld.outputUnitData.registerConstantDeferredUse(
+        outputUnitData.registerConstantDeferredUse(
             use.value as DeferredGlobalConstantValue);
       });
       return impactBuilder;

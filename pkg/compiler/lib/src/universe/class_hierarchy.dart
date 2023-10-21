@@ -5,8 +5,8 @@
 import '../common.dart';
 import '../common/elements.dart';
 import '../elements/entities.dart' show ClassEntity;
-import '../elements/indexed.dart' show IndexedClass;
 import '../elements/types.dart' show InterfaceType;
+import '../js_model/elements.dart';
 import '../kernel/element_map.dart' show KernelToElementMap;
 import '../serialization/serialization.dart';
 import 'class_set.dart';
@@ -593,7 +593,7 @@ class ClassHierarchyBuilder {
 
   ClassHierarchyNode _ensureClassHierarchyNode(ClassEntity cls) {
     return _classHierarchyNodes.putIfAbsent(cls, () {
-      cls as IndexedClass; // TODO(48820): Try to remove.
+      cls as JClass; // TODO(48820): Try to remove.
       ClassHierarchyNode? parentNode;
       ClassEntity? superclass = _elementMap.getSuperClass(cls);
       if (superclass != null) {
@@ -606,7 +606,7 @@ class ClassHierarchyBuilder {
 
   ClassSet _ensureClassSet(ClassEntity cls) {
     return _classSets.putIfAbsent(cls, () {
-      cls as IndexedClass;
+      cls as JClass;
       ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
       ClassSet classSet = ClassSet(node);
 
@@ -633,8 +633,7 @@ class ClassHierarchyBuilder {
         // we need to register that C not only mixes in B but also A.
 
         // TODO(48820): Can we remove the need for `as IndexedClass`?
-        appliedMixin =
-            _elementMap.getAppliedMixin(appliedMixin as IndexedClass);
+        appliedMixin = _elementMap.getAppliedMixin(appliedMixin as JClass);
       }
       return classSet;
     });
@@ -645,7 +644,7 @@ class ClassHierarchyBuilder {
     // subtype set.
     final cls = node.cls;
     if (cls != _commonElements.functionClass &&
-        _elementMap.implementsFunction(cls)) {
+        _elementMap.implementsFunction(cls as JClass)) {
       ClassSet subtypeSet = _ensureClassSet(_commonElements.functionClass);
       subtypeSet.addSubtype(node);
     }

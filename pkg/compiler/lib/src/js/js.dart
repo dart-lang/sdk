@@ -203,34 +203,15 @@ DeferredExpressionData? getNodeDeferredExpressionData(Node node) {
   return null;
 }
 
-/// Contains pointers to deferred expressions within a portion of the AST.
-///
-/// These objects are attached nodes that have been deserialized but whose
-/// bodies are kept in a serialized state. This allows us to skip deserializing
-/// the entire function body when we are trying to link these deferred
-/// expressions. A [DeferredExpressionData] will be added to
-/// [Node.annotations] for these functions. Visitors that just need these
-/// deferred expressions should then check the annotations for a [Node] and
-/// process them accordingly rather than deserializing all the [Node] children.
-class DeferredExpressionData {
-  final List<ModularName> modularNames;
-  final List<ModularExpression> modularExpressions;
-  final List<TypeReference> typeReferences;
-  final List<StringReference> stringReferences;
-  final List<DeferredHolderExpression> deferredHolderExpressions;
+class DeferredExpressionRegistry {
+  final List<ModularName> modularNames = [];
+  final List<ModularExpression> modularExpressions = [];
+  final List<TypeReference> typeReferences = [];
+  final List<StringReference> stringReferences = [];
+  final List<DeferredHolderExpression> deferredHolderExpressions = [];
 
-  DeferredExpressionData(this.modularNames, this.modularExpressions)
-      : typeReferences = [],
-        stringReferences = [],
-        deferredHolderExpressions = [];
-  DeferredExpressionData._(
-      this.modularNames,
-      this.modularExpressions,
-      this.typeReferences,
-      this.stringReferences,
-      this.deferredHolderExpressions);
-
-  factory DeferredExpressionData.readFromDataSource(DataSourceReader source) {
+  static DeferredExpressionData readDataFromDataSource(
+      DataSourceReader source) {
     final modularNames =
         source.readListOrNull(() => source.readJsNode() as ModularName) ??
             const [];
@@ -250,11 +231,8 @@ class DeferredExpressionData {
         typeReferences, stringReferences, deferredHolderExpressions);
   }
 
-  bool _serializing = false;
-
   void writeToDataSink(DataSinkWriter sink) {
     // Set [_serializing] so that we don't re-register nodes.
-    _serializing = true;
     sink.writeList(modularNames, (ModularName node) => sink.writeJsNode(node));
     sink.writeList(
         modularExpressions, (ModularExpression node) => sink.writeJsNode(node));
@@ -264,38 +242,55 @@ class DeferredExpressionData {
         stringReferences, (StringReference node) => sink.writeJsNode(node));
     sink.writeList(deferredHolderExpressions,
         (DeferredHolderExpression node) => sink.writeJsNode(node));
-    _serializing = false;
-  }
-
-  void prepareForSerialization() {
-    modularNames.clear();
-    modularExpressions.clear();
   }
 
   void registerModularName(ModularName node) {
-    if (_serializing) return;
     modularNames.add(node);
   }
 
   void registerModularExpression(ModularExpression node) {
-    if (_serializing) return;
     modularExpressions.add(node);
   }
 
   void registerTypeReference(TypeReference node) {
-    if (_serializing) return;
     typeReferences.add(node);
   }
 
   void registerStringReference(StringReference node) {
-    if (_serializing) return;
     stringReferences.add(node);
   }
 
   void registerDeferredHolderExpression(DeferredHolderExpression node) {
-    if (_serializing) return;
     deferredHolderExpressions.add(node);
   }
+}
+
+/// Contains pointers to deferred expressions within a portion of the AST.
+///
+/// These objects are attached nodes that have been deserialized but whose
+/// bodies are kept in a serialized state. This allows us to skip deserializing
+/// the entire function body when we are trying to link these deferred
+/// expressions. A [DeferredExpressionData] will be added to
+/// [Node.annotations] for these functions. Visitors that just need these
+/// deferred expressions should then check the annotations for a [Node] and
+/// process them accordingly rather than deserializing all the [Node] children.
+class DeferredExpressionData {
+  final List<ModularName> modularNames;
+  final List<ModularExpression> modularExpressions;
+  final List<TypeReference> typeReferences;
+  final List<StringReference> stringReferences;
+  final List<DeferredHolderExpression> deferredHolderExpressions;
+
+  DeferredExpressionData(this.modularNames, this.modularExpressions)
+      : typeReferences = const [],
+        stringReferences = const [],
+        deferredHolderExpressions = const [];
+  DeferredExpressionData._(
+      this.modularNames,
+      this.modularExpressions,
+      this.typeReferences,
+      this.stringReferences,
+      this.deferredHolderExpressions);
 }
 
 /// A code [Block] that has not been fully deserialized but instead holds a

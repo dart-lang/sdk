@@ -38,6 +38,9 @@ abstract class DataSource {
   /// The length of the underlying data source.
   int get length;
 
+  /// The current offset being read from.
+  int get currentOffset;
+
   /// Returns a string representation of the current state of the data source
   /// useful for debugging in consistencies between serialization and
   /// deserialization.
@@ -60,12 +63,9 @@ class DataSourceReader {
   final bool useDeferredStrategy;
   final bool useDataKinds;
   final ValueInterner? interner;
-  DataSourceIndices? importedIndices;
-  EntityReader _entityReader = const EntityReader();
+  final SerializationIndices importedIndices;
   ComponentLookup? _componentLookup;
-  EntityLookup? _entityLookup;
-  LocalLookup? _localLookup;
-  CodegenReader? _codegenReader;
+  AbstractValueDomain? _abstractValueDomain;
   SourceLookup? _sourceLookup;
 
   late final IndexedSource<String> _stringIndex;
@@ -79,6 +79,7 @@ class DataSourceReader {
   ir.Member? _currentMemberContext;
   MemberData? _currentMemberData;
 
+  int get currentOffset => _sourceReader.currentOffset;
   int get length => _sourceReader.length;
 
   /// Defines the beginning of this block in the address space created by all
@@ -88,76 +89,19 @@ class DataSourceReader {
   /// shifted. That is the length of all the sources read before this one.
   ///
   /// See [UnorderedIndexedSource] for more info.
-  int get startOffset => importedIndices?.previousSourceReader?.endOffset ?? 0;
+  late int startOffset;
 
-  /// Defines the end of this block in the address space created by all
-  /// instances of [DataSourceReader].
-  ///
-  /// Indexed values read from this source will all have offsets less than this
-  /// value.
-  ///
-  /// See [UnorderedIndexedSource] for more info.
-  final int endOffset;
-
-  UnorderedIndexedSource<T>? _getPreviousUncreatedSource<T>() {
-    final previousSourceReader = importedIndices?.previousSourceReader;
-    if (previousSourceReader == null) return null;
-    return UnorderedIndexedSource<T>(previousSourceReader,
-        previousSource: previousSourceReader._getPreviousUncreatedSource<T>());
-  }
-
-  IndexedSource<T> _createSource<T>() {
-    final indices = importedIndices;
-    if (indices != null) {
-      if (indices.caches.containsKey(T)) {
-        final index = indices.caches.remove(T);
-        return UnorderedIndexedSource<T>(this,
-            previousSource: index!.source as UnorderedIndexedSource<T>);
-      }
-      final newPreviousSource = _getPreviousUncreatedSource<T>();
-      if (newPreviousSource != null) {
-        return UnorderedIndexedSource<T>(this,
-            previousSource: newPreviousSource);
-      }
-    }
-    return UnorderedIndexedSource<T>(this);
-  }
-
-  DataSourceReader(this._sourceReader, CompilerOptions options,
+  DataSourceReader(
+      this._sourceReader, CompilerOptions options, this.importedIndices,
       {this.useDataKinds = false,
-      DataSourceIndices? importedIndices,
       this.interner,
-      this.useDeferredStrategy = false})
-      : this.importedIndices = importedIndices == null
-            ? null
-            : (DataSourceIndices(importedIndices.previousSourceReader)
-              ..caches.addAll(importedIndices.caches)),
-        endOffset = (importedIndices?.previousSourceReader?.endOffset ?? 0) +
-            _sourceReader.length {
-    _stringIndex = _createSource<String>();
-    _uriIndex = _createSource<Uri>();
-    _importIndex = _createSource<ImportEntity>();
-    _memberNodeIndex = _createSource<MemberData>();
-    _constantIndex = _createSource<ConstantValue>();
-  }
-
-  /// Exports [DataSourceIndices] for use in other [DataSourceReader]s and
-  /// [DataSinkWriter]s.
-  DataSourceIndices exportIndices() {
-    final indices = DataSourceIndices(this);
-    indices.caches[String] = DataSourceTypeIndices(_stringIndex);
-    indices.caches[Uri] = DataSourceTypeIndices(_uriIndex);
-    indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex);
-    // _memberNodeIndex needs two entries depending on if the indices will be
-    // consumed by a [DataSource] or [DataSink].
-    indices.caches[MemberData] = DataSourceTypeIndices(_memberNodeIndex);
-    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member?, MemberData>(
-        _memberNodeIndex, (MemberData? data) => data?.node);
-    indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex);
-    _generalCaches.forEach((type, indexedSource) {
-      indices.caches[type] = DataSourceTypeIndices(indexedSource);
-    });
-    return indices;
+      this.useDeferredStrategy = false}) {
+    startOffset = importedIndices.registerSource(this);
+    _stringIndex = importedIndices.getIndexedSource<String>();
+    _uriIndex = importedIndices.getIndexedSource<Uri>();
+    _importIndex = importedIndices.getIndexedSource<ImportEntity>();
+    _memberNodeIndex = importedIndices.getIndexedSource<MemberData>();
+    _constantIndex = importedIndices.getIndexedSource<ConstantValue>();
   }
 
   /// Registers that the section [tag] starts.
@@ -194,37 +138,10 @@ class DataSourceReader {
 
   SourceLookup get sourceLookup => _sourceLookup!;
 
-  /// Registers an [EntityLookup] object with this data source to support
-  /// deserialization of references to entities.
-  void registerEntityLookup(EntityLookup entityLookup) {
-    assert(_entityLookup == null);
-    _entityLookup = entityLookup;
-  }
-
-  EntityLookup get entityLookup {
-    return _entityLookup!;
-  }
-
-  /// Registers an [EntityReader] with this data source for non-default encoding
-  /// of entity references.
-  void registerEntityReader(EntityReader reader) {
-    _entityReader = reader;
-  }
-
-  /// Registers a [LocalLookup] object with this data source to support
-
-  void registerLocalLookup(LocalLookup localLookup) {
-    _localLookup = localLookup;
-  }
-
-  LocalLookup get localLookup {
-    return _localLookup!;
-  }
-
-  /// Registers a [CodegenReader] with this data source to support
-  /// deserialization of codegen only data.
-  void registerCodegenReader(CodegenReader reader) {
-    _codegenReader = reader;
+  /// Registers a [AbstractValueDomain] with this data source to support
+  /// deserialization of abstract values.
+  void registerAbstractValueDomain(AbstractValueDomain domain) {
+    _abstractValueDomain = domain;
   }
 
   /// Evaluates [f] with [DataSource] for the provided [source] as the
@@ -232,24 +149,18 @@ class DataSourceReader {
   /// from a file other than the one currently being read from.
   E readWithSource<E>(DataSourceReader source, E f()) {
     final lastSource = _sourceReader;
-    final lastEntityReader = _entityReader;
-    final lastEntityLookup = _entityLookup;
-    final lastLocalLookup = _localLookup;
     final lastComponentLookup = _componentLookup;
-    final lastCodegenReader = _codegenReader;
+    final lastStartOffset = startOffset;
+    final lastAbstractValueDomain = _abstractValueDomain;
     _sourceReader = source._sourceReader;
-    _entityReader = source._entityReader;
-    _entityLookup = source._entityLookup;
-    _localLookup = source._localLookup;
     _componentLookup = source._componentLookup;
-    _codegenReader = source._codegenReader;
+    startOffset = source.startOffset;
+    _abstractValueDomain = source._abstractValueDomain;
     final value = f();
     _sourceReader = lastSource;
-    _entityReader = lastEntityReader;
-    _entityLookup = lastEntityLookup;
-    _localLookup = lastLocalLookup;
     _componentLookup = lastComponentLookup;
-    _codegenReader = lastCodegenReader;
+    startOffset = lastStartOffset;
+    _abstractValueDomain = lastAbstractValueDomain;
     return value;
   }
 
@@ -297,7 +208,7 @@ class DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E readCached<E>(E f()) {
+  E readCached<E extends Object>(E f()) {
     E? value = readCachedOrNull(f);
     if (value == null) throw StateError("Unexpected 'null' for $E");
     return value;
@@ -305,10 +216,10 @@ class DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E? readCachedOrNull<E>(E f()) {
-    IndexedSource<E> source =
-        (_generalCaches[E] ??= _createSource<E>()) as IndexedSource<E>;
-    return source.read(f);
+  E? readCachedOrNull<E extends Object>(E f()) {
+    IndexedSource<E> source = (_generalCaches[E] ??=
+        importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
+    return source.read(this, f);
   }
 
   /// Reads a potentially `null` [E] value from this data source, calling [f] to
@@ -386,7 +297,9 @@ class DataSourceReader {
   }
 
   String _readString() {
-    return _stringIndex.read(() => _sourceReader.readString())!;
+    // Cannot use a tear-off for `_sourceReader.readString` because the data
+    // source may be different at the time of reading.
+    return _stringIndex.read(this, () => _sourceReader.readString())!;
   }
 
   /// Reads a potentially `null` string value from this data source.
@@ -473,7 +386,7 @@ class DataSourceReader {
   }
 
   Uri _readUri() {
-    return _uriIndex.read(_doReadUri)!;
+    return _uriIndex.read(this, _doReadUri)!;
   }
 
   Uri _doReadUri() {
@@ -535,7 +448,7 @@ class DataSourceReader {
   }
 
   MemberData _readMemberData() {
-    return _memberNodeIndex.read(_readMemberDataInternal)!;
+    return _memberNodeIndex.read(this, _readMemberDataInternal)!;
   }
 
   MemberData _readMemberDataInternal() {
@@ -1026,7 +939,7 @@ class DataSourceReader {
 
   /// Reads a reference to a library entity from this data source.
   LibraryEntity readLibrary() {
-    return _entityReader.readLibraryFromDataSource(this, entityLookup);
+    return readCached<LibraryEntity>(() => JLibrary.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` library entity from this data
@@ -1068,7 +981,7 @@ class DataSourceReader {
 
   /// Reads a reference to an class entity from this data source.
   ClassEntity readClass() {
-    return _entityReader.readClassFromDataSource(this, entityLookup);
+    return readCached<ClassEntity>(() => JClass.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` class entity from this data
@@ -1130,7 +1043,7 @@ class DataSourceReader {
 
   /// Reads a reference to an member entity from this data source.
   MemberEntity readMember() {
-    return _entityReader.readMemberFromDataSource(this, entityLookup);
+    return readCached<MemberEntity>(() => JMember.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` member entity from this data
@@ -1193,7 +1106,8 @@ class DataSourceReader {
 
   /// Reads a reference to an type variable entity from this data source.
   TypeVariableEntity readTypeVariable() {
-    return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
+    return readCached<TypeVariableEntity>(
+        () => JTypeVariable.readFromDataSource(this));
   }
 
   /// Reads a map from type variable entities to [V] values from this data
@@ -1218,9 +1132,7 @@ class DataSourceReader {
     LocalKind kind = readEnum(LocalKind.values);
     switch (kind) {
       case LocalKind.jLocal:
-        MemberEntity memberContext = readMember();
-        int localIndex = readInt();
-        return localLookup.getLocalByIndex(memberContext, localIndex);
+        return readCached<Local>(() => JLocal.readFromDataSource(this));
       case LocalKind.thisLocal:
         ClassEntity cls = readClass();
         return ThisLocal(cls);
@@ -1269,7 +1181,7 @@ class DataSourceReader {
   }
 
   ConstantValue _readConstant() {
-    return _constantIndex.read(_readConstantInternal)!;
+    return _constantIndex.read(this, _readConstantInternal)!;
   }
 
   ConstantValue _readConstantInternal() {
@@ -1438,7 +1350,7 @@ class DataSourceReader {
 
   /// Reads a import from this data source.
   ImportEntity _readImport() {
-    return _importIndex.read(_readImportInternal)!;
+    return _importIndex.read(this, _readImportInternal)!;
   }
 
   ImportEntity _readImportInternal() {
@@ -1506,39 +1418,25 @@ class DataSourceReader {
   }
 
   /// Reads an [AbstractValue] from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   AbstractValue readAbstractValue() {
     assert(
-        _codegenReader != null,
+        _abstractValueDomain != null,
         "Can not deserialize an AbstractValue "
-        "without a registered codegen reader.");
-    return _codegenReader!.readAbstractValue(this);
+        "without a registered AbstractValueDomain.");
+    return _abstractValueDomain!.readAbstractValueFromDataSource(this);
   }
 
   /// Reads a reference to an [OutputUnit] from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   OutputUnit readOutputUnitReference() {
-    assert(
-        _codegenReader != null,
-        "Can not deserialize an OutputUnit reference "
-        "without a registered codegen reader.");
-    return _codegenReader!.readOutputUnitReference(this);
+    return readCached<OutputUnit>(() => OutputUnit.readFromDataSource(this));
   }
 
   /// Reads a [js.Node] value from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   js.Node readJsNode() {
-    assert(_codegenReader != null,
-        "Can not deserialize a JS node without a registered codegen reader.");
-    return _codegenReader!.readJsNode(this);
+    return JsNodeDeserializer.readFromDataSource(this);
   }
 
   /// Reads a potentially `null` [js.Node] value from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   js.Node? readJsNodeOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1548,12 +1446,8 @@ class DataSourceReader {
   }
 
   /// Reads a [TypeRecipe] value from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   TypeRecipe readTypeRecipe() {
-    assert(_codegenReader != null,
-        "Can not deserialize a TypeRecipe without a registered codegen reader.");
-    return _codegenReader!.readTypeRecipe(this);
+    return TypeRecipe.readFromDataSource(this);
   }
 
   MemberData _getMemberData(ir.Member node) {

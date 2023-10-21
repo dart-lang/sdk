@@ -750,7 +750,7 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
 
 /// A concrete implementation of a [CompilationUnitElement].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
-    implements CompilationUnitElement, MacroTargetElementContainer {
+    implements CompilationUnitElement {
   /// The source that corresponds to this compilation unit.
   @override
   final Source source;
@@ -2750,7 +2750,7 @@ class EnumElementImpl extends InterfaceElementImpl
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, MacroTargetElement
     implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -3397,7 +3397,7 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, MacroTargetElement
     implements InstanceElement {
   @override
   ElementLinkedData? linkedData;
@@ -3486,7 +3486,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    with MacroTargetElement
     implements InterfaceElement {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -4756,7 +4755,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of a [LibraryOrAugmentationElement].
 abstract class LibraryOrAugmentationElementImpl extends ElementImpl
-    implements LibraryOrAugmentationElement, MacroTargetElementContainer {
+    implements LibraryOrAugmentationElement {
   /// The compilation unit that defines this library.
   late CompilationUnitElementImpl _definingCompilationUnit;
 
@@ -4944,9 +4943,6 @@ mixin MacroTargetElement {
     macroApplicationErrors = [...macroApplicationErrors, error];
   }
 }
-
-/// Marker interface for elements that may have [MacroTargetElement]s.
-class MacroTargetElementContainer {}
 
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl

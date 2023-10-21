@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
+import '../elements/entity_map.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../serialization/deferrable.dart';
@@ -116,14 +116,10 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     if (localsCount > 0) {
       final variableMap = _variableMap = {};
       for (int i = 0; i < localsCount; i++) {
-        int index = source.readInt();
-        final name = source.readStringOrNull();
-        bool isRegularParameter = source.readBool();
+        final local = source.readLocal() as JLocal;
         final node = source.readTreeNode() as ir.VariableDeclaration;
-        JLocal local =
-            JLocal(name, currentMember, isRegularParameter: isRegularParameter);
         LocalData data = LocalData(node);
-        _locals.registerByIndex(index, local, data);
+        _locals.register<JLocal, LocalData>(local, data);
         variableMap[node] = local;
       }
     }
@@ -147,12 +143,10 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMember(currentMember);
-    sink.writeInt(_locals.size);
+    sink.writeInt(_locals.length);
     _locals.forEach((JLocal local, LocalData data) {
       assert(local.memberContext == currentMember);
-      sink.writeInt(local.localIndex);
-      sink.writeStringOrNull(local.name);
-      sink.writeBool(local.isRegularParameter);
+      sink.writeLocal(local);
       sink.writeTreeNode(data.node);
     });
     if (_jumpTargetMap != null) {
@@ -195,11 +189,6 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
 
   @override
   MemberEntity get currentMember => _currentMember;
-
-  @override
-  Local getLocalByIndex(int index) {
-    return _locals.getEntity(index)!;
-  }
 
   @override
   JumpTarget getJumpTargetForBreak(ir.BreakStatement node) {
@@ -611,7 +600,8 @@ class JLabelDefinition extends LabelDefinition {
   }
 }
 
-class JLocal extends IndexedLocal {
+class JLocal implements Local {
+  static const String tag = 'jlocal';
   @override
   final String? name;
   final MemberEntity memberContext;
@@ -621,6 +611,23 @@ class JLocal extends IndexedLocal {
 
   JLocal(this.name, this.memberContext, {this.isRegularParameter = false}) {
     assert(memberContext is! JGeneratorBody);
+  }
+
+  factory JLocal.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    final name = source.readStringOrNull();
+    final memberContext = source.readMember();
+    final isRegularParameter = source.readBool();
+    source.end(tag);
+    return JLocal(name, memberContext, isRegularParameter: isRegularParameter);
+  }
+
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.begin(tag);
+    sink.writeStringOrNull(name);
+    sink.writeMember(memberContext);
+    sink.writeBool(isRegularParameter);
+    sink.end(tag);
   }
 
   String get _kind => 'local';

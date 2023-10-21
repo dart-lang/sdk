@@ -41,18 +41,47 @@ class MacroElementsMerger {
 
   void _mergeClasses() {
     for (final partialUnit in partialUnits) {
+      final elementsToAdd = <ClassElementImpl>[];
       for (final element in partialUnit.element.classes) {
         final reference = element.reference!;
         final containerRef = element.isAugmentation
             ? unitReference.getChild('@classAugmentation')
             : unitReference.getChild('@class');
-        containerRef.addChildReference(element.name, reference);
+        final existingRef = containerRef[element.name];
+        if (existingRef == null) {
+          elementsToAdd.add(element);
+          containerRef.addChildReference(element.name, reference);
+        } else {
+          final existingElement = existingRef.element as ClassElementImpl;
+          if (existingElement.augmentation == element) {
+            existingElement.augmentation = null;
+          }
+          _mergeInstanceChildren(existingRef, existingElement, element);
+        }
       }
       unitElement.classes = [
         ...unitElement.classes,
-        ...partialUnit.element.classes,
+        ...elementsToAdd,
       ].toFixedList();
     }
+  }
+
+  void _mergeInstanceChildren(
+    Reference existingRef,
+    InstanceElementImpl existingElement,
+    InstanceElementImpl newElement,
+  ) {
+    final containerRef = existingRef.getChild('@method');
+    for (final element in newElement.methods) {
+      final reference = element.reference!;
+      containerRef.addChildReference(element.name, reference);
+    }
+    existingElement.methods = [
+      ...existingElement.methods,
+      ...newElement.methods,
+    ].toFixedList();
+
+    // TODO(scheglov) accessors, fields
   }
 
   void _mergeUnitPropertyAccessors() {

@@ -210,6 +210,9 @@ class DeclarationBuilderFromNode {
   final Map<ast.ClassDeclaration, IntrospectableClassDeclarationImpl>
       _classMap = Map.identity();
 
+  final Map<ast.MethodDeclaration, MethodDeclarationImpl> _methodMap =
+      Map.identity();
+
   macro.ClassDeclarationImpl classDeclaration(
     ast.ClassDeclaration node,
   ) {
@@ -231,6 +234,12 @@ class DeclarationBuilderFromNode {
       _libraryMap[element.library!] = library;
     }
     return library;
+  }
+
+  macro.MethodDeclarationImpl methodDeclaration(
+    ast.MethodDeclaration node,
+  ) {
+    return _methodMap[node] ??= _methodDeclaration(node);
   }
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
@@ -289,6 +298,39 @@ class DeclarationBuilderFromNode {
       superclass: node.extendsClause?.superclass.mapOrNull(
         _typeAnnotation,
       ),
+    );
+  }
+
+  MethodDeclarationImpl _methodDeclaration(
+    ast.MethodDeclaration node,
+  ) {
+    assert(!_methodMap.containsKey(node));
+
+    // TODO(scheglov) other parents
+    final parentNode = node.parent as ast.ClassDeclaration;
+    final parentElement = parentNode.declaredElement!;
+    final typeElement = parentElement.augmentationTarget ?? parentElement;
+    final definingType = _declaredIdentifier(parentNode.name, typeElement);
+
+    return MethodDeclarationImpl._(
+      element: node.declaredElement as MethodElement,
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, node.declaredElement!),
+      library: library(node.declaredElement!),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
+      hasAbstract: false,
+      hasBody: node.body is! ast.EmptyFunctionBody,
+      hasExternal: node.externalKeyword != null,
+      isGetter: node.isGetter,
+      isOperator: node.isOperator,
+      isSetter: node.isSetter,
+      isStatic: node.isStatic,
+      namedParameters: [], // TODO(scheglov) implement
+      positionalParameters: [], // TODO(scheglov) implement
+      returnType: _typeAnnotation(node.returnType),
+      typeParameters: _typeParameters(node.typeParameters),
+      definingType: definingType,
     );
   }
 
@@ -446,6 +488,30 @@ class LibraryImplFromElement extends LibraryImpl {
     required super.languageVersion,
     required super.metadata,
     required super.uri,
+    required this.element,
+  });
+}
+
+class MethodDeclarationImpl extends macro.MethodDeclarationImpl {
+  final MethodElement element;
+
+  MethodDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.hasAbstract,
+    required super.hasBody,
+    required super.hasExternal,
+    required super.isGetter,
+    required super.isOperator,
+    required super.isSetter,
+    required super.namedParameters,
+    required super.positionalParameters,
+    required super.returnType,
+    required super.typeParameters,
+    required super.definingType,
+    required super.isStatic,
     required this.element,
   });
 }

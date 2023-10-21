@@ -10,7 +10,6 @@ import '../common/elements.dart';
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../ir/closure.dart';
@@ -85,8 +84,7 @@ class JClosedWorldBuilder {
         if (node.parentNode != null) {
           parentNode = convertClassHierarchyNode(node.parentNode!);
         }
-        return ClassHierarchyNode(
-            parentNode, cls as IndexedClass, node.hierarchyDepth);
+        return ClassHierarchyNode(parentNode, cls, node.hierarchyDepth);
       });
       newNode.isAbstractlyInstantiated = node.isAbstractlyInstantiated;
       newNode.isDirectlyInstantiated = node.isDirectlyInstantiated;
@@ -382,7 +380,7 @@ class JClosedWorldBuilder {
   ClassEntity buildRecordShapeClass(
       RecordShape shape, List<MemberEntity> getters) {
     ClassEntity superclass = _commonElements.recordArityClass(shape.fieldCount);
-    IndexedClass recordClass = _elementMap.generateRecordShapeClass(
+    final recordClass = _elementMap.generateRecordShapeClass(
         shape, _dartTypes.interfaceType(superclass, const []), getters);
 
     // Tell the hierarchy about the superclass so we can use
@@ -406,7 +404,7 @@ class JClosedWorldBuilder {
         Map<Local, OutputUnit> localFunctionMap) {
       final result = <ClassEntity, OutputUnit>{};
       classMap.forEach((ClassEntity entity, OutputUnit unit) {
-        final backendEntity = map.toBackendClass(entity as IndexedClass);
+        final backendEntity = map.toBackendClass(entity);
         result[backendEntity] = unit;
       });
       localFunctionMap.forEach((Local entity, OutputUnit unit) {
@@ -427,8 +425,7 @@ class JClosedWorldBuilder {
         Map<Local, OutputUnit> localFunctionMap) {
       final result = <MemberEntity, OutputUnit>{};
       memberMap.forEach((MemberEntity entity, OutputUnit unit) {
-        MemberEntity? backendEntity =
-            map.toBackendMember(entity as IndexedMember);
+        MemberEntity? backendEntity = map.toBackendMember(entity);
         if (backendEntity != null) {
           result[backendEntity] = unit;
         }

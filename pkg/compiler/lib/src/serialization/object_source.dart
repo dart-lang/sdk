@@ -77,6 +77,9 @@ class ObjectDataSource implements DataSource {
   int get length => _data.length;
 
   @override
+  int get currentOffset => _index;
+
+  @override
   String get errorContext {
     StringBuffer sb = StringBuffer();
     for (int i = _index - 50; i < _index + 10; i++) {

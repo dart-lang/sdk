@@ -20,7 +20,6 @@ import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
-import '../elements/indexed.dart' show IndexedLibrary;
 import '../elements/jumps.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
@@ -610,11 +609,13 @@ class Namer extends ModularNamer {
     return newName;
   }
 
+  final Map<LibraryEntity, int> _libraryKeys = {};
+
   /// Generates a unique key for [library].
   ///
   /// Keys are meant to be used in maps and should not be visible in the output.
   int _generateLibraryKey(LibraryEntity library) {
-    return (library as IndexedLibrary).libraryIndex;
+    return _libraryKeys[library] ??= _libraryKeys.length;
   }
 
   jsAst.Name _disambiguateGlobalMember(MemberEntity element) {
