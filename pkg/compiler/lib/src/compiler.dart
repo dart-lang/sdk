@@ -773,15 +773,15 @@ class Compiler {
         final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
             backendStrategy, dumpInfoRegistry, programSize);
         dumpInfoRegistry.clear();
-        if (options.dumpInfo) {
-          await runDumpInfo(codegenResults,
-              globalTypeInferenceResultsForDumpInfo!, dumpInfoData);
-        } else {
+        if (options.dumpInfoWriteUri != null) {
           serializationTask.serializeDumpInfoProgramData(
               backendStrategy,
               dumpInfoData,
               abstractValueDomainForDumpInfo!,
               indicesForDumpInfo!);
+        } else {
+          await runDumpInfo(codegenResults,
+              globalTypeInferenceResultsForDumpInfo!, dumpInfoData);
         }
       }
     }
