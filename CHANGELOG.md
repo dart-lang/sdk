@@ -1,4 +1,16 @@
+## 3.1.5
+
+This is a patch release that:
+
+- Fixes an issue affecting Dart compiled to JavaScript running in Node.js 21. A
+  change in Node.js 21 affected the Dart Web compiler runtime. This patch
+  release accomodates for those changes (issue #53810).
+
+[#53810]: https://github.com/dart-lang/sdk/issues/53810
+
 ## 3.1.4 - 2023-10-18
+
+This is a patch release that:
 
 - Fixes an issue in the Dart VM, users are not being able to see
   value of variables while debugging code (issue [#53747]).
