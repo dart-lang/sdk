@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_merge.dart';
@@ -353,60 +355,18 @@ class LibraryBuilder {
   Future<void> executeMacroDeclarationsPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = _createMacroApplier();
-    if (macroApplier == null) {
-      return;
+    var macroAugmentation = await _executeMacroDeclarationsPhase(
+      container: element,
+      performance: performance,
+    );
+
+    // Repeat if new types were added.
+    while (macroAugmentation != null) {
+      macroAugmentation = await _executeMacroDeclarationsPhase(
+        container: macroAugmentation,
+        performance: performance,
+      );
     }
-
-    await performance.runAsync(
-      'buildApplications',
-      (performance) async {
-        await macroApplier.buildApplications(
-          container: element,
-          performance: performance,
-        );
-      },
-    );
-
-    final macroResults = await performance.runAsync(
-      'executeDeclarationsPhase',
-      (performance) async {
-        return await macroApplier.executeDeclarationsPhase();
-      },
-    );
-    macroApplier.disposeApplications();
-    if (macroResults.isEmpty) {
-      return;
-    }
-    _macroResults.add(macroResults);
-
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      macroResults,
-    );
-    if (augmentationCode == null) {
-      return;
-    }
-
-    final importState = kind.addMacroAugmentation(
-      augmentationCode,
-      addLibraryAugmentDirective: true,
-      partialIndex: _macroResults.length,
-    );
-
-    final augmentation = _addMacroAugmentation(importState);
-
-    final macroLinkingUnit = units.last;
-    ElementBuilder(
-      libraryBuilder: this,
-      container: macroLinkingUnit.container,
-      unitReference: macroLinkingUnit.reference,
-      unitElement: macroLinkingUnit.element,
-    ).buildDeclarationElements(macroLinkingUnit.node);
-
-    final nodesToBuildType = NodesToBuildType();
-    final resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
-    macroLinkingUnit.node.accept(resolver);
-    TypesBuilder(linker).build(nodesToBuildType);
   }
 
   Future<void> executeMacroTypesPhase({
@@ -484,9 +444,11 @@ class LibraryBuilder {
     );
     augmentation.definingCompilationUnit = unitElement;
     augmentation.reference = unitReference;
+
+    final informativeBytes = importedFile.unlinked2.informativeBytes;
     augmentation.macroGenerated = MacroGeneratedAugmentationLibrary(
       code: importedFile.content,
-      informativeBytes: importedFile.unlinked2.informativeBytes,
+      informativeBytes: informativeBytes,
     );
 
     _buildDirectives(
@@ -499,7 +461,15 @@ class LibraryBuilder {
       unitReference: unitReference,
       unitNode: unitNode,
       unitElement: unitElement,
+      augmentation: augmentation,
     ).perform();
+
+    // Set offsets the same way as when reading from summary.
+    InformativeDataApplier(
+      linker.elementFactory,
+      {},
+      NoOpInfoDeclarationStore(),
+    ).applyToUnit(unitElement, informativeBytes);
 
     final importUri = DirectiveUriWithAugmentationImpl(
       relativeUriString: importState.uri.relativeUriStr,
@@ -947,6 +917,69 @@ class LibraryBuilder {
       neverRef.element = NeverElementImpl.instance;
       declare('Never', neverRef);
     }
+  }
+
+  /// Executes a single pass of the declarations phase.
+  Future<LibraryAugmentationElementImpl?> _executeMacroDeclarationsPhase({
+    required LibraryOrAugmentationElementImpl container,
+    required OperationPerformanceImpl performance,
+  }) async {
+    final macroApplier = _createMacroApplier();
+    if (macroApplier == null) {
+      return null;
+    }
+
+    await performance.runAsync(
+      'buildApplications',
+      (performance) async {
+        await macroApplier.buildApplications(
+          container: container,
+          performance: performance,
+        );
+      },
+    );
+
+    final macroResults = await performance.runAsync(
+      'executeDeclarationsPhase',
+      (performance) async {
+        return await macroApplier.executeDeclarationsPhase();
+      },
+    );
+    macroApplier.disposeApplications();
+    if (macroResults.isEmpty) {
+      return null;
+    }
+    _macroResults.add(macroResults);
+
+    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      macroResults,
+    );
+    if (augmentationCode == null) {
+      return null;
+    }
+
+    final importState = kind.addMacroAugmentation(
+      augmentationCode,
+      addLibraryAugmentDirective: true,
+      partialIndex: _macroResults.length,
+    );
+
+    final augmentation = _addMacroAugmentation(importState);
+
+    final macroLinkingUnit = units.last;
+    ElementBuilder(
+      libraryBuilder: this,
+      container: macroLinkingUnit.container,
+      unitReference: macroLinkingUnit.reference,
+      unitElement: macroLinkingUnit.element,
+    ).buildDeclarationElements(macroLinkingUnit.node);
+
+    final nodesToBuildType = NodesToBuildType();
+    final resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
+    macroLinkingUnit.node.accept(resolver);
+    TypesBuilder(linker).build(nodesToBuildType);
+
+    return augmentation;
   }
 
   /// Executes a single pass of the types phase.

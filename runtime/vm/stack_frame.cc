@@ -80,12 +80,13 @@ FrameLayout frame_layout = invalid_frame_layout;
 
 FrameLayout runtime_frame_layout = invalid_frame_layout;
 
-int FrameLayout::FrameSlotForVariable(const LocalVariable* variable) const {
+intptr_t FrameLayout::FrameSlotForVariable(
+    const LocalVariable* variable) const {
   ASSERT(!variable->is_captured());
   return this->FrameSlotForVariableIndex(variable->index().value());
 }
 
-int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
+intptr_t FrameLayout::FrameSlotForVariableIndex(intptr_t variable_index) const {
   // Variable indices are:
   //    [1, 2, ..., M] for the M parameters.
   //    [0, -1, -2, ... -(N-1)] for the N [LocalVariable]s

@@ -16117,7 +16117,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     implements SimpleIdentifier {
   /// The token representing the identifier.
   @override
-  final Token token;
+  Token token;
 
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure has not been resolved or if

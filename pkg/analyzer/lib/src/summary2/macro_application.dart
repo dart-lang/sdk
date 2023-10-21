@@ -100,7 +100,7 @@ class LibraryMacroApplier {
     required LibraryOrAugmentationElementImpl container,
     required OperationPerformanceImpl performance,
   }) async {
-    final collector = _MacroTargetElementCollector();
+    final collector = _MacroTargetElementCollector(container);
     container.accept(collector);
 
     for (final target in collector.targets) {
@@ -669,19 +669,18 @@ class _MacroTargetElement {
 }
 
 class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {
-  late final LibraryOrAugmentationElementImpl _container;
+  LibraryOrAugmentationElementImpl container;
   final List<_MacroTargetElement> targets = [];
+
+  _MacroTargetElementCollector(this.container);
 
   @override
   void visitElement(covariant ElementImpl element) {
-    if (element is LibraryOrAugmentationElementImpl) {
-      _container = element;
-    }
     if (element case final MacroTargetElement target) {
       if (target.macroApplicationErrors.isEmpty) {
         targets.add(
           _MacroTargetElement(
-            container: _container,
+            container: container,
             element: element,
             target: target,
           ),
@@ -690,6 +689,12 @@ class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {
     }
     if (element is MacroTargetElementContainer) {
       element.visitChildren(this);
+    }
+    if (element is AugmentationImportElementImpl) {
+      if (element.importedAugmentation case final augmentation?) {
+        container = augmentation;
+        augmentation.visitChildren(this);
+      }
     }
   }
 }
