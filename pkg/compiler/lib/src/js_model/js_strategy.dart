@@ -16,7 +16,6 @@ import '../deferred_load/output_unit.dart'
     show LateOutputUnitDataBuilder, OutputUnitData;
 import '../dump_info.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
 import '../enqueue.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/kernel_source_information.dart'
@@ -421,7 +420,7 @@ class JsBackendStrategy {
   List<MemberEntity> forEachCodegenMember(
       void Function(MemberEntity member) f) {
     final lazyMemberBodies = _elementMap.prepareForCodegenSerialization();
-    _elementMap.members.forEach((IndexedMember member, _) {
+    _elementMap.members.forEach((MemberEntity member, _) {
       if (member.isAbstract) return;
       f(member);
     });

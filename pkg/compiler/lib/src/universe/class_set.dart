@@ -7,7 +7,6 @@ library dart2js.world.class_set;
 import 'dart:collection' show IterableBase, MapBase;
 
 import '../elements/entities.dart' show ClassEntity;
-import '../elements/indexed.dart' show IndexedClass;
 import '../serialization/serialization.dart';
 import '../util/enumset.dart' show EnumSet;
 
@@ -100,7 +99,7 @@ class ClassHierarchyNode {
   final ClassHierarchyNode? parentNode;
   final EnumSet<Instantiation> _mask =
       EnumSet.fromValues(const [Instantiation.UNINSTANTIATED]);
-  final IndexedClass cls;
+  final ClassEntity cls;
 
   final int hierarchyDepth;
 
@@ -225,7 +224,7 @@ class ClassHierarchyNode {
     int hierarchyDepth = source.readInt();
     int instantiatedSubclassCount = source.readInt();
     source.end(tag);
-    return ClassHierarchyNode(parentNode, cls as IndexedClass, hierarchyDepth)
+    return ClassHierarchyNode(parentNode, cls, hierarchyDepth)
       .._instantiatedSubclassCount = instantiatedSubclassCount
       .._mask.value = maskValue;
   }

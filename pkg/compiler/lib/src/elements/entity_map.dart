@@ -4,25 +4,6 @@
 
 /// Indexed entity interfaces for modeling elements derived from Kernel IR.
 
-import '../elements/entities.dart';
-
-abstract class IndexedLibrary implements LibraryEntity {}
-
-abstract class IndexedClass implements ClassEntity {}
-
-abstract class IndexedMember implements MemberEntity {}
-
-abstract class IndexedFunction implements IndexedMember, FunctionEntity {}
-
-abstract class IndexedConstructor
-    implements IndexedFunction, ConstructorEntity {}
-
-abstract class IndexedField implements IndexedMember, FieldEntity {}
-
-abstract class IndexedTypeVariable implements TypeVariableEntity {}
-
-abstract class IndexedLocal implements Local {}
-
 /// Map of entities of type [K] with a corresponding data object of type [V].
 class EntityDataMap<K extends Object, V extends Object> {
   final Map<K, V> _data = {};

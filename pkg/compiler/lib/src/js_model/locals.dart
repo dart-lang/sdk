@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
+import '../elements/entity_map.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';
 import '../serialization/deferrable.dart';
@@ -600,7 +600,7 @@ class JLabelDefinition extends LabelDefinition {
   }
 }
 
-class JLocal extends IndexedLocal {
+class JLocal implements Local {
   static const String tag = 'jlocal';
   @override
   final String? name;

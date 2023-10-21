@@ -16,7 +16,7 @@ import '../common/elements.dart';
 import '../common/names.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
+import '../elements/entity_map.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
