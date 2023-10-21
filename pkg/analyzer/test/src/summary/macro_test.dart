@@ -650,8 +650,26 @@ macro class AddMethodFoo implements ClassDeclarationsMacro {
   const AddMethodFoo();
 
   buildDeclarationsForClass(clazz, builder) async {
+    final identifier = await builder.resolveIdentifier(
+      Uri.parse('package:test/a.dart'),
+      'AddMethodBar',
+    );
     builder.declareInType(
-      DeclarationCode.fromString('  void foo() {}'),
+      DeclarationCode.fromParts([
+        '  @',
+        identifier,
+        '()\n  void foo() {}',
+      ]),
+    );
+  }
+}
+
+macro class AddMethodBar implements MethodDeclarationsMacro {
+  const AddMethodBar();
+
+  buildDeclarationsForMethod(method, builder) async {
+    builder.declareInType(
+      DeclarationCode.fromString('  void bar() {}'),
     );
   }
 }
@@ -701,7 +719,9 @@ import 'package:test/a.dart' as prefix0;
 class B {}
 
 augment class B {
+  @prefix0.AddMethodBar()
   void foo() {}
+  void bar() {}
 }
 ---
       imports
@@ -735,13 +755,36 @@ augment class B {
               constructors
                 self::@augmentation::package:test/test.macro.dart::@class::B::@constructor::new
               methods
+                self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
           augment class B @122
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmentationTarget: self::@augmentation::package:test/test.macro.dart::@class::B
             methods
-              foo @133
+              foo @159
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
+                metadata
+                  Annotation
+                    atSign: @ @128
+                    name: PrefixedIdentifier
+                      prefix: SimpleIdentifier
+                        token: prefix0 @129
+                        staticElement: self::@augmentation::package:test/test.macro.dart::@prefix::prefix0
+                        staticType: null
+                      period: . @136
+                      identifier: SimpleIdentifier
+                        token: AddMethodBar @137
+                        staticElement: package:test/a.dart::@class::AddMethodBar
+                        staticType: null
+                      staticElement: package:test/a.dart::@class::AddMethodBar
+                      staticType: null
+                    arguments: ArgumentList
+                      leftParenthesis: ( @149
+                      rightParenthesis: ) @150
+                    element: package:test/a.dart::@class::AddMethodBar::@constructor::new
+                returnType: void
+              bar @175
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 returnType: void
 ''');
   }

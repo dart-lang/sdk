@@ -103,23 +103,39 @@ class LibraryMacroApplier {
     final collector = _MacroTargetElementCollector(container);
     container.accept(collector);
 
+    final fromNode = declarationBuilder.fromNode;
     for (final target in collector.targets) {
       final targetNode = _linker.elementNodes[target.element];
       // TODO(scheglov) support other declarations
-      if (targetNode is ClassDeclaration) {
-        await performance.runAsync(
-          'forClassDeclaration',
-          (performance) async {
-            await _buildApplications(
-              target.target,
-              targetNode.metadata,
-              macro.DeclarationKind.classType,
-              () => declarationBuilder.fromNode.classDeclaration(targetNode),
-              container: target.container,
-              performance: performance,
-            );
-          },
-        );
+      switch (targetNode) {
+        case ClassDeclaration():
+          await performance.runAsync(
+            'forClassDeclaration',
+            (performance) async {
+              await _buildApplications(
+                target.target,
+                targetNode.metadata,
+                macro.DeclarationKind.classType,
+                () => fromNode.classDeclaration(targetNode),
+                container: target.container,
+                performance: performance,
+              );
+            },
+          );
+        case MethodDeclaration():
+          await performance.runAsync(
+            'forMethodDeclaration',
+            (performance) async {
+              await _buildApplications(
+                target.target,
+                targetNode.metadata,
+                macro.DeclarationKind.method,
+                () => fromNode.methodDeclaration(targetNode),
+                container: target.container,
+                performance: performance,
+              );
+            },
+          );
       }
     }
   }
@@ -687,14 +703,22 @@ class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {
         );
       }
     }
-    if (element is MacroTargetElementContainer) {
-      element.visitChildren(this);
-    }
-    if (element is AugmentationImportElementImpl) {
-      if (element.importedAugmentation case final augmentation?) {
-        container = augmentation;
-        augmentation.visitChildren(this);
-      }
+
+    switch (element) {
+      case AugmentationImportElementImpl():
+        if (element.importedAugmentation case final augmentation?) {
+          container = augmentation;
+          augmentation.visitChildren(this);
+        }
+      case ClassElementImpl():
+        if (!element.isMixinApplication) {
+          element.visitChildren(this);
+        }
+      case CompilationUnitElementImpl():
+      case ExecutableElementImpl():
+      case InstanceElementImpl():
+      case LibraryOrAugmentationElementImpl():
+        element.visitChildren(this);
     }
   }
 }
