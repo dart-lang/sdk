@@ -8,11 +8,8 @@ import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 
 import '../common/elements.dart';
 import '../constants/values.dart';
-import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
-import '../inferrer/abstract_value_domain.dart';
-import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart';
@@ -25,8 +22,6 @@ import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../js_model/elements.dart';
-import '../js_model/js_world.dart';
-import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
 import '../universe/feature.dart';
@@ -401,8 +396,8 @@ class CodegenRegistry {
     return CodegenResult(
         code,
         _worldImpact,
-        js.DeferredExpressionData(_names.isEmpty ? [] : _names,
-            _expressions.isEmpty ? [] : _expressions));
+        js.DeferredExpressionData(_names.isEmpty ? const [] : _names,
+            _expressions.isEmpty ? const [] : _expressions));
   }
 }
 
@@ -411,13 +406,10 @@ class CodegenRegistry {
 /// This is used in the non-modular codegen enqueuer driving code generation.
 class OnDemandCodegenResults extends CodegenResults {
   @override
-  final GlobalTypeInferenceResults globalTypeInferenceResults;
-  @override
   final CodegenInputs codegenInputs;
   final FunctionCompiler _functionCompiler;
 
-  OnDemandCodegenResults(this.globalTypeInferenceResults, this.codegenInputs,
-      this._functionCompiler);
+  OnDemandCodegenResults(this.codegenInputs, this._functionCompiler);
 
   @override
   CodegenResult getCodegenResults(MemberEntity member) {
@@ -441,7 +433,7 @@ class CodegenResult {
     js.Fun? code = source.readJsNodeOrNull() as js.Fun?;
     CodegenImpact impact = CodegenImpact.readFromDataSource(source);
     final deferredExpressionData =
-        js.DeferredExpressionData.readFromDataSource(source);
+        js.DeferredExpressionRegistry.readDataFromDataSource(source);
     source.end(tag);
     if (code != null) {
       code = code.withAnnotation(deferredExpressionData) as js.Fun;
@@ -452,10 +444,11 @@ class CodegenResult {
   /// Writes the [CodegenResult] object to [sink].
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    deferredExpressionData.prepareForSerialization();
-    sink.writeJsNodeOrNull(code);
+    final registry = js.DeferredExpressionRegistry();
+    sink.withDeferredExpressionRegistry(
+        registry, () => sink.writeJsNodeOrNull(code));
     impact.writeToDataSink(sink);
-    deferredExpressionData.writeToDataSink(sink);
+    registry.writeToDataSink(sink);
     sink.end(tag);
   }
 
@@ -796,15 +789,14 @@ enum JsAnnotationKind {
 /// them in the AST.
 class JsNodeSerializer implements js.NodeVisitor<void> {
   final DataSinkWriter sink;
-  final js.DeferredExpressionData deferredExpressionData;
+  final js.DeferredExpressionRegistry? _registry;
 
-  JsNodeSerializer._(this.sink, this.deferredExpressionData);
+  JsNodeSerializer._(this.sink, this._registry);
 
   static void writeToDataSink(DataSinkWriter sink, js.Node node,
-      js.DeferredExpressionData deferredExpressionData) {
+      js.DeferredExpressionRegistry? registry) {
     sink.begin(JsNodeTags.tag);
-    JsNodeSerializer serializer =
-        JsNodeSerializer._(sink, deferredExpressionData);
+    JsNodeSerializer serializer = JsNodeSerializer._(sink, registry);
     serializer.visit(node);
     sink.end(JsNodeTags.tag);
   }
@@ -981,7 +973,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
-      deferredExpressionData.registerModularName(node);
+      _registry?.registerModularName(node);
       sink.end(JsNodeTags.modularName);
     } else if (node is AsyncName) {
       sink.writeEnum(JsNodeKind.asyncName);
@@ -1077,7 +1069,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
-      deferredExpressionData.registerModularExpression(node);
+      _registry?.registerModularExpression(node);
       sink.end(JsNodeTags.modularExpression);
     } else if (node is TypeReference) {
       sink.writeEnum(JsNodeKind.typeReference);
@@ -1086,7 +1078,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
-      deferredExpressionData.registerTypeReference(node);
+      _registry?.registerTypeReference(node);
       sink.end(JsNodeTags.typeReference);
     } else if (node is StringReference) {
       sink.writeEnum(JsNodeKind.stringReference);
@@ -1095,7 +1087,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
-      deferredExpressionData.registerStringReference(node);
+      _registry?.registerStringReference(node);
       sink.end(JsNodeTags.stringReference);
     } else if (node is DeferredHolderExpression) {
       sink.writeEnum(JsNodeKind.deferredHolderExpression);
@@ -1104,7 +1096,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
-      deferredExpressionData.registerDeferredHolderExpression(node);
+      _registry?.registerDeferredHolderExpression(node);
       sink.end(JsNodeTags.deferredHolderExpression);
     } else {
       throw UnsupportedError(
@@ -1977,60 +1969,6 @@ class JsNodeDeserializer {
   }
 }
 
-class CodegenReaderImpl implements CodegenReader {
-  final JClosedWorld closedWorld;
-
-  CodegenReaderImpl(this.closedWorld);
-
-  @override
-  AbstractValue readAbstractValue(DataSourceReader source) {
-    return closedWorld.abstractValueDomain
-        .readAbstractValueFromDataSource(source);
-  }
-
-  @override
-  js.Node readJsNode(DataSourceReader source) {
-    return JsNodeDeserializer.readFromDataSource(source);
-  }
-
-  @override
-  OutputUnit readOutputUnitReference(DataSourceReader source) {
-    return closedWorld.outputUnitData.outputUnits[source.readInt()];
-  }
-
-  @override
-  TypeRecipe readTypeRecipe(DataSourceReader source) {
-    return TypeRecipe.readFromDataSource(source);
-  }
-}
-
-class CodegenWriterImpl implements CodegenWriter {
-  final JClosedWorld closedWorld;
-  final js.DeferredExpressionData deferredExpressionData;
-
-  CodegenWriterImpl(this.closedWorld, this.deferredExpressionData);
-
-  @override
-  void writeAbstractValue(DataSinkWriter sink, AbstractValue value) {
-    closedWorld.abstractValueDomain.writeAbstractValueToDataSink(sink, value);
-  }
-
-  @override
-  void writeJsNode(DataSinkWriter sink, js.Node node) {
-    JsNodeSerializer.writeToDataSink(sink, node, deferredExpressionData);
-  }
-
-  @override
-  void writeOutputUnitReference(DataSinkWriter sink, OutputUnit value) {
-    sink.writeInt(closedWorld.outputUnitData.outputUnits.indexOf(value));
-  }
-
-  @override
-  void writeTypeRecipe(DataSinkWriter sink, TypeRecipe recipe) {
-    recipe.writeToDataSink(sink);
-  }
-}
-
 enum ModularNameKind {
   rtiField,
   className,
@@ -2296,7 +2234,6 @@ class ModularName extends js.Name implements js.AstContainer {
 
 /// Interface for reading the code generation results for all [MemberEntity]s.
 abstract class CodegenResults {
-  GlobalTypeInferenceResults get globalTypeInferenceResults;
   CodegenInputs get codegenInputs;
   CodegenResult getCodegenResults(MemberEntity member);
 }
@@ -2306,14 +2243,11 @@ abstract class CodegenResults {
 /// This is used for modular code generation.
 class DeserializedCodegenResults extends CodegenResults {
   @override
-  final GlobalTypeInferenceResults globalTypeInferenceResults;
-  @override
   final CodegenInputs codegenInputs;
 
   final Map<MemberEntity, CodegenResult> _map;
 
-  DeserializedCodegenResults(
-      this.globalTypeInferenceResults, this.codegenInputs, this._map);
+  DeserializedCodegenResults(this.codegenInputs, this._map);
 
   @override
   CodegenResult getCodegenResults(MemberEntity member) {

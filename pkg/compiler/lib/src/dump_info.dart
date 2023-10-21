@@ -23,7 +23,8 @@ import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common/ram_usage.dart';
 import 'constants/values.dart'
     show ConstantValue, ConstantValueKind, DeferredGlobalConstantValue;
-import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
+import 'deferred_load/output_unit.dart'
+    show OutputUnit, OutputUnitData, deferredPartFileName;
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
 import 'elements/names.dart';
@@ -231,7 +232,7 @@ class DumpInfoProgramData {
   }
 
   factory DumpInfoProgramData.readFromDataSource(
-      DataSourceReader source, JClosedWorld closedWorld,
+      DataSourceReader source, OutputUnitData outputUnitData,
       {required bool includeCodeText}) {
     final programSize = source.readInt();
     final outputUnitSizesLength = source.readInt();
@@ -275,7 +276,7 @@ class DumpInfoProgramData {
           .readList(() => ConstantUse.readFromDataSource(source))
           .forEach((use) {
         assert(use.value.kind == ConstantValueKind.DEFERRED_GLOBAL);
-        closedWorld.outputUnitData.registerConstantDeferredUse(
+        outputUnitData.registerConstantDeferredUse(
             use.value as DeferredGlobalConstantValue);
       });
       return impactBuilder;

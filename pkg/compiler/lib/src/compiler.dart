@@ -36,6 +36,7 @@ import 'dump_info.dart'
 import 'elements/entities.dart';
 import 'enqueue.dart' show Enqueuer;
 import 'environment.dart';
+import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/abstract_value_strategy.dart';
 import 'inferrer/computable.dart' show ComputableAbstractValueStrategy;
 import 'inferrer/powersets/powersets.dart' show PowersetStrategy;
@@ -522,18 +523,13 @@ class Compiler {
   }
 
   int runCodegenEnqueuer(
-      CodegenResults codegenResults, SourceLookup sourceLookup) {
-    GlobalTypeInferenceResults globalInferenceResults =
-        codegenResults.globalTypeInferenceResults;
-    JClosedWorld closedWorld = globalInferenceResults.closedWorld;
+      CodegenResults codegenResults,
+      InferredData inferredData,
+      SourceLookup sourceLookup,
+      JClosedWorld closedWorld) {
     CodegenInputs codegenInputs = codegenResults.codegenInputs;
     CodegenEnqueuer codegenEnqueuer = backendStrategy.createCodegenEnqueuer(
-        enqueueTask,
-        closedWorld,
-        globalInferenceResults,
-        codegenInputs,
-        codegenResults,
-        sourceLookup)
+        enqueueTask, closedWorld, codegenInputs, codegenResults, sourceLookup)
       ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = codegenEnqueuer;
@@ -550,8 +546,8 @@ class Compiler {
       codegenWorldForTesting = codegenWorld;
     }
     reporter.log('Emitting JavaScript');
-    int programSize = backendStrategy.assembleProgram(closedWorld,
-        globalInferenceResults.inferredData, codegenInputs, codegenWorld);
+    int programSize = backendStrategy.assembleProgram(
+        closedWorld, inferredData, codegenInputs, codegenWorld);
 
     backendStrategy.onCodegenEnd(codegenInputs);
 
@@ -684,16 +680,19 @@ class Compiler {
     CodegenInputs codegenInputs = initializeCodegen(globalTypeInferenceResults);
     CodegenResults codegenResults;
     if (!stage.shouldReadCodegenShards) {
-      codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
+      codegenResults = OnDemandCodegenResults(
           codegenInputs, backendStrategy.functionCompiler);
       if (stage == Dart2JSStage.codegenSharded) {
         serializationTask.serializeCodegen(
-            backendStrategy, codegenResults, indices);
+            backendStrategy,
+            globalTypeInferenceResults.closedWorld.abstractValueDomain,
+            codegenResults,
+            indices);
       }
     } else {
       codegenResults = await serializationTask.deserializeCodegen(
           backendStrategy,
-          globalTypeInferenceResults,
+          globalTypeInferenceResults.closedWorld,
           codegenInputs,
           useDeferredSourceReads,
           sourceLookup,
@@ -733,13 +732,20 @@ class Compiler {
         await produceGlobalTypeInferenceResults(
             closedWorld!, output.component, indices);
     if (shouldStopAfterGlobalTypeInference) return;
+    closedWorld = globalTypeInferenceResults.closedWorld;
 
     // Allow the original references to these to be GCed and only hold
     // references to them if we are actually running the dump info task later.
-    JClosedWorld? closedWorldForDumpInfo;
     SerializationIndices? indicesForDumpInfo;
-    if (options.dumpInfoWriteUri != null || options.dumpInfoReadUri != null) {
-      closedWorldForDumpInfo = closedWorld;
+    GlobalTypeInferenceResults? globalTypeInferenceResultsForDumpInfo;
+    AbstractValueDomain? abstractValueDomainForDumpInfo;
+    OutputUnitData? outputUnitDataForDumpInfo;
+    if (options.dumpInfoWriteUri != null ||
+        options.dumpInfoReadUri != null ||
+        options.dumpInfo) {
+      globalTypeInferenceResultsForDumpInfo = globalTypeInferenceResults;
+      abstractValueDomainForDumpInfo = closedWorld.abstractValueDomain;
+      outputUnitDataForDumpInfo = closedWorld.outputUnitData;
       indicesForDumpInfo = indices;
     }
 
@@ -748,33 +754,43 @@ class Compiler {
     CodegenResults codegenResults = await produceCodegenResults(
         globalTypeInferenceResults, sourceLookup, indices);
     if (shouldStopAfterCodegen) return;
+    final inferredData = globalTypeInferenceResults.inferredData;
 
     if (options.dumpInfoReadUri != null) {
       final dumpInfoData =
           await serializationTask.deserializeDumpInfoProgramData(
-              backendStrategy, closedWorldForDumpInfo!, indicesForDumpInfo!);
-      await runDumpInfo(codegenResults, dumpInfoData);
+              backendStrategy,
+              abstractValueDomainForDumpInfo!,
+              outputUnitDataForDumpInfo!,
+              indicesForDumpInfo!);
+      await runDumpInfo(
+          codegenResults, globalTypeInferenceResultsForDumpInfo!, dumpInfoData);
     } else {
       // Link.
-      final programSize = runCodegenEnqueuer(codegenResults, sourceLookup);
+      final programSize = runCodegenEnqueuer(
+          codegenResults, inferredData, sourceLookup, closedWorld);
       if (options.dumpInfo || options.dumpInfoWriteUri != null) {
         final dumpInfoData = DumpInfoProgramData.fromEmitterResults(
             backendStrategy, dumpInfoRegistry, programSize);
         dumpInfoRegistry.clear();
         if (options.dumpInfo) {
-          await runDumpInfo(codegenResults, dumpInfoData);
+          await runDumpInfo(codegenResults,
+              globalTypeInferenceResultsForDumpInfo!, dumpInfoData);
         } else {
-          serializationTask.serializeDumpInfoProgramData(backendStrategy,
-              dumpInfoData, closedWorldForDumpInfo!, indicesForDumpInfo!);
+          serializationTask.serializeDumpInfoProgramData(
+              backendStrategy,
+              dumpInfoData,
+              abstractValueDomainForDumpInfo!,
+              indicesForDumpInfo!);
         }
       }
     }
   }
 
-  Future<void> runDumpInfo(CodegenResults codegenResults,
+  Future<void> runDumpInfo(
+      CodegenResults codegenResults,
+      GlobalTypeInferenceResults globalTypeInferenceResults,
       DumpInfoProgramData dumpInfoProgramData) async {
-    GlobalTypeInferenceResults globalTypeInferenceResults =
-        codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
 
     DumpInfoStateData dumpInfoState;

@@ -30,13 +30,17 @@ const List<String> dumpInfoExceptions = [
 Future<void> generateJavaScriptCode(Compiler compiler,
     GlobalTypeInferenceResults globalTypeInferenceResults) async {
   final codegenInputs = compiler.initializeCodegen(globalTypeInferenceResults);
-  final codegenResults = OnDemandCodegenResults(globalTypeInferenceResults,
+  final codegenResults = OnDemandCodegenResults(
       codegenInputs, compiler.backendStrategy.functionCompiler);
   final programSize = compiler.runCodegenEnqueuer(
-      codegenResults, SourceLookup(compiler.componentForTesting));
+      codegenResults,
+      globalTypeInferenceResults.inferredData,
+      SourceLookup(compiler.componentForTesting),
+      globalTypeInferenceResults.closedWorld);
   if (compiler.options.dumpInfo) {
     await compiler.runDumpInfo(
         codegenResults,
+        globalTypeInferenceResults,
         DumpInfoProgramData.fromEmitterResults(
             compiler.backendStrategy, compiler.dumpInfoRegistry, programSize));
   }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:compiler/src/js/js.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
@@ -12,10 +11,12 @@ import '../../compiler_api.dart' as api;
 import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';
 import '../common/tasks.dart';
+import '../deferred_load/output_unit.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../environment.dart';
+import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
@@ -265,11 +266,11 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  void serializeCodegen(JsBackendStrategy backendStrategy,
-      CodegenResults codegenResults, SerializationIndices indices) {
-    GlobalTypeInferenceResults globalTypeInferenceResults =
-        codegenResults.globalTypeInferenceResults;
-    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
+  void serializeCodegen(
+      JsBackendStrategy backendStrategy,
+      AbstractValueDomain domain,
+      CodegenResults codegenResults,
+      SerializationIndices indices) {
     int shard = _options.codegenShard!;
     int shards = _options.codegenShards!;
     Map<MemberEntity, CodegenResult> results = {};
@@ -291,9 +292,8 @@ class SerializationTask extends CompilerTask {
           DataSinkWriter(BinaryDataSink(dataOutput), _options, indices);
       _reporter.log('Writing data to ${uri}');
       sink.writeMembers(lazyMemberBodies);
+      sink.registerAbstractValueDomain(domain);
       sink.writeMemberMap(results, (MemberEntity member, CodegenResult result) {
-        sink.registerCodegenWriter(
-            CodegenWriterImpl(closedWorld, result.deferredExpressionData));
         sink.writeDeferrable(() => result.writeToDataSink(sink));
       });
       sink.close();
@@ -302,13 +302,12 @@ class SerializationTask extends CompilerTask {
 
   Future<CodegenResults> deserializeCodegen(
       JsBackendStrategy backendStrategy,
-      GlobalTypeInferenceResults globalTypeInferenceResults,
+      JClosedWorld closedWorld,
       CodegenInputs codegenInputs,
       bool useDeferredSourceReads,
       SourceLookup sourceLookup,
       SerializationIndices indices) async {
     int shards = _options.codegenShards!;
-    JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     Map<MemberEntity, Deferrable<CodegenResult>> results = {};
     for (int shard = 0; shard < shards; shard++) {
       Uri uri = Uri.parse(
@@ -325,15 +324,7 @@ class SerializationTask extends CompilerTask {
       });
     }
     return DeserializedCodegenResults(
-        globalTypeInferenceResults, codegenInputs, DeferrableValueMap(results));
-  }
-
-  static CodegenResult _readCodegenResult(
-      DataSourceReader source, JClosedWorld closedWorld) {
-    CodegenReader reader = CodegenReaderImpl(closedWorld);
-    source.registerCodegenReader(reader);
-    CodegenResult result = CodegenResult.readFromDataSource(source);
-    return result;
+        codegenInputs, DeferrableValueMap(results));
   }
 
   void _deserializeCodegenInput(
@@ -355,9 +346,10 @@ class SerializationTask extends CompilerTask {
     source.registerSourceLookup(sourceLookup);
     final lazyMemberBodies = source.readMembers();
     closedWorld.elementMap.registerLazyMemberBodies(lazyMemberBodies);
+    source.registerAbstractValueDomain(closedWorld.abstractValueDomain);
     Map<MemberEntity, Deferrable<CodegenResult>> codegenResults =
         source.readMemberMap((MemberEntity member) {
-      return source.readDeferrableWithArg(_readCodegenResult, closedWorld,
+      return source.readDeferrable(CodegenResult.readFromDataSource,
           cacheData: false);
     });
     _reporter.log('Read ${codegenResults.length} members from ${uri}');
@@ -367,21 +359,21 @@ class SerializationTask extends CompilerTask {
   void serializeDumpInfoProgramData(
       JsBackendStrategy backendStrategy,
       DumpInfoProgramData dumpInfoProgramData,
-      JClosedWorld closedWorld,
+      AbstractValueDomain abstractValueDomain,
       SerializationIndices indices) {
     final outputUri = _options.dumpInfoWriteUri!;
     api.BinaryOutputSink dataOutput =
         _outputProvider.createBinarySink(outputUri);
     final sink = DataSinkWriter(BinaryDataSink(dataOutput), _options, indices);
-    sink.registerCodegenWriter(
-        CodegenWriterImpl(closedWorld, DeferredExpressionData([], [])));
+    sink.registerAbstractValueDomain(abstractValueDomain);
     dumpInfoProgramData.writeToDataSink(sink);
     sink.close();
   }
 
   Future<DumpInfoProgramData> deserializeDumpInfoProgramData(
       JsBackendStrategy backendStrategy,
-      JClosedWorld closedWorld,
+      AbstractValueDomain abstractValueDomain,
+      OutputUnitData outputUnitData,
       SerializationIndices indices) async {
     final inputUri = _options.dumpInfoReadUri!;
     final dataInput =
@@ -391,8 +383,8 @@ class SerializationTask extends CompilerTask {
         _options,
         indices);
     backendStrategy.prepareCodegenReader(source);
-    source.registerCodegenReader(CodegenReaderImpl(closedWorld));
-    return DumpInfoProgramData.readFromDataSource(source, closedWorld,
+    source.registerAbstractValueDomain(abstractValueDomain);
+    return DumpInfoProgramData.readFromDataSource(source, outputUnitData,
         includeCodeText: !_options.useDumpInfoBinaryFormat);
   }
 }

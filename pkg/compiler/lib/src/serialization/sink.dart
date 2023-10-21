@@ -68,7 +68,8 @@ class DataSinkWriter {
 
   final Map<Type, IndexedSink> _generalCaches = {};
 
-  late CodegenWriter _codegenWriter;
+  late AbstractValueDomain _abstractValueDomain;
+  js.DeferredExpressionRegistry? _deferredExpressionRegistry;
 
   final Map<String, int>? tagFrequencyMap;
 
@@ -1183,28 +1184,30 @@ class DataSinkWriter {
 
   /// Writes an abstract [value] to this data sink.
   ///
-  /// This feature is only available a [CodegenWriter] has been registered.
+  /// This feature is only available a [AbstractValueDomain] has been
+  /// registered.
   void writeAbstractValue(AbstractValue value) {
-    _codegenWriter.writeAbstractValue(this, value);
+    _abstractValueDomain.writeAbstractValueToDataSink(this, value);
   }
 
   /// Writes a reference to the output unit [value] to this data sink.
-  ///
-  /// This feature is only available a [CodegenWriter] has been registered.
   void writeOutputUnitReference(OutputUnit value) {
-    _codegenWriter.writeOutputUnitReference(this, value);
+    writeCached<OutputUnit>(value, (v) => v.writeToDataSink(this));
+  }
+
+  void withDeferredExpressionRegistry(
+      js.DeferredExpressionRegistry registry, void Function() f) {
+    _deferredExpressionRegistry = registry;
+    f();
+    _deferredExpressionRegistry = null;
   }
 
   /// Writes a js node [value] to this data sink.
-  ///
-  /// This feature is only available a [CodegenWriter] has been registered.
   void writeJsNode(js.Node value) {
-    _codegenWriter.writeJsNode(this, value);
+    JsNodeSerializer.writeToDataSink(this, value, _deferredExpressionRegistry);
   }
 
   /// Writes a potentially `null` js node [value] to this data sink.
-  ///
-  /// This feature is only available a [CodegenWriter] has been registered.
   void writeJsNodeOrNull(js.Node? value) {
     writeBool(value != null);
     if (value != null) {
@@ -1213,16 +1216,14 @@ class DataSinkWriter {
   }
 
   /// Writes TypeRecipe [value] to this data sink.
-  ///
-  /// This feature is only available a [CodegenWriter] has been registered.
   void writeTypeRecipe(TypeRecipe value) {
-    _codegenWriter.writeTypeRecipe(this, value);
+    value.writeToDataSink(this);
   }
 
-  /// Register a [CodegenWriter] with this data sink to support serialization
-  /// of codegen only data.
-  void registerCodegenWriter(CodegenWriter writer) {
-    _codegenWriter = writer;
+  /// Register a [AbstractValueDomain] with this data sink to support
+  /// serialization of abstract values.
+  void registerAbstractValueDomain(AbstractValueDomain domain) {
+    _abstractValueDomain = domain;
   }
 
   /// Invoke [f] in the context of [member]. This sets up support for

@@ -65,7 +65,7 @@ class DataSourceReader {
   final ValueInterner? interner;
   final SerializationIndices importedIndices;
   ComponentLookup? _componentLookup;
-  CodegenReader? _codegenReader;
+  AbstractValueDomain? _abstractValueDomain;
   SourceLookup? _sourceLookup;
 
   late final IndexedSource<String> _stringIndex;
@@ -138,9 +138,10 @@ class DataSourceReader {
 
   SourceLookup get sourceLookup => _sourceLookup!;
 
-  /// deserialization of codegen only data.
-  void registerCodegenReader(CodegenReader reader) {
-    _codegenReader = reader;
+  /// Registers a [AbstractValueDomain] with this data source to support
+  /// deserialization of abstract values.
+  void registerAbstractValueDomain(AbstractValueDomain domain) {
+    _abstractValueDomain = domain;
   }
 
   /// Evaluates [f] with [DataSource] for the provided [source] as the
@@ -149,17 +150,17 @@ class DataSourceReader {
   E readWithSource<E>(DataSourceReader source, E f()) {
     final lastSource = _sourceReader;
     final lastComponentLookup = _componentLookup;
-    final lastCodegenReader = _codegenReader;
     final lastStartOffset = startOffset;
+    final lastAbstractValueDomain = _abstractValueDomain;
     _sourceReader = source._sourceReader;
     _componentLookup = source._componentLookup;
-    _codegenReader = source._codegenReader;
     startOffset = source.startOffset;
+    _abstractValueDomain = source._abstractValueDomain;
     final value = f();
     _sourceReader = lastSource;
     _componentLookup = lastComponentLookup;
-    _codegenReader = lastCodegenReader;
     startOffset = lastStartOffset;
+    _abstractValueDomain = lastAbstractValueDomain;
     return value;
   }
 
@@ -1417,39 +1418,25 @@ class DataSourceReader {
   }
 
   /// Reads an [AbstractValue] from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   AbstractValue readAbstractValue() {
     assert(
-        _codegenReader != null,
+        _abstractValueDomain != null,
         "Can not deserialize an AbstractValue "
-        "without a registered codegen reader.");
-    return _codegenReader!.readAbstractValue(this);
+        "without a registered AbstractValueDomain.");
+    return _abstractValueDomain!.readAbstractValueFromDataSource(this);
   }
 
   /// Reads a reference to an [OutputUnit] from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   OutputUnit readOutputUnitReference() {
-    assert(
-        _codegenReader != null,
-        "Can not deserialize an OutputUnit reference "
-        "without a registered codegen reader.");
-    return _codegenReader!.readOutputUnitReference(this);
+    return readCached<OutputUnit>(() => OutputUnit.readFromDataSource(this));
   }
 
   /// Reads a [js.Node] value from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   js.Node readJsNode() {
-    assert(_codegenReader != null,
-        "Can not deserialize a JS node without a registered codegen reader.");
-    return _codegenReader!.readJsNode(this);
+    return JsNodeDeserializer.readFromDataSource(this);
   }
 
   /// Reads a potentially `null` [js.Node] value from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   js.Node? readJsNodeOrNull() {
     bool hasValue = readBool();
     if (hasValue) {
@@ -1459,12 +1446,8 @@ class DataSourceReader {
   }
 
   /// Reads a [TypeRecipe] value from this data source.
-  ///
-  /// This feature is only available a [CodegenReader] has been registered.
   TypeRecipe readTypeRecipe() {
-    assert(_codegenReader != null,
-        "Can not deserialize a TypeRecipe without a registered codegen reader.");
-    return _codegenReader!.readTypeRecipe(this);
+    return TypeRecipe.readFromDataSource(this);
   }
 
   MemberData _getMemberData(ir.Member node) {
