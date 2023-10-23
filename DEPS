@@ -82,6 +82,8 @@ vars = {
   "clang_version": "git_revision:6d667d4b261e81f325756fdfd5bb43b3b3d2451d",
   "gn_version": "git_revision:991530ce394efb58fcd848195469022fa17ae126",
 
+  "reclient_version": "git_revision:81e819b39d4743462857cc55430d898b9fcca1af",
+
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
   "fuchsia_sdk_version": "version:12.20230407.0.1",
   "download_fuchsia_deps": False,
@@ -563,6 +565,17 @@ Var("dart_root") + "/third_party/pkg/tar":
       ],
       "condition": "host_os == 'mac' and host_cpu == 'arm64'",
       "dep_type": "cipd",
+  },
+
+  Var("dart_root") + '/buildtools/reclient': {
+    'packages': [
+      {
+        'package': 'infra/rbe/client/${{platform}}',
+        'version': Var('reclient_version'),
+      }
+    ],
+    'condition': 'host_os == "linux" and host_cpu == "x64"',
+    'dep_type': 'cipd',
   },
 
   Var("dart_root") + "/third_party/webdriver/chrome": {
