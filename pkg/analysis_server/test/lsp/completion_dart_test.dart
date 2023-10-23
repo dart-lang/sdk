@@ -598,6 +598,36 @@ bool a = ^
       detail: null,
     );
   }
+
+  Future<void> test_record() async {
+    final content = r'''
+void f((int, int) record) {
+  record.$^
+}
+''';
+
+    await expectLabels(content,
+        label: r'$1',
+        labelDetail: ' int',
+        labelDescription: null,
+        filterText: null,
+        detail: 'int');
+  }
+
+  Future<void> test_variable() async {
+    final content = r'''
+void f(int variable) {
+  varia^
+}
+''';
+
+    await expectLabels(content,
+        label: 'variable',
+        labelDetail: ' int',
+        labelDescription: null,
+        filterText: null,
+        detail: 'int');
+  }
 }
 
 @reflectiveTest
