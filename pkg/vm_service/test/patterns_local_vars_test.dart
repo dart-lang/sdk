@@ -7,12 +7,10 @@
 // ignore_for_file: experiment_not_enabled
 
 import 'dart:developer';
-import 'package:expect/expect.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
-
 
 abstract class A {
   int get x;
@@ -26,7 +24,7 @@ class B implements A {
 }
 
 foo(Object obj) {
-  switch(obj) {
+  switch (obj) {
     case A(x: 4, y: 5):
       print('A(4, 5)');
     case A(x: var x1, y: var y1):
@@ -44,7 +42,7 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     Stack stack = await service.getStack(isolateRef.id!);
     final Set<String> vars = stack.frames![0].vars!.map((v) => v.name!).toSet();
-    Expect.setEquals(<String>{'obj', 'x1', 'y1'}, vars);
+    expect(vars, <String>{'obj', 'x1', 'y1'});
   },
 ];
 

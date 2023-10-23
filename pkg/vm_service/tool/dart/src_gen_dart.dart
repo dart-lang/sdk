@@ -14,13 +14,17 @@ class DartGenerator {
   static const defaultColumnBoundary = 80;
 
   final int colBoundary;
+  final String interfaceName;
 
   String _indent = '';
   final StringBuffer _buf = StringBuffer();
 
   bool _previousWasEol = false;
 
-  DartGenerator({this.colBoundary = defaultColumnBoundary});
+  DartGenerator({
+    required this.interfaceName,
+    this.colBoundary = defaultColumnBoundary,
+  });
 
   /// Write out the given dartdoc text, wrapping lines as necessary to flow
   /// along the column boundary.
@@ -28,8 +32,9 @@ class DartGenerator {
     docs = docs
         .replaceAll('[RPC error] code', 'RPC error code')
         .replaceAll('[RPC error]', '[RPCError]')
+        .replaceAll('[SnapshotGraph]', '[HeapSnapshotGraph]')
         .replaceAllMapped(RegExp(r'\[([gs]et[a-zA-Z]+)\]'), (match) {
-      return '[VmServiceInterface.${match[1]}]';
+      return '[$interfaceName.${match[1]}]';
     });
 
     docs = wrap(docs.trim(), colBoundary - _indent.length - 4);

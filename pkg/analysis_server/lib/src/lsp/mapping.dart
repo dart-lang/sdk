@@ -398,7 +398,10 @@ CompletionDetail getCompletionDetail(
 }) {
   final element = suggestion.element;
   var parameters = element?.parameters;
-  var returnType = element?.returnType;
+  // Prefer the element return type (because it's available for things like
+  // overrides) but fall back to the suggestion if there isn't one (to handle
+  // records).
+  var returnType = element?.returnType ?? suggestion.returnType;
 
   // Extract the type from setters to be shown in the place a return type
   // would usually be shown.
@@ -709,6 +712,7 @@ lsp.CompletionItem snippetToCompletionItem(
   LineInfo lineInfo,
   Position position,
   Snippet snippet,
+  CompletionListItemDefaults? defaults,
 ) {
   assert(capabilities.completionSnippets);
 
@@ -758,6 +762,13 @@ lsp.CompletionItem snippetToCompletionItem(
       .firstWhere((edit) => edit.range.start.line == position.line);
   final nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
 
+  // Capture any default combined range. If there are different insert/replace
+  // ranges just take `null` because snippets always use the same ranges and
+  // if defaults are different ours can't possibly be redundant.
+  final defaultRange =
+      defaults?.editRange?.map((ranges) => null, (range) => range);
+  final hasDefaultEditRange = mainEdit.range == defaultRange;
+
   return lsp.CompletionItem(
     label: snippet.label,
     filterText: snippet.prefix.orNullIfSameAs(snippet.label),
@@ -773,7 +784,14 @@ lsp.CompletionItem snippetToCompletionItem(
     sortText: 'zzz${snippet.prefix}',
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
-    textEdit: Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    // Set textEdit or textEditText depending on whether we need to specify
+    // a range or not.
+    textEdit: hasDefaultEditRange
+        ? null
+        : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    textEditText: hasDefaultEditRange
+        ? mainEdit.newText.orNullIfSameAs(snippet.label)
+        : null,
     additionalTextEdits: nonMainEdits.nullIfEmpty,
   );
 }

@@ -638,6 +638,10 @@ mixin LspRequestHelpersMixin {
   /// reduced.
   void _assertMinimalCompletionItemPayload(CompletionItem completion) {
     final labelDetails = completion.labelDetails;
+    final textEditInsertRange =
+        completion.textEdit?.map((ranges) => ranges.insert, (range) => null);
+    final textEditReplaceRange =
+        completion.textEdit?.map((ranges) => ranges.replace, (range) => null);
     final sortText = completion.sortText;
 
     // Check fields that default to label if not supplied.
@@ -652,6 +656,12 @@ mixin LspRequestHelpersMixin {
     expectNotLabel(completion.insertText, 'insertText');
     expectNotLabel(completion.filterText, 'filterText');
     expectNotLabel(completion.sortText, 'sortText');
+    expectNotLabel(completion.textEditText, 'textEditText');
+
+    // If we have separate insert/replace ranges, they should not be the same.
+    if (textEditInsertRange != null) {
+      expect(textEditReplaceRange, isNot(textEditInsertRange));
+    }
 
     // Check for empty labelDetails.
     if (labelDetails != null) {
@@ -699,12 +709,21 @@ mixin LspRequestHelpersMixin {
       final data = completion.data;
       final commitCharacters = completion.commitCharacters;
       final insertRange = completion.textEdit
-          ?.map((insertReplace) => insertReplace.insert, (range) => range);
+          ?.map((insertReplace) => insertReplace.insert, (textEdit) => null);
       final replaceRange = completion.textEdit
-          ?.map((insertReplace) => insertReplace.replace, (range) => range);
+          ?.map((insertReplace) => insertReplace.replace, (textEdit) => null);
+      final combinedRange = completion.textEdit
+          ?.map((insertReplace) => null, (textEdit) => textEdit.range);
       final insertTextFormat = completion.insertTextFormat;
       final insertTextMode = completion.insertTextMode;
+
       final defaults = completions.itemDefaults;
+      final defaultInsertRange = defaults?.editRange
+          ?.map((editRange) => editRange.insert, (range) => null);
+      final defaultReplaceRange = defaults?.editRange
+          ?.map((editRange) => editRange.replace, (range) => null);
+      final defaultCombinedRange =
+          defaults?.editRange?.map((editRange) => null, (range) => range);
 
       _assertMinimalCompletionItemPayload(completion);
 
@@ -722,12 +741,19 @@ mixin LspRequestHelpersMixin {
         expectNotDefault(data?.toJson(), defaults.data, 'data');
         expectNotDefault(
             commitCharacters, defaults.commitCharacters, 'commitCharacters');
-        expectNotDefault(insertRange, defaults.editRange, 'insertRange');
-        expectNotDefault(replaceRange, defaults.editRange, 'replaceRange');
+
+        expectNotDefault(insertRange, defaultInsertRange, 'insertRange');
+        expectNotDefault(replaceRange, defaultReplaceRange, 'replaceRange');
+        expectNotDefault(combinedRange, defaultCombinedRange, 'combined range');
         expectNotDefault(
             insertTextFormat, defaults.insertTextFormat, 'insertTextFormat');
         expectNotDefault(
             insertTextMode, defaults.insertTextMode, 'insertTextMode');
+      }
+
+      // If we have separate insert/replace ranges, they should not be the same.
+      if (defaultInsertRange != null) {
+        expect(defaultReplaceRange, isNot(defaultInsertRange));
       }
     }
   }

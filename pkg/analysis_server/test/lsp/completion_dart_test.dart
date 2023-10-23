@@ -598,6 +598,36 @@ bool a = ^
       detail: null,
     );
   }
+
+  Future<void> test_record() async {
+    final content = r'''
+void f((int, int) record) {
+  record.$^
+}
+''';
+
+    await expectLabels(content,
+        label: r'$1',
+        labelDetail: ' int',
+        labelDescription: null,
+        filterText: null,
+        detail: 'int');
+  }
+
+  Future<void> test_variable() async {
+    final content = r'''
+void f(int variable) {
+  varia^
+}
+''';
+
+    await expectLabels(content,
+        label: 'variable',
+        labelDetail: ' int',
+        labelDescription: null,
+        filterText: null,
+        detail: 'int');
+  }
 }
 
 @reflectiveTest
@@ -4107,6 +4137,30 @@ void f() {
 ''');
   }
 
+  /// Fetch snippets with itemDefaults enabled to ensure we don't return any
+  /// values that match the defaults and that using the default range applies
+  /// correctly.
+  Future<void> test_snippets_itemDefaults() async {
+    setCompletionListDefaults(
+        ['editRange', 'insertTextMode', 'insertTextFormat']);
+    final content = '''
+fu^
+''';
+
+    await initialize();
+    final updated = await expectAndApplySnippet(
+      content,
+      prefix: FunctionDeclaration.prefix,
+      label: FunctionDeclaration.label,
+    );
+
+    expect(updated, r'''
+${1:void} ${2:name}(${3:params}) {
+  $0
+}
+''');
+  }
+
   Future<void> test_snippets_mainFunction() async {
     final content = '''
 class A {}
@@ -4564,25 +4618,42 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     required String label,
   }) async {
     final code = TestCode.parse(content);
-    final snippet = await expectSnippet(
+    final (snippet: snippet, defaults: defaults) = await expectSnippet(
       code,
       prefix: prefix,
       label: label,
     );
+
+    final textEdit = snippet.textEdit;
+    final textEditText = snippet.textEditText;
+    final additionalTextEdits = snippet.additionalTextEdits;
+
+    final edits = [
+      // Additional TextEdits come first, because if they have the same offset
+      // as edits in the normal edit, they will be inserted first.
+      // https://github.com/microsoft/vscode/issues/143888.
+      ...?additionalTextEdits,
+      // Then we also either have an edit itself or we just have textEditText
+      // and a default range.
+      if (textEdit != null)
+        toTextEdit(textEdit)
+      else
+        TextEdit(
+          newText: textEditText!,
+          range: defaults!.editRange!.map(
+            (ranges) =>
+                throw 'Unexpected snippet with different insert/replace ranges',
+            (range) => range,
+          ),
+        )
+    ];
 
     // Also apply the edit and check that it went in the right place with the
     // correct formatting. Edit groups will just appear in the raw textmate
     // snippet syntax here, as we don't do any special handling of them (and
     // assume what's coded here is correct, and that the client will correctly
     // interpret them).
-    final updated = applyTextEdits(
-      code.code,
-      // Additional TextEdits come first, because if they have the same offset
-      // as edits in the normal edit, they will be inserted first.
-      // https://github.com/microsoft/vscode/issues/143888.
-      (snippet.additionalTextEdits ?? [])
-          .followedBy([toTextEdit(snippet.textEdit!)]).toList(),
-    );
+    final updated = applyTextEdits(code.code, edits);
     return updated;
   }
 
@@ -4610,14 +4681,15 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
 
   /// Expect that there is a snippet for [prefix] with the label [label] at
   /// [position] in [content].
-  Future<CompletionItem> expectSnippet(
+  Future<({CompletionItem snippet, CompletionListItemDefaults? defaults})>
+      expectSnippet(
     TestCode code, {
     required String prefix,
     required String label,
   }) async {
     await openFile(mainFileUri, code.code);
-    final res = await getCompletion(mainFileUri, code.position.position);
-    final item = res.singleWhere(
+    final res = await getCompletionList(mainFileUri, code.position.position);
+    final item = res.items.singleWhere(
       (c) =>
           c.kind == CompletionItemKind.Snippet &&
           (c.filterText ?? c.label) == prefix &&
@@ -4625,8 +4697,11 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     );
     expect(item.insertTextFormat, InsertTextFormat.Snippet);
     expect(item.insertText, isNull);
-    expect(item.textEdit, isNotNull);
-    return item;
+    // We either expect textEdit (if we had a range) or textEditText (or we did
+    // not), but never both.
+    expect(item.textEdit == null, item.textEditText != null);
+    expect(item.textEditText != null, res.itemDefaults?.editRange != null);
+    return (snippet: item, defaults: res.itemDefaults);
   }
 
   @override

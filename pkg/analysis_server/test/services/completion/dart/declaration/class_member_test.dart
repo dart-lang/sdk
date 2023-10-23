@@ -373,4 +373,51 @@ suggestions
     kind: methodInvocation
 ''');
   }
+
+  Future<void> test_expression_private_otherLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  // ignore: unused_field
+  static const int _s1 = 1;
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+int f() {
+  print(_s^
+}
+''');
+    assertNoSuggestion(completion: 'A._s1');
+  }
+
+  Future<void> test_expression_private_sameLibrary_otherFile() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part of 'test.dart';
+class A {
+  // ignore: unused_field
+  static const int _s1 = 1;
+}
+''');
+    await computeSuggestions('''
+part 'a.dart';
+int f() {
+  print(_s^
+}
+''');
+    assertSuggestion(completion: 'A._s1');
+  }
+
+  Future<void> test_expression_private_sameLibrary_sameFile() async {
+    await computeSuggestions('''
+class A {
+  // ignore: unused_field
+  static const int _s1 = 1;
+}
+
+int f() {
+  print(_s^
+}
+''');
+    assertSuggestion(completion: 'A._s1');
+  }
 }
