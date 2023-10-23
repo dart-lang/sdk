@@ -709,6 +709,7 @@ lsp.CompletionItem snippetToCompletionItem(
   LineInfo lineInfo,
   Position position,
   Snippet snippet,
+  CompletionListItemDefaults? defaults,
 ) {
   assert(capabilities.completionSnippets);
 
@@ -758,6 +759,13 @@ lsp.CompletionItem snippetToCompletionItem(
       .firstWhere((edit) => edit.range.start.line == position.line);
   final nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
 
+  // Capture any default combined range. If there are different insert/replace
+  // ranges just take `null` because snippets always use the same ranges and
+  // if defaults are different ours can't possibly be redundant.
+  final defaultRange =
+      defaults?.editRange?.map((ranges) => null, (range) => range);
+  final hasDefaultEditRange = mainEdit.range == defaultRange;
+
   return lsp.CompletionItem(
     label: snippet.label,
     filterText: snippet.prefix.orNullIfSameAs(snippet.label),
@@ -773,7 +781,14 @@ lsp.CompletionItem snippetToCompletionItem(
     sortText: 'zzz${snippet.prefix}',
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
-    textEdit: Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    // Set textEdit or textEditText depending on whether we need to specify
+    // a range or not.
+    textEdit: hasDefaultEditRange
+        ? null
+        : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    textEditText: hasDefaultEditRange
+        ? mainEdit.newText.orNullIfSameAs(snippet.label)
+        : null,
     additionalTextEdits: nonMainEdits.nullIfEmpty,
   );
 }

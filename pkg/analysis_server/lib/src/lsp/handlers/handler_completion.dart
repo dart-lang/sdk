@@ -311,6 +311,7 @@ class CompletionHandler
     required int offset,
     required LineInfo lineInfo,
     required bool Function(String input) filter,
+    CompletionListItemDefaults? defaults,
   }) async {
     final request = DartSnippetRequest(
       unit: unit,
@@ -327,6 +328,7 @@ class CompletionHandler
           lineInfo,
           toPosition(lineInfo.getLocation(offset)),
           snippet,
+          defaults,
         ));
   }
 
@@ -551,6 +553,7 @@ class CompletionHandler
               offset: offset,
               lineInfo: unit.lineInfo,
               filter: fuzzy.stringMatches,
+              defaults: defaults,
             );
             return snippets.where(fuzzy.completionItemMatches).toList();
           });
