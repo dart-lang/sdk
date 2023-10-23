@@ -31,6 +31,10 @@ void writeIntoOneByteString(OneByteString s, int index, int codePoint) =>
 void writeIntoTwoByteString(TwoByteString s, int index, int codePoint) =>
     s._setAt(index, codePoint);
 
+/// Static function for `OneByteString._array` to avoid making `_array` public.
+@pragma('wasm:prefer-inline')
+WasmIntArray<WasmI8> oneByteStringArray(OneByteString s) => s._array;
+
 /// The [fromStart] and [toStart] indices together with the [length] must
 /// specify ranges within the bounds of the list / string.
 void copyRangeFromUint8ListToOneByteString(
