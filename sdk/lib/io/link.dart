@@ -63,8 +63,12 @@ abstract interface class Link implements FileSystemEntity {
   /// it will be interpreted relative to the directory containing the link.
   Future<Link> create(String target, {bool recursive = false});
 
-  /// Synchronously create the link. Calling [createSync] on an existing link
-  /// will throw an exception.
+  /// Creates a symbolic link in the file system.
+  ///
+  /// The created link will point to the path at [target], whether that path
+  /// exists or not.
+  ///
+  /// If the link path already exists, an exception will be thrown.
   ///
   /// If [recursive] is `false`, the default, the link is created only if all
   /// directories in its path exist. If [recursive] is `true`, all
