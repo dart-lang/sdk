@@ -1169,17 +1169,22 @@ abstract interface class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// added to the [Stream]. If a networking or remote failure occurs then it
   /// will not be reported.
   ///
-  /// The maximum size of a UDP datagram is 65535 bytes (including both data
-  /// and headers) but the practical maximum size is likely to be much lower
-  /// due to operating system limits and the network's maximum transmission
-  /// unit (MTU).
+  /// The maximum size of a IPv4 UDP datagram is 65535 bytes (including both
+  /// data and headers) but the practical maximum size is likely to be much
+  /// lower due to operating system limits and the network's maximum
+  /// transmission unit (MTU).
+  ///
+  /// Some IPv6 implementations may support payloads up to 4GB (see RFC-2675)
+  /// but that support is limited (see RFC-6434) and has been removed in later
+  /// standards (see RFC-8504).
+  ///
+  /// [Emperical testing by the Chromium team](https://groups.google.com/a/chromium.org/g/proto-quic/c/uKWLRh9JPCo)
+  /// suggests that payloads later than 1350 cannot be reliably received.
   int send(List<int> buffer, InternetAddress address, int port);
 
   /// Receives a datagram.
   ///
   /// Returns `null` if there are no datagrams available.
-  ///
-  /// The maximum length of the datagram that can be received is 65503 bytes.
   Datagram? receive();
 
   /// Joins a multicast group.
