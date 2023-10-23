@@ -514,12 +514,12 @@ class OperationsCfe
         this.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) return false;
     if (property is Procedure) {
-      if (property.isAbstractFieldAccessor || property.isLoweredLateField) {
-        // Property was declared as a field; it was lowered to a getter or
-        // getter/setter pair. So for field promotion purposes treat it as a
-        // field.
-      } else {
-        // We don't promote methods or explicit getters.
+      if (!property.isAccessor) {
+        // We don't promote methods.
+        return false;
+      }
+      if (property.isAbstract && !property.isAbstractFieldAccessor) {
+        // We don't promote direct references to abstract getter declarations.
         return false;
       }
     }
