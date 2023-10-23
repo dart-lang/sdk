@@ -132,7 +132,7 @@ abstract final class _TypedListBase {
     return _slowSetRange(start, end, from, skipCount);
   }
 
-  // Method(s) implementing the Object interface.
+  // Method(s) implementing Object interface.
   String toString() => ListBase.listToString(this as List);
 
   // Internal utility methods.
@@ -2190,7 +2190,7 @@ final class _Int8List extends _TypedList
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2210,13 +2210,10 @@ final class _Int8List extends _TypedList
     _setInt8(index, _toInt8(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Int8List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int8List interface.
-  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
 
   // Internal utility methods.
   Int8List _createList(int length) {
@@ -2252,7 +2249,7 @@ final class _Uint8List extends _TypedList
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
+  // Methods implementing List interface.
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2272,13 +2269,10 @@ final class _Uint8List extends _TypedList
     _setUint8(index, _toUint8(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Methods implementing TypedData interface.
   int get elementSizeInBytes {
     return Uint8List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint8List interface.
-  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
 
   // Internal utility methods.
   Uint8List _createList(int length) {
@@ -2317,7 +2311,7 @@ final class _Uint8ClampedList extends _TypedList
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
+  // Methods implementing List interface.
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2337,14 +2331,10 @@ final class _Uint8ClampedList extends _TypedList
     _setUint8(index, _toClampedUint8(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Methods implementing TypedData interface.
   int get elementSizeInBytes {
     return Uint8List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8ClampedList asUnmodifiableView() =>
-      UnmodifiableUint8ClampedListView(this);
 
   // Internal utility methods.
   Uint8ClampedList _createList(int length) {
@@ -2385,7 +2375,7 @@ final class _Int16List extends _TypedList
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int operator [](int index) {
@@ -2417,13 +2407,10 @@ final class _Int16List extends _TypedList
     }
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Int16List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int16List interface.
-  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
 
   // Internal utility methods.
   Int16List _createList(int length) {
@@ -2504,9 +2491,6 @@ final class _Uint16List extends _TypedList
     return Uint16List.bytesPerElement;
   }
 
-  // Method(s) implementing the Uint16List interface.
-  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
-
   // Internal utility methods.
   Uint16List _createList(int length) {
     return new Uint16List(length);
@@ -2568,13 +2552,10 @@ final class _Int32List extends _TypedList
     _setIndexedInt32(index, _toInt32(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Int32List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int32List interface.
-  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
 
   // Internal utility methods.
   Int32List _createList(int length) {
@@ -2642,9 +2623,6 @@ final class _Uint32List extends _TypedList
     return Uint32List.bytesPerElement;
   }
 
-  // Method(s) implementing the Uint32List interface.
-  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
-
   // Internal utility methods.
   Uint32List _createList(int length) {
     return new Uint32List(length);
@@ -2711,9 +2689,6 @@ final class _Int64List extends _TypedList
     return Int64List.bytesPerElement;
   }
 
-  // Method(s) implementing the Int64List interface.
-  Int64List asUnmodifiableView() => UnmodifiableInt64ListView(this);
-
   // Internal utility methods.
   Int64List _createList(int length) {
     return new Int64List(length);
@@ -2779,9 +2754,6 @@ final class _Uint64List extends _TypedList
   int get elementSizeInBytes {
     return Uint64List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint64List interface.
-  Uint64List asUnmodifiableView() => UnmodifiableUint64ListView(this);
 
   // Internal utility methods.
   Uint64List _createList(int length) {
@@ -2850,9 +2822,6 @@ final class _Float32List extends _TypedList
     return Float32List.bytesPerElement;
   }
 
-  // Method(s) implementing the Float32List interface.
-  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
-
   // Internal utility methods.
   Float32List _createList(int length) {
     return new Float32List(length);
@@ -2920,9 +2889,6 @@ final class _Float64List extends _TypedList
     return Float64List.bytesPerElement;
   }
 
-  // Method(s) implementing the Float64List interface.
-  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
-
   // Internal utility methods.
   Float64List _createList(int length) {
     return new Float64List(length);
@@ -2988,9 +2954,6 @@ final class _Float32x4List extends _TypedList
   int get elementSizeInBytes {
     return Float32x4List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float32x4List interface.
-  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
 
   // Internal utility methods.
   Float32x4List _createList(int length) {
@@ -3058,9 +3021,6 @@ final class _Int32x4List extends _TypedList
     return Int32x4List.bytesPerElement;
   }
 
-  // Method(s) implementing the Int32x4List interface.
-  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
-
   // Internal utility methods.
   Int32x4List _createList(int length) {
     return new Int32x4List(length);
@@ -3127,9 +3087,6 @@ final class _Float64x2List extends _TypedList
     return Float64x2List.bytesPerElement;
   }
 
-  // Method(s) implementing the Float64x2List interface.
-  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
-
   // Internal utility methods.
   Float64x2List _createList(int length) {
     return new Float64x2List(length);
@@ -3179,9 +3136,6 @@ final class _ExternalInt8Array extends _TypedList
     return Int8List.bytesPerElement;
   }
 
-  // Method(s) implementing the Int8List interface.
-  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
-
   // Internal utility methods.
   Int8List _createList(int length) {
     return new Int8List(length);
@@ -3225,9 +3179,6 @@ final class _ExternalUint8Array extends _TypedList
   int get elementSizeInBytes {
     return Uint8List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
 
   // Internal utility methods.
   Uint8List _createList(int length) {
@@ -3276,10 +3227,6 @@ final class _ExternalUint8ClampedArray extends _TypedList
     return Uint8List.bytesPerElement;
   }
 
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8ClampedList asUnmodifiableView() =>
-      UnmodifiableUint8ClampedListView(this);
-
   // Internal utility methods.
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
@@ -3325,9 +3272,6 @@ final class _ExternalInt16Array extends _TypedList
   int get elementSizeInBytes {
     return Int16List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int16List interface.
-  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
 
   // Internal utility methods.
   Int16List _createList(int length) {
@@ -3378,9 +3322,6 @@ final class _ExternalUint16Array extends _TypedList
     return Uint16List.bytesPerElement;
   }
 
-  // Method(s) implementing the Uint16List interface.
-  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
-
   // Internal utility methods.
   Uint16List _createList(int length) {
     return new Uint16List(length);
@@ -3429,9 +3370,6 @@ final class _ExternalInt32Array extends _TypedList
   int get elementSizeInBytes {
     return Int32List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int32List interface.
-  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
 
   // Internal utility methods.
   Int32List _createList(int length) {
@@ -3482,9 +3420,6 @@ final class _ExternalUint32Array extends _TypedList
     return Uint32List.bytesPerElement;
   }
 
-  // Method(s) implementing the Uint32List interface.
-  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
-
   // Internal utility methods.
   Uint32List _createList(int length) {
     return new Uint32List(length);
@@ -3533,9 +3468,6 @@ final class _ExternalInt64Array extends _TypedList
   int get elementSizeInBytes {
     return Int64List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int64List interface.
-  Int64List asUnmodifiableView() => UnmodifiableInt64ListView(this);
 
   // Internal utility methods.
   Int64List _createList(int length) {
@@ -3586,9 +3518,6 @@ final class _ExternalUint64Array extends _TypedList
     return Uint64List.bytesPerElement;
   }
 
-  // Method(s) implementing the Uint64List interface.
-  Uint64List asUnmodifiableView() => UnmodifiableUint64ListView(this);
-
   // Internal utility methods.
   Uint64List _createList(int length) {
     return new Uint64List(length);
@@ -3637,9 +3566,6 @@ final class _ExternalFloat32Array extends _TypedList
   int get elementSizeInBytes {
     return Float32List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float32List interface.
-  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
 
   // Internal utility methods.
   Float32List _createList(int length) {
@@ -3690,9 +3616,6 @@ final class _ExternalFloat64Array extends _TypedList
     return Float64List.bytesPerElement;
   }
 
-  // Method(s) implementing the Float64List interface.
-  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
-
   // Internal utility methods.
   Float64List _createList(int length) {
     return new Float64List(length);
@@ -3741,9 +3664,6 @@ final class _ExternalFloat32x4Array extends _TypedList
   int get elementSizeInBytes {
     return Float32x4List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float32x4 interface.
-  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
 
   // Internal utility methods.
   Float32x4List _createList(int length) {
@@ -3794,9 +3714,6 @@ final class _ExternalInt32x4Array extends _TypedList
     return Int32x4List.bytesPerElement;
   }
 
-  // Method(s) implementing the Int32x4List interface.
-  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
-
   // Internal utility methods.
   Int32x4List _createList(int length) {
     return new Int32x4List(length);
@@ -3845,9 +3762,6 @@ final class _ExternalFloat64x2Array extends _TypedList
   int get elementSizeInBytes {
     return Float64x2List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float64x2List interface.
-  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
 
   // Internal utility methods.
   Float64x2List _createList(int length) {
@@ -4430,7 +4344,7 @@ final class _Int8ArrayView extends _TypedListView
   external factory _Int8ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4451,13 +4365,10 @@ final class _Int8ArrayView extends _TypedListView
         offsetInBytes + (index * Int8List.bytesPerElement), _toInt8(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Int8List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int8List interface.
-  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
 
   // Internal utility methods.
   Int8List _createList(int length) {
@@ -4482,7 +4393,7 @@ final class _Uint8ArrayView extends _TypedListView
   external factory _Uint8ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4503,13 +4414,10 @@ final class _Uint8ArrayView extends _TypedListView
         offsetInBytes + (index * Uint8List.bytesPerElement), _toUint8(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Uint8List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint8List interface.
-  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
 
   // Internal utility methods.
   Uint8List _createList(int length) {
@@ -4537,7 +4445,7 @@ final class _Uint8ClampedArrayView extends _TypedListView
   external factory _Uint8ClampedArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4558,14 +4466,10 @@ final class _Uint8ClampedArrayView extends _TypedListView
         _toClampedUint8(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Uint8List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8ClampedList asUnmodifiableView() =>
-      UnmodifiableUint8ClampedListView(this);
 
   // Internal utility methods.
   Uint8ClampedList _createList(int length) {
@@ -4595,7 +4499,7 @@ final class _Int16ArrayView extends _TypedListView
   external factory _Int16ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4628,14 +4532,11 @@ final class _Int16ArrayView extends _TypedListView
     }
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
 
   int get elementSizeInBytes {
     return Int16List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int16List interface.
-  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
 
   // Internal utility methods.
   Int16List _createList(int length) {
@@ -4660,7 +4561,7 @@ final class _Uint16ArrayView extends _TypedListView
   external factory _Uint16ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4693,16 +4594,14 @@ final class _Uint16ArrayView extends _TypedListView
     }
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
 
   int get elementSizeInBytes {
     return Uint16List.bytesPerElement;
   }
 
-  // Method(s) implementing the Uint16List interface.
-  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
-
   // Internal utility methods.
+
   Uint16List _createList(int length) {
     return new Uint16List(length);
   }
@@ -4725,7 +4624,7 @@ final class _Int32ArrayView extends _TypedListView
   external factory _Int32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4746,13 +4645,10 @@ final class _Int32ArrayView extends _TypedListView
         offsetInBytes + (index * Int32List.bytesPerElement), _toInt32(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Int32List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int32List interface.
-  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
 
   // Internal utility methods.
   Int32List _createList(int length) {
@@ -4777,7 +4673,7 @@ final class _Uint32ArrayView extends _TypedListView
   external factory _Uint32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4798,13 +4694,10 @@ final class _Uint32ArrayView extends _TypedListView
         offsetInBytes + (index * Uint32List.bytesPerElement), _toUint32(value));
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Uint32List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint32List interface.
-  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
 
   // Internal utility methods.
   Uint32List _createList(int length) {
@@ -4829,7 +4722,7 @@ final class _Int64ArrayView extends _TypedListView
   external factory _Int64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4850,13 +4743,10 @@ final class _Int64ArrayView extends _TypedListView
         offsetInBytes + (index * Int64List.bytesPerElement), value);
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Int64List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int16List interface.
-  Int64List asUnmodifiableView() => UnmodifiableInt64ListView(this);
 
   // Internal utility methods.
   Int64List _createList(int length) {
@@ -4881,7 +4771,7 @@ final class _Uint64ArrayView extends _TypedListView
   external factory _Uint64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4902,13 +4792,10 @@ final class _Uint64ArrayView extends _TypedListView
         offsetInBytes + (index * Uint64List.bytesPerElement), value);
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Uint64List.bytesPerElement;
   }
-
-  // Method(s) implementing the Uint64List interface.
-  Uint64List asUnmodifiableView() => UnmodifiableUint64ListView(this);
 
   // Internal utility methods.
   Uint64List _createList(int length) {
@@ -4933,7 +4820,7 @@ final class _Float32ArrayView extends _TypedListView
   external factory _Float32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   double operator [](int index) {
     if (index < 0 || index >= length) {
@@ -4954,13 +4841,10 @@ final class _Float32ArrayView extends _TypedListView
         offsetInBytes + (index * Float32List.bytesPerElement), value);
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Float32List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float32List interface.
-  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
 
   // Internal utility methods.
   Float32List _createList(int length) {
@@ -4985,7 +4869,7 @@ final class _Float64ArrayView extends _TypedListView
   external factory _Float64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
   double operator [](int index) {
     if (index < 0 || index >= length) {
@@ -5006,13 +4890,10 @@ final class _Float64ArrayView extends _TypedListView
         offsetInBytes + (index * Float64List.bytesPerElement), value);
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Float64List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float64List interface.
-  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
 
   // Internal utility methods.
   Float64List _createList(int length) {
@@ -5037,7 +4918,7 @@ final class _Float32x4ArrayView extends _TypedListView
   external factory _Float32x4ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   Float32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new IndexError.withLength(index, length,
@@ -5056,13 +4937,10 @@ final class _Float32x4ArrayView extends _TypedListView
         offsetInBytes + (index * Float32x4List.bytesPerElement), value);
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Float32x4List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float32x4List interface.
-  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
 
   // Internal utility methods.
   Float32x4List _createList(int length) {
@@ -5087,7 +4965,7 @@ final class _Int32x4ArrayView extends _TypedListView
   external factory _Int32x4ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   Int32x4 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new IndexError.withLength(index, length,
@@ -5106,13 +4984,10 @@ final class _Int32x4ArrayView extends _TypedListView
         offsetInBytes + (index * Int32x4List.bytesPerElement), value);
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Int32x4List.bytesPerElement;
   }
-
-  // Method(s) implementing the Int32x4List interface.
-  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
 
   // Internal utility methods.
   Int32x4List _createList(int length) {
@@ -5137,7 +5012,7 @@ final class _Float64x2ArrayView extends _TypedListView
   external factory _Float64x2ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the List interface.
+  // Method(s) implementing List interface.
   Float64x2 operator [](int index) {
     if (index < 0 || index >= length) {
       throw new IndexError.withLength(index, length,
@@ -5156,13 +5031,10 @@ final class _Float64x2ArrayView extends _TypedListView
         offsetInBytes + (index * Float64x2List.bytesPerElement), value);
   }
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   int get elementSizeInBytes {
     return Float64x2List.bytesPerElement;
   }
-
-  // Method(s) implementing the Float64x2List interface.
-  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
 
   // Internal utility methods.
   Float64x2List _createList(int length) {
@@ -5184,7 +5056,7 @@ final class _ByteDataView implements ByteData {
   external factory _ByteDataView._(
       _TypedList buffer, int offsetInBytes, int length);
 
-  // Method(s) implementing the TypedData interface.
+  // Method(s) implementing TypedData interface.
   _ByteBuffer get buffer {
     return _typedData.buffer;
   }
@@ -5197,8 +5069,7 @@ final class _ByteDataView implements ByteData {
     return 1;
   }
 
-  // Method(s) implementing the ByteData interface.
-  ByteData asUnmodifiableView() => UnmodifiableByteDataView(this);
+  // Method(s) implementing ByteData interface.
 
   @pragma("vm:prefer-inline")
   int getInt8(int byteOffset) {
@@ -5751,8 +5622,6 @@ final class _UnmodifiableInt8ArrayView extends _Int8ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Int8List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5770,8 +5639,6 @@ final class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Uint8List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5789,8 +5656,6 @@ final class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Uint8ClampedList asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5808,8 +5673,6 @@ final class _UnmodifiableInt16ArrayView extends _Int16ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Int16List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5827,8 +5690,6 @@ final class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Uint16List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5846,8 +5707,6 @@ final class _UnmodifiableInt32ArrayView extends _Int32ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Int32List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5865,8 +5724,6 @@ final class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Uint32List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5884,8 +5741,6 @@ final class _UnmodifiableInt64ArrayView extends _Int64ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Int64List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5903,8 +5758,6 @@ final class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Uint64List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5922,8 +5775,6 @@ final class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Float32List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5941,8 +5792,6 @@ final class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Float64List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5960,8 +5809,6 @@ final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Float32x4List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5979,8 +5826,6 @@ final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Int32x4List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -5998,8 +5843,6 @@ final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  Float64x2List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
@@ -6058,8 +5901,6 @@ final class _UnmodifiableByteDataView extends _ByteDataView
   }
 
   _ByteBuffer get buffer => new _UnmodifiableByteBufferView(_typedData.buffer);
-
-  ByteData asUnmodifiableView() => this;
 }
 
 final class _UnmodifiableByteBufferView extends _ByteBuffer

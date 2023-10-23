@@ -66,8 +66,6 @@ final class NaiveInt32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
-
   Int32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
     return NaiveInt32x4List.externalStorage(
@@ -148,8 +146,6 @@ final class NaiveFloat32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
-  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
-
   Float32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
     return NaiveFloat32x4List.externalStorage(
@@ -223,8 +219,6 @@ final class NaiveFloat64x2List extends Object
     _storage[(index * 2) + 0] = value.x;
     _storage[(index * 2) + 1] = value.y;
   }
-
-  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
 
   Float64x2List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
