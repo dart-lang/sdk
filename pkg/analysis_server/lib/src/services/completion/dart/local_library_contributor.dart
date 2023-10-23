@@ -194,6 +194,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
         // TODO(scheglov) This looks not ideal - we should suggest getters.
         for (final field in element.fields) {
           if (field.isStatic &&
+              field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
             builder.suggestStaticField(field, prefix: prefix);
           }
