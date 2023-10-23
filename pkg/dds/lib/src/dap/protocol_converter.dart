@@ -316,7 +316,7 @@ class ProtocolConverter {
 
   /// Creates a Variable for a getter after eagerly fetching its value.
   Future<Variable> createVariableForGetter(
-    vm.VmServiceInterface service,
+    vm.VmService service,
     ThreadInfo thread,
     vm.Instance instance, {
     String? variableName,

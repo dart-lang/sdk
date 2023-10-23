@@ -9,16 +9,18 @@ import 'dart:convert';
 import 'package:async/async.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service.dart'
+    hide ServiceExtensionRegistry, VmServiceInterface, VmServerConnection;
+import 'package:vm_service_interface/vm_service_interface.dart';
 
 void main() {
-  late MockVmService serviceMock;
+  late MockVmServiceImplementation serviceMock;
   late StreamController<Map<String, Object>> requestsController;
   late StreamController<Map<String, Object?>> responsesController;
   late ServiceExtensionRegistry serviceRegistry;
 
   setUp(() {
-    serviceMock = MockVmService();
+    serviceMock = MockVmServiceImplementation();
     requestsController = StreamController<Map<String, Object>>();
     responsesController = StreamController<Map<String, Object?>>();
     serviceRegistry = ServiceExtensionRegistry();
@@ -33,7 +35,7 @@ void main() {
 
   group('method delegation', () {
     test('works for simple methods', () {
-      var request = rpcRequest("getVersion");
+      var request = rpcRequest('getVersion');
       var version = Version(major: 1, minor: 0);
       when(serviceMock.getVersion()).thenAnswer((_) => Future.value(version));
       expect(responsesController.stream, emits(rpcResponse(version)));
@@ -59,7 +61,7 @@ void main() {
         isSystemIsolate: false,
       );
       var request =
-          rpcRequest("getIsolate", params: {'isolateId': isolate.id!});
+          rpcRequest('getIsolate', params: {'isolateId': isolate.id!});
       when(serviceMock.getIsolate(isolate.id!))
           .thenAnswer((Invocation invocation) {
         expect(invocation.positionalArguments, equals([isolate.id]));
@@ -88,7 +90,7 @@ void main() {
         breakpoints: [],
         isSystemIsolate: false,
       );
-      var request = rpcRequest("setVMTimelineFlags", params: {
+      var request = rpcRequest('setVMTimelineFlags', params: {
         'isolateId': isolate.id!,
         // Note: the dynamic list below is intentional in order to exercise the
         // code under test.
@@ -109,7 +111,7 @@ void main() {
       test('with no params or isolateId', () {
         var extension = 'ext.cool';
         var request = rpcRequest(extension, params: null);
-        var response = Response()..json = {"hello": "world"};
+        var response = Response()..json = {'hello': 'world'};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(isNull, named: 'isolateId'),
@@ -126,7 +128,7 @@ void main() {
       test('with isolateId and no other params', () {
         var extension = 'ext.cool';
         var request = rpcRequest(extension, params: {'isolateId': '1'});
-        var response = Response()..json = {"hello": "world"};
+        var response = Response()..json = {'hello': 'world'};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(equals('1'), named: 'isolateId'),
@@ -144,7 +146,7 @@ void main() {
         var extension = 'ext.cool';
         var params = {'cool': 'option'};
         var request = rpcRequest(extension, params: params);
-        var response = Response()..json = {"hello": "world"};
+        var response = Response()..json = {'hello': 'world'};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(isNull, named: 'isolateId'),
@@ -163,10 +165,10 @@ void main() {
         var params = {'cool': 'option'};
         var request =
             rpcRequest(extension, params: Map.of(params)..['isolateId'] = '1');
-        var response = Response()..json = {"hello": "world"};
+        var response = Response()..json = {'hello': 'world'};
         when(serviceMock.callServiceExtension(
           extension,
-          isolateId: argThat(equals("1"), named: 'isolateId'),
+          isolateId: argThat(equals('1'), named: 'isolateId'),
           args: argThat(equals(params), named: 'args'),
         )).thenAnswer((Invocation invocation) {
           expect(invocation.namedArguments,
@@ -181,7 +183,7 @@ void main() {
 
   group('error handling', () {
     test('special cases RPCError instances', () {
-      var request = rpcRequest("getVersion");
+      var request = rpcRequest('getVersion');
       var error =
           RPCError('getVersion', 1234, 'custom message', {'custom': 'data'});
       when(serviceMock.getVersion()).thenAnswer((_) => Future.error(error));
@@ -190,7 +192,7 @@ void main() {
     });
 
     test('has a fallback for generic exceptions', () {
-      var request = rpcRequest("getVersion");
+      var request = rpcRequest('getVersion');
       var error = UnimplementedError();
       when(serviceMock.getVersion()).thenAnswer((_) => Future.error(error));
       expect(
@@ -346,7 +348,7 @@ void main() {
           requestsController2.stream,
           responsesController2.sink,
           serviceRegistry,
-          VmService(Stream.empty(), (String _) => null),
+          MockVmServiceImplementation(),
         );
 
         expect(
@@ -374,7 +376,8 @@ void main() {
           requestsController3.stream,
           responsesController3.sink,
           serviceRegistry,
-          VmService(Stream.empty(), (String _) => null),
+          MockVmServiceImplementation(),
+          //VmService(Stream.empty(), (String _) => null),
         );
         expect(
             responsesController3.stream,
@@ -446,21 +449,21 @@ void main() {
 }
 
 Map<String, Object> rpcRequest(String method,
-        {Map<String, Object>? params = const {}, String id = "1"}) =>
+        {Map<String, Object>? params = const {}, String id = '1'}) =>
     {
-      "jsonrpc": "2.0",
-      "method": method,
-      if (params != null) "params": params,
-      "id": id,
+      'jsonrpc': '2.0',
+      'method': method,
+      if (params != null) 'params': params,
+      'id': id,
     };
 
-Map<String, Object> rpcResponse(Response response, {String id = "1"}) => {
+Map<String, Object> rpcResponse(Response response, {String id = '1'}) => {
       'jsonrpc': '2.0',
       'id': id,
       'result': response.toJson(),
     };
 
-Map<String, Object> rpcErrorResponse(Object error, {String id = "1"}) {
+Map<String, Object> rpcErrorResponse(Object error, {String id = '1'}) {
   Map<String, Object> errorJson;
   if (error is RPCError) {
     errorJson = {
@@ -488,7 +491,7 @@ Map<String, Object> streamNotifyResponse(String streamId, Event event) {
     'jsonrpc': '2.0',
     'method': 'streamNotify',
     'params': {
-      'streamId': '$streamId',
+      'streamId': streamId,
       'event': event.toJson(),
     },
   };
@@ -502,7 +505,7 @@ Map<String, Object?> stripEventTimestamp(Map response) {
   return response as Map<String, Object?>;
 }
 
-class MockVmService extends Mock implements VmServiceInterface {
+class MockVmServiceImplementation extends Mock implements VmServiceInterface {
   final streamControllers = <String, StreamController<Event>>{};
 
   @override

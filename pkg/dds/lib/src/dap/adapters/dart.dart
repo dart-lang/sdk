@@ -349,7 +349,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ///
   /// `null` if the session is running in noDebug mode of the connection has not
   /// yet been made.
-  vm.VmServiceInterface? vmService;
+  vm.VmService? vmService;
 
   /// The root of the Dart SDK containing the VM running the debug adapter.
   late final String dartSdkRoot;

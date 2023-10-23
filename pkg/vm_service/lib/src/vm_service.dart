@@ -15,9 +15,6 @@ import 'dart:async';
 import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
 import 'dart:typed_data';
 
-import 'service_extension_registry.dart';
-
-export 'service_extension_registry.dart' show ServiceExtensionRegistry;
 export 'snapshot_graph.dart'
     show
         HeapSnapshotClass,
@@ -97,7 +94,8 @@ void _setIfNotNull(Map<String, dynamic> json, String key, Object? value) {
   json[key] = value;
 }
 
-Future<T> extensionCallHelper<T>(VmService service, String method, Map args) {
+Future<T> extensionCallHelper<T>(
+    VmService service, String method, Map<String, dynamic> args) {
   return service._call(method, args);
 }
 
@@ -111,7 +109,7 @@ void addTypeFactory(String name, Function factory) {
   _typeFactories[name] = factory;
 }
 
-Map<String, Function> _typeFactories = {
+final _typeFactories = <String, Function>{
   'AllocationProfile': AllocationProfile.parse,
   'BoundField': BoundField.parse,
   'BoundVariable': BoundVariable.parse,
@@ -199,7 +197,7 @@ Map<String, Function> _typeFactories = {
   'VM': VM.parse,
 };
 
-Map<String, List<String>> _methodReturnTypes = {
+final _methodReturnTypes = <String, List<String>>{
   'addBreakpoint': const ['Breakpoint'],
   'addBreakpointWithScriptUri': const ['Breakpoint'],
   'addBreakpointAtEntry': const ['Breakpoint'],
@@ -259,19 +257,139 @@ Map<String, List<String>> _methodReturnTypes = {
   'streamListen': const ['Success'],
 };
 
-/// A class representation of the Dart VM Service Protocol.
-///
-/// Both clients and servers should implement this interface.
-abstract class VmServiceInterface {
-  /// Returns the stream for a given stream id.
-  ///
-  /// This is not a part of the spec, but is needed for both the client and
-  /// server to get access to the real event streams.
-  Stream<Event> onEvent(String streamId);
+class _OutstandingRequest<T> {
+  _OutstandingRequest(this.method);
+  static int _idCounter = 0;
+  final id = '${_idCounter++}';
+  final String method;
+  final _stackTrace = StackTrace.current;
+  final _completer = Completer<T>();
 
-  /// Handler for calling extra service extensions.
-  Future<Response> callServiceExtension(String method,
-      {String? isolateId, Map<String, dynamic>? args});
+  Future<T> get future => _completer.future;
+
+  void complete(T value) => _completer.complete(value);
+  void completeError(Object error) =>
+      _completer.completeError(error, _stackTrace);
+}
+
+typedef VmServiceFactory<T extends VmService> = T Function({
+  required Stream<dynamic> /*String|List<int>*/ inStream,
+  required void Function(String message) writeMessage,
+  Log? log,
+  DisposeHandler? disposeHandler,
+  Future? streamClosed,
+  String? wsUri,
+});
+
+class VmService {
+  late final StreamSubscription _streamSub;
+  late final Function _writeMessage;
+  final _outstandingRequests = <String, _OutstandingRequest>{};
+  final _services = <String, ServiceCallback>{};
+  late final Log _log;
+
+  /// The web socket URI pointing to the target VM service instance.
+  final String? wsUri;
+
+  Stream<String> get onSend => _onSend.stream;
+  final _onSend = StreamController<String>.broadcast(sync: true);
+
+  Stream<String> get onReceive => _onReceive.stream;
+  final _onReceive = StreamController<String>.broadcast(sync: true);
+
+  Future<void> get onDone => _onDoneCompleter.future;
+  final _onDoneCompleter = Completer<void>();
+
+  final _eventControllers = <String, StreamController<Event>>{};
+
+  StreamController<Event> _getEventController(String eventName) {
+    StreamController<Event>? controller = _eventControllers[eventName];
+    if (controller == null) {
+      controller = StreamController.broadcast();
+      _eventControllers[eventName] = controller;
+    }
+    return controller;
+  }
+
+  late final DisposeHandler? _disposeHandler;
+
+  VmService(
+    Stream<dynamic> /*String|List<int>*/ inStream,
+    void Function(String message) writeMessage, {
+    Log? log,
+    DisposeHandler? disposeHandler,
+    Future? streamClosed,
+    this.wsUri,
+  }) {
+    _streamSub = inStream.listen(_processMessage,
+        onDone: () => _onDoneCompleter.complete());
+    _writeMessage = writeMessage;
+    _log = log ?? _NullLog();
+    _disposeHandler = disposeHandler;
+    streamClosed?.then((_) {
+      if (!_onDoneCompleter.isCompleted) {
+        _onDoneCompleter.complete();
+      }
+    });
+  }
+
+  static VmService defaultFactory({
+    required Stream<dynamic> /*String|List<int>*/ inStream,
+    required void Function(String message) writeMessage,
+    Log? log,
+    DisposeHandler? disposeHandler,
+    Future? streamClosed,
+    String? wsUri,
+  }) {
+    return VmService(
+      inStream,
+      writeMessage,
+      log: log,
+      disposeHandler: disposeHandler,
+      streamClosed: streamClosed,
+      wsUri: wsUri,
+    );
+  }
+
+  Stream<Event> onEvent(String streamId) =>
+      _getEventController(streamId).stream;
+
+  // VMUpdate, VMFlagUpdate
+  Stream<Event> get onVMEvent => _getEventController('VM').stream;
+
+  // IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
+  Stream<Event> get onIsolateEvent => _getEventController('Isolate').stream;
+
+  // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
+  Stream<Event> get onDebugEvent => _getEventController('Debug').stream;
+
+  // CpuSamples, UserTagChanged
+  Stream<Event> get onProfilerEvent => _getEventController('Profiler').stream;
+
+  // GC
+  Stream<Event> get onGCEvent => _getEventController('GC').stream;
+
+  // Extension
+  Stream<Event> get onExtensionEvent => _getEventController('Extension').stream;
+
+  // TimelineEvents, TimelineStreamsSubscriptionUpdate
+  Stream<Event> get onTimelineEvent => _getEventController('Timeline').stream;
+
+  // Logging
+  Stream<Event> get onLoggingEvent => _getEventController('Logging').stream;
+
+  // ServiceRegistered, ServiceUnregistered
+  Stream<Event> get onServiceEvent => _getEventController('Service').stream;
+
+  // HeapSnapshot
+  Stream<Event> get onHeapSnapshotEvent =>
+      _getEventController('HeapSnapshot').stream;
+
+  // WriteEvent
+  Stream<Event> get onStdoutEvent => _getEventController('Stdout').stream;
+
+  // WriteEvent
+  Stream<Event> get onStderrEvent => _getEventController('Stderr').stream;
 
   /// The `addBreakpoint` RPC is used to add a breakpoint at a specific line of
   /// some script.
@@ -306,7 +424,13 @@ abstract class VmServiceInterface {
     String scriptId,
     int line, {
     int? column,
-  });
+  }) =>
+      _call('addBreakpoint', {
+        'isolateId': isolateId,
+        'scriptId': scriptId,
+        'line': line,
+        if (column != null) 'column': column,
+      });
 
   /// The `addBreakpoint` RPC is used to add a breakpoint at a specific line of
   /// some script. This RPC is useful when a script has not yet been assigned an
@@ -343,7 +467,13 @@ abstract class VmServiceInterface {
     String scriptUri,
     int line, {
     int? column,
-  });
+  }) =>
+      _call('addBreakpointWithScriptUri', {
+        'isolateId': isolateId,
+        'scriptUri': scriptUri,
+        'line': line,
+        if (column != null) 'column': column,
+      });
 
   /// The `addBreakpointAtEntry` RPC is used to add a breakpoint at the
   /// entrypoint of some function.
@@ -360,7 +490,10 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId);
+  Future<Breakpoint> addBreakpointAtEntry(
+          String isolateId, String functionId) =>
+      _call('addBreakpointAtEntry',
+          {'isolateId': isolateId, 'functionId': functionId});
 
   /// Clears all CPU profiling samples.
   ///
@@ -371,12 +504,13 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> clearCpuSamples(String isolateId);
+  Future<Success> clearCpuSamples(String isolateId) =>
+      _call('clearCpuSamples', {'isolateId': isolateId});
 
   /// Clears all VM timeline events.
   ///
   /// See [Success].
-  Future<Success> clearVMTimeline();
+  Future<Success> clearVMTimeline() => _call('clearVMTimeline');
 
   /// The `invoke` RPC is used to perform regular method invocation on some
   /// receiver, as if by dart:mirror's ObjectMirror.invoke. Note this does not
@@ -420,7 +554,15 @@ abstract class VmServiceInterface {
     String selector,
     List<String> argumentIds, {
     bool? disableBreakpoints,
-  });
+  }) =>
+      _call('invoke', {
+        'isolateId': isolateId,
+        'targetId': targetId,
+        'selector': selector,
+        'argumentIds': argumentIds,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   /// The `evaluate` RPC is used to evaluate an expression in the context of
   /// some target.
@@ -466,7 +608,15 @@ abstract class VmServiceInterface {
     String expression, {
     Map<String, String>? scope,
     bool? disableBreakpoints,
-  });
+  }) =>
+      _call('evaluate', {
+        'isolateId': isolateId,
+        'targetId': targetId,
+        'expression': expression,
+        if (scope != null) 'scope': scope,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   /// The `evaluateInFrame` RPC is used to evaluate an expression in the context
   /// of a particular stack frame. `frameIndex` is the index of the desired
@@ -504,7 +654,15 @@ abstract class VmServiceInterface {
     String expression, {
     Map<String, String>? scope,
     bool? disableBreakpoints,
-  });
+  }) =>
+      _call('evaluateInFrame', {
+        'isolateId': isolateId,
+        'frameIndex': frameIndex,
+        'expression': expression,
+        if (scope != null) 'scope': scope,
+        if (disableBreakpoints != null)
+          'disableBreakpoints': disableBreakpoints,
+      });
 
   /// The `getAllocationProfile` RPC is used to retrieve allocation information
   /// for a given isolate.
@@ -522,13 +680,18 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
-      {bool? reset, bool? gc});
+          {bool? reset, bool? gc}) =>
+      _call('getAllocationProfile', {
+        'isolateId': isolateId,
+        if (reset != null && reset) 'reset': reset,
+        if (gc != null && gc) 'gc': gc,
+      });
 
   /// The `getAllocationTraces` RPC allows for the retrieval of allocation
   /// traces for objects of a specific set of types (see
-  /// [VmServiceInterface.setTraceClassAllocation]). Only samples collected in
-  /// the time range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
-  /// will be reported.
+  /// [VmService.setTraceClassAllocation]). Only samples collected in the time
+  /// range `[timeOriginMicros, timeOriginMicros + timeExtentMicros]` will be
+  /// reported.
   ///
   /// If `classId` is provided, only traces for allocations with the matching
   /// `classId` will be reported.
@@ -544,7 +707,13 @@ abstract class VmServiceInterface {
     int? timeOriginMicros,
     int? timeExtentMicros,
     String? classId,
-  });
+  }) =>
+      _call('getAllocationTraces', {
+        'isolateId': isolateId,
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+        if (classId != null) 'classId': classId,
+      });
 
   /// The `getClassList` RPC is used to retrieve a `ClassList` containing all
   /// classes for an isolate based on the isolate's `isolateId`.
@@ -556,7 +725,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<ClassList> getClassList(String isolateId);
+  Future<ClassList> getClassList(String isolateId) =>
+      _call('getClassList', {'isolateId': isolateId});
 
   /// The `getCpuSamples` RPC is used to retrieve samples collected by the CPU
   /// profiler. See [CpuSamples] for a detailed description of the response.
@@ -564,8 +734,8 @@ abstract class VmServiceInterface {
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter samples. It uses the same monotonic clock as dart:developer's
   /// `Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
-  /// [VmServiceInterface.getVMTimelineMicros] for access to this clock through
-  /// the service protocol.
+  /// [VmService.getVMTimelineMicros] for access to this clock through the
+  /// service protocol.
   ///
   /// The `timeExtentMicros` parameter specifies how large the time range used
   /// to filter samples should be.
@@ -582,13 +752,18 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<CpuSamples> getCpuSamples(
-      String isolateId, int timeOriginMicros, int timeExtentMicros);
+          String isolateId, int timeOriginMicros, int timeExtentMicros) =>
+      _call('getCpuSamples', {
+        'isolateId': isolateId,
+        'timeOriginMicros': timeOriginMicros,
+        'timeExtentMicros': timeExtentMicros
+      });
 
   /// The `getFlagList` RPC returns a list of all command line flags in the VM
   /// along with their current values.
   ///
   /// See [FlagList].
-  Future<FlagList> getFlagList();
+  Future<FlagList> getFlagList() => _call('getFlagList');
 
   /// Returns a set of inbound references to the object specified by `targetId`.
   /// Up to `limit` references will be returned.
@@ -618,7 +793,9 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<InboundReferences> getInboundReferences(
-      String isolateId, String targetId, int limit);
+          String isolateId, String targetId, int limit) =>
+      _call('getInboundReferences',
+          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   /// The `getInstances` RPC is used to retrieve a set of instances which are of
   /// a specific class.
@@ -656,7 +833,15 @@ abstract class VmServiceInterface {
     int limit, {
     bool? includeSubclasses,
     bool? includeImplementers,
-  });
+  }) =>
+      _call('getInstances', {
+        'isolateId': isolateId,
+        'objectId': objectId,
+        'limit': limit,
+        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
+        if (includeImplementers != null)
+          'includeImplementers': includeImplementers,
+      });
 
   /// The `getInstancesAsList` RPC is used to retrieve a set of instances which
   /// are of a specific class. This RPC returns an `InstanceRef` corresponding
@@ -693,7 +878,14 @@ abstract class VmServiceInterface {
     String objectId, {
     bool? includeSubclasses,
     bool? includeImplementers,
-  });
+  }) =>
+      _call('getInstancesAsList', {
+        'isolateId': isolateId,
+        'objectId': objectId,
+        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
+        if (includeImplementers != null)
+          'includeImplementers': includeImplementers,
+      });
 
   /// The `getIsolate` RPC is used to lookup an `Isolate` object by its `id`.
   ///
@@ -704,7 +896,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Isolate> getIsolate(String isolateId);
+  Future<Isolate> getIsolate(String isolateId) =>
+      _call('getIsolate', {'isolateId': isolateId});
 
   /// The `getIsolateGroup` RPC is used to lookup an `IsolateGroup` object by
   /// its `id`.
@@ -720,7 +913,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<IsolateGroup> getIsolateGroup(String isolateGroupId);
+  Future<IsolateGroup> getIsolateGroup(String isolateGroupId) =>
+      _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
 
   /// The `getIsolatePauseEvent` RPC is used to lookup an isolate's pause event
   /// by its `id`.
@@ -732,7 +926,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Event> getIsolatePauseEvent(String isolateId);
+  Future<Event> getIsolatePauseEvent(String isolateId) =>
+      _call('getIsolatePauseEvent', {'isolateId': isolateId});
 
   /// The `getMemoryUsage` RPC is used to lookup an isolate's memory usage
   /// statistics by its `id`.
@@ -744,7 +939,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<MemoryUsage> getMemoryUsage(String isolateId);
+  Future<MemoryUsage> getMemoryUsage(String isolateId) =>
+      _call('getMemoryUsage', {'isolateId': isolateId});
 
   /// The `getIsolateGroupMemoryUsage` RPC is used to lookup an isolate group's
   /// memory usage statistics by its `id`.
@@ -756,7 +952,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId);
+  Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId) =>
+      _call('getIsolateGroupMemoryUsage', {'isolateGroupId': isolateGroupId});
 
   /// The `getScripts` RPC is used to retrieve a `ScriptList` containing all
   /// scripts for an isolate based on the isolate's `isolateId`.
@@ -768,7 +965,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<ScriptList> getScripts(String isolateId);
+  Future<ScriptList> getScripts(String isolateId) =>
+      _call('getScripts', {'isolateId': isolateId});
 
   /// The `getObject` RPC is used to lookup an `object` from some isolate by its
   /// `id`.
@@ -801,7 +999,13 @@ abstract class VmServiceInterface {
     String objectId, {
     int? offset,
     int? count,
-  });
+  }) =>
+      _call('getObject', {
+        'isolateId': isolateId,
+        'objectId': objectId,
+        if (offset != null) 'offset': offset,
+        if (count != null) 'count': count,
+      });
 
   /// The `getPerfettoCpuSamples` RPC is used to retrieve samples collected by
   /// the CPU profiler, serialized in Perfetto's proto format. See
@@ -810,8 +1014,8 @@ abstract class VmServiceInterface {
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter samples. It uses the same monotonic clock as dart:developer's
   /// `Timeline.now` and the VM embedding API's `Dart_TimelineGetMicros`. See
-  /// [VmServiceInterface.getVMTimelineMicros] for access to this clock through
-  /// the service protocol.
+  /// [VmService.getVMTimelineMicros] for access to this clock through the
+  /// service protocol.
   ///
   /// The `timeExtentMicros` parameter specifies how large the time range used
   /// to filter samples should be.
@@ -828,7 +1032,12 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<PerfettoCpuSamples> getPerfettoCpuSamples(String isolateId,
-      {int? timeOriginMicros, int? timeExtentMicros});
+          {int? timeOriginMicros, int? timeExtentMicros}) =>
+      _call('getPerfettoCpuSamples', {
+        'isolateId': isolateId,
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+      });
 
   /// The `getPerfettoVMTimeline` RPC is used to retrieve an object which
   /// contains a VM timeline trace represented in Perfetto's proto format. See
@@ -837,8 +1046,8 @@ abstract class VmServiceInterface {
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter timeline events. It uses the same monotonic clock as
   /// dart:developer's `Timeline.now` and the VM embedding API's
-  /// `Dart_TimelineGetMicros`. See [VmServiceInterface.getVMTimelineMicros] for
-  /// access to this clock through the service protocol.
+  /// `Dart_TimelineGetMicros`. See [VmService.getVMTimelineMicros] for access
+  /// to this clock through the service protocol.
   ///
   /// The `timeExtentMicros` parameter specifies how large the time range used
   /// to filter timeline events should be.
@@ -862,13 +1071,18 @@ abstract class VmServiceInterface {
   /// request`, will be returned as timeline events are written directly to a
   /// file, and thus cannot be retrieved through the VM Service, in these modes.
   Future<PerfettoTimeline> getPerfettoVMTimeline(
-      {int? timeOriginMicros, int? timeExtentMicros});
+          {int? timeOriginMicros, int? timeExtentMicros}) =>
+      _call('getPerfettoVMTimeline', {
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+      });
 
   /// The `getPorts` RPC is used to retrieve the list of `ReceivePort` instances
   /// for a given isolate.
   ///
   /// See [PortList].
-  Future<PortList> getPorts(String isolateId);
+  Future<PortList> getPorts(String isolateId) =>
+      _call('getPorts', {'isolateId': isolateId});
 
   /// The `getRetainingPath` RPC is used to lookup a path from an object
   /// specified by `targetId` to a GC root (i.e., the object which is preventing
@@ -895,14 +1109,17 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<RetainingPath> getRetainingPath(
-      String isolateId, String targetId, int limit);
+          String isolateId, String targetId, int limit) =>
+      _call('getRetainingPath',
+          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
 
   /// Returns a description of major uses of memory known to the VM.
   ///
   /// Adding or removing buckets is considered a backwards-compatible change for
   /// the purposes of versioning. A client must gracefully handle the removal or
   /// addition of any bucket.
-  Future<ProcessMemoryUsage> getProcessMemoryUsage();
+  Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
+      _call('getProcessMemoryUsage');
 
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
@@ -919,7 +1136,10 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Stack> getStack(String isolateId, {int? limit});
+  Future<Stack> getStack(String isolateId, {int? limit}) => _call('getStack', {
+        'isolateId': isolateId,
+        if (limit != null) 'limit': limit,
+      });
 
   /// The `getSupportedProtocols` RPC is used to determine which protocols are
   /// supported by the current server.
@@ -929,7 +1149,8 @@ abstract class VmServiceInterface {
   /// the list of protocols before forwarding the response to the client.
   ///
   /// See [ProtocolList].
-  Future<ProtocolList> getSupportedProtocols();
+  Future<ProtocolList> getSupportedProtocols() =>
+      _call('getSupportedProtocols');
 
   /// The `getSourceReport` RPC is used to generate a set of reports tied to
   /// source locations in an isolate.
@@ -1002,18 +1223,30 @@ abstract class VmServiceInterface {
     bool? reportLines,
     List<String>? libraryFilters,
     List<String>? librariesAlreadyCompiled,
-  });
+  }) =>
+      _call('getSourceReport', {
+        'isolateId': isolateId,
+        'reports': reports,
+        if (scriptId != null) 'scriptId': scriptId,
+        if (tokenPos != null) 'tokenPos': tokenPos,
+        if (endTokenPos != null) 'endTokenPos': endTokenPos,
+        if (forceCompile != null) 'forceCompile': forceCompile,
+        if (reportLines != null) 'reportLines': reportLines,
+        if (libraryFilters != null) 'libraryFilters': libraryFilters,
+        if (librariesAlreadyCompiled != null)
+          'librariesAlreadyCompiled': librariesAlreadyCompiled,
+      });
 
   /// The `getVersion` RPC is used to determine what version of the Service
   /// Protocol is served by a VM.
   ///
   /// See [Version].
-  Future<Version> getVersion();
+  Future<Version> getVersion() => _call('getVersion');
 
   /// The `getVM` RPC returns global information about a Dart virtual machine.
   ///
   /// See [VM].
-  Future<VM> getVM();
+  Future<VM> getVM() => _call('getVM');
 
   /// The `getVMTimeline` RPC is used to retrieve an object which contains VM
   /// timeline events. See [Timeline] for a detailed description of the
@@ -1022,8 +1255,8 @@ abstract class VmServiceInterface {
   /// The `timeOriginMicros` parameter is the beginning of the time range used
   /// to filter timeline events. It uses the same monotonic clock as
   /// dart:developer's `Timeline.now` and the VM embedding API's
-  /// `Dart_TimelineGetMicros`. See [VmServiceInterface.getVMTimelineMicros] for
-  /// access to this clock through the service protocol.
+  /// `Dart_TimelineGetMicros`. See [VmService.getVMTimelineMicros] for access
+  /// to this clock through the service protocol.
   ///
   /// The `timeExtentMicros` parameter specifies how large the time range used
   /// to filter timeline events should be.
@@ -1046,23 +1279,27 @@ abstract class VmServiceInterface {
   /// request`, will be returned as timeline events are written directly to a
   /// file, and thus cannot be retrieved through the VM Service, in these modes.
   Future<Timeline> getVMTimeline(
-      {int? timeOriginMicros, int? timeExtentMicros});
+          {int? timeOriginMicros, int? timeExtentMicros}) =>
+      _call('getVMTimeline', {
+        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
+        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
+      });
 
   /// The `getVMTimelineFlags` RPC returns information about the current VM
   /// timeline configuration.
   ///
   /// To change which timeline streams are currently enabled, see
-  /// [VmServiceInterface.setVMTimelineFlags].
+  /// [VmService.setVMTimelineFlags].
   ///
   /// See [TimelineFlags].
-  Future<TimelineFlags> getVMTimelineFlags();
+  Future<TimelineFlags> getVMTimelineFlags() => _call('getVMTimelineFlags');
 
   /// The `getVMTimelineMicros` RPC returns the current time stamp from the
   /// clock used by the timeline, similar to `Timeline.now` in `dart:developer`
   /// and `Dart_TimelineGetMicros` in the VM embedding API.
   ///
-  /// See [Timestamp] and [VmServiceInterface.getVMTimeline].
-  Future<Timestamp> getVMTimelineMicros();
+  /// See [Timestamp] and [VmService.getVMTimeline].
+  Future<Timestamp> getVMTimelineMicros() => _call('getVMTimelineMicros');
 
   /// The `pause` RPC is used to interrupt a running isolate. The RPC enqueues
   /// the interrupt request and potentially returns before the isolate is
@@ -1077,7 +1314,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> pause(String isolateId);
+  Future<Success> pause(String isolateId) =>
+      _call('pause', {'isolateId': isolateId});
 
   /// The `kill` RPC is used to kill an isolate as if by dart:isolate's
   /// `Isolate.kill(IMMEDIATE)`.
@@ -1091,7 +1329,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> kill(String isolateId);
+  Future<Success> kill(String isolateId) =>
+      _call('kill', {'isolateId': isolateId});
 
   /// The `lookupResolvedPackageUris` RPC is used to convert a list of URIs to
   /// their resolved (or absolute) paths. For example, URIs passed to this RPC
@@ -1110,7 +1349,12 @@ abstract class VmServiceInterface {
   ///
   /// See [UriList].
   Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
-      {bool? local});
+          {bool? local}) =>
+      _call('lookupResolvedPackageUris', {
+        'isolateId': isolateId,
+        'uris': uris,
+        if (local != null) 'local': local,
+      });
 
   /// The `lookupPackageUris` RPC is used to convert a list of URIs to their
   /// unresolved paths. For example, URIs passed to this RPC are mapped in the
@@ -1125,7 +1369,8 @@ abstract class VmServiceInterface {
   /// will be `null`.
   ///
   /// See [UriList].
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris);
+  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
+      _call('lookupPackageUris', {'isolateId': isolateId, 'uris': uris});
 
   /// Registers a service that can be invoked by other VM service clients, where
   /// `service` is the name of the service to advertise and `alias` is an
@@ -1135,7 +1380,8 @@ abstract class VmServiceInterface {
   /// originally registered the service.
   ///
   /// See [Success].
-  Future<Success> registerService(String service, String alias);
+  Future<Success> registerService(String service, String alias) =>
+      _call('registerService', {'service': service, 'alias': alias});
 
   /// The `reloadSources` RPC is used to perform a hot reload of the sources of
   /// all isolates in the same isolate group as the isolate specified by
@@ -1164,7 +1410,14 @@ abstract class VmServiceInterface {
     bool? pause,
     String? rootLibUri,
     String? packagesUri,
-  });
+  }) =>
+      _call('reloadSources', {
+        'isolateId': isolateId,
+        if (force != null) 'force': force,
+        if (pause != null) 'pause': pause,
+        if (rootLibUri != null) 'rootLibUri': rootLibUri,
+        if (packagesUri != null) 'packagesUri': packagesUri,
+      });
 
   /// The `removeBreakpoint` RPC is used to remove a breakpoint by its `id`.
   ///
@@ -1177,22 +1430,25 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> removeBreakpoint(String isolateId, String breakpointId);
+  Future<Success> removeBreakpoint(String isolateId, String breakpointId) =>
+      _call('removeBreakpoint',
+          {'isolateId': isolateId, 'breakpointId': breakpointId});
 
   /// Requests a dump of the Dart heap of the given isolate.
   ///
   /// This method immediately returns success. The VM will then begin delivering
   /// binary events on the `HeapSnapshot` event stream. The binary data in these
-  /// events, when concatenated together, conforms to the [SnapshotGraph] type.
-  /// The splitting of the SnapshotGraph into events can happen at any byte
-  /// offset.
+  /// events, when concatenated together, conforms to the [HeapSnapshotGraph]
+  /// type. The splitting of the SnapshotGraph into events can happen at any
+  /// byte offset.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> requestHeapSnapshot(String isolateId);
+  Future<Success> requestHeapSnapshot(String isolateId) =>
+      _call('requestHeapSnapshot', {'isolateId': isolateId});
 
   /// The `resume` RPC is used to resume execution of a paused isolate.
   ///
@@ -1224,7 +1480,12 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Success> resume(String isolateId,
-      {/*StepOption*/ String? step, int? frameIndex});
+          {/*StepOption*/ String? step, int? frameIndex}) =>
+      _call('resume', {
+        'isolateId': isolateId,
+        if (step != null) 'step': step,
+        if (frameIndex != null) 'frameIndex': frameIndex,
+      });
 
   /// The `setBreakpointState` RPC allows for breakpoints to be enabled or
   /// disabled, without requiring for the breakpoint to be completely removed.
@@ -1236,7 +1497,12 @@ abstract class VmServiceInterface {
   ///
   /// See [Breakpoint].
   Future<Breakpoint> setBreakpointState(
-      String isolateId, String breakpointId, bool enable);
+          String isolateId, String breakpointId, bool enable) =>
+      _call('setBreakpointState', {
+        'isolateId': isolateId,
+        'breakpointId': breakpointId,
+        'enable': enable
+      });
 
   /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
   /// when an exception is thrown.
@@ -1254,7 +1520,8 @@ abstract class VmServiceInterface {
   /// returned.
   @Deprecated('Use setIsolatePauseMode instead')
   Future<Success> setExceptionPauseMode(
-      String isolateId, /*ExceptionPauseMode*/ String mode);
+          String isolateId, /*ExceptionPauseMode*/ String mode) =>
+      _call('setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
 
   /// The `setIsolatePauseMode` RPC is used to control if or when an isolate
   /// will pause due to a change in execution state.
@@ -1274,8 +1541,14 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Success> setIsolatePauseMode(String isolateId,
-      {/*ExceptionPauseMode*/ String? exceptionPauseMode,
-      bool? shouldPauseOnExit});
+          {/*ExceptionPauseMode*/ String? exceptionPauseMode,
+          bool? shouldPauseOnExit}) =>
+      _call('setIsolatePauseMode', {
+        'isolateId': isolateId,
+        if (exceptionPauseMode != null)
+          'exceptionPauseMode': exceptionPauseMode,
+        if (shouldPauseOnExit != null) 'shouldPauseOnExit': shouldPauseOnExit,
+      });
 
   /// The `setFlag` RPC is used to set a VM flag at runtime. Returns an error if
   /// the named flag does not exist, the flag may not be set at runtime, or the
@@ -1302,7 +1575,8 @@ abstract class VmServiceInterface {
   /// See [Success].
   ///
   /// The return value can be one of [Success] or [Error].
-  Future<Response> setFlag(String name, String value);
+  Future<Response> setFlag(String name, String value) =>
+      _call('setFlag', {'name': name, 'value': value});
 
   /// The `setLibraryDebuggable` RPC is used to enable or disable whether
   /// breakpoints and stepping work for a given library.
@@ -1315,7 +1589,12 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Success> setLibraryDebuggable(
-      String isolateId, String libraryId, bool isDebuggable);
+          String isolateId, String libraryId, bool isDebuggable) =>
+      _call('setLibraryDebuggable', {
+        'isolateId': isolateId,
+        'libraryId': libraryId,
+        'isDebuggable': isDebuggable
+      });
 
   /// The `setName` RPC is used to change the debugging name for an isolate.
   ///
@@ -1326,7 +1605,8 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> setName(String isolateId, String name);
+  Future<Success> setName(String isolateId, String name) =>
+      _call('setName', {'isolateId': isolateId, 'name': name});
 
   /// The `setTraceClassAllocation` RPC allows for enabling or disabling
   /// allocation tracing for a specific type of object. Allocation traces can be
@@ -1343,12 +1623,14 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Success> setTraceClassAllocation(
-      String isolateId, String classId, bool enable);
+          String isolateId, String classId, bool enable) =>
+      _call('setTraceClassAllocation',
+          {'isolateId': isolateId, 'classId': classId, 'enable': enable});
 
   /// The `setVMName` RPC is used to change the debugging name for the vm.
   ///
   /// See [Success].
-  Future<Success> setVMName(String name);
+  Future<Success> setVMName(String name) => _call('setVMName', {'name': name});
 
   /// The `setVMTimelineFlags` RPC is used to set which timeline streams are
   /// enabled.
@@ -1361,10 +1643,11 @@ abstract class VmServiceInterface {
   /// stream as a result of invoking this RPC.
   ///
   /// To get the list of currently enabled timeline streams, see
-  /// [VmServiceInterface.getVMTimelineFlags].
+  /// [VmService.getVMTimelineFlags].
   ///
   /// See [Success].
-  Future<Success> setVMTimelineFlags(List<String> recordedStreams);
+  Future<Success> setVMTimelineFlags(List<String> recordedStreams) =>
+      _call('setVMTimelineFlags', {'recordedStreams': recordedStreams});
 
   /// The `streamCancel` RPC cancels a stream subscription in the VM.
   ///
@@ -1372,7 +1655,8 @@ abstract class VmServiceInterface {
   /// subscribed) RPC error code is returned.
   ///
   /// See [Success].
-  Future<Success> streamCancel(String streamId);
+  Future<Success> streamCancel(String streamId) =>
+      _call('streamCancel', {'streamId': streamId});
 
   /// The `streamCpuSamplesWithUserTag` RPC allows for clients to specify which
   /// CPU samples collected by the profiler should be sent over the `Profiler`
@@ -1381,7 +1665,8 @@ abstract class VmServiceInterface {
   /// active.
   ///
   /// See [Success].
-  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags);
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
+      _call('streamCpuSamplesWithUserTag', {'userTags': userTags});
 
   /// The `streamListen` RPC subscribes to a stream in the VM. Once subscribed,
   /// the client will begin receiving events from the stream.
@@ -1421,1073 +1706,6 @@ abstract class VmServiceInterface {
   /// gracefully, perhaps by warning and ignoring.
   ///
   /// See [Success].
-  Future<Success> streamListen(String streamId);
-}
-
-class _PendingServiceRequest {
-  Future<Map<String, Object?>> get future => _completer.future;
-  final _completer = Completer<Map<String, Object?>>();
-
-  final dynamic originalId;
-
-  _PendingServiceRequest(this.originalId);
-
-  void complete(Map<String, Object?> response) {
-    response['id'] = originalId;
-    _completer.complete(response);
-  }
-}
-
-/// A Dart VM Service Protocol connection that delegates requests to a
-/// [VmServiceInterface] implementation.
-///
-/// One of these should be created for each client, but they should generally
-/// share the same [VmServiceInterface] and [ServiceExtensionRegistry]
-/// instances.
-class VmServerConnection {
-  final Stream<Map<String, Object>> _requestStream;
-  final StreamSink<Map<String, Object?>> _responseSink;
-  final ServiceExtensionRegistry _serviceExtensionRegistry;
-  final VmServiceInterface _serviceImplementation;
-
-  /// Used to create unique ids when acting as a proxy between clients.
-  int _nextServiceRequestId = 0;
-
-  /// Manages streams for `streamListen` and `streamCancel` requests.
-  final _streamSubscriptions = <String, StreamSubscription>{};
-
-  /// Completes when [_requestStream] is done.
-  Future<void> get done => _doneCompleter.future;
-  final _doneCompleter = Completer<void>();
-
-  /// Pending service extension requests to this client by id.
-  final _pendingServiceExtensionRequests = <dynamic, _PendingServiceRequest>{};
-
-  VmServerConnection(this._requestStream, this._responseSink,
-      this._serviceExtensionRegistry, this._serviceImplementation) {
-    _requestStream.listen(_delegateRequest, onDone: _doneCompleter.complete);
-    done.then((_) {
-      for (var sub in _streamSubscriptions.values) {
-        sub.cancel();
-      }
-    });
-  }
-
-  /// Invoked when the current client has registered some extension, and
-  /// another client sends an RPC request for that extension.
-  ///
-  /// We don't attempt to do any serialization or deserialization of the
-  /// request or response in this case
-  Future<Map<String, Object?>> _forwardServiceExtensionRequest(
-      Map<String, Object?> request) {
-    final originalId = request['id'];
-    request = Map<String, Object?>.of(request);
-    // Modify the request ID to ensure we don't have conflicts between
-    // multiple clients ids.
-    final newId = '${_nextServiceRequestId++}:$originalId';
-    request['id'] = newId;
-    var pendingRequest = _PendingServiceRequest(originalId);
-    _pendingServiceExtensionRequests[newId] = pendingRequest;
-    _responseSink.add(request);
-    return pendingRequest.future;
-  }
-
-  void _delegateRequest(Map<String, Object?> request) async {
-    try {
-      var id = request['id'];
-      // Check if this is actually a response to a pending request.
-      if (_pendingServiceExtensionRequests.containsKey(id)) {
-        final pending = _pendingServiceExtensionRequests[id]!;
-        pending.complete(Map<String, Object?>.of(request));
-        return;
-      }
-      final method = request['method'] as String?;
-      if (method == null) {
-        throw RPCError(null, RPCErrorKind.kInvalidRequest.code,
-            'Invalid Request', request);
-      }
-      final params = request['params'] as Map<String, dynamic>?;
-      late Response response;
-
-      switch (method) {
-        case 'registerService':
-          _serviceExtensionRegistry.registerExtension(params!['service'], this);
-          response = Success();
-          break;
-        case 'addBreakpoint':
-          response = await _serviceImplementation.addBreakpoint(
-            params!['isolateId'],
-            params['scriptId'],
-            params['line'],
-            column: params['column'],
-          );
-          break;
-        case 'addBreakpointWithScriptUri':
-          response = await _serviceImplementation.addBreakpointWithScriptUri(
-            params!['isolateId'],
-            params['scriptUri'],
-            params['line'],
-            column: params['column'],
-          );
-          break;
-        case 'addBreakpointAtEntry':
-          response = await _serviceImplementation.addBreakpointAtEntry(
-            params!['isolateId'],
-            params['functionId'],
-          );
-          break;
-        case 'clearCpuSamples':
-          response = await _serviceImplementation.clearCpuSamples(
-            params!['isolateId'],
-          );
-          break;
-        case 'clearVMTimeline':
-          response = await _serviceImplementation.clearVMTimeline();
-          break;
-        case 'invoke':
-          response = await _serviceImplementation.invoke(
-            params!['isolateId'],
-            params['targetId'],
-            params['selector'],
-            List<String>.from(params['argumentIds'] ?? []),
-            disableBreakpoints: params['disableBreakpoints'],
-          );
-          break;
-        case 'evaluate':
-          response = await _serviceImplementation.evaluate(
-            params!['isolateId'],
-            params['targetId'],
-            params['expression'],
-            scope: params['scope']?.cast<String, String>(),
-            disableBreakpoints: params['disableBreakpoints'],
-          );
-          break;
-        case 'evaluateInFrame':
-          response = await _serviceImplementation.evaluateInFrame(
-            params!['isolateId'],
-            params['frameIndex'],
-            params['expression'],
-            scope: params['scope']?.cast<String, String>(),
-            disableBreakpoints: params['disableBreakpoints'],
-          );
-          break;
-        case 'getAllocationProfile':
-          response = await _serviceImplementation.getAllocationProfile(
-            params!['isolateId'],
-            reset: params['reset'],
-            gc: params['gc'],
-          );
-          break;
-        case 'getAllocationTraces':
-          response = await _serviceImplementation.getAllocationTraces(
-            params!['isolateId'],
-            timeOriginMicros: params['timeOriginMicros'],
-            timeExtentMicros: params['timeExtentMicros'],
-            classId: params['classId'],
-          );
-          break;
-        case 'getClassList':
-          response = await _serviceImplementation.getClassList(
-            params!['isolateId'],
-          );
-          break;
-        case 'getCpuSamples':
-          response = await _serviceImplementation.getCpuSamples(
-            params!['isolateId'],
-            params['timeOriginMicros'],
-            params['timeExtentMicros'],
-          );
-          break;
-        case 'getFlagList':
-          response = await _serviceImplementation.getFlagList();
-          break;
-        case 'getInboundReferences':
-          response = await _serviceImplementation.getInboundReferences(
-            params!['isolateId'],
-            params['targetId'],
-            params['limit'],
-          );
-          break;
-        case 'getInstances':
-          response = await _serviceImplementation.getInstances(
-            params!['isolateId'],
-            params['objectId'],
-            params['limit'],
-            includeSubclasses: params['includeSubclasses'],
-            includeImplementers: params['includeImplementers'],
-          );
-          break;
-        case 'getInstancesAsList':
-          response = await _serviceImplementation.getInstancesAsList(
-            params!['isolateId'],
-            params['objectId'],
-            includeSubclasses: params['includeSubclasses'],
-            includeImplementers: params['includeImplementers'],
-          );
-          break;
-        case 'getIsolate':
-          response = await _serviceImplementation.getIsolate(
-            params!['isolateId'],
-          );
-          break;
-        case 'getIsolateGroup':
-          response = await _serviceImplementation.getIsolateGroup(
-            params!['isolateGroupId'],
-          );
-          break;
-        case 'getIsolatePauseEvent':
-          response = await _serviceImplementation.getIsolatePauseEvent(
-            params!['isolateId'],
-          );
-          break;
-        case 'getMemoryUsage':
-          response = await _serviceImplementation.getMemoryUsage(
-            params!['isolateId'],
-          );
-          break;
-        case 'getIsolateGroupMemoryUsage':
-          response = await _serviceImplementation.getIsolateGroupMemoryUsage(
-            params!['isolateGroupId'],
-          );
-          break;
-        case 'getScripts':
-          response = await _serviceImplementation.getScripts(
-            params!['isolateId'],
-          );
-          break;
-        case 'getObject':
-          response = await _serviceImplementation.getObject(
-            params!['isolateId'],
-            params['objectId'],
-            offset: params['offset'],
-            count: params['count'],
-          );
-          break;
-        case 'getPerfettoCpuSamples':
-          response = await _serviceImplementation.getPerfettoCpuSamples(
-            params!['isolateId'],
-            timeOriginMicros: params['timeOriginMicros'],
-            timeExtentMicros: params['timeExtentMicros'],
-          );
-          break;
-        case 'getPerfettoVMTimeline':
-          response = await _serviceImplementation.getPerfettoVMTimeline(
-            timeOriginMicros: params!['timeOriginMicros'],
-            timeExtentMicros: params['timeExtentMicros'],
-          );
-          break;
-        case 'getPorts':
-          response = await _serviceImplementation.getPorts(
-            params!['isolateId'],
-          );
-          break;
-        case 'getRetainingPath':
-          response = await _serviceImplementation.getRetainingPath(
-            params!['isolateId'],
-            params['targetId'],
-            params['limit'],
-          );
-          break;
-        case 'getProcessMemoryUsage':
-          response = await _serviceImplementation.getProcessMemoryUsage();
-          break;
-        case 'getStack':
-          response = await _serviceImplementation.getStack(
-            params!['isolateId'],
-            limit: params['limit'],
-          );
-          break;
-        case 'getSupportedProtocols':
-          response = await _serviceImplementation.getSupportedProtocols();
-          break;
-        case 'getSourceReport':
-          response = await _serviceImplementation.getSourceReport(
-            params!['isolateId'],
-            List<String>.from(params['reports'] ?? []),
-            scriptId: params['scriptId'],
-            tokenPos: params['tokenPos'],
-            endTokenPos: params['endTokenPos'],
-            forceCompile: params['forceCompile'],
-            reportLines: params['reportLines'],
-            libraryFilters: params['libraryFilters'],
-            librariesAlreadyCompiled: params['librariesAlreadyCompiled'],
-          );
-          break;
-        case 'getVersion':
-          response = await _serviceImplementation.getVersion();
-          break;
-        case 'getVM':
-          response = await _serviceImplementation.getVM();
-          break;
-        case 'getVMTimeline':
-          response = await _serviceImplementation.getVMTimeline(
-            timeOriginMicros: params!['timeOriginMicros'],
-            timeExtentMicros: params['timeExtentMicros'],
-          );
-          break;
-        case 'getVMTimelineFlags':
-          response = await _serviceImplementation.getVMTimelineFlags();
-          break;
-        case 'getVMTimelineMicros':
-          response = await _serviceImplementation.getVMTimelineMicros();
-          break;
-        case 'pause':
-          response = await _serviceImplementation.pause(
-            params!['isolateId'],
-          );
-          break;
-        case 'kill':
-          response = await _serviceImplementation.kill(
-            params!['isolateId'],
-          );
-          break;
-        case 'lookupResolvedPackageUris':
-          response = await _serviceImplementation.lookupResolvedPackageUris(
-            params!['isolateId'],
-            List<String>.from(params['uris'] ?? []),
-            local: params['local'],
-          );
-          break;
-        case 'lookupPackageUris':
-          response = await _serviceImplementation.lookupPackageUris(
-            params!['isolateId'],
-            List<String>.from(params['uris'] ?? []),
-          );
-          break;
-        case 'reloadSources':
-          response = await _serviceImplementation.reloadSources(
-            params!['isolateId'],
-            force: params['force'],
-            pause: params['pause'],
-            rootLibUri: params['rootLibUri'],
-            packagesUri: params['packagesUri'],
-          );
-          break;
-        case 'removeBreakpoint':
-          response = await _serviceImplementation.removeBreakpoint(
-            params!['isolateId'],
-            params['breakpointId'],
-          );
-          break;
-        case 'requestHeapSnapshot':
-          response = await _serviceImplementation.requestHeapSnapshot(
-            params!['isolateId'],
-          );
-          break;
-        case 'resume':
-          response = await _serviceImplementation.resume(
-            params!['isolateId'],
-            step: params['step'],
-            frameIndex: params['frameIndex'],
-          );
-          break;
-        case 'setBreakpointState':
-          response = await _serviceImplementation.setBreakpointState(
-            params!['isolateId'],
-            params['breakpointId'],
-            params['enable'],
-          );
-          break;
-        case 'setExceptionPauseMode':
-          // ignore: deprecated_member_use_from_same_package
-          response = await _serviceImplementation.setExceptionPauseMode(
-            params!['isolateId'],
-            params['mode'],
-          );
-          break;
-        case 'setIsolatePauseMode':
-          response = await _serviceImplementation.setIsolatePauseMode(
-            params!['isolateId'],
-            exceptionPauseMode: params['exceptionPauseMode'],
-            shouldPauseOnExit: params['shouldPauseOnExit'],
-          );
-          break;
-        case 'setFlag':
-          response = await _serviceImplementation.setFlag(
-            params!['name'],
-            params['value'],
-          );
-          break;
-        case 'setLibraryDebuggable':
-          response = await _serviceImplementation.setLibraryDebuggable(
-            params!['isolateId'],
-            params['libraryId'],
-            params['isDebuggable'],
-          );
-          break;
-        case 'setName':
-          response = await _serviceImplementation.setName(
-            params!['isolateId'],
-            params['name'],
-          );
-          break;
-        case 'setTraceClassAllocation':
-          response = await _serviceImplementation.setTraceClassAllocation(
-            params!['isolateId'],
-            params['classId'],
-            params['enable'],
-          );
-          break;
-        case 'setVMName':
-          response = await _serviceImplementation.setVMName(
-            params!['name'],
-          );
-          break;
-        case 'setVMTimelineFlags':
-          response = await _serviceImplementation.setVMTimelineFlags(
-            List<String>.from(params!['recordedStreams'] ?? []),
-          );
-          break;
-        case 'streamCancel':
-          var id = params!['streamId'];
-          var existing = _streamSubscriptions.remove(id);
-          if (existing == null) {
-            throw RPCError.withDetails(
-              'streamCancel',
-              104,
-              'Stream not subscribed',
-              details: "The stream '$id' is not subscribed",
-            );
-          }
-          await existing.cancel();
-          response = Success();
-          break;
-        case 'streamCpuSamplesWithUserTag':
-          response = await _serviceImplementation.streamCpuSamplesWithUserTag(
-            List<String>.from(params!['userTags'] ?? []),
-          );
-          break;
-        case 'streamListen':
-          var id = params!['streamId'];
-          if (_streamSubscriptions.containsKey(id)) {
-            throw RPCError.withDetails(
-              'streamListen',
-              103,
-              'Stream already subscribed',
-              details: "The stream '$id' is already subscribed",
-            );
-          }
-
-          var stream = id == 'Service'
-              ? _serviceExtensionRegistry.onExtensionEvent
-              : _serviceImplementation.onEvent(id);
-          _streamSubscriptions[id] = stream.listen((e) {
-            _responseSink.add({
-              'jsonrpc': '2.0',
-              'method': 'streamNotify',
-              'params': {
-                'streamId': id,
-                'event': e.toJson(),
-              },
-            });
-          });
-          response = Success();
-          break;
-        default:
-          final registeredClient = _serviceExtensionRegistry.clientFor(method);
-          if (registeredClient != null) {
-            // Check for any client which has registered this extension, if we
-            // have one then delegate the request to that client.
-            _responseSink.add(await registeredClient
-                ._forwardServiceExtensionRequest(request));
-            // Bail out early in this case, we are just acting as a proxy and
-            // never get a `Response` instance.
-            return;
-          } else if (method.startsWith('ext.')) {
-            // Remaining methods with `ext.` are assumed to be registered via
-            // dart:developer, which the service implementation handles.
-            final args =
-                params == null ? null : Map<String, dynamic>.of(params);
-            final isolateId = args?.remove('isolateId');
-            response = await _serviceImplementation.callServiceExtension(method,
-                isolateId: isolateId, args: args);
-          } else {
-            throw RPCError(method, RPCErrorKind.kMethodNotFound.code,
-                'Method not found', request);
-          }
-      }
-      _responseSink.add({
-        'jsonrpc': '2.0',
-        'id': id,
-        'result': response.toJson(),
-      });
-    } on SentinelException catch (e) {
-      _responseSink.add({
-        'jsonrpc': '2.0',
-        'id': request['id'],
-        'result': e.sentinel.toJson(),
-      });
-    } catch (e, st) {
-      final error = e is RPCError
-          ? e.toMap()
-          : {
-              'code': RPCErrorKind.kInternalError.code,
-              'message': '${request['method']}: $e',
-              'data': {'details': '$st'},
-            };
-      _responseSink.add({
-        'jsonrpc': '2.0',
-        'id': request['id'],
-        'error': error,
-      });
-    }
-  }
-}
-
-class _OutstandingRequest<T> {
-  _OutstandingRequest(this.method);
-  static int _idCounter = 0;
-  final String id = '${_idCounter++}';
-  final String method;
-  final StackTrace _stackTrace = StackTrace.current;
-  final Completer<T> _completer = Completer<T>();
-
-  Future<T> get future => _completer.future;
-
-  void complete(T value) => _completer.complete(value);
-  void completeError(Object error) =>
-      _completer.completeError(error, _stackTrace);
-}
-
-typedef VmServiceFactory<T extends VmService> = T Function({
-  required Stream<dynamic> /*String|List<int>*/ inStream,
-  required void Function(String message) writeMessage,
-  Log? log,
-  DisposeHandler? disposeHandler,
-  Future? streamClosed,
-  String? wsUri,
-});
-
-class VmService implements VmServiceInterface {
-  late final StreamSubscription _streamSub;
-  late final Function _writeMessage;
-  final Map<String, _OutstandingRequest> _outstandingRequests = {};
-  final Map<String, ServiceCallback> _services = {};
-  late final Log _log;
-
-  /// The web socket URI pointing to the target VM service instance.
-  final String? wsUri;
-
-  Stream<String> get onSend => _onSend.stream;
-  final StreamController<String> _onSend =
-      StreamController.broadcast(sync: true);
-
-  Stream<String> get onReceive => _onReceive.stream;
-  final StreamController<String> _onReceive =
-      StreamController.broadcast(sync: true);
-
-  Future<void> get onDone => _onDoneCompleter.future;
-  final Completer _onDoneCompleter = Completer();
-
-  final Map<String, StreamController<Event>> _eventControllers = {};
-
-  StreamController<Event> _getEventController(String eventName) {
-    StreamController<Event>? controller = _eventControllers[eventName];
-    if (controller == null) {
-      controller = StreamController.broadcast();
-      _eventControllers[eventName] = controller;
-    }
-    return controller;
-  }
-
-  late final DisposeHandler? _disposeHandler;
-
-  VmService(
-    Stream<dynamic> /*String|List<int>*/ inStream,
-    void Function(String message) writeMessage, {
-    Log? log,
-    DisposeHandler? disposeHandler,
-    Future? streamClosed,
-    this.wsUri,
-  }) {
-    _streamSub = inStream.listen(_processMessage,
-        onDone: () => _onDoneCompleter.complete());
-    _writeMessage = writeMessage;
-    _log = log ?? _NullLog();
-    _disposeHandler = disposeHandler;
-    streamClosed?.then((_) {
-      if (!_onDoneCompleter.isCompleted) {
-        _onDoneCompleter.complete();
-      }
-    });
-  }
-
-  static VmService defaultFactory({
-    required Stream<dynamic> /*String|List<int>*/ inStream,
-    required void Function(String message) writeMessage,
-    Log? log,
-    DisposeHandler? disposeHandler,
-    Future? streamClosed,
-    String? wsUri,
-  }) {
-    return VmService(
-      inStream,
-      writeMessage,
-      log: log,
-      disposeHandler: disposeHandler,
-      streamClosed: streamClosed,
-      wsUri: wsUri,
-    );
-  }
-
-  @override
-  Stream<Event> onEvent(String streamId) =>
-      _getEventController(streamId).stream;
-
-  // VMUpdate, VMFlagUpdate
-  Stream<Event> get onVMEvent => _getEventController('VM').stream;
-
-  // IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
-  Stream<Event> get onIsolateEvent => _getEventController('Isolate').stream;
-
-  // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
-  Stream<Event> get onDebugEvent => _getEventController('Debug').stream;
-
-  // CpuSamples, UserTagChanged
-  Stream<Event> get onProfilerEvent => _getEventController('Profiler').stream;
-
-  // GC
-  Stream<Event> get onGCEvent => _getEventController('GC').stream;
-
-  // Extension
-  Stream<Event> get onExtensionEvent => _getEventController('Extension').stream;
-
-  // TimelineEvents, TimelineStreamsSubscriptionUpdate
-  Stream<Event> get onTimelineEvent => _getEventController('Timeline').stream;
-
-  // Logging
-  Stream<Event> get onLoggingEvent => _getEventController('Logging').stream;
-
-  // ServiceRegistered, ServiceUnregistered
-  Stream<Event> get onServiceEvent => _getEventController('Service').stream;
-
-  // HeapSnapshot
-  Stream<Event> get onHeapSnapshotEvent =>
-      _getEventController('HeapSnapshot').stream;
-
-  // WriteEvent
-  Stream<Event> get onStdoutEvent => _getEventController('Stdout').stream;
-
-  // WriteEvent
-  Stream<Event> get onStderrEvent => _getEventController('Stderr').stream;
-
-  @override
-  Future<Breakpoint> addBreakpoint(
-    String isolateId,
-    String scriptId,
-    int line, {
-    int? column,
-  }) =>
-      _call('addBreakpoint', {
-        'isolateId': isolateId,
-        'scriptId': scriptId,
-        'line': line,
-        if (column != null) 'column': column,
-      });
-
-  @override
-  Future<Breakpoint> addBreakpointWithScriptUri(
-    String isolateId,
-    String scriptUri,
-    int line, {
-    int? column,
-  }) =>
-      _call('addBreakpointWithScriptUri', {
-        'isolateId': isolateId,
-        'scriptUri': scriptUri,
-        'line': line,
-        if (column != null) 'column': column,
-      });
-
-  @override
-  Future<Breakpoint> addBreakpointAtEntry(
-          String isolateId, String functionId) =>
-      _call('addBreakpointAtEntry',
-          {'isolateId': isolateId, 'functionId': functionId});
-
-  @override
-  Future<Success> clearCpuSamples(String isolateId) =>
-      _call('clearCpuSamples', {'isolateId': isolateId});
-
-  @override
-  Future<Success> clearVMTimeline() => _call('clearVMTimeline');
-
-  @override
-  Future<Response> invoke(
-    String isolateId,
-    String targetId,
-    String selector,
-    List<String> argumentIds, {
-    bool? disableBreakpoints,
-  }) =>
-      _call('invoke', {
-        'isolateId': isolateId,
-        'targetId': targetId,
-        'selector': selector,
-        'argumentIds': argumentIds,
-        if (disableBreakpoints != null)
-          'disableBreakpoints': disableBreakpoints,
-      });
-
-  @override
-  Future<Response> evaluate(
-    String isolateId,
-    String targetId,
-    String expression, {
-    Map<String, String>? scope,
-    bool? disableBreakpoints,
-  }) =>
-      _call('evaluate', {
-        'isolateId': isolateId,
-        'targetId': targetId,
-        'expression': expression,
-        if (scope != null) 'scope': scope,
-        if (disableBreakpoints != null)
-          'disableBreakpoints': disableBreakpoints,
-      });
-
-  @override
-  Future<Response> evaluateInFrame(
-    String isolateId,
-    int frameIndex,
-    String expression, {
-    Map<String, String>? scope,
-    bool? disableBreakpoints,
-  }) =>
-      _call('evaluateInFrame', {
-        'isolateId': isolateId,
-        'frameIndex': frameIndex,
-        'expression': expression,
-        if (scope != null) 'scope': scope,
-        if (disableBreakpoints != null)
-          'disableBreakpoints': disableBreakpoints,
-      });
-
-  @override
-  Future<AllocationProfile> getAllocationProfile(String isolateId,
-          {bool? reset, bool? gc}) =>
-      _call('getAllocationProfile', {
-        'isolateId': isolateId,
-        if (reset != null && reset) 'reset': reset,
-        if (gc != null && gc) 'gc': gc,
-      });
-
-  @override
-  Future<CpuSamples> getAllocationTraces(
-    String isolateId, {
-    int? timeOriginMicros,
-    int? timeExtentMicros,
-    String? classId,
-  }) =>
-      _call('getAllocationTraces', {
-        'isolateId': isolateId,
-        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
-        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
-        if (classId != null) 'classId': classId,
-      });
-
-  @override
-  Future<ClassList> getClassList(String isolateId) =>
-      _call('getClassList', {'isolateId': isolateId});
-
-  @override
-  Future<CpuSamples> getCpuSamples(
-          String isolateId, int timeOriginMicros, int timeExtentMicros) =>
-      _call('getCpuSamples', {
-        'isolateId': isolateId,
-        'timeOriginMicros': timeOriginMicros,
-        'timeExtentMicros': timeExtentMicros
-      });
-
-  @override
-  Future<FlagList> getFlagList() => _call('getFlagList');
-
-  @override
-  Future<InboundReferences> getInboundReferences(
-          String isolateId, String targetId, int limit) =>
-      _call('getInboundReferences',
-          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
-
-  @override
-  Future<InstanceSet> getInstances(
-    String isolateId,
-    String objectId,
-    int limit, {
-    bool? includeSubclasses,
-    bool? includeImplementers,
-  }) =>
-      _call('getInstances', {
-        'isolateId': isolateId,
-        'objectId': objectId,
-        'limit': limit,
-        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
-        if (includeImplementers != null)
-          'includeImplementers': includeImplementers,
-      });
-
-  @override
-  Future<InstanceRef> getInstancesAsList(
-    String isolateId,
-    String objectId, {
-    bool? includeSubclasses,
-    bool? includeImplementers,
-  }) =>
-      _call('getInstancesAsList', {
-        'isolateId': isolateId,
-        'objectId': objectId,
-        if (includeSubclasses != null) 'includeSubclasses': includeSubclasses,
-        if (includeImplementers != null)
-          'includeImplementers': includeImplementers,
-      });
-
-  @override
-  Future<Isolate> getIsolate(String isolateId) =>
-      _call('getIsolate', {'isolateId': isolateId});
-
-  @override
-  Future<IsolateGroup> getIsolateGroup(String isolateGroupId) =>
-      _call('getIsolateGroup', {'isolateGroupId': isolateGroupId});
-
-  @override
-  Future<Event> getIsolatePauseEvent(String isolateId) =>
-      _call('getIsolatePauseEvent', {'isolateId': isolateId});
-
-  @override
-  Future<MemoryUsage> getMemoryUsage(String isolateId) =>
-      _call('getMemoryUsage', {'isolateId': isolateId});
-
-  @override
-  Future<MemoryUsage> getIsolateGroupMemoryUsage(String isolateGroupId) =>
-      _call('getIsolateGroupMemoryUsage', {'isolateGroupId': isolateGroupId});
-
-  @override
-  Future<ScriptList> getScripts(String isolateId) =>
-      _call('getScripts', {'isolateId': isolateId});
-
-  @override
-  Future<Obj> getObject(
-    String isolateId,
-    String objectId, {
-    int? offset,
-    int? count,
-  }) =>
-      _call('getObject', {
-        'isolateId': isolateId,
-        'objectId': objectId,
-        if (offset != null) 'offset': offset,
-        if (count != null) 'count': count,
-      });
-
-  @override
-  Future<PerfettoCpuSamples> getPerfettoCpuSamples(String isolateId,
-          {int? timeOriginMicros, int? timeExtentMicros}) =>
-      _call('getPerfettoCpuSamples', {
-        'isolateId': isolateId,
-        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
-        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
-      });
-
-  @override
-  Future<PerfettoTimeline> getPerfettoVMTimeline(
-          {int? timeOriginMicros, int? timeExtentMicros}) =>
-      _call('getPerfettoVMTimeline', {
-        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
-        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
-      });
-
-  @override
-  Future<PortList> getPorts(String isolateId) =>
-      _call('getPorts', {'isolateId': isolateId});
-
-  @override
-  Future<RetainingPath> getRetainingPath(
-          String isolateId, String targetId, int limit) =>
-      _call('getRetainingPath',
-          {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
-
-  @override
-  Future<ProcessMemoryUsage> getProcessMemoryUsage() =>
-      _call('getProcessMemoryUsage');
-
-  @override
-  Future<Stack> getStack(String isolateId, {int? limit}) => _call('getStack', {
-        'isolateId': isolateId,
-        if (limit != null) 'limit': limit,
-      });
-
-  @override
-  Future<ProtocolList> getSupportedProtocols() =>
-      _call('getSupportedProtocols');
-
-  @override
-  Future<SourceReport> getSourceReport(
-    String isolateId,
-    /*List<SourceReportKind>*/ List<String> reports, {
-    String? scriptId,
-    int? tokenPos,
-    int? endTokenPos,
-    bool? forceCompile,
-    bool? reportLines,
-    List<String>? libraryFilters,
-    List<String>? librariesAlreadyCompiled,
-  }) =>
-      _call('getSourceReport', {
-        'isolateId': isolateId,
-        'reports': reports,
-        if (scriptId != null) 'scriptId': scriptId,
-        if (tokenPos != null) 'tokenPos': tokenPos,
-        if (endTokenPos != null) 'endTokenPos': endTokenPos,
-        if (forceCompile != null) 'forceCompile': forceCompile,
-        if (reportLines != null) 'reportLines': reportLines,
-        if (libraryFilters != null) 'libraryFilters': libraryFilters,
-        if (librariesAlreadyCompiled != null)
-          'librariesAlreadyCompiled': librariesAlreadyCompiled,
-      });
-
-  @override
-  Future<Version> getVersion() => _call('getVersion');
-
-  @override
-  Future<VM> getVM() => _call('getVM');
-
-  @override
-  Future<Timeline> getVMTimeline(
-          {int? timeOriginMicros, int? timeExtentMicros}) =>
-      _call('getVMTimeline', {
-        if (timeOriginMicros != null) 'timeOriginMicros': timeOriginMicros,
-        if (timeExtentMicros != null) 'timeExtentMicros': timeExtentMicros,
-      });
-
-  @override
-  Future<TimelineFlags> getVMTimelineFlags() => _call('getVMTimelineFlags');
-
-  @override
-  Future<Timestamp> getVMTimelineMicros() => _call('getVMTimelineMicros');
-
-  @override
-  Future<Success> pause(String isolateId) =>
-      _call('pause', {'isolateId': isolateId});
-
-  @override
-  Future<Success> kill(String isolateId) =>
-      _call('kill', {'isolateId': isolateId});
-
-  @override
-  Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
-          {bool? local}) =>
-      _call('lookupResolvedPackageUris', {
-        'isolateId': isolateId,
-        'uris': uris,
-        if (local != null) 'local': local,
-      });
-
-  @override
-  Future<UriList> lookupPackageUris(String isolateId, List<String> uris) =>
-      _call('lookupPackageUris', {'isolateId': isolateId, 'uris': uris});
-
-  @override
-  Future<Success> registerService(String service, String alias) =>
-      _call('registerService', {'service': service, 'alias': alias});
-
-  @override
-  Future<ReloadReport> reloadSources(
-    String isolateId, {
-    bool? force,
-    bool? pause,
-    String? rootLibUri,
-    String? packagesUri,
-  }) =>
-      _call('reloadSources', {
-        'isolateId': isolateId,
-        if (force != null) 'force': force,
-        if (pause != null) 'pause': pause,
-        if (rootLibUri != null) 'rootLibUri': rootLibUri,
-        if (packagesUri != null) 'packagesUri': packagesUri,
-      });
-
-  @override
-  Future<Success> removeBreakpoint(String isolateId, String breakpointId) =>
-      _call('removeBreakpoint',
-          {'isolateId': isolateId, 'breakpointId': breakpointId});
-
-  @override
-  Future<Success> requestHeapSnapshot(String isolateId) =>
-      _call('requestHeapSnapshot', {'isolateId': isolateId});
-
-  @override
-  Future<Success> resume(String isolateId,
-          {/*StepOption*/ String? step, int? frameIndex}) =>
-      _call('resume', {
-        'isolateId': isolateId,
-        if (step != null) 'step': step,
-        if (frameIndex != null) 'frameIndex': frameIndex,
-      });
-
-  @override
-  Future<Breakpoint> setBreakpointState(
-          String isolateId, String breakpointId, bool enable) =>
-      _call('setBreakpointState', {
-        'isolateId': isolateId,
-        'breakpointId': breakpointId,
-        'enable': enable
-      });
-
-  @Deprecated('Use setIsolatePauseMode instead')
-  @override
-  Future<Success> setExceptionPauseMode(
-          String isolateId, /*ExceptionPauseMode*/ String mode) =>
-      _call('setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
-
-  @override
-  Future<Success> setIsolatePauseMode(String isolateId,
-          {/*ExceptionPauseMode*/ String? exceptionPauseMode,
-          bool? shouldPauseOnExit}) =>
-      _call('setIsolatePauseMode', {
-        'isolateId': isolateId,
-        if (exceptionPauseMode != null)
-          'exceptionPauseMode': exceptionPauseMode,
-        if (shouldPauseOnExit != null) 'shouldPauseOnExit': shouldPauseOnExit,
-      });
-
-  @override
-  Future<Response> setFlag(String name, String value) =>
-      _call('setFlag', {'name': name, 'value': value});
-
-  @override
-  Future<Success> setLibraryDebuggable(
-          String isolateId, String libraryId, bool isDebuggable) =>
-      _call('setLibraryDebuggable', {
-        'isolateId': isolateId,
-        'libraryId': libraryId,
-        'isDebuggable': isDebuggable
-      });
-
-  @override
-  Future<Success> setName(String isolateId, String name) =>
-      _call('setName', {'isolateId': isolateId, 'name': name});
-
-  @override
-  Future<Success> setTraceClassAllocation(
-          String isolateId, String classId, bool enable) =>
-      _call('setTraceClassAllocation',
-          {'isolateId': isolateId, 'classId': classId, 'enable': enable});
-
-  @override
-  Future<Success> setVMName(String name) => _call('setVMName', {'name': name});
-
-  @override
-  Future<Success> setVMTimelineFlags(List<String> recordedStreams) =>
-      _call('setVMTimelineFlags', {'recordedStreams': recordedStreams});
-
-  @override
-  Future<Success> streamCancel(String streamId) =>
-      _call('streamCancel', {'streamId': streamId});
-
-  @override
-  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
-      _call('streamCpuSamplesWithUserTag', {'userTags': userTags});
-
-  @override
   Future<Success> streamListen(String streamId) =>
       _call('streamListen', {'streamId': streamId});
 
@@ -2501,7 +1719,6 @@ class VmService implements VmServiceInterface {
   /// Invoke a specific service protocol extension method.
   ///
   /// See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
-  @override
   Future<Response> callServiceExtension(String method,
       {String? isolateId, Map<String, dynamic>? args}) {
     if (args == null && isolateId == null) {
@@ -2577,11 +1794,10 @@ class VmService implements VmServiceInterface {
 
   void _processMessage(dynamic message) {
     // Expect a String, an int[], or a ByteData.
-
     if (message is String) {
       _processMessageStr(message);
     } else if (message is List<int>) {
-      Uint8List list = Uint8List.fromList(message);
+      final list = Uint8List.fromList(message);
       _processMessageByteData(ByteData.view(list.buffer));
     } else if (message is ByteData) {
       _processMessageByteData(message);
@@ -2599,10 +1815,10 @@ class VmService implements VmServiceInterface {
         bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength));
     final data = ByteData.view(
         bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
-    dynamic map = jsonDecode(meta)!;
+    final map = jsonDecode(meta)!;
     if (map['method'] == 'streamNotify') {
-      String streamId = map['params']['streamId'];
-      Map event = map['params']['event'];
+      final streamId = map['params']['streamId'];
+      final event = map['params']['event'];
       event['data'] = data;
       _getEventController(streamId)
           .add(createServiceObject(event, const ['Event'])! as Event);
@@ -2610,26 +1826,24 @@ class VmService implements VmServiceInterface {
   }
 
   void _processMessageStr(String message) {
-    late Map<String, dynamic> json;
     try {
       _onReceive.add(message);
-      json = jsonDecode(message)!;
+      final json = jsonDecode(message)!;
+      if (json.containsKey('method')) {
+        if (json.containsKey('id')) {
+          _processRequest(json);
+        } else {
+          _processNotification(json);
+        }
+      } else if (json.containsKey('id') &&
+          (json.containsKey('result') || json.containsKey('error'))) {
+        _processResponse(json);
+      } else {
+        _log.severe('unknown message type: $message');
+      }
     } catch (e, s) {
       _log.severe('unable to decode message: $message, $e\n$s');
       return;
-    }
-
-    if (json.containsKey('method')) {
-      if (json.containsKey('id')) {
-        _processRequest(json);
-      } else {
-        _processNotification(json);
-      }
-    } else if (json.containsKey('id') &&
-        (json.containsKey('result') || json.containsKey('error'))) {
-      _processResponse(json);
-    } else {
-      _log.severe('unknown message type: $message');
     }
   }
 
@@ -2640,34 +1854,34 @@ class VmService implements VmServiceInterface {
     } else if (json['error'] != null) {
       request.completeError(RPCError.parse(request.method, json['error']));
     } else {
-      Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
-      String? type = result['type'];
+      final result = json['result'] as Map<String, dynamic>;
+      final type = result['type'];
       if (type == 'Sentinel') {
         request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
         request.complete(Response.parse(result));
       } else {
-        List<String> returnTypes = _methodReturnTypes[request.method] ?? [];
+        final returnTypes = _methodReturnTypes[request.method] ?? <String>[];
         request.complete(createServiceObject(result, returnTypes));
       }
     }
   }
 
   Future _processRequest(Map<String, dynamic> json) async {
-    final Map m = await _routeRequest(
+    final result = await _routeRequest(
         json['method'], json['params'] ?? <String, dynamic>{});
-    m['id'] = json['id'];
-    m['jsonrpc'] = '2.0';
-    String message = jsonEncode(m);
+    result['id'] = json['id'];
+    result['jsonrpc'] = '2.0';
+    String message = jsonEncode(result);
     _onSend.add(message);
     _writeMessage(message);
   }
 
   Future _processNotification(Map<String, dynamic> json) async {
-    final String method = json['method'];
-    final Map<String, dynamic> params = json['params'] ?? <String, dynamic>{};
+    final method = json['method'];
+    final params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
-      String streamId = params['streamId'];
+      final streamId = params['streamId'];
       _getEventController(streamId)
           .add(createServiceObject(params['event'], const ['Event'])! as Event);
     } else {
@@ -2678,7 +1892,7 @@ class VmService implements VmServiceInterface {
   Future<Map> _routeRequest(String method, Map<String, dynamic> params) async {
     final service = _services[method];
     if (service == null) {
-      RPCError error = RPCError(method, RPCErrorKind.kMethodNotFound.code,
+      final error = RPCError(method, RPCErrorKind.kMethodNotFound.code,
           'method not found \'$method\'');
       return {'error': error.toMap()};
     }
@@ -2804,7 +2018,7 @@ class RPCError implements Exception {
   /// Return a map representation of this error suitable for conversion to
   /// json.
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {
+    final map = <String, dynamic>{
       'code': code,
       'message': message,
     };
@@ -2843,7 +2057,7 @@ class ExtensionData {
 
   final Map<String, dynamic> data;
 
-  ExtensionData() : data = {};
+  ExtensionData() : data = <String, dynamic>{};
 
   ExtensionData._fromJson(this.data);
 
@@ -2867,6 +2081,7 @@ class _NullLog implements Log {
   @override
   void severe(String message) {}
 }
+
 // enums
 
 abstract class CodeKind {
@@ -4042,7 +3257,7 @@ class ContextElement {
   String toString() => '[ContextElement value: $value]';
 }
 
-/// See [VmServiceInterface.getCpuSamples] and [CpuSample].
+/// See [VmService.getCpuSamples] and [CpuSample].
 class CpuSamples extends Response {
   static CpuSamples? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSamples._fromJson(json);
@@ -4207,7 +3422,7 @@ class CpuSamplesEvent {
       'sampleCount: $sampleCount, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros, pid: $pid, functions: $functions, samples: $samples]';
 }
 
-/// See [VmServiceInterface.getCpuSamples] and [CpuSamples].
+/// See [VmService.getCpuSamples] and [CpuSamples].
 class CpuSample {
   static CpuSample? parse(Map<String, dynamic>? json) =>
       json == null ? null : CpuSample._fromJson(json);
@@ -6545,7 +5760,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       'isolates: $isolates]';
 }
 
-/// See [VmServiceInterface.getInboundReferences].
+/// See [VmService.getInboundReferences].
 class InboundReferences extends Response {
   static InboundReferences? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReferences._fromJson(json);
@@ -6582,7 +5797,7 @@ class InboundReferences extends Response {
   String toString() => '[InboundReferences references: $references]';
 }
 
-/// See [VmServiceInterface.getInboundReferences].
+/// See [VmService.getInboundReferences].
 class InboundReference {
   static InboundReference? parse(Map<String, dynamic>? json) =>
       json == null ? null : InboundReference._fromJson(json);
@@ -6641,7 +5856,7 @@ class InboundReference {
   String toString() => '[InboundReference source: $source]';
 }
 
-/// See [VmServiceInterface.getInstances].
+/// See [VmService.getInstances].
 class InstanceSet extends Response {
   static InstanceSet? parse(Map<String, dynamic>? json) =>
       json == null ? null : InstanceSet._fromJson(json);
@@ -6733,7 +5948,7 @@ class LibraryRef extends ObjRef {
 
 /// A `Library` provides information about a Dart language library.
 ///
-/// See [VmServiceInterface.setLibraryDebuggable].
+/// See [VmService.setLibraryDebuggable].
 class Library extends Obj implements LibraryRef {
   static Library? parse(Map<String, dynamic>? json) =>
       json == null ? null : Library._fromJson(json);
@@ -7460,7 +6675,7 @@ class Parameter {
       '[Parameter parameterType: $parameterType, fixed: $fixed]';
 }
 
-/// See [VmServiceInterface.getPerfettoCpuSamples].
+/// See [VmService.getPerfettoCpuSamples].
 class PerfettoCpuSamples extends Response {
   static PerfettoCpuSamples? parse(Map<String, dynamic>? json) =>
       json == null ? null : PerfettoCpuSamples._fromJson(json);
@@ -7534,7 +6749,7 @@ class PerfettoCpuSamples extends Response {
       'sampleCount: $sampleCount, timeOriginMicros: $timeOriginMicros, timeExtentMicros: $timeExtentMicros, pid: $pid, samples: $samples]';
 }
 
-/// See [VmServiceInterface.getPerfettoVMTimeline];
+/// See [VmService.getPerfettoVMTimeline];
 class PerfettoTimeline extends Response {
   static PerfettoTimeline? parse(Map<String, dynamic>? json) =>
       json == null ? null : PerfettoTimeline._fromJson(json);
@@ -7584,7 +6799,7 @@ class PerfettoTimeline extends Response {
 
 /// A `PortList` contains a list of ports associated with some isolate.
 ///
-/// See [VmServiceInterface.getPorts].
+/// See [VmService.getPorts].
 class PortList extends Response {
   static PortList? parse(Map<String, dynamic>? json) =>
       json == null ? null : PortList._fromJson(json);
@@ -7680,7 +6895,7 @@ class ProfileFunction {
 /// A `ProtocolList` contains a list of all protocols supported by the service
 /// instance.
 ///
-/// See [Protocol] and [VmServiceInterface.getSupportedProtocols].
+/// See [Protocol] and [VmService.getSupportedProtocols].
 class ProtocolList extends Response {
   static ProtocolList? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProtocolList._fromJson(json);
@@ -7715,7 +6930,7 @@ class ProtocolList extends Response {
   String toString() => '[ProtocolList protocols: $protocols]';
 }
 
-/// See [VmServiceInterface.getSupportedProtocols].
+/// See [VmService.getSupportedProtocols].
 class Protocol {
   static Protocol? parse(Map<String, dynamic>? json) =>
       json == null ? null : Protocol._fromJson(json);
@@ -7756,7 +6971,7 @@ class Protocol {
       '[Protocol protocolName: $protocolName, major: $major, minor: $minor]';
 }
 
-/// See [VmServiceInterface.getProcessMemoryUsage].
+/// See [VmService.getProcessMemoryUsage].
 class ProcessMemoryUsage extends Response {
   static ProcessMemoryUsage? parse(Map<String, dynamic>? json) =>
       json == null ? null : ProcessMemoryUsage._fromJson(json);
@@ -7931,7 +7146,7 @@ class RetainingObject {
   String toString() => '[RetainingObject value: $value]';
 }
 
-/// See [VmServiceInterface.getRetainingPath].
+/// See [VmService.getRetainingPath].
 class RetainingPath extends Response {
   static RetainingPath? parse(Map<String, dynamic>? json) =>
       json == null ? null : RetainingPath._fromJson(json);
@@ -8517,7 +7732,7 @@ class SourceReportRange {
 /// The `Stack` class represents the various components of a Dart stack trace
 /// for a given isolate.
 ///
-/// See [VmServiceInterface.getStack].
+/// See [VmService.getStack].
 class Stack extends Response {
   static Stack? parse(Map<String, dynamic>? json) =>
       json == null ? null : Stack._fromJson(json);
@@ -8634,7 +7849,7 @@ class Success extends Response {
   String toString() => '[Success]';
 }
 
-/// See [VmServiceInterface.getVMTimeline];
+/// See [VmService.getVMTimeline];
 class Timeline extends Response {
   static Timeline? parse(Map<String, dynamic>? json) =>
       json == null ? null : Timeline._fromJson(json);

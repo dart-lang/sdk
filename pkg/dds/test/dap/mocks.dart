@@ -148,7 +148,7 @@ class MockRequest extends dap.Request {
         });
 }
 
-class MockVmService implements VmServiceInterface {
+class MockVmService implements VmService {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 

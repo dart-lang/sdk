@@ -1,21 +1,23 @@
-name: dds_service_extensions
-version: 1.6.2
+name: vm_service_interface
+
+version: 1.0.0
 description: >-
-  Extension methods for `package:vm_service`, used to make requests a
-  Dart Development Service (DDS) instance.
-repository: https://github.com/dart-lang/sdk/tree/main/pkg/dds_service_extensions
+  A library providing an interface to implement the Dart VM service protocol.
+
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service/packages/vm_service_interface/
 
 environment:
-  sdk: '>=2.15.0 <4.0.0'
+  sdk: ^3.0.0
 
 dependencies:
-  async: ^2.4.1
-  dap: ^1.0.0
-  vm_service: ^13.0.0
+  vm_service: '>=12.0.0 <14.0.0'
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
 # best practice for packages is to specify their compatible version ranges.
 # See also https://dart.dev/tools/pub/dependencies.
 dev_dependencies:
+  async: any
   lints: any
+  mockito: any
+  test: any
