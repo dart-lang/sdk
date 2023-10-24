@@ -810,8 +810,7 @@ abstract mixin class Stream<T> {
           subscription.pause();
           newValue.then(add, onError: addError).whenComplete(resume);
         } else {
-          // TODO(40014): Remove cast when type promotion works.
-          controller.add(newValue as dynamic);
+          controller.add(newValue);
         }
       });
       controller.onCancel = subscription.cancel;
