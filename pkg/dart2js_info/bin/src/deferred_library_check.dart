@@ -45,7 +45,7 @@ import 'package:yaml/yaml.dart';
 
 import 'usage_exception.dart';
 
-/// A command that computes the diff between two info files.
+/// A command that verifies that deferred libraries conform to a given spec.
 class DeferredLibraryCheck extends Command<void> with PrintUsageException {
   @override
   final String name = "deferred_check";
