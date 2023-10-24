@@ -52,7 +52,6 @@ suggestions
 ''');
   }
 
-  @FailingTest(reason: 'The AstBuilder drops the incomplete extension type')
   Future<void> test_afterType_beforeEof() async {
     await computeSuggestions('''
 extension type ^

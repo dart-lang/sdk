@@ -778,6 +778,33 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  void test_primaryConstructor_missing() {
+    var parseResult = parseStringWithErrors(r'''
+extension type E {}
+''');
+    parseResult.assertErrors(
+        [error(ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR, 15, 1)]);
+
+    final node = parseResult.findNode.extensionTypeDeclaration('E');
+    assertParsedNodeText(
+        node,
+        r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  name: E @15
+  representation: RepresentationDeclaration
+    leftParenthesis: ( @17 <synthetic>
+    fieldType: NamedType
+      name: <empty> @17 <synthetic>
+    fieldName: <empty> @17 <synthetic>
+    rightParenthesis: ) @17 <synthetic>
+  leftBracket: { @17
+  rightBracket: } @18
+''',
+        withOffsets: true);
+  }
+
   test_primaryConstructor_named() {
     final parseResult = parseStringWithErrors(r'''
 extension type A.named(int it) {}
