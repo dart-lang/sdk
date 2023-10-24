@@ -47,7 +47,7 @@ class BisectionConfig {
   ///
   /// This will modify the SDK checkout!
   ///
-  /// Will be created if it doens't exist.
+  /// Will be created if it doesn't exist.
   final Uri sdkPath;
 
   static const _sdkPathKey = 'sdk_path';
@@ -100,8 +100,8 @@ class BisectionConfig {
       'python3 tools/test.py --build -n dartk-linux-debug-x64 lib_2/isolate/package_resolve_test',
     ],
     sdkPath: Directory.current.uri,
-    failureString:
-        "Error: The argument type 'String' can't be assigned to the parameter type 'Uri'.",
+    failureString: "Error: The argument type 'String' can't "
+        "be assigned to the parameter type 'Uri'.",
   );
 
   static const _argumentDescriptions = {
@@ -130,7 +130,7 @@ The name is used for distinguishing logs.
     final exampleArguments = _example.asMap().entries.map((e) {
       var value = e.value;
       if (value is List) {
-        value = value.first;
+        value = value.first as String;
       }
       if ((value as String).contains(' ')) {
         value = '"$value"';
@@ -159,5 +159,5 @@ $descriptions
 }
 
 extension on String {
-  toPattern() => RegExp(RegExp.escape(this));
+  RegExp toPattern() => RegExp(RegExp.escape(this));
 }
