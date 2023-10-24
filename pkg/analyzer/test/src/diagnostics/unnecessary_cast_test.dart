@@ -25,7 +25,8 @@ class A {}
 class B extends A {}
 
 dynamic f(bool c, B x, B y) {
-  return c ? x as A : y;
+  var r = c ? x as A : y;
+  return r;
 }
 ''');
   }
@@ -127,23 +128,19 @@ void f(num Function() a) {
   }
 
   test_function_toSupertype_viaParameter() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(void Function(num) a) {
   (a as void Function(int))(3);
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 34, 23),
-    ]);
+''');
   }
 
   test_function_toSupertype_viaReturnType() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(int Function() a) {
   (a as num Function())();
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 30, 19),
-    ]);
+''');
   }
 
   test_function_toUnrelated() async {
@@ -171,13 +168,11 @@ void f() {
   }
 
   test_type_supertype() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f(int a) {
   a as Object;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 18, 11),
-    ]);
+''');
   }
 
   test_type_type() async {
@@ -191,23 +186,19 @@ void f(num a) {
   }
 
   test_typeParameter_hasBound_same() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T extends num>(T a) {
   a as num;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 31, 8),
-    ]);
+''');
   }
 
   test_typeParameter_hasBound_subtype() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void f<T extends int>(T a) {
   a as num;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 31, 8),
-    ]);
+''');
   }
 
   test_typeParameter_hasBound_unrelated() async {
@@ -245,7 +236,6 @@ void f() {
 }
 ''', [
       error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      error(WarningCode.UNNECESSARY_CAST, 39, 8),
     ]);
   }
 

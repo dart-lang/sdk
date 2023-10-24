@@ -83,13 +83,11 @@ void f<T extends Object>(Null n) {
   }
 
   test_Null_nullable() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 void f(Null n) {
   n as int?;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 19, 9),
-    ]);
+''');
   }
 
   test_Null_nullableTypeVariable() async {
@@ -102,15 +100,13 @@ void f<T>(Null n) {
 
   test_Null_preNullSafety() async {
     noSoundNullSafety = false;
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart=2.9
 
 void f(Null n) {
   n as int;
 }
-''', [
-      error(WarningCode.UNNECESSARY_CAST, 33, 8),
-    ]);
+''');
   }
 
   test_nullable_nonNullable() async {
