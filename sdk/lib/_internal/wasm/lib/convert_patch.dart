@@ -1736,7 +1736,8 @@ class _Utf8Decoder {
       // Pure ASCII.
       assert(size == end - start);
       OneByteString result = OneByteString.withLength(size);
-      oneByteStringArray(result).copy(0, bytes.data, start, size);
+      oneByteStringArray(result)
+          .copy(0, bytes.data, bytes.offsetInBytes + start, size);
       return result;
     }
 

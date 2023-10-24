@@ -7447,3 +7447,17 @@ ExtensionTypeRepresentationTypeBottom:
   script: |
     extension type E1(Never foo) {}
   analyzerCode: EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM
+
+RepresentationFieldTrailingComma:
+  problemMessage: "The representation field can't have a trailing comma."
+  experiments: inline-class
+  script: |
+    extension type E(int foo,) {}
+  analyzerCode: REPRESENTATION_FIELD_TRAILING_COMMA
+
+WrongTypeParameterVarianceInSuperinterface:
+  problemMessage: "'#name' can't be used contravariantly or invariantly in '#type'."
+  experiments: inline-class
+  script: |
+    extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
+  analyzerCode: WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE

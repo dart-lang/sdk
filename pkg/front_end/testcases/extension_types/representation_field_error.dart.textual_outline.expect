@@ -8,3 +8,5 @@ extension type E7(const var foo) {}
 extension type E8() {}
 extension type E9(int foo, String bar) {}
 extension type E10(num foo, bool bar, double baz) {}
+extension type E11(bool foo,) {}
+extension type E12(bool foo = false,) {}

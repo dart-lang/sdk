@@ -65,6 +65,19 @@ library;
 // extension type E10(num foo, bool bar, double baz) {} // Error.
 //                   ^
 //
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:15:28: Error: The representation field can't have a trailing comma.
+// extension type E11(bool foo,) {} // Error.
+//                            ^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:16:29: Error: Non-optional parameters can't have a default value.
+// Try removing the default value or making the parameter optional.
+// extension type E12(bool foo = false,) {} // Error.
+//                             ^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:16:36: Error: The representation field can't have a trailing comma.
+// extension type E12(bool foo = false,) {} // Error.
+//                                    ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -120,6 +133,16 @@ extension type E10(core::num foo) {
   constructor • = self::E10|constructor#;
   constructor tearoff • = self::E10|constructor#_#new#tearOff;
 }
+extension type E11(core::bool foo) {
+  abstract inline-class-member representation-field get foo() → core::bool;
+  constructor • = self::E11|constructor#;
+  constructor tearoff • = self::E11|constructor#_#new#tearOff;
+}
+extension type E12(core::bool foo) {
+  abstract inline-class-member representation-field get foo() → core::bool;
+  constructor • = self::E12|constructor#;
+  constructor tearoff • = self::E12|constructor#_#new#tearOff;
+}
 static inline-class-member method E1|constructor#(dynamic foo) → self::E1 /* = dynamic */
   ;
 static inline-class-member method E1|constructor#_#new#tearOff(dynamic foo) → self::E1 /* = dynamic */
@@ -160,3 +183,11 @@ static inline-class-member method E10|constructor#(core::num foo, core::bool bar
   ;
 static inline-class-member method E10|constructor#_#new#tearOff(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */
   return self::E10|constructor#(foo, bar, baz);
+static inline-class-member method E11|constructor#(core::bool foo) → self::E11 /* = core::bool */
+  ;
+static inline-class-member method E11|constructor#_#new#tearOff(core::bool foo) → self::E11 /* = core::bool */
+  return self::E11|constructor#(foo);
+static inline-class-member method E12|constructor#(has-declared-initializer core::bool foo) → self::E12 /* = core::bool */
+  ;
+static inline-class-member method E12|constructor#_#new#tearOff(has-declared-initializer core::bool foo) → self::E12 /* = core::bool */
+  return self::E12|constructor#(foo);

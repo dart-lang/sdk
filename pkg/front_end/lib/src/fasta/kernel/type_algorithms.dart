@@ -58,84 +58,91 @@ int computeTypeVariableBuilderVariance(NominalVariableBuilder variable,
         typeArguments: List<TypeBuilder>? arguments
       ):
       assert(declaration != null);
-      if (declaration is NominalVariableBuilder) {
-        if (declaration == variable) {
-          return Variance.covariant;
-        } else {
-          return Variance.unrelated;
-        }
-      } else {
-        switch (declaration) {
-          case ClassBuilder():
-            int result = Variance.unrelated;
-            if (arguments != null) {
-              for (int i = 0; i < arguments.length; ++i) {
-                result = Variance.meet(
-                    result,
-                    Variance.combine(
-                        declaration.cls.typeParameters[i].variance,
-                        computeTypeVariableBuilderVariance(
-                            variable, arguments[i], libraryBuilder)));
-              }
+      switch (declaration) {
+        case ClassBuilder():
+          int result = Variance.unrelated;
+          if (arguments != null) {
+            for (int i = 0; i < arguments.length; ++i) {
+              result = Variance.meet(
+                  result,
+                  Variance.combine(
+                      declaration.cls.typeParameters[i].variance,
+                      computeTypeVariableBuilderVariance(
+                          variable, arguments[i], libraryBuilder)));
             }
-            return result;
-          case TypeAliasBuilder():
-            int result = Variance.unrelated;
+          }
+          return result;
+        case TypeAliasBuilder():
+          int result = Variance.unrelated;
 
-            if (type.typeArguments != null) {
-              for (int i = 0; i < type.typeArguments!.length; ++i) {
-                const int visitMarker = -2;
+          if (type.typeArguments != null) {
+            for (int i = 0; i < type.typeArguments!.length; ++i) {
+              const int visitMarker = -2;
 
-                int declarationTypeVariableVariance = declaration.varianceAt(i);
-                if (declarationTypeVariableVariance == pendingVariance) {
-                  assert(!declaration.fromDill);
-                  NominalVariableBuilder declarationTypeVariable =
-                      declaration.typeVariables![i];
-                  declarationTypeVariable.variance = visitMarker;
-                  int computedVariance = computeTypeVariableBuilderVariance(
-                      declarationTypeVariable,
-                      declaration.type,
-                      libraryBuilder);
-                  declarationTypeVariableVariance =
-                      declarationTypeVariable.variance = computedVariance;
-                } else if (declarationTypeVariableVariance == visitMarker) {
-                  assert(!declaration.fromDill);
-                  NominalVariableBuilder declarationTypeVariable =
-                      declaration.typeVariables![i];
-                  libraryBuilder.addProblem(
-                      templateCyclicTypedef.withArguments(declaration.name),
-                      declaration.charOffset,
-                      declaration.name.length,
-                      declaration.fileUri);
-                  // Use [Variance.unrelated] for recovery.  The type with the
-                  // cyclic dependency will be replaced with an [InvalidType]
-                  // elsewhere.
-                  declarationTypeVariableVariance =
-                      declarationTypeVariable.variance = Variance.unrelated;
-                }
-
-                result = Variance.meet(
-                    result,
-                    Variance.combine(
-                        computeTypeVariableBuilderVariance(
-                            variable, type.typeArguments![i], libraryBuilder),
-                        declarationTypeVariableVariance));
+              int declarationTypeVariableVariance = declaration.varianceAt(i);
+              if (declarationTypeVariableVariance == pendingVariance) {
+                assert(!declaration.fromDill);
+                NominalVariableBuilder declarationTypeVariable =
+                    declaration.typeVariables![i];
+                declarationTypeVariable.variance = visitMarker;
+                int computedVariance = computeTypeVariableBuilderVariance(
+                    declarationTypeVariable, declaration.type, libraryBuilder);
+                declarationTypeVariableVariance =
+                    declarationTypeVariable.variance = computedVariance;
+              } else if (declarationTypeVariableVariance == visitMarker) {
+                assert(!declaration.fromDill);
+                NominalVariableBuilder declarationTypeVariable =
+                    declaration.typeVariables![i];
+                libraryBuilder.addProblem(
+                    templateCyclicTypedef.withArguments(declaration.name),
+                    declaration.charOffset,
+                    declaration.name.length,
+                    declaration.fileUri);
+                // Use [Variance.unrelated] for recovery.  The type with the
+                // cyclic dependency will be replaced with an [InvalidType]
+                // elsewhere.
+                declarationTypeVariableVariance =
+                    declarationTypeVariable.variance = Variance.unrelated;
               }
+
+              result = Variance.meet(
+                  result,
+                  Variance.combine(
+                      computeTypeVariableBuilderVariance(
+                          variable, type.typeArguments![i], libraryBuilder),
+                      declarationTypeVariableVariance));
             }
-            return result;
-          case ExtensionTypeDeclarationBuilder():
-          // TODO(johnniwinther): Handle this case.
-          case NominalVariableBuilder():
-          case StructuralVariableBuilder():
-          case ExtensionBuilder():
-          case InvalidTypeDeclarationBuilder():
-          case BuiltinTypeDeclarationBuilder():
-          // TODO(johnniwinther): How should we handle this case?
-          case OmittedTypeDeclarationBuilder():
-          case null:
-        }
-        return Variance.unrelated;
+          }
+          return result;
+        case ExtensionTypeDeclarationBuilder():
+          int result = Variance.unrelated;
+          if (arguments != null) {
+            for (int i = 0; i < arguments.length; ++i) {
+              result = Variance.meet(
+                  result,
+                  Variance.combine(
+                      declaration
+                          .extensionTypeDeclaration.typeParameters[i].variance,
+                      computeTypeVariableBuilderVariance(
+                          variable, arguments[i], libraryBuilder)));
+            }
+          }
+          return result;
+        case NominalVariableBuilder():
+          if (declaration == variable) {
+            return Variance.covariant;
+          } else {
+            return Variance.unrelated;
+          }
+        case StructuralVariableBuilder():
+        case ExtensionBuilder():
+        case InvalidTypeDeclarationBuilder():
+        case BuiltinTypeDeclarationBuilder():
+        // TODO(johnniwinther): How should we handle this case?
+        case OmittedTypeDeclarationBuilder():
+        case null:
       }
+      return Variance.unrelated;
     case FunctionTypeBuilder(
         :List<StructuralVariableBuilder>? typeVariables,
         :List<ParameterBuilder>? formals,

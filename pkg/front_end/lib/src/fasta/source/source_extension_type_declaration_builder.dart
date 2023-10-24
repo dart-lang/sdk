@@ -22,6 +22,7 @@ import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
@@ -136,6 +137,36 @@ class SourceExtensionTypeDeclarationBuilder
             typeBuilder.build(libraryBuilder, TypeUse.superType);
         Message? errorMessage;
         List<LocatedMessage>? errorContext;
+
+        if (typeParameters?.isNotEmpty ?? false) {
+          for (NominalVariableBuilder variable in typeParameters!) {
+            int variance = computeTypeVariableBuilderVariance(
+                variable, typeBuilder, libraryBuilder);
+            if (!Variance.greaterThanOrEqual(variance, variable.variance)) {
+              if (variable.parameter.isLegacyCovariant) {
+                errorMessage =
+                    templateWrongTypeParameterVarianceInSuperinterface
+                        .withArguments(variable.name, interface,
+                            libraryBuilder.isNonNullableByDefault);
+              } else {
+                errorMessage =
+                    templateInvalidTypeVariableInSupertypeWithVariance
+                        .withArguments(
+                            Variance.keywordString(variable.variance),
+                            variable.name,
+                            Variance.keywordString(variance),
+                            typeBuilder.typeName!.name);
+              }
+            }
+          }
+          if (errorMessage != null) {
+            libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+                noLength, typeBuilder.fileUri,
+                context: errorContext);
+            errorMessage = null;
+          }
+        }
+
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
             errorMessage =

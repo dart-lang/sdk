@@ -2721,6 +2721,15 @@ class OutlineBuilder extends StackListenerImpl {
         assert(last != null);
         formals = [last as FormalParameterBuilder];
       }
+
+      Token? tokenBeforeEnd = endToken.previous;
+      if (tokenBeforeEnd != null &&
+          optional(",", tokenBeforeEnd) &&
+          kind == MemberKind.PrimaryConstructor &&
+          declarationContext == DeclarationContext.ExtensionType) {
+        libraryBuilder.addProblem(messageRepresentationFieldTrailingComma,
+            tokenBeforeEnd.charOffset, 1, uri);
+      }
     } else if (count > 1) {
       Object? last = pop();
       count--;

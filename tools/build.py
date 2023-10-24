@@ -43,14 +43,19 @@ def BuildOptions():
 
     other_group.add_argument("-j",
                              type=int,
-                             help='Ninja -j option for Goma builds.',
+                             help='Ninja -j option for Goma/RBE builds.',
                              default=1000)
     other_group.add_argument("-l",
                              type=int,
-                             help='Ninja -l option for Goma builds.',
+                             help='Ninja -l option for Goma/RBE builds.',
                              default=64)
     other_group.add_argument("--no-start-goma",
                              help="Don't try to start goma",
+                             default=False,
+                             dest='no_start_rbe',
+                             action='store_true')
+    other_group.add_argument("--no-start-rbe",
+                             help="Don't try to start rbe",
                              default=False,
                              action='store_true')
     other_group.add_argument(
@@ -124,63 +129,83 @@ def UseGoma(out_dir):
     return 'use_goma = true' in open(args_gn, 'r').read()
 
 
-# Try to start goma, but don't bail out if we can't. Instead print an error
+def UseRBE(out_dir):
+    args_gn = os.path.join(out_dir, 'args.gn')
+    return 'use_rbe = true' in open(args_gn, 'r').read()
+
+
+# Try to start RBE, but don't bail out if we can't. Instead print an error
 # message, and let the build fail with its own error messages as well.
-goma_started = False
+rbe_started = None
+bootstrap_path = None
 
 
-def EnsureGomaStarted(out_dir):
-    global goma_started
-    if goma_started:
+def StartRBE(out_dir, use_goma):
+    global rbe_started, bootstrap_path
+    rbe = 'goma' if use_goma else 'rbe'
+    if rbe_started:
+        if rbe_started != rbe:
+            print(f'Cannot mix RBE and Goma')
+            return False
         return True
     args_gn_path = os.path.join(out_dir, 'args.gn')
-    goma_dir = None
+    rbe_dir = None if use_goma else 'buildtools/reclient'
     with open(args_gn_path, 'r') as fp:
         for line in fp:
-            if 'goma_dir' in line:
+            if ('goma_dir' if use_goma else 'rbe_dir') in line:
                 words = line.split()
-                goma_dir = words[2][1:-1]  # goma_dir = "/path/to/goma"
-    if not goma_dir:
-        print('Could not find goma for ' + out_dir)
+                rbe_dir = words[2][1:-1]  # rbe_dir = "/path/to/rbe"
+    if not rbe_dir:
+        print(f'Could not find {rbe} for {out_dir}')
         return False
-    if not os.path.exists(goma_dir) or not os.path.isdir(goma_dir):
-        print('Could not find goma at ' + goma_dir)
+    if not os.path.exists(rbe_dir) or not os.path.isdir(rbe_dir):
+        print(f'Could not find {rbe} at {rbe_dir}')
         return False
-    goma_ctl = os.path.join(goma_dir, 'goma_ctl.py')
-    goma_ctl_command = [
-        'python3',
-        goma_ctl,
-        'ensure_start',
-    ]
-    process = subprocess.Popen(goma_ctl_command)
+    bootstrap = 'goma_ctl.py' if use_goma else 'bootstrap'
+    bootstrap_path = os.path.join(rbe_dir, bootstrap)
+    bootstrap_command = [bootstrap_path]
+    if use_goma:
+        bootstrap_command = ['python3', bootstrap_path, 'ensure_start']
+    process = subprocess.Popen(bootstrap_command)
     process.wait()
     if process.returncode != 0:
-        print(
-            "Tried to run goma_ctl.py, but it failed. Try running it manually: "
-            + "\n\t" + ' '.join(goma_ctl_command))
+        print(f"Starting {rbe} failed. Try running it manually: " + "\n\t" +
+              ' '.join(bootstrap_command))
         return False
-    goma_started = True
+    rbe_started = rbe
     return True
 
-# Returns a tuple (build_config, command to run, whether goma is used)
+
+def StopRBE():
+    global rbe_started, bootstrap_path
+    if rbe_started != 'rbe':
+        return
+    bootstrap_command = [bootstrap_path, '--shutdown']
+    process = subprocess.Popen(bootstrap_command)
+    process.wait()
+
+
+# Returns a tuple (build_config, command to run, whether rbe is used)
 def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
-    using_goma = False
+    using_rbe = False
     command = ['buildtools/ninja/ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
-    if UseGoma(out_dir):
-        if options.no_start_goma or EnsureGomaStarted(out_dir):
-            using_goma = True
+    use_rbe = UseRBE(out_dir)
+    use_goma = UseGoma(out_dir)
+    if use_rbe or use_goma:
+        if options.no_start_rbe or StartRBE(out_dir, use_goma):
+            using_rbe = True
             command += [('-j%s' % str(options.j))]
             command += [('-l%s' % str(options.l))]
         else:
-            # If we couldn't ensure that goma is started, let the build start, but
-            # slowly so we can see any helpful error messages that pop out.
+            # If we couldn't ensure that RBE is started, let the build start,
+            # but slowly so we can see any helpful error messages that pop out.
             command += ['-j1']
     command += targets
-    return (build_config, command, using_goma)
+    return (build_config, command, using_rbe)
 
 
 def RunOneBuildCommand(build_config, args, env):
@@ -233,6 +258,43 @@ def SanitizerEnvironmentVariables():
         return env
 
 
+def Build(configs, env, options):
+    # Build regular configs.
+    rbe_builds = []
+    for (build_config, args, rbe) in configs:
+        if args is None:
+            return 1
+        if rbe:
+            rbe_builds.append([env, args])
+        elif RunOneBuildCommand(build_config, args, env=env) != 0:
+            return 1
+
+    # Run RBE builds in parallel.
+    active_rbe_builds = []
+    for (env, args) in rbe_builds:
+        print(' '.join(args))
+        process = subprocess.Popen(args, env=env)
+        active_rbe_builds.append([args, process])
+    while active_rbe_builds:
+        time.sleep(0.1)
+        for rbe_build in active_rbe_builds:
+            (args, process) = rbe_build
+            if process.poll() is not None:
+                print(' '.join(args) + " done.")
+                active_rbe_builds.remove(rbe_build)
+                if process.returncode != 0:
+                    for (_, to_kill) in active_rbe_builds:
+                        to_kill.terminate()
+                    return 1
+
+    if options.check_clean:
+        for (build_config, args, rbe) in configs:
+            if CheckCleanBuild(build_config, args, env=env) != 0:
+                return 1
+
+    return 0
+
+
 def Main():
     starttime = time.time()
     # Parse the options.
@@ -277,42 +339,14 @@ def Main():
                         BuildOneConfig(options, targets, target_os, mode, arch,
                                        sanitizer))
 
-    # Build regular configs.
-    goma_builds = []
-    for (build_config, args, goma) in configs:
-        if args is None:
-            return 1
-        if goma:
-            goma_builds.append([env, args])
-        elif RunOneBuildCommand(build_config, args, env=env) != 0:
-            return 1
+    exit_code = Build(configs, env, options)
 
-    # Run goma builds in parallel.
-    active_goma_builds = []
-    for (env, args) in goma_builds:
-        print(' '.join(args))
-        process = subprocess.Popen(args, env=env)
-        active_goma_builds.append([args, process])
-    while active_goma_builds:
-        time.sleep(0.1)
-        for goma_build in active_goma_builds:
-            (args, process) = goma_build
-            if process.poll() is not None:
-                print(' '.join(args) + " done.")
-                active_goma_builds.remove(goma_build)
-                if process.returncode != 0:
-                    for (_, to_kill) in active_goma_builds:
-                        to_kill.terminate()
-                    return 1
+    StopRBE()
 
-    if options.check_clean:
-        for (build_config, args, goma) in configs:
-            if CheckCleanBuild(build_config, args, env=env) != 0:
-                return 1
-
-    endtime = time.time()
-    print("The build took %.3f seconds" % (endtime - starttime))
-    return 0
+    if exit_code == 0:
+        endtime = time.time()
+        print("The build took %.3f seconds" % (endtime - starttime))
+    return exit_code
 
 
 if __name__ == '__main__':
