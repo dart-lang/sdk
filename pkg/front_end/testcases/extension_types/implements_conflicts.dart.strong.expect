@@ -10,6 +10,22 @@ library;
 //   void method4() {} /* Error */
 //        ^
 //
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:70:38: Error: The representation type can't be a bottom type.
+// extension type ExtensionType9a(Never n) /* Error */
+//                                      ^
+//
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:73:38: Error: The representation type can't be a bottom type.
+// extension type ExtensionType9b(Never n) /* Error */
+//                                      ^
+//
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:94:39: Error: The representation type can't be a bottom type.
+// extension type ExtensionType12a(Never n) /* Error */
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/implements_conflicts.dart:107:39: Error: The representation type can't be a bottom type.
+// extension type ExtensionType12d(Never n) /* Error */
+//                                       ^
+//
 // pkg/front_end/testcases/extension_types/implements_conflicts.dart:7:16: Error: The extension type 'ExtensionType1a' can't inherit the member 'method1' as both an extension type member and a non-extension type member.
 // Try declaring a member 'method1' in 'ExtensionType1a' to resolve the conflict.
 // extension type ExtensionType1a(ClassA c) /* Error */
@@ -217,12 +233,12 @@ extension type ExtensionType9(core::int i) {
   constructor • = self::ExtensionType9|constructor#;
   constructor tearoff • = self::ExtensionType9|constructor#_#new#tearOff;
 }
-extension type ExtensionType9a(Never n) implements imp::ClassJ, imp::ClassK {
+extension type ExtensionType9a(invalid-type n) implements imp::ClassJ, imp::ClassK {
   abstract inline-class-member representation-field get n() → Never;
   constructor • = self::ExtensionType9a|constructor#;
   constructor tearoff • = self::ExtensionType9a|constructor#_#new#tearOff;
 }
-extension type ExtensionType9b(Never n) implements imp::ClassJ, imp::ClassK {
+extension type ExtensionType9b(invalid-type n) implements imp::ClassJ, imp::ClassK {
   abstract inline-class-member representation-field get n() → Never;
   get method4 = self::ExtensionType9b|get#method4;
   set method4 = self::ExtensionType9b|set#method4;
@@ -241,31 +257,31 @@ extension type ExtensionType10b(core::int i) implements imp::ExtensionTypeJ /* =
   constructor • = self::ExtensionType10b|constructor#;
   constructor tearoff • = self::ExtensionType10b|constructor#_#new#tearOff;
 }
-extension type ExtensionType11(Never n) {
-  abstract inline-class-member representation-field get n() → Never;
+extension type ExtensionType11(Null n) {
+  abstract inline-class-member representation-field get n() → Null;
   get property = self::ExtensionType11|get#property;
   set property = self::ExtensionType11|set#property;
   constructor • = self::ExtensionType11|constructor#;
   constructor tearoff • = self::ExtensionType11|constructor#_#new#tearOff;
 }
-extension type ExtensionType12a(Never n) implements imp::ClassL, imp::ClassM {
+extension type ExtensionType12a(invalid-type n) implements imp::ClassL, imp::ClassM {
   abstract inline-class-member representation-field get n() → Never;
   constructor • = self::ExtensionType12a|constructor#;
   constructor tearoff • = self::ExtensionType12a|constructor#_#new#tearOff;
 }
-extension type ExtensionType12b(Never n) implements imp::ClassL {
-  abstract inline-class-member representation-field get n() → Never;
+extension type ExtensionType12b(imp::ClassL n) implements imp::ClassL {
+  abstract inline-class-member representation-field get n() → imp::ClassL;
   set property = self::ExtensionType12b|set#property;
   constructor • = self::ExtensionType12b|constructor#;
   constructor tearoff • = self::ExtensionType12b|constructor#_#new#tearOff;
 }
-extension type ExtensionType12c(Never n) implements imp::ClassM {
-  abstract inline-class-member representation-field get n() → Never;
+extension type ExtensionType12c(imp::ClassM n) implements imp::ClassM {
+  abstract inline-class-member representation-field get n() → imp::ClassM;
   get property = self::ExtensionType12c|get#property;
   constructor • = self::ExtensionType12c|constructor#;
   constructor tearoff • = self::ExtensionType12c|constructor#_#new#tearOff;
 }
-extension type ExtensionType12d(Never n) implements imp::ClassL, imp::ClassM {
+extension type ExtensionType12d(invalid-type n) implements imp::ClassL, imp::ClassM {
   abstract inline-class-member representation-field get n() → Never;
   get property = self::ExtensionType12d|get#property;
   set property = self::ExtensionType12d|set#property;
@@ -414,21 +430,21 @@ static inline-class-member method ExtensionType9|method4(lowered final self::Ext
 static inline-class-member method ExtensionType9|get#method4(lowered final self::ExtensionType9 /* = core::int */ #this) → () → void
   return () → void => self::ExtensionType9|method4(#this);
 static inline-class-member method ExtensionType9|set#method4(lowered final self::ExtensionType9 /* = core::int */ #this, core::int value) → void {}
-static inline-class-member method ExtensionType9a|constructor#(Never n) → self::ExtensionType9a /* = Never */ {
-  lowered final self::ExtensionType9a /* = Never */ #this = n;
+static inline-class-member method ExtensionType9a|constructor#(Never n) → self::ExtensionType9a /* = invalid-type */ {
+  lowered final self::ExtensionType9a /* = invalid-type */ #this = n;
   return #this;
 }
-static inline-class-member method ExtensionType9a|constructor#_#new#tearOff(Never n) → self::ExtensionType9a /* = Never */
+static inline-class-member method ExtensionType9a|constructor#_#new#tearOff(Never n) → self::ExtensionType9a /* = invalid-type */
   return self::ExtensionType9a|constructor#(n);
-static inline-class-member method ExtensionType9b|constructor#(Never n) → self::ExtensionType9b /* = Never */ {
-  lowered final self::ExtensionType9b /* = Never */ #this = n;
+static inline-class-member method ExtensionType9b|constructor#(Never n) → self::ExtensionType9b /* = invalid-type */ {
+  lowered final self::ExtensionType9b /* = invalid-type */ #this = n;
   return #this;
 }
-static inline-class-member method ExtensionType9b|constructor#_#new#tearOff(Never n) → self::ExtensionType9b /* = Never */
+static inline-class-member method ExtensionType9b|constructor#_#new#tearOff(Never n) → self::ExtensionType9b /* = invalid-type */
   return self::ExtensionType9b|constructor#(n);
-static inline-class-member method ExtensionType9b|get#method4(lowered final self::ExtensionType9b /* = Never */ #this) → core::int
+static inline-class-member method ExtensionType9b|get#method4(lowered final self::ExtensionType9b /* = invalid-type */ #this) → core::int
   return 42;
-static inline-class-member method ExtensionType9b|set#method4(lowered final self::ExtensionType9b /* = Never */ #this, core::int value) → void {}
+static inline-class-member method ExtensionType9b|set#method4(lowered final self::ExtensionType9b /* = invalid-type */ #this, core::int value) → void {}
 static inline-class-member method ExtensionType10a|constructor#(core::int i) → self::ExtensionType10a /* = core::int */ {
   lowered final self::ExtensionType10a /* = core::int */ #this = i;
   return #this;
@@ -444,45 +460,45 @@ static inline-class-member method ExtensionType10b|constructor#(core::int i) →
 static inline-class-member method ExtensionType10b|get#method4(lowered final self::ExtensionType10b /* = core::int */ #this) → core::int
   return 42;
 static inline-class-member method ExtensionType10b|set#method4(lowered final self::ExtensionType10b /* = core::int */ #this, core::int value) → void {}
-static inline-class-member method ExtensionType11|constructor#(Never n) → self::ExtensionType11 /* = Never */ {
-  lowered final self::ExtensionType11 /* = Never */ #this = n;
+static inline-class-member method ExtensionType11|constructor#(Null n) → self::ExtensionType11 /* = Null */ {
+  lowered final self::ExtensionType11 /* = Null */ #this = n;
   return #this;
 }
-static inline-class-member method ExtensionType11|constructor#_#new#tearOff(Never n) → self::ExtensionType11 /* = Never */
+static inline-class-member method ExtensionType11|constructor#_#new#tearOff(Null n) → self::ExtensionType11 /* = Null */
   return self::ExtensionType11|constructor#(n);
-static inline-class-member method ExtensionType11|get#property(lowered final self::ExtensionType11 /* = Never */ #this) → core::int
+static inline-class-member method ExtensionType11|get#property(lowered final self::ExtensionType11 /* = Null */ #this) → core::int
   return 42;
-static inline-class-member method ExtensionType11|set#property(lowered final self::ExtensionType11 /* = Never */ #this, core::String value) → void {}
-static inline-class-member method ExtensionType12a|constructor#(Never n) → self::ExtensionType12a /* = Never */ {
-  lowered final self::ExtensionType12a /* = Never */ #this = n;
+static inline-class-member method ExtensionType11|set#property(lowered final self::ExtensionType11 /* = Null */ #this, core::String value) → void {}
+static inline-class-member method ExtensionType12a|constructor#(Never n) → self::ExtensionType12a /* = invalid-type */ {
+  lowered final self::ExtensionType12a /* = invalid-type */ #this = n;
   return #this;
 }
-static inline-class-member method ExtensionType12a|constructor#_#new#tearOff(Never n) → self::ExtensionType12a /* = Never */
+static inline-class-member method ExtensionType12a|constructor#_#new#tearOff(Never n) → self::ExtensionType12a /* = invalid-type */
   return self::ExtensionType12a|constructor#(n);
-static inline-class-member method ExtensionType12b|constructor#(Never n) → self::ExtensionType12b /* = Never */ {
-  lowered final self::ExtensionType12b /* = Never */ #this = n;
+static inline-class-member method ExtensionType12b|constructor#(imp::ClassL n) → self::ExtensionType12b /* = imp::ClassL */ {
+  lowered final self::ExtensionType12b /* = imp::ClassL */ #this = n;
   return #this;
 }
-static inline-class-member method ExtensionType12b|constructor#_#new#tearOff(Never n) → self::ExtensionType12b /* = Never */
+static inline-class-member method ExtensionType12b|constructor#_#new#tearOff(imp::ClassL n) → self::ExtensionType12b /* = imp::ClassL */
   return self::ExtensionType12b|constructor#(n);
-static inline-class-member method ExtensionType12b|set#property(lowered final self::ExtensionType12b /* = Never */ #this, core::bool value) → void {}
-static inline-class-member method ExtensionType12c|constructor#(Never n) → self::ExtensionType12c /* = Never */ {
-  lowered final self::ExtensionType12c /* = Never */ #this = n;
+static inline-class-member method ExtensionType12b|set#property(lowered final self::ExtensionType12b /* = imp::ClassL */ #this, core::bool value) → void {}
+static inline-class-member method ExtensionType12c|constructor#(imp::ClassM n) → self::ExtensionType12c /* = imp::ClassM */ {
+  lowered final self::ExtensionType12c /* = imp::ClassM */ #this = n;
   return #this;
 }
-static inline-class-member method ExtensionType12c|constructor#_#new#tearOff(Never n) → self::ExtensionType12c /* = Never */
+static inline-class-member method ExtensionType12c|constructor#_#new#tearOff(imp::ClassM n) → self::ExtensionType12c /* = imp::ClassM */
   return self::ExtensionType12c|constructor#(n);
-static inline-class-member method ExtensionType12c|get#property(lowered final self::ExtensionType12c /* = Never */ #this) → core::bool
+static inline-class-member method ExtensionType12c|get#property(lowered final self::ExtensionType12c /* = imp::ClassM */ #this) → core::bool
   return true;
-static inline-class-member method ExtensionType12d|constructor#(Never n) → self::ExtensionType12d /* = Never */ {
-  lowered final self::ExtensionType12d /* = Never */ #this = n;
+static inline-class-member method ExtensionType12d|constructor#(Never n) → self::ExtensionType12d /* = invalid-type */ {
+  lowered final self::ExtensionType12d /* = invalid-type */ #this = n;
   return #this;
 }
-static inline-class-member method ExtensionType12d|constructor#_#new#tearOff(Never n) → self::ExtensionType12d /* = Never */
+static inline-class-member method ExtensionType12d|constructor#_#new#tearOff(Never n) → self::ExtensionType12d /* = invalid-type */
   return self::ExtensionType12d|constructor#(n);
-static inline-class-member method ExtensionType12d|get#property(lowered final self::ExtensionType12d /* = Never */ #this) → core::bool
+static inline-class-member method ExtensionType12d|get#property(lowered final self::ExtensionType12d /* = invalid-type */ #this) → core::bool
   return true;
-static inline-class-member method ExtensionType12d|set#property(lowered final self::ExtensionType12d /* = Never */ #this, core::bool value) → void {}
+static inline-class-member method ExtensionType12d|set#property(lowered final self::ExtensionType12d /* = invalid-type */ #this, core::bool value) → void {}
 static inline-class-member method ExtensionType13a|constructor#(core::int i) → self::ExtensionType13a /* = core::int */ {
   lowered final self::ExtensionType13a /* = core::int */ #this = i;
   return #this;

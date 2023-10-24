@@ -1,0 +1,3 @@
+extension type E1(Never foo) {}
+extension type E2<X extends Never>(X foo) {}
+extension type E3<X extends Y, Y extends Never>(X foo) {}

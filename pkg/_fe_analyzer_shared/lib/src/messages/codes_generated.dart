@@ -4456,6 +4456,16 @@ const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
         r"""This is one of the inherited extension type members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeRepresentationTypeBottom =
+    messageExtensionTypeRepresentationTypeBottom;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeRepresentationTypeBottom =
+    const MessageCode("ExtensionTypeRepresentationTypeBottom",
+        analyzerCodes: <String>["EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM"],
+        problemMessage: r"""The representation type can't be a bottom type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

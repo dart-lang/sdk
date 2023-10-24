@@ -7440,3 +7440,10 @@ ExtensionTypeConstructorWithSuperFormalParameter:
   script: |
     extension type A(int foo) { A.named(this.foo, super.bar); }
   analyzerCode: EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER
+
+ExtensionTypeRepresentationTypeBottom:
+  problemMessage: "The representation type can't be a bottom type."
+  experiments: inline-class
+  script: |
+    extension type E1(Never foo) {}
+  analyzerCode: EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM

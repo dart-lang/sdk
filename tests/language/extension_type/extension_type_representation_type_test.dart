@@ -17,6 +17,8 @@ extension type V02(void _) {}
 extension type V03(Never _) {}
 //                 ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM
+//                       ^
+// [cfe] The representation type can't be a bottom type.
 extension type V04(Null _) {}
 extension type V05(Function _) {}
 extension type V06(Record _) {}

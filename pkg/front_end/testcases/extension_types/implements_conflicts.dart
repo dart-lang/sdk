@@ -70,7 +70,7 @@ extension type ExtensionType9(int i) {
 extension type ExtensionType9a(Never n) /* Error */
   implements ClassJ, ClassK {}
 
-extension type ExtensionType9b(Never n) /* Ok */
+extension type ExtensionType9b(Never n) /* Error */
     implements ClassJ, ClassK {
   int get method4 => 42; /* Ok */
   void set method4(int value) {} /* Ok */
@@ -85,7 +85,7 @@ extension type ExtensionType10b(int i) /* Ok */
   void set method4(int value) {} /* Ok */
 }
 
-extension type ExtensionType11(Never n) {
+extension type ExtensionType11(Null n) {
   int get property => 42; /* Error */
   void set property(String value) {} /* Error */
 }
@@ -94,17 +94,17 @@ extension type ExtensionType11(Never n) {
 extension type ExtensionType12a(Never n) /* Error */
     implements ClassL, ClassM {}
 
-extension type ExtensionType12b(Never n) /* Error */
+extension type ExtensionType12b(ClassL n) /* Error */
     implements ClassL {
   void set property(bool value) {} /* Error */
 }
 
-extension type ExtensionType12c(Never n) /* Error */
+extension type ExtensionType12c(ClassM n) /* Error */
     implements ClassM {
   bool get property => true; /* Error */
 }
 
-extension type ExtensionType12d(Never n) /* Ok */
+extension type ExtensionType12d(Never n) /* Error */
     implements ClassL, ClassM {
   bool get property => true; /* Ok */
   void set property(bool value) {} /* Ok */
