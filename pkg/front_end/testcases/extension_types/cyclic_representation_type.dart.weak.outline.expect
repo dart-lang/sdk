@@ -195,7 +195,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef Alias9 = self::E9 /* = invalid-type */;
-typedef Alias10<unrelated T extends core::Object? = dynamic> = self::E10<T%> /* = invalid-type */;
+typedef Alias10<T extends core::Object? = dynamic> = self::E10<T%> /* = invalid-type */;
 typedef Alias11 = () → self::E11 /* = invalid-type */;
 typedef Alias12 = (self::E12 /* = invalid-type */) → void;
 typedef Alias13 = <T extends self::E13 /* = invalid-type */ = dynamic>() → void;

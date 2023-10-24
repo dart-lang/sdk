@@ -6120,3 +6120,44 @@ Message _withArgumentsUndefinedSetter(
           """Try correcting the name to the name of an existing setter, or defining a setter or field named '${name}'.""",
       arguments: {'name': name, 'type': _type});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateWrongTypeParameterVarianceInSuperinterface =
+    const Template<
+            Message Function(String name, DartType _type,
+                bool isNonNullableByDefault)>(
+        "WrongTypeParameterVarianceInSuperinterface",
+        problemMessageTemplate:
+            r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
+        withArguments:
+            _withArgumentsWrongTypeParameterVarianceInSuperinterface);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeWrongTypeParameterVarianceInSuperinterface = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "WrongTypeParameterVarianceInSuperinterface",
+        analyzerCodes: <String>[
+      "WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE"
+    ]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWrongTypeParameterVarianceInSuperinterface(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeWrongTypeParameterVarianceInSuperinterface,
+      problemMessage:
+          """'${name}' can't be used contravariantly or invariantly in '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}

@@ -7454,3 +7454,10 @@ RepresentationFieldTrailingComma:
   script: |
     extension type E(int foo,) {}
   analyzerCode: REPRESENTATION_FIELD_TRAILING_COMMA
+
+WrongTypeParameterVarianceInSuperinterface:
+  problemMessage: "'#name' can't be used contravariantly or invariantly in '#type'."
+  experiments: inline-class
+  script: |
+    extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
+  analyzerCode: WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
