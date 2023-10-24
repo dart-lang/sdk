@@ -16,7 +16,7 @@ import 'position_information.dart';
 
 class KernelSourceInformationStrategy
     extends AbstractPositionSourceInformationStrategy {
-  late final JsToElementMap _elementMap;
+  late JsToElementMap _elementMap;
 
   @override
   void onElementMapAvailable(JsToElementMap elementMap) {

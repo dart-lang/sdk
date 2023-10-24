@@ -555,28 +555,31 @@ class Compiler {
     return programSize;
   }
 
+  JClosedWorld closedWorldTestMode(JClosedWorld closedWorld) {
+    SerializationIndices indices = SerializationIndices(testMode: true);
+    final strategy =
+        const BytesInMemorySerializationStrategy(useDataKinds: true);
+    // TODO(natebiggs): Add when kernel offsets are consistent across
+    //   serialization layer.
+    // List<int> irData = strategy
+    //     .serializeComponent(closedWorld.elementMap.programEnv.mainComponent);
+    // final component = strategy.deserializeComponent(irData);
+    List<int> closedWorldData =
+        strategy.serializeClosedWorld(closedWorld, options, indices);
+    final component = closedWorld.elementMap.programEnv.mainComponent;
+    return strategy.deserializeClosedWorld(options, reporter, environment,
+        abstractValueStrategy, component, closedWorldData, indices);
+  }
+
   GlobalTypeInferenceResults globalTypeInferenceResultsTestMode(
       GlobalTypeInferenceResults results) {
     SerializationIndices indices = SerializationIndices(testMode: true);
     final strategy =
         const BytesInMemorySerializationStrategy(useDataKinds: true);
-    List<int> irData = strategy.unpackAndSerializeComponent(results);
-    List<int> closedWorldData =
-        strategy.serializeClosedWorld(results.closedWorld, options, indices);
-    final component = strategy.deserializeComponent(irData);
-    final closedWorld = strategy.deserializeClosedWorld(
-        options,
-        reporter,
-        environment,
-        abstractValueStrategy,
-        component,
-        closedWorldData,
-        indices);
-    // Reset indices to clear references to old Kernel entities.
-    indices = SerializationIndices(testMode: true);
+    final closedWorld = results.closedWorld;
+    final component = closedWorld.elementMap.programEnv.mainComponent;
     List<int> globalTypeInferenceResultsData =
         strategy.serializeGlobalTypeInferenceResults(results, options, indices);
-
     return strategy.deserializeGlobalTypeInferenceResults(
         options,
         reporter,
@@ -617,6 +620,9 @@ class Compiler {
             closedWorld.elementMap.programEnv.mainComponent,
             includeSourceBytes: false);
         serializationTask.serializeClosedWorld(closedWorld, indices);
+      } else if (options.testMode && closedWorld != null) {
+        closedWorld = closedWorldTestMode(closedWorld);
+        backendStrategy.registerJClosedWorld(closedWorld);
       }
     } else {
       closedWorld = await serializationTask.deserializeClosedWorld(environment,
