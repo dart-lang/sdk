@@ -119,23 +119,18 @@ class DeclarationBuilderFromElement {
   }
 
   macro.TypeAnnotationImpl _dartType(DartType type) {
-    if (type is InterfaceType) {
-      return macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        identifier: identifier(type.element),
-        typeArguments: type.typeArguments.map(_dartType).toList(),
-      );
-    } else if (type is TypeParameterType) {
-      return macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        identifier: identifier(type.element),
-        typeArguments: const [],
-      );
-    } else {
-      // TODO(scheglov) other types
-      throw UnimplementedError('(${type.runtimeType}) $type');
+    switch (type) {
+      case InterfaceType():
+        return _interfaceType(type);
+      case TypeParameterType():
+        return macro.NamedTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+          identifier: identifier(type.element),
+          typeArguments: const [],
+        );
+      default:
+        throw UnimplementedError('(${type.runtimeType}) $type');
     }
   }
 
@@ -157,6 +152,15 @@ class DeclarationBuilderFromElement {
     );
   }
 
+  macro.NamedTypeAnnotationImpl _interfaceType(InterfaceType type) {
+    return macro.NamedTypeAnnotationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+      identifier: identifier(type.element),
+      typeArguments: type.typeArguments.map(_dartType).toList(),
+    );
+  }
+
   IntrospectableClassDeclarationImpl _introspectableClassElement(
       ClassElement element) {
     assert(!_classMap.containsKey(element));
@@ -167,10 +171,7 @@ class DeclarationBuilderFromElement {
       // TODO: Provide metadata annotations.
       metadata: const [],
       typeParameters: element.typeParameters.map(_typeParameter).toList(),
-      interfaces: element.interfaces
-          .map(_dartType)
-          .cast<macro.NamedTypeAnnotationImpl>()
-          .toList(),
+      interfaces: element.interfaces.map(_interfaceType).toList(),
       hasAbstract: element.isAbstract,
       hasBase: element.isBase,
       hasExternal: false,
@@ -178,12 +179,8 @@ class DeclarationBuilderFromElement {
       hasInterface: element.isInterface,
       hasMixin: element.isMixinClass,
       hasSealed: element.isSealed,
-      mixins: element.mixins
-          .map(_dartType)
-          .cast<macro.NamedTypeAnnotationImpl>()
-          .toList(),
-      superclass: element.supertype.mapOrNull(_dartType)
-          as macro.NamedTypeAnnotationImpl?,
+      mixins: element.mixins.map(_interfaceType).toList(),
+      superclass: element.supertype.mapOrNull(_interfaceType),
     )..element = element;
   }
 
@@ -286,7 +283,7 @@ class DeclarationBuilderFromNode {
       // TODO: Provide metadata annotations.
       metadata: const [],
       typeParameters: _typeParameters(node.typeParameters),
-      interfaces: _typeAnnotations(node.implementsClause?.interfaces),
+      interfaces: _namedTypes(node.implementsClause?.interfaces),
       hasAbstract: node.abstractKeyword != null,
       hasBase: node.baseKeyword != null,
       hasExternal: false,
@@ -294,10 +291,8 @@ class DeclarationBuilderFromNode {
       hasInterface: node.interfaceKeyword != null,
       hasMixin: node.mixinKeyword != null,
       hasSealed: node.sealedKeyword != null,
-      mixins: _typeAnnotations(node.withClause?.mixinTypes),
-      superclass: node.extendsClause?.superclass.mapOrNull(
-        _typeAnnotation,
-      ),
+      mixins: _namedTypes(node.withClause?.mixinTypes),
+      superclass: node.extendsClause?.superclass.mapOrNull(_namedType),
     );
   }
 
@@ -334,6 +329,15 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  macro.NamedTypeAnnotationImpl _namedType(ast.NamedType node) {
+    return macro.NamedTypeAnnotationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _namedTypeIdentifier(node),
+      isNullable: node.question != null,
+      typeArguments: _typeAnnotations(node.typeArguments?.arguments),
+    );
+  }
+
   macro.IdentifierImpl _namedTypeIdentifier(ast.NamedType node) {
     return _namedTypeMap[node] ??= _NamedTypeIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -342,40 +346,45 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  T _typeAnnotation<T extends macro.TypeAnnotationImpl>(
-      ast.TypeAnnotation? node) {
-    if (node == null) {
-      return macro.OmittedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-      ) as T;
-    } else if (node is ast.GenericFunctionType) {
-      return macro.FunctionTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        isNullable: node.question != null,
-        namedParameters: node.parameters.parameters
-            .where((e) => e.isNamed)
-            .map(_formalParameter)
-            .toList(),
-        positionalParameters: node.parameters.parameters
-            .where((e) => e.isPositional)
-            .map(_formalParameter)
-            .toList(),
-        returnType: _typeAnnotation(node.returnType),
-        typeParameters: _typeParameters(node.typeParameters),
-      ) as T;
-    } else if (node is ast.NamedType) {
-      return macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        identifier: _namedTypeIdentifier(node),
-        isNullable: node.question != null,
-        typeArguments: _typeAnnotations(node.typeArguments?.arguments),
-      ) as T;
+  List<macro.NamedTypeAnnotationImpl> _namedTypes(
+    List<ast.NamedType>? elements,
+  ) {
+    if (elements != null) {
+      return elements.map(_namedType).toList();
     } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
+      return const [];
     }
   }
 
-  List<T> _typeAnnotations<T extends macro.TypeAnnotationImpl>(
+  macro.TypeAnnotationImpl _typeAnnotation(ast.TypeAnnotation? node) {
+    switch (node) {
+      case null:
+        return macro.OmittedTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+        );
+      case ast.GenericFunctionType():
+        return macro.FunctionTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          isNullable: node.question != null,
+          namedParameters: node.parameters.parameters
+              .where((e) => e.isNamed)
+              .map(_formalParameter)
+              .toList(),
+          positionalParameters: node.parameters.parameters
+              .where((e) => e.isPositional)
+              .map(_formalParameter)
+              .toList(),
+          returnType: _typeAnnotation(node.returnType),
+          typeParameters: _typeParameters(node.typeParameters),
+        );
+      case ast.NamedType():
+        return _namedType(node);
+      default:
+        throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
+  List<macro.TypeAnnotationImpl> _typeAnnotations(
     List<ast.TypeAnnotation>? elements,
   ) {
     if (elements != null) {
