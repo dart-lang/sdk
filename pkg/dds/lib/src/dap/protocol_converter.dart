@@ -744,9 +744,7 @@ class ProtocolConverter {
       final functions = classResponse.functions;
       if (functions != null) {
         final instanceFields = functions.where((f) =>
-            // TODO(dantup): Update this to use something better that bkonyi is
-            // adding to the protocol.
-            f.json?['_kind'] == 'GetterFunction' &&
+            (f.isGetter ?? false) &&
             !(f.isStatic ?? false) &&
             !(f.isConst ?? false));
         getterNames.addAll(instanceFields
