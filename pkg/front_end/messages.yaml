@@ -7433,3 +7433,10 @@ MultipleRepresentationFields:
   script: |
     extension type E(int foo, String bar) {}
   analyzerCode: MULTIPLE_REPRESENTATION_FIELDS
+
+ExtensionTypeConstructorWithSuperFormalParameter:
+  problemMessage: "Extension type constructors can't declare super formal parameters."
+  experiments: inline-class
+  script: |
+    extension type A(int foo) { A.named(this.foo, super.bar); }
+  analyzerCode: EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER

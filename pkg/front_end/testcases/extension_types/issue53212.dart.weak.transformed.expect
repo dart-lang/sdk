@@ -1,0 +1,80 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53212.dart:6:28: Error: Extension type constructors can't declare super formal parameters.
+//   E1.named(this.foo, super.bar); // Error.
+//                            ^^^
+//
+// pkg/front_end/testcases/extension_types/issue53212.dart:10:38: Error: Extension type constructors can't declare super formal parameters.
+//   E2.named(this.foo, {required super.bar}); // Error.
+//                                      ^^^
+//
+// pkg/front_end/testcases/extension_types/issue53212.dart:14:29: Error: Extension type constructors can't declare super formal parameters.
+//   E3.named(this.foo, [super.bar = null]);
+//                             ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type E1(core::int foo) {
+  abstract inline-class-member representation-field get foo() → core::int;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+  constructor named = self::E1|constructor#named;
+  constructor tearoff named = self::E1|constructor#_#named#tearOff;
+}
+extension type E2(core::int foo) {
+  abstract inline-class-member representation-field get foo() → core::int;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+  constructor named = self::E2|constructor#named;
+  constructor tearoff named = self::E2|constructor#_#named#tearOff;
+}
+extension type E3(core::int foo) {
+  abstract inline-class-member representation-field get foo() → core::int;
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+  constructor named = self::E3|constructor#named;
+  constructor tearoff named = self::E3|constructor#_#named#tearOff;
+}
+static inline-class-member method E1|constructor#(core::int foo) → self::E1 /* = core::int */ {
+  lowered final self::E1 /* = core::int */ #this = foo;
+  return #this;
+}
+static inline-class-member method E1|constructor#_#new#tearOff(core::int foo) → self::E1 /* = core::int */
+  return self::E1|constructor#(foo);
+static inline-class-member method E1|constructor#named(core::int foo, invalid-type bar) → self::E1 /* = core::int */ {
+  lowered final self::E1 /* = core::int */ #this = foo;
+  return #this;
+}
+static inline-class-member method E1|constructor#_#named#tearOff(core::int foo, invalid-type bar) → self::E1 /* = core::int */
+  return self::E1|constructor#named(foo, bar);
+static inline-class-member method E2|constructor#(core::int foo) → self::E2 /* = core::int */ {
+  lowered final self::E2 /* = core::int */ #this = foo;
+  return #this;
+}
+static inline-class-member method E2|constructor#_#new#tearOff(core::int foo) → self::E2 /* = core::int */
+  return self::E2|constructor#(foo);
+static inline-class-member method E2|constructor#named(core::int foo, {required invalid-type bar = #C1}) → self::E2 /* = core::int */ {
+  lowered final self::E2 /* = core::int */ #this = foo;
+  return #this;
+}
+static inline-class-member method E2|constructor#_#named#tearOff(core::int foo, {required invalid-type bar}) → self::E2 /* = core::int */
+  return self::E2|constructor#named(foo, bar: bar);
+static inline-class-member method E3|constructor#(core::int foo) → self::E3 /* = core::int */ {
+  lowered final self::E3 /* = core::int */ #this = foo;
+  return #this;
+}
+static inline-class-member method E3|constructor#_#new#tearOff(core::int foo) → self::E3 /* = core::int */
+  return self::E3|constructor#(foo);
+static inline-class-member method E3|constructor#named(core::int foo, [has-declared-initializer invalid-type bar = #C1]) → self::E3 /* = core::int */ {
+  lowered final self::E3 /* = core::int */ #this = foo;
+  return #this;
+}
+static inline-class-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar]) → self::E3 /* = core::int */
+  return self::E3|constructor#named(foo, bar);
+
+constants  {
+  #C1 = null
+}

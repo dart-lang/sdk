@@ -4399,6 +4399,19 @@ Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeConstructorWithSuperFormalParameter =
+    messageExtensionTypeConstructorWithSuperFormalParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeConstructorWithSuperFormalParameter =
+    const MessageCode("ExtensionTypeConstructorWithSuperFormalParameter",
+        analyzerCodes: <String>[
+      "EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER"
+    ],
+        problemMessage:
+            r"""Extension type constructors can't declare super formal parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeDeclarationCause =
     messageExtensionTypeDeclarationCause;
 

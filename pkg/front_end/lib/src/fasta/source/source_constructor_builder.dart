@@ -35,6 +35,7 @@ import '../messages.dart'
     show
         LocatedMessage,
         Message,
+        messageExtensionTypeConstructorWithSuperFormalParameter,
         messageMoreThanOneSuperInitializer,
         messageRedirectingConstructorWithAnotherInitializer,
         messageRedirectingConstructorWithMultipleRedirectInitializers,
@@ -1157,7 +1158,23 @@ class SourceExtensionTypeConstructorBuilder
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override
-  void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {}
+  void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isSuperInitializingFormal) {
+          TypeBuilder formalTypeBuilder = formal.type;
+          if (formalTypeBuilder is InferableTypeBuilder) {
+            libraryBuilder.addProblem(
+                messageExtensionTypeConstructorWithSuperFormalParameter,
+                formal.charOffset,
+                formal.name.length,
+                formal.fileUri);
+            formalTypeBuilder.registerType(const InvalidType());
+          }
+        }
+      }
+    }
+  }
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
