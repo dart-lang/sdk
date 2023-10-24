@@ -35,7 +35,7 @@ _JAMMY = {"os": "Ubuntu-22"}
 _WINDOWS10 = {"os": "Windows-10"}
 _WINDOWS11 = {"os": "Windows-11"}
 
-_FLUTTER_POOL = {"pool": "luci.flutter.staging"}
+_FLUTTER_POOL = {"pool": "luci.flutter.prod"}
 _EXPERIMENTAL = {"host_class": "experimental"}
 
 def _union(x, overrides):
