@@ -18,7 +18,7 @@
 #include <thread>  // NOLINT
 
 #if defined(_WIN32)
-#include <memoryapi.h>
+#include <windows.h>
 #else
 #include <sys/mman.h>
 #endif
@@ -736,7 +736,7 @@ DART_EXPORT int64_t SumStruct9Uint8(Struct9Uint8 s9) {
 
 DART_EXPORT Struct9Uint8* AllocStruct9Uint8() {
   size_t size = sizeof(Struct9Uint8) * 64 * 1024;
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(_WIN32)
   return reinterpret_cast<Struct9Uint8*>(
       VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE));
 #else
@@ -747,7 +747,7 @@ DART_EXPORT Struct9Uint8* AllocStruct9Uint8() {
 }
 
 DART_EXPORT void FreeStruct9Uint8(Struct9Uint8* address) {
-#if defined(DART_HOST_OS_WINDOWS)
+#if defined(_WIN32)
   VirtualFree(address, 0, MEM_RELEASE);
 #else
   size_t size = sizeof(Struct9Uint8) * 64 * 1024;
