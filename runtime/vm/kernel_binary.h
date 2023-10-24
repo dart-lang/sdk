@@ -324,7 +324,7 @@ class Reader : public ValueObject {
     ASSERT((size_ >= 1) && (offset_ >= 0) && (offset_ <= size_ - 1));
 
     const uint8_t* buffer = raw_buffer_;
-    uint8_t byte0 = buffer[offset_];
+    uword byte0 = buffer[offset_];
     if ((byte0 & 0x80) == 0) {
       // 0...
       offset_++;
@@ -332,13 +332,15 @@ class Reader : public ValueObject {
     } else if ((byte0 & 0xc0) == 0x80) {
       // 10...
       ASSERT((size_ >= 2) && (offset_ >= 0) && (offset_ <= size_ - 2));
-      uint32_t value = ((byte0 & ~0x80) << 8) | (buffer[offset_ + 1]);
+      uint32_t value =
+          ((byte0 & ~static_cast<uword>(0x80)) << 8) | (buffer[offset_ + 1]);
       offset_ += 2;
       return value;
     } else {
       // 11...
       ASSERT((size_ >= 4) && (offset_ >= 0) && (offset_ <= size_ - 4));
-      uint32_t value = ((byte0 & ~0xc0) << 24) | (buffer[offset_ + 1] << 16) |
+      uint32_t value = ((byte0 & ~static_cast<uword>(0xc0)) << 24) |
+                       (buffer[offset_ + 1] << 16) |
                        (buffer[offset_ + 2] << 8) | (buffer[offset_ + 3] << 0);
       offset_ += 4;
       return value;

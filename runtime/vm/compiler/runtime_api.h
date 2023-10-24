@@ -263,15 +263,15 @@ namespace target {
 #if defined(TARGET_ARCH_IS_32_BIT)
 typedef int32_t word;
 typedef uint32_t uword;
-static constexpr int kWordSizeLog2 = 2;
+static constexpr intptr_t kWordSizeLog2 = 2;
 #elif defined(TARGET_ARCH_IS_64_BIT)
 typedef int64_t word;
 typedef uint64_t uword;
-static constexpr int kWordSizeLog2 = 3;
+static constexpr intptr_t kWordSizeLog2 = 3;
 #else
 #error "Unsupported architecture"
 #endif
-static constexpr int kWordSize = 1 << kWordSizeLog2;
+static constexpr intptr_t kWordSize = 1 << kWordSizeLog2;
 static_assert(kWordSize == sizeof(word), "kWordSize should match sizeof(word)");
 // Our compiler code currently assumes this, so formally check it.
 #if !defined(FFI_UNIT_TESTS)
@@ -280,11 +280,11 @@ static_assert(dart::kWordSize >= kWordSize,
 #endif
 
 #if defined(DART_COMPRESSED_POINTERS)
-static constexpr int kCompressedWordSize = kInt32Size;
-static constexpr int kCompressedWordSizeLog2 = kInt32SizeLog2;
+static constexpr intptr_t kCompressedWordSize = kInt32Size;
+static constexpr intptr_t kCompressedWordSizeLog2 = kInt32SizeLog2;
 #else
-static constexpr int kCompressedWordSize = kWordSize;
-static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
+static constexpr intptr_t kCompressedWordSize = kWordSize;
+static constexpr intptr_t kCompressedWordSizeLog2 = kWordSizeLog2;
 #endif
 
 static constexpr word kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
@@ -298,9 +298,9 @@ constexpr uword kUwordMax = static_cast<word>(-1);
 
 // The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
 #if !defined(DART_COMPRESSED_POINTERS)
-constexpr int kSmiBits = kBitsPerWord - 2;
+constexpr intptr_t kSmiBits = kBitsPerWord - 2;
 #else
-constexpr int kSmiBits = 30;
+constexpr intptr_t kSmiBits = 30;
 #endif
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
@@ -341,7 +341,7 @@ constexpr intptr_t kDoubleSpillFactor = sizeof(double) / kWordSize;
 
 // Returns the FP-relative index where [variable] can be found (assumes
 // [variable] is not captured), in bytes.
-inline int FrameOffsetInBytesForVariable(const LocalVariable* variable) {
+inline intptr_t FrameOffsetInBytesForVariable(const LocalVariable* variable) {
   return frame_layout.FrameSlotForVariable(variable) * kWordSize;
 }
 

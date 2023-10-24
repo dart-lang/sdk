@@ -1753,7 +1753,7 @@ class Assembler : public AssemblerBase {
     ASSERT(value != result);
     compiler::Label done;
     sbfx(result, value, kSmiTagSize,
-         Utils::Minimum(static_cast<int>(32), compiler::target::kSmiBits));
+         Utils::Minimum(static_cast<intptr_t>(32), compiler::target::kSmiBits));
     BranchIfSmi(value, &done);
     LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset(),
                         compiler::kFourBytes);

@@ -168,6 +168,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
       DataDriven.new,
     ],
+    WarningCode.DEPRECATED_EXPORT_USE: [
+      DataDriven.new,
+    ],
     HintCode.DEPRECATED_MEMBER_USE: [
       DataDriven.new,
     ],
@@ -384,6 +387,9 @@ class BulkFixProcessor {
           }
         }
       }
+      // Files in bin can have imports to the package itself, these should be
+      // cleaned up.
+      packages.remove(rootFolder.shortName);
 
       // Compute changes to pubspec.
       var result = await _runPubspecValidatorAndFixGenerator(

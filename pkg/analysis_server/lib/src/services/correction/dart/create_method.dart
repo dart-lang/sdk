@@ -160,13 +160,16 @@ class CreateMethod extends ResolvedCorrectionProducer {
         targetNode = await getMixinDeclaration(targetClassElement);
       } else if (targetClassElement is ClassElement) {
         targetNode = await getClassDeclaration(targetClassElement);
+      } else if (targetClassElement is ExtensionTypeElement) {
+        targetNode = await getExtensionTypeDeclaration(targetClassElement);
       }
       if (targetNode == null) {
         return;
       }
       // maybe static
       if (target is Identifier) {
-        staticModifier = target.staticElement?.kind == ElementKind.CLASS;
+        staticModifier = target.staticElement?.kind == ElementKind.CLASS ||
+            target.staticElement?.kind == ElementKind.EXTENSION_TYPE;
       }
       // use different utils
       var targetPath = targetClassElement.source.fullName;

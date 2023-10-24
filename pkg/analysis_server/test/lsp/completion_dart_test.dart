@@ -3941,25 +3941,29 @@ void f() {
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
 
-    // User a Completer to control when the completion handler starts computing.
+    // Use a Completer to control when the completion handler starts computing.
     final completer = Completer<void>();
     CompletionHandler.delayAfterResolveForTests = completer.future;
+    try {
+      // Start the completion request but don't await it yet.
+      final completionRequest =
+          getCompletionList(mainFileUri, code.position.position);
+      // Modify the document to ensure the snippet requests will fail to build
+      // edits and then allow the handler to continue.
+      await replaceFile(222, mainFileUri, '');
+      completer.complete();
 
-    // Start the completion request but don't await it yet.
-    final completionRequest =
-        getCompletionList(mainFileUri, code.position.position);
-    // Modify the document to ensure the snippet requests will fail to build
-    // edits and then allow the handler to continue.
-    await replaceFile(222, mainFileUri, '');
-    completer.complete();
+      // Wait for the results.
+      final result = await completionRequest;
 
-    // Wait for the results.
-    final result = await completionRequest;
-
-    // Ensure we flagged that we did not return everything but we still got
-    // results.
-    expect(result.isIncomplete, isTrue);
-    expect(result.items, isNotEmpty);
+      // Ensure we flagged that we did not return everything but we still got
+      // results.
+      expect(result.isIncomplete, isTrue);
+      expect(result.items, isNotEmpty);
+    } finally {
+      // Ensure we never leave an incomplete future if anything above throws.
+      CompletionHandler.delayAfterResolveForTests = null;
+    }
   }
 
   Future<void>

@@ -1412,8 +1412,116 @@ class MacroTypesIntrospectTest extends MacroElementsBaseTest {
     return code.replaceAll('/*macro*/', 'macro');
   }
 
+  test_class_methodDeclaration_getter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+abstract class A {
+  @DeclarationTextMacro()
+  int get foo => 0;
+}
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_class_methodDeclaration_method_hasBody_false() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+abstract class A {
+  @DeclarationTextMacro()
+  void foo();
+}
+''', r'''
+foo
+  returnType: void
+''');
+  }
+
+  test_class_methodDeclaration_method_hasExternal() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+abstract class A {
+  @DeclarationTextMacro()
+  external void foo();
+}
+''', r'''
+foo
+  flags: hasExternal
+  returnType: void
+''');
+  }
+
+  test_class_methodDeclaration_method_isStatic() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+class A {
+  @DeclarationTextMacro()
+  static void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody isStatic
+  returnType: void
+''');
+  }
+
+  test_class_methodDeclaration_method_namedParameters() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+abstract class A {
+  @DeclarationTextMacro()
+  void foo({required int a, String? b}]) {}
+}
+''', r'''
+foo
+  flags: hasBody
+  namedParameters
+    a
+      flags: isNamed isRequired
+      type: int
+    b
+      flags: isNamed
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_class_methodDeclaration_method_positionalParameters() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+abstract class A {
+  @DeclarationTextMacro()
+  void foo(int a, [String? b]) {}
+}
+''', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: int
+    b
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_class_methodDeclaration_setter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+abstract class A {
+  @DeclarationTextMacro()
+  set foo(int value) {}
+}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
+  returnType: OmittedType
+''');
+  }
+
   test_classDeclaration_interfaces() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A implements B, C<int, String> {}
 ''', r'''
 class A
@@ -1425,6 +1533,7 @@ class A
 
   test_classDeclaration_isAbstract() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 abstract class A {}
 ''', r'''
 abstract class A
@@ -1433,6 +1542,7 @@ abstract class A
 
   test_classDeclaration_mixins() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A with B, C<int, String> {}
 ''', r'''
 class A
@@ -1444,6 +1554,7 @@ class A
 
   test_classDeclaration_superclass() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B {}
 ''', r'''
 class A
@@ -1453,6 +1564,7 @@ class A
 
   test_classDeclaration_superclass_nullable() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<int?> {}
 ''', r'''
 class A
@@ -1462,6 +1574,7 @@ class A
 
   test_classDeclaration_superclass_typeArguments() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<String, List<int>> {}
 ''', r'''
 class A
@@ -1471,6 +1584,7 @@ class A
 
   test_classDeclaration_typeParameters() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A<T, U extends List<T>> {}
 ''', r'''
 class A
@@ -1483,6 +1597,7 @@ class A
 
   test_functionTypeAnnotation_formalParameters_namedOptional_simpleFormalParameter() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<void Function(int a, {int? b, int? c})> {}
 ''', r'''
 class A
@@ -1492,6 +1607,7 @@ class A
 
   test_functionTypeAnnotation_formalParameters_namedRequired_simpleFormalParameter() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<void Function(int a, {required int b, required int c})> {}
 ''', r'''
 class A
@@ -1501,6 +1617,7 @@ class A
 
   test_functionTypeAnnotation_formalParameters_positionalOptional_simpleFormalParameter() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<void Function(int a, [int b, int c])> {}
 ''', r'''
 class A
@@ -1511,6 +1628,7 @@ class A
   /// TODO(scheglov) Tests for unnamed positional formal parameters.
   test_functionTypeAnnotation_formalParameters_positionalRequired_simpleFormalParameter() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<void Function(int a, double b)> {}
 ''', r'''
 class A
@@ -1520,6 +1638,7 @@ class A
 
   test_functionTypeAnnotation_nullable() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<void Function()?> {}
 ''', r'''
 class A
@@ -1529,6 +1648,7 @@ class A
 
   test_functionTypeAnnotation_returnType() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<void Function()> {}
 ''', r'''
 class A
@@ -1538,6 +1658,7 @@ class A
 
   test_functionTypeAnnotation_returnType_omitted() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<Function()> {}
 ''', r'''
 class A
@@ -1547,6 +1668,7 @@ class A
 
   test_functionTypeAnnotation_typeParameters() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends B<void Function<T, U extends num>()> {}
 ''', r'''
 class A
@@ -1556,6 +1678,7 @@ class A
 
   test_namedTypeAnnotation_prefixed() async {
     await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
 class A extends prefix.B {}
 ''', r'''
 class A
@@ -1597,7 +1720,6 @@ class A
     var library = await buildLibrary('''
 import 'declaration_text.dart';
 
-@DeclarationTextMacro()
 $declarationCode
 ''');
 

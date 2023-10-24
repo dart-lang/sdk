@@ -8,12 +8,19 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/move_file.dart';
+import 'package:meta/meta.dart';
 
 typedef StaticOptions = FileOperationRegistrationOptions?;
 
 class WillRenameFilesHandler
     extends SharedMessageHandler<RenameFilesParams, WorkspaceEdit?> {
+  /// A [Future] used by tests to allow inserting a delay during computation
+  /// to allow forcing inconsistent analysis.
+  @visibleForTesting
+  static Future<void>? delayDuringComputeForTests;
+
   WillRenameFilesHandler(super.server);
+
   @override
   Method get handlesMessage => Method.workspace_willRenameFiles;
 
@@ -67,6 +74,10 @@ class WillRenameFilesHandler
     }
 
     final change = await refactoring.createChange();
+    if (delayDuringComputeForTests != null) {
+      await delayDuringComputeForTests;
+    }
+
     if (token.isCancellationRequested) {
       return cancelled();
     }

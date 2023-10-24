@@ -77,7 +77,9 @@ Future<String> _bisect(
   final pivotIndex = numCommits ~/ 2;
   final pivot = commitHashes[pivotIndex];
   logger.info(
-      'Bisecting ${commitHashes.first}...${commitHashes.last} ($numCommits commits). Trying $pivot.');
+    'Bisecting ${commitHashes.first}...${commitHashes.last} '
+    '($numCommits commits). Trying $pivot.',
+  );
   final commitResult = await _checkCommit(
     pivot,
     testCommands,
@@ -160,7 +162,7 @@ Future<void> _gclientSync(Uri sdkCheckout, Logger logger) {
 
 Future<String> _runTest(
     List<String> testCommands, Uri sdkCheckout, Logger logger) async {
-  var output = "";
+  var output = '';
   for (final command in testCommands) {
     final commandSplit = command.split(' ');
     final result = await runProcess(
