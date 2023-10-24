@@ -12,3 +12,5 @@ extension type E7(const var foo) {} // Error.
 extension type E8() {} // Error.
 extension type E9(int foo, String bar) {} // Error.
 extension type E10(num foo, bool bar, double baz) {} // Error.
+extension type E11(bool foo,) {} // Error.
+extension type E12(bool foo = false,) {} // Error.

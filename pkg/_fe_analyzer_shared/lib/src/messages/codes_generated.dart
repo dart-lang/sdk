@@ -12477,6 +12477,17 @@ const MessageCode messageRepresentationFieldModifier = const MessageCode(
     problemMessage: r"""Representation fields can't have modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRepresentationFieldTrailingComma =
+    messageRepresentationFieldTrailingComma;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRepresentationFieldTrailingComma = const MessageCode(
+    "RepresentationFieldTrailingComma",
+    analyzerCodes: <String>["REPRESENTATION_FIELD_TRAILING_COMMA"],
+    problemMessage:
+        r"""The representation field can't have a trailing comma.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateRequiredNamedParameterHasDefaultValueError =
     const Template<Message Function(String name)>(
