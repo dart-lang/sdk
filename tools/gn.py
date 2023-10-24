@@ -320,6 +320,9 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     if gn_args['target_os'] == 'mac' and gn_args['use_goma']:
         gn_args['mac_use_goma_rbe'] = True
 
+    gn_args['use_rbe'] = args.rbe
+
+
     # Code coverage requires -O0 to be set.
     if enable_code_coverage:
         gn_args['dart_debug_optimization_level'] = 0
@@ -431,7 +434,14 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable goma',
                         dest='goma',
                         action='store_false')
-    parser.set_defaults(goma=True)
+    parser.set_defaults(goma=os.environ.get('RBE_cfg') == None)
+
+    parser.add_argument('--rbe', help='Use rbe', action='store_true')
+    parser.add_argument('--no-rbe',
+                        help='Disable rbe',
+                        dest='rbe',
+                        action='store_false')
+    parser.set_defaults(rbe=os.environ.get('RBE_cfg') != None)
 
     parser.add_argument('--verify-sdk-hash',
                         help='Enable SDK hash checks (default)',

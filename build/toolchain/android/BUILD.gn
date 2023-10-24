@@ -6,6 +6,7 @@ import("//build/config/sysroot.gni")  # Imports android/config.gni.
 import("//build/toolchain/ccache.gni")
 import("//build/toolchain/gcc_toolchain.gni")
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/rbe.gni")
 
 # The Android GCC toolchains share most of the same parameters, so we have this
 # wrapper around gcc_toolchain to avoid duplication of logic.
@@ -21,11 +22,17 @@ template("android_toolchain") {
   gcc_toolchain(target_name) {
     if (use_goma) {
       assert(!use_ccache, "Goma and ccache can't be used together.")
+      assembler_prefix = "$goma_dir/gomacc "
       compiler_prefix = "$goma_dir/gomacc "
+      link_prefix = "$goma_dir/gomacc "
     } else if (use_ccache) {
+      assembler_prefix = "ccache "
       compiler_prefix = "ccache "
+      link_prefix = "ccache "
     } else {
+      assembler_prefix = ""
       compiler_prefix = ""
+      link_prefix = ""
     }
 
     is_clang = true
@@ -33,10 +40,11 @@ template("android_toolchain") {
             "${android_ndk_root}/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}/bin",
             root_build_dir)
 
-    cc = compiler_prefix + prefix + "/clang"
-    cxx = compiler_prefix + prefix + "/clang++"
+    cc = "${compiler_prefix}${prefix}/clang"
+    cxx = "${compiler_prefix}${prefix}/clang++"
+    asm = "${assembler_prefix}${prefix}/clang"
     ar = prefix + "/llvm-ar"
-    ld = cxx
+    ld = "${link_prefix}${prefix}/clang++"
     readelf = prefix + "/llvm-readelf"
     nm = prefix + "/llvm-nm"
     android_strip = prefix + "/llvm-strip"
