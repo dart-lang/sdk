@@ -31,6 +31,7 @@ dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because 
 dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
+extension_types/inherited_representation_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 general/patch_annotations/main: semiFuzzFailureOnForceRebuildBodies # 'dart:test' stuff.
 general/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.

@@ -4399,6 +4399,19 @@ Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeConstructorWithSuperFormalParameter =
+    messageExtensionTypeConstructorWithSuperFormalParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeConstructorWithSuperFormalParameter =
+    const MessageCode("ExtensionTypeConstructorWithSuperFormalParameter",
+        analyzerCodes: <String>[
+      "EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER"
+    ],
+        problemMessage:
+            r"""Extension type constructors can't declare super formal parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeDeclarationCause =
     messageExtensionTypeDeclarationCause;
 
@@ -4441,6 +4454,16 @@ const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
     severity: Severity.context,
     problemMessage:
         r"""This is one of the inherited extension type members.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeRepresentationTypeBottom =
+    messageExtensionTypeRepresentationTypeBottom;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeRepresentationTypeBottom =
+    const MessageCode("ExtensionTypeRepresentationTypeBottom",
+        analyzerCodes: <String>["EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM"],
+        problemMessage: r"""The representation type can't be a bottom type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;

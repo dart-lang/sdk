@@ -5,7 +5,6 @@
 library kernel.type_algebra;
 
 import 'ast.dart';
-import 'core_types.dart';
 import 'src/find_type_visitor.dart';
 import 'src/replacement_visitor.dart';
 
@@ -1884,8 +1883,8 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
 /// Some types are nullable even without the application of the nullable type
 /// constructor at the top level, for example, Null or FutureOr<int?>.
 // TODO(cstefantsova): Remove [coreTypes] parameter when NullType is landed.
-DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
-  return type.accept1(const _NullabilityConstructorUnwrapper(), coreTypes);
+DartType unwrapNullabilityConstructor(DartType type) {
+  return type.accept(const _NullabilityConstructorUnwrapper());
 }
 
 /// Implementation of [unwrapNullabilityConstructor] as a visitor.
@@ -1894,81 +1893,79 @@ DartType unwrapNullabilityConstructor(DartType type, CoreTypes coreTypes) {
 /// new implementation of [DartType] visible at compile time.
 // TODO(cstefantsova): Remove CoreTypes as the second argument when NullType is
 // landed.
-class _NullabilityConstructorUnwrapper
-    implements DartTypeVisitor1<DartType, CoreTypes> {
+class _NullabilityConstructorUnwrapper implements DartTypeVisitor<DartType> {
   const _NullabilityConstructorUnwrapper();
 
   @override
-  DartType visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
+  DartType visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
         "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 
   @override
-  DartType visitDynamicType(DynamicType node, CoreTypes coreTypes) => node;
+  DartType visitDynamicType(DynamicType node) => node;
 
   @override
-  DartType visitFunctionType(FunctionType node, CoreTypes coreTypes) {
+  DartType visitFunctionType(FunctionType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitRecordType(RecordType node, CoreTypes coreTypes) {
+  DartType visitRecordType(RecordType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitFutureOrType(FutureOrType node, CoreTypes coreTypes) {
+  DartType visitFutureOrType(FutureOrType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitInterfaceType(InterfaceType node, CoreTypes coreTypes) {
+  DartType visitInterfaceType(InterfaceType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitExtensionType(ExtensionType node, CoreTypes coreTypes) {
+  DartType visitExtensionType(ExtensionType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitInvalidType(InvalidType node, CoreTypes coreTypes) => node;
+  DartType visitInvalidType(InvalidType node) => node;
 
   @override
-  DartType visitNeverType(NeverType node, CoreTypes coreTypes) {
+  DartType visitNeverType(NeverType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitNullType(NullType node, CoreTypes coreTypes) => node;
+  DartType visitNullType(NullType node) => node;
 
   @override
-  DartType visitTypeParameterType(TypeParameterType node, CoreTypes coreTypes) {
+  DartType visitTypeParameterType(TypeParameterType node) {
     return node.withDeclaredNullability(
         TypeParameterType.computeNullabilityFromBound(node.parameter));
   }
 
   @override
-  DartType visitStructuralParameterType(
-      StructuralParameterType node, CoreTypes coreTypes) {
+  DartType visitStructuralParameterType(StructuralParameterType node) {
     return node.withDeclaredNullability(
         StructuralParameterType.computeNullabilityFromBound(node.parameter));
   }
 
   @override
-  DartType visitIntersectionType(IntersectionType node, CoreTypes coreTypes) {
+  DartType visitIntersectionType(IntersectionType node) {
     // Intersection types don't have their own nullabilities.
     return node;
   }
 
   @override
-  DartType visitTypedefType(TypedefType node, CoreTypes coreTypes) {
+  DartType visitTypedefType(TypedefType node) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
   @override
-  DartType visitVoidType(VoidType node, CoreTypes coreTypes) => node;
+  DartType visitVoidType(VoidType node) => node;
 }
 
 abstract class NullabilityAwareTypeVariableEliminatorBase
@@ -2412,4 +2409,33 @@ DartType _updateNestedFutureOrNullability(
   } else {
     return typeToUpdate.withDeclaredNullability(updatedNullability);
   }
+}
+
+/// Returns true if [type] is a bottom type
+///
+/// Some examples of bottom types are `Never`, `X` where `X extends Never`, and
+/// `X & Never`.
+///
+/// For the definition of BOTTOM see the following:
+/// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
+bool isBottom(DartType type) {
+  if (type is InterfaceType) return false;
+  if (type is InvalidType) return false;
+
+  // BOTTOM(Never) is true.
+  if (type is NeverType && type.nullability == Nullability.nonNullable) {
+    return true;
+  }
+
+  // BOTTOM(X&T) is true iff BOTTOM(T).
+  if (type is IntersectionType && type.isPotentiallyNonNullable) {
+    return isBottom(type.right);
+  }
+
+  // BOTTOM(X extends T) is true iff BOTTOM(T).
+  if (type is TypeParameterType && type.isPotentiallyNonNullable) {
+    return isBottom(type.parameter.bound);
+  }
+
+  return false;
 }

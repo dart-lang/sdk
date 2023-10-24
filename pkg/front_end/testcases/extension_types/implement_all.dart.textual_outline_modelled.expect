@@ -5,7 +5,7 @@ extension Extension on int {}
 extension type ET_Alias(Alias it) implements Alias {}
 extension type ET_Class(Class it) implements Class {}
 extension type ET_Dynamic(dynamic it) implements dynamic {}
-extension type ET_Extension(Never it) implements Extension {}
+extension type ET_Extension(int it) implements Extension {}
 extension type ET_ExtensionType(int it) implements ExtensionType {}
 extension type ET_Function(Function it) implements Function {}
 extension type ET_FunctionType(FunctionType it) implements FunctionType {}
@@ -21,7 +21,7 @@ extension type ET_Object(Object it) implements Object {}
 extension type ET_Record(Record it) implements Record {}
 extension type ET_RecordType(RecordType it) implements RecordType {}
 extension type ET_TypeVariable<T>(T it) implements T {}
-extension type ET_Void(Never it) implements void {}
+extension type ET_Void(Null it) implements void {}
 extension type ExtensionType(int it) {}
 extension type GenericExtensionType<T>(T it) {}
 typedef Alias = Class;

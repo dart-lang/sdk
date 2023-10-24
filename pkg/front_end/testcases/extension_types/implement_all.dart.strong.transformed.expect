@@ -2,18 +2,18 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/implement_all.dart:33:45: Error: Type 'void' can't be used here.
+// pkg/front_end/testcases/extension_types/implement_all.dart:33:44: Error: Type 'void' can't be used here.
 // Try removing 'void' keyword or replace it with 'var', 'final', or a type.
-// extension type ET_Void(Never it) implements void /* Error */ {}
-//                                             ^^^^
+// extension type ET_Void(Null it) implements void /* Error */ {}
+//                                            ^^^^
 //
-// pkg/front_end/testcases/extension_types/implement_all.dart:33:45: Error: Type 'void' not found.
-// extension type ET_Void(Never it) implements void /* Error */ {}
-//                                             ^^^^
+// pkg/front_end/testcases/extension_types/implement_all.dart:33:44: Error: Type 'void' not found.
+// extension type ET_Void(Null it) implements void /* Error */ {}
+//                                            ^^^^
 //
-// pkg/front_end/testcases/extension_types/implement_all.dart:57:50: Error: 'Extension' isn't a type.
-// extension type ET_Extension(Never it) implements Extension /* Error */ {}
-//                                                  ^^^^^^^^^
+// pkg/front_end/testcases/extension_types/implement_all.dart:57:48: Error: 'Extension' isn't a type.
+// extension type ET_Extension(int it) implements Extension /* Error */ {}
+//                                                ^^^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:29:44: Error: The type 'Null' can't be implemented by an extension type.
 // extension type ET_Null(Null it) implements Null /* Error */ {}
@@ -23,13 +23,17 @@ library;
 // extension type ET_Dynamic(dynamic it) implements dynamic /* Error */ {}
 //                                                  ^
 //
-// pkg/front_end/testcases/extension_types/implement_all.dart:33:45: Error: The type 'void' can't be implemented by an extension type.
-// extension type ET_Void(Never it) implements void /* Error */ {}
-//                                             ^
+// pkg/front_end/testcases/extension_types/implement_all.dart:33:44: Error: The type 'void' can't be implemented by an extension type.
+// extension type ET_Void(Null it) implements void /* Error */ {}
+//                                            ^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:35:46: Error: The type 'Never' can't be implemented by an extension type.
 // extension type ET_Never(Never it) implements Never /* Error */ {}
 //                                              ^
+//
+// pkg/front_end/testcases/extension_types/implement_all.dart:35:31: Error: The representation type can't be a bottom type.
+// extension type ET_Never(Never it) implements Never /* Error */ {}
+//                               ^^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:37:48: Error: The type 'Object' can't be implemented by an extension type.
 // extension type ET_Object(Object it) implements Object /* Error */ {}
@@ -75,9 +79,9 @@ library;
 //     implements FutureOr<int> /* Error */ {}
 //                ^
 //
-// pkg/front_end/testcases/extension_types/implement_all.dart:57:50: Error: The type 'Extension' can't be implemented by an extension type.
-// extension type ET_Extension(Never it) implements Extension /* Error */ {}
-//                                                  ^
+// pkg/front_end/testcases/extension_types/implement_all.dart:57:48: Error: The type 'Extension' can't be implemented by an extension type.
+// extension type ET_Extension(int it) implements Extension /* Error */ {}
+//                                                ^
 //
 // pkg/front_end/testcases/extension_types/implement_all.dart:59:52: Error: The type variable 'T' can't be implemented by an extension type.
 // extension type ET_TypeVariable<T>(T it) implements T /* Error */ {}
@@ -126,12 +130,12 @@ extension type ET_Dynamic(dynamic it) {
   constructor • = self::ET_Dynamic|constructor#;
   constructor tearoff • = self::ET_Dynamic|constructor#_#new#tearOff;
 }
-extension type ET_Void(Never it) {
-  abstract inline-class-member representation-field get it() → Never;
+extension type ET_Void(Null it) {
+  abstract inline-class-member representation-field get it() → Null;
   constructor • = self::ET_Void|constructor#;
   constructor tearoff • = self::ET_Void|constructor#_#new#tearOff;
 }
-extension type ET_Never(Never it) {
+extension type ET_Never(invalid-type it) {
   abstract inline-class-member representation-field get it() → Never;
   constructor • = self::ET_Never|constructor#;
   constructor tearoff • = self::ET_Never|constructor#_#new#tearOff;
@@ -176,8 +180,8 @@ extension type ET_FutureOr(FutureOr<core::int>it) {
   constructor • = self::ET_FutureOr|constructor#;
   constructor tearoff • = self::ET_FutureOr|constructor#_#new#tearOff;
 }
-extension type ET_Extension(Never it) {
-  abstract inline-class-member representation-field get it() → Never;
+extension type ET_Extension(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ET_Extension|constructor#;
   constructor tearoff • = self::ET_Extension|constructor#_#new#tearOff;
 }
@@ -240,17 +244,17 @@ static inline-class-member method ET_Dynamic|constructor#(dynamic it) → self::
 }
 static inline-class-member method ET_Dynamic|constructor#_#new#tearOff(dynamic it) → self::ET_Dynamic /* = dynamic */
   return self::ET_Dynamic|constructor#(it);
-static inline-class-member method ET_Void|constructor#(Never it) → self::ET_Void /* = Never */ {
-  lowered final self::ET_Void /* = Never */ #this = it;
+static inline-class-member method ET_Void|constructor#(Null it) → self::ET_Void /* = Null */ {
+  lowered final self::ET_Void /* = Null */ #this = it;
   return #this;
 }
-static inline-class-member method ET_Void|constructor#_#new#tearOff(Never it) → self::ET_Void /* = Never */
+static inline-class-member method ET_Void|constructor#_#new#tearOff(Null it) → self::ET_Void /* = Null */
   return self::ET_Void|constructor#(it);
-static inline-class-member method ET_Never|constructor#(Never it) → self::ET_Never /* = Never */ {
-  lowered final self::ET_Never /* = Never */ #this = it;
+static inline-class-member method ET_Never|constructor#(Never it) → self::ET_Never /* = invalid-type */ {
+  lowered final self::ET_Never /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method ET_Never|constructor#_#new#tearOff(Never it) → self::ET_Never /* = Never */
+static inline-class-member method ET_Never|constructor#_#new#tearOff(Never it) → self::ET_Never /* = invalid-type */
   return self::ET_Never|constructor#(it);
 static inline-class-member method ET_Object|constructor#(core::Object it) → self::ET_Object /* = core::Object */ {
   lowered final self::ET_Object /* = core::Object */ #this = it;
@@ -300,10 +304,10 @@ static inline-class-member method ET_FutureOr|constructor#(FutureOr<core::int>it
 }
 static inline-class-member method ET_FutureOr|constructor#_#new#tearOff(FutureOr<core::int>it) → self::ET_FutureOr /* = FutureOr<core::int>*/
   return self::ET_FutureOr|constructor#(it);
-static inline-class-member method ET_Extension|constructor#_#new#tearOff(Never it) → self::ET_Extension /* = Never */
+static inline-class-member method ET_Extension|constructor#_#new#tearOff(core::int it) → self::ET_Extension /* = core::int */
   return self::ET_Extension|constructor#(it);
-static inline-class-member method ET_Extension|constructor#(Never it) → self::ET_Extension /* = Never */ {
-  lowered final self::ET_Extension /* = Never */ #this = it;
+static inline-class-member method ET_Extension|constructor#(core::int it) → self::ET_Extension /* = core::int */ {
+  lowered final self::ET_Extension /* = core::int */ #this = it;
   return #this;
 }
 static inline-class-member method ET_TypeVariable|constructor#<T extends core::Object? = dynamic>(self::ET_TypeVariable|constructor#::T% it) → self::ET_TypeVariable<self::ET_TypeVariable|constructor#::T%> /* = self::ET_TypeVariable|constructor#::T% */ {

@@ -259,6 +259,14 @@ class SourceExtensionTypeDeclarationBuilder
                   typeBuilder.fileUri);
             }
           }
+          if (isBottom(representationType)) {
+            libraryBuilder.addProblem(
+                messageExtensionTypeRepresentationTypeBottom,
+                representationFieldBuilder!.charOffset,
+                representationFieldBuilder!.name.length,
+                representationFieldBuilder!.fileUri);
+            representationType = const InvalidType();
+          }
         }
       } else {
         representationType = const DynamicType();

@@ -1,0 +1,9 @@
+extension type E1(int foo) {
+  E1.named(this.foo, super.bar);
+}
+extension type E2(int foo) {
+  E2.named(this.foo, {required super.bar});
+}
+extension type E3(int foo) {
+  E3.named(this.foo, [super.bar = null]);
+}
