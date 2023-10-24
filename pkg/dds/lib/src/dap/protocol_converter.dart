@@ -599,14 +599,22 @@ class ProtocolConverter {
     final sourcePath = uri != null ? await thread.resolveUriToPath(uri) : null;
     var canShowSource = sourcePath != null && File(sourcePath).existsSync();
 
-    // Download the source if from a "dart:" uri.
+    // If we don't have a local source file but the source is a "dart:" uri we
+    // might still be able to download the source from the VM.
     int? sourceReference;
     if (!canShowSource &&
         uri != null &&
         (uri.isScheme('dart') || uri.isScheme('org-dartlang-app')) &&
         scriptRef != null) {
-      sourceReference = thread.storeData(scriptRef);
-      canShowSource = true;
+      // Try to download it (to avoid showing "source not available" errors if
+      // navigated to) because a sourceRef here does not guarantee we can get
+      // the source. The result will be cached (by `thread.getScript()`) and
+      // reused in the resulting `sourceRequest`.
+      final source = await thread.getScript(scriptRef);
+      if (source.source != null) {
+        sourceReference = thread.storeData(scriptRef);
+        canShowSource = true;
+      }
     }
 
     // First try to use line/col from location to avoid fetching scripts.
