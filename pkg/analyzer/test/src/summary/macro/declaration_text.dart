@@ -8,13 +8,28 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 import 'introspect_shared.dart';
 
-/*macro*/ class DeclarationTextMacro implements ClassTypesMacro {
+/*macro*/ class DeclarationTextMacro
+    implements ClassTypesMacro, MethodTypesMacro {
   const DeclarationTextMacro();
 
   @override
   FutureOr<void> buildTypesForClass(declaration, builder) {
     final printer = _DeclarationPrinter();
     printer.writeClassDeclaration(declaration);
+    final text = printer._sink.toString();
+
+    builder.declareType(
+      'x',
+      DeclarationCode.fromString(
+        'const x = r"""$text""";',
+      ),
+    );
+  }
+
+  @override
+  FutureOr<void> buildTypesForMethod(method, builder) {
+    final printer = _DeclarationPrinter();
+    printer.writeMethodDeclaration(method);
     final text = printer._sink.toString();
 
     builder.declareType(
@@ -48,6 +63,43 @@ class _DeclarationPrinter {
     });
   }
 
+  void writeIndent() {
+    _sink.write(_indent);
+  }
+
+  /// TODO(scheglov) Copy TreeStringSink here
+  void writeIndentedLine(void Function() f) {
+    writeIndent();
+    f();
+    writeln();
+  }
+
+  void writeln([Object? object = '']) {
+    _sink.writeln(object);
+  }
+
+  void writeMethodDeclaration(MethodDeclaration e) {
+    _writelnWithIndent(e.identifier.name);
+
+    _withIndent(() {
+      _writeFlags({
+        'hasAbstract': e.hasAbstract,
+        'hasBody': e.hasBody,
+        'hasExternal': e.hasExternal,
+        'isGetter': e.isGetter,
+        'isOperator': e.isOperator,
+        'isSetter': e.isSetter,
+        'isStatic': e.isStatic,
+      });
+
+      _writeMetadata(e);
+      _writeNamedFormalParameters(e.namedParameters);
+      _writePositionalFormalParameters(e.positionalParameters);
+      _writeTypeAnnotation('returnType', e.returnType);
+      _writeTypeParameters(e.typeParameters);
+    });
+  }
+
   void _withIndent(void Function() f) {
     var savedIndent = _indent;
     _indent = '$savedIndent  ';
@@ -70,6 +122,30 @@ class _DeclarationPrinter {
     }
   }
 
+  void _writeFlags(Map<String, bool> flags) {
+    if (flags.values.any((flag) => flag)) {
+      writeIndentedLine(() {
+        _sink.write('flags:');
+        for (final entry in flags.entries) {
+          if (entry.value) {
+            _sink.write(' ${entry.key}');
+          }
+        }
+      });
+    }
+  }
+
+  void _writeFormalParameter(ParameterDeclaration e) {
+    _writelnWithIndent(e.identifier.name);
+    _withIndent(() {
+      _writeFlags({
+        'isNamed': e.isNamed,
+        'isRequired': e.isRequired,
+      });
+      _writeTypeAnnotation('type', e.type);
+    });
+  }
+
   void _writeIf(bool flag, String str) {
     if (flag) {
       _sink.write(str);
@@ -83,6 +159,26 @@ class _DeclarationPrinter {
   void _writelnWithIndent(String line) {
     _sink.write(_indent);
     _sink.writeln(line);
+  }
+
+  void _writeMetadata(Annotatable e) {
+    _writeElements('metadata', e.metadata, _writeMetadataAnnotation);
+  }
+
+  void _writeMetadataAnnotation(MetadataAnnotation e) {
+    // TODO(scheglov) implement
+  }
+
+  void _writeNamedFormalParameters(
+    Iterable<ParameterDeclaration> elements,
+  ) {
+    _writeElements('namedParameters', elements, _writeFormalParameter);
+  }
+
+  void _writePositionalFormalParameters(
+    Iterable<ParameterDeclaration> elements,
+  ) {
+    _writeElements('positionalParameters', elements, _writeFormalParameter);
   }
 
   void _writeTypeAnnotation(String name, TypeAnnotation? type) {
