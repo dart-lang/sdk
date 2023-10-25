@@ -70,8 +70,11 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
         builder.write(location.prefix);
         builder.write(lineIndent);
         builder.write(singleIndent);
+        builder.writeln('// TODO: Handle this case.');
+        builder.write(lineIndent);
+        builder.write(singleIndent);
         _writePatternParts(builder, patternParts);
-        builder.writeln(' => throw UnimplementedError(\'Handle this case\'),');
+        builder.writeln(' => throw UnimplementedError(),');
         builder.write(location.suffix);
       });
     });
@@ -108,9 +111,9 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   }
 
   void _writePatternParts(
-      DartEditBuilder builder,
-      List<MissingPatternPart> parts,
-      ) {
+    DartEditBuilder builder,
+    List<MissingPatternPart> parts,
+  ) {
     for (final part in parts) {
       if (part is MissingPatternEnumValuePart) {
         builder.writeReference(part.enumElement);

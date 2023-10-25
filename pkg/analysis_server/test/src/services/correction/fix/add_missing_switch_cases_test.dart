@@ -33,7 +33,8 @@ int f(bool x) {
 int f(bool x) {
   return switch (x) {
     false => 0,
-    true => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    true => throw UnimplementedError(),
   };
 }
 ''');
@@ -51,7 +52,8 @@ int f(bool x) {
 int f(bool x) {
   return switch (x) {
     true => 0,
-    false => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    false => throw UnimplementedError(),
   };
 }
 ''');
@@ -77,7 +79,8 @@ enum E {
 int f(E x) {
   return switch (x) {
     E.first => 0,
-    E.second => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    E.second => throw UnimplementedError(),
   };
 }
 ''');
@@ -103,7 +106,8 @@ import 'a.dart' as prefix;
 
 int f(prefix.E x) {
   return switch (x) {
-    prefix.E.first => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    prefix.E.first => throw UnimplementedError(),
   };
 }
 ''');
@@ -142,7 +146,8 @@ import 'b.dart';
 
 int f() {
   return switch (value) {
-    E.first => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    E.first => throw UnimplementedError(),
   };
 }
 ''');
@@ -162,7 +167,8 @@ int f(num x) {
   return switch (x) {
     double() => 0,
     int(hashCode: 5) => 0,
-    int() => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -180,7 +186,8 @@ int f(num x) {
 int f(num x) {
   return switch (x) {
     double() => 0,
-    int() => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -202,7 +209,8 @@ import 'dart:core' as core;
 core.int f(core.num x) {
   return switch (x) {
     core.double() => 0,
-    core.int() => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    core.int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -222,7 +230,8 @@ int f(num x) {
   return switch (x) {
     double() => 0,
     int() when x > 5 => 0,
-    int() => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -237,7 +246,8 @@ int f(num x) {
     await assertHasFix('''
 int f(num x) {
   return switch (x) {
-    double() => throw UnimplementedError(\'Handle this case\'),
+    // TODO: Handle this case.
+    double() => throw UnimplementedError(),
   };
 }
 ''');
