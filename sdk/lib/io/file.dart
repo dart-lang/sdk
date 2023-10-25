@@ -237,8 +237,8 @@ abstract interface class File implements FileSystemEntity {
   /// only if all directories in its path already exist.
   /// If [recursive] is `true`, all non-existing parent paths are created first.
   ///
-  /// If [exclusive] is `true` and to-be-created file already exists, this
-  /// operation completes the future with a [FileSystemException].
+  /// If [exclusive] is `true` and to-be-created file already exists, then
+  /// a [FileSystemException] is thrown.
   ///
   /// If [exclusive] is `false`, existing files are left untouched by
   /// [createSync]. Calling [createSync] on an existing file still might fail
