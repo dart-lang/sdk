@@ -220,7 +220,7 @@ class AnalyticsManager {
     assert((event.delta == null) == (event.period == null));
 
     if (delta == null || seconds == null) {
-      await analytics.send(Event.memoryInfo(
+      analytics.send(Event.memoryInfo(
         rss: event.rss,
       ));
       return;
@@ -228,7 +228,7 @@ class AnalyticsManager {
 
     if (seconds == 0) seconds = 1;
 
-    await analytics.send(Event.memoryInfo(
+    analytics.send(Event.memoryInfo(
       rss: event.rss,
       periodSec: seconds,
       mbPerSec: delta / seconds,
@@ -263,7 +263,7 @@ class AnalyticsManager {
 
     periodicTimer?.cancel();
     periodicTimer = null;
-    analytics.close();
+    await analytics.close();
   }
 
   /// Record data from the given [params].
@@ -468,7 +468,7 @@ class AnalyticsManager {
   Future<void> _sendAnalysisData() async {
     var contextStructure = _contextStructure;
     if (contextStructure != null) {
-      await analytics.send(Event.contextStructure(
+      analytics.send(Event.contextStructure(
         numberOfContexts: contextStructure.numberOfContexts,
         contextsWithoutFiles: contextStructure.contextsWithoutFiles,
         contextsFromPackagesFiles: contextStructure.contextsFromPackagesFiles,
@@ -492,7 +492,7 @@ class AnalyticsManager {
       var entries = _lintUsageCounts.entries.toList();
       _lintUsageCounts.clear();
       for (var entry in entries) {
-        await analytics.send(Event.lintUsageCount(
+        analytics.send(Event.lintUsageCount(
           count: entry.value,
           name: entry.key,
         ));
@@ -506,7 +506,7 @@ class AnalyticsManager {
       var completedNotifications = _completedNotifications.values.toList();
       _completedNotifications.clear();
       for (var data in completedNotifications) {
-        await analytics.send(Event.clientNotification(
+        analytics.send(Event.clientNotification(
           latency: data.latencyTimes.toAnalyticsString(),
           method: data.method,
           duration: data.handlingTimes.toAnalyticsString(),
@@ -533,7 +533,7 @@ class AnalyticsManager {
       responseTimes.clear();
       for (var pluginEntry in entries) {
         for (var responseEntry in pluginEntry.value.entries) {
-          await analytics.send(Event.pluginRequest(
+          analytics.send(Event.pluginRequest(
             pluginId: pluginEntry.key.safePluginId,
             method: responseEntry.key,
             duration: responseEntry.value.toAnalyticsString(),
@@ -549,7 +549,7 @@ class AnalyticsManager {
       var completedRequests = _completedRequests.values.toList();
       _completedRequests.clear();
       for (var data in completedRequests) {
-        await analytics.send(Event.clientRequest(
+        analytics.send(Event.clientRequest(
           latency: data.latencyTimes.toAnalyticsString(),
           method: data.method,
           duration: data.responseTimes.toAnalyticsString(),
@@ -566,7 +566,7 @@ class AnalyticsManager {
         var commandMap = data.additionalEnumCounts[commandEnumKey];
         if (commandMap != null) {
           for (var entry in commandMap.entries) {
-            await analytics.send(Event.commandExecuted(
+            analytics.send(Event.commandExecuted(
               count: entry.value,
               name: entry.key,
             ));
@@ -584,7 +584,7 @@ class AnalyticsManager {
   Future<void> _sendSessionData(SessionData sessionData) async {
     var endTime = DateTime.now().millisecondsSinceEpoch;
     var duration = endTime - sessionData.startTime.millisecondsSinceEpoch;
-    await analytics.send(Event.serverSession(
+    analytics.send(Event.serverSession(
       flags: sessionData.commandLineArguments,
       parameters: sessionData.initializeParams,
       clientId: sessionData.clientId,
@@ -592,7 +592,7 @@ class AnalyticsManager {
       duration: duration,
     ));
     for (var entry in _pluginData.usageCounts.entries) {
-      await analytics.send(Event.pluginUse(
+      analytics.send(Event.pluginUse(
           count: _pluginData.recordCount,
           enabled: entry.value.toAnalyticsString(),
           pluginId: entry.key));
@@ -606,7 +606,7 @@ class AnalyticsManager {
       var entries = _severityAdjustments.entries.toList();
       _severityAdjustments.clear();
       for (var entry in entries) {
-        await analytics.send(Event.severityAdjustment(
+        analytics.send(Event.severityAdjustment(
           adjustments: json.encode(entry.value),
           diagnostic: entry.key,
         ));

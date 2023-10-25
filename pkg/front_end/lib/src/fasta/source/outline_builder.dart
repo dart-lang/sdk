@@ -1627,14 +1627,9 @@ class OutlineBuilder extends StackListenerImpl {
     bool inExtensionType =
         declarationContext == DeclarationContext.ExtensionType;
     if (formals != null) {
-      if (inExtensionType && formals.isEmpty) {
-        libraryBuilder.addProblem(
-            messageExpectedRepresentationField, charOffset, 1, uri);
-      }
-      if (inExtensionType && formals.length > 1) {
-        libraryBuilder.addProblem(
-            messageMultipleRepresentationFields, charOffset, 1, uri);
-      }
+      int requiredPositionalCount = 0;
+      int? firstNamedParameterOffset;
+      int? firstOptionalPositionalParameterOffset;
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
         if (inExtensionType && formal.type is ImplicitTypeBuilder) {
@@ -1642,9 +1637,20 @@ class OutlineBuilder extends StackListenerImpl {
               formal.charOffset, formal.name.length, formal.fileUri);
         }
         if (inExtensionType &&
-            Modifier.maskContainsActualModifiers(formal.modifiers)) {
+            Modifier.maskContainsActualModifiers(
+                Modifier.removeRequiredMask(formal.modifiers))) {
           libraryBuilder.addProblem(messageRepresentationFieldModifier,
               formal.charOffset, formal.name.length, formal.fileUri);
+        }
+        if (formal.isPositional) {
+          if (formal.isOptionalPositional) {
+            firstOptionalPositionalParameterOffset = formal.charOffset;
+          } else {
+            requiredPositionalCount++;
+          }
+        }
+        if (formal.isNamed) {
+          firstNamedParameterOffset = formal.charOffset;
         }
         libraryBuilder.addPrimaryConstructorField(
             // TODO(johnniwinther): Support annotations on annotations on fields
@@ -1656,6 +1662,27 @@ class OutlineBuilder extends StackListenerImpl {
             name: formal.name,
             charOffset: formal.charOffset);
         formals[i] = formal.forPrimaryConstructor(libraryBuilder);
+      }
+      if (inExtensionType) {
+        if (firstOptionalPositionalParameterOffset != null) {
+          libraryBuilder.addProblem(
+              messageOptionalParametersInExtensionTypeDeclaration,
+              firstOptionalPositionalParameterOffset,
+              1,
+              uri);
+        } else if (firstNamedParameterOffset != null) {
+          libraryBuilder.addProblem(
+              messageNamedParametersInExtensionTypeDeclaration,
+              firstNamedParameterOffset,
+              1,
+              uri);
+        } else if (requiredPositionalCount == 0) {
+          libraryBuilder.addProblem(
+              messageExpectedRepresentationField, charOffset, 1, uri);
+        } else if (inExtensionType && formals.length > 1) {
+          libraryBuilder.addProblem(
+              messageMultipleRepresentationFields, charOffset, 1, uri);
+        }
       }
     }
 

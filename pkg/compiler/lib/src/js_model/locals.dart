@@ -600,7 +600,7 @@ class JLabelDefinition extends LabelDefinition {
   }
 }
 
-class JLocal implements Local {
+class JLocal with EntityMapKey implements Local {
   static const String tag = 'jlocal';
   @override
   final String? name;

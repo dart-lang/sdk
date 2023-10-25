@@ -634,13 +634,11 @@ void main() {
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1256, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1331, 6),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1359, 4),
-      error(WarningCode.UNNECESSARY_CAST, 1526, 11),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 1591, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1616, 6),
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 1644, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1735, 6),
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 1763, 4),
-      error(WarningCode.UNNECESSARY_CAST, 1960, 11),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 2047, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2088, 2),
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 2100, 4),
@@ -650,7 +648,6 @@ void main() {
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2255, 4),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2380, 10),
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR, 2400, 22),
-      error(WarningCode.UNNECESSARY_CAST, 2410, 11),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2450, 4),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 2495, 1),
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 2520, 6),
@@ -661,7 +658,6 @@ void main() {
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION, 2741, 4),
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR, 2914, 10),
       error(CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR, 2952, 22),
-      error(WarningCode.UNNECESSARY_CAST, 2962, 11),
     ]);
   }
 
@@ -1340,30 +1336,20 @@ void main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 222, 7),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 254, 3),
-      error(WarningCode.UNNECESSARY_CAST, 268, 13),
-      error(WarningCode.UNNECESSARY_CAST, 292, 15),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 328, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 340, 7),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 376, 3),
-      error(WarningCode.UNNECESSARY_CAST, 404, 13),
-      error(WarningCode.UNNECESSARY_CAST, 428, 15),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 462, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 492, 7),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 510, 3),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 524, 3),
-      error(WarningCode.UNNECESSARY_CAST, 538, 13),
-      error(WarningCode.UNNECESSARY_CAST, 562, 15),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 562, 15),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 596, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 608, 7),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 644, 3),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 658, 3),
-      error(WarningCode.UNNECESSARY_CAST, 672, 13),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 696, 15),
-      error(WarningCode.UNNECESSARY_CAST, 696, 15),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 737, 1),
-      error(WarningCode.UNNECESSARY_CAST, 813, 13),
-      error(WarningCode.UNNECESSARY_CAST, 837, 15),
     ]);
   }
 
@@ -2054,9 +2040,7 @@ void main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 365, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 665, 1),
       error(WarningCode.UNNECESSARY_CAST, 674, 10),
-      error(WarningCode.UNNECESSARY_CAST, 710, 10),
       error(WarningCode.UNNECESSARY_CAST, 747, 11),
-      error(WarningCode.UNNECESSARY_CAST, 804, 11),
     ]);
   }
 

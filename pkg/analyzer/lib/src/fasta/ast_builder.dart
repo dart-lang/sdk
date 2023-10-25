@@ -1634,23 +1634,38 @@ class AstBuilder extends StackListener {
       Token typeKeyword, Token endToken) {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    final representation = pop(const NullValue<RepresentationDeclarationImpl>())
+    var representation = pop(const NullValue<RepresentationDeclarationImpl>())
         as RepresentationDeclarationImpl?;
     final constKeyword = pop() as Token?;
 
     if (enableInlineClass) {
       final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      if (representation != null) {
-        // TODO(scheglov): Handle missing primary constructor.
-        declarations.add(
-          builder.build(
-            typeKeyword: typeKeyword,
-            constKeyword: constKeyword,
-            representation: representation,
-            implementsClause: implementsClause,
-          ),
+      if (representation == null) {
+        var leftParenthesis = parser.rewriter.insertParens(builder.name, true);
+        var typeName = leftParenthesis.next!;
+        var rightParenthesis = leftParenthesis.endGroup!;
+        var fieldName = parser.rewriter.insertSyntheticIdentifier(typeName);
+        representation = RepresentationDeclarationImpl(
+          constructorName: null,
+          leftParenthesis: leftParenthesis,
+          fieldMetadata: [],
+          fieldType: NamedTypeImpl(
+              importPrefix: null,
+              name2: typeName,
+              question: null,
+              typeArguments: null),
+          fieldName: fieldName,
+          rightParenthesis: rightParenthesis,
         );
       }
+      declarations.add(
+        builder.build(
+          typeKeyword: typeKeyword,
+          constKeyword: constKeyword,
+          representation: representation,
+          implementsClause: implementsClause,
+        ),
+      );
     } else {
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.inline_class,

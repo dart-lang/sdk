@@ -303,12 +303,7 @@ abstract interface class Future<T> {
   factory Future.sync(FutureOr<T> computation()) {
     try {
       var result = computation();
-      if (result is Future<T>) {
-        return result;
-      } else {
-        // TODO(40014): Remove cast when type promotion works.
-        return new _Future<T>.value(result as dynamic);
-      }
+      return result is Future<T> ? result : _Future<T>.value(result);
     } catch (error, stackTrace) {
       var future = new _Future<T>();
       AsyncError? replacement = Zone.current.errorCallback(error, stackTrace);
@@ -713,8 +708,7 @@ abstract interface class Future<T> {
           result.then(nextIteration, onError: doneSignal._completeError);
           return;
         }
-        // TODO(40014): Remove cast when type promotion works.
-        keepGoing = result as bool;
+        keepGoing = result;
       }
       doneSignal._complete(null);
     });

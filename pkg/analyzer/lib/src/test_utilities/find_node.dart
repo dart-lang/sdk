@@ -391,6 +391,10 @@ class FindNode {
     return _node(search, (n) => n is ExtensionOverride);
   }
 
+  ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionTypeDeclaration);
+  }
+
   FieldDeclaration fieldDeclaration(String search) {
     return _node(search, (n) => n is FieldDeclaration);
   }

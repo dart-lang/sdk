@@ -159,6 +159,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementMap.members.forEach((JMember oldMember, KMemberData data) {
       MemberUsage? memberUsage = liveMemberUsage[oldMember];
       if (memberUsage == null && !liveAbstractMembers.contains(oldMember)) {
+        // Ensure indices are consistent across both K- and J- entity maps since
+        // some K- maps are queried after registration in J- world maps.
+        members.skipIndex();
         return;
       }
       final library = oldMember.library;
@@ -222,6 +225,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         final member = oldTypeVariable.typeDeclaration as JMember;
         newTypeDeclaration = kToJMembers[member];
         if (newTypeDeclaration == null) {
+          // Ensure indices are consistent across both K- and J- entity maps
+          // since some K- maps are queried after registration in J- world maps.
+          typeVariables.skipIndex();
           return;
         }
       }
@@ -345,14 +351,24 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       if (member is JConstructorBody) {
         final constructor = member.constructor;
         final data = members.getData(constructor) as JConstructorData;
-        if (data.constructorBody == null) {
+        final constructorBody = data.constructorBody;
+        if (constructorBody == null) {
           _registerConstructorBody(constructor, data, member);
+        } else {
+          // The same member can be created by different codegen shards but each
+          // should point to the same member data.
+          members.markAsCopy(original: constructorBody, copy: member);
         }
       } else if (member is JGeneratorBody) {
         final function = member.function;
-        if (!_generatorBodies.containsKey(function)) {
+        final generatorBody = _generatorBodies[function];
+        if (generatorBody == null) {
           final data = members.getData(function) as FunctionData;
           _registerGeneratorBody(function, data, member);
+        } else {
+          // The same member can be created by different codegen shards but each
+          // should point to the same member data.
+          members.markAsCopy(original: generatorBody, copy: member);
         }
       }
     });

@@ -814,7 +814,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isVoidAllowed: !isNonNullableByDefault);
     DartType operandType = operandResult.inferredType;
     DartType flattenType = typeSchemaEnvironment.flatten(operandType);
-    node.operand = operandResult.expression..parent = node;
+    if (operandType is ExtensionType &&
+        typeSchemaEnvironment.hierarchy.getExtensionTypeAsInstanceOfClass(
+                operandType, coreTypes.futureClass,
+                isNonNullableByDefault:
+                    libraryBuilder.isNonNullableByDefault) ==
+            null) {
+      Expression wrapped = operandResult.expression;
+      node.operand = helper.wrapInProblem(
+          wrapped, messageAwaitOfExtensionTypeNotFuture, wrapped.fileOffset, 1);
+      wrapped.parent = node.operand;
+    } else {
+      node.operand = operandResult.expression..parent = node;
+    }
     DartType runtimeCheckType = new InterfaceType(
         coreTypes.futureClass, libraryBuilder.nonNullable, [flattenType]);
     if (!typeSchemaEnvironment.isSubtypeOf(

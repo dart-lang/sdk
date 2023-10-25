@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' as ir show LocalFunction;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
+import '../elements/entity_map.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
@@ -17,7 +18,7 @@ import 'records.dart' show JRecordClass, JRecordGetter;
 
 const String jsElementPrefix = 'j:';
 
-class JLibrary implements LibraryEntity {
+class JLibrary with EntityMapKey implements LibraryEntity {
   /// Tag used for identifying serialized [JLibrary] objects in a
   /// debugging data stream.
   static const String tag = 'library';
@@ -57,7 +58,9 @@ class JLibrary implements LibraryEntity {
 /// Enum used for identifying [JClass] subclasses in serialization.
 enum JClassKind { node, closure, context, record }
 
-class JClass with ClassHierarchyNodesMapKey implements ClassEntity {
+class JClass
+    with ClassHierarchyNodesMapKey, EntityMapKey
+    implements ClassEntity {
   /// Tag used for identifying serialized [JClass] objects in a
   /// debugging data stream.
   static const String tag = 'class';
@@ -126,7 +129,7 @@ enum JMemberKind {
   recordGetter,
 }
 
-abstract class JMember implements MemberEntity {
+abstract class JMember with EntityMapKey implements MemberEntity {
   @override
   final JLibrary library;
   @override
@@ -775,7 +778,7 @@ class JSignatureMethod extends JMethod {
 /// J-world they use a [JClosureCallMethod] as [JTypeVariable.typeDeclaration].
 enum JTypeVariableKind { cls, member }
 
-class JTypeVariable implements TypeVariableEntity {
+class JTypeVariable with EntityMapKey implements TypeVariableEntity {
   /// Tag used for identifying serialized [JTypeVariable] objects in a
   /// debugging data stream.
   static const String tag = 'type-variable';

@@ -630,11 +630,7 @@ class _Future<T> implements Future<T> {
       }
     } else {
       _FutureListener? listeners = _removeListeners();
-      // TODO(40014): Remove cast when type promotion works.
-      // This would normally be `as T` but we use `as dynamic` to make the
-      // unneeded check be implicit to match dart2js unsound optimizations in
-      // the user code.
-      _setValue(value as dynamic); // Value promoted to T.
+      _setValue(value);
       _propagateToListeners(this, listeners);
     }
   }
@@ -673,11 +669,7 @@ class _Future<T> implements Future<T> {
       _chainFuture(value);
       return;
     }
-    // TODO(40014): Remove cast when type promotion works.
-    // This would normally be `as T` but we use `as dynamic` to make the
-    // unneeded check be implicit to match dart2js unsound optimizations in the
-    // user code.
-    _asyncCompleteWithValue(value as dynamic); // Value promoted to T.
+    _asyncCompleteWithValue(value);
   }
 
   /// Internal helper function used by the implementation of `async` functions.

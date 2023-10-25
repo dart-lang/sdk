@@ -108,6 +108,15 @@ abstract class TypeEnvironment extends Types {
         //  how [isNonNullableByDefault] is treated.
         return futureType.withDeclaredNullability(resolved.nullability);
       }
+    } else if (resolved is ExtensionType) {
+      DartType? futureType = hierarchy.getExtensionTypeAsInstanceOfClass(
+          resolved, coreTypes.futureClass,
+          isNonNullableByDefault: true);
+      if (futureType != null) {
+        // TODO(johnniwinther): The two implementations are inconsistent wrt.
+        //  how [isNonNullableByDefault] is treated.
+        return futureType.withDeclaredNullability(resolved.nullability);
+      }
     } else if (resolved is FutureOrType) {
       return resolved;
     }

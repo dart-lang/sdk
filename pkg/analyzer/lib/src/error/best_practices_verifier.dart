@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -1677,37 +1676,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     // The cast is necessary.
-    if (!typeSystem.isSubtypeOf(leftType, rightType)) {
+    if (leftType != rightType) {
       return false;
-    }
-
-    // Casting from `T*` to `T?` is a way to force `T?`.
-    if (leftType.nullabilitySuffix == NullabilitySuffix.star &&
-        rightType.nullabilitySuffix == NullabilitySuffix.question) {
-      return false;
-    }
-
-    // For `condition ? then : else` the result type is `LUB`.
-    // Casts might be used to consider only a portion of the inheritance tree.
-    var parent = node.parent;
-    if (parent is ConditionalExpression) {
-      var other = node == parent.thenExpression
-          ? parent.elseExpression
-          : parent.thenExpression;
-
-      var currentType = typeSystem.leastUpperBound(
-        node.typeOrThrow,
-        other.typeOrThrow,
-      );
-
-      var typeWithoutCast = typeSystem.leastUpperBound(
-        node.expression.typeOrThrow,
-        other.typeOrThrow,
-      );
-
-      if (typeWithoutCast != currentType) {
-        return false;
-      }
     }
 
     return true;
