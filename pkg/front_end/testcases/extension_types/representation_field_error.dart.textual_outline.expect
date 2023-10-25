@@ -10,3 +10,9 @@ extension type E9(int foo, String bar) {}
 extension type E10(num foo, bool bar, double baz) {}
 extension type E11(bool foo,) {}
 extension type E12(bool foo = false,) {}
+extension type E13([int? foo]) {}
+extension type E14({String? foo}) {}
+extension type E15({required double foo}) {}
+extension type E16(bool foo, [dynamic bar]) {}
+extension type E17(Object foo, {num? bar, String? baz}) {}
+extension type E18(double foo, {required int bar}) {}

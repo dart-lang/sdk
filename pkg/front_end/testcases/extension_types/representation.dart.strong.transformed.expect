@@ -17,16 +17,16 @@ library;
 // extension type Duplicate(bool instanceField, int instanceField) {} // Error
 //                               ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extension_types/representation.dart:9:25: Error: Each extension type should have exactly one representation field.
-// extension type Duplicate(bool instanceField, int instanceField) {} // Error
-//                         ^
-//
 // pkg/front_end/testcases/extension_types/representation.dart:9:50: Error: 'instanceField' is already declared in this scope.
 // extension type Duplicate(bool instanceField, int instanceField) {} // Error
 //                                                  ^^^^^^^^^^^^^
 // pkg/front_end/testcases/extension_types/representation.dart:9:31: Context: Previous declaration of 'instanceField'.
 // extension type Duplicate(bool instanceField, int instanceField) {} // Error
 //                               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/representation.dart:9:25: Error: Each extension type should have exactly one representation field.
+// extension type Duplicate(bool instanceField, int instanceField) {} // Error
+//                         ^
 //
 // pkg/front_end/testcases/extension_types/representation.dart:9:31: Error: Can't use 'instanceField' because it is declared more than once.
 // extension type Duplicate(bool instanceField, int instanceField) {} // Error

@@ -7468,3 +7468,15 @@ AwaitOfExtensionTypeNotFuture:
   script: |
     extension type E(num foo) { test(E e) async { await e; } }
   analyzerCode: AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE
+
+NamedParametersInExtensionTypeDeclaration:
+  problemMessage: "Extension type declarations can't have named parameters."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, {dynamic bar}) {}
+
+OptionalParametersInExtensionTypeDeclaration:
+  problemMessage: "Extension type declarations can't have optional parameters."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, [dynamic bar]) {}
