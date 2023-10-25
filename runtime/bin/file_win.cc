@@ -1130,7 +1130,12 @@ File::Type File::GetType(Namespace* namespc,
           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
           OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
       if (target_handle == INVALID_HANDLE_VALUE) {
-        result = File::kIsLink;
+        DWORD last_error = GetLastError();
+        if ((last_error == ERROR_FILE_NOT_FOUND) ||
+            (last_error == ERROR_PATH_NOT_FOUND)) {
+          return kDoesNotExist;
+        }
+        result = kIsLink;
       } else {
         BY_HANDLE_FILE_INFORMATION info;
         if (!GetFileInformationByHandle(target_handle, &info)) {
@@ -1139,8 +1144,8 @@ File::Type File::GetType(Namespace* namespc,
         }
         CloseHandle(target_handle);
         return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-                   ? File::kIsDirectory
-                   : File::kIsFile;
+                   ? kIsDirectory
+                   : kIsFile;
       }
     } else {
       result = kIsLink;
