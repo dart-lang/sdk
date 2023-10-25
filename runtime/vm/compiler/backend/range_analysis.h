@@ -347,6 +347,8 @@ class Range : public ZoneAllocated {
                  RangeBoundary::MaxConstant(size));
   }
 
+  static Range Full(Representation rep);
+
   void PrintTo(BaseTextBuffer* f) const;
   static const char* ToCString(const Range* range);
 
