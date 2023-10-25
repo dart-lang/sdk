@@ -11,8 +11,7 @@ library;
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart'
-    hide ServiceExtensionRegistry, VmServerConnection, VmServiceInterface;
+import 'package:vm_service/vm_service.dart';
 
 import 'service_extension_registry.dart';
 

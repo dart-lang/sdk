@@ -41,7 +41,7 @@ Future<void> main(List<String> args) async {
 
 Future<void> _generateDartClient(
     String codeGeneratorDir, List<Node> nodes) async {
-  var outputFilePath = await _generateDartCommon(
+  final outputFilePath = await _generateDartCommon(
     api: VmServiceApi(),
     nodes: nodes,
     codeGeneratorDir: codeGeneratorDir,
@@ -49,15 +49,6 @@ Future<void> _generateDartClient(
     interfaceName: 'VmService',
   );
   print('Wrote Dart client to $outputFilePath.');
-  outputFilePath = await _generateDartCommon(
-    api: VmServiceInterfaceApi(),
-    nodes: nodes,
-    codeGeneratorDir: codeGeneratorDir,
-    packageName: 'vm_service',
-    interfaceName: 'VmServiceInterface',
-    fileNameOverride: 'vm_service_interface',
-  );
-  print('Wrote Dart temporary interface to $outputFilePath.');
 }
 
 Future<void> _generateDartInterface(
@@ -78,7 +69,6 @@ Future<String> _generateDartCommon({
   required String codeGeneratorDir,
   required String packageName,
   required String interfaceName,
-  String? fileNameOverride,
 }) async {
   final outDirPath = normalize(
     join(
@@ -96,7 +86,7 @@ Future<String> _generateDartCommon({
   final outputFile = File(
     join(
       outDirPath,
-      '${fileNameOverride ?? packageName}.dart',
+      '$packageName.dart',
     ),
   );
   final generator = DartGenerator(interfaceName: interfaceName);

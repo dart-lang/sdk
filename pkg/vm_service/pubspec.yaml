@@ -1,8 +1,5 @@
 name: vm_service
 version: 13.0.0
-# TODO(bkonyi): resolve outstanding TODOs required for 13.0.0 release before
-# removing.
-publish_to: none
 description: >-
   A library to communicate with a service implementing the Dart VM
   service protocol.
@@ -19,7 +16,6 @@ environment:
 dev_dependencies:
   async: any
   collection: any
-  expect: any
   lints: any
   markdown: any
   path: any
@@ -28,12 +24,6 @@ dev_dependencies:
   test: any
   vm_service_protos: any
 
-# TODO(bkonyi): remove expect and smith overrides before
-# publishing 13.0.0.
 dependency_overrides:
-  expect:
-    path: '../expect'
-  smith:
-    path: '../smith'
   test_package:
     path: 'test/test_package'

@@ -7,12 +7,6 @@ import 'dart:io';
 
 import 'vm_service.dart';
 
-@Deprecated('Prefer vmServiceConnectUri')
-Future<VmService> vmServiceConnect(String host, int port, {Log? log}) async {
-  final wsUri = 'ws://$host$port/ws';
-  return vmServiceConnectUri(wsUri, log: log);
-}
-
 /// Connect to the given uri and return a new [VmService] instance.
 Future<VmService> vmServiceConnectUri(String wsUri, {Log? log}) async {
   return vmServiceConnectUriWithFactory<VmService>(

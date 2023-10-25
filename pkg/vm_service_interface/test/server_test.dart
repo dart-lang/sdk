@@ -9,8 +9,7 @@ import 'dart:convert';
 import 'package:async/async.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
-import 'package:vm_service/vm_service.dart'
-    hide ServiceExtensionRegistry, VmServiceInterface, VmServerConnection;
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service_interface/vm_service_interface.dart';
 
 void main() {

@@ -10,8 +10,7 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:expect/expect.dart';
-
+import 'common/expect.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 

@@ -47,8 +47,8 @@ void main() {
 
     await Future.delayed(Duration(milliseconds: 500));
 
-    // ignore: deprecated_member_use_from_same_package
-    serviceClient = await vmServiceConnect(host, port, log: StdoutLog());
+    final wsUri = 'ws://$host$port/ws';
+    serviceClient = await vmServiceConnectUri(wsUri, log: StdoutLog());
 
     print('socket connected');
 
@@ -157,9 +157,8 @@ Future testServiceRegistration() async {
     };
   });
   await serviceClient.registerService(serviceName, serviceAlias);
-  VmService otherClient =
-      // ignore: deprecated_member_use_from_same_package
-      await vmServiceConnect(host, port, log: StdoutLog());
+  final wsUri = 'ws://$host$port/ws';
+  VmService otherClient = await vmServiceConnectUri(wsUri, log: StdoutLog());
   Completer completer = Completer();
   otherClient.onEvent('Service').listen((e) async {
     if (e.service == serviceName && e.kind == EventKind.kServiceRegistered) {
