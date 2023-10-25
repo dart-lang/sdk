@@ -515,11 +515,11 @@ abstract class Substitution {
         new Map<TypeParameter, DartType>.fromIterables(parameters, types));
   }
 
-  /// Substitutes the type parameters on the class with bottom or dynamic,
-  /// depending on the covariance of its use.
-  static Substitution bottomForClass(Class class_) {
-    if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
-    return new _ClassBottomSubstitution(class_);
+  /// Substitutes the type parameters on the type declaration with bottom or
+  /// dynamic, depending on the covariance of its use.
+  static Substitution bottomForTypeDeclaration(TypeDeclaration declaration) {
+    if (declaration.typeParameters.isEmpty) return _NullSubstitution.instance;
+    return new _TypeDeclarationBottomSubstitution(declaration);
   }
 
   /// Substitutes covariant uses of [class_]'s type parameters with the upper
@@ -716,14 +716,14 @@ class _TopSubstitutor extends _TypeSubstitutor {
   }
 }
 
-class _ClassBottomSubstitution extends Substitution {
-  final Class class_;
+class _TypeDeclarationBottomSubstitution extends Substitution {
+  final GenericDeclaration declaration;
 
-  _ClassBottomSubstitution(this.class_);
+  _TypeDeclarationBottomSubstitution(this.declaration);
 
   @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
-    if (parameter.declaration == class_) {
+    if (parameter.declaration == declaration) {
       return upperBound ? const NeverType.nonNullable() : const DynamicType();
     }
     return null;

@@ -365,6 +365,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         for (Class class_ in library.classes) {
           class_.members.forEach(declareMember);
         }
+        for (ExtensionTypeDeclaration extensionTypeDeclaration
+            in library.extensionTypeDeclarations) {
+          extensionTypeDeclaration.procedures.forEach(declareMember);
+        }
       }
       visitChildren(component);
     } finally {
@@ -372,6 +376,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         library.members.forEach(undeclareMember);
         for (Class class_ in library.classes) {
           class_.members.forEach(undeclareMember);
+        }
+        for (ExtensionTypeDeclaration extensionTypeDeclaration
+            in library.extensionTypeDeclarations) {
+          extensionTypeDeclaration.procedures.forEach(undeclareMember);
         }
       }
       variableStack.forEach(undeclareVariable);
@@ -1328,6 +1336,24 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     undeclareTypeParameters(node.parameters);
   }
 
+  void _checkInterfaceTarget(Expression node, Member interfaceTarget) {
+    if (!interfaceTarget.isInstanceMember) {
+      problem(
+          node, "Interface target $interfaceTarget is not an instance member.");
+    }
+    if (interfaceTarget is Procedure &&
+        interfaceTarget.stubKind == ProcedureStubKind.RepresentationField) {
+      problem(node,
+          "Representation field used as interface target: $interfaceTarget.");
+    }
+    if (interfaceTarget.enclosingClass == null) {
+      problem(
+          node,
+          "Interface target $interfaceTarget does not have an "
+          "enclosing class.");
+    }
+  }
+
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
     if (node.name != node.interfaceTarget.name) {
@@ -1336,6 +1362,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance invocation with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceInvocation(node);
   }
 
@@ -1347,6 +1374,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance get with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceGet(node);
   }
 
@@ -1358,6 +1386,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance tear-off with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceTearOff(node);
   }
 
@@ -1369,6 +1398,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "Instance set with name '${node.name}' has a "
           "target with name '${node.interfaceTarget.name}'.");
     }
+    _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceSet(node);
   }
 

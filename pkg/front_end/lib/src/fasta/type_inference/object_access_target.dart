@@ -171,6 +171,22 @@ abstract class ObjectAccessTarget {
 
   Member? get member;
 
+  Member? get classMember {
+    Member? member = this.member;
+    if (member == null) return null;
+    if (member.enclosingClass == null) {
+      // TODO(johnniwinther): Unify stub kinds. Should we always make this a
+      // member signature, merge member signature and abstract forwarding stub,
+      // or add a new stub kind for abstract extension type members?
+      assert(member.enclosingExtensionTypeDeclaration != null,
+          "Unexpected member without an enclosing class $member.");
+      member = (member as Procedure).stubTarget!;
+    }
+    assert(
+        member.enclosingClass != null, "No enclosing class found on $member.");
+    return member;
+  }
+
   /// The access index, if this is an access to a positional record field.
   /// Otherwise null.
   int? get recordFieldIndex => null;
@@ -496,29 +512,8 @@ class InstanceAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getSetterType(InferenceVisitorBase base) {
-    Member interfaceMember = member;
-    Class memberClass = interfaceMember.enclosingClass!;
-    assert(
-        interfaceMember is Field && interfaceMember.hasSetter ||
-            interfaceMember is Procedure && interfaceMember.isSetter,
-        "Unexpected setter target $interfaceMember");
-    DartType setterType = isSuperMember
-        ? interfaceMember.superSetterType
-        : interfaceMember.setterType;
-    if (memberClass.typeParameters.isNotEmpty) {
-      DartType resolvedReceiverType = base.resolveTypeParameter(receiverType);
-      if (resolvedReceiverType is InterfaceType) {
-        setterType = Substitution.fromPairs(
-                memberClass.typeParameters,
-                base.hierarchyBuilder.getTypeArgumentsAsInstanceOf(
-                    resolvedReceiverType, memberClass)!)
-            .substituteType(setterType);
-      }
-    }
-    if (!base.isNonNullableByDefault) {
-      setterType = legacyErasure(setterType);
-    }
-    return setterType;
+    return base.getSetterTypeForMemberTarget(member, receiverType,
+        isSuper: isSuperMember);
   }
 
   @override

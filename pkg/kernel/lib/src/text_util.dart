@@ -233,6 +233,11 @@ String qualifiedMemberNameToString(Member node,
             includeLibraryName: includeLibraryName) +
         '.' +
         memberNameToString(node);
+  } else if (parent is ExtensionTypeDeclaration) {
+    return qualifiedExtensionTypeDeclarationNameToString(parent,
+            includeLibraryName: includeLibraryName) +
+        '.' +
+        memberNameToString(node);
   } else if (parent is Library && includeLibraryName) {
     return libraryNameToString(parent) + '::' + memberNameToString(node);
   } else {

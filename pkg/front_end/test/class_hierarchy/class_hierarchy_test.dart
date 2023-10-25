@@ -436,7 +436,7 @@ String memberName(Member member) {
 }
 
 String memberQualifiedName(Member member) {
-  return '${member.enclosingClass!.name}.${memberName(member)}';
+  return '${member.enclosingTypeDeclaration!.name}.${memberName(member)}';
 }
 
 String procedureType(Procedure procedure) {

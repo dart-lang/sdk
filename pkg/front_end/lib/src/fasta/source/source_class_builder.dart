@@ -107,7 +107,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   TypeBuilder? mixedInTypeBuilder;
 
-  final IndexedContainer? referencesFromIndexed;
+  final IndexedContainer? indexedContainer;
 
   @override
   final bool isMacro;
@@ -166,7 +166,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       int startCharOffset,
       int nameOffset,
       int charEndOffset,
-      this.referencesFromIndexed,
+      this.indexedContainer,
       {Class? cls,
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
@@ -178,7 +178,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isAugmentation = false,
       this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
+            startCharOffset, nameOffset, charEndOffset, indexedContainer,
             isAugmentation: isAugmentation),
         super(metadata, modifiers, name, scope, constructors, parent,
             nameOffset) {
