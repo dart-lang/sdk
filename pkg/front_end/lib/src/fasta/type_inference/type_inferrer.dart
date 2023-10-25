@@ -103,7 +103,9 @@ class TypeInferrerImpl implements TypeInferrer {
       libraryBuilder.isNonNullableByDefault
           ? new FlowAnalysis(operations, assignedVariables,
               respectImplicitlyTypedVarInitializers:
-                  libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled)
+                  libraryBuilder.libraryFeatures.constructorTearoffs.isEnabled,
+              fieldPromotionEnabled:
+                  libraryBuilder.libraryFeatures.inferenceUpdate2.isEnabled)
           : new FlowAnalysis.legacy(operations, assignedVariables);
 
   @override

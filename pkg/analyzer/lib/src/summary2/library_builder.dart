@@ -341,11 +341,9 @@ class LibraryBuilder {
 
   /// Computes which fields in this library are promotable.
   void computeFieldPromotability() {
-    if (!element.featureSet.isEnabled(Feature.inference_update_2)) {
-      return;
-    }
-
-    _FieldPromotability(this).perform();
+    _FieldPromotability(this,
+            enabled: element.featureSet.isEnabled(Feature.inference_update_2))
+        .perform();
   }
 
   void declare(String name, Reference reference) {
@@ -1211,10 +1209,12 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
   /// The [_libraryBuilder] for the library being analyzed.
   final LibraryBuilder _libraryBuilder;
 
+  final bool enabled;
+
   /// Fields that might be promotable, if not marked unpromotable later.
   final List<FieldElementImpl> _potentiallyPromotableFields = [];
 
-  _FieldPromotability(this._libraryBuilder);
+  _FieldPromotability(this._libraryBuilder, {required this.enabled});
 
   @override
   Iterable<InterfaceElement> getSuperclasses(InterfaceElement class_,
@@ -1297,7 +1297,7 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
           isFinal: field.isFinal,
           isAbstract: field.isAbstract,
           isExternal: field.isExternal);
-      if (nonPromotabilityReason == null) {
+      if (enabled && nonPromotabilityReason == null) {
         _potentiallyPromotableFields.add(field);
       }
     }

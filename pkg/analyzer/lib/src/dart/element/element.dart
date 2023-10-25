@@ -4168,7 +4168,8 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   BundleMacroExecutor? bundleMacroExecutor;
 
   /// Information about why non-promotable private fields in the library are not
-  /// promotable, or `null` if field promotion is not enabled in this library.
+  /// promotable.
+  ///
   /// See [fieldNameNonPromotabilityInfo].
   Map<String, FieldNameNonPromotabilityInfo>? _fieldNameNonPromotabilityInfo;
 
@@ -4244,7 +4245,11 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   }
 
   /// Information about why non-promotable private fields in the library are not
-  /// promotable, or `null` if field promotion is not enabled in this library.
+  /// promotable.
+  ///
+  /// If field promotion is not enabled in this library, this field is still
+  /// populated, so that the analyzer can figure out whether enabling field
+  /// promotion would cause a field to be promotable.
   ///
   /// There are two ways an access to a private property name might not be
   /// promotable: the property might be non-promotable for a reason inherent to
@@ -4261,10 +4266,9 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   ///
   /// If a field in the library has a private name and that name does not appear
   /// as a key in this map, the field is promotable.
-  Map<String, FieldNameNonPromotabilityInfo>?
-      get fieldNameNonPromotabilityInfo {
+  Map<String, FieldNameNonPromotabilityInfo> get fieldNameNonPromotabilityInfo {
     _readLinkedData();
-    return _fieldNameNonPromotabilityInfo;
+    return _fieldNameNonPromotabilityInfo!;
   }
 
   set fieldNameNonPromotabilityInfo(

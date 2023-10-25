@@ -594,7 +594,8 @@ main() {
       var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
           h.typeOperations, AssignedVariables<Node, Var>(),
-          respectImplicitlyTypedVarInitializers: true);
+          respectImplicitlyTypedVarInitializers: true,
+          fieldPromotionEnabled: true);
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
@@ -5759,64 +5760,55 @@ main() {
       ]);
     });
 
-    group('because property', () {
+    group('field promotion disabled', () {
       test('via explicit this', () {
+        h.fieldPromotionEnabled = false;
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?',
-            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
+        h.addMember('C', '_field', 'Object?', promotable: true);
         h.run([
-          if_(this_.property('field').eq(nullLiteral), [
+          if_(this_.property('_field').eq(nullLiteral), [
             return_(),
           ]),
-          this_.property('field').whyNotPromoted((reasons) {
+          this_.property('_field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason =
-                reasons.values.single as PropertyNotPromotedForInherentReason;
-            expect(nonPromotionReason.whyNotPromotable,
-                PropertyNonPromotabilityReason.isNotEnabled);
-            expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.fieldPromotionUnavailable);
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, false);
           }),
         ]);
       });
 
       test('via implicit this/super', () {
+        h.fieldPromotionEnabled = false;
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?',
-            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
+        h.addMember('C', '_field', 'Object?', promotable: true);
         h.run([
-          if_(thisProperty('field').eq(nullLiteral), [
+          if_(thisProperty('_field').eq(nullLiteral), [
             return_(),
           ]),
-          thisProperty('field').whyNotPromoted((reasons) {
+          thisProperty('_field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason =
-                reasons.values.single as PropertyNotPromotedForInherentReason;
-            expect(nonPromotionReason.whyNotPromotable,
-                PropertyNonPromotabilityReason.isNotEnabled);
-            expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.fieldPromotionUnavailable);
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, false);
           }),
         ]);
       });
 
       test('via variable', () {
-        h.addMember('C', 'field', 'Object?',
-            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
+        h.fieldPromotionEnabled = false;
+        h.addMember('C', '_field', 'Object?', promotable: true);
         var x = Var('x');
         h.run([
           declare(x, type: 'C', initializer: expr('C')),
-          if_(x.property('field').eq(nullLiteral), [
+          if_(x.property('_field').eq(nullLiteral), [
             return_(),
           ]),
-          x.property('field').whyNotPromoted((reasons) {
+          x.property('_field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason =
-                reasons.values.single as PropertyNotPromotedForInherentReason;
-            expect(nonPromotionReason.whyNotPromotable,
-                PropertyNonPromotabilityReason.isNotEnabled);
-            expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.fieldPromotionUnavailable);
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, false);
           }),
         ]);
       });
@@ -7078,6 +7070,44 @@ main() {
                 y.pattern(expectInferredType: 'int').recordField('_property')
               ]),
               [])
+        ]);
+      });
+    });
+
+    group('non promotion reasons:', () {
+      test('inherent reason', () {
+        // It's only necessary to test one of the inherent reasons, because flow
+        // analysis just passes it through.
+        h.thisType = 'C';
+        h.addMember('C', '_field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotFinal);
+        h.run([
+          if_(thisProperty('_field').eq(nullLiteral), [
+            return_(),
+          ]),
+          thisProperty('_field').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('Object')]));
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromotedForInherentReason;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotFinal);
+          }),
+        ]);
+      });
+
+      test('due to conflict', () {
+        h.thisType = 'C';
+        h.addMember('C', '_field', 'Object?', whyNotPromotable: null);
+        h.run([
+          if_(thisProperty('_field').eq(nullLiteral), [
+            return_(),
+          ]),
+          thisProperty('_field').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('Object')]));
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, true);
+          }),
         ]);
       });
     });

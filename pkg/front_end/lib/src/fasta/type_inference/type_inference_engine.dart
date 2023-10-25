@@ -465,8 +465,14 @@ class OperationsCfe
 
   final Nullability nullability;
 
-  /// If `null`, field promotion is disabled for this library.  If not `null`,
-  /// information about which fields are promotable in this library.
+  /// Information about which fields are promotable in this library.
+  ///
+  /// If field promotion is disabled for the current library, this field is
+  /// still populated, so that [whyPropertyIsNotPromotable] can figure out
+  /// whether enabling field promotion would cause a field to be promotable.
+  ///
+  /// The value is `null` if the current source library builder is for a patch
+  /// file (patch files don't support field promotion).
   final FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   final Map<DartType, DartType> typeCacheNonNullable;
@@ -475,7 +481,7 @@ class OperationsCfe
 
   OperationsCfe(this.typeEnvironment,
       {required this.nullability,
-      this.fieldNonPromotabilityInfo,
+      required this.fieldNonPromotabilityInfo,
       required this.typeCacheNonNullable,
       required this.typeCacheNullable,
       required this.typeCacheLegacy});
@@ -512,7 +518,11 @@ class OperationsCfe
   bool isPropertyPromotable(covariant Member property) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
-    if (fieldNonPromotabilityInfo == null) return false;
+    if (fieldNonPromotabilityInfo == null) {
+      // This only happens when compiling patch files. Patch files don't support
+      // field promotion.
+      return false;
+    }
     if (property is Procedure) {
       if (!property.isAccessor) {
         // We don't promote methods.
@@ -534,7 +544,9 @@ class OperationsCfe
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      return PropertyNonPromotabilityReason.isNotEnabled;
+      // This only happens when compiling patch files. Patch files don't support
+      // field promotion.
+      return null;
     }
     return fieldNonPromotabilityInfo.individualPropertyReasons[property];
   }

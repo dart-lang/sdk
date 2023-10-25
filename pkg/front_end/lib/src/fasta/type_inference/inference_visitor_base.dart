@@ -4528,57 +4528,62 @@ class _WhyNotPromotedVisitor
   }
 
   @override
-  List<LocatedMessage> visitPropertyNotPromotedDueToConflict(
-      PropertyNotPromotedDueToConflict<DartType> reason) {
+  List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
+      PropertyNotPromotedForNonInherentReason<DartType> reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      // This should never happen, since `fieldPromotabilityInfo` is only `null`
-      // if field promotion is disabled for this library; in which case the only
-      // reason a property might not be promoted is because field promotion is
-      // disabled, and that reason is handled by
-      // `visitPropertyNotPromotedForInherentReason`.
-      assert(false);
-      // In the unlikely event that this ever happens in practice, recover by
-      // simply not generating a context message.
+      // `fieldPromotabilityInfo` is computed for all library builders except
+      // those for patch files.
+      assert(this.inferrer.libraryBuilder.isPatch);
+      // "why not promoted" functionality is not supported in patch files, so
+      // just don't generate a context message.
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
             SourceProcedureBuilder>? fieldNameInfo =
         fieldNonPromotabilityInfo.fieldNameInfo[reason.propertyName];
-    if (fieldNameInfo == null) {
-      // This should never happen, since `fieldPromotabilityInfo` contains an
-      // entry for every non-promotable field name.
-      assert(false);
-      // In the unlikely event that this ever happens in practice, recover by
-      // simply not generating a context message.
-      return const [];
-    }
     List<LocatedMessage> messages = [];
-    for (SourceFieldBuilder field in fieldNameInfo.conflictingFields) {
-      messages.add(templateFieldNotPromotedBecauseConflictingField
-          .withArguments(
-              reason.propertyName,
-              field.readTarget.enclosingClass!.name,
-              NonPromotionDocumentationLink.conflictingNonPromotableField.url)
-          .withLocation(field.fileUri, field.charOffset, noLength));
+    if (fieldNameInfo != null) {
+      for (SourceFieldBuilder field in fieldNameInfo.conflictingFields) {
+        messages.add(templateFieldNotPromotedBecauseConflictingField
+            .withArguments(
+                reason.propertyName,
+                field.readTarget.enclosingClass!.name,
+                NonPromotionDocumentationLink.conflictingNonPromotableField.url)
+            .withLocation(field.fileUri, field.charOffset, noLength));
+      }
+      for (SourceProcedureBuilder getter in fieldNameInfo.conflictingGetters) {
+        messages.add(templateFieldNotPromotedBecauseConflictingGetter
+            .withArguments(
+                reason.propertyName,
+                getter.procedure.enclosingClass!.name,
+                NonPromotionDocumentationLink.conflictingGetter.url)
+            .withLocation(getter.fileUri, getter.charOffset, noLength));
+      }
+      for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
+        messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder
+            .withArguments(
+                reason.propertyName,
+                nsmClass.name,
+                NonPromotionDocumentationLink
+                    .conflictingNoSuchMethodForwarder.url)
+            .withLocation(nsmClass.fileUri, nsmClass.fileOffset, noLength));
+      }
     }
-    for (SourceProcedureBuilder getter in fieldNameInfo.conflictingGetters) {
-      messages.add(templateFieldNotPromotedBecauseConflictingGetter
-          .withArguments(
-              reason.propertyName,
-              getter.procedure.enclosingClass!.name,
-              NonPromotionDocumentationLink.conflictingGetter.url)
-          .withLocation(getter.fileUri, getter.charOffset, noLength));
-    }
-    for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
-      messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder
-          .withArguments(
-              reason.propertyName,
-              nsmClass.name,
-              NonPromotionDocumentationLink
-                  .conflictingNoSuchMethodForwarder.url)
-          .withLocation(nsmClass.fileUri, nsmClass.fileOffset, noLength));
+    if (messages.isEmpty) {
+      // The only possible non-inherent reasons for field promotion to fail are
+      // because of conflicts and because field promotion is disabled. The loops
+      // above failed to find any conflicts, so field promotion must have failed
+      // because it was disabled.
+      assert(!reason.fieldPromotionEnabled);
+      Object? member = reason.propertyMember;
+      if (member is Member) {
+        messages.add(templateFieldNotPromotedBecauseNotEnabled
+            .withArguments(reason.propertyName,
+                NonPromotionDocumentationLink.fieldPromotionUnavailable.url)
+            .withLocation(member.fileUri, member.fileOffset, noLength));
+      }
     }
     return messages;
   }
@@ -4597,8 +4602,6 @@ class _WhyNotPromotedVisitor
       propertyType = reason.staticType;
       Template<Message Function(String, String)> template =
           switch (reason.whyNotPromotable) {
-        PropertyNonPromotabilityReason.isNotEnabled =>
-          templateFieldNotPromotedBecauseNotEnabled,
         PropertyNonPromotabilityReason.isNotField =>
           templateFieldNotPromotedBecauseNotField,
         PropertyNonPromotabilityReason.isNotPrivate =>

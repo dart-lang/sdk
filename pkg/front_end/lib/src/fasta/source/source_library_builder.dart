@@ -272,7 +272,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
   /// yet, or field promotion is disabled for this library.  If not `null`,
-  /// information about which fields are promotable in this library.
+  /// Information about which fields are promotable in this library, or `null`
+  /// if [SourceLoader.computeFieldPromotability] hasn't been called.
   FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   SourceLibraryBuilder.internal(

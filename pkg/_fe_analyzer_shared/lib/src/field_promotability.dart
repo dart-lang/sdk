@@ -318,15 +318,16 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
       _interfaceNodes[class_] ??= new _InterfaceNode<Class>(this, class_);
 }
 
-/// Possible reasons why a field property may not be promotable.
+/// Possible reasons why a property may not be promotable.
+///
+/// This enum captures the possible non-promotability reasons that are inherent
+/// to the property declaration itself. A property may also be non-promotable
+/// because field promotion is disabled, or due to a conflict with another
+/// declaration; the code that handles those two reasons doesn't use this enum.
 ///
 /// Some of these reasons are distinguished by [FieldPromotability.addField];
 /// others must be distinguished by the client.
 enum PropertyNonPromotabilityReason {
-  /// The property is not promotable because field promotion is not enabled for
-  /// the enclosing library.
-  isNotEnabled,
-
   /// The property is not promotable because it's not a field (it's either a
   /// getter or a tear-off of a method).
   isNotField,
