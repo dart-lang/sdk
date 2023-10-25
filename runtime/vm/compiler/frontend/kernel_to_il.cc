@@ -18,6 +18,7 @@
 #include "vm/compiler/ffi/abi.h"
 #include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
+#include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/ffi/recognized_method.h"
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
@@ -4747,7 +4748,31 @@ Fragment FlowGraphBuilder::FfiCallConvertCompoundArgumentToNative(
     intptr_t arg_index) {
   Fragment body;
   const auto& native_loc = marshaller.Location(arg_index);
-  if (native_loc.IsStack() || native_loc.IsMultiple()) {
+  if (native_loc.IsMultiple()) {
+    const auto& multiple_loc = native_loc.AsMultiple();
+    intptr_t offset_in_bytes = 0;
+    for (intptr_t i = 0; i < multiple_loc.locations().length(); i++) {
+      const auto& loc = *multiple_loc.locations()[i];
+      Representation representation;
+      if (loc.container_type().IsInt() && loc.payload_type().IsFloat()) {
+        // IL can only pass integers to integer Locations, so pass as integer if
+        // the Location requires it to be an integer.
+        representation = loc.container_type().AsRepresentationOverApprox(Z);
+      } else {
+        // Representations do not support 8 or 16 bit ints, over approximate to
+        // 32 bits.
+        representation = loc.payload_type().AsRepresentationOverApprox(Z);
+      }
+      body += LoadLocal(variable);
+      body += LoadTypedDataBaseFromCompound();
+      body += LoadNativeField(Slot::PointerBase_data(),
+                              InnerPointerAccess::kMayBeInnerPointer);
+      body += IntConstant(offset_in_bytes);
+      body += LoadIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
+                                          /*index_unboxed=*/false);
+      offset_in_bytes += loc.payload_type().SizeInBytes();
+    }
+  } else if (native_loc.IsStack()) {
     // Break struct in pieces to separate IL definitions to pass those
     // separate definitions into the FFI call.
     GrowableArray<Representation> representations;
@@ -4782,8 +4807,39 @@ Fragment FlowGraphBuilder::FfiCallbackConvertCompoundArgumentToDart(
       marshaller.Location(arg_index).payload_type().SizeInBytes();
 
   Fragment body;
-  if ((marshaller.Location(arg_index).IsMultiple() ||
-       marshaller.Location(arg_index).IsStack())) {
+  if (marshaller.Location(arg_index).IsMultiple()) {
+    body += IntConstant(length_in_bytes);
+    body +=
+        AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
+    LocalVariable* uint8_list = MakeTemporary("uint8_list");
+
+    const auto& multiple_loc = marshaller.Location(arg_index).AsMultiple();
+    const intptr_t num_defs = multiple_loc.locations().length();
+    intptr_t offset_in_bytes = 0;
+    for (intptr_t i = 0; i < num_defs; i++) {
+      const auto& loc = *multiple_loc.locations()[i];
+      Representation representation;
+      if (loc.container_type().IsInt() && loc.payload_type().IsFloat()) {
+        // IL can only pass integers to integer Locations, so pass as integer if
+        // the Location requires it to be an integer.
+        representation = loc.container_type().AsRepresentationOverApprox(Z);
+      } else {
+        // Representations do not support 8 or 16 bit ints, over approximate to
+        // 32 bits.
+        representation = loc.payload_type().AsRepresentationOverApprox(Z);
+      }
+      body += LoadLocal(uint8_list);
+      body += LoadNativeField(Slot::PointerBase_data(),
+                              InnerPointerAccess::kMayBeInnerPointer);
+      body += IntConstant(offset_in_bytes);
+      body += LoadLocal(definitions->At(i));
+      body += StoreIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
+                                           /*index_unboxed=*/false);
+      offset_in_bytes += loc.payload_type().SizeInBytes();
+    }
+
+    body += DropTempsPreserveTop(num_defs);  // Drop chunk defs keep TypedData.
+  } else if (marshaller.Location(arg_index).IsStack()) {
     // Allocate and populate a TypedData from the individual NativeParameters.
     body += IntConstant(length_in_bytes);
     body +=
