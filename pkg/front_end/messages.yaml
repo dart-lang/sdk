@@ -7461,3 +7461,10 @@ WrongTypeParameterVarianceInSuperinterface:
   script: |
     extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
   analyzerCode: WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+
+AwaitOfExtensionTypeNotFuture:
+  problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
+  experiments: inline-class
+  script: |
+    extension type E(num foo) { test(E e) async { await e; } }
+  analyzerCode: AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE

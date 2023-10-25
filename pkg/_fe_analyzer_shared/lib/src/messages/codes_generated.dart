@@ -341,6 +341,17 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
         r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAwaitOfExtensionTypeNotFuture =
+    messageAwaitOfExtensionTypeNotFuture;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAwaitOfExtensionTypeNotFuture = const MessageCode(
+    "AwaitOfExtensionTypeNotFuture",
+    analyzerCodes: <String>["AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE"],
+    problemMessage:
+        r"""The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
