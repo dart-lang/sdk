@@ -9,6 +9,8 @@ import 'configuration.dart' show Compiler;
 import 'utils.dart';
 
 String dart2jsHtml(String title, String scriptPath) {
+  // The native JavaScript Object prototype is sealed before loading the Dart
+  // program to guard against prototype pollution.
   return """
 <!DOCTYPE html>
 <html>
@@ -23,6 +25,10 @@ String dart2jsHtml(String title, String scriptPath) {
      .unittest-fail { background: #d55;}
      .unittest-error { background: #a11;}
   </style>
+  <script>
+  delete Object.prototype.__proto__;
+  Object.seal(Object.prototype);
+  </script>
 </head>
 <body>
   <h1> Running $title </h1>
@@ -154,8 +160,8 @@ String ddcHtml(
   var ddcGenDir = '/root_build/$genDir';
   var packagePaths =
       testPackages.map((p) => '    "$p": "$ddcGenDir/pkg/$p",').join("\n");
-  // Seal the native JavaScript Object prototype to avoid pollution before
-  // loading the Dart SDK module.
+  // The native JavaScript Object prototype is sealed before loading the Dart
+  // SDK module to guard against prototype pollution.
   return """
 <!DOCTYPE html>
 <html>

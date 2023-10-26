@@ -63,22 +63,12 @@ class SourceMapBuilder {
 
   void build() {
     LineColumnMap<SourceMapEntry> lineColumnMap = LineColumnMap();
-    Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap = {};
     entries.forEach((SourceMapEntry sourceMapEntry) {
       Location kernelLocation =
           locationProvider.getLocation(sourceMapEntry.targetOffset);
       int line = kernelLocation.line - 1;
       int column = kernelLocation.column - 1;
       lineColumnMap.add(line, column, sourceMapEntry);
-
-      SourceLocation location = sourceMapEntry.sourceLocation;
-      if (location.sourceUri != null) {
-        LineColumnMap<SourceMapEntry> sourceLineColumnMap =
-            sourceLocationMap.putIfAbsent(
-                location.sourceUri!, () => LineColumnMap<SourceMapEntry>());
-        sourceLineColumnMap.add(
-            location.line - 1, location.column - 1, sourceMapEntry);
-      }
     });
 
     _build(lineColumnMap);
@@ -282,7 +272,7 @@ class SourceMapBuilder {
           extension = 'js.map.${sourceLocations.name}';
         }
       }
-      final outputSink = BufferedStringOutputSink(compilerOutput
+      final outputSink = BufferedStringSinkWrapper(compilerOutput
           .createOutputSink(name, extension, api.OutputType.sourceMap));
       SourceMapBuilder sourceMapBuilder = SourceMapBuilder(
           sourceLocations.name,
