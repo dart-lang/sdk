@@ -144,6 +144,12 @@ class IlTestPrinter : public AllStatic {
       if (defn->ssa_temp_index() != -1) {
         writer->PrintProperty("v", defn->ssa_temp_index());
       }
+
+      if (defn->HasType()) {
+        writer->OpenObject("T");
+        defn->Type()->PrintTo(writer);
+        writer->CloseObject();
+      }
     }
     writer->PrintProperty("o", instr->DebugName());
     if (auto branch = instr->AsBranch()) {

@@ -27,6 +27,8 @@ class FlowGraph {
 
   bool get soundNullSafety => flags['nnbd'];
 
+  PrettyPrinter get printer => PrettyPrinter(descriptors);
+
   /// Match the sequence of blocks in this flow graph against the given
   /// sequence of matchers: `expected[i]` is expected to match `blocks[i]`,
   /// but there can be more blocks in the graph than matchers (the suffix is
@@ -60,6 +62,68 @@ class FlowGraph {
     if (attrs == null) return null;
     return {for (final e in attrs.entries) e.key: instr['d'][e.value]};
   }
+
+  void dump() {
+    final printer = PrettyPrinter(descriptors);
+
+    final buffer = StringBuffer();
+    for (var block in blocks) {
+      printer._formatBlock(buffer, block);
+    }
+    print(buffer);
+  }
+}
+
+class InstructionDescriptor {
+  final List<String> attributes;
+  final Map<String, int> attributeIndex;
+
+  InstructionDescriptor.fromJson(List attrs) : this._(attrs.cast<String>());
+
+  InstructionDescriptor._(List<String> attrs)
+      : attributes = attrs,
+        attributeIndex = {for (var i = 0; i < attrs.length; i++) attrs[i]: i};
+}
+
+/// Matching environment.
+///
+/// This is fundamentally just a name to id mapping which allows to track
+/// correspondence between names given to some matchers and blocks/instructions
+/// which matched those matchers.
+///
+/// This object is also used to carry around auxiliary information which might
+/// be needed for matching, e.g. [Renamer].
+class Env {
+  final Map<String, InstructionDescriptor> descriptors;
+  final Renamer rename;
+  final Map<String, int> nameToId = {};
+  final Set<String> unboundNames = {};
+
+  Env({required this.rename, required this.descriptors});
+
+  void bind(String name, Map<String, dynamic> instrOrBlock) {
+    final id = instrOrBlock['v'] ?? instrOrBlock['b'];
+
+    if (id == null) {
+      throw 'Instruction is not a definition or a block: ${instrOrBlock['o']}';
+    }
+
+    if (nameToId.containsKey(name)) {
+      if (nameToId[name] != id) {
+        throw 'Binding mismatch for $name: got ${nameToId[name]} and $id';
+      }
+      unboundNames.remove(name);
+      return;
+    }
+
+    nameToId[name] = id;
+  }
+}
+
+class PrettyPrinter {
+  final Map<String, InstructionDescriptor> descriptors;
+
+  PrettyPrinter(this.descriptors);
 
   void _formatAttributes(
       StringBuffer buffer, Map<String, int> attributeIndex, List attributes) {
@@ -116,6 +180,26 @@ class FlowGraph {
         ..write(' <- ');
     }
     _formatInternal(buffer, instr);
+    if (instr['T'] != null) {
+      final ct = instr['T'];
+      final attrs = [
+        if (ct['c'] != null) ct['c'],
+        if (ct['t'] != null) ct['t'],
+        if (ct['s'] == true) '+sentinel',
+        if (ct['n'] == true) '+null',
+      ];
+      buffer
+        ..write(' T{')
+        ..write(attrs.join(', '))
+        ..write('}');
+    }
+  }
+
+  static String instructionToString(Env e, Map<String, dynamic> instr) {
+    final printer = PrettyPrinter(e.descriptors);
+    final buffer = StringBuffer();
+    printer.formatInstruction(buffer, instr);
+    return buffer.toString();
   }
 
   void _formatBlock(StringBuffer buffer, Map<String, dynamic> block) {
@@ -142,61 +226,7 @@ class FlowGraph {
     }
   }
 
-  String blockName(Map<String, dynamic> block) => 'B${block['b']}';
-
-  void dump() {
-    final buffer = StringBuffer();
-    for (var block in blocks) {
-      _formatBlock(buffer, block);
-    }
-    print(buffer);
-  }
-}
-
-class InstructionDescriptor {
-  final List<String> attributes;
-  final Map<String, int> attributeIndex;
-
-  InstructionDescriptor.fromJson(List attrs) : this._(attrs.cast<String>());
-
-  InstructionDescriptor._(List<String> attrs)
-      : attributes = attrs,
-        attributeIndex = {for (var i = 0; i < attrs.length; i++) attrs[i]: i};
-}
-
-/// Matching environment.
-///
-/// This is fundamentally just a name to id mapping which allows to track
-/// correspondence between names given to some matchers and blocks/instructions
-/// which matched those matchers.
-///
-/// This object is also used to carry around auxiliary information which might
-/// be needed for matching, e.g. [Renamer].
-class Env {
-  final Map<String, InstructionDescriptor> descriptors;
-  final Renamer rename;
-  final Map<String, int> nameToId = {};
-  final Set<String> unboundNames = {};
-
-  Env({required this.rename, required this.descriptors});
-
-  void bind(String name, Map<String, dynamic> instrOrBlock) {
-    final id = instrOrBlock['v'] ?? instrOrBlock['b'];
-
-    if (id == null) {
-      throw 'Instruction is not a definition or a block: ${instrOrBlock['o']}';
-    }
-
-    if (nameToId.containsKey(name)) {
-      if (nameToId[name] != id) {
-        throw 'Binding mismatch for $name: got ${nameToId[name]} and $id';
-      }
-      unboundNames.remove(name);
-      return;
-    }
-
-    nameToId[name] = id;
-  }
+  static String blockName(Map<String, dynamic> block) => 'B${block['b']}';
 }
 
 abstract class Matcher {
@@ -204,6 +234,15 @@ abstract class Matcher {
   /// [MatchStatus.matched] if match succeeded and an instance of
   /// [MatchStatus.fail] otherwise.
   MatchStatus match(Env e, dynamic v);
+}
+
+abstract class ElementMatcher extends Matcher {
+  /// If [skipUntilMatched] is `true` then outer sequence matcher will skip
+  /// elements until it finds match for this matcher or end of the sequence
+  /// is reached.
+  bool get skipUntilMatched;
+
+  ElementMatcher copyWith({bool? skipUntilMatched});
 }
 
 class MatchStatus {
@@ -222,6 +261,11 @@ class MatchStatus {
       throw 'Failed to match: $message';
     }
   }
+
+  @override
+  String toString() {
+    return isMatch ? 'MatchStatus.success()' : 'MatchStatus.fail($message)';
+  }
 }
 
 /// Matcher which always succeeds.
@@ -238,9 +282,9 @@ class _AnyMatcher implements Matcher {
 }
 
 /// Matcher which updates matching environment when it succeeds.
-class _BoundMatcher implements Matcher {
+class _BoundMatcher<M extends Matcher> implements Matcher {
   final String name;
-  final Matcher nested;
+  final M nested;
 
   _BoundMatcher(this.name, this.nested);
 
@@ -257,6 +301,18 @@ class _BoundMatcher implements Matcher {
   String toString() {
     return '$name <- $nested';
   }
+}
+
+class _BoundElementMatcher extends _BoundMatcher<ElementMatcher>
+    implements ElementMatcher {
+  _BoundElementMatcher(super.name, super.nested);
+
+  @override
+  bool get skipUntilMatched => nested.skipUntilMatched;
+
+  @override
+  ElementMatcher copyWith({bool? skipUntilMatched}) => _BoundElementMatcher(
+      this.name, nested.copyWith(skipUntilMatched: skipUntilMatched));
 }
 
 /// Matcher which matches a specified value [v].
@@ -385,7 +441,7 @@ class _ListMatcher implements Matcher {
 /// we continue scanning until we find the match for the second and so on.
 class _BlockMatcher implements Matcher {
   final String kind;
-  final List<Matcher> body;
+  final List<ElementMatcher> body;
 
   _BlockMatcher(this.kind, [this.body = const []]);
 
@@ -401,8 +457,14 @@ class _BlockMatcher implements Matcher {
 
     var matcherIndex = 0;
     for (int i = 0; i < gotBody.length && matcherIndex < body.length; i++) {
-      if (body[matcherIndex].match(e, gotBody[i]).isMatch) {
+      final matcher = body[matcherIndex];
+      final result = matcher.match(e, gotBody[i]);
+      if (result.isMatch) {
         matcherIndex++;
+      } else if (!matcher.skipUntilMatched) {
+        return MatchStatus.fail('Unmatched instruction: ${body[matcherIndex]} '
+            'in block B${block['b']}: '
+            'got ${PrettyPrinter.instructionToString(e, gotBody[i])}');
       }
     }
     if (matcherIndex != body.length) {
@@ -440,21 +502,35 @@ class _AttributesMatcher implements Matcher {
 
 /// Matcher which matches an instruction with opcode [op] and properties
 /// specified in [matchers] map.
-class InstructionMatcher implements Matcher {
+class InstructionMatcher implements ElementMatcher {
   final String op;
   final Map<String, Matcher> matchers;
+  final bool skipUntilMatched;
 
   InstructionMatcher(
-      {required String op, List<Matcher>? data, List<Matcher>? inputs})
-      : this._(op: op, matchers: {
-          if (data != null) 'd': _ListMatcher(data),
-          if (inputs != null) 'i': _ListMatcher(inputs),
-        });
+      {required String op,
+      List<Matcher>? data,
+      List<Matcher>? inputs,
+      required bool skipUntilMatched})
+      : this._(
+          op: op,
+          matchers: {
+            if (data != null) 'd': _ListMatcher(data),
+            if (inputs != null) 'i': _ListMatcher(inputs),
+          },
+          skipUntilMatched: skipUntilMatched,
+        );
 
   InstructionMatcher._({
     required this.op,
     required this.matchers,
+    required this.skipUntilMatched,
   });
+
+  InstructionMatcher copyWith({bool? skipUntilMatched}) => InstructionMatcher._(
+      op: this.op,
+      matchers: this.matchers,
+      skipUntilMatched: skipUntilMatched ?? this.skipUntilMatched);
 
   @override
   MatchStatus match(Env e, covariant Map<String, dynamic> instr) {
@@ -478,6 +554,101 @@ class InstructionMatcher implements Matcher {
   }
 }
 
+class _CompileTypeMatcher implements Matcher {
+  final String? concreteClass;
+  final String? type;
+  final bool canBeSentinel;
+  final bool canBeNull;
+
+  _CompileTypeMatcher(
+      {this.concreteClass,
+      this.type,
+      required this.canBeSentinel,
+      required this.canBeNull});
+
+  static final typenamePattern = RegExp(r'(\w+)(?:<(.*)>)?$');
+
+  static ({String className, List<String> typeArgs}) splitTypeName(
+      String typeName) {
+    final m = typenamePattern.firstMatch(typeName);
+    if (m == null) {
+      throw ArgumentError.value(typeName, 'typeName', 'Failed to parse type');
+    }
+    return (
+      className: m[1]!,
+      typeArgs: m[2]?.split(',').map((v) => v.trim()).toList(growable: false) ??
+          const []
+    );
+  }
+
+  static bool compareTypeNames(Env e,
+      {required String got, required String expected}) {
+    if (got == expected) {
+      return true;
+    }
+
+    // We might be running in an obfuscated mode. In this case compare
+    // individual components in the type name.
+    final gotType = splitTypeName(got);
+    final expectedType = splitTypeName(expected);
+
+    if (gotType.className != e.rename(expectedType.className)) {
+      return false;
+    }
+
+    if (gotType.typeArgs.length != expectedType.typeArgs.length) {
+      return false;
+    }
+
+    for (var i = 0; i < gotType.typeArgs.length; i++) {
+      if (!compareTypeNames(e,
+          got: gotType.typeArgs[i], expected: expectedType.typeArgs[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  @override
+  MatchStatus match(Env e, covariant Map<String, dynamic> compileType) {
+    if (concreteClass != null &&
+        !compareTypeNames(e,
+            got: compileType['c']!, expected: concreteClass!)) {
+      return MatchStatus.fail(
+          'expected concrete class to be $concreteClass but got ${compileType['c']}');
+    }
+
+    if (type != null &&
+        !compareTypeNames(e, got: compileType['t']!, expected: type!)) {
+      return MatchStatus.fail(
+          'expected type to be $type but got ${compileType['t']}');
+    }
+
+    final gotCanBeSentinel = compileType['s'] == true;
+    if (canBeSentinel != gotCanBeSentinel) {
+      return MatchStatus.fail(
+          'expected canBeSentinel to be $canBeSentinel but got $gotCanBeSentinel');
+    }
+
+    final gotCanBeNull = compileType['n'] == true;
+    if (canBeNull != gotCanBeNull) {
+      return MatchStatus.fail(
+          'expected canBeNull to be $canBeNull but got $gotCanBeNull');
+    }
+
+    return MatchStatus.matched;
+  }
+
+  @override
+  String toString() {
+    return "CompileType(canBeSentinel: $canBeSentinel, "
+        "canBeNull: $canBeNull, "
+        "concreteClass: ${concreteClass ?? '?'}, "
+        "type: ${type ?? '?'})";
+  }
+}
+
 /// This class uses `noSuchMethod` to allow writing code like
 ///
 /// ```
@@ -489,43 +660,81 @@ class InstructionMatcher implements Matcher {
 /// matchers are expected to match attributes with names `attr0, ...`.
 class Matchers {
   _BlockMatcher block(String kind, [List<dynamic> body = const []]) {
-    return _BlockMatcher(kind, List<Matcher>.from(body));
+    return _BlockMatcher(kind, List<ElementMatcher>.from(body));
   }
 
   final _AnyMatcher any = const _AnyMatcher();
 
   // ignore: non_constant_identifier_names
-  InstructionMatcher Goto(String dest) =>
-      InstructionMatcher._(op: 'Goto', matchers: {
-        's': _ListMatcher([_blockRef(dest)])
-      });
+  InstructionMatcher Goto(String dest, {bool skipUntilMatched = true}) =>
+      InstructionMatcher._(
+        op: 'Goto',
+        matchers: {
+          's': _ListMatcher([_blockRef(dest)])
+        },
+        skipUntilMatched: skipUntilMatched,
+      );
 
   // ignore: non_constant_identifier_names
   InstructionMatcher Branch(InstructionMatcher compare,
-          {String? ifTrue, String? ifFalse}) =>
-      InstructionMatcher._(op: 'Branch', matchers: {
-        'cc': compare,
-        's': _ListMatcher([
-          ifTrue != null ? _blockRef(ifTrue) : any,
-          ifFalse != null ? _blockRef(ifFalse) : any,
-        ]),
-      });
+          {String? ifTrue, String? ifFalse, bool skipUntilMatched = true}) =>
+      InstructionMatcher._(
+        op: 'Branch',
+        matchers: {
+          'cc': compare,
+          's': _ListMatcher([
+            ifTrue != null ? _blockRef(ifTrue) : any,
+            ifFalse != null ? _blockRef(ifFalse) : any,
+          ])
+        },
+        skipUntilMatched: skipUntilMatched,
+      );
+
+  // ignore: non_constant_identifier_names
+  Matcher CompileType(
+          {String? concreteClass,
+          String? type,
+          bool canBeNull = false,
+          bool canBeSentinel = false}) =>
+      _CompileTypeMatcher(
+          concreteClass: concreteClass,
+          type: type,
+          canBeSentinel: canBeSentinel,
+          canBeNull: canBeNull);
 
   @override
   Object? noSuchMethod(Invocation invocation) {
+    const specialAttrs = {
+      #T,
+      #skipUntilMatched,
+    };
+
     final data = {
       for (var e in invocation.namedArguments.entries)
-        getName(e.key): Matchers._toAttributeMatcher(e.value),
+        if (!specialAttrs.contains(e.key))
+          getName(e.key): Matchers._toAttributeMatcher(e.value),
     };
     final op = getName(invocation.memberName);
     final binding = op == 'Phi'; // Allow Phis to have undeclared arguments.
     final inputs = invocation.positionalArguments
         .map((v) => Matchers._toInputMatcher(v, binding: binding))
         .toList();
-    return InstructionMatcher._(op: op, matchers: {
-      if (data.isNotEmpty) 'd': _AttributesMatcher(op, data),
-      if (inputs.isNotEmpty) 'i': _ListMatcher(inputs),
-    });
+    final compileTimeMatcher = invocation.namedArguments.containsKey(#T)
+        ? invocation.namedArguments[#T] as _CompileTypeMatcher
+        : null;
+    final skipUntilMatched =
+        invocation.namedArguments.containsKey(#skipUntilMatched)
+            ? invocation.namedArguments[#skipUntilMatched] as bool
+            : true;
+    return InstructionMatcher._(
+      op: op,
+      matchers: {
+        if (data.isNotEmpty) 'd': _AttributesMatcher(op, data),
+        if (inputs.isNotEmpty) 'i': _ListMatcher(inputs),
+        if (compileTimeMatcher != null) 'T': compileTimeMatcher,
+      },
+      skipUntilMatched: skipUntilMatched,
+    );
   }
 
   static Matcher _blockRef(String name) => _RefMatcher(name, binding: true);
@@ -550,11 +759,25 @@ class Matchers {
   }
 }
 
+extension NoWildcards on List<dynamic> {
+  /// Disable implicit wildcards for the given list of [ElementMatchers].
+  ///
+  /// Creates a copy of the list of [ElementMatchers] with
+  /// [ElementMatcher.skipUtilMatched] set to `false`.
+  List<ElementMatcher> get withoutWildcards {
+    return List<ElementMatcher>.from(this)
+        .map((m) => m.copyWith(skipUntilMatched: false))
+        .toList(growable: false);
+  }
+}
+
 /// Extension which enables `'name' << matcher` syntax for creating bound
 /// matchers.
 extension BindingExtension on String {
   Matcher operator <<(Matcher matcher) {
-    return _BoundMatcher(this, matcher);
+    return matcher is ElementMatcher
+        ? _BoundElementMatcher(this, matcher)
+        : _BoundMatcher(this, matcher);
   }
 }
 
