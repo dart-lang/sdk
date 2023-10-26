@@ -447,3 +447,45 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
   }
   return result;
 }
+
+Future<void> evaluateInFrameAndExpect(
+  VmService service,
+  String isolateId,
+  String expression,
+  String expected, {
+  Map<String, String>? scope,
+  String? kind,
+  int topFrame = 0,
+}) async {
+  final result = await service.evaluateInFrame(
+    isolateId,
+    topFrame,
+    expression,
+    scope: scope,
+  ) as InstanceRef;
+  expect(result.valueAsString, expected);
+  if (kind != null) {
+    expect(result.kind!, kind);
+  }
+}
+
+Future<void> evaluateAndExpect(
+  VmService service,
+  String isolateId,
+  String targetId,
+  String expression,
+  String expected, {
+  Map<String, String>? scope,
+  String? kind,
+}) async {
+  final result = await service.evaluate(
+    isolateId,
+    targetId,
+    expression,
+    scope: scope,
+  ) as InstanceRef;
+  expect(result.valueAsString, expected);
+  if (kind != null) {
+    expect(result.kind!, kind);
+  }
+}
