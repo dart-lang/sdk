@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/backend/locations.h"
+#include <limits>
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -93,6 +94,32 @@ compiler::OperandSize RepresentationUtils::OperandSize(Representation rep) {
   UNREACHABLE();
   return compiler::kObjectBytes;
 }
+
+#define REP_MIN_VALUE_CLAUSE(name, ____, type)                                 \
+  case k##name:                                                                \
+    return static_cast<int64_t>(std::numeric_limits<type>::min());
+int64_t RepresentationUtils::MinValue(Representation rep) {
+  switch (rep) {
+    FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_MIN_VALUE_CLAUSE)
+    default:
+      UNREACHABLE();
+      return kMinInt64;
+  }
+}
+#undef REP_MIN_VALUE_CLAUSE
+
+#define REP_MAX_VALUE_CLAUSE(name, ____, type)                                 \
+  case k##name:                                                                \
+    return static_cast<int64_t>(std::numeric_limits<type>::max());
+int64_t RepresentationUtils::MaxValue(Representation rep) {
+  switch (rep) {
+    FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_MAX_VALUE_CLAUSE)
+    default:
+      UNREACHABLE();
+      return kMaxInt64;
+  }
+}
+#undef REP_MAX_VALUE_CLAUSE
 
 const char* Location::RepresentationToCString(Representation repr) {
   switch (repr) {

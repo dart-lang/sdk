@@ -2091,24 +2091,9 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
 }
 
 Range Range::Full(Representation rep) {
-  // Handle unsigned representations more precisely than the default case.
-  switch (rep) {
-    case kUnboxedUint8:
-      return Range(
-          RangeBoundary::FromConstant(0),
-          RangeBoundary::FromConstant(static_cast<int64_t>(kMaxUint8)));
-    case kUnboxedUint16:
-      return Range(
-          RangeBoundary::FromConstant(0),
-          RangeBoundary::FromConstant(static_cast<int64_t>(kMaxUint16)));
-    case kUnboxedUint32:
-      return Range(
-          RangeBoundary::FromConstant(0),
-          RangeBoundary::FromConstant(static_cast<int64_t>(kMaxUint32)));
-    default:
-      ASSERT(!RepresentationUtils::IsUnsigned(rep));
-      return Range::Full(RepresentationToRangeSize(rep));
-  }
+  ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
+  return Range(RangeBoundary::FromConstant(RepresentationUtils::MinValue(rep)),
+               RangeBoundary::FromConstant(RepresentationUtils::MaxValue(rep)));
 }
 
 bool Range::IsPositive() const {
@@ -3152,58 +3137,53 @@ void UnboxInt64Instr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(to() != kUntagged);  // Not an integer-valued definition.
+  ASSERT(RepresentationUtils::IsUnboxedInteger(to()));
+  ASSERT(from() == kUntagged || RepresentationUtils::IsUnboxedInteger(from()));
+
+  auto* const value_range = value()->definition()->range();
+
   if (from() == kUntagged) {
+    ASSERT(value_range == nullptr);  // Not an integer-valued definition.
     *range = Range::Full(to());
-    return;
-  }
+  } else if (Range::IsUnknown(value_range)) {
+    *range = Range::Full(to());
+  } else if (RepresentationUtils::ValueSize(to()) >
+                 RepresentationUtils::ValueSize(from()) &&
+             (!RepresentationUtils::IsUnsigned(to()) ||
+              RepresentationUtils::IsUnsigned(from()))) {
+    // All signed unboxed ints of larger sizes can represent all values for
+    // signed or unsigned unboxed ints of smaller sizes, and all unsigned
+    // unboxed ints of larger sizes can represent all values for unsigned
+    // boxed ints of smaller sizes.
+    *range = *value_range;
+  } else if (is_truncating()) {
+    // Either the bits are being reinterpreted (if the two representations
+    // are the same size) or a larger value is being truncated. That means
+    // we need to determine whether or not the value range lies within the
+    // range of numbers that have the same representation (modulo truncation).
+    const int64_t min_overlap =
+        Utils::Maximum(RepresentationUtils::MinValue(from()),
+                       RepresentationUtils::MinValue(to()));
+    const int64_t max_overlap =
+        Utils::Minimum(RepresentationUtils::MaxValue(from()),
+                       RepresentationUtils::MaxValue(to()));
 
-  const Range* value_range = value()->definition()->range();
-  if (Range::IsUnknown(value_range)) {
-    return;
-  }
-
-  switch (to()) {
-    case kUnboxedInt64:
-      // All possible Int32 and Uint32 ranges fit in Int64, so use unchanged.
+    if (value_range->IsWithin(min_overlap, max_overlap)) {
       *range = *value_range;
-      break;
-    case kUnboxedUint32:
-      // TODO(vegorov): improve range information for unboxing to Uint32.
+    } else {
+      // In most cases, if there are non-representable values, then no
+      // assumptions can be made about the converted value.
       *range = Range::Full(to());
-      break;
-    case kUnboxedInt32:
-      switch (from()) {
-        case kUnboxedInt64:
-          // Start with the incoming range and then clamp it to Int32 to mimic
-          // the truncation of the value from 64-bits to 32-bits.
-          *range = *value_range;
-          range->Clamp(RangeBoundary::kRangeBoundaryInt32);
-          break;
-        case kUnboxedUint32:
-          // Need to convert the range in unsigned space to the equivalent range
-          // in signed space.
-          if (value_range->IsWithin(0, kMaxInt32)) {
-            // The values will be interpreted the same.
-            *range = *value_range;
-          } else {
-            // Either the range is within [kMaxInt32 + 1, kMaxUint32], in which
-            // case we _could_ convert it to an entirely negative range, or
-            // the range is not contiguous after conversion: it was [x, y]
-            // where x <= kMaxInt32 and y > kMaxInt32, but the signed version of
-            // that would be a discontiguous range:
-            //     [kMinInt32, -y] U [x, kMaxInt32]
-            // For simplicity, since the first case is likely rare, just use the
-            // full Int32 range.
-            *range = Range::Full(to());
-          }
-          break;
-        default:
-          UNREACHABLE();
-      }
-      break;
-    default:
-      UNREACHABLE();
+    }
+  } else {
+    // The conversion deoptimizes if the value is outside the range represented
+    // by to(), so we can just take the intersection.
+    const auto& to_range = Range::Full(to());
+    *range = value_range->Intersect(&to_range);
   }
+
+  ASSERT(RangeUtils::IsWithin(range, RepresentationUtils::MinValue(to()),
+                              RepresentationUtils::MaxValue(to())));
 }
 
 void AssertAssignableInstr::InferRange(RangeAnalysis* analysis, Range* range) {
