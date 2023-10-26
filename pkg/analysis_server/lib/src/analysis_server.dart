@@ -70,6 +70,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:collection/collection.dart';
@@ -611,14 +612,7 @@ abstract class AnalysisServer {
       return null;
     }
     try {
-      var currentSession = driver.currentSession;
-      var unitElement = await currentSession.getUnitElement(path);
-      if (unitElement is! UnitElementResult) {
-        return null;
-      }
-      var libraryPath = unitElement.element.library.source.fullName;
-      var result = await currentSession.getResolvedLibrary(libraryPath);
-      return result is ResolvedLibraryResult ? result : null;
+      return driver.currentSession.getResolvedContainingLibrary(path);
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {

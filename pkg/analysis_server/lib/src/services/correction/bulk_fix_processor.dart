@@ -42,6 +42,7 @@ import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -261,10 +262,12 @@ class BulkFixProcessor {
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
       var library = await performance.runAsync(
         'getResolvedLibrary',
-        (_) => context.currentSession.getResolvedLibrary(path),
+        (_) => context.currentSession.getResolvedContainingLibrary(path),
       );
-      if (!isCancelled && library is ResolvedLibraryResult) {
-        await _fixErrorsInLibrary(library, autoTriggered: autoTriggered);
+      final unit = library?.unitWithPath(path);
+      if (!isCancelled && library != null && unit != null) {
+        await _fixErrorsInLibraryUnit(unit, library,
+            autoTriggered: autoTriggered);
       }
     }
 
@@ -566,33 +569,42 @@ class BulkFixProcessor {
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
       {bool stopAfterFirst = false, bool autoTriggered = false}) async {
-    var analysisOptions = result.session.analysisContext.analysisOptions;
+    for (var unitResult in result.units) {
+      await _fixErrorsInLibraryUnit(unitResult, result,
+          stopAfterFirst: stopAfterFirst, autoTriggered: autoTriggered);
+    }
+  }
+
+  /// Use the change [builder] to create fixes for the diagnostics in
+  /// [unit].
+  Future<void> _fixErrorsInLibraryUnit(
+      ResolvedUnitResult unit, ResolvedLibraryResult library,
+      {bool stopAfterFirst = false, bool autoTriggered = false}) async {
+    var analysisOptions = unit.session.analysisContext.analysisOptions;
 
     DartFixContextImpl fixContext(
-      ResolvedUnitResult result,
       AnalysisError diagnostic, {
       required bool autoTriggered,
     }) {
       return DartFixContextImpl(
         instrumentationService,
         workspace,
-        result,
+        unit,
         diagnostic,
         autoTriggered: autoTriggered,
       );
     }
 
     CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
-        ResolvedUnitResult result, AnalysisError diagnostic) {
-      var overrideSet = _readOverrideSet(result);
-      var context =
-          fixContext(result, diagnostic, autoTriggered: autoTriggered);
+        AnalysisError diagnostic) {
+      var overrideSet = _readOverrideSet(unit);
+      var context = fixContext(diagnostic, autoTriggered: autoTriggered);
       return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
         dartFixContext: context,
         diagnostic: diagnostic,
         overrideSet: overrideSet,
-        resolvedResult: result,
+        resolvedResult: unit,
         selectionOffset: diagnostic.offset,
         selectionLength: diagnostic.length,
         workspace: workspace,
@@ -602,59 +614,58 @@ class BulkFixProcessor {
     //
     // Attempt to apply the fixes that aren't related to directives.
     //
-    for (var unitResult in result.units) {
-      var overrideSet = _readOverrideSet(unitResult);
-      for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
-        var context =
-            fixContext(unitResult, error, autoTriggered: autoTriggered);
-        await _fixSingleError(context, unitResult, error, overrideSet);
+    var overrideSet = _readOverrideSet(unit);
+    for (var error in _filterErrors(analysisOptions, unit.errors)) {
+      var context = fixContext(error, autoTriggered: autoTriggered);
+      await _fixSingleError(context, unit, error, overrideSet);
+      if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+        return;
+      }
+    }
+
+    // Only if this unit is the defining unit, we don't have other fixes and
+    // we were not auto-triggered should be continue with fixes for directives.
+    if (unit != library.units.first ||
+        autoTriggered ||
+        builder.hasEditsFor(unit.path)) {
+      return;
+    }
+
+    AnalysisError? directivesOrderingError;
+    var unusedImportErrors = <AnalysisError>[];
+    for (var error in _filterErrors(analysisOptions, unit.errors)) {
+      var errorCode = error.errorCode;
+      if (errorCode is LintCode) {
+        var lintName = errorCode.name;
+        if (lintName == LintNames.directives_ordering) {
+          directivesOrderingError = error;
+          break;
+        }
+      } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
+          errorCode == HintCode.UNNECESSARY_IMPORT ||
+          errorCode == WarningCode.UNUSED_IMPORT) {
+        unusedImportErrors.add(error);
+      }
+    }
+    if (directivesOrderingError != null) {
+      // `OrganizeImports` will also remove some of the unused imports, so we
+      // apply it first.
+      var context = correctionContext(directivesOrderingError);
+      if (context != null) {
+        await _generateFix(
+            context, OrganizeImports(), directivesOrderingError.errorCode.name);
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
         }
       }
-    }
-    //
-    // If there are no such fixes in the defining compilation unit, then apply
-    // the fixes related to directives.
-    //
-    var definingUnit = result.units[0];
-    AnalysisError? directivesOrderingError;
-    var unusedImportErrors = <AnalysisError>[];
-    if (!autoTriggered && !builder.hasEditsFor(definingUnit.path)) {
-      for (var error in _filterErrors(analysisOptions, definingUnit.errors)) {
-        var errorCode = error.errorCode;
-        if (errorCode is LintCode) {
-          var lintName = errorCode.name;
-          if (lintName == LintNames.directives_ordering) {
-            directivesOrderingError = error;
-            break;
-          }
-        } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
-            errorCode == HintCode.UNNECESSARY_IMPORT ||
-            errorCode == WarningCode.UNUSED_IMPORT) {
-          unusedImportErrors.add(error);
-        }
-      }
-      if (directivesOrderingError != null) {
-        // `OrganizeImports` will also remove some of the unused imports, so we
-        // apply it first.
-        var context = correctionContext(definingUnit, directivesOrderingError);
+    } else {
+      for (var error in unusedImportErrors) {
+        var context = correctionContext(error);
         if (context != null) {
-          await _generateFix(context, OrganizeImports(),
-              directivesOrderingError.errorCode.name);
+          await _generateFix(
+              context, RemoveUnusedImport(), error.errorCode.name);
           if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
             return;
-          }
-        }
-      } else {
-        for (var error in unusedImportErrors) {
-          var context = correctionContext(definingUnit, error);
-          if (context != null) {
-            await _generateFix(
-                context, RemoveUnusedImport(), error.errorCode.name);
-            if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
-              return;
-            }
           }
         }
       }

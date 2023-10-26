@@ -21,6 +21,7 @@ class BaseTextBuffer;
 class Definition;
 class FlowGraphDeserializer;
 class FlowGraphSerializer;
+class JSONWriter;
 
 template <typename T>
 class GrowableArray;
@@ -282,6 +283,7 @@ class CompileType : public ZoneAllocated {
   bool Specialize(GrowableArray<intptr_t>* class_ids);
 
   void PrintTo(BaseTextBuffer* f) const;
+  void PrintTo(JSONWriter* writer) const;
 
   const char* ToCString() const;
 

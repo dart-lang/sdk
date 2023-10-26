@@ -18,7 +18,7 @@ lints and analysis configuration specified in your [analysis_options.yaml] file.
 The second type of change - upgrading to newer package APIs - is performed
 based on API changes defined for specific packages. This declarative definition
 of the API changes lives in a `fix_data.yaml` file in the package's `lib/`
-directory (documentation forthcoming).
+directory; for details see the [documentation](https://github.com/flutter/flutter/wiki/Data-driven-Fixes).
 
 ## Command line usage
 
