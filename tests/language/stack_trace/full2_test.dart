@@ -2,6 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Avoid dart2js optimizations that alter the JavaScript stack trace. (1)
+// dart2js inlines methods in the generated JavaScript which leads to missing
+// frames in the stack trace. (2) Minification obfucsates names. Both issues can
+// be addressed offline by post-processing the stack trace using the source map
+// file.
+//
+// dart2jsOptions=--disable-inlining --no-minify
+
 import "package:expect/expect.dart";
 
 @pragma("vm:entry-point") // Prevent obfuscation.
