@@ -183,7 +183,7 @@ vars = {
   "stream_channel_rev": "ffdb20840d05a276699b50fdfc70cf668bfed6e2",
   "string_scanner_rev": "9c525f78fbc4189ee4dc3171a5c79e925b58f58b",
   "sync_http_rev": "8233f74cd8a87707c13beceb59b56bca41b52966",
-  "tar_rev": "748f6e680206752cc8e7a3c30af78a86da9830bd",
+  "tar_rev": "3383397b082c084c327587a293591fac74bc8af3",
   "term_glyph_rev": "cff80de129b2e69c11e3a9d7c6ea0447fc37865b",
   "test_rev": "4341470a2b844cd9a6692647639d652f617dd302", # https://github.com/dart-lang/test/issues/2126
   "test_descriptor_rev": "55b5eac522cc10bd5b2280b1f0cc367b0b69c472",
