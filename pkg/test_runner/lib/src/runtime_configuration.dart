@@ -211,7 +211,10 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   @override
   List<String> dart2jsPreambles(Uri preambleDir) {
-    return [preambleDir.resolve('d8.js').toFilePath()];
+    return [
+      preambleDir.resolve('seal_native_object.js').toFilePath(),
+      preambleDir.resolve('d8.js').toFilePath()
+    ];
   }
 }
 
@@ -244,7 +247,13 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   @override
   List<String> dart2jsPreambles(Uri preambleDir) {
-    return ['-f', preambleDir.resolve('jsshell.js').toFilePath(), '-f'];
+    return [
+      '-f',
+      preambleDir.resolve('seal_native_object.js').toFilePath(),
+      '-f',
+      preambleDir.resolve('jsshell.js').toFilePath(),
+      '-f'
+    ];
   }
 }
 
