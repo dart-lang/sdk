@@ -272,6 +272,12 @@ class DillClassMember extends BuilderClassMember {
   bool get isSourceDeclaration => false;
 
   @override
+  bool get isExtensionTypeMember {
+    Member member = memberBuilder.member;
+    return member.isExtensionTypeMember;
+  }
+
+  @override
   bool get isInternalImplementation {
     Member member = memberBuilder.member;
     return member.isInternalImplementation;

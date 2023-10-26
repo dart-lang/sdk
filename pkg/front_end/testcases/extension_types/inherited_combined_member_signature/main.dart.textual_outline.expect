@@ -1,0 +1,2 @@
+import 'main_lib.dart';
+extension type H<T>(E<T> e) implements F<T>, D<T> {}

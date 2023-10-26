@@ -25,6 +25,8 @@ extension type E(C c) implements A, B {}
 (Object?, Object?) testMethod0(E e) => e.method(); // Ok
 (int, Object?) testMethod1(E e) => e.method(); // Error
 (Object?, int) testMethod2(E e) => e.method(); // Error
+testMethod3(E e) => e.method().$1.unresolved(); // Error
+testMethod4(E e) => e.method().$2.unresolved(); // Error
 
 (Object?, Object?) testGetter0(E e) => e.getter; // Ok
 (int, Object?) testGetter1(E e) => e.getter; // Error
