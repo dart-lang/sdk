@@ -122,7 +122,7 @@ testWriteAsSubtypeSync(dir) {
   var input = Uint8List(5);
   input[0] = 1;
   input[1] = 2;
-  f.writeAsBytesSync(UnmodifiableUint8ListView(input));
+  f.writeAsBytesSync(input.asUnmodifiableView());
   var bytes = f.readAsBytesSync();
   Expect.listEquals(input, bytes);
 }
