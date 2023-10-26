@@ -134,24 +134,24 @@ static inline-class-member method F4|constructor#_#new#tearOff<X extends asy::Fu
 static method test(self::E1 /* = asy::Future<core::int> */ e1, self::E2<asy::Future<core::String>> /* = asy::Future<core::String> */ e2, self::E3 /* = FutureOr<core::bool>*/ e3, self::E4<asy::Future<core::double>> /* = asy::Future<core::double> */ e4, self::E5<core::Object> /* = core::Object */ e5object, self::E5<asy::Future<core::num>> /* = asy::Future<core::num> */ e5future, self::F1 /* = asy::Future<core::int> */ f1, self::F2<asy::Future<core::num>> /* = asy::Future<core::num> */ f2, self::F3<asy::Future<core::String>> /* = asy::Future<core::String> */ f3, self::F4<asy::Future<core::int>> /* = asy::Future<core::int> */ f4) → dynamic async /* futureValueType= dynamic */ {
   await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:21:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e1; // Error.
-        ^" in e1 /* runtimeCheckType= asy::Future<core::int> */ ;
+        ^" in e1 /* runtimeCheckType= asy::Future<self::E1 /* = asy::Future<core::int> */> */ ;
   await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:22:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e2; // Error.
-        ^" in e2 /* runtimeCheckType= asy::Future<core::String> */ ;
+        ^" in e2 /* runtimeCheckType= asy::Future<self::E2<asy::Future<core::String>> /* = asy::Future<core::String> */> */ ;
   await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:23:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e3; // Error.
-        ^" in e3 /* runtimeCheckType= asy::Future<core::bool> */ ;
+        ^" in e3 /* runtimeCheckType= asy::Future<self::E3 /* = FutureOr<core::bool>*/> */ ;
   await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:24:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e4; // Error.
-        ^" in e4 /* runtimeCheckType= asy::Future<core::double> */ ;
+        ^" in e4 /* runtimeCheckType= asy::Future<self::E4<asy::Future<core::double>> /* = asy::Future<core::double> */> */ ;
   await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:25:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e5object; // Error.
         ^" in e5object /* runtimeCheckType= asy::Future<self::E5<core::Object> /* = core::Object */> */ ;
   await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:26:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.
   await e5future; // Error.
-        ^" in e5future /* runtimeCheckType= asy::Future<core::num> */ ;
+        ^" in e5future /* runtimeCheckType= asy::Future<self::E5<asy::Future<core::num>> /* = asy::Future<core::num> */> */ ;
   await f1;
   await f2;
-  await f3 /* runtimeCheckType= asy::Future<core::String> */ ;
-  await f4 /* runtimeCheckType= asy::Future<core::int> */ ;
+  await f3;
+  await f4;
 }

@@ -13,6 +13,7 @@
 #     dart tools/manage_deps.dart bump third_party/pkg/dart_style
 
 allowed_hosts = [
+  'android.googlesource.com',
   'boringssl.googlesource.com',
   'chrome-infra-packages.appspot.com',
   'chromium.googlesource.com',
@@ -41,6 +42,7 @@ vars = {
   # When the repo is mirrored, you can add it to this DEPS file.
 
   # Chromium git
+  "android_git": "https://android.googlesource.com",
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
   "llvm_git": "https://llvm.googlesource.com",
@@ -108,7 +110,7 @@ vars = {
   "libcxxabi_rev": "2ce528fb5e0f92e57c97ec3ff53b75359d33af12",
   "libprotobuf_rev": "24487dd1045c7f3d64a21f38a3f0c06cc4cf2edb",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "perfetto_rev": "b8da07095979310818f0efde2ef3c69ea70d62c5",
+  "perfetto_rev": "13ce0c9e13b0940d2476cd0cff2301708a9a2e2b",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "protobuf_gn_rev": "ca669f79945418f6229e4fef89b666b2a88cbb10",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
@@ -193,7 +195,7 @@ vars = {
   "vector_math_rev": "294896dedc6da2a736f47c3c6a19643df934641c",
   "watcher_rev": "6ad58dcbbf328fbecf18d6ad2357c67be300b489",
   "web_socket_channel_rev": "f3ac1bf2bd3c93eb6d5d78646ff7de31797f4cf6",
-  "webdev_rev": "6e324afb1802ce25428c72871beb9c8faa19d036",
+  "webdev_rev": "25f17cda837042e8b4f7aec5192c68bef0d3c387",
   "webdriver_rev": "eaf9c582e6e72c3551d3a875b2d522cd1ad06593",
   "webkit_inspection_protocol_rev": "82f0c1c46dfdba5edf7c5fa84456233121dd69e1",
   "yaml_rev": "9f0d64934c07bc27438074616455618b7103582d",
@@ -326,8 +328,7 @@ deps = {
       "@" + Var("jinja2_rev"),
 
   Var("dart_root") + "/third_party/perfetto":
-      Var("fuchsia_git") +
-      "/third_party/android.googlesource.com/platform/external/perfetto" +
+      Var("android_git") + "/platform/external/perfetto" +
       "@" + Var("perfetto_rev"),
 
   Var("dart_root") + "/third_party/ply":

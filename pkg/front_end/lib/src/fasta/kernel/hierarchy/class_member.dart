@@ -4,6 +4,7 @@
 
 library fasta.class_hierarchy_builder;
 
+import 'package:front_end/src/fasta/source/source_extension_type_declaration_builder.dart';
 import 'package:kernel/ast.dart';
 
 import '../../builder/declaration_builders.dart';
@@ -373,6 +374,9 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     }
 
     if (_shouldModifyKernel) {
+      SourceClassBuilder sourceClassBuilder =
+          classBuilder as SourceClassBuilder;
+      SourceLibraryBuilder libraryBuilder = sourceClassBuilder.libraryBuilder;
       ProcedureKind kind = ProcedureKind.Method;
       Member canonicalMember =
           combinedMemberSignature.canonicalMember!.getMember(membersBuilder);
@@ -384,30 +388,33 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       }
 
       Procedure? stub = new ForwardingNode(
-              classBuilder as SourceClassBuilder,
+              libraryBuilder,
+              sourceClassBuilder,
+              sourceClassBuilder.cls,
+              sourceClassBuilder.indexedContainer,
               combinedMemberSignature,
               kind,
-              _superClassMember,
-              _mixedInMember,
-              _noSuchMethodTarget)
+              superClassMember: _superClassMember,
+              mixedInMember: _mixedInMember,
+              noSuchMethodTarget: _noSuchMethodTarget,
+              declarationIsMixinApplication:
+                  sourceClassBuilder.isMixinApplication)
           .finalize();
       if (stub != null) {
         assert(classBuilder.cls == stub.enclosingClass);
         assert(stub != canonicalMember);
         classBuilder.cls.addProcedure(stub);
-        SourceLibraryBuilder library =
-            classBuilder.libraryBuilder as SourceLibraryBuilder;
-        if (library.fieldNonPromotabilityInfo
+        if (libraryBuilder.fieldNonPromotabilityInfo
                 ?.individualPropertyReasons[canonicalMember]
             case var reason?) {
           // Transfer the non-promotability reason to the stub, so that accesses
           // to the stub will still cause the appropriate "why not promoted"
           // context message to be generated.
-          library.fieldNonPromotabilityInfo!.individualPropertyReasons[stub] =
-              reason;
+          libraryBuilder.fieldNonPromotabilityInfo!
+              .individualPropertyReasons[stub] = reason;
         }
         if (canonicalMember is Procedure) {
-          library.forwardersOrigins
+          libraryBuilder.forwardersOrigins
             ..add(stub)
             ..add(canonicalMember);
           stub.isAbstractFieldAccessor =
@@ -691,10 +698,16 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
   Member? _member;
   Covariance? _covariance;
 
+  /// If `true`, a stub should be inserted, if needed.
+  final bool _shouldModifyKernel;
+
   SynthesizedNonExtensionTypeMember(
       this.extensionTypeDeclarationBuilder, Name name, this.declarations,
-      {required bool isProperty, required bool forSetter})
-      : super(name, isProperty: isProperty, forSetter: forSetter);
+      {required bool isProperty,
+      required bool forSetter,
+      required bool shouldModifyKernel})
+      : this._shouldModifyKernel = shouldModifyKernel,
+        super(name, isProperty: isProperty, forSetter: forSetter);
 
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
@@ -730,6 +743,56 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       _member = declarations.first.getMember(membersBuilder);
       _covariance = declarations.first.getCovariance(membersBuilder);
       return;
+    }
+
+    if (_shouldModifyKernel) {
+      SourceExtensionTypeDeclarationBuilder
+          sourceExtensionTypeDeclarationBuilder =
+          extensionTypeDeclarationBuilder
+              as SourceExtensionTypeDeclarationBuilder;
+      SourceLibraryBuilder libraryBuilder =
+          sourceExtensionTypeDeclarationBuilder.libraryBuilder;
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          sourceExtensionTypeDeclarationBuilder.extensionTypeDeclaration;
+      ProcedureKind kind = ProcedureKind.Method;
+      Member canonicalMember =
+          combinedMemberSignature.canonicalMember!.getMember(membersBuilder);
+      if (combinedMemberSignature.canonicalMember!.isProperty) {
+        kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
+      } else if (canonicalMember is Procedure &&
+          canonicalMember.kind == ProcedureKind.Operator) {
+        kind = ProcedureKind.Operator;
+      }
+
+      Procedure? stub = new ForwardingNode(
+              libraryBuilder,
+              sourceExtensionTypeDeclarationBuilder,
+              extensionTypeDeclaration,
+              sourceExtensionTypeDeclarationBuilder.indexedContainer,
+              combinedMemberSignature,
+              kind,
+              declarationIsMixinApplication: false)
+          .finalize();
+      if (stub != null) {
+        assert(
+            extensionTypeDeclaration == stub.enclosingExtensionTypeDeclaration);
+        assert(stub != canonicalMember);
+        extensionTypeDeclaration.addProcedure(stub);
+        if (canonicalMember is Procedure) {
+          libraryBuilder.forwardersOrigins
+            ..add(stub)
+            ..add(canonicalMember);
+        }
+        _member = stub;
+        _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
+        assert(
+            _covariance ==
+                new Covariance.fromMember(_member!, forSetter: forSetter),
+            "Unexpected covariance for combined members signature "
+            "$_member. Found $_covariance, expected "
+            "${new Covariance.fromMember(_member!, forSetter: forSetter)}.");
+        return;
+      }
     }
 
     _member =

@@ -9,6 +9,7 @@ declare_args() {
 
 import("//build/config/win/visual_studio_version.gni")
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/rbe.gni")
 
 # Should only be running on Windows.
 assert(is_win)

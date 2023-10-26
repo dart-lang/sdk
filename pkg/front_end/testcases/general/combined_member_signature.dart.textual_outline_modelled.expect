@@ -1,0 +1,31 @@
+(Object?, Object?) testGetter0(E e) => e.getter;
+(Object?, Object?) testMethod0(E e) => e.method();
+(Object?, int) testGetter2(E e) => e.getter;
+(Object?, int) testMethod2(E e) => e.method();
+(int, Object?) testGetter1(E e) => e.getter;
+(int, Object?) testMethod1(E e) => e.method();
+
+abstract class A {
+  (Object?, dynamic) get getter;
+  (Object?, dynamic) method();
+  void set setter((int, int) Function(Object?, dynamic) f);
+}
+
+abstract class B {
+  (dynamic, Object?) get getter;
+  (dynamic, Object?) method();
+  void set setter((int, int) Function(dynamic, Object?) f);
+}
+
+abstract class E implements A, B {}
+
+class D implements E {
+  (int, int) get getter => (42, 87);
+  (int, int) method() => (42, 87);
+  void set setter((int, int) Function(dynamic, dynamic) f) {}
+}
+
+expect(expected, actual) {}
+main() {}
+void method(E e) {}
+void testSetter(E e) {}

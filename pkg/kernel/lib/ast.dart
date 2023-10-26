@@ -991,14 +991,22 @@ sealed class GenericFunction implements GenericDeclaration {
   FunctionNode get function;
 }
 
+/// Common interface for [Class] and [ExtensionTypeDeclaration].
+sealed class TypeDeclaration
+    implements Annotatable, FileUriNode, GenericDeclaration {
+  /// The name of the declaration.
+  ///
+  /// This must be unique within the library.
+  String get name;
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-class Class extends NamedNode
-    implements Annotatable, FileUriNode, GenericDeclaration {
+class Class extends NamedNode implements TypeDeclaration {
   /// Start offset of the class in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -1027,6 +1035,7 @@ class Class extends NamedNode
   /// The name may contain characters that are not valid in a Dart identifier,
   /// in particular, the symbol '&' is used in class names generated for mixin
   /// applications.
+  @override
   String name;
 
   // Must match serialized bit positions.
@@ -1756,9 +1765,9 @@ class ExtensionMemberDescriptor {
 ///
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [ExtensionTypeDeclaration] node.
-class ExtensionTypeDeclaration extends NamedNode
-    implements Annotatable, FileUriNode, GenericDeclaration {
+class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   /// Name of the extension type declaration.
+  @override
   String name;
 
   /// The URI of the source file this class was loaded from.
@@ -2047,7 +2056,26 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
 
   Member(this.name, this.fileUri, Reference? reference) : super(reference);
 
+  /// The enclosing [TypeDeclaration] if this member a class member or an
+  /// abstract extension type member.
+  TypeDeclaration? get enclosingTypeDeclaration =>
+      parent is TypeDeclaration ? parent as TypeDeclaration : null;
+
+  /// The enclosing [Class] if this member a class member.
+  ///
+  /// This includes both declared and inherited members, and both static and
+  /// instance members.
   Class? get enclosingClass => parent is Class ? parent as Class : null;
+
+  /// The enclosing [ExtensionTypeDeclaration] if this member an abstract
+  /// extension type member.
+  ///
+  /// This includes abstract getters for representation fields and combined
+  /// member signatures from inherited non-extension type members.
+  ExtensionTypeDeclaration? get enclosingExtensionTypeDeclaration =>
+      parent is ExtensionTypeDeclaration
+          ? parent as ExtensionTypeDeclaration
+          : null;
 
   Library get enclosingLibrary {
     TreeNode? parent = this.parent;
@@ -3037,7 +3065,6 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagIsAbstractFieldAccessor = 1 << 8;
   static const int FlagExtensionTypeMember = 1 << 9;
   static const int FlagHasWeakTearoffReferencePragma = 1 << 10;
-  static const int FlagIsLoweredLateField = 1 << 11;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3206,15 +3233,6 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagHasWeakTearoffReferencePragma)
         : (flags & ~FlagHasWeakTearoffReferencePragma);
-  }
-
-  /// If `true` this procedure was generated from a late field.
-  bool get isLoweredLateField => flags & FlagIsLoweredLateField != 0;
-
-  void set isLoweredLateField(bool value) {
-    flags = value
-        ? (flags | FlagIsLoweredLateField)
-        : (flags & ~FlagIsLoweredLateField);
   }
 
   @override
@@ -11880,8 +11898,7 @@ class ExtensionType extends DartType {
   }
 
   @override
-  DartType get resolveTypeParameterType =>
-      extensionTypeErasure.resolveTypeParameterType;
+  DartType get resolveTypeParameterType => this;
 
   static List<DartType> _defaultTypeArguments(
       ExtensionTypeDeclaration extensionTypeDeclaration) {

@@ -192,15 +192,24 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
-    TypeSystemImpl typeSystem,
-    DartType type,
-  ) {
+      TypeSystemImpl typeSystem, DartType type,
+      {DartType? listElementType}) {
     if (type.isDartCoreBool) {
       return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
     } else if (type.isDartCoreDouble) {
       return DartObjectImpl(typeSystem, type, DoubleState.UNKNOWN_VALUE);
     } else if (type.isDartCoreInt) {
       return DartObjectImpl(typeSystem, type, IntState.UNKNOWN_VALUE);
+    } else if (type.isDartCoreList) {
+      return DartObjectImpl(
+          typeSystem,
+          type,
+          ListState.unknown(
+              listElementType ?? typeSystem.typeProvider.dynamicType));
+    } else if (type.isDartCoreMap) {
+      return DartObjectImpl(typeSystem, type, MapState.UNKNOWN);
+    } else if (type.isDartCoreSet) {
+      return DartObjectImpl(typeSystem, type, SetState.UNKNOWN);
     } else if (type.isDartCoreString) {
       return DartObjectImpl(typeSystem, type, StringState.UNKNOWN_VALUE);
     }
@@ -2472,10 +2481,18 @@ class ListState extends InstanceState {
   final DartType elementType;
   final List<DartObjectImpl> elements;
 
+  /// Whether the list contains an element that has an unknown value.
+  final bool _isUnknown;
+
   ListState({
     required this.elementType,
     required this.elements,
-  });
+    bool isUnknown = false,
+  }) : _isUnknown = isUnknown;
+
+  /// Creates a state that represents a list whose value is not known.
+  factory ListState.unknown(DartType elementType) =>
+      ListState(elementType: elementType, elements: [], isUnknown: true);
 
   @override
   int get hashCode {
@@ -2486,6 +2503,9 @@ class ListState extends InstanceState {
     }
     return value;
   }
+
+  @override
+  bool get isUnknown => _isUnknown;
 
   @override
   String get typeName => "List";
@@ -2523,6 +2543,9 @@ class ListState extends InstanceState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    if (isUnknown || rightOperand.isUnknown) {
+      return BoolState.UNKNOWN_VALUE;
+    }
     return BoolState.from(this == rightOperand);
   }
 
@@ -2546,12 +2569,18 @@ class ListState extends InstanceState {
 
 /// The state of an object representing a map.
 class MapState extends InstanceState {
+  /// A state that represents a map whose value is not known.
+  static MapState UNKNOWN = MapState({}, isUnknown: true);
+
   /// The entries in the map.
   final Map<DartObjectImpl, DartObjectImpl> entries;
 
-  /// Initialize a newly created state to represent a map with the given
+  /// Whether the map contains an entry that has an unknown value.
+  final bool _isUnknown;
+
+  /// Initializes a newly created state to represent a map with the given
   /// [entries].
-  MapState(this.entries);
+  MapState(this.entries, {bool isUnknown = false}) : _isUnknown = isUnknown;
 
   @override
   int get hashCode {
@@ -2561,6 +2590,9 @@ class MapState extends InstanceState {
     }
     return value;
   }
+
+  @override
+  bool get isUnknown => _isUnknown;
 
   @override
   String get typeName => "Map";
@@ -2600,6 +2632,9 @@ class MapState extends InstanceState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    if (isUnknown || rightOperand.isUnknown) {
+      return BoolState.UNKNOWN_VALUE;
+    }
     return BoolState.from(this == rightOperand);
   }
 
@@ -2818,12 +2853,18 @@ class RecordState extends InstanceState {
 
 /// The state of an object representing a set.
 class SetState extends InstanceState {
+  /// A state that represents a set whose value is not known.
+  static SetState UNKNOWN = SetState({}, isUnknown: true);
+
   /// The elements of the set.
   final Set<DartObjectImpl> elements;
 
-  /// Initialize a newly created state to represent a set with the given
+  /// Whether the set contains an entry that has an unknown value.
+  final bool _isUnknown;
+
+  /// Initializes a newly created state to represent a set with the given
   /// [elements].
-  SetState(this.elements);
+  SetState(this.elements, {bool isUnknown = false}) : _isUnknown = isUnknown;
 
   @override
   int get hashCode {
@@ -2833,6 +2874,9 @@ class SetState extends InstanceState {
     }
     return value;
   }
+
+  @override
+  bool get isUnknown => _isUnknown;
 
   @override
   String get typeName => "Set";
@@ -2871,6 +2915,9 @@ class SetState extends InstanceState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    if (isUnknown || rightOperand.isUnknown) {
+      return BoolState.UNKNOWN_VALUE;
+    }
     return BoolState.from(this == rightOperand);
   }
 

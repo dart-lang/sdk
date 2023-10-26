@@ -2789,7 +2789,6 @@ severity: $severity
   /// libraries in which field promotion is enabled.
   void computeFieldPromotability() {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      if (!library.isInferenceUpdate2Enabled) continue;
       // TODO(paulberry): what should we do for augmentation libraries?
       if (library.loader == this && !library.isPatch) {
         library.computeFieldPromotability();

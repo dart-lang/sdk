@@ -2070,6 +2070,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
       }
       node.memberDescriptors.length = writeIndex;
 
+      // The procedures of the extension type declaration are never used.
+      node.procedures.length = 0;
+
       // We only retain the extension type declaration if at least one member is
       // retained.
       assert(node.memberDescriptors.isNotEmpty);

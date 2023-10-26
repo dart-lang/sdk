@@ -1977,21 +1977,6 @@ enum RPCErrorKind {
 }
 
 class RPCError implements Exception {
-  @Deprecated('Use RPCErrorKind.kServerError.code instead.')
-  static int get kServerError => RPCErrorKind.kServerError.code;
-
-  @Deprecated('Use RPCErrorKind.kInvalidRequest.code instead.')
-  static int get kInvalidRequest => RPCErrorKind.kInvalidRequest.code;
-
-  @Deprecated('Use RPCErrorKind.kMethodNotFound.code instead.')
-  static int get kMethodNotFound => RPCErrorKind.kMethodNotFound.code;
-
-  @Deprecated('Use RPCErrorKind.kInvalidParams.code instead.')
-  static int get kInvalidParams => RPCErrorKind.kInvalidParams.code;
-
-  @Deprecated('Use RPCErrorKind.kInternalError.code instead.')
-  static int get kInternalError => RPCErrorKind.kInternalError.code;
-
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }

@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type E(<T extends core::Object? = dynamic>(T%) → T% call) {
+  abstract inline-class-member representation-field get call() → <T extends core::Object? = dynamic>(T%) → T%;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static inline-class-member method E|constructor#(<T extends core::Object? = dynamic>(T%) → T% call) → self::E /* = <T extends core::Object? = dynamic>(T%) → T% */
+  ;
+static inline-class-member method E|constructor#_#new#tearOff(<T extends core::Object? = dynamic>(T%) → T% call) → self::E /* = <T extends core::Object? = dynamic>(T%) → T% */
+  return self::E|constructor#(call);
+static method method(self::E /* = <T extends core::Object? = dynamic>(T%) → T% */ e) → dynamic
+  ;

@@ -34,7 +34,7 @@ int f(bool x) {
   return switch (x) {
     false => 0,
     // TODO: Handle this case.
-    true => null,
+    true => throw UnimplementedError(),
   };
 }
 ''');
@@ -53,7 +53,7 @@ int f(bool x) {
   return switch (x) {
     true => 0,
     // TODO: Handle this case.
-    false => null,
+    false => throw UnimplementedError(),
   };
 }
 ''');
@@ -80,7 +80,7 @@ int f(E x) {
   return switch (x) {
     E.first => 0,
     // TODO: Handle this case.
-    E.second => null,
+    E.second => throw UnimplementedError(),
   };
 }
 ''');
@@ -107,7 +107,7 @@ import 'a.dart' as prefix;
 int f(prefix.E x) {
   return switch (x) {
     // TODO: Handle this case.
-    prefix.E.first => null,
+    prefix.E.first => throw UnimplementedError(),
   };
 }
 ''');
@@ -147,7 +147,7 @@ import 'b.dart';
 int f() {
   return switch (value) {
     // TODO: Handle this case.
-    E.first => null,
+    E.first => throw UnimplementedError(),
   };
 }
 ''');
@@ -168,7 +168,7 @@ int f(num x) {
     double() => 0,
     int(hashCode: 5) => 0,
     // TODO: Handle this case.
-    int() => null,
+    int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -187,7 +187,7 @@ int f(num x) {
   return switch (x) {
     double() => 0,
     // TODO: Handle this case.
-    int() => null,
+    int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -210,7 +210,7 @@ core.int f(core.num x) {
   return switch (x) {
     core.double() => 0,
     // TODO: Handle this case.
-    core.int() => null,
+    core.int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -231,7 +231,7 @@ int f(num x) {
     double() => 0,
     int() when x > 5 => 0,
     // TODO: Handle this case.
-    int() => null,
+    int() => throw UnimplementedError(),
   };
 }
 ''');
@@ -247,7 +247,7 @@ int f(num x) {
 int f(num x) {
   return switch (x) {
     // TODO: Handle this case.
-    double() => null,
+    double() => throw UnimplementedError(),
   };
 }
 ''');

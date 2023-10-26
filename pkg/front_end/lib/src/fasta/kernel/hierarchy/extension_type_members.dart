@@ -29,6 +29,10 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
 
+  bool get shouldModifyKernel =>
+      extensionTypeDeclarationBuilder.libraryBuilder.loader ==
+      _membersBuilder.hierarchyBuilder.loader;
+
   ExtensionTypeMembersNode build() {
     Map<Name, _Tuple> memberMap = {};
 
@@ -818,7 +822,8 @@ class _SanitizedMember {
             name,
             _implementedNonExtensionTypeMembers,
             isProperty: _definingMember.isProperty,
-            forSetter: _definingMember.forSetter);
+            forSetter: _definingMember.forSetter,
+            shouldModifyKernel: builder.shouldModifyKernel);
         builder._membersBuilder.registerMemberComputation(classMember);
         return nonExtensionTypeMemberMap[name] = classMember;
       }

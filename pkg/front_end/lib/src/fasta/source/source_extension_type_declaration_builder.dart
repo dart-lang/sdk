@@ -7,6 +7,7 @@ import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -60,6 +61,8 @@ class SourceExtensionTypeDeclarationBuilder
 
   final SourceFieldBuilder? representationFieldBuilder;
 
+  final IndexedContainer? indexedContainer;
+
   SourceExtensionTypeDeclarationBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -73,14 +76,14 @@ class SourceExtensionTypeDeclarationBuilder
       int startOffset,
       int nameOffset,
       int endOffset,
-      ExtensionTypeDeclaration? referenceFrom,
+      this.indexedContainer,
       this.representationFieldBuilder)
       : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: parent.fileUri,
             typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
                 typeParameters),
-            reference: referenceFrom?.reference)
+            reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
         super(metadata, modifiers, name, parent, nameOffset, scope,
             constructorScope);

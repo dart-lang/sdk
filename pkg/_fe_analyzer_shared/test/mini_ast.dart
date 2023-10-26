@@ -1654,6 +1654,13 @@ class Harness {
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
 
+  bool _fieldPromotionEnabled = true;
+
+  set fieldPromotionEnabled(bool value) {
+    assert(!_started);
+    _fieldPromotionEnabled = value;
+  }
+
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   set legacy(bool value) {
@@ -1812,7 +1819,8 @@ class Harness {
           : FlowAnalysis<Node, Statement, Expression, Var, Type>(
               _operations, visitor._assignedVariables,
               respectImplicitlyTypedVarInitializers:
-                  _respectImplicitlyTypedVarInitializers);
+                  _respectImplicitlyTypedVarInitializers,
+              fieldPromotionEnabled: _fieldPromotionEnabled);
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);

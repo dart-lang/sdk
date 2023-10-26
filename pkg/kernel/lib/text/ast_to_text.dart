@@ -382,10 +382,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   String getMemberReference(Member node) {
     String name = getMemberName(node).text;
-    Class? enclosingClass = node.enclosingClass;
-    if (enclosingClass != null) {
-      String className = getClassReference(enclosingClass);
-      return '$className::$name';
+    GenericDeclaration? enclosingDeclaration = node.enclosingTypeDeclaration;
+    if (enclosingDeclaration is Class) {
+      String declarationName = getClassReference(enclosingDeclaration);
+      return '$declarationName::$name';
+    } else if (enclosingDeclaration is ExtensionTypeDeclaration) {
+      String declarationName =
+          getExtensionTypeDeclarationReference(enclosingDeclaration);
+      return '$declarationName::$name';
     } else {
       String library = getLibraryReference(node.enclosingLibrary);
       return '$library::$name';

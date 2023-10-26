@@ -659,13 +659,10 @@ class BlazeWorkspacePackage extends WorkspacePackage {
           .where((e) => !e.startsWith('#'))
           .map((e) => e.replaceAll(' ', ''))
           .join();
-      var hasNonNullableFlag = const {
-        'dart_package(null_safety=True',
-        'dart_package(sound_null_safety=True',
+      var hasLegacyFlag = const {
+        'dart_package(null_safety=False',
       }.any(flattenedBuildContent.contains);
-      if (hasNonNullableFlag) {
-        // Enabled by default.
-      } else {
+      if (hasLegacyFlag) {
         _languageVersion = Version.parse('2.9.0');
       }
     } on FileSystemException {

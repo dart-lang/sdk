@@ -272,7 +272,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// If `null`, [SourceLoader.computeFieldPromotability] hasn't been called
   /// yet, or field promotion is disabled for this library.  If not `null`,
-  /// information about which fields are promotable in this library.
+  /// Information about which fields are promotable in this library, or `null`
+  /// if [SourceLoader.computeFieldPromotability] hasn't been called.
   FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   SourceLibraryBuilder.internal(
@@ -2387,8 +2388,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
-    ExtensionTypeDeclaration? referenceFrom =
-        indexedLibrary?.lookupExtensionTypeDeclaration(name);
+    IndexedContainer? indexedContainer =
+        indexedLibrary?.lookupIndexedExtensionTypeDeclaration(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2418,7 +2419,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             startOffset,
             nameOffset,
             endOffset,
-            referenceFrom,
+            indexedContainer,
             representationFieldBuilder);
     constructorReferences.clear();
     Map<String, NominalVariableBuilder>? typeVariablesByName =
@@ -2452,103 +2453,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(extensionTypeDeclarationBuilder.name,
         extensionTypeDeclarationBuilder, nameOffset,
-        getterReference: referenceFrom?.reference);
-  }
-
-  void addInlineClassDeclaration(
-      List<MetadataBuilder>? metadata,
-      int modifiers,
-      String name,
-      List<NominalVariableBuilder>? typeVariables,
-      List<TypeBuilder>? interfaces,
-      int startOffset,
-      int nameOffset,
-      int endOffset) {
-    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration = endNestedDeclaration(
-        TypeParameterScopeKind.inlineClassDeclaration, name)
-      ..resolveNamedTypes(typeVariables, this);
-    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
-    Map<String, Builder> members = declaration.members!;
-    Map<String, MemberBuilder> constructors = declaration.constructors!;
-    Map<String, MemberBuilder> setters = declaration.setters!;
-
-    Scope memberScope = new Scope(
-        kind: ScopeKind.declaration,
-        local: members,
-        setters: setters,
-        parent: scope.withTypeVariables(typeVariables),
-        debugName: "extension type $name",
-        isModifiable: false);
-    ConstructorScope constructorScope =
-        new ConstructorScope(name, constructors);
-
-    ExtensionTypeDeclaration? referenceFrom =
-        indexedLibrary?.lookupExtensionTypeDeclaration(name);
-
-    SourceFieldBuilder? representationFieldBuilder;
-    outer:
-    for (Builder? member in members.values) {
-      while (member != null) {
-        if (!member.isDuplicate &&
-            member is SourceFieldBuilder &&
-            !member.isStatic) {
-          representationFieldBuilder = member;
-          break outer;
-        }
-        member = member.next;
-      }
-    }
-
-    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-        new SourceExtensionTypeDeclarationBuilder(
-            metadata,
-            modifiers,
-            declaration.name,
-            typeVariables,
-            interfaces,
-            memberScope,
-            constructorScope,
-            this,
-            new List<ConstructorReferenceBuilder>.of(constructorReferences),
-            startOffset,
-            nameOffset,
-            endOffset,
-            referenceFrom,
-            representationFieldBuilder);
-    constructorReferences.clear();
-    Map<String, NominalVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
-    void setParent(MemberBuilder? member) {
-      while (member != null) {
-        member.parent = extensionTypeDeclarationBuilder;
-        member = member.next as MemberBuilder?;
-      }
-    }
-
-    void setParentAndCheckConflicts(String name, Builder member) {
-      if (typeVariablesByName != null) {
-        NominalVariableBuilder? tv = typeVariablesByName[name];
-        if (tv != null) {
-          extensionTypeDeclarationBuilder.addProblem(
-              templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset,
-              name.length,
-              context: [
-                messageConflictsWithTypeVariableCause.withLocation(
-                    tv.fileUri!, tv.charOffset, name.length)
-              ]);
-        }
-      }
-      setParent(member as MemberBuilder);
-    }
-
-    members.forEach(setParentAndCheckConflicts);
-    constructors.forEach(setParentAndCheckConflicts);
-    setters.forEach(setParentAndCheckConflicts);
-    addBuilder(extensionTypeDeclarationBuilder.name,
-        extensionTypeDeclarationBuilder, nameOffset,
-        getterReference: referenceFrom?.reference);
+        getterReference: indexedContainer?.reference);
   }
 
   TypeBuilder? _applyMixins(

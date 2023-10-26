@@ -74,7 +74,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
         builder.write(lineIndent);
         builder.write(singleIndent);
         _writePatternParts(builder, patternParts);
-        builder.writeln(' => null,');
+        builder.writeln(' => throw UnimplementedError(),');
         builder.write(location.suffix);
       });
     });

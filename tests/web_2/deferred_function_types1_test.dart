@@ -6,15 +6,18 @@
 
 // dart2jsOptions=--strong
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'deferred_function_types_lib1.dart' deferred as lib1;
 import 'deferred_function_types_lib2.dart' deferred as lib2;
 
-main() async {
-  await lib1.loadLibrary();
-  Expect.isTrue(lib1.method1() is int Function(int));
-  Expect.isFalse(lib1.method1() is String Function(String));
-  await lib2.loadLibrary();
-  Expect.isFalse(lib2.method2() is int Function(int));
-  Expect.isTrue(lib2.method2() is String Function(String));
+main() {
+  asyncTest(() async {
+    await lib1.loadLibrary();
+    Expect.isTrue(lib1.method1() is int Function(int));
+    Expect.isFalse(lib1.method1() is String Function(String));
+    await lib2.loadLibrary();
+    Expect.isFalse(lib2.method2() is int Function(int));
+    Expect.isTrue(lib2.method2() is String Function(String));
+  });
 }

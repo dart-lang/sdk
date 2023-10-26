@@ -979,8 +979,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               receiverType, extensionType, procedure,
               isPotentiallyNullable: isReceiverTypePotentiallyNullable);
         }
-        // TODO(johnniwinther): Support other extension type declaration
-        // procedures.
+        return new ObjectAccessTarget.interfaceMember(receiverType, procedure,
+            isPotentiallyNullable: isReceiverTypePotentiallyNullable);
       }
     }
 
@@ -1408,19 +1408,67 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   DartType getGetterTypeForMemberTarget(
       Member interfaceMember, DartType receiverType,
       {required bool isSuper}) {
-    Class memberClass = interfaceMember.enclosingClass!;
     assert(interfaceMember is Field || interfaceMember is Procedure,
         "Unexpected interface member $interfaceMember.");
     DartType calleeType =
         isSuper ? interfaceMember.superGetterType : interfaceMember.getterType;
-    if (memberClass.typeParameters.isNotEmpty) {
-      receiverType = resolveTypeParameter(receiverType);
-      if (receiverType is InterfaceType) {
-        List<DartType> castedTypeArguments = hierarchyBuilder
-            .getTypeArgumentsAsInstanceOf(receiverType, memberClass)!;
-        calleeType = Substitution.fromPairs(
-                memberClass.typeParameters, castedTypeArguments)
-            .substituteType(calleeType);
+    return _getTypeForMemberTarget(interfaceMember, calleeType, receiverType);
+  }
+
+  /// Returns the setter type of [interfaceMember] on a receiver of type
+  /// [receiverType].
+  ///
+  /// For instance
+  ///
+  ///    class Class<T> {
+  ///      void set setter(T value) {}
+  ///    }
+  ///
+  ///    Class<int> c = ...
+  ///    c.setter = 42; // The setter type is `int`.
+  ///
+  DartType getSetterTypeForMemberTarget(
+      Member interfaceMember, DartType receiverType,
+      {required bool isSuper}) {
+    assert(interfaceMember is Field || interfaceMember is Procedure,
+        "Unexpected interface member $interfaceMember.");
+    DartType calleeType =
+        isSuper ? interfaceMember.superSetterType : interfaceMember.setterType;
+    return _getTypeForMemberTarget(interfaceMember, calleeType, receiverType);
+  }
+
+  DartType _getTypeForMemberTarget(
+      Member interfaceMember, DartType calleeType, DartType receiverType) {
+    Class? enclosingClass = interfaceMember.enclosingClass;
+    ExtensionTypeDeclaration? enclosingExtensionTypeDeclaration =
+        interfaceMember.enclosingExtensionTypeDeclaration;
+    assert(
+        enclosingClass != null || enclosingExtensionTypeDeclaration != null,
+        "Unexpected instance member $interfaceMember with no enclosing class "
+        "or extension type declaration.");
+    if (enclosingClass != null) {
+      if (enclosingClass.typeParameters.isNotEmpty) {
+        receiverType = resolveTypeParameter(receiverType);
+        if (receiverType is InterfaceType) {
+          List<DartType> castedTypeArguments = hierarchyBuilder
+              .getTypeArgumentsAsInstanceOf(receiverType, enclosingClass)!;
+          calleeType = Substitution.fromPairs(
+                  enclosingClass.typeParameters, castedTypeArguments)
+              .substituteType(calleeType);
+        }
+      }
+    } else if (enclosingExtensionTypeDeclaration != null) {
+      if (enclosingExtensionTypeDeclaration.typeParameters.isNotEmpty) {
+        receiverType = resolveTypeParameter(receiverType);
+        if (receiverType is ExtensionType) {
+          List<DartType> castedTypeArguments = hierarchyBuilder
+              .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+                  receiverType, enclosingExtensionTypeDeclaration)!;
+          calleeType = Substitution.fromPairs(
+                  enclosingExtensionTypeDeclaration.typeParameters,
+                  castedTypeArguments)
+              .substituteType(calleeType);
+        }
       }
     }
     if (!isNonNullableByDefault) {
@@ -2661,7 +2709,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(target.isInstanceMember ||
         target.isObjectMember ||
         target.isNullableInstanceMember);
-    Procedure? method = target.member as Procedure;
+    Procedure? method = target.classMember as Procedure;
     assert(
         method.kind == ProcedureKind.Method ||
             method.kind == ProcedureKind.Operator,
@@ -2695,7 +2743,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (receiver is! ThisExpression &&
         method != null &&
         returnedTypeParametersOccurNonCovariantly(
-            method.enclosingClass!, method.function.returnType)) {
+            method.enclosingTypeDeclaration!, method.function.returnType)) {
       contravariantCheck = true;
     }
     InvocationInferenceResult result = inferInvocation(visitor, typeContext,
@@ -2822,7 +2870,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(target.isInstanceMember ||
         target.isObjectMember ||
         target.isNullableInstanceMember);
-    Procedure? getter = target.member as Procedure;
+    Procedure? getter = target.classMember as Procedure;
     assert(getter.kind == ProcedureKind.Getter);
 
     // TODO(johnniwinther): This is inconsistent with the handling below. Remove
@@ -2882,7 +2930,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (calleeType is! DynamicType &&
         receiver is! ThisExpression &&
         returnedTypeParametersOccurNonCovariantly(
-            getter.enclosingClass!, getter.function.returnType)) {
+            getter.enclosingTypeDeclaration!, getter.function.returnType)) {
       propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
@@ -3021,7 +3069,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     assert(target.isInstanceMember ||
         target.isObjectMember ||
         target.isNullableInstanceMember);
-    Field field = target.member as Field;
+    Field field = target.classMember as Field;
     Expression originalReceiver = receiver;
 
     DartType calleeType = target.getGetterType(this);
@@ -3073,7 +3121,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (receiver is! ThisExpression &&
         calleeType is! DynamicType &&
         returnedTypeParametersOccurNonCovariantly(
-            field.enclosingClass!, field.type)) {
+            field.enclosingTypeDeclaration!, field.type)) {
       propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
@@ -3209,7 +3257,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.superMember:
-        Member member = target.member!;
+        Member member = target.classMember!;
         if (member is Procedure) {
           if (member.kind == ProcedureKind.Getter) {
             return _inferInstanceGetterInvocation(
@@ -3661,7 +3709,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// True if the returned [type] has non-covariant occurrences of any of
-  /// [class_]'s type parameters.
+  /// the type parameters from [enclosingTypeDeclaration], the enclosing class
+  /// or extension type declaration.
   ///
   /// A non-covariant occurrence of a type parameter is either a contravariant
   /// or an invariant position.
@@ -3674,10 +3723,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// T occurs invariantly in `S Function<S extends T>()` and
   /// `void Function<S extends C<T>>(S)`.
   static bool returnedTypeParametersOccurNonCovariantly(
-      Class class_, DartType type) {
-    if (class_.typeParameters.isEmpty) return false;
+      TypeDeclaration enclosingTypeDeclaration, DartType type) {
+    if (enclosingTypeDeclaration.typeParameters.isEmpty) return false;
     IncludesTypeParametersNonCovariantly checker =
-        new IncludesTypeParametersNonCovariantly(class_.typeParameters,
+        new IncludesTypeParametersNonCovariantly(
+            enclosingTypeDeclaration.typeParameters,
             // We are checking the returned type (field/getter type or return
             // type of a method) and this is a covariant position.
             initialVariance: Variance.covariant);
@@ -3702,10 +3752,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (!isThisReceiver) {
           if ((interfaceMember is Field &&
                   returnedTypeParametersOccurNonCovariantly(
-                      interfaceMember.enclosingClass!, interfaceMember.type)) ||
+                      interfaceMember.enclosingTypeDeclaration!,
+                      interfaceMember.type)) ||
               (interfaceMember is Procedure &&
                   returnedTypeParametersOccurNonCovariantly(
-                      interfaceMember.enclosingClass!,
+                      interfaceMember.enclosingTypeDeclaration!,
                       interfaceMember.function.returnType))) {
             return MethodContravarianceCheckKind.checkGetterReturn;
           }
@@ -3713,7 +3764,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       } else if (!isThisReceiver &&
           interfaceMember is Procedure &&
           returnedTypeParametersOccurNonCovariantly(
-              interfaceMember.enclosingClass!,
+              interfaceMember.enclosingTypeDeclaration!,
               interfaceMember.function.returnType)) {
         return MethodContravarianceCheckKind.checkMethodReturn;
       }
@@ -4109,7 +4160,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.superMember:
-        Member member = readTarget.member!;
+        Member member = readTarget.classMember!;
         if ((readTarget.isInstanceMember || readTarget.isObjectMember) &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
@@ -4143,10 +4194,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         bool checkReturn = false;
         if ((readTarget.isInstanceMember || readTarget.isObjectMember) &&
             !isThisReceiver) {
-          Member interfaceMember = readTarget.member!;
+          Member interfaceMember = readTarget.classMember!;
           if (interfaceMember is Procedure) {
-            Class enclosingClass = interfaceMember.enclosingClass!;
-            if (enclosingClass.typeParameters.isEmpty) {
+            GenericDeclaration? enclosingDeclaration =
+                interfaceMember.enclosingTypeDeclaration!;
+            if (enclosingDeclaration.typeParameters.isEmpty) {
               checkReturn = false;
             } else {
               DartType typeToCheck = isNonNullableByDefault
@@ -4155,12 +4207,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   : interfaceMember.function.returnType;
               checkReturn = InferenceVisitorBase
                   .returnedTypeParametersOccurNonCovariantly(
-                      enclosingClass, typeToCheck);
+                      interfaceMember.enclosingTypeDeclaration!, typeToCheck);
             }
           } else if (interfaceMember is Field) {
             checkReturn =
                 InferenceVisitorBase.returnedTypeParametersOccurNonCovariantly(
-                    interfaceMember.enclosingClass!, interfaceMember.type);
+                    interfaceMember.enclosingTypeDeclaration!,
+                    interfaceMember.type);
           }
         }
         if (checkReturn) {
@@ -4475,57 +4528,62 @@ class _WhyNotPromotedVisitor
   }
 
   @override
-  List<LocatedMessage> visitPropertyNotPromotedDueToConflict(
-      PropertyNotPromotedDueToConflict<DartType> reason) {
+  List<LocatedMessage> visitPropertyNotPromotedForNonInherentReason(
+      PropertyNotPromotedForNonInherentReason<DartType> reason) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.inferrer.libraryBuilder.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      // This should never happen, since `fieldPromotabilityInfo` is only `null`
-      // if field promotion is disabled for this library; in which case the only
-      // reason a property might not be promoted is because field promotion is
-      // disabled, and that reason is handled by
-      // `visitPropertyNotPromotedForInherentReason`.
-      assert(false);
-      // In the unlikely event that this ever happens in practice, recover by
-      // simply not generating a context message.
+      // `fieldPromotabilityInfo` is computed for all library builders except
+      // those for patch files.
+      assert(this.inferrer.libraryBuilder.isPatch);
+      // "why not promoted" functionality is not supported in patch files, so
+      // just don't generate a context message.
       return const [];
     }
     FieldNameNonPromotabilityInfo<Class, SourceFieldBuilder,
             SourceProcedureBuilder>? fieldNameInfo =
         fieldNonPromotabilityInfo.fieldNameInfo[reason.propertyName];
-    if (fieldNameInfo == null) {
-      // This should never happen, since `fieldPromotabilityInfo` contains an
-      // entry for every non-promotable field name.
-      assert(false);
-      // In the unlikely event that this ever happens in practice, recover by
-      // simply not generating a context message.
-      return const [];
-    }
     List<LocatedMessage> messages = [];
-    for (SourceFieldBuilder field in fieldNameInfo.conflictingFields) {
-      messages.add(templateFieldNotPromotedBecauseConflictingField
-          .withArguments(
-              reason.propertyName,
-              field.readTarget.enclosingClass!.name,
-              NonPromotionDocumentationLink.conflictingNonPromotableField.url)
-          .withLocation(field.fileUri, field.charOffset, noLength));
+    if (fieldNameInfo != null) {
+      for (SourceFieldBuilder field in fieldNameInfo.conflictingFields) {
+        messages.add(templateFieldNotPromotedBecauseConflictingField
+            .withArguments(
+                reason.propertyName,
+                field.readTarget.enclosingClass!.name,
+                NonPromotionDocumentationLink.conflictingNonPromotableField.url)
+            .withLocation(field.fileUri, field.charOffset, noLength));
+      }
+      for (SourceProcedureBuilder getter in fieldNameInfo.conflictingGetters) {
+        messages.add(templateFieldNotPromotedBecauseConflictingGetter
+            .withArguments(
+                reason.propertyName,
+                getter.procedure.enclosingClass!.name,
+                NonPromotionDocumentationLink.conflictingGetter.url)
+            .withLocation(getter.fileUri, getter.charOffset, noLength));
+      }
+      for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
+        messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder
+            .withArguments(
+                reason.propertyName,
+                nsmClass.name,
+                NonPromotionDocumentationLink
+                    .conflictingNoSuchMethodForwarder.url)
+            .withLocation(nsmClass.fileUri, nsmClass.fileOffset, noLength));
+      }
     }
-    for (SourceProcedureBuilder getter in fieldNameInfo.conflictingGetters) {
-      messages.add(templateFieldNotPromotedBecauseConflictingGetter
-          .withArguments(
-              reason.propertyName,
-              getter.procedure.enclosingClass!.name,
-              NonPromotionDocumentationLink.conflictingGetter.url)
-          .withLocation(getter.fileUri, getter.charOffset, noLength));
-    }
-    for (Class nsmClass in fieldNameInfo.conflictingNsmClasses) {
-      messages.add(templateFieldNotPromotedBecauseConflictingNsmForwarder
-          .withArguments(
-              reason.propertyName,
-              nsmClass.name,
-              NonPromotionDocumentationLink
-                  .conflictingNoSuchMethodForwarder.url)
-          .withLocation(nsmClass.fileUri, nsmClass.fileOffset, noLength));
+    if (messages.isEmpty) {
+      // The only possible non-inherent reasons for field promotion to fail are
+      // because of conflicts and because field promotion is disabled. The loops
+      // above failed to find any conflicts, so field promotion must have failed
+      // because it was disabled.
+      assert(!reason.fieldPromotionEnabled);
+      Object? member = reason.propertyMember;
+      if (member is Member) {
+        messages.add(templateFieldNotPromotedBecauseNotEnabled
+            .withArguments(reason.propertyName,
+                NonPromotionDocumentationLink.fieldPromotionUnavailable.url)
+            .withLocation(member.fileUri, member.fileOffset, noLength));
+      }
     }
     return messages;
   }
@@ -4544,8 +4602,6 @@ class _WhyNotPromotedVisitor
       propertyType = reason.staticType;
       Template<Message Function(String, String)> template =
           switch (reason.whyNotPromotable) {
-        PropertyNonPromotabilityReason.isNotEnabled =>
-          templateFieldNotPromotedBecauseNotEnabled,
         PropertyNonPromotabilityReason.isNotField =>
           templateFieldNotPromotedBecauseNotField,
         PropertyNonPromotabilityReason.isNotPrivate =>

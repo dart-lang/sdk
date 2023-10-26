@@ -217,11 +217,13 @@ extension type ExtensionType7b(imp::ClassF c) implements imp::ExtensionTypeD /* 
 }
 extension type ExtensionType8a(imp::ClassI c) implements imp::ClassG, imp::ClassH {
   abstract inline-class-member representation-field get c() → imp::ClassI;
+  abstract member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
   constructor • = self::ExtensionType8a|constructor#;
   constructor tearoff • = self::ExtensionType8a|constructor#_#new#tearOff;
 }
 extension type ExtensionType8b(imp::ClassI c) implements imp::ExtensionTypeG /* = imp::ClassG */, imp::ExtensionTypeH /* = imp::ClassH */ {
   abstract inline-class-member representation-field get c() → imp::ClassI;
+  abstract member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
   constructor • = self::ExtensionType8b|constructor#;
   constructor tearoff • = self::ExtensionType8b|constructor#_#new#tearOff;
 }
