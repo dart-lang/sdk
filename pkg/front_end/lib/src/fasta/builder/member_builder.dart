@@ -192,6 +192,9 @@ abstract class BuilderClassMember implements ClassMember {
   Uri get fileUri => memberBuilder.fileUri;
 
   @override
+  bool get isExtensionTypeMember => memberBuilder.isExtensionTypeMember;
+
+  @override
   Name get name {
     // The name must be derived from the declared name and not the generated
     // name. For instance for extension type members the generated name might

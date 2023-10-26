@@ -866,6 +866,18 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitInterfaceType(InterfaceType node) {
+    visited.add(DartTypeKind.InterfaceType);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitExtensionType(ExtensionType node) {
+    visited.add(DartTypeKind.ExtensionType);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
         "Unsupported auxiliary node $node (${node.runtimeType}).");
@@ -902,12 +914,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitInterfaceType(InterfaceType node) {
-    visited.add(DartTypeKind.InterfaceType);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitFunctionType(FunctionType node) {
     visited.add(DartTypeKind.FunctionType);
     node.visitChildren(this);
@@ -922,12 +928,6 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitFutureOrType(FutureOrType node) {
     visited.add(DartTypeKind.FutureOrType);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitExtensionType(ExtensionType node) {
-    visited.add(DartTypeKind.ExtensionType);
     node.visitChildren(this);
   }
 

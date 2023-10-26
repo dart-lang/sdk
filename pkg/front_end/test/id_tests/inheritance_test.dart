@@ -123,7 +123,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       if (member.enclosingClass == _coreTypes.objectClass) {
         return;
       }
-      InterfaceType supertype = _hierarchy.getTypeAsInstanceOf(
+      InterfaceType supertype = _hierarchy.getInterfaceTypeAsInstanceOfClass(
           _coreTypes.thisInterfaceType(node, node.enclosingLibrary.nonNullable),
           member.enclosingClass!,
           isNonNullableByDefault:

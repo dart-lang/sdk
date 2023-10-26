@@ -50,10 +50,17 @@ abstract class ClassMember {
   String get fullName;
   String get fullNameForErrors;
   DeclarationBuilder get declarationBuilder;
-  //ClassBuilder get classBuilder;
 
   /// Returns `true` if this class member is declared in Object from dart:core.
   bool isObjectMember(ClassBuilder objectClass);
+
+  /// If this member is declared in an extension type declaration.
+  ///
+  /// This includes explicit extension type members, static or instance, and
+  /// the representation field, but _not_ non-extension type members inherited
+  /// into the extension type declaration.
+  bool get isExtensionTypeMember;
+
   Uri get fileUri;
   int get charOffset;
 
@@ -196,6 +203,9 @@ abstract class SynthesizedMember extends ClassMember {
 
   @override
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {}
+
+  @override
+  bool get isExtensionTypeMember => false;
 }
 
 /// Class member for a set of interface members.

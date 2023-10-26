@@ -22,5 +22,7 @@ class C implements A, B {
 expect(expected, actual) {}
 extension type E(C c) implements A, B {}
 main() {}
+testMethod3(E e) => e.method().$1.unresolved();
+testMethod4(E e) => e.method().$2.unresolved();
 void method(E e) {}
 void testSetter(E e) {}

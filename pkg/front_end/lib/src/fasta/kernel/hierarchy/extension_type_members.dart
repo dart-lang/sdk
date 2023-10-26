@@ -43,19 +43,39 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
       for (ClassMember classMember in memberBuilder.localMembers) {
         Name name = classMember.name;
         _Tuple? tuple = memberMap[name];
-        if (tuple == null) {
-          memberMap[name] = new _Tuple.declareGetable(classMember);
+        if (classMember.isExtensionTypeMember) {
+          if (tuple == null) {
+            memberMap[name] =
+                new _Tuple.declareExtensionTypeGetable(classMember);
+          } else {
+            tuple.declaredExtensionTypeGetable = classMember;
+          }
         } else {
-          tuple.declaredGetable = classMember;
+          if (tuple == null) {
+            memberMap[name] =
+                new _Tuple.declareNonExtensionTypeGetable(classMember);
+          } else {
+            tuple.declaredNonExtensionTypeGetable = classMember;
+          }
         }
       }
       for (ClassMember classMember in memberBuilder.localSetters) {
         Name name = classMember.name;
         _Tuple? tuple = memberMap[name];
-        if (tuple == null) {
-          memberMap[name] = new _Tuple.declareSetable(classMember);
+        if (classMember.isExtensionTypeMember) {
+          if (tuple == null) {
+            memberMap[name] =
+                new _Tuple.declareExtensionTypeSetable(classMember);
+          } else {
+            tuple.declaredExtensionTypeSetable = classMember;
+          }
         } else {
-          tuple.declaredSetable = classMember;
+          if (tuple == null) {
+            memberMap[name] =
+                new _Tuple.declareNonExtensionTypeSetable(classMember);
+          } else {
+            tuple.declaredNonExtensionTypeSetable = classMember;
+          }
         }
       }
     }
@@ -240,16 +260,23 @@ class ExtensionTypeMembersNode {
 
 class _Tuple {
   final Name name;
-  ClassMember? _declaredGetable;
-  ClassMember? _declaredSetable;
+  ClassMember? _declaredNonExtensionTypeGetable;
+  ClassMember? _declaredNonExtensionTypeSetable;
+  ClassMember? _declaredExtensionTypeGetable;
+  ClassMember? _declaredExtensionTypeSetable;
   List<ClassMember>? _implementedNonExtensionTypeGetables;
   List<ClassMember>? _implementedNonExtensionTypeSetables;
   List<ClassMember>? _implementedExtensionTypeGetables;
   List<ClassMember>? _implementedExtensionTypeSetables;
 
-  _Tuple.declareGetable(ClassMember declaredGetable)
+  _Tuple.declareExtensionTypeGetable(ClassMember declaredGetable)
       : assert(!declaredGetable.forSetter),
-        this._declaredGetable = declaredGetable,
+        this._declaredExtensionTypeGetable = declaredGetable,
+        this.name = declaredGetable.name;
+
+  _Tuple.declareNonExtensionTypeGetable(ClassMember declaredGetable)
+      : assert(!declaredGetable.forSetter),
+        this._declaredNonExtensionTypeGetable = declaredGetable,
         this.name = declaredGetable.name;
 
   _Tuple.implementNonExtensionTypeGetable(ClassMember implementedGetable)
@@ -264,9 +291,14 @@ class _Tuple {
         this.name = implementedGetable.name,
         _implementedExtensionTypeGetables = <ClassMember>[implementedGetable];
 
-  _Tuple.declareSetable(ClassMember declaredSetable)
+  _Tuple.declareExtensionTypeSetable(ClassMember declaredSetable)
       : assert(declaredSetable.forSetter),
-        this._declaredSetable = declaredSetable,
+        this._declaredExtensionTypeSetable = declaredSetable,
+        this.name = declaredSetable.name;
+
+  _Tuple.declareNonExtensionTypeSetable(ClassMember declaredSetable)
+      : assert(declaredSetable.forSetter),
+        this._declaredNonExtensionTypeSetable = declaredSetable,
         this.name = declaredSetable.name;
 
   _Tuple.implementNonExtensionTypeSetable(ClassMember implementedSetable)
@@ -281,26 +313,72 @@ class _Tuple {
         this.name = implementedSetable.name,
         _implementedExtensionTypeSetables = <ClassMember>[implementedSetable];
 
-  ClassMember? get declaredGetable => _declaredGetable;
+  ClassMember? get declaredExtensionTypeGetable =>
+      _declaredExtensionTypeGetable;
 
-  void set declaredGetable(ClassMember? value) {
+  void set declaredExtensionTypeGetable(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
-        _declaredGetable == null,
-        "Declared member already set to $_declaredGetable, "
-        "trying to set it to $value.");
-    _declaredGetable = value;
+        _declaredExtensionTypeGetable == null,
+        "Declared extension type getable already set to "
+        "$_declaredExtensionTypeGetable, trying to set it to $value.");
+    assert(
+        _declaredNonExtensionTypeGetable == null,
+        "Declared non-extension type getable already set to "
+        "$_declaredNonExtensionTypeGetable, trying to set the declared "
+        "extension type getable to $value.");
+    _declaredExtensionTypeGetable = value;
   }
 
-  ClassMember? get declaredSetable => _declaredSetable;
+  ClassMember? get declaredExtensionTypeSetable =>
+      _declaredExtensionTypeSetable;
 
-  void set declaredSetable(ClassMember? value) {
+  void set declaredExtensionTypeSetable(ClassMember? value) {
     assert(value!.forSetter);
     assert(
-        _declaredSetable == null,
-        "Declared setter already set to $_declaredSetable, "
-        "trying to set it to $value.");
-    _declaredSetable = value;
+        _declaredExtensionTypeSetable == null,
+        "Declared extension type setable already set to "
+        "$_declaredExtensionTypeSetable, trying to set it to $value.");
+    assert(
+        _declaredNonExtensionTypeSetable == null,
+        "Declared non-extension type setable already set to "
+        "$_declaredNonExtensionTypeSetable, trying to set the declared "
+        "extension type setable to $value.");
+    _declaredExtensionTypeSetable = value;
+  }
+
+  ClassMember? get declaredNonExtensionTypeGetable =>
+      _declaredNonExtensionTypeGetable;
+
+  void set declaredNonExtensionTypeGetable(ClassMember? value) {
+    assert(!value!.forSetter);
+    assert(
+        _declaredNonExtensionTypeGetable == null,
+        "Declared non-extension type getable already set to "
+        "$_declaredNonExtensionTypeGetable, trying to set it to $value.");
+    assert(
+        _declaredExtensionTypeGetable == null,
+        "Declared extension type getable already set to "
+        "$_declaredExtensionTypeGetable, trying to set the declared "
+        "non-extension type getable to $value.");
+    _declaredNonExtensionTypeGetable = value;
+  }
+
+  ClassMember? get declaredNonExtensionTypeSetable =>
+      _declaredNonExtensionTypeSetable;
+
+  void set declaredNonExtensionTypeSetable(ClassMember? value) {
+    assert(value!.forSetter);
+    assert(
+        _declaredNonExtensionTypeSetable == null,
+        "Declared non-extension type setable already set to "
+        "$_declaredNonExtensionTypeSetable, trying to set it to $value.");
+    assert(
+        _declaredExtensionTypeSetable == null,
+        "Declared extension type setable already set to "
+        "$_declaredExtensionTypeSetable, trying to set the declared "
+        "non-extension type setable to $value.");
+    _declaredNonExtensionTypeSetable = value;
   }
 
   List<ClassMember>? get implementedNonExtensionTypeGetables =>
@@ -344,16 +422,28 @@ class _Tuple {
     StringBuffer sb = new StringBuffer();
     String comma = '';
     sb.write('Tuple(');
-    if (_declaredGetable != null) {
+    if (_declaredExtensionTypeGetable != null) {
       sb.write(comma);
-      sb.write('declaredMember=');
-      sb.write(_declaredGetable);
+      sb.write('declaredExtensionTypeGetable=');
+      sb.write(_declaredExtensionTypeGetable);
       comma = ',';
     }
-    if (_declaredSetable != null) {
+    if (_declaredExtensionTypeSetable != null) {
       sb.write(comma);
-      sb.write('declaredSetter=');
-      sb.write(_declaredSetable);
+      sb.write('declaredExtensionTypeSetable=');
+      sb.write(_declaredExtensionTypeSetable);
+      comma = ',';
+    }
+    if (_declaredNonExtensionTypeGetable != null) {
+      sb.write(comma);
+      sb.write('declaredNonExtensionTypeGetable=');
+      sb.write(_declaredNonExtensionTypeGetable);
+      comma = ',';
+    }
+    if (_declaredNonExtensionTypeSetable != null) {
+      sb.write(comma);
+      sb.write('declaredNonExtensionTypeSetable=');
+      sb.write(_declaredNonExtensionTypeSetable);
       comma = ',';
     }
     if (_implementedNonExtensionTypeGetables != null) {
@@ -401,19 +491,53 @@ class _Tuple {
     ClassMember? definingGetable;
     ClassMember? definingSetable;
 
-    ClassMember? declaredGetable = this.declaredGetable;
-    if (declaredGetable != null) {
+    ClassMember? declaredExtensionTypeGetable =
+        this.declaredExtensionTypeGetable;
+    if (declaredExtensionTypeGetable != null) {
       /// extension type ExtensionType(int id) {
       ///   method() {}
       /// }
-      definingGetable = declaredGetable;
+      definingGetable = declaredExtensionTypeGetable;
     }
-    ClassMember? declaredSetable = this.declaredSetable;
-    if (declaredSetable != null) {
+    ClassMember? declaredExtensionTypeSetable =
+        this.declaredExtensionTypeSetable;
+    if (declaredExtensionTypeSetable != null) {
       /// extension type ExtensionType(int id) {
       ///   set setter(value) {}
       /// }
-      definingSetable = declaredSetable;
+      definingSetable = declaredExtensionTypeSetable;
+    }
+
+    ClassMember? declaredNonExtensionTypeGetable =
+        this.declaredNonExtensionTypeGetable;
+    if (declaredNonExtensionTypeGetable != null) {
+      /// abstract class A {
+      ///   (dynamic, Object?) method();
+      /// }
+      /// abstract class B {
+      ///   (Object?, dynamic) method();
+      /// }
+      /// abstract class C implements A, B {}
+      /// extension type ExtensionType(C c) implements A, B{
+      ///   (Object?, Object?) method(); // Synthesized into the .dill
+      /// }
+      definingGetable = declaredNonExtensionTypeGetable;
+    }
+    ClassMember? declaredNonExtensionTypeSetable =
+        this.declaredNonExtensionTypeSetable;
+    if (declaredNonExtensionTypeSetable != null) {
+      /// abstract class A {
+      ///   void set setter(void Function(dynamic, Object?) f);
+      /// }
+      /// abstract class B {
+      ///   void set setter(void Function(Object?, dynamic) f);
+      /// }
+      /// abstract class C implements A, B {}
+      /// extension type ExtensionType(C c) implements A, B{
+      ///   // Synthesized into the .dill
+      ///   void set setter(void Function(Object?, Object?) f);
+      /// }
+      definingSetable = declaredNonExtensionTypeSetable;
     }
 
     List<ClassMember>? implementedNonExtensionTypeGetables;
@@ -706,7 +830,8 @@ class _Tuple {
           ? new _SanitizedMember(
               name,
               definingGetable,
-              declaredGetable,
+              declaredExtensionTypeGetable,
+              declaredNonExtensionTypeGetable,
               implementedNonExtensionTypeGetables,
               implementedExtensionTypeGetables)
           : null,
@@ -714,7 +839,8 @@ class _Tuple {
           ? new _SanitizedMember(
               name,
               definingSetable,
-              declaredSetable,
+              declaredExtensionTypeSetable,
+              declaredNonExtensionTypeSetable,
               implementedNonExtensionTypeSetables,
               implementedExtensionTypeSetables)
           : null
@@ -738,8 +864,12 @@ class _SanitizedMember {
   /// or a setter.
   final ClassMember _definingMember;
 
-  /// The member declared in the current extension type, if any.
-  final ClassMember? _declaredMember;
+  /// The extension type member declared in the current extension type, if any.
+  final ClassMember? _declaredExtensionTypeMember;
+
+  /// The non-extension type member declared in the current extension type, if
+  /// any.
+  final ClassMember? _declaredNonExtensionTypeMember;
 
   /// The members inherited from the non-extension type supertypes, if none this
   /// is `null`.
@@ -752,7 +882,8 @@ class _SanitizedMember {
   _SanitizedMember(
       this.name,
       this._definingMember,
-      this._declaredMember,
+      this._declaredExtensionTypeMember,
+      this._declaredNonExtensionTypeMember,
       this._implementedNonExtensionTypeMembers,
       this._implementedExtensionTypeMembers);
 
@@ -767,8 +898,10 @@ class _SanitizedMember {
       required Map<Name, ClassMember> extensionTypeMemberMap}) {
     ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
         builder.extensionTypeDeclarationBuilder;
-    if (_declaredMember != null) {
-      return extensionTypeMemberMap[name] = _declaredMember;
+    if (_declaredExtensionTypeMember != null) {
+      return extensionTypeMemberMap[name] = _declaredExtensionTypeMember;
+    } else if (_declaredNonExtensionTypeMember != null) {
+      return nonExtensionTypeMemberMap[name] = _declaredNonExtensionTypeMember;
     } else if (_implementedExtensionTypeMembers != null) {
       Set<ClassMember> extensionTypeMemberDeclarations = toSet(
           extensionTypeDeclarationBuilder, _implementedExtensionTypeMembers);
@@ -841,10 +974,16 @@ class _SanitizedMember {
     sb.write('_definingMember=');
     sb.write(_definingMember);
     comma = ',';
-    if (_declaredMember != null) {
+    if (_declaredExtensionTypeMember != null) {
       sb.write(comma);
-      sb.write('_declaredMember=');
-      sb.write(_declaredMember);
+      sb.write('_declaredExtensionTypeMember=');
+      sb.write(_declaredExtensionTypeMember);
+      comma = ',';
+    }
+    if (_declaredNonExtensionTypeMember != null) {
+      sb.write(comma);
+      sb.write('_declaredNonExtensionTypeMember=');
+      sb.write(_declaredNonExtensionTypeMember);
       comma = ',';
     }
     if (_implementedNonExtensionTypeMembers != null) {

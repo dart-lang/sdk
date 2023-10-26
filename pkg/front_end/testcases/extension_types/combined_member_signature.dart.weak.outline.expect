@@ -44,6 +44,10 @@ static method testMethod1(self::E /* = self::C */ e) → (core::int, core::Objec
   ;
 static method testMethod2(self::E /* = self::C */ e) → (core::Object?, core::int)
   ;
+static method testMethod3(self::E /* = self::C */ e) → dynamic
+  ;
+static method testMethod4(self::E /* = self::C */ e) → dynamic
+  ;
 static method testGetter0(self::E /* = self::C */ e) → (core::Object?, core::Object?)
   ;
 static method testGetter1(self::E /* = self::C */ e) → (core::int, core::Object?)

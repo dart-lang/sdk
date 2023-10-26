@@ -1450,8 +1450,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (enclosingClass.typeParameters.isNotEmpty) {
         receiverType = resolveTypeParameter(receiverType);
         if (receiverType is InterfaceType) {
-          List<DartType> castedTypeArguments = hierarchyBuilder
-              .getTypeArgumentsAsInstanceOf(receiverType, enclosingClass)!;
+          List<DartType> castedTypeArguments =
+              hierarchyBuilder.getInterfaceTypeArgumentsAsInstanceOfClass(
+                  receiverType, enclosingClass)!;
           calleeType = Substitution.fromPairs(
                   enclosingClass.typeParameters, castedTypeArguments)
               .substituteType(calleeType);
@@ -1492,8 +1493,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   DartType? getDerivedTypeArgumentOf(DartType type, Class class_) {
     if (type is InterfaceType) {
-      List<DartType>? typeArgumentsAsInstanceOfClass =
-          hierarchyBuilder.getTypeArgumentsAsInstanceOf(type, class_);
+      List<DartType>? typeArgumentsAsInstanceOfClass = hierarchyBuilder
+          .getInterfaceTypeArgumentsAsInstanceOfClass(type, class_);
       if (typeArgumentsAsInstanceOfClass != null) {
         return typeArgumentsAsInstanceOfClass[0];
       }

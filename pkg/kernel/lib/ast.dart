@@ -11097,6 +11097,20 @@ sealed class DartType extends Node {
   void toTextInternal(AstPrinter printer);
 }
 
+/// A type which is an instantiation of a [TypeDeclaration].
+sealed class TypeDeclarationType extends DartType {
+  /// The [Reference] to the [TypeDeclaration] on which this
+  /// [TypeDeclarationType] is built.
+  Reference get typeDeclarationReference;
+
+  /// The type arguments used to instantiate this [TypeDeclarationType].
+  List<DartType> get typeArguments;
+
+  /// The [TypeDeclaration] on which this [TypeDeclarationType] is built.
+  TypeDeclaration get typeDeclaration =>
+      typeDeclarationReference.asTypeDeclaration;
+}
+
 abstract class AuxiliaryType extends DartType {
   const AuxiliaryType();
 
@@ -11360,12 +11374,13 @@ class NullType extends DartType {
   }
 }
 
-class InterfaceType extends DartType {
+class InterfaceType extends TypeDeclarationType {
   final Reference classReference;
 
   @override
   final Nullability declaredNullability;
 
+  @override
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
@@ -11377,6 +11392,9 @@ class InterfaceType extends DartType {
 
   InterfaceType.byReference(
       this.classReference, this.declaredNullability, this.typeArguments);
+
+  @override
+  Reference get typeDeclarationReference => classReference;
 
   Class get classNode => classReference.asClass;
 
@@ -11841,12 +11859,13 @@ class FutureOrType extends DartType {
   }
 }
 
-class ExtensionType extends DartType {
+class ExtensionType extends TypeDeclarationType {
   final Reference extensionTypeDeclarationReference;
 
   @override
   final Nullability declaredNullability;
 
+  @override
   final List<DartType> typeArguments;
 
   ExtensionType(ExtensionTypeDeclaration extensionTypeDeclaration,
@@ -11861,6 +11880,9 @@ class ExtensionType extends DartType {
 
   ExtensionTypeDeclaration get extensionTypeDeclaration =>
       extensionTypeDeclarationReference.asExtensionTypeDeclaration;
+
+  @override
+  Reference get typeDeclarationReference => extensionTypeDeclarationReference;
 
   /// Returns the type erasure of this extension type.
   ///

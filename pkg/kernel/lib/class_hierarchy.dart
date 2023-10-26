@@ -31,15 +31,28 @@ abstract class ClassHierarchyBase {
   /// or `null` if [class_] does not implement [superclass] at all.
   Supertype? getClassAsInstanceOf(Class class_, Class superclass);
 
+  /// Returns the instantiation of [typeDeclaration] that is implemented by
+  /// [type], or `null` if [type] does not implement [typeDeclaration] at all.
+  TypeDeclarationType? getTypeAsInstanceOf(
+      TypeDeclarationType type, TypeDeclaration typeDeclaration,
+      {required bool isNonNullableByDefault});
+
+  /// Returns the type arguments of the instantiation of [typeDeclaration] that
+  /// is implemented by [type], or `null` if [type] does not implement
+  /// [typeDeclaration] at all.
+  List<DartType>? getTypeArgumentsAsInstanceOf(
+      TypeDeclarationType type, TypeDeclaration typeDeclaration);
+
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
+  InterfaceType? getInterfaceTypeAsInstanceOfClass(
+      InterfaceType type, Class superclass,
       {required bool isNonNullableByDefault});
 
   /// Returns the type arguments of the instantiation of [superclass] that is
   /// implemented by [type], or `null` if [type] does not implement [superclass]
   /// at all.
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  List<DartType>? getInterfaceTypeArgumentsAsInstanceOfClass(
       InterfaceType type, Class superclass);
 
   /// Returns the instantiation of [superDeclaration] that is implemented by
@@ -101,14 +114,65 @@ abstract class ClassHierarchyBase {
   /// its non-extension supertypes. It is used as a part of the algorithm for
   /// finding the upper bound of extension types.
   InterfaceType getLegacyLeastUpperBoundFromSupertypeLists(
-      /* InterfaceType | ExtensionType */ DartType type1,
-      /* InterfaceType | ExtensionType */ DartType type2,
+      TypeDeclarationType type1,
+      TypeDeclarationType type2,
       List<InterfaceType> supertypes1,
       List<InterfaceType> supertypes2,
       {required bool isNonNullableByDefault});
 }
 
 mixin ClassHierarchyExtensionTypeMixin implements ClassHierarchyBase {
+  @override
+  TypeDeclarationType? getTypeAsInstanceOf(
+      TypeDeclarationType type, TypeDeclaration typeDeclaration,
+      {required bool isNonNullableByDefault}) {
+    switch (type) {
+      case InterfaceType():
+        switch (typeDeclaration) {
+          case Class():
+            return getInterfaceTypeAsInstanceOfClass(type, typeDeclaration,
+                isNonNullableByDefault: isNonNullableByDefault);
+          case ExtensionTypeDeclaration():
+            return null;
+        }
+      case ExtensionType():
+        switch (typeDeclaration) {
+          case Class():
+            return getExtensionTypeAsInstanceOfClass(type, typeDeclaration,
+                isNonNullableByDefault: isNonNullableByDefault);
+          case ExtensionTypeDeclaration():
+            return getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
+                type, typeDeclaration,
+                isNonNullableByDefault: isNonNullableByDefault);
+        }
+    }
+  }
+
+  @override
+  List<DartType>? getTypeArgumentsAsInstanceOf(
+      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
+    switch (type) {
+      case InterfaceType():
+        switch (typeDeclaration) {
+          case Class():
+            return getInterfaceTypeArgumentsAsInstanceOfClass(
+                type, typeDeclaration);
+          case ExtensionTypeDeclaration():
+            return null;
+        }
+      case ExtensionType():
+        switch (typeDeclaration) {
+          case Class():
+            return getExtensionTypeArgumentsAsInstanceOfClass(
+                type, typeDeclaration);
+          case ExtensionTypeDeclaration():
+            // ignore: lines_longer_than_80_chars
+            return getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+                type, typeDeclaration);
+        }
+    }
+  }
+
   ExtensionType?
       getExtensionTypeDeclarationAsInstanceOfExtensionTypeDeclaration(
           ExtensionTypeDeclaration subDeclaration,
@@ -878,15 +942,13 @@ class ClosedWorldClassHierarchy
   }
 
   InterfaceType _getLegacyLeastUpperBoundInternal(
-      /* InterfaceType | ExtensionType */ DartType type1,
-      /* InterfaceType | ExtensionType */ DartType type2,
+      TypeDeclarationType type1,
+      TypeDeclarationType type2,
       _ClassInfo? info1,
       _ClassInfo? info2,
       List<_ClassInfo> classInfos1,
       List<_ClassInfo> classInfos2,
       {required bool isNonNullableByDefault}) {
-    assert(type1 is InterfaceType || type1 is ExtensionType);
-    assert(type2 is InterfaceType || type2 is ExtensionType);
     assert(type1 is! InterfaceType || info1 != null);
     assert(type2 is! InterfaceType || info2 != null);
 
@@ -983,13 +1045,11 @@ class ClosedWorldClassHierarchy
 
   @override
   InterfaceType getLegacyLeastUpperBoundFromSupertypeLists(
-      /* InterfaceType | ExtensionType */ DartType type1,
-      /* InterfaceType | ExtensionType */ DartType type2,
+      TypeDeclarationType type1,
+      TypeDeclarationType type2,
       List<InterfaceType> supertypes1,
       List<InterfaceType> supertypes2,
       {required bool isNonNullableByDefault}) {
-    assert(type1 is InterfaceType || type1 is ExtensionType);
-    assert(type2 is InterfaceType || type2 is ExtensionType);
     assert(supertypes1.isNotEmpty || type1 is ExtensionType);
     assert(supertypes2.isNotEmpty || type2 is ExtensionType);
 
@@ -1035,10 +1095,11 @@ class ClosedWorldClassHierarchy
   }
 
   @override
-  InterfaceType? getTypeAsInstanceOf(InterfaceType type, Class superclass,
+  InterfaceType? getInterfaceTypeAsInstanceOfClass(
+      InterfaceType type, Class superclass,
       {required bool isNonNullableByDefault}) {
     List<DartType>? typeArguments =
-        getTypeArgumentsAsInstanceOf(type, superclass);
+        getInterfaceTypeArgumentsAsInstanceOfClass(type, superclass);
     if (typeArguments == null) return null;
     // The return value should be a legacy type if it's computed for an
     // opted-out library, unless the return value is Null? which is always
@@ -1049,7 +1110,7 @@ class ClosedWorldClassHierarchy
   }
 
   @override
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  List<DartType>? getInterfaceTypeArgumentsAsInstanceOfClass(
       InterfaceType type, Class superclass) {
     if (type.classReference == superclass.reference) {
       // TODO(johnniwinther): This is necessary because [getClassAsInstanceOf]

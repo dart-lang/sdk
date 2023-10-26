@@ -743,6 +743,16 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
+  bool visitInterfaceType(InterfaceType node, Node other) {
+    return strategy.checkInterfaceType(this, node, other);
+  }
+
+  @override
+  bool visitExtensionType(ExtensionType node, Node other) {
+    return strategy.checkExtensionType(this, node, other);
+  }
+
+  @override
   bool visitAuxiliaryType(AuxiliaryType node, Node other) {
     return strategy.checkAuxiliaryType(this, node, other);
   }
@@ -773,11 +783,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitInterfaceType(InterfaceType node, Node other) {
-    return strategy.checkInterfaceType(this, node, other);
-  }
-
-  @override
   bool visitFunctionType(FunctionType node, Node other) {
     return strategy.checkFunctionType(this, node, other);
   }
@@ -790,11 +795,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   @override
   bool visitFutureOrType(FutureOrType node, Node other) {
     return strategy.checkFutureOrType(this, node, other);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node, Node other) {
-    return strategy.checkExtensionType(this, node, other);
   }
 
   @override
@@ -5119,6 +5119,47 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkInterfaceType(
+      EquivalenceVisitor visitor, InterfaceType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! InterfaceType) return false;
+    if (other is! InterfaceType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkInterfaceType_classReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkInterfaceType_declaredNullability(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkInterfaceType_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
+  bool checkExtensionType(
+      EquivalenceVisitor visitor, ExtensionType? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! ExtensionType) return false;
+    if (other is! ExtensionType) return false;
+    visitor.pushNodeState(node, other);
+    bool result = true;
+    if (!checkExtensionType_extensionTypeDeclarationReference(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionType_declaredNullability(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkExtensionType_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    visitor.popState();
+    return result;
+  }
+
   bool checkAuxiliaryType(
       EquivalenceVisitor visitor, AuxiliaryType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5188,26 +5229,6 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkInterfaceType(
-      EquivalenceVisitor visitor, InterfaceType? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! InterfaceType) return false;
-    if (other is! InterfaceType) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkInterfaceType_classReference(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkInterfaceType_declaredNullability(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkInterfaceType_typeArguments(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
   bool checkFunctionType(
       EquivalenceVisitor visitor, FunctionType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5268,27 +5289,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFutureOrType_declaredNullability(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
-  bool checkExtensionType(
-      EquivalenceVisitor visitor, ExtensionType? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! ExtensionType) return false;
-    if (other is! ExtensionType) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkExtensionType_extensionTypeDeclarationReference(
-        visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionType_declaredNullability(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionType_typeArguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     visitor.popState();
@@ -9344,12 +9344,6 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.text, other.text, 'text');
   }
 
-  bool checkNeverType_declaredNullability(
-      EquivalenceVisitor visitor, NeverType node, NeverType other) {
-    return visitor.checkValues(node.declaredNullability,
-        other.declaredNullability, 'declaredNullability');
-  }
-
   bool checkInterfaceType_classReference(
       EquivalenceVisitor visitor, InterfaceType node, InterfaceType other) {
     return visitor.checkReferences(
@@ -9366,6 +9360,32 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, InterfaceType node, InterfaceType other) {
     return visitor.checkLists(node.typeArguments, other.typeArguments,
         visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkExtensionType_extensionTypeDeclarationReference(
+      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
+    return visitor.checkReferences(
+        node.extensionTypeDeclarationReference,
+        other.extensionTypeDeclarationReference,
+        'extensionTypeDeclarationReference');
+  }
+
+  bool checkExtensionType_declaredNullability(
+      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
+  }
+
+  bool checkExtensionType_typeArguments(
+      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
+    return visitor.checkLists(node.typeArguments, other.typeArguments,
+        visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkNeverType_declaredNullability(
+      EquivalenceVisitor visitor, NeverType node, NeverType other) {
+    return visitor.checkValues(node.declaredNullability,
+        other.declaredNullability, 'declaredNullability');
   }
 
   bool checkFunctionType_typeParameters(
@@ -9431,26 +9451,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, FutureOrType node, FutureOrType other) {
     return visitor.checkValues(node.declaredNullability,
         other.declaredNullability, 'declaredNullability');
-  }
-
-  bool checkExtensionType_extensionTypeDeclarationReference(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkReferences(
-        node.extensionTypeDeclarationReference,
-        other.extensionTypeDeclarationReference,
-        'extensionTypeDeclarationReference');
-  }
-
-  bool checkExtensionType_declaredNullability(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkValues(node.declaredNullability,
-        other.declaredNullability, 'declaredNullability');
-  }
-
-  bool checkExtensionType_typeArguments(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkLists(node.typeArguments, other.typeArguments,
-        visitor.checkNodes, 'typeArguments');
   }
 
   bool checkIntersectionType_left(EquivalenceVisitor visitor,

@@ -3168,14 +3168,8 @@ void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       *range = *value_range;
       break;
     case kUnboxedUint32:
-      if (value_range->IsWithin(0, kMaxUint32)) {
-        // All possible values fit in a uint32, either directly or just by
-        // truncating high bits that are guaranteed to be 0.
-        *range = *value_range;
-      } else {
-        // TODO(vegorov): improve range information for unboxing to Uint32.
-        *range = Range::Full(to());
-      }
+      // TODO(vegorov): improve range information for unboxing to Uint32.
+      *range = Range::Full(to());
       break;
     case kUnboxedInt32:
       switch (from()) {

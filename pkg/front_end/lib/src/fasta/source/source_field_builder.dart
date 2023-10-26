@@ -1663,6 +1663,9 @@ class _SynthesizedFieldClassMember implements ClassMember {
   @override
   String toString() => '_SynthesizedFieldClassMember('
       '$fieldBuilder,$_member,$_kind,forSetter=${forSetter})';
+
+  @override
+  bool get isExtensionTypeMember => fieldBuilder.isExtensionTypeMember;
 }
 
 class AbstractOrExternalFieldEncoding implements FieldEncoding {

@@ -136,8 +136,8 @@ class CfeTypeOperations implements TypeOperations<DartType> {
           Class declaringClass = member.enclosingClass!;
           if (declaringClass.typeParameters.isNotEmpty) {
             Substitution substitution = substitutions[declaringClass] ??=
-                Substitution.fromInterfaceType(
-                    _classHierarchy.getTypeAsInstanceOf(type, declaringClass,
+                Substitution.fromInterfaceType(_classHierarchy
+                    .getInterfaceTypeAsInstanceOfClass(type, declaringClass,
                         isNonNullableByDefault: true)!);
             fieldType = substitution.substituteType(fieldType);
           }
@@ -188,9 +188,10 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   DartType? getListElementType(DartType type) {
     type = type.resolveTypeParameterType;
     if (type is InterfaceType) {
-      InterfaceType? listType = _classHierarchy.getTypeAsInstanceOf(
-          type, _typeEnvironment.coreTypes.listClass,
-          isNonNullableByDefault: true);
+      InterfaceType? listType =
+          _classHierarchy.getInterfaceTypeAsInstanceOfClass(
+              type, _typeEnvironment.coreTypes.listClass,
+              isNonNullableByDefault: true);
       if (listType != null) {
         return listType.typeArguments[0];
       }
@@ -202,7 +203,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   DartType? getListType(DartType type) {
     type = type.resolveTypeParameterType;
     if (type is InterfaceType) {
-      return _classHierarchy.getTypeAsInstanceOf(
+      return _classHierarchy.getInterfaceTypeAsInstanceOfClass(
           type, _typeEnvironment.coreTypes.listClass,
           isNonNullableByDefault: true);
     }
@@ -213,9 +214,10 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   DartType? getMapValueType(DartType type) {
     type = type.resolveTypeParameterType;
     if (type is InterfaceType) {
-      InterfaceType? mapType = _classHierarchy.getTypeAsInstanceOf(
-          type, _typeEnvironment.coreTypes.mapClass,
-          isNonNullableByDefault: true);
+      InterfaceType? mapType =
+          _classHierarchy.getInterfaceTypeAsInstanceOfClass(
+              type, _typeEnvironment.coreTypes.mapClass,
+              isNonNullableByDefault: true);
       if (mapType != null) {
         return mapType.typeArguments[1];
       }
@@ -394,9 +396,9 @@ class CfeSealedClassOperations
       Class subClass, covariant InterfaceType sealedClassType) {
     InterfaceType thisType = subClass.getThisType(
         _typeEnvironment.coreTypes, Nullability.nonNullable);
-    InterfaceType asSealedType = _typeEnvironment.hierarchy.getTypeAsInstanceOf(
-        thisType, sealedClassType.classNode,
-        isNonNullableByDefault: true)!;
+    InterfaceType asSealedType = _typeEnvironment.hierarchy
+        .getInterfaceTypeAsInstanceOfClass(thisType, sealedClassType.classNode,
+            isNonNullableByDefault: true)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }
