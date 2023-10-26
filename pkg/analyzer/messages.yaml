@@ -2160,6 +2160,17 @@ CompileTimeErrorCode:
       class B implements I<String> {}
       class C extends A<String> implements B {}
       ```
+  CONFLICTING_INHERITED_METHOD_AND_SETTER:
+    problemMessage: "The {0} '{1}' can't inherit both a method and a setter named '{2}'."
+    comment: |-
+      10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+      error if the interface of `C` has an instance method named `n` and an
+      instance setter with basename `n`.
+
+      Parameters:
+      0: the name of the enclosing element kind - class, extension type, etc
+      1: the name of the enclosing element
+      2: the name of the conflicting method / setter
   CONFLICTING_METHOD_AND_FIELD:
     problemMessage: "Class '{0}' can't define method '{1}' and have field '{2}.{1}' with the same name."
     correctionMessage: "Try converting the method to a getter, or renaming the method to a name that doesn't conflict."

@@ -552,6 +552,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+  ///  error if the interface of `C` has an instance method named `n` and an
+  ///  instance setter with basename `n`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the enclosing element kind - class, extension type, etc
+  ///  1: the name of the enclosing element
+  ///  2: the name of the conflicting method / setter
+  static const CompileTimeErrorCode CONFLICTING_INHERITED_METHOD_AND_SETTER =
+      CompileTimeErrorCode(
+    'CONFLICTING_INHERITED_METHOD_AND_SETTER',
+    "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
+  );
+
+  ///  10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
   ///  error if `C` declares a method named `n`, and has a getter or a setter
   ///  with basename `n`.
   ///

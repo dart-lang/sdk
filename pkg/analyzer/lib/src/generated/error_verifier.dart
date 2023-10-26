@@ -45,6 +45,7 @@ import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
@@ -1993,36 +1994,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
   /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
   void _checkForConflictingClassMembers() {
-    if (_enclosingClass == null) {
+    final enclosingClass = _enclosingClass;
+    if (enclosingClass == null) {
       return;
     }
+
     Uri libraryUri = _currentLibrary.source.uri;
+    final conflictingDeclaredNames = <String>{};
 
     // method declared in the enclosing class vs. inherited getter/setter
-    for (MethodElement method in _enclosingClass!.methods) {
+    for (MethodElement method in enclosingClass.methods) {
       String name = method.name;
 
       // find inherited property accessor
       var inherited = _inheritanceManager.getInherited2(
-          _enclosingClass!, Name(libraryUri, name));
+          enclosingClass, Name(libraryUri, name));
       inherited ??= _inheritanceManager.getInherited2(
-          _enclosingClass!, Name(libraryUri, '$name='));
+          enclosingClass, Name(libraryUri, '$name='));
 
       if (method.isStatic && inherited != null) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
-          _enclosingClass!.displayName,
+          enclosingClass.displayName,
           name,
           inherited.enclosingElement.displayName,
         ]);
       } else if (inherited is PropertyAccessorElement) {
         // Extension type methods redeclare getters with the same name.
-        if (_enclosingClass is ExtensionTypeElement && inherited.isGetter) {
+        if (enclosingClass is ExtensionTypeElement && inherited.isGetter) {
           continue;
         }
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
-          _enclosingClass!.displayName,
+          enclosingClass.displayName,
           name,
           inherited.enclosingElement.displayName
         ]);
@@ -2030,33 +2034,88 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // getter declared in the enclosing class vs. inherited method
-    for (PropertyAccessorElement accessor in _enclosingClass!.accessors) {
+    for (PropertyAccessorElement accessor in enclosingClass.accessors) {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
       var inherited = _inheritanceManager.getInherited2(
-          _enclosingClass!, Name(libraryUri, name));
+          enclosingClass, Name(libraryUri, name));
       inherited ??= _inheritanceManager.getInherited2(
-          _enclosingClass!, Name(libraryUri, '$name='));
+          enclosingClass, Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, accessor, [
-          _enclosingClass!.displayName,
+          enclosingClass.displayName,
           name,
           inherited.enclosingElement.displayName,
         ]);
+        conflictingDeclaredNames.add(name);
       } else if (inherited is MethodElement) {
         // Extension type getters redeclare methods with the same name.
-        if (_enclosingClass is ExtensionTypeElement && accessor.isGetter) {
+        if (enclosingClass is ExtensionTypeElement && accessor.isGetter) {
           continue;
         }
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
-          _enclosingClass!.displayName,
+          enclosingClass.displayName,
           name,
           inherited.enclosingElement.displayName
         ]);
+        conflictingDeclaredNames.add(name);
+      }
+    }
+
+    // Inherited method and setter with the same name.
+    final inherited = _inheritanceManager.getInheritedMap2(enclosingClass);
+    for (final entry in inherited.entries) {
+      final method = entry.value;
+      if (method is MethodElement) {
+        final methodName = entry.key;
+        if (conflictingDeclaredNames.contains(methodName.name)) {
+          continue;
+        }
+        final setterName = methodName.forSetter;
+        final setter = inherited[setterName];
+        if (setter is PropertyAccessorElement) {
+          errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+            enclosingClass,
+            [
+              enclosingClass.kind.displayName,
+              enclosingClass.displayName,
+              methodName.name,
+            ],
+            [
+              DiagnosticMessageImpl(
+                filePath: method.source.fullName,
+                message: formatList(
+                  "The method is inherited from the {0} '{1}'.",
+                  [
+                    method.enclosingElement.kind.displayName,
+                    method.enclosingElement.name,
+                  ],
+                ),
+                offset: method.nameOffset,
+                length: method.nameLength,
+                url: null,
+              ),
+              DiagnosticMessageImpl(
+                filePath: setter.source.fullName,
+                message: formatList(
+                  "The setter is inherited from the {0} '{1}'.",
+                  [
+                    setter.enclosingElement.kind.displayName,
+                    setter.enclosingElement.name,
+                  ],
+                ),
+                offset: setter.nameOffset,
+                length: setter.nameLength,
+                url: null,
+              ),
+            ],
+          );
+        }
       }
     }
   }
