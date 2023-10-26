@@ -44,6 +44,8 @@ void loop(A<String> obj, bool violateType) {
 }
 
 void main() {
+  if (dart2jsProductionMode) return; // All checks omitted in this mode.
+
   A<num>().field = 10;
   final obj = A<String>();
   loop(obj, false);
