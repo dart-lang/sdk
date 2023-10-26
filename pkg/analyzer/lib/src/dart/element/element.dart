@@ -551,6 +551,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  ElementKind get kind => ElementKind.CLASS;
+
+  @override
   set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
@@ -742,10 +745,6 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   set isBase(bool isBase) {
     setModifier(Modifier.BASE, isBase);
   }
-
-  /// TODO(scheglov) Do we need a separate kind for `MixinElement`?
-  @override
-  ElementKind get kind => ElementKind.CLASS;
 }
 
 /// A concrete implementation of a [CompilationUnitElement].
@@ -5056,6 +5055,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   bool get isBase {
     return hasModifier(Modifier.BASE);
   }
+
+  @override
+  ElementKind get kind => ElementKind.MIXIN;
 
   @override
   List<InterfaceType> get mixins => const [];

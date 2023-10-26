@@ -134,6 +134,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           ElementKind.CLASS,
           ElementKind.ENUM,
           ElementKind.FUNCTION_TYPE_ALIAS,
+          ElementKind.MIXIN,
           ElementKind.TYPE_ALIAS,
         ]);
       } else if (mightBeImplicitConstructor(targetNode)) {

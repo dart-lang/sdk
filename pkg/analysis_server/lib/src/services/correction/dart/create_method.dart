@@ -169,7 +169,8 @@ class CreateMethod extends ResolvedCorrectionProducer {
       // maybe static
       if (target is Identifier) {
         staticModifier = target.staticElement?.kind == ElementKind.CLASS ||
-            target.staticElement?.kind == ElementKind.EXTENSION_TYPE;
+            target.staticElement?.kind == ElementKind.EXTENSION_TYPE ||
+            target.staticElement?.kind == ElementKind.MIXIN;
       }
       // use different utils
       var targetPath = targetClassElement.source.fullName;
