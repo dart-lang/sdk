@@ -270,8 +270,8 @@ abstract class CombinedMemberSignatureBase {
     return _containsNnbdTypes;
   }
 
-  /// Returns the [declarationBuilder] as an instance of [cls].
-  InterfaceType _asInstanceOfClass(Class cls);
+  /// Returns the this type of the [declarationBuilder].
+  TypeDeclarationType get thisType;
 
   /// Returns `true` if the canonical member is declared in
   /// [declarationBuilder].
@@ -726,11 +726,14 @@ abstract class CombinedMemberSignatureBase {
       unhandled("${member.runtimeType}", "$member",
           declarationBuilder.charOffset, declarationBuilder.fileUri);
     }
-    if (member.enclosingClass!.typeParameters.isEmpty) {
+    if (member.enclosingTypeDeclaration!.typeParameters.isEmpty) {
       return type;
     }
-    InterfaceType instance = _asInstanceOfClass(member.enclosingClass!);
-    return Substitution.fromInterfaceType(instance).substituteType(type);
+    TypeDeclarationType instance = hierarchy.getTypeAsInstanceOf(
+        thisType, member.enclosingTypeDeclaration!,
+        isNonNullableByDefault:
+            declarationBuilder.libraryBuilder.isNonNullableByDefault)!;
+    return Substitution.fromTypeDeclarationType(instance).substituteType(type);
   }
 
   bool _isMoreSpecific(DartType a, DartType b, bool forSetter) {
@@ -771,16 +774,10 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
   DeclarationBuilder get declarationBuilder => classBuilder;
 
   /// The this type of [classBuilder].
+  @override
   InterfaceType get thisType {
     return _thisType ??= _coreTypes.thisInterfaceType(
         classBuilder.cls, declarationBuilder.libraryBuilder.nonNullable);
-  }
-
-  @override
-  InterfaceType _asInstanceOfClass(Class cls) {
-    return hierarchy.getTypeAsInstanceOf(thisType, cls,
-        isNonNullableByDefault:
-            declarationBuilder.libraryBuilder.isNonNullableByDefault);
   }
 
   /// Returns `true` if the canonical member is declared in
@@ -824,17 +821,11 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
 
   /// The this type of [extensionTypeDeclarationBuilder].
+  @override
   ExtensionType get thisType {
     return _thisType ??= _coreTypes.thisExtensionType(
         extensionTypeDeclarationBuilder.extensionTypeDeclaration,
         declarationBuilder.libraryBuilder.nonNullable);
-  }
-
-  @override
-  InterfaceType _asInstanceOfClass(Class cls) {
-    return hierarchy.getExtensionTypeAsInstanceOfClass(thisType, cls,
-        isNonNullableByDefault:
-            declarationBuilder.libraryBuilder.isNonNullableByDefault)!;
   }
 
   @override

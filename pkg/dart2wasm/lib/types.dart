@@ -165,7 +165,7 @@ class Types {
       for (InterfaceType subtype in subtypes) {
         interfaceTypeEnvironment._add(subtype);
         List<DartType>? typeArguments = translator.hierarchy
-            .getTypeArgumentsAsInstanceOf(subtype, superclass)
+            .getInterfaceTypeArgumentsAsInstanceOfClass(subtype, superclass)
             ?.map(normalize)
             .toList();
         ClassInfo subclassInfo = translator.classInfo[subtype.classNode]!;
@@ -668,7 +668,7 @@ class Types {
       // arguments.
       Class cls = translator.classForType(operandType);
       InterfaceType? base = translator.hierarchy
-          .getTypeAsInstanceOf(type, cls,
+          .getInterfaceTypeAsInstanceOfClass(type, cls,
               isNonNullableByDefault:
                   codeGen.member.enclosingLibrary.isNonNullableByDefault)
           ?.withDeclaredNullability(operandType.declaredNullability);

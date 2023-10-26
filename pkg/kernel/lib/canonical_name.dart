@@ -508,6 +508,15 @@ class Reference implements Comparable<Reference> {
     return node as Library;
   }
 
+  TypeDeclaration get asTypeDeclaration {
+    NamedNode? node = this.node;
+    if (node == null) {
+      throw '$this is not bound to an AST node. '
+          'A type declaration was expected';
+    }
+    return node as TypeDeclaration;
+  }
+
   Class get asClass {
     NamedNode? node = this.node;
     if (node == null) {

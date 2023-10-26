@@ -925,31 +925,13 @@ mixin StandardBounds {
     }
 
     // UP(C<T0, ..., Tn>, C<S0, ..., Sn>) = C<R0,..., Rn> where Ri is UP(Ti, Si)
-    Class? cls;
-    ExtensionTypeDeclaration? extensionTypeDeclaration;
-    List<TypeParameter>? typeParameters;
-    List<DartType>? leftArguments;
-    List<DartType>? rightArguments;
-    if (type1 is InterfaceType && type2 is InterfaceType) {
-      if (type1.classNode == type2.classNode) {
-        cls = type1.classNode;
-        typeParameters = cls.typeParameters;
-        leftArguments = type1.typeArguments;
-        rightArguments = type2.typeArguments;
-      }
-    }
-    if (type1 is ExtensionType && type2 is ExtensionType) {
-      if (type1.extensionTypeDeclaration == type2.extensionTypeDeclaration) {
-        extensionTypeDeclaration = type1.extensionTypeDeclaration;
-        typeParameters = extensionTypeDeclaration.typeParameters;
-        leftArguments = type1.typeArguments;
-        rightArguments = type2.typeArguments;
-      }
-    }
-
-    if (typeParameters != null &&
-        leftArguments != null &&
-        rightArguments != null) {
+    if (type1 is TypeDeclarationType &&
+        type2 is TypeDeclarationType &&
+        type1.typeDeclarationReference == type2.typeDeclarationReference) {
+      TypeDeclaration typeDeclaration = type1.typeDeclaration;
+      List<TypeParameter> typeParameters = typeDeclaration.typeParameters;
+      List<DartType> leftArguments = type1.typeArguments;
+      List<DartType> rightArguments = type2.typeArguments;
       int n = typeParameters.length;
       List<DartType> typeArguments = new List<DartType>.of(leftArguments);
       for (int i = 0; i < n; ++i) {
@@ -970,32 +952,32 @@ mixin StandardBounds {
               isNonNullableByDefault: isNonNullableByDefault);
         }
       }
-      if (cls != null) {
-        return new InterfaceType(
-            cls,
-            uniteNullabilities(
-                type1.declaredNullability, type2.declaredNullability),
-            typeArguments);
-      } else {
-        return new ExtensionType(
-            extensionTypeDeclaration!,
-            uniteNullabilities(
-                type1.declaredNullability, type2.declaredNullability),
-            typeArguments);
+      switch (typeDeclaration) {
+        case Class():
+          return new InterfaceType(
+              typeDeclaration,
+              uniteNullabilities(
+                  type1.declaredNullability, type2.declaredNullability),
+              typeArguments);
+        case ExtensionTypeDeclaration():
+          return new ExtensionType(
+              typeDeclaration,
+              uniteNullabilities(
+                  type1.declaredNullability, type2.declaredNullability),
+              typeArguments);
       }
     }
 
     // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
     //   = least upper bound of two interfaces as in Dart 1.
-    return _getLegacyLeastUpperBound(type1, type2,
+    return _getLegacyLeastUpperBound(
+        type1 as TypeDeclarationType, type2 as TypeDeclarationType,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
-  DartType _getLegacyLeastUpperBound(DartType type1, DartType type2,
+  DartType _getLegacyLeastUpperBound(
+      TypeDeclarationType type1, TypeDeclarationType type2,
       {required bool isNonNullableByDefault}) {
-    assert((type1 is InterfaceType || type1 is ExtensionType) &&
-        (type2 is InterfaceType || type2 is ExtensionType));
-
     if (type1 is InterfaceType && type2 is InterfaceType) {
       return hierarchy.getLegacyLeastUpperBound(type1, type2,
           isNonNullableByDefault: isNonNullableByDefault);

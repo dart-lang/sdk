@@ -1518,8 +1518,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferredExpressionType is InterfaceType) {
       // TODO(johnniwinther): Should we use the type of
       //  `iterable.iterator.current` instead?
-      List<DartType>? supertypeArguments = hierarchyBuilder
-          .getTypeArgumentsAsInstanceOf(inferredExpressionType, iterableClass);
+      List<DartType>? supertypeArguments =
+          hierarchyBuilder.getInterfaceTypeArgumentsAsInstanceOfClass(
+              inferredExpressionType, iterableClass);
       if (supertypeArguments != null) {
         inferredType = supertypeArguments[0];
       }

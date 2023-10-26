@@ -423,13 +423,14 @@ class Types with StandardBounds {
   InterfaceType? getTypeAsInstanceOf(
       InterfaceType type, Class superclass, CoreTypes coreTypes,
       {required bool isNonNullableByDefault}) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass,
+    return hierarchy.getInterfaceTypeAsInstanceOfClass(type, superclass,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
-    return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
+    return hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+        type, superclass);
   }
 
   List<DartType>? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
@@ -497,8 +498,8 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
     if (s.classReference == t.classReference) {
       asSupertypeArguments = s.typeArguments;
     } else {
-      asSupertypeArguments =
-          types.hierarchy.getTypeArgumentsAsInstanceOf(s, t.classNode);
+      asSupertypeArguments = types.hierarchy
+          .getInterfaceTypeArgumentsAsInstanceOfClass(s, t.classNode);
     }
     if (asSupertypeArguments == null) {
       return const IsSubtypeOf.never();

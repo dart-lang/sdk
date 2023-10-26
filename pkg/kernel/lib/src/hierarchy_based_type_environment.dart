@@ -23,7 +23,7 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   InterfaceType? getTypeAsInstanceOf(
       InterfaceType type, Class superclass, CoreTypes coreTypes,
       {required bool isNonNullableByDefault}) {
-    return hierarchy.getTypeAsInstanceOf(type, superclass,
+    return hierarchy.getInterfaceTypeAsInstanceOfClass(type, superclass,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
@@ -31,7 +31,8 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     if (type.classNode == superclass) return type.typeArguments;
-    return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
+    return hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+        type, superclass);
   }
 
   @override

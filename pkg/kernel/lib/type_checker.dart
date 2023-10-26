@@ -256,8 +256,8 @@ class TypeCheckingVisitor
     }
     if (type is InterfaceType && typeDeclaration is Class) {
       // The receiver type should implement the interface declaring the member.
-      List<DartType>? upcastTypeArguments =
-          hierarchy.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
+      List<DartType>? upcastTypeArguments = hierarchy
+          .getInterfaceTypeArgumentsAsInstanceOfClass(type, typeDeclaration);
       if (upcastTypeArguments != null) {
         return Substitution.fromPairs(
             typeDeclaration.typeParameters, upcastTypeArguments);
@@ -940,7 +940,7 @@ class TypeCheckingVisitor
           hierarchy.getInterfaceMember(iterable.classNode, iteratorName);
       if (iteratorGetter == null) return const DynamicType();
       List<DartType> castedIterableArguments =
-          hierarchy.getTypeArgumentsAsInstanceOf(
+          hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
               iterable, iteratorGetter.enclosingClass!)!;
       DartType iteratorType = Substitution.fromPairs(
               iteratorGetter.enclosingClass!.typeParameters,
@@ -951,7 +951,7 @@ class TypeCheckingVisitor
             hierarchy.getInterfaceMember(iteratorType.classNode, currentName);
         if (currentGetter == null) return const DynamicType();
         List<DartType> castedIteratorTypeArguments =
-            hierarchy.getTypeArgumentsAsInstanceOf(
+            hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
                 iteratorType, currentGetter.enclosingClass!)!;
         return Substitution.fromPairs(
                 currentGetter.enclosingClass!.typeParameters,
@@ -965,7 +965,8 @@ class TypeCheckingVisitor
   DartType getStreamElementType(DartType stream) {
     if (stream is InterfaceType) {
       List<DartType>? asStreamArguments =
-          hierarchy.getTypeArgumentsAsInstanceOf(stream, coreTypes.streamClass);
+          hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+              stream, coreTypes.streamClass);
       if (asStreamArguments == null) return const DynamicType();
       return asStreamArguments.single;
     }
@@ -1065,7 +1066,8 @@ class TypeCheckingVisitor
           : coreTypes.iterableClass;
       DartType type = visitExpression(node.expression);
       List<DartType>? asContainerArguments = type is InterfaceType
-          ? hierarchy.getTypeArgumentsAsInstanceOf(type, container)
+          ? hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+              type, container)
           : null;
       if (asContainerArguments != null) {
         checkAssignable(

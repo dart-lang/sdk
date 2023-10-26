@@ -479,6 +479,14 @@ abstract class Substitution {
         supertype.classNode.typeParameters, supertype.typeArguments));
   }
 
+  /// Returns the [Substitution] for the type parameters on the type declaration
+  /// of [type] with the type arguments provided in [type].
+  static Substitution fromTypeDeclarationType(TypeDeclarationType type) {
+    if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
+    return fromMap(new Map<TypeParameter, DartType>.fromIterables(
+        type.typeDeclaration.typeParameters, type.typeArguments));
+  }
+
   /// Substitutes the type parameters on the class of [type] with the
   /// type arguments provided in [type].
   static Substitution fromInterfaceType(InterfaceType type) {

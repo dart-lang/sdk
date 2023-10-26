@@ -903,9 +903,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (Supertype constraint in cls.mixedInClass!.onClause) {
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
-      InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
-          supertype, requiredInterface.classNode,
-          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
+      InterfaceType? implementedInterface =
+          hierarchy.getInterfaceTypeAsInstanceOfClass(
+              supertype, requiredInterface.classNode,
+              isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
               implementedInterface,
@@ -1374,7 +1375,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (getter.enclosingClass!.typeParameters.isNotEmpty) {
       getterType = Substitution.fromPairs(
               getter.enclosingClass!.typeParameters,
-              types.hierarchy.getTypeArgumentsAsInstanceOf(
+              types.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
                   thisType, getter.enclosingClass!)!)
           .substituteType(getterType);
     }
@@ -1383,7 +1384,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (setter.enclosingClass!.typeParameters.isNotEmpty) {
       setterType = Substitution.fromPairs(
               setter.enclosingClass!.typeParameters,
-              types.hierarchy.getTypeArgumentsAsInstanceOf(
+              types.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
                   thisType, setter.enclosingClass!)!)
           .substituteType(setterType);
     }
@@ -1531,8 +1532,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Class enclosingClass = interfaceMember.enclosingClass!;
       interfaceSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
-          types.hierarchy
-              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass)!);
+          types.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+              thisType, enclosingClass)!);
     }
 
     if (declaredFunction?.typeParameters.length !=
@@ -1643,8 +1644,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       Class enclosingClass = declaredMember.enclosingClass!;
       declaredSubstitution = Substitution.fromPairs(
           enclosingClass.typeParameters,
-          types.hierarchy
-              .getTypeArgumentsAsInstanceOf(thisType, enclosingClass)!);
+          types.hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
+              thisType, enclosingClass)!);
     }
     return declaredSubstitution;
   }
