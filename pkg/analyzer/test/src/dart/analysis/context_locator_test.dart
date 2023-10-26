@@ -1751,6 +1751,30 @@ ${getFolder(outPath).path}
     expect(package1Root.packagesFile, packagesFile);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/53874')
+  void test_multiple_packages_monorepo() {
+    var rootPath = '/test/outer';
+    Folder rootFolder = newFolder(rootPath);
+    File packagesFile = newPackageConfigJsonFile(rootPath, '');
+    newPubspecYamlFile(rootPath, '');
+    Folder package1 = newFolder('$rootPath/package1');
+    newPubspecYamlFile(package1.path, '');
+    Folder package2 = newFolder('$rootPath/package2');
+    newPubspecYamlFile(package2.path, '');
+
+    List<ContextRoot> roots =
+        contextLocator.locateRoots(includedPaths: [rootPath]);
+    expect(roots, hasLength(1));
+
+    ContextRoot root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.packagesFile, packagesFile);
+    var package = root.workspace.findPackageFor(package1.path);
+    expect(package?.root, package1.path);
+    package = root.workspace.findPackageFor(package2.path);
+    expect(package?.root, package2.path);
+  }
+
   void _assertAnalyzed(ContextRoot root, List<String> posixPathList) {
     for (var posixPath in posixPathList) {
       var path = convertPath(posixPath);
