@@ -36,7 +36,7 @@ testJunctionTypeDelete() {
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.isFalse(FileSystemEntity.isDirectorySync(y));
     Expect.isFalse(FileSystemEntity.isDirectorySync(x));
-    Expect.equals(FileSystemEntityType.link, FileSystemEntity.typeSync(y));
+    Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.notFound, FileSystemEntity.typeSync(x));
     Expect.equals(FileSystemEntityType.link,
         FileSystemEntity.typeSync(y, followLinks: false));

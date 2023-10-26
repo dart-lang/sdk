@@ -280,11 +280,24 @@ Future testRelativeLinks(_) {
   });
 }
 
+Future testBrokenLinkTypeSync(_) async {
+  String base = (await Directory.systemTemp.createTemp('dart_link')).path;
+  String link = join(base, 'link');
+  await Link(link).create('does not exist');
+
+  Expect.equals(FileSystemEntityType.link,
+      await FileSystemEntity.type(link, followLinks: false));
+
+  Expect.equals(FileSystemEntityType.notFound,
+      await FileSystemEntity.type(link, followLinks: true));
+}
+
 main() {
   asyncStart();
   testCreate()
       .then(testCreateLoopingLink)
       .then(testRename)
       .then(testRelativeLinks)
+      .then(testBrokenLinkTypeSync)
       .then((_) => asyncEnd());
 }

@@ -308,6 +308,10 @@ abstract class FileSystemEntity {
   /// ```
   /// since `Uri.resolve` removes `..` segments. This will result in the Windows
   /// behavior.
+  ///
+  /// On Windows, attempting to resolve a symbolic link where the link type
+  /// does not match the type of the resolved file system object will cause the
+  /// Future to complete with a [PathAccessException] error.
   Future<String> resolveSymbolicLinks() {
     return _File._dispatchWithNamespace(
         _IOService.fileResolveSymbolicLinks, [null, _rawPath]).then((response) {
@@ -343,6 +347,11 @@ abstract class FileSystemEntity {
   /// ```
   /// since `Uri.resolve` removes `..` segments. This will result in the Windows
   /// behavior.
+  ///
+  /// On Windows, a symbolic link is created as either a file link or a
+  /// directory link. Attempting to resolve such a symbolic link requires the
+  /// link type to match the type of the file system object that it points to,
+  /// otherwise it throws a [PathAccessException].
   String resolveSymbolicLinksSync() {
     var result = _resolveSymbolicLinks(_Namespace._namespace, _rawPath);
     _throwIfError(result, "Cannot resolve symbolic links", path);
@@ -685,11 +694,15 @@ abstract class FileSystemEntity {
 
   /// Synchronously finds the type of file system object that a path points to.
   ///
-  /// Returns [FileSystemEntityType.link] only if [followLinks] is `false` and if
-  /// [path] points to a link.
-  ///
   /// Returns [FileSystemEntityType.notFound] if [path] does not point to a file
   /// system object or if any other error occurs in looking up the path.
+  ///
+  /// If [path] points to a link and [followLinks] is `true` then the result
+  /// will be for the file system object that the link points to. If that
+  /// object does not exist then the result will be
+  /// [FileSystemEntityType.notFound]. If [path] points to a link and
+  /// [followLinks] is `false` then the result will be
+  /// [FileSystemEntityType.link].
   static FileSystemEntityType typeSync(String path, {bool followLinks = true}) {
     return _getTypeSync(_toUtf8Array(path), followLinks);
   }
