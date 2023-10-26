@@ -1785,11 +1785,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    final declaredRepresentation = declaredElement.representation.type;
+    if (typeSystem.isSubtypeOf(declaredRepresentation, type)) {
+      return;
+    }
+
     // When `type` is an extension type.
     if (type is InterfaceTypeImpl) {
       final implementedRepresentation = type.representationType;
       if (implementedRepresentation != null) {
-        final declaredRepresentation = declaredElement.representation.type;
         if (!typeSystem.isSubtypeOf(
           declaredRepresentation,
           implementedRepresentation,
@@ -1810,14 +1814,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    final declaredRepresentation = declaredElement.representation.type;
-    if (!typeSystem.isSubtypeOf(declaredRepresentation, type)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
-        node,
-        [type, declaredRepresentation],
-      );
-    }
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
+      node,
+      [type, declaredRepresentation],
+    );
   }
 
   void _visitIf(IfElementOrStatementImpl node) {
