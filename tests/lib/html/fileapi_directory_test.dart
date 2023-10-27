@@ -2,41 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fileapi;
-
-import 'dart:async';
 import 'dart:html';
 
-import 'package:async_helper/async_helper.dart';
 import 'package:async_helper/async_minitest.dart';
 
-class FileAndDir {
-  FileEntry file;
-  DirectoryEntry dir;
-  FileAndDir(this.file, this.dir);
-}
+main() {
+  if (!FileSystem.supported) return;
+  // Prepend this file name to prevent collisions among tests runnning on the
+  // same browser.
+  const prefix = 'fileapi_directory_';
 
-late FileSystem fs;
+  test('directoryDoesntExist', () async {
+    final fs = await window.requestFileSystem(100);
+    try {
+      await fs.root!.getDirectory('${prefix}directory2');
+    } on DomException catch (error) {
+      expect(DomException.NOT_FOUND, error.name);
+    }
+  });
 
-main() async {
-  getFileSystem() async {
-    fs = await window.requestFileSystem(100);
-  }
-
-  if (FileSystem.supported) {
-    await getFileSystem();
-
-    test('directoryDoesntExist', () async {
-      try {
-        await fs.root!.getDirectory('directory2');
-      } on DomException catch (error) {
-        expect(DomException.NOT_FOUND, error.name);
-      }
-    });
-
-    test('directoryCreate', () async {
-      var entry = await fs.root!.createDirectory('directory3');
-      expect(entry.name, equals('directory3'));
-    });
-  }
+  test('directoryCreate', () async {
+    final fs = await window.requestFileSystem(100);
+    var entry = await fs.root!.createDirectory('${prefix}directory3');
+    expect(entry.name, equals('${prefix}directory3'));
+  });
 }
