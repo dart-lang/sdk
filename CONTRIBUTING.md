@@ -26,7 +26,7 @@ We occasionally take pull requests, e.g., for comment changes, but the main flow
 
 ## Submitting patches directly from GitHub
 
-This repository uses [Gerrit for code reviews](https://dart-review.googlesource.com/), rather than GitHub PRs. However, you may submit [a GitHub PR ](https://github.com/dart-lang/sdk/pulls), e.g. to edit some API documentation, and it will be automatically converted into a Gerrit CL by a copybara-service bot. You can find the link to that CL as a comment left on the PR by the bot. Any changes made to the PR after opening will also be sync'ed by the bot into the Gerrit review. The PR will be automatically closed when the CL is reviewed and landed.
+This repository primarily uses [Gerrit for code reviews](https://dart-review.googlesource.com/), rather than GitHub PRs. However, you may submit [a GitHub PR ](https://github.com/dart-lang/sdk/pulls), e.g. to edit some API documentation, and it will be automatically converted into a Gerrit change list (a "CL") by a copybara-service bot. You can find the link to that CL as a comment left on the PR by the bot. Any changes made to the PR after opening will also be sync'ed by the bot into the Gerrit review. The PR will be automatically closed when the CL is reviewed and landed.
 
 ## Setting up the environment
 
@@ -76,18 +76,36 @@ Your local workflow may vary.
 Upload the patch to Gerrit for review using `git cl upload`:
 
 ```bash
-git cl upload -s
+# Upload a CL, add reviewers from OWNERS files, and allow automatic submission.
+git cl upload --send-mail --r-owners --auto-submit
 ```
 
 The above command returns a URL for the review. Attach this review to your issue in https://dartbug.com.
 
-To update the cl, just commit your changes and run `git cl upload -s` for your branch again.
+To update the CL, just commit your changes and run `git cl upload` for your branch again.
 
-If you have commit access, when the review is done and the patch is good to go, submit the patch on https://dart-review.googlesource.com:
+More detailed instructions for the `git cl` tools available on https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_creating_uploading_a_cl
+
+## Getting your patch reviewed and landed submitted.
+
+Ensure that your change has at least two reviewers who are OWNERS on your CL:
 
 ```bash
 git cl web # opens your review on https://dart-review.googlesource.com
 ```
+
+Check the "Reviewers" on the CL, there should be at least two. If there aren't,
+use the "ADD OWNERS" button to add more. If you can't get enough reviewers, or
+the reviewers are not responsive, you may add reviewers found in the `OWNERS`
+file at the root of the repository to escalate.
+
+It's part of a code owner's responsibility to review changes in their area and
+help you to get your patch submitted. They may also provide comments, or reject
+your CL. They can run the presubmit tests on your behalf and submit your patch.
+
+## For committers: Submitting a patch
+
+If you have commit access, when the review is done and the patch is good to go, submit the patch on https://dart-review.googlesource.com:
 
 *   Press "Submit to CQ" (CQ stands for "Commit Queue").
 *   You can follow the progress by looking at the "Tryjobs" panel in your review.
@@ -95,8 +113,6 @@ git cl web # opens your review on https://dart-review.googlesource.com
 *   If any of the try jobs is red, you will have to fix the errors and then "Submit to CQ" once more.
 
 If you do not have commit access, a Dart engineer will commit on your behalf, assuming the patch is reviewed and accepted.
-
-More detailed instructions for the `git cl` tools available on https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_creating_uploading_a_cl
 
 ## For committers: Merging contributions from non-members
 
@@ -122,7 +138,6 @@ All files in the Dart project must start with the following header. If you add a
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 ```
-
 
 ## The small print
 
