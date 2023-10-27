@@ -53,14 +53,14 @@ abstract interface class Link implements FileSystemEntity {
   /// Each link is either a file-link or a directory-link, and the type is
   /// chosen when the link is created, and the link then counts as either a
   /// file or directory for most purposes. Different Win32 API calls are
-  /// used to manipulate each.  For example, the `DeleteFile` function is
+  /// used to manipulate each. For example, the `DeleteFile` function is
   /// used to delete links to files, and `RemoveDirectory` must be used to
   /// delete links to directories.
   ///
   /// The created Windows symbolic link will match the type of the [target],
   /// if [target] exists, otherwise a file-link is created. The type of the
   /// created link will not change if [target] is later replaced by something
-  /// of a different type and the link will not be resolvable by
+  /// of a different type, but then the link will not be resolvable by
   /// [resolveSymbolicLinks].
   ///
   /// In order to create a symbolic link on Windows, Dart must be run in
@@ -98,7 +98,7 @@ abstract interface class Link implements FileSystemEntity {
   /// The created Windows symbolic link will match the type of the [target],
   /// if [target] exists, otherwise a file-link is created. The type of the
   /// created link will not change if [target] is later replaced by something
-  /// of a different type and the link will not be resolvable by
+  /// of a different type, but then the link will not be resolvable by
   /// [resolveSymbolicLinks].
   ///
   /// In order to create a symbolic link on Windows, Dart must be run in
@@ -115,7 +115,7 @@ abstract interface class Link implements FileSystemEntity {
   ///
   /// Deletes the existing link at [path] and uses [createSync] to create a new
   /// link to [target]. Throws [PathNotFoundException] if the original link
-  /// does not exist or with any [FileSystemException] that [deleteSync] or
+  /// does not exist or any [FileSystemException] that [deleteSync] or
   /// [createSync] can throw.
   void updateSync(String target);
 
