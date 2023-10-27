@@ -213,6 +213,7 @@ abstract class TypeInferenceEngine {
 
   static Member? resolveInferenceNode(
       Member? member, ClassHierarchyBase hierarchy) {
+    // TODO(johnniwinther): Can we remove this now?
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {

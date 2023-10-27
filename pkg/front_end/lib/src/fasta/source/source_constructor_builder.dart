@@ -338,6 +338,8 @@ class DeclaredSourceConstructorBuilder
   @override
   List<FormalParameterBuilder>? formals;
 
+  final MemberName _memberName;
+
   @override
   String get fullNameForErrors {
     return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
@@ -364,6 +366,7 @@ class DeclaredSourceConstructorBuilder
       bool isSynthetic = false})
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
+        _memberName = nameScheme.getDeclaredName(name),
         super(
             metadata,
             modifiers,
@@ -395,6 +398,9 @@ class DeclaredSourceConstructorBuilder
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   @override
   ClassDeclaration get classDeclaration => classBuilder;
@@ -1081,6 +1087,8 @@ class SourceExtensionTypeConstructorBuilder
   @override
   List<Initializer> initializers = [];
 
+  final MemberName _memberName;
+
   SourceExtensionTypeConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -1098,7 +1106,8 @@ class SourceExtensionTypeConstructorBuilder
       NameScheme nameScheme,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnumOrMixin})
-      : super(
+      : _memberName = nameScheme.getDeclaredName(name),
+        super(
             metadata,
             modifiers,
             returnType,
@@ -1128,6 +1137,9 @@ class SourceExtensionTypeConstructorBuilder
         forceCreateLowering: true)
       ?..isExtensionTypeMember = true;
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   @override
   ClassDeclaration get classDeclaration => extensionTypeDeclarationBuilder;

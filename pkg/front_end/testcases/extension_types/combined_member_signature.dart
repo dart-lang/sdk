@@ -38,6 +38,22 @@ void testSetter(E e) {
   e.setter = (a, b) => (a as int, b); // Error
 }
 
+E e = E(C());
+
+var f = e.method();
+(Object?, Object?) f1 = f; // Ok
+(Object?, int) f2 = f; // Error
+(int, Object?) f3 = f; // Error
+testMethod5(E e) => f.$1.unresolved(); // Error
+testMethod6(E e) => f.$2.unresolved(); // Error
+
+var g = e.getter;
+(Object?, Object?) g1 = g; // Ok
+(Object?, int) g2 = g; // Error
+(int, Object?) g3 = g; // Error
+testGetter5(E e) => g.$1.unresolved(); // Error
+testGetter6(E e) => g.$2.unresolved(); // Error
+
 void method(E e) {
   var (a, b) = e.method();
   expect(42, a);

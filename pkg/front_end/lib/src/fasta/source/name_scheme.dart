@@ -178,6 +178,15 @@ class NameScheme {
             isTearOff: isTearOff);
     }
   }
+
+  /// Returns the [MemberName] corresponding to the declared member, i.e. the
+  /// name of the member without any applied lowering.
+  MemberName getDeclaredName(String name) {
+    // TODO(johnniwinther): Add a helper method for `isPrivate`.
+    return name.startsWith('_')
+        ? new PrivateMemberName(libraryName, name)
+        : new PublicMemberName(name);
+  }
 }
 
 /// The part of a member name defined by a library.

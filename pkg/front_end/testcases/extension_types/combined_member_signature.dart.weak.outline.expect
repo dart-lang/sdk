@@ -34,6 +34,15 @@ extension type E(self::C c) implements self::A, self::B {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
+static field self::E /* = self::C */ e;
+static field (core::Object?, core::Object?) f;
+static field (core::Object?, core::Object?) f1;
+static field (core::Object?, core::int) f2;
+static field (core::int, core::Object?) f3;
+static field (core::Object?, core::Object?) g;
+static field (core::Object?, core::Object?) g1;
+static field (core::Object?, core::int) g2;
+static field (core::int, core::Object?) g3;
 static inline-class-member method E|constructor#(self::C c) → self::E /* = self::C */
   ;
 static inline-class-member method E|constructor#_#new#tearOff(self::C c) → self::E /* = self::C */
@@ -55,6 +64,14 @@ static method testGetter1(self::E /* = self::C */ e) → (core::int, core::Objec
 static method testGetter2(self::E /* = self::C */ e) → (core::Object?, core::int)
   ;
 static method testSetter(self::E /* = self::C */ e) → void
+  ;
+static method testMethod5(self::E /* = self::C */ e) → dynamic
+  ;
+static method testMethod6(self::E /* = self::C */ e) → dynamic
+  ;
+static method testGetter5(self::E /* = self::C */ e) → dynamic
+  ;
+static method testGetter6(self::E /* = self::C */ e) → dynamic
   ;
 static method method(self::E /* = self::C */ e) → void
   ;

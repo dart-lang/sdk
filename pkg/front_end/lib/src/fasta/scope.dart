@@ -954,6 +954,9 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   Member get member => throw new UnsupportedError('$runtimeType.member');
 
   @override
+  Name get memberName => throw new UnsupportedError('$runtimeType.memberName');
+
+  @override
   Member? get readTarget => null;
 
   @override

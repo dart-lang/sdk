@@ -237,13 +237,13 @@ class DispatchTable {
   final Map<int, SelectorInfo> _selectorInfo = {};
 
   /// Maps member names to getter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicGetters = {};
+  final Map<String, Set<SelectorInfo>> _dynamicGetters = {};
 
   /// Maps member names to setter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicSetters = {};
+  final Map<String, Set<SelectorInfo>> _dynamicSetters = {};
 
   /// Maps member names to method selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicMethods = {};
+  final Map<String, Set<SelectorInfo>> _dynamicMethods = {};
 
   /// Contents of [wasmTable]. For a selector with ID S and a target class of
   /// the selector with ID C, `table[S + C]` gives the reference to the class
@@ -305,11 +305,11 @@ class DispatchTable {
     selector.paramInfo.merge(paramInfo);
     if (calledDynamically) {
       if (isGetter) {
-        (_dynamicGetters[member.name.text] ??= []).add(selector);
+        (_dynamicGetters[member.name.text] ??= {}).add(selector);
       } else if (isSetter) {
-        (_dynamicSetters[member.name.text] ??= []).add(selector);
+        (_dynamicSetters[member.name.text] ??= {}).add(selector);
       } else {
-        (_dynamicMethods[member.name.text] ??= []).add(selector);
+        (_dynamicMethods[member.name.text] ??= {}).add(selector);
       }
     }
     return selector;

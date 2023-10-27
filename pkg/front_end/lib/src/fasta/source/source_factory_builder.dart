@@ -61,6 +61,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   List<SourceFactoryBuilder>? _patches;
 
+  final MemberName _memberName;
+
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -78,7 +80,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       AsyncMarker asyncModifier,
       NameScheme nameScheme,
       {String? nativeMethodName})
-      : super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+      : _memberName = nameScheme.getDeclaredName(name),
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedureInternal = new Procedure(
         dummyName,
@@ -106,6 +109,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     this.asyncModifier = asyncModifier;
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   @override
   DeclarationBuilder get declarationBuilder => super.declarationBuilder!;

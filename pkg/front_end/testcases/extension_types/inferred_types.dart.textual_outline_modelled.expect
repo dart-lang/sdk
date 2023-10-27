@@ -1,0 +1,16 @@
+D d = D(C(42));
+E e = E(C(42));
+abstract class A {
+  int get field;
+}
+abstract class B implements A {
+  get field;
+}
+class C implements B {
+  C(this.field);
+  final field;
+}
+extension type D(C c) implements B {}
+extension type E(C c) implements C {}
+var f = d.field;
+var g = e.field;

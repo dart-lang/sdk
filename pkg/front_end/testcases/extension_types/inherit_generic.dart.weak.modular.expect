@@ -1,0 +1,107 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type A<T extends core::Object? = dynamic>(core::Object it) {
+  abstract inline-class-member representation-field get it() → core::Object;
+  method method = self::A|method;
+  method tearoff method = self::A|get#method;
+  get getter = self::A|get#getter;
+  operator [] = self::A|[];
+  set setter = self::A|set#setter;
+  constructor • = self::A|constructor#;
+  constructor tearoff • = self::A|constructor#_#new#tearOff;
+}
+extension type B<S extends core::Object? = dynamic>(core::Object it) implements self::A<S%> /* = core::Object */ {
+  abstract inline-class-member representation-field get it() → core::Object;
+  method method2 = self::B|method2;
+  method tearoff method2 = self::B|get#method2;
+  get getter2 = self::B|get#getter2;
+  operator []= = self::B|[]=;
+  set setter2 = self::B|set#setter2;
+  constructor • = self::B|constructor#;
+  constructor tearoff • = self::B|constructor#_#new#tearOff;
+}
+extension type C(core::Object i) implements self::A<core::int> /* = core::Object */ {
+  abstract inline-class-member representation-field get i() → core::Object;
+  method method3 = self::C|method3;
+  method tearoff method3 = self::C|get#method3;
+  get getter3 = self::C|get#getter3;
+  operator []= = self::C|[]=;
+  set setter3 = self::C|set#setter3;
+  constructor • = self::C|constructor#;
+  constructor tearoff • = self::C|constructor#_#new#tearOff;
+}
+static inline-class-member method A|constructor#<T extends core::Object? = dynamic>(core::Object it) → self::A<self::A|constructor#::T%> /* = core::Object */ {
+  lowered final self::A<self::A|constructor#::T%> /* = core::Object */ #this = it;
+  return #this;
+}
+static inline-class-member method A|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Object it) → self::A<self::A|constructor#_#new#tearOff::T%> /* = core::Object */
+  return self::A|constructor#<self::A|constructor#_#new#tearOff::T%>(it);
+static inline-class-member method A|method<T extends core::Object? = dynamic>(lowered final self::A<self::A|method::T%> /* = core::Object */ #this) → self::A|method::T%
+  return throw "";
+static inline-class-member method A|get#method<T extends core::Object? = dynamic>(lowered final self::A<self::A|get#method::T%> /* = core::Object */ #this) → () → self::A|get#method::T%
+  return () → self::A|get#method::T% => self::A|method<self::A|get#method::T%>(#this);
+static inline-class-member method A|get#getter<T extends core::Object? = dynamic>(lowered final self::A<self::A|get#getter::T%> /* = core::Object */ #this) → self::A|get#getter::T%
+  return throw "";
+static inline-class-member method A|set#setter<T extends core::Object? = dynamic>(lowered final self::A<self::A|set#setter::T%> /* = core::Object */ #this, self::A|set#setter::T% value) → void {}
+static inline-class-member method A|[]<T extends core::Object? = dynamic>(lowered final self::A<self::A|[]::T%> /* = core::Object */ #this, self::A|[]::T% index) → self::A|[]::T%
+  return throw "";
+static inline-class-member method B|constructor#<S extends core::Object? = dynamic>(core::Object it) → self::B<self::B|constructor#::S%> /* = core::Object */ {
+  lowered final self::B<self::B|constructor#::S%> /* = core::Object */ #this = it;
+  return #this;
+}
+static inline-class-member method B|constructor#_#new#tearOff<S extends core::Object? = dynamic>(core::Object it) → self::B<self::B|constructor#_#new#tearOff::S%> /* = core::Object */
+  return self::B|constructor#<self::B|constructor#_#new#tearOff::S%>(it);
+static inline-class-member method B|method2<S extends core::Object? = dynamic>(lowered final self::B<self::B|method2::S%> /* = core::Object */ #this) → self::B|method2::S%
+  return self::A|method<self::B|method2::S%>(#this);
+static inline-class-member method B|get#method2<S extends core::Object? = dynamic>(lowered final self::B<self::B|get#method2::S%> /* = core::Object */ #this) → () → self::B|get#method2::S%
+  return () → self::B|get#method2::S% => self::B|method2<self::B|get#method2::S%>(#this);
+static inline-class-member method B|get#getter2<S extends core::Object? = dynamic>(lowered final self::B<self::B|get#getter2::S%> /* = core::Object */ #this) → self::B|get#getter2::S%
+  return self::A|get#getter<self::B|get#getter2::S%>(#this);
+static inline-class-member method B|set#setter2<S extends core::Object? = dynamic>(lowered final self::B<self::B|set#setter2::S%> /* = core::Object */ #this, self::B|set#setter2::S% value) → void {
+  self::A|set#setter<self::B|set#setter2::S%>(#this, value);
+}
+static inline-class-member method B|[]=<S extends core::Object? = dynamic>(lowered final self::B<self::B|[]=::S%> /* = core::Object */ #this, self::B|[]=::S% index, self::B|[]=::S% value) → void {
+  value = self::A|[]<self::B|[]=::S%>(#this, index);
+}
+static inline-class-member method C|constructor#(core::Object i) → self::C /* = core::Object */ {
+  lowered final self::C /* = core::Object */ #this = i;
+  return #this;
+}
+static inline-class-member method C|constructor#_#new#tearOff(core::Object i) → self::C /* = core::Object */
+  return self::C|constructor#(i);
+static inline-class-member method C|method3(lowered final self::C /* = core::Object */ #this) → core::int
+  return self::A|method<core::int>(#this);
+static inline-class-member method C|get#method3(lowered final self::C /* = core::Object */ #this) → () → core::int
+  return () → core::int => self::C|method3(#this);
+static inline-class-member method C|get#getter3(lowered final self::C /* = core::Object */ #this) → core::int
+  return self::A|get#getter<core::int>(#this);
+static inline-class-member method C|set#setter3(lowered final self::C /* = core::Object */ #this, core::int value) → void {
+  self::A|set#setter<core::int>(#this, value);
+}
+static inline-class-member method C|[]=(lowered final self::C /* = core::Object */ #this, core::int index, core::int value) → void {
+  value = self::A|[]<core::int>(#this, index);
+}
+static method test(self::A<core::bool> /* = core::Object */ a, self::B<core::String> /* = core::Object */ b, self::C /* = core::Object */ c) → dynamic {
+  core::bool a1 = self::A|method<core::bool>(a);
+  core::bool a2 = self::A|get#getter<core::bool>(a);
+  self::A|set#setter<core::bool>(a, a1);
+  core::bool a3 = self::A|[]<core::bool>(a, a2);
+  core::String b1 = self::A|method<core::String>(b);
+  core::String b2 = self::A|get#getter<core::String>(b);
+  self::A|set#setter<core::String>(b, b1);
+  core::String b3 = self::A|[]<core::String>(b, b2);
+  core::String b4 = self::B|method2<core::String>(b);
+  core::String b5 = self::B|get#getter2<core::String>(b);
+  self::B|set#setter2<core::String>(b, b4);
+  self::B|[]=<core::String>(b, b5, b1);
+  core::int c1 = self::A|method<core::int>(c);
+  core::int c2 = self::A|get#getter<core::int>(c);
+  self::A|set#setter<core::int>(c, c1);
+  core::int c3 = self::A|[]<core::int>(c, c2);
+  core::int c4 = self::C|method3(c);
+  core::int c5 = self::C|get#getter3(c);
+  self::C|set#setter3(c, c4);
+  self::C|[]=(c, c5, c1);
+}
