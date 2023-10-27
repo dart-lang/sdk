@@ -512,6 +512,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
+    final executables = const <ExecutableElementImpl>[]
+        .followedBy(element.accessors)
+        .followedBy(element.methods);
+    for (final executable in executables) {
+      executable.isExtensionTypeMember = true;
+    }
+
     node.implementsClause?.accept(this);
 
     // TODO(scheglov) We cannot do this anymore.
