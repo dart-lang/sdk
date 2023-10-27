@@ -7,6 +7,7 @@ library transition_event_test;
 import 'dart:html';
 import 'dart:async';
 
+import 'package:async_helper/async_helper.dart';
 import 'package:expect/minitest.dart';
 
 Future testTransitionEnd() async {
@@ -33,9 +34,11 @@ Future testTransitionEnd() async {
   await done.future;
 }
 
-main() async {
-  expect(CssStyleDeclaration.supportsTransitions, isTrue);
-  if (CssStyleDeclaration.supportsTransitions) {
-    await testTransitionEnd();
-  }
+main() {
+  asyncTest(() async {
+    expect(CssStyleDeclaration.supportsTransitions, isTrue);
+    if (CssStyleDeclaration.supportsTransitions) {
+      await testTransitionEnd();
+    }
+  });
 }
