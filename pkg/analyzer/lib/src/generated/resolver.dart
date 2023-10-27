@@ -2424,16 +2424,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             parameters: constructorElement.parameters,
             errorReporter: errorReporter,
           );
-          for (var argument in argumentList.arguments) {
-            analyzeExpression(argument, argument.staticParameterElement?.type);
-            popRewrite();
-          }
-          arguments.typeArguments?.accept(this);
-
-          var whyNotPromotedList =
-              <Map<DartType, NonPromotionReason> Function()>[];
-          checkForArgumentTypesNotAssignableInList(
-              argumentList, whyNotPromotedList);
         } else if (definingLibrary.featureSet
             .isEnabled(Feature.enhanced_enums)) {
           var requiredParameterCount = constructorElement.parameters
@@ -2449,6 +2439,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           }
         }
       }
+    }
+
+    var arguments = node.arguments;
+    if (arguments != null) {
+      var argumentList = arguments.argumentList;
+      for (var argument in argumentList.arguments) {
+        analyzeExpression(argument, argument.staticParameterElement?.type);
+        popRewrite();
+      }
+      arguments.typeArguments?.accept(this);
+
+      var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
+      checkForArgumentTypesNotAssignableInList(
+          argumentList, whyNotPromotedList);
     }
 
     elementResolver.visitEnumConstantDeclaration(node);
