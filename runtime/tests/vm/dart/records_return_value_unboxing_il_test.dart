@@ -4,6 +4,8 @@
 
 // Verifies that compiler can unbox records in return values.
 
+// SharedOptions=--enable-experiment=records
+
 import 'package:vm/testing/il_matchers.dart';
 
 @pragma('vm:never-inline')

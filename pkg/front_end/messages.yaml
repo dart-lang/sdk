@@ -381,6 +381,7 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
     ```dart
     var r = const (1,);
     ```
+  experiments: records
   script: >
     main() {
       var record = const (1);
@@ -421,6 +422,7 @@ RecordLiteralZeroFieldsWithTrailingComma:
     ```dart
     var r = (3, 4);
     ```
+  experiments: records
   script: >
     main() {
       var record = (,);
@@ -462,6 +464,7 @@ EmptyRecordTypeNamedFieldsList:
     ```dart
     void f((int, int) r) {}
     ```
+  experiments: records
   script: >
     main() {
       (int, int, {/*missing*/}) record = (1, 2,);
@@ -502,6 +505,7 @@ RecordTypeZeroFieldsButTrailingComma:
     ```dart
     void f((int, int) r) {}
     ```
+  experiments: records
   script: >
     main() {
       (,) record = ();
@@ -539,6 +543,7 @@ RecordTypeOnePositionalFieldNoTrailingComma:
     ```dart
     void f((int,) r) {}
     ```
+  experiments: records
   script: >
     main() {
       (int /* missing trailing comma */) record = const (1, );
@@ -547,6 +552,7 @@ RecordTypeOnePositionalFieldNoTrailingComma:
 DuplicatedRecordTypeFieldName:
   problemMessage: "Duplicated record type field name '#name'."
   correctionMessage: "Try renaming or removing one of the named record type fields."
+  experiments: records
   script: |
     ({int a, String a}) record = throw '';
 
@@ -557,6 +563,7 @@ DuplicatedRecordTypeFieldNameContext:
 DuplicatedRecordLiteralFieldName:
   problemMessage: "Duplicated record literal field name '#name'."
   correctionMessage: "Try renaming or removing one of the named record literal fields."
+  experiments: records
   script: |
     dynamic field = (a: 0, a: 1);
 
@@ -743,6 +750,7 @@ MultipleImplements:
 MultipleClauses:
   problemMessage: "Each '#string' definition can have at most one '#string2' clause."
   correctionMessage: "Try combining all of the '#string2' clauses into a single clause."
+  experiments: enhanced-enums
   analyzerCode: ParserErrorCode.MULTIPLE_CLAUSES
   index: 121
   script:
@@ -752,6 +760,7 @@ MultipleClauses:
 OutOfOrderClauses:
   problemMessage: "The '#string' clause must come before the '#string2' clause."
   correctionMessage: "Try moving the '#string' clause before the '#string2' clause."
+  experiments: enhanced-enums
   analyzerCode: ParserErrorCode.OUT_OF_ORDER_CLAUSES
   index: 122
   script: "class B {} class D {} enum A implements B with D { v; }"
@@ -1077,6 +1086,7 @@ AbstractSealedClass:
     ```dart
     sealed class C {}
     ```
+  experiments: sealed-class
   script:
     - "sealed abstract class C {}"
     - "abstract sealed class C {}"
@@ -3602,6 +3612,7 @@ SupertypeIsIllegalAliased:
 SupertypeIsNullableAliased:
   problemMessage: "The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable."
   analyzerCode: EXTENDS_NON_CLASS
+  experiments: nonfunction-type-aliases
   script: |
     class A {}
     typedef B = A?;
@@ -4886,6 +4897,7 @@ IncorrectTypeArgumentInstantiation:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'."
   correctionMessage: "Try changing type arguments so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  experiments: constructor-tearoffs
   script: |
     X bounded<X extends num>(X x) => x;
     main() {
@@ -6122,6 +6134,7 @@ UnsupportedDartExt:
 InstantiationNonGenericFunctionType:
   problemMessage: "The static type of the explicit instantiation operand must be a generic function type but is '#type'."
   correctionMessage: "Try changing the operand or remove the type arguments."
+  experiments: constructor-tearoffs
   script: |
     f() {}
     main() => f<int>;
@@ -6130,12 +6143,14 @@ InstantiationNullableGenericFunctionType:
   problemMessage: "The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'."
   correctionMessage: "Try changing the operand or remove the type arguments."
   analyzerCode: DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
+  experiments: constructor-tearoffs
   script: |
     test(void Function<T>()? f) => f<int>;
 
 InstantiationTooFewArguments:
   problemMessage: "Too few type arguments: #count required, #count2 given."
   correctionMessage: "Try adding the missing type arguments."
+  experiments: constructor-tearoffs
   script: |
     f<X, Y>() {}
     main() => f<int>;
@@ -6143,12 +6158,14 @@ InstantiationTooFewArguments:
 InstantiationTooManyArguments:
   problemMessage: "Too many type arguments: #count allowed, but #count2 found."
   correctionMessage: "Try removing the extra type arguments."
+  experiments: constructor-tearoffs
   script: |
     f<X>() {}
     main() => f<int, String>;
 
 AbstractClassConstructorTearOff:
   problemMessage: "Constructors on abstract classes can't be torn off."
+  experiments: constructor-tearoffs
   script: |
     abstract class Class {}
     main() => Class.new;
@@ -6156,6 +6173,7 @@ AbstractClassConstructorTearOff:
 StaticTearOffFromInstantiatedClass:
   problemMessage: "Cannot access static member on an instantiated generic class."
   correctionMessage: "Try removing the type arguments or placing them after the member name."
+  experiments: constructor-tearoffs
   script: |
     class A<X> { static f() {} }
     main() => A<int>.f;
@@ -6164,11 +6182,13 @@ StaticTearOffFromInstantiatedClass:
 ConstructorTearOffWithTypeArguments:
   problemMessage: "A constructor tear-off can't have type arguments after the constructor name."
   correctionMessage: "Try removing the type arguments or placing them after the class name."
+  experiments: constructor-tearoffs
   script:
     - "class C<X> { C.foo(); } bar() { C.foo<int>; }"
 
 NewAsSelector:
   problemMessage: "'new' can only be used as a constructor reference."
+  experiments: constructor-tearoffs
   script: |
     method(dynamic d) => d.new;
 
@@ -6505,12 +6525,14 @@ ObjectMemberNameUsedForRecordField:
 RecordFieldsCantBePrivate:
   problemMessage: "Record field names can't be private."
   analyzerCode: INVALID_FIELD_NAME
+  experiments: records
   script: |
     foo() => (_bar: 1);
 
 NamedFieldClashesWithPositionalFieldInRecord:
   problemMessage: "Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field."
   analyzerCode: INVALID_FIELD_NAME
+  experiments: records
   script: |
     foo() => (0, $1: 0);
 
@@ -6528,6 +6550,7 @@ InheritedRestrictedMemberOfEnumImplementer:
 SealedClassSubtypeOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class."
   analyzerCode: SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
+  experiments: sealed-class
   script:
     main.dart:
       import 'lib.dart';
@@ -6538,6 +6561,7 @@ SealedClassSubtypeOutsideOfLibrary:
 CantUseClassAsMixin:
   problemMessage: "The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin."
   analyzerCode: CLASS_USED_AS_MIXIN
+  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6550,6 +6574,7 @@ BaseEnum:
   problemMessage: "Enums can't be declared to be 'base'."
   correctionMessage: "Try removing the keyword 'base'."
   analyzerCode: ParserErrorCode.BASE_ENUM
+  experiments: class-modifiers
   script:
     - "base enum E { v }"
 
@@ -6558,6 +6583,7 @@ FinalEnum:
   problemMessage: "Enums can't be declared to be 'final'."
   correctionMessage: "Try removing the keyword 'final'."
   analyzerCode: ParserErrorCode.FINAL_ENUM
+  experiments: class-modifiers
   script:
     - "final enum E { v }"
 
@@ -6566,6 +6592,7 @@ InterfaceEnum:
   problemMessage: "Enums can't be declared to be 'interface'."
   correctionMessage: "Try removing the keyword 'interface'."
   analyzerCode: ParserErrorCode.INTERFACE_ENUM
+  experiments: class-modifiers
   script:
     - "interface enum E { v }"
 
@@ -6574,6 +6601,7 @@ SealedEnum:
   problemMessage: "Enums can't be declared to be 'sealed'."
   correctionMessage: "Try removing the keyword 'sealed'."
   analyzerCode: ParserErrorCode.SEALED_ENUM
+  experiments: class-modifiers,sealed-class
   script:
     - "sealed enum E { v }"
 
@@ -6582,6 +6610,7 @@ FinalMixin:
   problemMessage: "A mixin can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
   analyzerCode: ParserErrorCode.FINAL_MIXIN
+  experiments: class-modifiers
   script:
     - "final mixin M {}"
 
@@ -6590,6 +6619,7 @@ InterfaceMixin:
   problemMessage: "A mixin can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
   analyzerCode: ParserErrorCode.INTERFACE_MIXIN
+  experiments: class-modifiers
   script:
     - "interface mixin M {}"
 
@@ -6598,6 +6628,7 @@ SealedMixin:
   problemMessage: "A mixin can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
   analyzerCode: ParserErrorCode.SEALED_MIXIN
+  experiments: class-modifiers,sealed-class
   script:
     - "sealed mixin M {}"
 
@@ -6606,6 +6637,7 @@ FinalMixinClass:
   problemMessage: "A mixin class can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
   analyzerCode: ParserErrorCode.FINAL_MIXIN_CLASS
+  experiments: class-modifiers
   script:
     - "final mixin class C {}"
 
@@ -6614,6 +6646,7 @@ InterfaceMixinClass:
   problemMessage: "A mixin class can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
   analyzerCode: ParserErrorCode.INTERFACE_MIXIN_CLASS
+  experiments: class-modifiers
   script:
     - "interface mixin class C {}"
 
@@ -6622,12 +6655,14 @@ SealedMixinClass:
   problemMessage: "A mixin class can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
   analyzerCode: ParserErrorCode.SEALED_MIXIN_CLASS
+  experiments: class-modifiers,sealed-class
   script:
     - "sealed mixin class C {}"
 
 BaseClassImplementedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be implemented outside of its library because it's a base class."
   analyzerCode: BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6642,6 +6677,7 @@ BaseOrFinalClassImplementedOutsideOfLibraryCause:
 BaseMixinImplementedOutsideOfLibrary:
   problemMessage: "The mixin '#name' can't be implemented outside of its library because it's a base mixin."
   analyzerCode: BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6652,6 +6688,7 @@ BaseMixinImplementedOutsideOfLibrary:
 InterfaceClassExtendedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended outside of its library because it's an interface class."
   analyzerCode: INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6662,6 +6699,7 @@ InterfaceClassExtendedOutsideOfLibrary:
 FinalClassExtendedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be extended outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6672,6 +6710,7 @@ FinalClassExtendedOutsideOfLibrary:
 FinalClassImplementedOutsideOfLibrary:
   problemMessage: "The class '#name' can't be implemented outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6682,6 +6721,7 @@ FinalClassImplementedOutsideOfLibrary:
 FinalClassUsedAsMixinConstraintOutsideOfLibrary:
   problemMessage: "The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class."
   analyzerCode: FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY
+  experiments: class-modifiers
   script:
     main.dart:
       import 'lib.dart';
@@ -6693,6 +6733,7 @@ SubtypeOfBaseIsNotBaseFinalOrSealed:
   problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   analyzerCode: SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED
+  experiments: class-modifiers,sealed-class
   script: |
       base class A {}
       class B extends A {}
@@ -6701,6 +6742,7 @@ SubtypeOfFinalIsNotBaseFinalOrSealed:
   problemMessage: "The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'."
   correctionMessage: "Try adding 'base', 'final', or 'sealed' to the type."
   analyzerCode: SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+  experiments: class-modifiers,sealed-class
   script: |
       final class A {}
       class B extends A {}
@@ -6709,6 +6751,7 @@ MixinSubtypeOfBaseIsNotBase:
   problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'base'."
   correctionMessage: "Try adding 'base' to the mixin."
   analyzerCode: MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
   script: |
       base class A {}
       mixin B implements A {}
@@ -6717,12 +6760,14 @@ MixinSubtypeOfFinalIsNotBase:
   problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'final'."
   correctionMessage: "Try adding 'base' to the mixin."
   analyzerCode: MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
   script: |
       final class A {}
       mixin B implements A {}
 
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
+  experiments: patterns
   analyzerCode: MISSING_OBJECT_PATTERN_GETTER_NAME
   script: |
     abstract class A { int get foo;}
@@ -6730,6 +6775,7 @@ UnspecifiedGetterNameInObjectPattern:
 
 JointPatternVariablesMismatch:
   problemMessage: "Variable pattern '#name' doesn't have the same type or finality in all cases."
+  experiments: patterns
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
 
@@ -6737,6 +6783,7 @@ NonExhaustiveSwitchExpression:
   problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
   correctionMessage: "Try adding a wildcard pattern or cases that match '#string2'."
   analyzerCode: NON_EXHAUSTIVE_SWITCH_EXPRESSION
+  experiments: patterns
   script: |
     enum Enum { a, b }
     String method(Enum e) => switch (e) {
@@ -6747,6 +6794,7 @@ NonExhaustiveSwitchStatement:
   problemMessage: "The type '#type' is not exhaustively matched by the switch cases since it doesn't match '#string'."
   correctionMessage: "Try adding a default case or cases that match '#string2'."
   analyzerCode: NON_EXHAUSTIVE_SWITCH_STATEMENT
+  experiments: patterns
   script: |
     enum Enum { a, b }
     method(Enum e) {
@@ -6760,6 +6808,7 @@ UnreachableSwitchCase:
   problemMessage: "This case is covered by the previous cases."
   analyzerCode: UNREACHABLE_SWITCH_CASE
   severity: WARNING # TODO(johnniwinther): Should this be an error, warning or not emitted at all?
+  experiments: patterns
   script: |
     enum Enum { a, b }
     method(Enum e) {
@@ -6777,6 +6826,7 @@ PatternTypeMismatchInIrrefutableContext:
   problemMessage: "The matched value of type '#type' isn't assignable to the required type '#type2'."
   correctionMessage: "Try changing the required type of the pattern, or the matched value type."
   analyzerCode: PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT
+  experiments: patterns
   script: |
     method(List<String> list) {
       var <int>[a] = list;
@@ -6786,6 +6836,7 @@ DuplicatePatternAssignmentVariable:
   problemMessage: The variable '#name' is already assigned in this pattern.
   correctionMessage: Try renaming the variable.
   analyzerCode: DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE
+  experiments: patterns
   script: |
     method(List<String> list) {
       String a = '';
@@ -6800,6 +6851,7 @@ DuplicateRecordPatternField:
   problemMessage: The field '#name' is already matched in this pattern.
   correctionMessage: Try removing the duplicate field.
   analyzerCode: DUPLICATE_RECORD_PATTERN_FIELD
+  experiments: patterns
   script: |
     method(o) {
       switch (o) {
@@ -6815,6 +6867,7 @@ DuplicateRestElementInPattern:
   problemMessage: At most one rest element is allowed in a list or map pattern.
   correctionMessage: Try removing the duplicate rest element.
   analyzerCode: DUPLICATE_REST_ELEMENT_IN_PATTERN
+  experiments: patterns
   script: |
     method(o) {
       switch (o) {
@@ -6828,6 +6881,7 @@ DuplicateRestElementInPatternContext:
 
 RestPatternInMapPattern:
   problemMessage: "The '...' pattern can't appear in map patterns."
+  experiments: patterns
   script: |
     test(dynamic x) { if (x case {1: 1, ...}) {} }
 
@@ -6836,6 +6890,7 @@ UnnecessaryNullAssertPattern:
   correctionMessage: Try replacing the null-assert pattern with its nested pattern.
   analyzerCode: UNNECESSARY_NULL_ASSERT_PATTERN
   severity: WARNING
+  experiments: patterns
   script: |
     method(List<int> list) {
       if (list case [var a!]) {}
@@ -6847,6 +6902,7 @@ UnnecessaryNullCheckPattern:
   analyzerCode: UNNECESSARY_NULL_CHECK_PATTERN
   comment: No parameters.
   severity: WARNING
+  experiments: patterns
   script: |
     method(List<int> list) {
       if (list case [var a?]) {}
@@ -6856,6 +6912,7 @@ NonBoolCondition:
   problemMessage: "Conditions must have a static type of 'bool'."
   correctionMessage: Try changing the condition.
   analyzerCode: NON_BOOL_CONDITION
+  experiments: patterns
   script: |
     method(int i) {
       if (i case 5 when i) {}
@@ -6865,6 +6922,7 @@ RefutablePatternInIrrefutableContext:
   problemMessage: Refutable patterns can't be used in an irrefutable context.
   correctionMessage: Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   analyzerCode: REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT
+  experiments: patterns
   script: |
     method(int? x) {
       var (a?) = x;
@@ -6874,6 +6932,7 @@ MissingVariablePattern:
   problemMessage: "Variable pattern '#name' is missing in this branch of the logical-or pattern."
   correctionMessage: "Try declaring this variable pattern in the branch."
   analyzerCode: MISSING_VARIABLE_PATTERN
+  experiments: patterns
   script: |
     method(x) {
       if (x case [var a] || _) {}
@@ -6882,6 +6941,7 @@ MissingVariablePattern:
 MapPatternTypeArgumentMismatch:
   problemMessage: "A map pattern requires exactly two type arguments."
   analyzerCode: EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS
+  experiments: patterns
   script: |
     method(x) {
       if (x case <int>{0: 0}) {}
@@ -6890,6 +6950,7 @@ MapPatternTypeArgumentMismatch:
 ListPatternTooManyTypeArguments:
   problemMessage: "A list pattern requires exactly one type argument."
   analyzerCode: EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS
+  experiments: patterns
   script: |
     method(x) {
       if (x case <int, int>[]) {}
@@ -6898,6 +6959,7 @@ ListPatternTooManyTypeArguments:
 UnnamedObjectPatternField:
   problemMessage: "A pattern field in an object pattern must be named."
   correctionMessage: "Try adding a pattern name or ':' before the pattern."
+  experiments: patterns
   script: |
     method(x) {
       if (x case int(5)) {}
@@ -6906,6 +6968,7 @@ UnnamedObjectPatternField:
 InvalidConstantPatternNegation:
   problemMessage: "Only negation of a numeric literal is supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  experiments: patterns
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION
   index: 135
   script: |
@@ -6917,6 +6980,7 @@ InvalidConstantPatternNegation:
 InvalidConstantPatternUnary:
   problemMessage: "The unary operator #name is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  experiments: patterns
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY
   index: 136
   script: |
@@ -6930,6 +6994,7 @@ InvalidConstantPatternDuplicateConst:
   correctionMessage: "Try removing one of the 'const' keywords."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST
   index: 137
+  experiments: patterns
   script: |
     method(x) {
       if (x case const const []) {}
@@ -6939,6 +7004,7 @@ InvalidConstantPatternEmptyRecordLiteral:
   problemMessage: "The empty record literal is not supported as a constant pattern."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL
   index: 138
+  experiments: patterns,records
   script: |
     method(x) {
       if (x case const ()) {}
@@ -6949,6 +7015,7 @@ InvalidConstantPatternGeneric:
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC
   index: 139
+  experiments: patterns
   script: |
     method(x) {
       if (x case List<int>) {}
@@ -6959,6 +7026,7 @@ InvalidConstantPatternConstPrefix:
   correctionMessage: "Try wrapping the expression in 'const ( ... )' instead."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX
   index: 140
+  experiments: patterns
   script: |
     method(x) {
       if (x case const 1) {}
@@ -6969,6 +7037,7 @@ InvalidConstantPatternBinary:
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY
   index: 141
+  experiments: patterns
   script: |
     method(x) {
       if (x case 1 + 2) {}
@@ -6979,6 +7048,7 @@ PatternAssignmentDeclaresVariable:
   correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
   analyzerCode: ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE
   index: 145
+  experiments: patterns
   script: |
     method(x) {
       var y;
@@ -6989,6 +7059,7 @@ PatternAssignmentNotLocalVariable:
   problemMessage: Only local variables or formal parameters can be used in pattern assignments.
   correctionMessage: Try assigning to a local variable.
   analyzerCode: PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE
+  experiments: patterns
   script: |
     var global;
     method(x) {
@@ -7000,6 +7071,7 @@ VariablePatternKeywordInDeclarationContext:
   correctionMessage: Try removing the keyword.
   analyzerCode: ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT
   index: 149
+  experiments: patterns
   comment: No parameters.
   hasPublishedDocs: true
   script: |
@@ -7041,6 +7113,7 @@ IllegalPatternVariableName:
   correctionMessage: Choose a different name.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME
   index: 159
+  experiments: patterns
   comment: |-
     Parameters:
     0: the illegal name
@@ -7056,6 +7129,7 @@ IllegalPatternAssignmentVariableName:
   correctionMessage: Choose a different name.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME
   index: 160
+  experiments: patterns
   comment: |-
     Parameters:
     0: the illegal name
@@ -7070,6 +7144,7 @@ IllegalPatternIdentifierName:
   correctionMessage: Match the identifier using '== #lexeme'.
   analyzerCode: ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME
   index: 161
+  experiments: patterns
   comment: |-
     Parameters:
     0: the illegal name
@@ -7086,6 +7161,7 @@ InvalidInsideUnaryPattern:
   correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.
   analyzerCode: ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN
   index: 150
+  experiments: patterns
   comment: No parameters.
   script: |
     void f(x) {
@@ -7097,6 +7173,7 @@ LatePatternVariableDeclaration:
   correctionMessage: Try removing the keyword `late`.
   analyzerCode: ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION
   index: 151
+  experiments: patterns
   comment: No parameters.
   script: |
     void f(x) {
@@ -7108,6 +7185,7 @@ PatternVariableDeclarationOutsideFunctionOrMethod:
   correctionMessage: Try declaring ordinary variables and assigning from within a function or method.
   analyzerCode: ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD
   index: 152
+  experiments: patterns
   comment: No parameters.
   script: |
     class C {
@@ -7119,6 +7197,7 @@ DefaultInSwitchExpression:
   correctionMessage: Try replacing `default` with `_`.
   analyzerCode: ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION
   index: 153
+  experiments: patterns
   comment: No parameters.
   script: |
     void f(x) => switch (x) {

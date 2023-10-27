@@ -30,7 +30,7 @@ runTestCaseJit(Uri source) async {
   final target = VmTarget(TargetFlags());
 
   Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: []);
+      target: target, experimentalFlags: ['class-modifiers']);
 
   final coreTypes = CoreTypes(component);
 
@@ -54,7 +54,7 @@ runTestCaseAot(Uri source) async {
   final target = VmTarget(TargetFlags(supportMirrors: false));
 
   Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: []);
+      target: target, experimentalFlags: ['class-modifiers']);
 
   const bool useGlobalTypeFlowAnalysis = true;
   const bool enableAsserts = false;
