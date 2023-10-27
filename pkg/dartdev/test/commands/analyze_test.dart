@@ -448,7 +448,7 @@ analyzer:
     expect(result.exitCode, 0);
     expect(result.stdout, contains('No issues found!'));
     expect(result.stderr, contains("'records' is now enabled by default"));
-  });
+  }, skip: 'records are enabled by default in 3.0');
 
   test('--verbose', () async {
     p = project(mainSrc: '''

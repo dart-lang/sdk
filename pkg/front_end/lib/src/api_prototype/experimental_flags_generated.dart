@@ -62,7 +62,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -190,7 +190,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -198,7 +198,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -206,7 +206,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));

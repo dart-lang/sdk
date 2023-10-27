@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class RemoveBreakBulkTest extends BulkFixProcessorTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
+  List<String> get experiments => [];
 
   @override
   String get lintCode => LintNames.unnecessary_breaks;
@@ -76,7 +76,7 @@ void f() {
 @reflectiveTest
 class RemoveBreakTest extends FixProcessorLintTest {
   @override
-  List<String> get experiments => ['patterns', 'records'];
+  List<String> get experiments => [];
 
   @override
   FixKind get kind => DartFixKind.REMOVE_BREAK;

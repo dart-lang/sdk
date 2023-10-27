@@ -483,7 +483,7 @@ class IsEnabledByDefault {
 /// value in [IsEnabledByDefault]).
 class IsExpired {
   /// Expiration status of the experiment "class-modifiers"
-  static const bool class_modifiers = false;
+  static const bool class_modifiers = true;
 
   /// Expiration status of the experiment "const-functions"
   static const bool const_functions = false;
@@ -531,13 +531,13 @@ class IsExpired {
   static const bool nonfunction_type_aliases = true;
 
   /// Expiration status of the experiment "patterns"
-  static const bool patterns = false;
+  static const bool patterns = true;
 
   /// Expiration status of the experiment "records"
-  static const bool records = false;
+  static const bool records = true;
 
   /// Expiration status of the experiment "sealed-class"
-  static const bool sealed_class = false;
+  static const bool sealed_class = true;
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
