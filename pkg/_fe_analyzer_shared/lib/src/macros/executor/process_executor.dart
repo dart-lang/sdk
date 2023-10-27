@@ -60,11 +60,17 @@ class _SingleProcessMacroExecutor extends ExternalMacroExecutorBase {
     } on SocketException catch (_) {
       serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     }
-    Process process = await Process.start(programPath, [
-      ...arguments,
-      serverSocket.address.address,
-      serverSocket.port.toString(),
-    ]);
+    Process process;
+    try {
+      process = await Process.start(programPath, [
+        ...arguments,
+        serverSocket.address.address,
+        serverSocket.port.toString(),
+      ]);
+    } catch (e) {
+      await serverSocket.close();
+      rethrow;
+    }
     process.stderr
         .transform(const Utf8Decoder())
         .listen((content) => throw new RemoteException(content));

@@ -6690,7 +6690,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         propertyGetNode,
         computePropertyTarget(receiver),
         propertyName.text,
-        readTarget.member,
+        readTarget is ExtensionTypeRepresentationAccessTarget
+            ? readTarget.representationField
+            : readTarget.member,
         readType);
     return createPropertyGet(
         fileOffset: fileOffset,

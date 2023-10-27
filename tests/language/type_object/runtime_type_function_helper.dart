@@ -38,3 +38,14 @@ Type print string does not match expectation
   Actual: '$type'
 """);
 }
+
+const testRunnerKey = 'test_runner.configuration';
+
+/// Is the test running on a test configuration with VM obfuscation enabled?
+final bool isObfuscated = (() {
+  if (const bool.hasEnvironment(testRunnerKey)) {
+    const config = String.fromEnvironment(testRunnerKey);
+    return config.contains('obfuscate');
+  }
+  return false;
+})();

@@ -25,7 +25,12 @@ main() {
 
   // Class static member tear-offs.
   check(fn('String', 'String, [String?, dynamic]'), Xyzzy.opt);
-  check(fn('String', 'String', {'a': 'String?', 'b': 'dynamic'}), Xyzzy.nam);
+  // TODO(dartbug.com/53879): VM obfuscation also obfuscates named parameters,
+  // but currently they are not deobfuscated if the function is annotated
+  // with @pragma("vm:keep-name"), just the function name.
+  if (!isObfuscated) {
+    check(fn('String', 'String', {'a': 'String?', 'b': 'dynamic'}), Xyzzy.nam);
+  }
 
   // Instance method tear-offs.
   check(fn('void', 'Object?'), new MyList<String>().add);
@@ -50,6 +55,7 @@ main() {
   check(fn('void', 'int'), localFunc2);
 }
 
+@pragma("vm:keep-name")
 class Xyzzy {
   static void foo() {}
   static String opt(String x, [String? a, b]) => "";
