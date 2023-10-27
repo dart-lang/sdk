@@ -1656,29 +1656,9 @@ class Harness {
 
   bool _fieldPromotionEnabled = true;
 
-  set fieldPromotionEnabled(bool value) {
-    assert(!_started);
-    _fieldPromotionEnabled = value;
-  }
-
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
-  set legacy(bool value) {
-    assert(!_started);
-    _operations.legacy = value;
-  }
-
   bool get patternsEnabled => _patternsEnabled ?? !_operations.legacy;
-
-  set patternsEnabled(bool value) {
-    assert(!_started);
-    _patternsEnabled = value;
-  }
-
-  set respectImplicitlyTypedVarInitializers(bool value) {
-    assert(!_started);
-    _respectImplicitlyTypedVarInitializers = value;
-  }
 
   set thisType(String type) {
     assert(!_started);
@@ -1740,6 +1720,26 @@ class Harness {
 
   void addTypeVariable(String name, {String? bound}) {
     _operations.addTypeVariable(name, bound: bound);
+  }
+
+  void disableFieldPromotion() {
+    assert(!_started);
+    _fieldPromotionEnabled = false;
+  }
+
+  void disablePatterns() {
+    assert(!_started);
+    _patternsEnabled = false;
+  }
+
+  void disableRespectImplicitlyTypedVarInitializers() {
+    assert(!_started);
+    _respectImplicitlyTypedVarInitializers = false;
+  }
+
+  void enableLegacy() {
+    assert(!_started);
+    _operations.legacy = true;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
