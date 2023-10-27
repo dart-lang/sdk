@@ -1804,7 +1804,7 @@ class Harness {
   /// Runs the given [statements] through flow analysis, checking any assertions
   /// they contain.
   void run(List<ProtoStatement> statements,
-      {bool errorRecoveryOk = false, Set<String> expectedErrors = const {}}) {
+      {bool errorRecoveryOK = false, Set<String> expectedErrors = const {}}) {
     try {
       _started = true;
       if (_operations.legacy && patternsEnabled) {
@@ -1826,7 +1826,7 @@ class Harness {
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
       var assertInErrorRecoveryStack =
           typeAnalyzer.errors._assertInErrorRecoveryStack;
-      if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
+      if (!errorRecoveryOK && assertInErrorRecoveryStack != null) {
         fail('assertInErrorRecovery called but no errors reported: '
             '$assertInErrorRecoveryStack');
       }

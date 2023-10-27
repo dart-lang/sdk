@@ -1473,7 +1473,7 @@ main() {
               ],
             ).checkIR('switch(expr(int), case(heads(variables()), '
                 'block(break())))'),
-          ], errorRecoveryOk: true);
+          ], errorRecoveryOK: true);
         });
 
         test('Multiple', () {
