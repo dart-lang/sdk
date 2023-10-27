@@ -1062,6 +1062,31 @@ class B {}
     );
   }
 
+  Future<void> test_kind_extensionType() async {
+    var originalSource = '''
+class A {}
+
+extensionType ExtensionTypeToMove^(int i) {}
+
+class B {}
+''';
+    var declarationName = 'ExtensionTypeToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/extension_type_to_move.dart created
+extensionType ExtensionTypeToMove(int i) {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
   Future<void> test_logsAction() async {
     addTestSource(simpleClassContent);
     await initializeServer();
