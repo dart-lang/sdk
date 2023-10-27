@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
@@ -48,7 +49,7 @@ Future<LinkResult> link({
 class Linker {
   final LinkedElementFactory elementFactory;
   final macro.MultiMacroExecutor? macroExecutor;
-  final DeclarationBuilder macroDeclarationBuilder = DeclarationBuilder();
+  late final DeclarationBuilder macroDeclarationBuilder;
 
   /// Libraries that are being linked.
   final Map<Uri, LibraryBuilder> builders = {};
@@ -59,7 +60,13 @@ class Linker {
 
   late Uint8List resolutionBytes;
 
-  Linker(this.elementFactory, this.macroExecutor);
+  LibraryMacroApplier? _macroApplier;
+
+  Linker(this.elementFactory, this.macroExecutor) {
+    macroDeclarationBuilder = DeclarationBuilder(
+      nodeOfElement: (element) => elementNodes[element],
+    );
+  }
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -68,6 +75,8 @@ class Linker {
   DeclaredVariables get declaredVariables {
     return analysisContext.declaredVariables;
   }
+
+  LibraryMacroApplier? get macroApplier => _macroApplier;
 
   Reference get rootReference => elementFactory.rootReference;
 
@@ -108,6 +117,26 @@ class Linker {
     for (var library in builders.values) {
       library.buildEnumChildren();
     }
+  }
+
+  Future<LibraryMacroApplier?> _buildMacroApplier() async {
+    final macroExecutor = this.macroExecutor;
+    if (macroExecutor == null) {
+      return null;
+    }
+
+    final macroApplier = LibraryMacroApplier(
+      elementFactory: elementFactory,
+      macroExecutor: macroExecutor,
+      isLibraryBeingLinked: (uri) => builders.containsKey(uri),
+      declarationBuilder: macroDeclarationBuilder,
+    );
+
+    for (final library in builders.values) {
+      await library.fillMacroApplier(macroApplier);
+    }
+
+    return _macroApplier = macroApplier;
   }
 
   Future<void> _buildOutlines({
@@ -179,6 +208,13 @@ class Linker {
     }
 
     await performance.runAsync(
+      'buildMacroApplier',
+      (performance) async {
+        await _buildMacroApplier();
+      },
+    );
+
+    await performance.runAsync(
       'executeMacroTypesPhase',
       (performance) async {
         for (var library in builders.values) {
@@ -192,8 +228,6 @@ class Linker {
     for (final library in builders.values) {
       library.buildClassSyntheticConstructors();
     }
-
-    macroDeclarationBuilder.transferToElements();
 
     for (var library in builders.values) {
       library.buildInitialExportScope();

@@ -71,6 +71,16 @@ class MacroElementsMerger {
     InstanceElementImpl existingElement,
     InstanceElementImpl newElement,
   ) {
+    if (existingElement is InterfaceElementImpl &&
+        newElement is InterfaceElementImpl) {
+      if (newElement.interfaces.isNotEmpty) {
+        existingElement.interfaces = [
+          ...existingElement.interfaces,
+          ...newElement.interfaces
+        ].toFixedList();
+      }
+    }
+
     final containerRef = existingRef.getChild('@method');
     for (final element in newElement.methods) {
       final reference = element.reference!;
