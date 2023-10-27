@@ -983,6 +983,13 @@ class Assembler : public AssemblerBase {
                              intptr_t index,
                              Register pp = PP,
                              Condition cond = AL);
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP.
+  void StoreWordToPoolIndex(Register value,
+                            intptr_t index,
+                            Register pp = PP,
+                            Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(

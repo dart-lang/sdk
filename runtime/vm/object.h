@@ -3577,6 +3577,8 @@ class Function : public Object {
   // and retry it again.
   bool IsIdempotent() const;
 
+  bool IsCachableIdempotent() const;
+
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
 

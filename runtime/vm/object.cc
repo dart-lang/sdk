@@ -9066,22 +9066,35 @@ bool Function::IsUnmodifiableTypedDataViewFactory() const {
   }
 }
 
+static bool InVmTests(const Function& function) {
+#if defined(TESTING)
+  return true;
+#else
+  auto* zone = Thread::Current()->zone();
+  const auto& cls = Class::Handle(zone, function.Owner());
+  const auto& lib = Library::Handle(zone, cls.library());
+  const auto& url = String::Handle(zone, lib.url());
+  const bool in_vm_tests =
+      strstr(url.ToCString(), "runtime/tests/vm/") != nullptr;
+  return in_vm_tests;
+#endif
+}
+
 bool Function::ForceOptimize() const {
   if (RecognizedKindForceOptimize() || IsFfiTrampoline() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
     return true;
   }
 
-#if defined(TESTING)
-  // For run_vm_tests we allow marking arbitrary functions as force-optimize
-  // via `@pragma('vm:force-optimize')`.
-  if (has_pragma()) {
-    return Library::FindPragma(Thread::Current(), false, *this,
-                               Symbols::vm_force_optimize());
-  }
-#endif  // defined(TESTING)
+  if (!has_pragma()) return false;
 
-  return false;
+  const bool has_vm_pragma = Library::FindPragma(
+      Thread::Current(), false, *this, Symbols::vm_force_optimize());
+  if (!has_vm_pragma) return false;
+
+  // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions as
+  // force-optimize via `@pragma('vm:force-optimize')`.
+  return InVmTests(*this);
 }
 
 bool Function::IsIdempotent() const {
@@ -9095,6 +9108,18 @@ bool Function::IsIdempotent() const {
 
   return Library::FindPragma(Thread::Current(), kAllowOnlyForCoreLibFunctions,
                              *this, Symbols::vm_idempotent());
+}
+
+bool Function::IsCachableIdempotent() const {
+  if (!has_pragma()) return false;
+
+  const bool has_vm_pragma =
+      Library::FindPragma(Thread::Current(), /*only_core=*/false, *this,
+                          Symbols::vm_cachable_idempotent());
+  if (!has_vm_pragma) return false;
+
+  // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions.
+  return InVmTests(*this);
 }
 
 bool Function::RecognizedKindForceOptimize() const {

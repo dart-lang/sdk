@@ -1370,6 +1370,11 @@ class Assembler : public MicroAssembler {
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
 
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP, does not clobber TMP2.
+  void StoreWordToPoolIndex(Register src, intptr_t index, Register pp = PP);
+
   void PushObject(const Object& object) {
     if (IsSameObject(compiler::NullObject(), object)) {
       PushRegister(NULL_REG);

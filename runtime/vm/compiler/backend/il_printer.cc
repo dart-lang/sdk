@@ -904,6 +904,15 @@ void StaticCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
+void CachableIdempotentCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  f->Printf(" %s<%" Pd "> ", String::Handle(function().name()).ToCString(),
+            type_args_len());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    if (i > 0) f->AddString(", ");
+    ArgumentValueAt(i)->PrintTo(f);
+  }
+}
+
 void LoadLocalInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->Printf("%s @%d", local().name().ToCString(), local().index().value());
 }

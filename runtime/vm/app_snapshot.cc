@@ -3284,6 +3284,9 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
                 static_cast<intptr_t>(switchable_call_miss_entry_point);
             continue;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+          case ObjectPool::SnapshotBehavior::kSetToZero:
+            entry.raw_value_ = 0;
+            continue;
           default:
             FATAL("Unexpected snapshot behavior: %d\n", snapshot_behavior);
         }

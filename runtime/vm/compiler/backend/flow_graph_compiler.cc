@@ -472,8 +472,7 @@ void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
   if ((deopt_id != DeoptId::kNone) && !FLAG_precompiled_mode) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
-    if (is_optimizing()) {
-      ASSERT(env != nullptr);
+    if (env != nullptr) {
       // Note that we may lazy-deopt to the same IR instruction in unoptimized
       // code or to another IR instruction (e.g. if LICM hoisted an instruction
       // it will lazy-deopt to a Goto).
@@ -484,7 +483,6 @@ void FlowGraphCompiler::EmitCallsiteMetadata(const InstructionSource& source,
                                          : DeoptId::ToDeoptAfter(deopt_id);
       AddDeoptIndexAtCall(dest_deopt_id, env);
     } else {
-      ASSERT(env == nullptr);
       const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.

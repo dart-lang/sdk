@@ -1325,10 +1325,14 @@ void Assembler::LoadWordFromPoolIndex(Register dst, intptr_t idx) {
   ASSERT(constant_pool_allowed());
   ASSERT(dst != PP);
   // PP is tagged on X64.
-  const int32_t offset =
-      target::ObjectPool::element_offset(idx) - kHeapObjectTag;
-  // This sequence must be decodable by code_patcher_x64.cc.
-  movq(dst, Address(PP, offset));
+  movq(dst, FieldAddress(PP, target::ObjectPool::element_offset(idx)));
+}
+
+void Assembler::StoreWordToPoolIndex(Register src, intptr_t idx) {
+  ASSERT(constant_pool_allowed());
+  ASSERT(src != PP);
+  // PP is tagged on X64.
+  movq(FieldAddress(PP, target::ObjectPool::element_offset(idx)), src);
 }
 
 void Assembler::LoadInt64FromBoxOrSmi(Register result, Register value) {

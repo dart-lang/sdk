@@ -923,6 +923,15 @@ class FlowGraphCompiler : public ValueObject {
 
   bool IsEmptyBlock(BlockEntryInstr* block) const;
 
+  void EmitOptimizedStaticCall(
+      const Function& function,
+      const Array& arguments_descriptor,
+      intptr_t size_with_type_args,
+      intptr_t deopt_id,
+      const InstructionSource& source,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
  private:
   friend class BoxInt64Instr;            // For AddPcRelativeCallStubTarget().
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
@@ -931,7 +940,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class GraphIntrinsicCodeGenScope;   // For optimizing_.
+  friend class GraphIntrinsicCodeGenScope;  // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
@@ -955,15 +964,6 @@ class FlowGraphCompiler : public ValueObject {
 
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
-
-  void EmitOptimizedStaticCall(
-      const Function& function,
-      const Array& arguments_descriptor,
-      intptr_t size_with_type_args,
-      intptr_t deopt_id,
-      const InstructionSource& source,
-      LocationSummary* locs,
-      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitUnoptimizedStaticCall(
       intptr_t size_with_type_args,

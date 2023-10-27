@@ -1569,6 +1569,33 @@ void Assembler::LoadWordFromPoolIndex(Register rd,
   }
 }
 
+void Assembler::StoreWordToPoolIndex(Register value,
+                                     intptr_t index,
+                                     Register pp,
+                                     Condition cond) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(value != pp);
+  // PP is tagged on ARM.
+  const int32_t offset =
+      target::ObjectPool::element_offset(index) - kHeapObjectTag;
+  int32_t offset_mask = 0;
+  if (Address::CanHoldLoadOffset(kFourBytes, offset, &offset_mask)) {
+    str(value, Address(pp, offset), cond);
+  } else {
+    int32_t offset_hi = offset & ~offset_mask;  // signed
+    uint32_t offset_lo = offset & offset_mask;  // unsigned
+    // Inline a simplified version of AddImmediate(rd, pp, offset_hi).
+    Operand o;
+    if (Operand::CanHold(offset_hi, &o)) {
+      add(TMP, pp, o, cond);
+    } else {
+      LoadImmediate(TMP, offset_hi, cond);
+      add(TMP, pp, Operand(TMP), cond);
+    }
+    str(value, Address(TMP, offset_lo), cond);
+  }
+}
+
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
   if (!FLAG_check_code_pointer) {

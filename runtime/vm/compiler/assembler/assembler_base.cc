@@ -381,11 +381,12 @@ intptr_t ObjectPoolBuilder::AddObject(
   return AddObject(ObjectPoolBuilderEntry(&obj, patchable, snapshot_behavior));
 }
 
-intptr_t ObjectPoolBuilder::AddImmediate(uword imm) {
-  return AddObject(
-      ObjectPoolBuilderEntry(imm, ObjectPoolBuilderEntry::kImmediate,
-                             ObjectPoolBuilderEntry::kNotPatchable,
-                             ObjectPoolBuilderEntry::kSnapshotable));
+intptr_t ObjectPoolBuilder::AddImmediate(
+    uword imm,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshotability) {
+  return AddObject(ObjectPoolBuilderEntry(
+      imm, ObjectPoolBuilderEntry::kImmediate, patchable, snapshotability));
 }
 
 intptr_t ObjectPoolBuilder::AddImmediate64(uint64_t imm) {

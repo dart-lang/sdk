@@ -2173,6 +2173,11 @@ class Assembler : public AssemblerBase {
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
 
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP.
+  void StoreWordToPoolIndex(Register src, intptr_t index, Register pp = PP);
+
   void LoadDoubleWordFromPoolIndex(Register lower,
                                    Register upper,
                                    intptr_t index);

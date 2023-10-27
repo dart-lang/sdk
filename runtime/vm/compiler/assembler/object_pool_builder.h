@@ -44,6 +44,9 @@ struct ObjectPoolBuilderEntry {
     // (`ic_data`, [kImmediate] `entrypoint`) in the object pool instead on
     // deserialization.
     kResetToSwitchableCallMissEntryPoint,
+
+    // Set the value to 0 on snapshot writing.
+    kSetToZero,
   };
 
   enum EntryType {
@@ -228,7 +231,12 @@ class ObjectPoolBuilder : public ValueObject {
           ObjectPoolBuilderEntry::kNotPatchable,
       ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
           ObjectPoolBuilderEntry::kSnapshotable);
-  intptr_t AddImmediate(uword imm);
+  intptr_t AddImmediate(
+      uword imm,
+      ObjectPoolBuilderEntry::Patchability patchable =
+          ObjectPoolBuilderEntry::kNotPatchable,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshotability =
+          ObjectPoolBuilderEntry::kSnapshotable);
   intptr_t AddImmediate64(uint64_t imm);
   intptr_t AddImmediate128(simd128_value_t imm);
 

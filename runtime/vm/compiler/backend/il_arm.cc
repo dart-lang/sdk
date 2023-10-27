@@ -46,6 +46,8 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone,
   const auto representation = instr->representation();
   switch (representation) {
     case kTagged:
+    case kUnboxedUint32:
+    case kUnboxedInt32:
       result->set_out(
           0, Location::RegisterLocation(CallingConventions::kReturnReg));
       break;

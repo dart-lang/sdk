@@ -658,6 +658,20 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   return Fragment(call);
 }
 
+Fragment FlowGraphBuilder::CachableIdempotentCall(TokenPosition position,
+                                                  const Function& target,
+                                                  intptr_t argument_count,
+                                                  const Array& argument_names,
+                                                  intptr_t type_args_count) {
+  const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
+  InputsArray arguments = GetArguments(total_count);
+  CachableIdempotentCallInstr* call = new (Z) CachableIdempotentCallInstr(
+      InstructionSource(position), target, type_args_count, argument_names,
+      std::move(arguments), GetNextDeoptId());
+  Push(call);
+  return Fragment(call);
+}
+
 Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
   Fragment instructions;
   instructions += StaticCall(
