@@ -3,22 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test to ensure that the VM does not have an integer overflow issue
-// when concatenating strings.
+// when concatenating strings and hitting length 2^31.
 // See https://github.com/dart-lang/sdk/issues/11214
 
 import "package:expect/expect.dart";
 
 main() {
+  const length28bits = 1 << 28;
   String a = "a";
-
-  var caughtOutOfMemoryException = false;
-  try {
-    while (true) {
-      a = "$a$a$a$a$a$a$a$a";
-    }
-  } on OutOfMemoryError {
-    caughtOutOfMemoryException = true;
+  while (a.length < length28bits) {
+    a = a + a;
   }
-  Expect.isTrue(caughtOutOfMemoryException);
-  Expect.isTrue(a.startsWith('aaaaa') && a.length > 1024);
+  Expect.equals(a.length, length28bits);
+  try {
+    final concat = "$a$a$a$a$a$a$a$a";
+    Expect.equals(concat.length, 8 * length28bits);
+  } on OutOfMemoryError {
+    // Allow test to run out of memory instead.
+  }
 }
