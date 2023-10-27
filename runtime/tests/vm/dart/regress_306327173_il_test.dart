@@ -45,10 +45,10 @@ void matchIL$deref(FlowGraph graph) {
 void main() {
   const ptrValue = 0x80000000;
   if (!isSimulator) {
-    using(arena) {
+    using((arena) {
       final p = arena.allocate<Pointer<Void>>(sizeOf<Pointer<Void>>());
       p.value = Pointer.fromAddress(ptrValue);
       Expect.equals(ptrValue, deref(p));
-    }
+    });
   }
 }
