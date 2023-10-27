@@ -48,6 +48,8 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   final String name;
 
+  final MemberName _memberName;
+
   @override
   final int modifiers;
 
@@ -103,6 +105,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       this.isSynthesized = false,
       this.isEnumElement = false})
       : _constInitializerToken = constInitializerToken,
+        _memberName = fieldNameScheme.getDeclaredName(name),
         super(libraryBuilder, charOffset) {
     type.registerInferredTypeListener(this);
 
@@ -306,6 +309,9 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       }
     }
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   bool get isLateLowered => _fieldEncoding.isLateLowering;
 
@@ -1203,16 +1209,16 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[
-      new _SynthesizedFieldClassMember(
-          fieldBuilder, field, _SynthesizedFieldMemberKind.LateField,
+      new _SynthesizedFieldClassMember(fieldBuilder, field, field.name,
+          _SynthesizedFieldMemberKind.LateField,
           isInternalImplementation: true),
       new _SynthesizedFieldClassMember(fieldBuilder, _lateGetter,
-          _SynthesizedFieldMemberKind.LateGetterSetter,
+          fieldBuilder.memberName, _SynthesizedFieldMemberKind.LateGetterSetter,
           isInternalImplementation: false)
     ];
     if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          fieldBuilder, _lateIsSetField!, _SynthesizedFieldMemberKind.LateIsSet,
+      list.add(new _SynthesizedFieldClassMember(fieldBuilder, _lateIsSetField!,
+          _lateIsSetField!.name, _SynthesizedFieldMemberKind.LateIsSet,
           isInternalImplementation: true));
     }
     return list;
@@ -1221,18 +1227,18 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[
-      new _SynthesizedFieldClassMember(
-          fieldBuilder, field, _SynthesizedFieldMemberKind.LateField,
+      new _SynthesizedFieldClassMember(fieldBuilder, field, field.name,
+          _SynthesizedFieldMemberKind.LateField,
           forSetter: true, isInternalImplementation: true),
     ];
     if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(
-          fieldBuilder, _lateIsSetField!, _SynthesizedFieldMemberKind.LateIsSet,
+      list.add(new _SynthesizedFieldClassMember(fieldBuilder, _lateIsSetField!,
+          _lateIsSetField!.name, _SynthesizedFieldMemberKind.LateIsSet,
           forSetter: true, isInternalImplementation: true));
     }
     if (_lateSetter != null) {
       list.add(new _SynthesizedFieldClassMember(fieldBuilder, _lateSetter!,
-          _SynthesizedFieldMemberKind.LateGetterSetter,
+          fieldBuilder.memberName, _SynthesizedFieldMemberKind.LateGetterSetter,
           forSetter: true, isInternalImplementation: false));
     }
     return list;
@@ -1528,6 +1534,8 @@ class _SynthesizedFieldClassMember implements ClassMember {
 
   final Member _member;
 
+  final Name _name;
+
   Covariance? _covariance;
 
   @override
@@ -1536,7 +1544,8 @@ class _SynthesizedFieldClassMember implements ClassMember {
   @override
   final bool isInternalImplementation;
 
-  _SynthesizedFieldClassMember(this.fieldBuilder, this._member, this._kind,
+  _SynthesizedFieldClassMember(
+      this.fieldBuilder, this._member, this._name, this._kind,
       {this.forSetter = false, required this.isInternalImplementation});
 
   @override
@@ -1615,7 +1624,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   }
 
   @override
-  Name get name => _member.name;
+  Name get name => _name;
 
   @override
   String get fullName {
@@ -1956,18 +1965,26 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
       <ClassMember>[
-        new _SynthesizedFieldClassMember(fieldBuilder, _getter,
+        new _SynthesizedFieldClassMember(
+            fieldBuilder,
+            _getter,
+            fieldBuilder.memberName,
             _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-            forSetter: false, isInternalImplementation: false)
+            forSetter: false,
+            isInternalImplementation: false)
       ];
 
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
       _setter != null
           ? <ClassMember>[
-              new _SynthesizedFieldClassMember(fieldBuilder, _setter!,
+              new _SynthesizedFieldClassMember(
+                  fieldBuilder,
+                  _setter!,
+                  fieldBuilder.memberName,
                   _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-                  forSetter: true, isInternalImplementation: false)
+                  forSetter: true,
+                  isInternalImplementation: false)
             ]
           : const <ClassMember>[];
 
@@ -2095,9 +2112,13 @@ class RepresentationFieldEncoding implements FieldEncoding {
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
       <ClassMember>[
-        new _SynthesizedFieldClassMember(fieldBuilder, _getter,
+        new _SynthesizedFieldClassMember(
+            fieldBuilder,
+            _getter,
+            fieldBuilder.memberName,
             _SynthesizedFieldMemberKind.RepresentationField,
-            forSetter: false, isInternalImplementation: false)
+            forSetter: false,
+            isInternalImplementation: false)
       ];
 
   @override

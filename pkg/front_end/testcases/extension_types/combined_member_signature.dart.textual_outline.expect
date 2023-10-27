@@ -23,6 +23,19 @@ testMethod4(E e) => e.method().$2.unresolved();
 (int, Object?) testGetter1(E e) => e.getter;
 (Object?, int) testGetter2(E e) => e.getter;
 void testSetter(E e) {}
+E e = E(C());
+var f = e.method();
+(Object?, Object?) f1 = f;
+(Object?, int) f2 = f;
+(int, Object?) f3 = f;
+testMethod5(E e) => f.$1.unresolved();
+testMethod6(E e) => f.$2.unresolved();
+var g = e.getter;
+(Object?, Object?) g1 = g;
+(Object?, int) g2 = g;
+(int, Object?) g3 = g;
+testGetter5(E e) => g.$1.unresolved();
+testGetter6(E e) => g.$2.unresolved();
 void method(E e) {}
 main() {}
 expect(expected, actual) {}

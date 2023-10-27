@@ -44,6 +44,50 @@ library;
 //   e.setter = (a, b) => (a as int, b); // Error
 //                        ^
 //
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:45:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(Object?, int)'.
+//  - 'Object' is from 'dart:core'.
+// (Object?, int) f2 = f; // Error
+//                     ^
+//
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:46:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(int, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// (int, Object?) f3 = f; // Error
+//                     ^
+//
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:47:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+// testMethod5(E e) => f.$1.unresolved(); // Error
+//                          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:48:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+// testMethod6(E e) => f.$2.unresolved(); // Error
+//                          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:52:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(Object?, int)'.
+//  - 'Object' is from 'dart:core'.
+// (Object?, int) g2 = g; // Error
+//                     ^
+//
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:53:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(int, Object?)'.
+//  - 'Object' is from 'dart:core'.
+// (int, Object?) g3 = g; // Error
+//                     ^
+//
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:54:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+// testGetter5(E e) => g.$1.unresolved(); // Error
+//                          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/extension_types/combined_member_signature.dart:55:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+// testGetter6(E e) => g.$2.unresolved(); // Error
+//                          ^^^^^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -81,6 +125,27 @@ extension type E(self::C c) implements self::A, self::B {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
+static field self::E /* = self::C */ e = self::E|constructor#(new self::C::•());
+static field (core::Object?, core::Object?) f = self::e.{self::A::method}(){() → (core::Object?, core::Object?)};
+static field (core::Object?, core::Object?) f1 = self::f;
+static field (core::Object?, core::int) f2 = invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:45:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(Object?, int)'.
+ - 'Object' is from 'dart:core'.
+(Object?, int) f2 = f; // Error
+                    ^" in self::f as{TypeError} (core::Object?, core::int);
+static field (core::int, core::Object?) f3 = invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:46:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(int, Object?)'.
+ - 'Object' is from 'dart:core'.
+(int, Object?) f3 = f; // Error
+                    ^" in self::f as{TypeError} (core::int, core::Object?);
+static field (core::Object?, core::Object?) g = self::e.{self::A::getter}{(core::Object?, core::Object?)};
+static field (core::Object?, core::Object?) g1 = self::g;
+static field (core::Object?, core::int) g2 = invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:52:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(Object?, int)'.
+ - 'Object' is from 'dart:core'.
+(Object?, int) g2 = g; // Error
+                    ^" in self::g as{TypeError} (core::Object?, core::int);
+static field (core::int, core::Object?) g3 = invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:53:21: Error: A value of type '(Object?, Object?)' can't be assigned to a variable of type '(int, Object?)'.
+ - 'Object' is from 'dart:core'.
+(int, Object?) g3 = g; // Error
+                    ^" in self::g as{TypeError} (core::int, core::Object?);
 static inline-class-member method E|constructor#(self::C c) → self::E /* = self::C */ {
   lowered final self::E /* = self::C */ #this = c;
   return #this;
@@ -134,6 +199,30 @@ static method testSetter(self::E /* = self::C */ e) → void {
   e.setter = (a, b) => (a as int, b); // Error
                        ^" in (a as core::int, b) as{TypeError} (core::int, core::int);
 }
+static method testMethod5(self::E /* = self::C */ e) → dynamic
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:47:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+testMethod5(E e) => f.\$1.unresolved(); // Error
+                         ^^^^^^^^^^" in self::f.$1{core::Object?}{<unresolved>}.unresolved();
+static method testMethod6(self::E /* = self::C */ e) → dynamic
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:48:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+testMethod6(E e) => f.\$2.unresolved(); // Error
+                         ^^^^^^^^^^" in self::f.$2{core::Object?}{<unresolved>}.unresolved();
+static method testGetter5(self::E /* = self::C */ e) → dynamic
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:54:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+testGetter5(E e) => g.\$1.unresolved(); // Error
+                         ^^^^^^^^^^" in self::g.$1{core::Object?}{<unresolved>}.unresolved();
+static method testGetter6(self::E /* = self::C */ e) → dynamic
+  return invalid-expression "pkg/front_end/testcases/extension_types/combined_member_signature.dart:55:26: Error: The method 'unresolved' isn't defined for the class 'Object?'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
+testGetter6(E e) => g.\$2.unresolved(); // Error
+                         ^^^^^^^^^^" in self::g.$2{core::Object?}{<unresolved>}.unresolved();
 static method method(self::E /* = self::C */ e) → void {
   hoisted has-declared-initializer core::Object? a;
   hoisted has-declared-initializer core::Object? b;
@@ -167,5 +256,5 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///combined_member_signature.dart:18:26 -> RecordConstant(const (42, 87))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///combined_member_signature.dart:19:28 -> RecordConstant(const (42, 87))
-Evaluated: RecordLiteral @ org-dartlang-testcase:///combined_member_signature.dart:48:40 -> RecordConstant(const (42, 87))
-Extra constant evaluation: evaluated: 63, effectively constant: 3
+Evaluated: RecordLiteral @ org-dartlang-testcase:///combined_member_signature.dart:64:40 -> RecordConstant(const (42, 87))
+Extra constant evaluation: evaluated: 71, effectively constant: 3

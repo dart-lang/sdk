@@ -1,0 +1,19 @@
+extension type A<T>(Object it) {
+  T method() => throw '';
+  T get getter => throw '';
+  void set setter(T value) {}
+  T operator[] (T index) => throw '';
+}
+extension type B<S>(Object it) implements A<S> {
+  S method2() => method();
+  S get getter2 => getter;
+  void set setter2(S value) {}
+  void operator[]= (S index, S value) {}
+}
+extension type C(Object i) implements A<int> {
+  int method3() => method();
+  int get getter3 => getter;
+  void set setter3(int value) {}
+  void operator[]= (int index, int value) {}
+}
+test(A<bool> a, B<String> b, C c) {}

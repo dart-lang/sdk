@@ -227,27 +227,32 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
 
     return new ExtensionTypeMembersNode(
         _hierarchyNode.extensionTypeDeclarationBuilder,
-        nonExtensionTypeGetableMap,
-        nonExtensionTypeSetableMap,
-        extensionTypeGetableMap,
-        extensionTypeSetableMap);
+        nonExtensionTypeGetableMap.isNotEmpty
+            ? nonExtensionTypeGetableMap
+            : null,
+        nonExtensionTypeSetableMap.isNotEmpty
+            ? nonExtensionTypeSetableMap
+            : null,
+        extensionTypeGetableMap.isNotEmpty ? extensionTypeGetableMap : null,
+        extensionTypeSetableMap.isNotEmpty ? extensionTypeSetableMap : null);
   }
 }
 
 class ExtensionTypeMembersNode {
   final ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder;
 
-  /// All the members of this extension type inherited from non-extension types.
+  /// All the getables of this extension type inherited from non-extension
+  /// types.
   final Map<Name, ClassMember>? nonExtensionTypeGetableMap;
 
-  /// Similar to [nonExtensionTypeGetableMap] but for setters.
+  /// Similar to [nonExtensionTypeGetableMap] but for setables.
   final Map<Name, ClassMember>? nonExtensionTypeSetableMap;
 
-  /// All the members of this class including [classMembers] of its
-  /// superclasses. The members are sorted by [compareDeclarations].
+  /// All the getables declared in this extension type or inherited from super
+  /// extension types.
   final Map<Name, ClassMember>? extensionTypeGetableMap;
 
-  /// Similar to [extensionTypeGetableMap] but for setters.
+  /// Similar to [extensionTypeGetableMap] but for setables.
   final Map<Name, ClassMember>? extensionTypeSetableMap;
 
   ExtensionTypeMembersNode(
@@ -256,6 +261,19 @@ class ExtensionTypeMembersNode {
       this.nonExtensionTypeSetableMap,
       this.extensionTypeGetableMap,
       this.extensionTypeSetableMap);
+
+  ClassMember? getMember(Name name, bool isSetter) {
+    ClassMember? result = isSetter
+        ? (extensionTypeSetableMap?[name] ?? nonExtensionTypeSetableMap?[name])
+        : (extensionTypeGetableMap?[name] ?? nonExtensionTypeGetableMap?[name]);
+    if (result == null) {
+      return null;
+    }
+    if (result.isStatic) {
+      return null;
+    }
+    return result;
+  }
 }
 
 class _Tuple {

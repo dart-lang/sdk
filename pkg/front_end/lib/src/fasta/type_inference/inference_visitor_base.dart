@@ -963,110 +963,70 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return inferredTypes;
   }
 
-  /// Returns extension type member declared immediately for [extensionType].
-  ObjectAccessTarget? _findDirectExtensionTypeMember(DartType receiverType,
+  ObjectAccessTarget? _findExtensionTypeMember(DartType receiverType,
       ExtensionType extensionType, Name name, int fileOffset,
       {required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
-    for (Procedure procedure
-        in extensionType.extensionTypeDeclaration.procedures) {
-      if (isSetter != procedure.isSetter) {
-        continue;
-      }
-      if (procedure.name == name) {
-        if (procedure.stubKind == ProcedureStubKind.RepresentationField) {
-          return new ObjectAccessTarget.extensionTypeRepresentation(
-              receiverType, extensionType, procedure,
-              isPotentiallyNullable: isReceiverTypePotentiallyNullable);
-        }
-        return new ObjectAccessTarget.interfaceMember(receiverType, procedure,
-            isPotentiallyNullable: isReceiverTypePotentiallyNullable);
-      }
+    Member? member = _getExtensionTypeMember(
+        extensionType.extensionTypeDeclaration, name, isSetter);
+    if (member == null) {
+      return null;
     }
+    if (member is Procedure &&
+        member.stubKind == ProcedureStubKind.RepresentationField) {
+      return new ObjectAccessTarget.extensionTypeRepresentation(
+          receiverType, extensionType, member,
+          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+    }
+    if (member.isExtensionTypeMember) {
+      // TODO(johnniwinther): Derive this from the [ClassMember].
+      ExtensionTypeMemberDescriptor? memberDescriptor;
+      ExtensionTypeDeclaration? extensionTypeDeclaration;
+      outer:
+      for (ExtensionTypeDeclaration declaration
+          in member.enclosingLibrary.extensionTypeDeclarations) {
+        for (ExtensionTypeMemberDescriptor descriptor
+            in declaration.memberDescriptors) {
+          if (descriptor.memberReference == member.reference) {
+            extensionTypeDeclaration = declaration;
+            memberDescriptor = descriptor;
+            break outer;
+          }
+        }
+      }
+      assert(extensionTypeDeclaration != null,
+          "No enclosing extension type declaration found for $member.");
+      assert(memberDescriptor != null,
+          "No extension type member descriptor found for $member.");
+      ProcedureKind kind;
+      switch (memberDescriptor!.kind) {
+        case ExtensionTypeMemberKind.Method:
+          kind = ProcedureKind.Method;
+        case ExtensionTypeMemberKind.Operator:
+          kind = ProcedureKind.Operator;
+        case ExtensionTypeMemberKind.Getter:
+          kind = ProcedureKind.Getter;
+        case ExtensionTypeMemberKind.Setter:
+          kind = ProcedureKind.Setter;
+        case ExtensionTypeMemberKind.Constructor:
+        case ExtensionTypeMemberKind.Factory:
+        case ExtensionTypeMemberKind.Field:
+        case ExtensionTypeMemberKind.RedirectingFactory:
+          throw new UnsupportedError("Unexpected extension type member kind: "
+              "${memberDescriptor.kind}.");
+      }
 
-    // TODO(johnniwinther): Cache this to speed up the lookup.
-    Member? targetMember;
-    Member? targetTearoff;
-    ProcedureKind? targetKind;
-    for (ExtensionTypeMemberDescriptor descriptor
-        in extensionType.extensionTypeDeclaration.memberDescriptors) {
-      if (descriptor.name == name) {
-        switch (descriptor.kind) {
-          case ExtensionTypeMemberKind.Method:
-            if (!isSetter) {
-              targetMember = descriptor.memberReference.asMember;
-              targetTearoff = descriptor.tearOffReference?.asMember;
-              targetKind = ProcedureKind.Method;
-            }
-            break;
-          case ExtensionTypeMemberKind.Getter:
-            if (!isSetter) {
-              targetMember = descriptor.memberReference.asMember;
-              targetTearoff = null;
-              targetKind = ProcedureKind.Getter;
-            }
-            break;
-          case ExtensionTypeMemberKind.Setter:
-            if (isSetter) {
-              targetMember = descriptor.memberReference.asMember;
-              targetTearoff = null;
-              targetKind = ProcedureKind.Setter;
-            }
-            break;
-          case ExtensionTypeMemberKind.Operator:
-            if (!isSetter) {
-              targetMember = descriptor.memberReference.asMember;
-              targetTearoff = null;
-              targetKind = ProcedureKind.Operator;
-            }
-            break;
-          default:
-            unhandled("${descriptor.kind}", "_findDirectExtensionTypeMember",
-                fileOffset, libraryBuilder.fileUri);
-        }
-      }
-    }
-    if (targetMember != null) {
-      assert(targetKind != null);
-      return new ObjectAccessTarget.extensionTypeMember(receiverType,
-          targetMember, targetTearoff, targetKind!, extensionType.typeArguments,
+      return new ObjectAccessTarget.extensionTypeMember(
+          receiverType,
+          memberDescriptor.memberReference.asMember,
+          memberDescriptor.tearOffReference?.asMember,
+          kind,
+          hierarchyBuilder.getTypeArgumentsAsInstanceOf(
+              extensionType, extensionTypeDeclaration!)!,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     } else {
-      for (DartType implement
-          in extensionType.extensionTypeDeclaration.implements) {
-        if (implement is ExtensionType) {
-          ExtensionType supertype = hierarchyBuilder
-              .getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
-                  extensionType, implement.extensionTypeDeclaration,
-                  isNonNullableByDefault: isNonNullableByDefault)!;
-          ObjectAccessTarget? target = _findDirectExtensionTypeMember(
-              receiverType, supertype, name, fileOffset,
-              isSetter: isSetter,
-              isReceiverTypePotentiallyNullable:
-                  isReceiverTypePotentiallyNullable);
-          if (target != null) {
-            return target;
-          }
-        } else if (implement is InterfaceType) {
-          InterfaceType supertype =
-              hierarchyBuilder.getExtensionTypeAsInstanceOfClass(
-                  extensionType, implement.classNode,
-                  isNonNullableByDefault: isNonNullableByDefault)!;
-          Member? interfaceMember = _getInterfaceMember(
-              supertype.classNode, name, isSetter, fileOffset);
-          if (interfaceMember != null) {
-            return new ObjectAccessTarget.interfaceMember(
-                receiverType, interfaceMember,
-                isPotentiallyNullable: isReceiverTypePotentiallyNullable);
-          }
-        } else {
-          assert(
-              false,
-              "Unexpected supertype $implement extension type declaration of "
-              "$extensionType.");
-        }
-      }
-      return null;
+      return new ObjectAccessTarget.interfaceMember(receiverType, member,
+          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     }
   }
 
@@ -1261,8 +1221,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             fileOffset: fileOffset);
 
     if (isReceiverTypePotentiallyNullable) {
-      Member? member = _getInterfaceMember(
-          coreTypes.objectClass, name, isSetter, fileOffset);
+      Member? member =
+          _getInterfaceMember(coreTypes.objectClass, name, isSetter);
       if (member != null) {
         // Null implements all Object members so this is not considered a
         // potentially nullable access.
@@ -1439,6 +1399,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   DartType _getTypeForMemberTarget(
       Member interfaceMember, DartType calleeType, DartType receiverType) {
+    // TODO(johnniwinther): Use [enclosingDeclaration] and `asInstanceOf`.
     Class? enclosingClass = interfaceMember.enclosingClass;
     ExtensionTypeDeclaration? enclosingExtensionTypeDeclaration =
         interfaceMember.enclosingExtensionTypeDeclaration;
@@ -3853,10 +3814,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }), coreTypes);
   }
 
-  Member? _getInterfaceMember(
-      Class class_, Name name, bool setter, int charOffset) {
+  Member? _getInterfaceMember(Class class_, Name name, bool setter) {
     Member? member =
         engine.membersBuilder.getInterfaceMember(class_, name, setter: setter);
+    return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
+  }
+
+  Member? _getExtensionTypeMember(
+      ExtensionTypeDeclaration extensionTypeDeclaration,
+      Name name,
+      bool setter) {
+    Member? member = engine.membersBuilder
+        .getExtensionTypeMember(extensionTypeDeclaration, name, setter: setter);
     return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
   }
 
@@ -4812,7 +4781,7 @@ class _ObjectAccessDescriptor {
         }
       }
     } else if (receiverBound is ExtensionType) {
-      ObjectAccessTarget? target = visitor._findDirectExtensionTypeMember(
+      ObjectAccessTarget? target = visitor._findExtensionTypeMember(
           receiverType, receiverBound, name, fileOffset,
           isSetter: isSetter,
           isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
@@ -4823,7 +4792,7 @@ class _ObjectAccessDescriptor {
 
     ObjectAccessTarget? target;
     Member? interfaceMember =
-        visitor._getInterfaceMember(classNode, name, isSetter, fileOffset);
+        visitor._getInterfaceMember(classNode, name, isSetter);
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(
           receiverType, interfaceMember,

@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Field,
         FunctionNode,
         Member,
+        Name,
         Procedure,
         ProcedureKind,
         ProcedureStubKind;
@@ -49,6 +50,9 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   @override
   String get name => member.name.text;
+
+  @override
+  Name get memberName => member.name;
 
   @override
   bool get isConstructor => member is Constructor;

@@ -74,6 +74,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
 
   List<SourceProcedureBuilder>? _patches;
 
+  final MemberName _memberName;
+
   SourceProcedureBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -98,6 +100,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             nameScheme.isInstanceMember && nameScheme.isExtensionMember,
         this.isExtensionTypeInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
+        _memberName = nameScheme.getDeclaredName(name),
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedure = new Procedure(
@@ -130,6 +133,9 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
           .attachMember(_extensionTearOff!);
     }
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   List<SourceProcedureBuilder>? get patchesForTesting => _patches;
 

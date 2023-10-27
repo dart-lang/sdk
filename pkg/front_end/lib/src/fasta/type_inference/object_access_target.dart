@@ -1357,14 +1357,8 @@ class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getGetterType(InferenceVisitorBase base) {
-    ExtensionTypeDeclaration extensionTypeDeclaration =
-        extensionType.extensionTypeDeclaration;
-    DartType representationType = representationField.getterType;
-    if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
-      representationType = Substitution.fromExtensionType(extensionType)
-          .substituteType(representationType);
-    }
-    return representationType;
+    return base.getGetterTypeForMemberTarget(representationField, receiverType,
+        isSuper: false);
   }
 
   @override
