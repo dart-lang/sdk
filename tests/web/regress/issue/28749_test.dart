@@ -37,7 +37,7 @@ foo<Y>(int x) {
 
 void main() {
   var name = '${Wrap}';
-  if ('$Object' != 'Object') return; // minified
+  if (name.contains('minified:')) return; // minified
 
   Expect.equals(
     'Wrap<(int) => ((int) => void) => (int) => void>',

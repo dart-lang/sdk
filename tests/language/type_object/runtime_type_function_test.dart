@@ -16,9 +16,10 @@ main() {
   check(fn('int', ''), () => 1); //       closure.
 
   var s = new Xyzzy().runtimeType.toString();
-  if (s.length <= 3) return; // dart2js --minify has minified names.
-
-  Expect.equals('Xyzzy', s, 'runtime type of plain class prints as class name');
+  if (!s.startsWith('minified')) {
+    Expect.equals(
+        'Xyzzy', s, 'runtime type of plain class prints as class name');
+  }
 
   check(fn('void', 'String, dynamic'), check);
 
