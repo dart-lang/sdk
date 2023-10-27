@@ -525,6 +525,10 @@ class OperationsCfe
       return false;
     }
     if (property is Procedure) {
+      if (property.stubKind == ProcedureStubKind.RepresentationField) {
+        // Representation fields are promotable if they're non-public.
+        return property.name.isPrivate;
+      }
       if (!property.isAccessor) {
         // We don't promote methods.
         return false;

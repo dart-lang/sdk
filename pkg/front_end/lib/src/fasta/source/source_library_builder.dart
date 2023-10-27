@@ -1682,6 +1682,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (extensionTypeIterator.moveNext()) {
       SourceExtensionTypeDeclarationBuilder extensionType =
           extensionTypeIterator.current;
+      Member? representationGetter =
+          extensionType.representationFieldBuilder?.readTarget;
+      if (representationGetter != null &&
+          !representationGetter.name.isPrivate) {
+        individualPropertyReasons[representationGetter] =
+            PropertyNonPromotabilityReason.isNotPrivate;
+      }
       for (Builder member in extensionType.scope.localMembers) {
         if (member is SourceProcedureBuilder &&
             !member.isStatic &&

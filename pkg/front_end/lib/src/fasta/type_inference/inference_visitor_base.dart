@@ -3401,6 +3401,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
+        type = flowAnalysis.propertyGet(
+                null,
+                computePropertyTarget(receiver),
+                name.text,
+                (target as ExtensionTypeRepresentationAccessTarget)
+                    .representationField,
+                type) ??
+            type;
         Expression read = new AsExpression(receiver, type)
           ..isForNonNullableByDefault = true
           ..isUnchecked = true
