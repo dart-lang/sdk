@@ -1199,7 +1199,6 @@ class Symbol implements core.Symbol {
 ''',
     )
   ],
-  categories: '',
 );
 
 final MockSdkLibrary _LIB_IO = MockSdkLibrary(
@@ -1402,10 +1401,12 @@ void createMockSdk({
       var file = lib.getChildAssumingFile(unit.path);
       file.writeAsStringSync(unit.content);
     }
-    librariesBuffer.writeln(
-      '  "${library.name}": const LibraryInfo("${library.path}", '
-      'categories: "${library.categories}"),',
-    );
+    librariesBuffer.writeln('''
+  '${library.name}': const LibraryInfo(
+    '${library.path}',
+    documented: ${!library.isInternal},
+  ),
+''');
   }
 
   librariesBuffer.writeln('};');
@@ -1434,15 +1435,16 @@ void createMockSdk({
 
 class MockSdkLibrary implements SdkLibrary {
   final String name;
-  final String categories;
   final List<MockSdkLibraryUnit> units;
 
-  MockSdkLibrary(this.name, this.units, {this.categories = 'Shared'});
+  MockSdkLibrary(this.name, this.units);
 
   @override
+  @deprecated
   String get category => throw UnimplementedError();
 
   @override
+  @deprecated
   bool get isDart2JsLibrary => throw UnimplementedError();
 
   @override
@@ -1455,9 +1457,11 @@ class MockSdkLibrary implements SdkLibrary {
   bool get isInternal => shortName.startsWith('dart:_');
 
   @override
+  @deprecated
   bool get isShared => throw UnimplementedError();
 
   @override
+  @deprecated
   bool get isVmLibrary => throw UnimplementedError();
 
   @override

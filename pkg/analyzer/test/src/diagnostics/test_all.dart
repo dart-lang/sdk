@@ -85,6 +85,8 @@ import 'conflicting_constructor_and_static_method_test.dart'
 import 'conflicting_field_and_method_test.dart' as conflicting_field_and_method;
 import 'conflicting_generic_interfaces_test.dart'
     as conflicting_generic_interfaces;
+import 'conflicting_inherited_method_and_setter_test.dart'
+    as conflicting_inherited_method_and_setter;
 import 'conflicting_method_and_field_test.dart' as conflicting_method_and_field;
 import 'conflicting_static_and_instance_test.dart'
     as conflicting_static_and_instance;
@@ -975,6 +977,7 @@ main() {
     conflicting_constructor_and_static_method.main();
     conflicting_field_and_method.main();
     conflicting_generic_interfaces.main();
+    conflicting_inherited_method_and_setter.main();
     conflicting_method_and_field.main();
     conflicting_static_and_instance.main();
     conflicting_type_variable_and_container.main();

@@ -1183,6 +1183,10 @@ class Name {
 
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
+  Name get forSetter {
+    return Name(libraryUri, '$name=');
+  }
+
   @override
   bool operator ==(Object other) {
     return other is Name &&

@@ -60,8 +60,15 @@ class WillRenameFilesTest extends LspOverLegacyTest {
           newUri: toUri(testFileNewPath).toString(),
         ),
       ]);
+      // Allow the refactor time to start before sending the update. We know the
+      // refactor won't complete because it's waiting for the future we control.
+      await pumpEventQueue(times: 5000);
       await updateOverlay(testFilePath, SourceEdit(0, 0, 'inserted'));
-      await pumpEventQueue(times: 50000).then(completer.complete);
+
+      // Allow time for the overlay to be applied and analyzed before allowing
+      // the refactor to continue.
+      await pumpEventQueue(times: 5000);
+      completer.complete();
 
       expect(editFuture, throwsA(isResponseError(ErrorCodes.ContentModified)));
     } finally {

@@ -339,6 +339,8 @@ CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD:
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES:
   status: noFix
+CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER:
+  status: needsEvaluation
 CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD:
   status: noFix
   notes: |-

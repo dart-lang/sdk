@@ -758,6 +758,22 @@ void foo(BuildContext context) async {
     expect(block.asyncStateFor(reference), AsyncState.notMountedCheck);
   }
 
+  test_ifStatement_referenceInCaseWhen_asyncInCondition() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Future<num> value) async {
+  if (await value case int() when f(context)) {
+    context /* ref */;
+  }
+}
+
+bool f(BuildContext context) => true;
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
   test_ifStatement_referenceInElse_asyncInCondition() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -862,6 +878,20 @@ void foo(BuildContext context, bool m) async {
     expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
   }
 
+  test_ifStatement_referenceInThen_asyncInCaseWhen() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Object value) async {
+  if (value case int() when await Future.value(true)) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
   test_ifStatement_referenceInThen_asyncInCondition() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -930,6 +960,20 @@ void foo(BuildContext context) async {
     var ifStatement = findNode.ifStatement('if ');
     var reference = findNode.block('context /* ref */');
     expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceInThen_mountedGuardInCaseWhen() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, Object value) async {
+  if (value case int() when context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
   }
 
   test_ifStatement_referenceInThen_mountedInCondition() async {

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
+import 'package:analyzer/src/dart/analysis/context_locator2.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -18,13 +18,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContextLocatorImplTest);
+    defineReflectiveTests(ContextLocatorImpl2Test);
   });
 }
 
 @reflectiveTest
-class ContextLocatorImplTest with ResourceProviderMixin {
-  late final ContextLocatorImpl contextLocator;
+class ContextLocatorImpl2Test with ResourceProviderMixin {
+  late final ContextLocatorImpl2 contextLocator;
 
   ContextRoot findRoot(List<ContextRoot> roots, Resource rootFolder) {
     for (ContextRoot root in roots) {
@@ -45,7 +45,7 @@ class ContextLocatorImplTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
+    contextLocator = ContextLocatorImpl2(resourceProvider: resourceProvider);
   }
 
   void test_locateRoots_excludedByOptions_directoryWithParenthesis() {
@@ -1749,30 +1749,6 @@ ${getFolder(outPath).path}
     expect(package1Root.excludedPaths, isEmpty);
     expect(package1Root.optionsFile, optionsFile);
     expect(package1Root.packagesFile, packagesFile);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/53874')
-  void test_multiple_packages_monorepo() {
-    var rootPath = '/test/outer';
-    Folder rootFolder = newFolder(rootPath);
-    File packagesFile = newPackageConfigJsonFile(rootPath, '');
-    newPubspecYamlFile(rootPath, '');
-    Folder package1 = newFolder('$rootPath/package1');
-    newPubspecYamlFile(package1.path, '');
-    Folder package2 = newFolder('$rootPath/package2');
-    newPubspecYamlFile(package2.path, '');
-
-    List<ContextRoot> roots =
-        contextLocator.locateRoots(includedPaths: [rootPath]);
-    expect(roots, hasLength(1));
-
-    ContextRoot root = findRoot(roots, rootFolder);
-    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
-    expect(root.packagesFile, packagesFile);
-    var package = root.workspace.findPackageFor(package1.path);
-    expect(package?.root, package1.path);
-    package = root.workspace.findPackageFor(package2.path);
-    expect(package?.root, package2.path);
   }
 
   void _assertAnalyzed(ContextRoot root, List<String> posixPathList) {

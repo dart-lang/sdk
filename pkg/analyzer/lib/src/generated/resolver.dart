@@ -5414,11 +5414,12 @@ class _WhyNotPromotedVisitor
       void addConflictMessage(
           {required Element conflictingElement,
           required String kind,
-          required Element class_,
+          required Element enclosingElement,
           required NonPromotionDocumentationLink link}) {
-        var className = class_.name;
+        var enclosingKindName = enclosingElement.kind.displayName;
+        var enclosingName = enclosingElement.name;
         var message = "'$propertyName' couldn't be promoted because there is a "
-            "conflicting $kind in class '$className'";
+            "conflicting $kind in $enclosingKindName '$enclosingName'";
         var nonSyntheticElement = conflictingElement.nonSynthetic;
         messages.add(DiagnosticMessageImpl(
             filePath: nonSyntheticElement.source!.fullName,
@@ -5433,7 +5434,7 @@ class _WhyNotPromotedVisitor
           addConflictMessage(
               conflictingElement: field,
               kind: 'non-promotable field',
-              class_: field.enclosingElement,
+              enclosingElement: field.enclosingElement,
               link:
                   NonPromotionDocumentationLink.conflictingNonPromotableField);
         }
@@ -5441,14 +5442,14 @@ class _WhyNotPromotedVisitor
           addConflictMessage(
               conflictingElement: getter,
               kind: 'getter',
-              class_: getter.enclosingElement,
+              enclosingElement: getter.enclosingElement,
               link: NonPromotionDocumentationLink.conflictingGetter);
         }
         for (var nsmClass in fieldNameInfo.conflictingNsmClasses) {
           addConflictMessage(
               conflictingElement: nsmClass,
               kind: 'noSuchMethod forwarder',
-              class_: nsmClass,
+              enclosingElement: nsmClass,
               link: NonPromotionDocumentationLink
                   .conflictingNoSuchMethodForwarder);
         }

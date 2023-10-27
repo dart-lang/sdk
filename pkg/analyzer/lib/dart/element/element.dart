@@ -965,34 +965,36 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind METHOD = ElementKind('METHOD', 20, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 21, "<name>");
+  static const ElementKind MIXIN = ElementKind('MIXIN', 21, "mixin");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 22, "<never>");
+  static const ElementKind NAME = ElementKind('NAME', 22, "<name>");
+
+  static const ElementKind NEVER = ElementKind('NEVER', 23, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 23, "parameter");
+      ElementKind('PARAMETER', 24, "parameter");
 
-  static const ElementKind PART = ElementKind('PART', 24, "part");
+  static const ElementKind PART = ElementKind('PART', 25, "part");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 25, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 26, "import prefix");
 
-  static const ElementKind RECORD = ElementKind('RECORD', 26, "record");
+  static const ElementKind RECORD = ElementKind('RECORD', 27, "record");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 27, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 28, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 28, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 29, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 29, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 30, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 30, "type parameter");
+      ElementKind('TYPE_PARAMETER', 31, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 31, "type alias");
+      ElementKind('TYPE_ALIAS', 32, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 32, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 33, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -1014,6 +1016,7 @@ class ElementKind implements Comparable<ElementKind> {
     LIBRARY,
     LOCAL_VARIABLE,
     METHOD,
+    MIXIN,
     NAME,
     NEVER,
     PARAMETER,
