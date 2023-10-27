@@ -1477,6 +1477,9 @@ class Assembler : public AssemblerBase {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return target::IsSmi(object); }
 
+  void LoadWordFromPoolIndex(Register dst, intptr_t index);
+  void StoreWordToPoolIndex(Register src, intptr_t index);
+
  private:
   bool constant_pool_allowed_;
 
@@ -1487,7 +1490,6 @@ class Assembler : public AssemblerBase {
       bool is_unique,
       ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
           ObjectPoolBuilderEntry::kSnapshotable);
-  void LoadWordFromPoolIndex(Register dst, intptr_t index);
 
   void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void AluB(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);

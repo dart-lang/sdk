@@ -3713,6 +3713,24 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
   }
 }
 
+void Assembler::StoreWordToPoolIndex(Register src,
+                                     intptr_t index,
+                                     Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(src != pp);
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  // PP is untagged.
+  intx_t lo = ImmLo(offset);
+  intx_t hi = ImmHi(offset);
+  if (hi == 0) {
+    sx(src, Address(pp, lo));
+  } else {
+    lui(TMP, hi);
+    add(TMP, TMP, pp);
+    sx(src, Address(TMP, lo));
+  }
+}
+
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(IsOriginalObject(object));
   if (IsSameObject(compiler::NullObject(), object)) {

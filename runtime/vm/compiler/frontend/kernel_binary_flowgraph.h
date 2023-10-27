@@ -395,6 +395,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Kernel buffer and pushes the resulting Function object.
   Fragment BuildFfiNativeCallbackFunction(FfiFunctionKind kind);
 
+  Fragment BuildArgumentsCachableIdempotentCall(intptr_t* argument_count);
+  Fragment BuildCachableIdempotentCall(TokenPosition position,
+                                       const Function& target);
+
   // Piece of a StringConcatenation.
   // Represents either a StringLiteral, or a Reader offset to the expression.
   struct ConcatPiece {

@@ -5,9 +5,12 @@
 #include "vm/compiler/backend/il.h"
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/code_entry_kind.h"
 #include "vm/compiler/aot/dispatch_table_generator.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/evaluator.h"
@@ -5856,6 +5859,71 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                ArgumentAt(0));
     }
   }
+}
+
+Representation CachableIdempotentCallInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  // The first input is the array of types for generic functions.
+  if (type_args_len() > 0 || function().IsFactory()) {
+    if (idx == 0) {
+      return kTagged;
+    }
+    idx--;
+  }
+  return FlowGraph::ParameterRepresentationAt(function(), idx);
+}
+
+intptr_t CachableIdempotentCallInstr::ArgumentsSize() const {
+  return FlowGraph::ParameterOffsetAt(function(),
+                                      ArgumentCountWithoutTypeArgs(),
+                                      /*last_slot=*/false) +
+         ((type_args_len() > 0) ? 1 : 0);
+}
+
+Definition* CachableIdempotentCallInstr::Canonicalize(FlowGraph* flow_graph) {
+  return this;
+}
+
+LocationSummary* CachableIdempotentCallInstr::MakeLocationSummary(
+    Zone* zone,
+    bool optimizing) const {
+  return MakeCallSummary(zone, this);
+}
+
+void CachableIdempotentCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if !defined(TARGET_ARCH_IA32)
+  Zone* zone = compiler->zone();
+  compiler::Label done;
+  const intptr_t cacheable_pool_index = __ object_pool_builder().AddImmediate(
+      0, compiler::ObjectPoolBuilderEntry::kPatchable,
+      compiler::ObjectPoolBuilderEntry::kSetToZero);
+  const Register dst = locs()->out(0).reg();
+
+  __ Comment(
+      "CachableIdempotentCall pool load and check. pool_index = "
+      "%" Pd,
+      cacheable_pool_index);
+  __ LoadWordFromPoolIndex(dst, cacheable_pool_index);
+  __ CompareImmediate(dst, 0);
+  __ BranchIf(NOT_EQUAL, &done);
+  __ Comment("CachableIdempotentCall pool load and check - end");
+
+  ArgumentsInfo args_info(type_args_len(), ArgumentCount(), ArgumentsSize(),
+                          argument_names());
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(zone, args_info.ToArgumentsDescriptor());
+  compiler->EmitOptimizedStaticCall(function(), arguments_descriptor,
+                                    args_info.size_with_type_args, deopt_id(),
+                                    source(), locs(), CodeEntryKind::kNormal);
+
+  __ Comment("CachableIdempotentCall pool store");
+  if (!function().HasUnboxedReturnValue()) {
+    __ LoadWordFromBoxOrSmi(dst, dst);
+  }
+  __ StoreWordToPoolIndex(dst, cacheable_pool_index);
+  __ Comment("CachableIdempotentCall pool store - end");
+  __ Bind(&done);
+#endif
 }
 
 intptr_t AssertAssignableInstr::statistics_tag() const {

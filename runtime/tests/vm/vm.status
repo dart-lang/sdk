@@ -32,6 +32,7 @@ dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 
 [ $arch == ia32 ]
+dart/cachable_idempotent_test: Skip # CachableIdempotent calls are not supported in ia32 because it has no object pool.
 dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
 dart/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 dart/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.

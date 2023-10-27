@@ -442,6 +442,7 @@ struct InstrAttrs {
   M(PolymorphicInstanceCall, _)                                                \
   M(DispatchTableCall, _)                                                      \
   M(StaticCall, _)                                                             \
+  M(CachableIdempotentCall, _)                                                 \
   M(LoadLocal, kNoGC)                                                          \
   M(DropTemps, kNoGC)                                                          \
   M(MakeTemp, kNoGC)                                                           \
@@ -5641,6 +5642,94 @@ class StaticCallInstr : public TemplateDartCall<0> {
   const class BinaryFeedback* binary_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallInstr);
+};
+
+// A call to a function which has no side effects and of which the result can
+// be cached.
+//
+// The arguments flowing into this call must be const.
+//
+// The result is cached in the pool. Hence this instruction is not supported
+// on IA32.
+class CachableIdempotentCallInstr : public TemplateDartCall<0> {
+ public:
+  CachableIdempotentCallInstr(const InstructionSource& source,
+                              const Function& function,
+                              intptr_t type_args_len,
+                              const Array& argument_names,
+                              InputsArray&& arguments,
+                              intptr_t deopt_id)
+      : TemplateDartCall(deopt_id,
+                         type_args_len,
+                         argument_names,
+                         std::move(arguments),
+                         source),
+        function_(function),
+        identity_(AliasIdentity::Unknown()) {
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
+    ASSERT(AbstractType::Handle(function.result_type()).IsIntType());
+    ASSERT(!function.IsNull());
+#if defined(TARGET_ARCH_IA32)
+    // No pool to cache in on IA32.
+    FATAL("Not supported on IA32.");
+#endif
+  }
+
+  DECLARE_INSTRUCTION(CachableIdempotentCall)
+
+  const Function& function() const { return function_; }
+
+  virtual CompileType ComputeType() const { return CompileType::Int(); }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool ComputeCanDeoptimizeAfterCall() const { return false; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  virtual bool CanCallDart() const { return true; }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    if (type_args_len() > 0) {
+      if (idx == 0) {
+        return kGuardInputs;
+      }
+      idx--;
+    }
+    return function_.is_unboxed_parameter_at(idx) ? kNotSpeculative
+                                                  : kGuardInputs;
+  }
+
+  virtual intptr_t ArgumentsSize() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+
+  virtual Representation representation() const {
+    // If other representations are supported in the future, the location
+    // summary needs to be updated as well to stay consistent with static calls.
+    return kUnboxedFfiIntPtr;
+  }
+
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F)                                                          \
+  F(const Function&, function_)                                                \
+  F(AliasIdentity, identity_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CachableIdempotentCallInstr,
+                                          TemplateDartCall,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CachableIdempotentCallInstr);
 };
 
 class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {

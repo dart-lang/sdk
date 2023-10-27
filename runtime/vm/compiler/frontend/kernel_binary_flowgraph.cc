@@ -10,6 +10,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/kernel_binary.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -3333,6 +3334,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     ++argument_count;
   }
 
+  if (target.IsCachableIdempotent()) {
+    return BuildCachableIdempotentCall(position, target);
+  }
+
   const auto recognized_kind = target.recognized_kind();
   switch (recognized_kind) {
     case MethodRecognizer::kNativeEffect:
@@ -6231,6 +6236,66 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   ASSERT(named_args_len == 0);
 
   code += B->BuildFfiAsFunctionInternalCall(type_arguments, is_leaf);
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildArgumentsCachableIdempotentCall(
+    intptr_t* argument_count) {
+  *argument_count = ReadUInt();  // read arguments count.
+
+  // List of types.
+  const intptr_t types_list_length = ReadListLength();
+  if (types_list_length != 0) {
+    FATAL("Type arguments for vm:cachable-idempotent not (yet) supported.");
+  }
+
+  Fragment code;
+  // List of positional.
+  intptr_t positional_list_length = ReadListLength();
+  for (intptr_t i = 0; i < positional_list_length; ++i) {
+    code += BuildExpression();
+    Definition* target_def = B->Peek();
+    if (!target_def->IsConstant()) {
+      FATAL(
+          "Arguments for vm:cachable-idempotent must be const, argument on "
+          "index %" Pd " is not.",
+          i);
+    }
+  }
+
+  // List of named.
+  const intptr_t named_args_len = ReadListLength();
+  if (named_args_len != 0) {
+    FATAL("Named arguments for vm:cachable-idempotent not (yet) supported.");
+  }
+
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildCachableIdempotentCall(
+    TokenPosition position,
+    const Function& target) {
+  // The call site must me fore optimized because the cache is untagged.
+  if (!parsed_function()->function().ForceOptimize()) {
+    FATAL(
+        "vm:cachable-idempotent functions can only be called from "
+        "vm:force-optimize functions.");
+  }
+  const auto& target_result_type = AbstractType::Handle(target.result_type());
+  if (!target_result_type.IsIntType()) {
+    FATAL("The return type vm:cachable-idempotent functions must be int.")
+  }
+
+  Fragment code;
+  Array& argument_names = Array::ZoneHandle(Z);
+  intptr_t argument_count;
+  code += BuildArgumentsCachableIdempotentCall(&argument_count);
+
+  code += flow_graph_builder_->CachableIdempotentCall(
+      position, target, argument_count, argument_names,
+      /*type_args_len=*/0);
+  code += flow_graph_builder_->Box(kUnboxedFfiIntPtr);
+
   return code;
 }
 

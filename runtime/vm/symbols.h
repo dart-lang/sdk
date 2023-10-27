@@ -531,6 +531,7 @@ class ObjectPointerVisitor;
   V(vm_idempotent, "vm:idempotent")                                            \
   V(vm_invisible, "vm:invisible")                                              \
   V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
+  V(vm_cachable_idempotent, "vm:cachable-idempotent")                          \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \

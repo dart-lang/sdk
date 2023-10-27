@@ -966,6 +966,105 @@ ISOLATE_UNIT_TEST_CASE(IRTest_LoadThread) {
   EXPECT_EQ(reinterpret_cast<intptr_t>(thread), result_int);
 }
 
+#if !defined(TARGET_ARCH_IA32)
+ISOLATE_UNIT_TEST_CASE(IRTest_CachableIdempotentCall) {
+  // clang-format off
+  auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
+    int globalCounter = 0;
+
+    int increment() => ++globalCounter;
+
+    int cachedIncrement() {
+      // We will replace this call with a cacheable call,
+      // which will lead to the counter no longer being incremented.
+      // Make sure to return the value, so we can see that the boxing and
+      // unboxing works as expected.
+      return increment();
+    }
+
+    int multipleIncrement() {
+      int returnValue = 0;
+      for(int i = 0; i < 10; i++) {
+        // Save the last returned value.
+        returnValue = cachedIncrement();
+      }
+      return returnValue;
+    }
+  )"), std::free);
+  // clang-format on
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
+  const auto& first_result =
+      Object::Handle(Invoke(root_library, "multipleIncrement"));
+  EXPECT(first_result.IsSmi());
+  if (first_result.IsSmi()) {
+    const intptr_t int_value = Smi::Cast(first_result).Value();
+    EXPECT_EQ(10, int_value);
+  }
+
+  const auto& cached_increment_function =
+      Function::Handle(GetFunction(root_library, "cachedIncrement"));
+
+  const auto& increment_function =
+      Function::ZoneHandle(GetFunction(root_library, "increment"));
+
+  TestPipeline pipeline(cached_increment_function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  StaticCallInstr* static_call = nullptr;
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        {kMatchAndMoveStaticCall, &static_call},
+        kMoveGlob,
+        kMatchReturn,
+    }));
+  }
+
+  InputsArray args;
+  CachableIdempotentCallInstr* call = new CachableIdempotentCallInstr(
+      InstructionSource(), increment_function, static_call->type_args_len(),
+      Array::empty_array(), std::move(args), DeoptId::kNone);
+  static_call->ReplaceWith(call, nullptr);
+
+  pipeline.RunForcedOptimizedAfterSSAPasses();
+
+  {
+    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+
+    EXPECT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveCachableIdempotentCall,
+        kMoveGlob,
+        // The cacheable call returns unboxed, so select representations
+        // adds boxing.
+        kMatchBox,
+        kMoveGlob,
+        kMatchReturn,
+    }));
+  }
+
+  {
+#if !defined(PRODUCT)
+    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+    pipeline.CompileGraphAndAttachFunction();
+  }
+
+  const auto& second_result =
+      Object::Handle(Invoke(root_library, "multipleIncrement"));
+  EXPECT(second_result.IsSmi());
+  if (second_result.IsSmi()) {
+    const intptr_t int_value = Smi::Cast(second_result).Value();
+    EXPECT_EQ(11, int_value);
+  }
+}
+#endif
+
 // Helper to set up an inlined FfiCall by replacing a StaticCall.
 FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
                              Zone* zone,

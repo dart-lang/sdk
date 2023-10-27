@@ -244,7 +244,9 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
 #if !defined(DART_PRECOMPILER)
   // In JIT mode, any instruction which may throw must have a deopt-id, except
   // tail-call because it replaces the stack frame.
-  ASSERT1(!instruction->MayThrow() || instruction->IsTailCall() ||
+  ASSERT1(!instruction->MayThrow() ||
+              !instruction->GetBlock()->InsideTryBlock() ||
+              instruction->IsTailCall() ||
               instruction->deopt_id() != DeoptId::kNone,
           instruction);
 
@@ -513,11 +515,12 @@ void FlowGraphChecker::AssertArgumentsInEnv(Definition* call) {
                 call);
       } else {
         if (env->LazyDeoptToBeforeDeoptId()) {
-          // The deoptimization environment attached to this [call] instruction may
-          // no longer target the same call in unoptimized code. It may target anything.
+          // The deoptimization environment attached to this [call] instruction
+          // may no longer target the same call in unoptimized code. It may
+          // target anything.
           //
-          // As a result, we cannot assume the arguments we pass to the call will also be
-          // in the deopt environment.
+          // As a result, we cannot assume the arguments we pass to the call
+          // will also be in the deopt environment.
           //
           // This currently can happen in inlined force-optimized instructions.
           ASSERT(call->inlining_id() > 0);
