@@ -1247,11 +1247,6 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitNonConstant(NonConstantValue constant, [_]) {
-    add('null');
-  }
-
-  @override
   void visitInt(IntConstantValue constant, [_]) {
     // No `addRoot` since IntConstants are always inlined.
     if (constant.intValue < BigInt.zero) {
@@ -1478,9 +1473,6 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitNull(NullConstantValue constant, [_]) => 1;
-
-  @override
-  int visitNonConstant(NonConstantValue constant, [_]) => 1;
 
   @override
   int visitBool(BoolConstantValue constant, [_]) {

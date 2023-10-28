@@ -1016,8 +1016,6 @@ class DataSinkWriter {
         writeDartTypes(constant.typeArguments);
         writeConstant(constant.function);
         break;
-      case ConstantValueKind.NON_CONSTANT:
-        break;
       case ConstantValueKind.INTERCEPTOR:
         final constant = value as InterceptorConstantValue;
         writeClass(constant.cls);

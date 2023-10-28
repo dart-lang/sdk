@@ -296,8 +296,6 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
       constant;
   @override
   ConstantValue visitJsName(JsNameConstantValue constant, _) => constant;
-  @override
-  ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
 
   @override
   ConstantValue visitFunction(FunctionConstantValue constant, _) {
