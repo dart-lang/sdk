@@ -1502,18 +1502,6 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
         element, arguments, _sideEffectsBuilder, inLoop);
   }
 
-  TypeInformation handleClosureCall(ir.Node node, Selector selector,
-      MemberEntity member, ArgumentsTypes arguments) {
-    return _inferrer.registerCalledClosure(
-        node,
-        selector,
-        _inferrer.typeOfMember(member),
-        _analyzedMember,
-        arguments,
-        _sideEffectsBuilder,
-        inLoop: inLoop);
-  }
-
   TypeInformation handleForeignInvoke(ir.StaticInvocation node,
       FunctionEntity function, ArgumentsTypes arguments, Selector selector) {
     final name = function.name;

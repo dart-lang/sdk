@@ -1243,8 +1243,6 @@ class DataSourceReader {
         List<DartType> typeArguments = readDartTypes();
         final function = readConstant() as FunctionConstantValue;
         return InstantiationConstantValue(typeArguments, function);
-      case ConstantValueKind.NON_CONSTANT:
-        return NonConstantValue();
       case ConstantValueKind.INTERCEPTOR:
         ClassEntity cls = readClass();
         return InterceptorConstantValue(cls);

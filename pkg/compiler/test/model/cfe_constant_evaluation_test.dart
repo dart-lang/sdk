@@ -651,16 +651,12 @@ Future testData(TestData data) async {
           ir.Constant evaluatedConstant = evaluator.evaluate(
               ir.StaticTypeContext(node, typeEnvironment), initializer);
 
-          ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant
+          ConstantValue? value = evaluatedConstant is! ir.UnevaluatedConstant
               ? constantValuefier.visitConstant(evaluatedConstant)
-              : NonConstantValue();
+              : null;
 
-          Expect.isNotNull(
-              value,
-              "Expected non-null value from evaluation of "
-              "`${data.code}`.");
-
-          String valueText = value.toStructuredText(dartTypes);
+          String valueText =
+              value?.toStructuredText(dartTypes) ?? 'NonConstant';
           Expect.equals(
               expectedText,
               valueText,

@@ -60,11 +60,6 @@ class ModularConstantEmitter
     return jsAst.LiteralNull();
   }
 
-  @override
-  jsAst.Expression visitNonConstant(NonConstantValue constant, [_]) {
-    return jsAst.LiteralNull();
-  }
-
   static final _exponentialRE = RegExp('^'
       '\([-+]?\)' // 1: sign
       '\([0-9]+\)' // 2: leading digit(s)
