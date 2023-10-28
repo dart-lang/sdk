@@ -21,12 +21,19 @@ import 'introspect_shared.dart';
     IntrospectableClassDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
     final printer = _DeclarationPrinter(
+      sink: sink,
       withDetailsFor: withDetailsFor.cast(),
       declarationPhaseIntrospector: builder,
     );
     await printer.writeClassDeclaration(declaration);
-    final text = printer._sink.toString();
+    final text = buffer.toString();
 
     final resultName = 'introspect_${declaration.identifier.name}';
     builder.declareInLibrary(
@@ -38,43 +45,48 @@ import 'introspect_shared.dart';
 }
 
 class _DeclarationPrinter {
+  final TreeStringSink sink;
   final Set<String> withDetailsFor;
   final DeclarationPhaseIntrospector declarationPhaseIntrospector;
-
-  final StringBuffer _sink = StringBuffer();
-  String _indent = '';
 
   Identifier? _enclosingDeclarationIdentifier;
 
   _DeclarationPrinter({
+    required this.sink,
     required this.withDetailsFor,
     required this.declarationPhaseIntrospector,
   });
 
   Future<void> writeClassDeclaration(IntrospectableClassDeclaration e) async {
-    _sink.write(_indent);
-    _writeIf(e.hasAbstract, 'abstract ');
-    _writeIf(e.hasExternal, 'external ');
-
-    _writeln('class ${e.identifier.name}');
+    sink.writelnWithIndent('class ${e.identifier.name}');
 
     if (!_shouldWriteDetailsFor(e)) {
       return;
     }
 
-    await _withIndent(() async {
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasAbstract': e.hasAbstract,
+        'hasBase': e.hasBase,
+        'hasExternal': e.hasExternal,
+        'hasFinal': e.hasFinal,
+        'hasInterface': e.hasInterface,
+        'hasMixin': e.hasMixin,
+        'hasSealed': e.hasSealed,
+      });
+
       final superAnnotation = e.superclass;
       if (superAnnotation != null) {
         final superIdentifier = superAnnotation.identifier;
-        _writelnWithIndent('superclass');
+        sink.writelnWithIndent('superclass');
         try {
           final superDeclaration = await declarationPhaseIntrospector
                   .typeDeclarationOf(superIdentifier)
               as IntrospectableClassDeclaration;
-          await _withIndent(() => writeClassDeclaration(superDeclaration));
+          await sink.withIndent(() => writeClassDeclaration(superDeclaration));
         } on ArgumentError {
-          await _withIndent(() async {
-            _writelnWithIndent('notType ${superIdentifier.name}');
+          await sink.withIndent(() async {
+            sink.writelnWithIndent('notType ${superIdentifier.name}');
           });
         }
       }
@@ -84,7 +96,7 @@ class _DeclarationPrinter {
       await _writeTypeAnnotations('interfaces', e.interfaces);
 
       _enclosingDeclarationIdentifier = e.identifier;
-      await _writeElements<FieldDeclaration>(
+      await sink.writeElements<FieldDeclaration>(
         'fields',
         await declarationPhaseIntrospector.fieldsOf(e),
         _writeField,
@@ -103,95 +115,47 @@ class _DeclarationPrinter {
         withDetailsFor.contains(declaration.identifier.name);
   }
 
-  Future<void> _withIndent(Future<void> Function() f) async {
-    final savedIndent = _indent;
-    _indent = '$savedIndent  ';
-    await f();
-    _indent = savedIndent;
-  }
-
-  Future<void> _writeElements<T>(
-    String name,
-    Iterable<T> elements,
-    Future<void> Function(T) f,
-  ) async {
-    if (elements.isNotEmpty) {
-      _writelnWithIndent(name);
-      await _withIndent(() async {
-        for (final element in elements) {
-          await f(element);
-        }
-      });
-    }
-  }
-
   Future<void> _writeField(FieldDeclaration e) async {
     _assertEnclosingClass(e);
 
-    _writeIndentedLine(() {
-      _writeIf(e.isStatic, 'static ');
-      _writeIf(e.hasExternal, 'external ');
-      _writeIf(e.hasLate, 'late ');
-      _writeIf(e.hasFinal, 'final ');
-      _writeName(e);
-    });
+    sink.writelnWithIndent(e.identifier.name);
 
-    await _withIndent(() async {
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasExternal': e.hasExternal,
+        'hasFinal': e.hasFinal,
+        'hasLate': e.hasLate,
+        'isStatic': e.isStatic,
+      });
       _writeTypeAnnotation('type', e.type);
     });
   }
 
-  void _writeIf(bool flag, String str) {
-    if (flag) {
-      _sink.write(str);
-    }
-  }
-
-  void _writeIndentedLine(void Function() f) {
-    _sink.write(_indent);
-    f();
-    _sink.writeln();
-  }
-
-  void _writeln(String line) {
-    _sink.writeln(line);
-  }
-
-  void _writelnWithIndent(String line) {
-    _sink.write(_indent);
-    _sink.writeln(line);
-  }
-
-  void _writeName(Declaration e) {
-    _sink.write(e.identifier.name);
-  }
-
   void _writeTypeAnnotation(String name, TypeAnnotation? type) {
-    _sink.write(_indent);
-    _sink.write('$name: ');
+    sink.writeWithIndent('$name: ');
 
     if (type != null) {
-      _writeln(type.asString);
+      sink.writeln(type.asString);
     } else {
-      _writeln('null');
+      sink.writeln('null');
     }
   }
 
   Future<void> _writeTypeAnnotationLine(TypeAnnotation type) async {
-    _writelnWithIndent(type.asString);
+    sink.writelnWithIndent(type.asString);
   }
 
   Future<void> _writeTypeAnnotations(
     String name,
     Iterable<TypeAnnotation> elements,
   ) async {
-    await _writeElements(name, elements, _writeTypeAnnotationLine);
+    await sink.writeElements(name, elements, _writeTypeAnnotationLine);
   }
 
   Future<void> _writeTypeParameter(TypeParameterDeclaration e) async {
-    _writelnWithIndent(e.identifier.name);
+    sink.writelnWithIndent(e.identifier.name);
 
-    await _withIndent(() async {
+    await sink.withIndent(() async {
       final bound = e.bound;
       if (bound != null) {
         _writeTypeAnnotation('bound', bound);
@@ -202,6 +166,6 @@ class _DeclarationPrinter {
   Future<void> _writeTypeParameters(
     Iterable<TypeParameterDeclaration> elements,
   ) async {
-    await _writeElements('typeParameters', elements, _writeTypeParameter);
+    await sink.writeElements('typeParameters', elements, _writeTypeParameter);
   }
 }
