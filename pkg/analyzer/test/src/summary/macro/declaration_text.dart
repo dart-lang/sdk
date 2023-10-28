@@ -13,10 +13,18 @@ import 'introspect_shared.dart';
   const DeclarationTextMacro();
 
   @override
-  FutureOr<void> buildTypesForClass(declaration, builder) {
-    final printer = _DeclarationPrinter();
-    printer.writeClassDeclaration(declaration);
-    final text = printer._sink.toString();
+  Future<void> buildTypesForClass(declaration, builder) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final printer = _DeclarationPrinter(
+      sink: sink,
+    );
+    await printer.writeClassDeclaration(declaration);
+    final text = buffer.toString();
 
     builder.declareType(
       'x',
@@ -27,10 +35,18 @@ import 'introspect_shared.dart';
   }
 
   @override
-  FutureOr<void> buildTypesForMethod(method, builder) {
-    final printer = _DeclarationPrinter();
-    printer.writeMethodDeclaration(method);
-    final text = printer._sink.toString();
+  Future<void> buildTypesForMethod(method, builder) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final printer = _DeclarationPrinter(
+      sink: sink,
+    );
+    await printer.writeMethodDeclaration(method);
+    final text = buffer.toString();
 
     builder.declareType(
       'x',
@@ -42,47 +58,37 @@ import 'introspect_shared.dart';
 }
 
 class _DeclarationPrinter {
-  final StringBuffer _sink = StringBuffer();
-  String _indent = '';
+  final TreeStringSink sink;
 
-  void writeClassDeclaration(ClassDeclaration e) {
-    _writeIf(e.hasAbstract, 'abstract ');
-    _writeIf(e.hasExternal, 'external ');
+  _DeclarationPrinter({
+    required this.sink,
+  });
 
-    _writeln('class ${e.identifier.name}');
+  Future<void> writeClassDeclaration(ClassDeclaration e) async {
+    sink.writelnWithIndent('class ${e.identifier.name}');
 
-    _withIndent(() {
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasAbstract': e.hasAbstract,
+        'hasExternal': e.hasExternal,
+      });
+
       var superclass = e.superclass;
       if (superclass != null) {
-        _writeTypeAnnotation('superclass', superclass);
+        await _writeTypeAnnotation('superclass', superclass);
       }
 
-      _writeTypeParameters(e.typeParameters);
-      _writeTypeAnnotations('mixins', e.mixins);
-      _writeTypeAnnotations('interfaces', e.interfaces);
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations('mixins', e.mixins);
+      await _writeTypeAnnotations('interfaces', e.interfaces);
     });
   }
 
-  void writeIndent() {
-    _sink.write(_indent);
-  }
+  Future<void> writeMethodDeclaration(MethodDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
 
-  /// TODO(scheglov) Copy TreeStringSink here
-  void writeIndentedLine(void Function() f) {
-    writeIndent();
-    f();
-    writeln();
-  }
-
-  void writeln([Object? object = '']) {
-    _sink.writeln(object);
-  }
-
-  void writeMethodDeclaration(MethodDeclaration e) {
-    _writelnWithIndent(e.identifier.name);
-
-    _withIndent(() {
-      _writeFlags({
+    await sink.withIndent(() async {
+      await sink.writeFlags({
         'hasAbstract': e.hasAbstract,
         'hasBody': e.hasBody,
         'hasExternal': e.hasExternal,
@@ -92,126 +98,100 @@ class _DeclarationPrinter {
         'isStatic': e.isStatic,
       });
 
-      _writeMetadata(e);
-      _writeNamedFormalParameters(e.namedParameters);
-      _writePositionalFormalParameters(e.positionalParameters);
-      _writeTypeAnnotation('returnType', e.returnType);
-      _writeTypeParameters(e.typeParameters);
+      await _writeMetadata(e);
+      await _writeNamedFormalParameters(e.namedParameters);
+      await _writePositionalFormalParameters(e.positionalParameters);
+      await _writeTypeAnnotation('returnType', e.returnType);
+      await _writeTypeParameters(e.typeParameters);
     });
   }
 
-  void _withIndent(void Function() f) {
-    var savedIndent = _indent;
-    _indent = '$savedIndent  ';
-    f();
-    _indent = savedIndent;
-  }
-
-  void _writeElements<T>(
-    String name,
-    Iterable<T> elements,
-    void Function(T) f,
-  ) {
-    if (elements.isNotEmpty) {
-      _writelnWithIndent(name);
-      _withIndent(() {
-        for (var element in elements) {
-          f(element);
-        }
-      });
-    }
-  }
-
-  void _writeFlags(Map<String, bool> flags) {
-    if (flags.values.any((flag) => flag)) {
-      writeIndentedLine(() {
-        _sink.write('flags:');
-        for (final entry in flags.entries) {
-          if (entry.value) {
-            _sink.write(' ${entry.key}');
-          }
-        }
-      });
-    }
-  }
-
-  void _writeFormalParameter(ParameterDeclaration e) {
-    _writelnWithIndent(e.identifier.name);
-    _withIndent(() {
-      _writeFlags({
+  Future<void> _writeFormalParameter(ParameterDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+    await sink.withIndent(() async {
+      await sink.writeFlags({
         'isNamed': e.isNamed,
         'isRequired': e.isRequired,
       });
-      _writeTypeAnnotation('type', e.type);
+      await _writeTypeAnnotation('type', e.type);
     });
   }
 
-  void _writeIf(bool flag, String str) {
-    if (flag) {
-      _sink.write(str);
-    }
+  Future<void> _writeMetadata(Annotatable e) async {
+    await sink.writeElements(
+      'metadata',
+      e.metadata,
+      _writeMetadataAnnotation,
+    );
   }
 
-  void _writeln(String line) {
-    _sink.writeln(line);
-  }
-
-  void _writelnWithIndent(String line) {
-    _sink.write(_indent);
-    _sink.writeln(line);
-  }
-
-  void _writeMetadata(Annotatable e) {
-    _writeElements('metadata', e.metadata, _writeMetadataAnnotation);
-  }
-
-  void _writeMetadataAnnotation(MetadataAnnotation e) {
+  Future<void> _writeMetadataAnnotation(MetadataAnnotation e) async {
     // TODO(scheglov) implement
   }
 
-  void _writeNamedFormalParameters(
+  Future<void> _writeNamedFormalParameters(
     Iterable<ParameterDeclaration> elements,
-  ) {
-    _writeElements('namedParameters', elements, _writeFormalParameter);
+  ) async {
+    await sink.writeElements(
+      'namedParameters',
+      elements,
+      _writeFormalParameter,
+    );
   }
 
-  void _writePositionalFormalParameters(
+  Future<void> _writePositionalFormalParameters(
     Iterable<ParameterDeclaration> elements,
-  ) {
-    _writeElements('positionalParameters', elements, _writeFormalParameter);
+  ) async {
+    await sink.writeElements(
+      'positionalParameters',
+      elements,
+      _writeFormalParameter,
+    );
   }
 
-  void _writeTypeAnnotation(String name, TypeAnnotation? type) {
-    _sink.write(_indent);
-    _sink.write('$name: ');
+  Future<void> _writeTypeAnnotation(String name, TypeAnnotation? type) async {
+    sink.writeWithIndent('$name: ');
 
     if (type != null) {
-      _writeln(type.asString);
+      sink.writeln(type.asString);
     } else {
-      _writeln('null');
+      sink.writeln('null');
     }
   }
 
-  void _writeTypeAnnotationLine(TypeAnnotation type) {
-    _writelnWithIndent(type.asString);
+  Future<void> _writeTypeAnnotationLine(TypeAnnotation type) async {
+    sink.writelnWithIndent(type.asString);
   }
 
-  void _writeTypeAnnotations(String name, Iterable<TypeAnnotation> elements) {
-    _writeElements(name, elements, _writeTypeAnnotationLine);
+  Future<void> _writeTypeAnnotations(
+    String name,
+    Iterable<TypeAnnotation> elements,
+  ) async {
+    await sink.writeElements(
+      name,
+      elements,
+      _writeTypeAnnotationLine,
+    );
   }
 
-  void _writeTypeParameter(TypeParameterDeclaration e) {
-    _writelnWithIndent(e.identifier.name);
+  Future<void> _writeTypeParameter(TypeParameterDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
 
-    _withIndent(() {
+    await sink.withIndent(() async {
       var bound = e.bound;
       if (bound != null) {
-        _writeTypeAnnotation('bound', bound);
+        await _writeTypeAnnotation('bound', bound);
       }
     });
   }
 
-  void _writeTypeParameters(Iterable<TypeParameterDeclaration> elements) {
-    _writeElements('typeParameters', elements, _writeTypeParameter);
+  Future<void> _writeTypeParameters(
+    Iterable<TypeParameterDeclaration> elements,
+  ) async {
+    await sink.writeElements(
+      'typeParameters',
+      elements,
+      _writeTypeParameter,
+    );
   }
 }

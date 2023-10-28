@@ -450,7 +450,8 @@ class X extends A {}
 ''', r'''
 class X
   superclass
-    abstract class A
+    class A
+      flags: hasAbstract
       superclass
         class Object
 ''');
@@ -572,7 +573,8 @@ class X {
 ''', r'''
 class X
   fields
-    external a
+    a
+      flags: hasExternal
       type: int
     b
       type: int
@@ -591,7 +593,8 @@ class X {
 ''', r'''
 class X
   fields
-    final a
+    a
+      flags: hasFinal
       type: int
     b
       type: int
@@ -610,9 +613,11 @@ class X {
 ''', r'''
 class X
   fields
-    late final a
+    a
+      flags: hasFinal hasLate
       type: int
-    final b
+    b
+      flags: hasFinal
       type: int
 ''');
   }
@@ -629,7 +634,8 @@ class X {
 ''', r'''
 class X
   fields
-    static a
+    a
+      flags: isStatic
       type: int
     b
       type: int
@@ -1614,7 +1620,8 @@ class A
 @DeclarationTextMacro()
 abstract class A {}
 ''', r'''
-abstract class A
+class A
+  flags: hasAbstract
 ''');
   }
 
