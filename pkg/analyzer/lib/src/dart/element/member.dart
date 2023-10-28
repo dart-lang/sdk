@@ -191,6 +191,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isAugmentation => declaration.isAugmentation;
 
   @override
+  bool get isExtensionTypeMember => declaration.isExtensionTypeMember;
+
+  @override
   bool get isExternal => declaration.isExternal;
 
   @override

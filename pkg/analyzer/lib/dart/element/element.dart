@@ -1209,6 +1209,9 @@ abstract class ExecutableElement implements FunctionTypedElement {
   /// If `true`, declaration has the explicit `augment` modifier.
   bool get isAugmentation;
 
+  /// Whether the executable element is an extension type member.
+  bool get isExtensionTypeMember;
+
   /// Whether the executable element is external.
   ///
   /// Executable elements are external if they are explicitly marked as such

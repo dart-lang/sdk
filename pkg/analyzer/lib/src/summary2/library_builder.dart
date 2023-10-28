@@ -353,16 +353,61 @@ class LibraryBuilder {
   Future<void> executeMacroDeclarationsPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    var macroAugmentation = await _executeMacroDeclarationsPhase(
-      container: element,
-      performance: performance,
-    );
+    final macroApplier = linker.macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
 
-    // Repeat if new types were added.
-    while (macroAugmentation != null) {
-      macroAugmentation = await _executeMacroDeclarationsPhase(
-        container: macroAugmentation,
-        performance: performance,
+    while (true) {
+      final results = await macroApplier.executeDeclarationsPhase(
+        typeSystem: element.typeSystem,
+      );
+
+      // No more applications to execute.
+      if (results == null) {
+        break;
+      }
+
+      // No results from the application.
+      if (results.isEmpty) {
+        continue;
+      }
+
+      _macroResults.add(results);
+
+      final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+        results,
+      );
+      if (augmentationCode == null) {
+        continue;
+      }
+
+      final importState = kind.addMacroAugmentation(
+        augmentationCode,
+        addLibraryAugmentDirective: true,
+        partialIndex: _macroResults.length,
+      );
+
+      final augmentation = _addMacroAugmentation(importState);
+
+      final macroLinkingUnit = units.last;
+      ElementBuilder(
+        libraryBuilder: this,
+        container: macroLinkingUnit.container,
+        unitReference: macroLinkingUnit.reference,
+        unitElement: macroLinkingUnit.element,
+      ).buildDeclarationElements(macroLinkingUnit.node);
+
+      final nodesToBuildType = NodesToBuildType();
+      final resolver =
+          ReferenceResolver(linker, nodesToBuildType, augmentation);
+      macroLinkingUnit.node.accept(resolver);
+      TypesBuilder(linker).build(nodesToBuildType);
+
+      // Append applications from the partial augmentation.
+      await macroApplier.add(
+        container: augmentation,
+        unit: macroLinkingUnit.node,
       );
     }
   }
@@ -370,16 +415,63 @@ class LibraryBuilder {
   Future<void> executeMacroTypesPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    var macroAugmentation = await _executeMacroTypesPhase(
-      container: element,
-      performance: performance,
-    );
+    final macroApplier = linker.macroApplier;
+    if (macroApplier == null) {
+      return;
+    }
 
-    // Repeat if new types were added.
-    while (macroAugmentation != null) {
-      macroAugmentation = await _executeMacroTypesPhase(
-        container: macroAugmentation,
-        performance: performance,
+    while (true) {
+      final results = await macroApplier.executeTypesPhase();
+
+      // No more applications to execute.
+      if (results == null) {
+        break;
+      }
+
+      // No results from the application.
+      if (results.isEmpty) {
+        continue;
+      }
+
+      _macroResults.add(results);
+
+      final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+        results,
+      );
+      if (augmentationCode == null) {
+        continue;
+      }
+
+      final importState = kind.addMacroAugmentation(
+        augmentationCode,
+        addLibraryAugmentDirective: true,
+        partialIndex: _macroResults.length,
+      );
+
+      final augmentation = _addMacroAugmentation(importState);
+
+      final macroLinkingUnit = units.last;
+      ElementBuilder(
+        libraryBuilder: this,
+        container: macroLinkingUnit.container,
+        unitReference: macroLinkingUnit.reference,
+        unitElement: macroLinkingUnit.element,
+      ).buildDeclarationElements(macroLinkingUnit.node);
+
+      // Append applications from the partial augmentation.
+      await macroApplier.add(
+        container: augmentation,
+        unit: macroLinkingUnit.node,
+      );
+    }
+  }
+
+  /// Fills with macro applications in user code.
+  Future<void> fillMacroApplier(LibraryMacroApplier macroApplier) async {
+    for (final linkingUnit in units) {
+      await macroApplier.add(
+        container: element,
+        unit: linkingUnit.node,
       );
     }
   }
@@ -393,7 +485,7 @@ class LibraryBuilder {
   Future<void> mergeMacroAugmentations({
     required OperationPerformanceImpl performance,
   }) async {
-    final macroApplier = _createMacroApplier();
+    final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
       return;
     }
@@ -887,23 +979,6 @@ class LibraryBuilder {
     }
   }
 
-  LibraryMacroApplier? _createMacroApplier() {
-    if (!element.featureSet.isEnabled(Feature.macros)) {
-      return null;
-    }
-
-    final macroExecutor = linker.macroExecutor;
-    if (macroExecutor == null) {
-      return null;
-    }
-
-    return LibraryMacroApplier(
-      macroExecutor: macroExecutor,
-      declarationBuilder: linker.macroDeclarationBuilder,
-      libraryBuilder: this,
-    );
-  }
-
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
@@ -915,128 +990,6 @@ class LibraryBuilder {
       neverRef.element = NeverElementImpl.instance;
       declare('Never', neverRef);
     }
-  }
-
-  /// Executes a single pass of the declarations phase.
-  Future<LibraryAugmentationElementImpl?> _executeMacroDeclarationsPhase({
-    required LibraryOrAugmentationElementImpl container,
-    required OperationPerformanceImpl performance,
-  }) async {
-    final macroApplier = _createMacroApplier();
-    if (macroApplier == null) {
-      return null;
-    }
-
-    await performance.runAsync(
-      'buildApplications',
-      (performance) async {
-        await macroApplier.buildApplications(
-          container: container,
-          performance: performance,
-        );
-      },
-    );
-
-    final macroResults = await performance.runAsync(
-      'executeDeclarationsPhase',
-      (performance) async {
-        return await macroApplier.executeDeclarationsPhase();
-      },
-    );
-    macroApplier.disposeApplications();
-    if (macroResults.isEmpty) {
-      return null;
-    }
-    _macroResults.add(macroResults);
-
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      macroResults,
-    );
-    if (augmentationCode == null) {
-      return null;
-    }
-
-    final importState = kind.addMacroAugmentation(
-      augmentationCode,
-      addLibraryAugmentDirective: true,
-      partialIndex: _macroResults.length,
-    );
-
-    final augmentation = _addMacroAugmentation(importState);
-
-    final macroLinkingUnit = units.last;
-    ElementBuilder(
-      libraryBuilder: this,
-      container: macroLinkingUnit.container,
-      unitReference: macroLinkingUnit.reference,
-      unitElement: macroLinkingUnit.element,
-    ).buildDeclarationElements(macroLinkingUnit.node);
-
-    final nodesToBuildType = NodesToBuildType();
-    final resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
-    macroLinkingUnit.node.accept(resolver);
-    TypesBuilder(linker).build(nodesToBuildType);
-
-    return augmentation;
-  }
-
-  /// Executes a single pass of the types phase.
-  Future<LibraryAugmentationElementImpl?> _executeMacroTypesPhase({
-    required LibraryOrAugmentationElementImpl container,
-    required OperationPerformanceImpl performance,
-  }) async {
-    final macroApplier = _createMacroApplier();
-    if (macroApplier == null) {
-      return null;
-    }
-
-    await performance.runAsync(
-      'buildApplications',
-      (performance) async {
-        await macroApplier.buildApplications(
-          container: container,
-          performance: performance,
-        );
-      },
-    );
-
-    final macroResults = await performance.runAsync(
-      'executeTypesPhase',
-      (performance) async {
-        return await macroApplier.executeTypesPhase();
-      },
-    );
-    macroApplier.disposeApplications();
-    if (macroResults.isEmpty) {
-      return null;
-    }
-
-    _macroResults.add(macroResults);
-
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      macroResults,
-    );
-    if (augmentationCode == null) {
-      return null;
-    }
-
-    final importState = kind.addMacroAugmentation(
-      augmentationCode,
-      addLibraryAugmentDirective: true,
-      partialIndex: _macroResults.length,
-    );
-
-    final augmentation = _addMacroAugmentation(importState);
-
-    final macroLinkingUnit = units.last;
-    ElementBuilder(
-      libraryBuilder: this,
-      container: macroLinkingUnit.container,
-      unitReference: macroLinkingUnit.reference,
-      unitElement: macroLinkingUnit.element,
-    ).buildDeclarationElements(macroLinkingUnit.node);
-
-    return augmentation;
   }
 
   static void build(Linker linker, LibraryFileKind inputLibrary) {

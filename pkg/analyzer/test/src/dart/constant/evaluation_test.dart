@@ -39,6 +39,19 @@ const int x = 'foo';
     ]);
   }
 
+  test_enum_argument_methodInvocation() async {
+    await assertErrorsInCode('''
+enum E {
+  enumValue(["text"].map((x) => x));
+
+  const E(this.strings);
+  final Iterable<String> strings;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 21, 22),
+    ]);
+  }
+
   /// Enum constants can reference other constants.
   test_enum_enhanced_constants() async {
     await assertNoErrorsInCode('''
