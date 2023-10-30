@@ -1879,6 +1879,7 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
   bool negate = false;
   while (PeekTag() == kNot) {
     SkipBytes(1);
+    ReadPosition();
     negate = !negate;
   }
 
@@ -1887,6 +1888,7 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
     // Handle '&&' and '||' operators specially to implement short circuit
     // evaluation.
     SkipBytes(1);  // tag.
+    ReadPosition();
 
     TestFragment left = TranslateConditionForControl();
     LogicalOperator op = static_cast<LogicalOperator>(ReadByte());
@@ -3528,8 +3530,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   return instructions + Drop();
 }
 
-Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TokenPosition operand_position = TokenPosition::kNoSource;
   Fragment instructions =
@@ -3587,6 +3590,7 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
   // Skip negations of the right hand side.
   while (PeekTag() == kNot) {
     SkipBytes(1);
+    ReadPosition();
     negated = !negated;
   }
 
@@ -3596,6 +3600,7 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
 
   if (PeekTag() == kLogicalExpression) {
     SkipBytes(1);
+    ReadPosition();
     // Handle nested logical expressions specially to avoid materializing
     // intermediate boolean values.
     right_value += TranslateLogicalExpressionForValue(negated, side_exits);
@@ -3624,9 +3629,9 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
   return Fragment(left.entry, right_value.current);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TestFragment exits;
   exits.true_successor_addresses = new TestFragment::SuccessorAddressArray(2);
@@ -3662,8 +3667,9 @@ Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildConditionalExpression(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+    TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TestFragment condition = TranslateConditionForControl();  // read condition.
 
@@ -4248,6 +4254,8 @@ Fragment StreamingFlowGraphBuilder::BuildBlockExpression() {
   Fragment instructions;
 
   instructions += EnterScope(offset);
+
+  ReadPosition();                                 // ignore file offset.
   const intptr_t list_length = ReadListLength();  // read number of statements.
   for (intptr_t i = 0; i < list_length; ++i) {
     instructions += BuildStatement();  // read ith statement.
@@ -4368,8 +4376,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+    TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
 
   // Create a copy of the closure.
 

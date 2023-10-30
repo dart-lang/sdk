@@ -2629,6 +2629,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipArguments();               // read arguments.
       return;
     case kNot:
+      ReadPosition();    // read position.
       SkipExpression();  // read expression.
       return;
     case kNullCheck:
@@ -2636,11 +2637,13 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();  // read expression.
       return;
     case kLogicalExpression:
+      ReadPosition();    // read position.
       SkipExpression();  // read left.
       SkipBytes(1);      // read operator.
       SkipExpression();  // read right.
       return;
     case kConditionalExpression:
+      ReadPosition();          // read position.
       SkipExpression();        // read condition.
       SkipExpression();        // read then.
       SkipExpression();        // read otherwise.
@@ -2725,10 +2728,12 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();           // read expression.
       return;
     case kBlockExpression:
+      ReadPosition();  // read position.
       SkipStatementList();
       SkipExpression();  // read expression.
       return;
     case kInstantiation:
+      ReadPosition();         // read position.
       SkipExpression();       // read expression.
       SkipListOfDartTypes();  // read type arguments.
       return;
