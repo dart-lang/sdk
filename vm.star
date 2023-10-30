@@ -345,8 +345,7 @@ dart_vm_sanitizer_builder(
 dart_vm_sanitizer_builder(
     "vm-ubsan-linux-release-x64",
     category = "vm|misc|sanitizer|u",
-    goma = False,
-)  # ubsan is not compatible with our sysroot.
+)
 dart_vm_sanitizer_builder(
     "vm-aot-asan-linux-release-x64",
     category = "vm|misc|sanitizer|a",
@@ -362,8 +361,7 @@ dart_vm_sanitizer_builder(
 dart_vm_sanitizer_builder(
     "vm-aot-ubsan-linux-release-x64",
     category = "vm|misc|sanitizer|u",
-    goma = False,
-)  # ubsan is not compatible with our sysroot.
+)
 _nightly_builder(
     "vm-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
