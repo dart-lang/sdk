@@ -734,16 +734,33 @@ DART_EXPORT int64_t SumStruct9Uint8(Struct9Uint8 s9) {
   return s9.a0 + s9.a1 + s9.a2 + s9.a3 + s9.a4 + s9.a5 + s9.a6 + s9.a7 + s9.a8;
 }
 
+// Allocates a multiple of the larest page size, so the last element of the
+// array is right at a page boundary. Explicitly allocate and make inaccessible
+// the next page to avoid flaky false-successes if the next page happens to be
+// allocated.
 DART_EXPORT Struct9Uint8* AllocStruct9Uint8() {
   size_t size = sizeof(Struct9Uint8) * 64 * 1024;
 #if defined(_WIN32)
-  return reinterpret_cast<Struct9Uint8*>(
-      VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE));
+  void* result =
+      VirtualAlloc(nullptr, size * 2, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+  void* guard_page =
+      reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(result) + size);
+  DWORD old_prot;
+  if (VirtualProtect(guard_page, size, PAGE_NOACCESS, &old_prot) == 0) {
+    fprintf(stderr, "VirtualProtect failed\n");
+    abort();
+  }
 #else
-  return reinterpret_cast<Struct9Uint8*>(
-      mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS,
-           -1, 0));
+  void* result = mmap(nullptr, size * 2, PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  void* guard_page =
+      reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(result) + size);
+  if (mprotect(guard_page, size, PROT_NONE) != 0) {
+    fprintf(stderr, "mprotect failed\n");
+    abort();
+  }
 #endif
+  return reinterpret_cast<Struct9Uint8*>(result);
 }
 
 DART_EXPORT void FreeStruct9Uint8(Struct9Uint8* address) {
@@ -751,7 +768,7 @@ DART_EXPORT void FreeStruct9Uint8(Struct9Uint8* address) {
   VirtualFree(address, 0, MEM_RELEASE);
 #else
   size_t size = sizeof(Struct9Uint8) * 64 * 1024;
-  munmap(address, size);
+  munmap(address, size * 2);
 #endif
 }
 
