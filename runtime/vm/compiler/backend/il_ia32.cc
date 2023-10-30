@@ -507,7 +507,13 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ movl(LocationToStackSlotAddress(destination),
               compiler::Immediate(pair_index == 0 ? Utils::Low32Bits(v)
                                                   : Utils::High32Bits(v)));
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ movl(LocationToStackSlotAddress(destination),
+              compiler::Immediate(float_bits));
     } else {
+      ASSERT(representation() == kTagged);
       if (compiler::Assembler::IsSafeSmi(value_) || value_.IsNull()) {
         __ movl(LocationToStackSlotAddress(destination),
                 compiler::Immediate(static_cast<int32_t>(value_.ptr())));
