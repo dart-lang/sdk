@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'command.dart';
-import 'fuchsia_cfv1.dart';
 import 'fuchsia_cfv2.dart';
 
 // Sets up and executes commands against a Fuchsia environment.
@@ -23,10 +21,7 @@ abstract class FuchsiaEmulator {
   static final FuchsiaEmulator _instance = _create();
 
   static FuchsiaEmulator _create() {
-    if (Platform.environment.containsKey('FUCHSIA_CFV2')) {
-      return FuchsiaEmulatorCFv2();
-    }
-    return FuchsiaEmulatorCFv1();
+    return FuchsiaEmulatorCFv2();
   }
 
   static FuchsiaEmulator instance() {
