@@ -106,7 +106,7 @@ class NativeLocation : public ZoneAllocated {
 #if !defined(FFI_UNIT_TESTS)
   virtual Location AsLocation() const {
     ASSERT(IsExpressibleAsLocation());
-    UNREACHABLE();
+    UNREACHABLE_THIS();
   }
 #endif
 
@@ -127,7 +127,7 @@ class NativeLocation : public ZoneAllocated {
   virtual NativeLocation& Split(Zone* zone,
                                 intptr_t num_parts,
                                 intptr_t index) const {
-    UNREACHABLE();
+    UNREACHABLE_THIS();
   }
 
   // Return the top of the stack in bytes. Recurses over its constituents when
@@ -135,7 +135,7 @@ class NativeLocation : public ZoneAllocated {
   virtual intptr_t StackTopInBytes() const { return 0; }
 
   // Equality of location, ignores the payload and container native types.
-  virtual bool Equals(const NativeLocation& other) const { UNREACHABLE(); }
+  virtual bool Equals(const NativeLocation& other) const { UNREACHABLE_THIS(); }
 
   virtual ~NativeLocation() {}
 
@@ -404,7 +404,7 @@ class PointerToMemoryLocation : public NativeLocation {
       Zone* zone,
       const NativeType& new_payload_type,
       const NativeType& new_container_type) const {
-    UNREACHABLE();
+    UNREACHABLE_THIS();
   }
 
   virtual intptr_t StackTopInBytes() const {
@@ -445,7 +445,7 @@ class MultipleNativeLocations : public NativeLocation {
       Zone* zone,
       const NativeType& new_payload_type,
       const NativeType& new_container_type) const {
-    UNREACHABLE();
+    UNREACHABLE_THIS();
   }
 
   virtual intptr_t StackTopInBytes() const;
@@ -477,7 +477,7 @@ class BothNativeLocations : public NativeLocation {
       Zone* zone,
       const NativeType& new_payload_type,
       const NativeType& new_container_type) const {
-    UNREACHABLE();
+    UNREACHABLE_THIS();
   }
 
   virtual intptr_t StackTopInBytes() const {
