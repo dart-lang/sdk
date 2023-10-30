@@ -261,7 +261,7 @@ Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
 Fragment BaseFlowGraphBuilder::UnboxedIntConstant(
     int64_t value,
     Representation representation) {
-  const auto& obj = Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  const auto& obj = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   auto const constant = new (Z) UnboxedConstantInstr(obj, representation);
   Push(constant);
   return Fragment(constant);
