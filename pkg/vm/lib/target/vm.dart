@@ -172,7 +172,7 @@ class VmTarget extends Target {
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi annotations");
 
-      // Transform @FfiNative(..) functions into FFI native call functions.
+      // Transform @Native(..) functions into FFI native call functions.
       // Pass instance method receivers as implicit first argument to the static
       // native function.
       // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
