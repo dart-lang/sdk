@@ -5,6 +5,7 @@
 #ifndef RUNTIME_PLATFORM_UTILS_H_
 #define RUNTIME_PLATFORM_UTILS_H_
 
+#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <type_traits>
