@@ -8,11 +8,19 @@
     ],
     "nullSafety": [
       "non-nullable"
+    ],
+    "extensionTypes": [
+      "inline-class"
     ]
   },
   "sdk": {
     "default": {
       "experimentSet": "sdkExperiments"
+    },
+    "libraries": {
+      "js_interop": {
+        "experimentSet": "extensionTypes"
+      }
     },
     "_example_libraries": {
       "ui": {
@@ -200,6 +208,9 @@
     },
     "video_player_web": {
       "experimentSet": "nullSafety"
+    },
+    "web": {
+      "experimentSet": "extensionTypes"
     }
   }
 }
