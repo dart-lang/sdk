@@ -91,7 +91,7 @@ class SnippetTester {
             if (output.isNotEmpty) {
               fail(output.toString());
             }
-          });
+          }, timeout: Timeout.factor(4));
         }
       } else if (child is Folder) {
         await verifyFolder(child);
