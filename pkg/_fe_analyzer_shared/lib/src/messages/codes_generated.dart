@@ -5525,7 +5525,7 @@ const Template<
         Message Function(String name, String string)>(
     "FieldNotPromotedBecauseNotEnabled",
     problemMessageTemplate:
-        r"""'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+        r"""'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
     correctionMessageTemplate: r"""See #string""",
     withArguments: _withArgumentsFieldNotPromotedBecauseNotEnabled);
 
@@ -5544,7 +5544,7 @@ Message _withArgumentsFieldNotPromotedBecauseNotEnabled(
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeFieldNotPromotedBecauseNotEnabled,
       problemMessage:
-          """'${name}' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+          """'${name}' couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
       correctionMessage: """See ${string}""",
       arguments: {'name': name, 'string': string});
 }

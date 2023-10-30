@@ -4549,19 +4549,14 @@ class _WhyNotPromotedVisitor
             .withLocation(nsmClass.fileUri, nsmClass.fileOffset, noLength));
       }
     }
-    if (messages.isEmpty) {
+    if (reason.fieldPromotionEnabled) {
       // The only possible non-inherent reasons for field promotion to fail are
-      // because of conflicts and because field promotion is disabled. The loops
-      // above failed to find any conflicts, so field promotion must have failed
-      // because it was disabled.
-      assert(!reason.fieldPromotionEnabled);
-      Object? member = reason.propertyMember;
-      if (member is Member) {
-        messages.add(templateFieldNotPromotedBecauseNotEnabled
-            .withArguments(reason.propertyName,
-                NonPromotionDocumentationLink.fieldPromotionUnavailable.url)
-            .withLocation(member.fileUri, member.fileOffset, noLength));
-      }
+      // because of conflicts and because field promotion is disabled. So if
+      // field promotion is enabled, the loops above should have found a
+      // conflict.
+      assert(messages.isNotEmpty);
+    } else {
+      _addFieldPromotionUnavailableMessage(reason, messages);
     }
     return messages;
   }
@@ -4589,11 +4584,15 @@ class _WhyNotPromotedVisitor
         PropertyNonPromotabilityReason.isNotFinal =>
           templateFieldNotPromotedBecauseNotFinal
       };
-      return [
+      List<LocatedMessage> messages = [
         template
             .withArguments(reason.propertyName, reason.documentationLink.url)
             .withLocation(member.fileUri, member.fileOffset, noLength)
       ];
+      if (!reason.fieldPromotionEnabled) {
+        _addFieldPromotionUnavailableMessage(reason, messages);
+      }
+      return messages;
     } else {
       assert(member == null,
           'Unrecognized property member: ${member.runtimeType}');
@@ -4608,6 +4607,17 @@ class _WhyNotPromotedVisitor
           .withArguments(reason.documentationLink.url)
           .withoutLocation()
     ];
+  }
+
+  void _addFieldPromotionUnavailableMessage(
+      PropertyNotPromoted<DartType> reason, List<LocatedMessage> messages) {
+    Object? member = reason.propertyMember;
+    if (member is Member) {
+      messages.add(templateFieldNotPromotedBecauseNotEnabled
+          .withArguments(reason.propertyName,
+              NonPromotionDocumentationLink.fieldPromotionUnavailable.url)
+          .withLocation(member.fileUri, member.fileOffset, noLength));
+    }
   }
 }
 

@@ -5394,7 +5394,9 @@ class _WhyNotPromotedVisitor
             message: message,
             offset: property.nonSynthetic.nameOffset,
             length: property.nameLength,
-            url: reason.documentationLink.url)
+            url: reason.documentationLink.url),
+        if (!reason.fieldPromotionEnabled)
+          _fieldPromotionUnavailableMessage(property, propertyName)
       ];
     } else {
       assert(receiverElement == null,
@@ -5458,21 +5460,14 @@ class _WhyNotPromotedVisitor
                   .conflictingNoSuchMethodForwarder);
         }
       }
-      if (messages.isEmpty) {
+      if (reason.fieldPromotionEnabled) {
         // The only possible non-inherent reasons for field promotion to fail
-        // are because of conflicts and because field promotion is disabled. The
-        // loops above failed to find any conflicts, so field promotion must
-        // have failed because it was disabled.
-        assert(!reason.fieldPromotionEnabled);
-        messages.add(DiagnosticMessageImpl(
-            filePath: property.source.fullName,
-            message:
-                "'$propertyName' refers to a field. It couldn't be promoted "
-                "because field promotion is only available in Dart 3.2 and "
-                "above.",
-            offset: property.nonSynthetic.nameOffset,
-            length: property.nameLength,
-            url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url));
+        // are because of conflicts and because field promotion is disabled. So
+        // if field promotion is enabled, the loops above should have found a
+        // conflict.
+        assert(messages.isNotEmpty);
+      } else {
+        messages.add(_fieldPromotionUnavailableMessage(property, propertyName));
       }
       return messages;
     } else {
@@ -5503,5 +5498,17 @@ class _WhyNotPromotedVisitor
         offset: node.offset,
         length: node.length,
         url: reason.documentationLink.url);
+  }
+
+  DiagnosticMessageImpl _fieldPromotionUnavailableMessage(
+      PropertyAccessorElement property, String propertyName) {
+    return DiagnosticMessageImpl(
+        filePath: property.source.fullName,
+        message: "'$propertyName' couldn't be promoted "
+            "because field promotion is only available in Dart 3.2 and "
+            "above.",
+        offset: property.nonSynthetic.nameOffset,
+        length: property.nameLength,
+        url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url);
   }
 }

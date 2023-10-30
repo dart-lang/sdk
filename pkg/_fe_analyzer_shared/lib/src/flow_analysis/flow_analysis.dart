@@ -3575,7 +3575,11 @@ abstract base class PropertyNotPromoted<Type extends Object>
   /// the client as a convenience for ID testing.
   final Type staticType;
 
-  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType);
+  /// Whether field promotion is enabled for the current library.
+  final bool fieldPromotionEnabled;
+
+  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType,
+      {required this.fieldPromotionEnabled});
 }
 
 /// Non-promotion reason describing the situation where an expression was not
@@ -3587,7 +3591,8 @@ final class PropertyNotPromotedForInherentReason<Type extends Object>
   final PropertyNonPromotabilityReason whyNotPromotable;
 
   PropertyNotPromotedForInherentReason(super.propertyName, super.propertyMember,
-      super.staticType, this.whyNotPromotable);
+      super.staticType, this.whyNotPromotable,
+      {required super.fieldPromotionEnabled});
 
   @override
   NonPromotionDocumentationLink get documentationLink =>
@@ -3632,12 +3637,9 @@ final class PropertyNotPromotedForInherentReason<Type extends Object>
 /// user.
 final class PropertyNotPromotedForNonInherentReason<Type extends Object>
     extends PropertyNotPromoted<Type> {
-  /// Whether field promotion is enabled for the current library.
-  final bool fieldPromotionEnabled;
-
   PropertyNotPromotedForNonInherentReason(
       super.propertyName, super.propertyMember, super.staticType,
-      {required this.fieldPromotionEnabled});
+      {required super.fieldPromotionEnabled});
 
   @override
   Null get documentationLink => null;
@@ -5748,7 +5750,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
                         reference.propertyName,
                         propertyMember,
                         reference._type,
-                        whyNotPromotable);
+                        whyNotPromotable,
+                        fieldPromotionEnabled: fieldPromotionEnabled);
               }
             }
             return result;

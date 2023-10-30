@@ -5481,7 +5481,7 @@ VariableCouldBeNullDueToWrite:
   correctionMessage: "Try null checking the variable after the assignment.  See #string"
 
 FieldNotPromotedBecauseNotEnabled:
-  problemMessage: "'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above."
+  problemMessage: "'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
   correctionMessage: "See #string"
   script: >
     // @dart=3.1
