@@ -122,6 +122,7 @@ features:
     help: "Static meta-programming"
 
   inline-class:
+    experimentalReleaseVersion: '3.3.0'
     help: "Extension Types"
 
   native-assets:

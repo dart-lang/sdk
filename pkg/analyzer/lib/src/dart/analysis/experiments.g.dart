@@ -240,7 +240,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.inline_class,
     isExpired: IsExpired.inline_class,
     documentation: 'Extension Types',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.3.0'),
     releaseVersion: null,
   );
 
