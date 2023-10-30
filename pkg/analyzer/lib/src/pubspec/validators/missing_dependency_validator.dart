@@ -74,6 +74,12 @@ class MissingDependencyValidator {
     final devDependencies =
         getDeclaredDependencies(PubspecField.DEV_DEPENDENCIES_FIELD);
 
+    final packageName =
+        contents.nodes[PubspecField.NAME_FIELD]?.value.toString();
+    // Ensure that the package itself is not listed as a dependency.
+    usedDeps.remove(packageName);
+    usedDevDeps.remove(packageName);
+
     var availableDeps = [
       if (dependencies.isNotEmpty)
         for (var dep in dependencies.entries) dep.key.toString()
