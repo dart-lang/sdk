@@ -464,11 +464,42 @@ final class RawSocketOption {
   external static int _getOptionValue(int key);
 }
 
-/// Events for the [RawSocket].
+/// Events for the [RawDatagramSocket], [RawSecureSocket], and [RawSocket].
 ///
-/// These event objects are used by the [Stream] behavior of [RawSocket]
+/// These event objects are used by the [Stream] behavior of the sockets
 /// (for example [RawSocket.listen], [RawSocket.forEach])
 /// when the socket's state change.
+///
+/// ```dart
+/// import 'dart:convert';
+/// import 'dart:io';
+///
+/// void main() async {
+///   final socket = await RawSocket.connect("example.com", 80);
+///
+///   socket.listen((event) {
+///     switch (event) {
+///       case RawSocketEvent.read:
+///         final data = socket.read();
+///         if (data != null) {
+///           print(ascii.decode(data));
+///         }
+///         break;
+///       case RawSocketEvent.write:
+///         socket.write(ascii.encode('GET /\r\nHost: example.com\r\n\r\n'));
+///         socket.writeEventsEnabled = false;
+///         break;
+///       case RawSocketEvent.readClosed:
+///         socket.close();
+///         break;
+///       case RawSocketEvent.closed:
+///         break;
+///       default:
+///         throw "Unexpected event $event";
+///     }
+///   });
+/// }
+/// ```
 class RawSocketEvent {
   /// An event indicates the socket is ready to be read.
   static const RawSocketEvent read = const RawSocketEvent._(0);

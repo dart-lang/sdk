@@ -533,6 +533,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateArgumentsFingerprint();      // read arguments.
       return;
     case kNot:
+      ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kNullCheck:
@@ -540,11 +541,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kLogicalExpression:
+      ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read left.
       SkipBytes(1);                      // read operator.
       CalculateExpressionFingerprint();  // read right.
       return;
     case kConditionalExpression:
+      ReadPosition();                          // read position.
       CalculateExpressionFingerprint();        // read condition.
       CalculateExpressionFingerprint();        // read then.
       CalculateExpressionFingerprint();        // read otherwise.
@@ -629,10 +632,12 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateExpressionFingerprint();           // read expression.
       return;
     case kBlockExpression:
+      ReadPosition();  // read position.
       CalculateStatementListFingerprint();
       CalculateExpressionFingerprint();  // read expression.
       return;
     case kInstantiation:
+      ReadPosition();                         // read position.
       CalculateExpressionFingerprint();       // read expression.
       CalculateListOfDartTypesFingerprint();  // read type arguments.
       return;

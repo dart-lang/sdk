@@ -20,6 +20,13 @@
 #include "vm/object.h"
 #endif
 
+#if !defined(FFI_UNIT_TESTS)
+#define UNREACHABLE_THIS() FATAL("Unreachable code with: %s", ToCString())
+#else
+// No Zone-less ToCString() in tests.
+#define UNREACHABLE_THIS() UNREACHABLE()
+#endif
+
 namespace dart {
 
 class BaseTextBuffer;
@@ -110,7 +117,7 @@ class NativeType : public ZoneAllocated {
   virtual bool IsExpressibleAsRepresentation() const { return false; }
 
   // Unboxed Representation if it exists.
-  virtual Representation AsRepresentation() const { UNREACHABLE(); }
+  virtual Representation AsRepresentation() const { UNREACHABLE_THIS(); }
 
   // Unboxed Representation, over approximates if needed.
   Representation AsRepresentationOverApprox(Zone* zone_) const {
@@ -119,10 +126,12 @@ class NativeType : public ZoneAllocated {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
-  virtual bool Equals(const NativeType& other) const { UNREACHABLE(); }
+  virtual bool Equals(const NativeType& other) const { UNREACHABLE_THIS(); }
 
   // Split representation in two.
-  virtual NativeType& Split(Zone* zone, intptr_t index) const { UNREACHABLE(); }
+  virtual NativeType& Split(Zone* zone, intptr_t index) const {
+    UNREACHABLE_THIS();
+  }
 
   // If this is a 8 or 16 bit int, returns a 32 bit container.
   // Otherwise, return original representation.

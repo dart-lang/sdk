@@ -114,7 +114,7 @@ Location NativeRegistersLocation::AsLocation() const {
       return Location::Pair(Location::RegisterLocation(regs_->At(0)),
                             Location::RegisterLocation(regs_->At(1)));
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 
 Location NativeStackLocation::AsLocation() const {
@@ -139,7 +139,7 @@ Location NativeStackLocation::AsLocation() const {
       return Location::DoubleStackSlot(offset_in_words(), base_register_);
     }
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 #endif
 
@@ -209,7 +209,7 @@ const NativeLocation& NativeLocation::WidenToQFpuRegister(Zone* zone) const {
           payload_type_, container_type_, QRegisterOf(fpu_loc.fpu_s_reg()));
     }
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 #endif  // defined(TARGET_ARCH_ARM)
 
@@ -316,7 +316,7 @@ void NativeFpuRegistersLocation::PrintTo(BaseTextBuffer* f) const {
       break;
 #endif  // defined(TARGET_ARCH_ARM)
     default:
-      UNREACHABLE();
+      UNREACHABLE_THIS();
   }
 
   PrintRepresentations(f, *this);
@@ -406,7 +406,7 @@ DRegister NativeFpuRegistersLocation::fpu_as_d_reg() const {
     case kSingleFpuReg:
       return DRegisterOf(fpu_s_reg());
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 
 SRegister NativeFpuRegistersLocation::fpu_as_s_reg() const {
@@ -418,7 +418,7 @@ SRegister NativeFpuRegistersLocation::fpu_as_s_reg() const {
     case kSingleFpuReg:
       return fpu_s_reg();
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 
 bool NativeFpuRegistersLocation::IsLowestBits() const {
@@ -432,7 +432,7 @@ bool NativeFpuRegistersLocation::IsLowestBits() const {
       return fpu_s_reg() % 4 == 0;
     }
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 #endif  // defined(TARGET_ARCH_ARM)
 

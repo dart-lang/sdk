@@ -2492,11 +2492,13 @@ class BinaryBuilder {
   }
 
   Expression _readTypedefTearOff() {
+    int offset = readOffset();
     List<TypeParameter> typeParameters = readAndPushTypeParameterList();
     Expression expression = readExpression();
     List<DartType> typeArguments = readDartTypeList();
     typeParameterStack.length -= typeParameters.length;
-    return new TypedefTearOff(typeParameters, expression, typeArguments);
+    return new TypedefTearOff(typeParameters, expression, typeArguments)
+      ..fileOffset = offset;
   }
 
   Expression _readRedirectingFactoryTearOff() {
@@ -2648,7 +2650,8 @@ class BinaryBuilder {
   }
 
   Expression _readNot() {
-    return new Not(readExpression());
+    int offset = readOffset();
+    return new Not(readExpression())..fileOffset = offset;
   }
 
   Expression _readNullCheck() {
@@ -2657,17 +2660,21 @@ class BinaryBuilder {
   }
 
   Expression _readLogicalExpression() {
+    int offset = readOffset();
     return new LogicalExpression(
-        readExpression(), logicalOperatorToEnum(readByte()), readExpression());
+        readExpression(), logicalOperatorToEnum(readByte()), readExpression())
+      ..fileOffset = offset;
   }
 
   Expression _readConditionalExpression() {
+    int offset = readOffset();
     return new ConditionalExpression(
         readExpression(),
         readExpression(),
         readExpression(),
         // TODO(johnniwinther): Change this to use `readDartType`.
-        readDartTypeOption()!);
+        readDartTypeOption()!)
+      ..fileOffset = offset;
   }
 
   Expression _readStringConcatenation() {
@@ -2915,17 +2922,20 @@ class BinaryBuilder {
   }
 
   Expression _readBlockExpression() {
+    int offset = readOffset();
     int stackHeight = variableStack.length;
     List<Statement> statements = readStatementListAlwaysGrowable();
     Expression value = readExpression();
     variableStack.length = stackHeight;
-    return new BlockExpression(new Block(statements), value);
+    return new BlockExpression(new Block(statements), value)
+      ..fileOffset = offset;
   }
 
   Expression _readInstantiation() {
+    int offset = readOffset();
     Expression expression = readExpression();
     List<DartType> typeArguments = readDartTypeList();
-    return new Instantiation(expression, typeArguments);
+    return new Instantiation(expression, typeArguments)..fileOffset = offset;
   }
 
   Expression _readConstantExpression() {

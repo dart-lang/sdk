@@ -804,7 +804,8 @@ void ScopeBuilder::VisitExpression() {
       VisitArguments();                      // read arguments.
       return;
     case kNot:
-      VisitExpression();  // read expression.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read expression.
       return;
     case kNullCheck:
       helper_.ReadPosition();  // read position.
@@ -812,12 +813,14 @@ void ScopeBuilder::VisitExpression() {
       return;
     case kLogicalExpression:
       needs_expr_temp_ = true;
-      VisitExpression();     // read left.
-      helper_.SkipBytes(1);  // read operator.
-      VisitExpression();     // read right.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read left.
+      helper_.SkipBytes(1);    // read operator.
+      VisitExpression();       // read right.
       return;
     case kConditionalExpression: {
       needs_expr_temp_ = true;
+      helper_.ReadPosition();          // read position.
       VisitExpression();               // read condition.
       VisitExpression();               // read then.
       VisitExpression();               // read otherwise.
@@ -923,6 +926,7 @@ void ScopeBuilder::VisitExpression() {
 
       EnterScope(offset);
 
+      helper_.ReadPosition();  // read position.
       intptr_t list_length =
           helper_.ReadListLength();  // read number of statements.
       for (intptr_t i = 0; i < list_length; ++i) {
@@ -977,6 +981,7 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipConstantReference();
       return;
     case kInstantiation: {
+      helper_.ReadPosition();  // read position.
       VisitExpression();
       const intptr_t list_length =
           helper_.ReadListLength();  // read list length.

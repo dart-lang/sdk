@@ -1737,6 +1737,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
     writeByte(Tag.TypedefTearOff);
+    writeOffset(node.fileOffset);
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.expression);
@@ -1886,6 +1887,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitNot(Not node) {
     writeByte(Tag.Not);
+    writeOffset(node.fileOffset);
     writeNode(node.operand);
   }
 
@@ -1908,6 +1910,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLogicalExpression(LogicalExpression node) {
     writeByte(Tag.LogicalExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.left);
     writeByte(logicalOperatorIndex(node.operatorEnum));
     writeNode(node.right);
@@ -1916,6 +1919,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     writeByte(Tag.ConditionalExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.then);
     writeNode(node.otherwise);
@@ -2158,6 +2162,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitBlockExpression(BlockExpression node) {
     writeByte(Tag.BlockExpression);
+    writeOffset(node.fileOffset);
     VariableIndexer variableIndexer =
         _variableIndexer ??= new VariableIndexer();
     variableIndexer.pushScope();
@@ -2169,6 +2174,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitInstantiation(Instantiation node) {
     writeByte(Tag.Instantiation);
+    writeOffset(node.fileOffset);
     writeNode(node.expression);
     writeNodeList(node.typeArguments);
   }
