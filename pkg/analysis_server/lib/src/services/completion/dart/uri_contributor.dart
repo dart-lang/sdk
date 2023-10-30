@@ -117,7 +117,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
     builder.suggestUri('dart:');
     var factory = request.sourceFactory;
     for (var lib in factory.dartSdk!.sdkLibraries) {
-      if (!lib.isInternal && !lib.isImplementation && lib.isDocumented) {
+      if (!lib.isInternal && !lib.isImplementation) {
         if (!lib.shortName.startsWith('dart:_')) {
           builder.suggestUri(lib.shortName);
         }
