@@ -1980,25 +1980,41 @@ bool IntConverterInstr::ComputeCanDeoptimize() const {
                            RangeBoundary::kRangeBoundaryInt32);
 }
 
-bool UnboxIntegerInstr::ComputeCanDeoptimize() const {
+bool UnboxInt32Instr::ComputeCanDeoptimize() const {
   if (SpeculativeModeOfInputs() == kNotSpeculative) {
     return false;
   }
-  if (!value()->Type()->IsInt()) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  if (value_cid == kSmiCid) {
+    return (compiler::target::kSmiBits > 32) && !is_truncating() &&
+           !RangeUtils::Fits(value()->definition()->range(),
+                             RangeBoundary::kRangeBoundaryInt32);
+  } else if (value_cid == kMintCid) {
+    return !is_truncating() &&
+           !RangeUtils::Fits(value()->definition()->range(),
+                             RangeBoundary::kRangeBoundaryInt32);
+  } else if (is_truncating() && value()->definition()->IsBoxInteger()) {
+    return false;
+  } else if ((compiler::target::kSmiBits < 32) && value()->Type()->IsInt()) {
+    return !RangeUtils::Fits(value()->definition()->range(),
+                             RangeBoundary::kRangeBoundaryInt32);
+  } else {
     return true;
   }
-  if (representation() == kUnboxedInt64 || is_truncating()) {
+}
+
+bool UnboxUint32Instr::ComputeCanDeoptimize() const {
+  ASSERT(is_truncating());
+  if (SpeculativeModeOfInputs() == kNotSpeculative) {
     return false;
   }
-  const intptr_t rep_bitsize =
-      RepresentationUtils::ValueSize(representation()) * kBitsPerByte;
-  if (value()->Type()->ToCid() == kSmiCid &&
-      compiler::target::kSmiBits <= rep_bitsize) {
+  if ((value()->Type()->ToCid() == kSmiCid) ||
+      (value()->Type()->ToCid() == kMintCid)) {
     return false;
   }
-  return !RangeUtils::IsWithin(value()->definition()->range(),
-                               RepresentationUtils::MinValue(representation()),
-                               RepresentationUtils::MaxValue(representation()));
+  // Check input value's range.
+  Range* value_range = value()->definition()->range();
+  return !RangeUtils::Fits(value_range, RangeBoundary::kRangeBoundaryInt64);
 }
 
 bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
@@ -3290,24 +3306,40 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
     set_speculative_mode(kNotSpeculative);
   }
 
-  if (value()->BindsToConstant()) {
-    const auto& obj = value()->BoundConstant();
-    if (obj.IsInteger()) {
-      if (representation() == kUnboxedInt64) {
-        return flow_graph->GetConstant(obj, representation());
-      }
-      const int64_t intval = Integer::Cast(obj).AsInt64Value();
-      if (RepresentationUtils::IsRepresentable(representation(), intval)) {
-        return flow_graph->GetConstant(obj, representation());
-      }
-      if (is_truncating()) {
-        const int64_t result = Evaluator::TruncateTo(intval, representation());
-        return flow_graph->GetConstant(
-            Integer::ZoneHandle(flow_graph->zone(),
-                                Integer::NewCanonical(result)),
-            representation());
+  return this;
+}
+
+Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* replacement = UnboxIntegerInstr::Canonicalize(flow_graph);
+  if (replacement != this) {
+    return replacement;
+  }
+
+  ConstantInstr* c = value()->definition()->AsConstant();
+  if ((c != nullptr) && c->value().IsInteger()) {
+    if (!is_truncating()) {
+      // Check that constant fits into 32-bit integer.
+      const int64_t value = Integer::Cast(c->value()).AsInt64Value();
+      if (!Utils::IsInt(32, value)) {
+        return this;
       }
     }
+
+    return flow_graph->GetConstant(c->value(), kUnboxedInt32);
+  }
+
+  return this;
+}
+
+Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* replacement = UnboxIntegerInstr::Canonicalize(flow_graph);
+  if (replacement != this) {
+    return replacement;
+  }
+
+  ConstantInstr* c = value()->definition()->AsConstant();
+  if (c != nullptr && c->value().IsInteger()) {
+    return flow_graph->GetConstant(c->value(), kUnboxedInt64);
   }
 
   return this;
