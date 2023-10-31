@@ -963,10 +963,9 @@ class TypeCheckingVisitor
   }
 
   DartType getStreamElementType(DartType stream) {
-    if (stream is InterfaceType) {
+    if (stream is TypeDeclarationType) {
       List<DartType>? asStreamArguments =
-          hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
-              stream, coreTypes.streamClass);
+          hierarchy.getTypeArgumentsAsInstanceOf(stream, coreTypes.streamClass);
       if (asStreamArguments == null) return const DynamicType();
       return asStreamArguments.single;
     }
@@ -1065,9 +1064,8 @@ class TypeCheckingVisitor
           ? coreTypes.streamClass
           : coreTypes.iterableClass;
       DartType type = visitExpression(node.expression);
-      List<DartType>? asContainerArguments = type is InterfaceType
-          ? hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
-              type, container)
+      List<DartType>? asContainerArguments = type is TypeDeclarationType
+          ? hierarchy.getTypeArgumentsAsInstanceOf(type, container)
           : null;
       if (asContainerArguments != null) {
         checkAssignable(

@@ -1384,38 +1384,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   DartType _getTypeForMemberTarget(
       Member interfaceMember, DartType calleeType, DartType receiverType) {
-    // TODO(johnniwinther): Use [enclosingDeclaration] and `asInstanceOf`.
-    Class? enclosingClass = interfaceMember.enclosingClass;
-    ExtensionTypeDeclaration? enclosingExtensionTypeDeclaration =
-        interfaceMember.enclosingExtensionTypeDeclaration;
-    assert(
-        enclosingClass != null || enclosingExtensionTypeDeclaration != null,
-        "Unexpected instance member $interfaceMember with no enclosing class "
-        "or extension type declaration.");
-    if (enclosingClass != null) {
-      if (enclosingClass.typeParameters.isNotEmpty) {
-        receiverType = resolveTypeParameter(receiverType);
-        if (receiverType is InterfaceType) {
-          List<DartType> castedTypeArguments =
-              hierarchyBuilder.getInterfaceTypeArgumentsAsInstanceOfClass(
-                  receiverType, enclosingClass)!;
-          calleeType = Substitution.fromPairs(
-                  enclosingClass.typeParameters, castedTypeArguments)
-              .substituteType(calleeType);
-        }
-      }
-    } else if (enclosingExtensionTypeDeclaration != null) {
-      if (enclosingExtensionTypeDeclaration.typeParameters.isNotEmpty) {
-        receiverType = resolveTypeParameter(receiverType);
-        if (receiverType is ExtensionType) {
-          List<DartType> castedTypeArguments = hierarchyBuilder
-              .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
-                  receiverType, enclosingExtensionTypeDeclaration)!;
-          calleeType = Substitution.fromPairs(
-                  enclosingExtensionTypeDeclaration.typeParameters,
-                  castedTypeArguments)
-              .substituteType(calleeType);
-        }
+    TypeDeclaration enclosingTypeDeclaration =
+        interfaceMember.enclosingTypeDeclaration!;
+    if (enclosingTypeDeclaration.typeParameters.isNotEmpty) {
+      receiverType = resolveTypeParameter(receiverType);
+      if (receiverType is TypeDeclarationType) {
+        List<DartType> castedTypeArguments =
+            hierarchyBuilder.getTypeArgumentsAsInstanceOf(
+                receiverType, enclosingTypeDeclaration)!;
+        calleeType = Substitution.fromPairs(
+                enclosingTypeDeclaration.typeParameters, castedTypeArguments)
+            .substituteType(calleeType);
       }
     }
     if (!isNonNullableByDefault) {
@@ -1438,9 +1417,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   DartType? getDerivedTypeArgumentOf(DartType type, Class class_) {
-    if (type is InterfaceType) {
-      List<DartType>? typeArgumentsAsInstanceOfClass = hierarchyBuilder
-          .getInterfaceTypeArgumentsAsInstanceOfClass(type, class_);
+    if (type is TypeDeclarationType) {
+      List<DartType>? typeArgumentsAsInstanceOfClass =
+          hierarchyBuilder.getTypeArgumentsAsInstanceOf(type, class_);
       if (typeArgumentsAsInstanceOfClass != null) {
         return typeArgumentsAsInstanceOfClass[0];
       }

@@ -99,18 +99,9 @@ abstract class TypeEnvironment extends Types {
     // When none of these cases are applicable, we say that T does not have a
     // future type.
     DartType resolved = t.resolveTypeParameterType;
-    if (resolved is InterfaceType) {
+    if (resolved is TypeDeclarationType) {
       DartType? futureType = getTypeAsInstanceOf(
           resolved, coreTypes.futureClass, coreTypes,
-          isNonNullableByDefault: true);
-      if (futureType != null) {
-        // TODO(johnniwinther): The two implementations are inconsistent wrt.
-        //  how [isNonNullableByDefault] is treated.
-        return futureType.withDeclaredNullability(resolved.nullability);
-      }
-    } else if (resolved is ExtensionType) {
-      DartType? futureType = hierarchy.getExtensionTypeAsInstanceOfClass(
-          resolved, coreTypes.futureClass,
           isNonNullableByDefault: true);
       if (futureType != null) {
         // TODO(johnniwinther): The two implementations are inconsistent wrt.

@@ -22,6 +22,8 @@ class B extends A {}
 
 class C extends A {}
 
+extension type ExtensionTypeList<T>(List<T> it) implements List<T> {}
+
 typedList(List<A> list) {
   var a = /*
    checkingOrder={List<A>,<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
@@ -452,6 +454,20 @@ exhaustiveSealed(List<A> list) {
   };
 }
 
+exhaustiveSealedExtensionType(ExtensionTypeList<A> list) {
+  return /*
+   checkingOrder={ExtensionTypeList<A>,<A>[],<A>[()],<A>[(), (), ...]},
+   subtypes={<A>[],<A>[()],<A>[(), (), ...]},
+   type=ExtensionTypeList<A>
+  */
+    switch (list) {
+      [] /*space=<[]>*/ => 0,
+      [B()] /*space=<[B]>*/ => 1,
+      [C()] /*space=<[C]>*/ => 2,
+      [_, _, ...] /*space=<[A, A, ...List<A>]>*/ => 3,
+    };
+}
+
 nonExhaustiveSealedSubtype(List<A> list) {
   return /*
    checkingOrder={List<A>,<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
@@ -465,6 +481,21 @@ nonExhaustiveSealedSubtype(List<A> list) {
     [_, B()] /*space=<[A, B]>*/ => 2,
     [_, _, _, ...] /*space=<[A, A, A, ...List<A>]>*/ => 3,
   };
+}
+
+nonExhaustiveSealedSubtypeExtensionType(ExtensionTypeList<A> list) {
+  return /*
+   checkingOrder={ExtensionTypeList<A>,<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
+   error=non-exhaustive:[B(), C()],
+   subtypes={<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
+   type=ExtensionTypeList<A>
+  */
+    switch (list) {
+      [] /*space=<[]>*/ => 0,
+      [_] /*space=<[A]>*/ => 1,
+      [_, B()] /*space=<[A, B]>*/ => 2,
+      [_, _, _, ...] /*space=<[A, A, A, ...List<A>]>*/ => 3,
+    };
 }
 
 nonExhaustiveSealedCount(List<A> list) {

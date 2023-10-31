@@ -778,21 +778,21 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
             return new FieldType(type, AstFieldKind.use);
           }
         }
-        if (type is InterfaceType &&
+        if (type is TypeDeclarationType &&
             typeEnvironment.isSubtypeOf(type, coreTypes.listNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
           DartType elementType = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.listClass)!
               .single;
           return new ListFieldType(type, computeFieldType(elementType));
-        } else if (type is InterfaceType &&
+        } else if (type is TypeDeclarationType &&
             typeEnvironment.isSubtypeOf(type, coreTypes.setNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
           DartType elementType = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.setClass)!
               .single;
           return new SetFieldType(type, computeFieldType(elementType));
-        } else if (type is InterfaceType &&
+        } else if (type is TypeDeclarationType &&
             typeEnvironment.isSubtypeOf(type, coreTypes.mapNullableRawType,
                 SubtypeCheckMode.withNullabilities)) {
           List<DartType> typeArguments = typeEnvironment

@@ -697,7 +697,7 @@ class OperationsCfe
 
   @override
   DartType? matchListType(DartType type) {
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
               type, typeEnvironment.coreTypes.listClass);
@@ -713,10 +713,10 @@ class OperationsCfe
 
   @override
   MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
-    if (type is! InterfaceType) {
+    if (type is! TypeDeclarationType) {
       return null;
     } else {
-      InterfaceType? mapType = typeEnvironment.getTypeAsInstanceOf(
+      TypeDeclarationType? mapType = typeEnvironment.getTypeAsInstanceOf(
           type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
           isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (mapType == null) {
@@ -731,7 +731,7 @@ class OperationsCfe
 
   @override
   DartType? matchStreamType(DartType type) {
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
               type, typeEnvironment.coreTypes.streamClass);
@@ -758,11 +758,13 @@ class OperationsCfe
 
   @override
   DartType? matchIterableType(DartType type) {
-    if (type is! InterfaceType) {
+    if (type is! TypeDeclarationType) {
       return null;
     } else {
-      InterfaceType? interfaceType = typeEnvironment.getTypeAsInstanceOf(type,
-          typeEnvironment.coreTypes.iterableClass, typeEnvironment.coreTypes,
+      TypeDeclarationType? interfaceType = typeEnvironment.getTypeAsInstanceOf(
+          type,
+          typeEnvironment.coreTypes.iterableClass,
+          typeEnvironment.coreTypes,
           isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (interfaceType == null) {
         return null;

@@ -118,6 +118,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   Map<Key, DartType> getFieldTypes(DartType type) {
+    // TODO(johnniwinther): Handle [ExtensionType]s.
     if (type is InterfaceType) {
       Map<Key, DartType> fieldTypes = {};
       Map<Class, Substitution> substitutions = {};
@@ -187,13 +188,12 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getListElementType(DartType type) {
     type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
-      InterfaceType? listType =
-          _classHierarchy.getInterfaceTypeAsInstanceOfClass(
-              type, _typeEnvironment.coreTypes.listClass,
-              isNonNullableByDefault: true);
-      if (listType != null) {
-        return listType.typeArguments[0];
+    if (type is TypeDeclarationType) {
+      List<DartType>? typeArguments =
+          _classHierarchy.getTypeArgumentsAsInstanceOf(
+              type, _typeEnvironment.coreTypes.listClass);
+      if (typeArguments != null) {
+        return typeArguments[0];
       }
     }
     return null;
@@ -202,8 +202,8 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getListType(DartType type) {
     type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
-      return _classHierarchy.getInterfaceTypeAsInstanceOfClass(
+    if (type is TypeDeclarationType) {
+      return _classHierarchy.getTypeAsInstanceOf(
           type, _typeEnvironment.coreTypes.listClass,
           isNonNullableByDefault: true);
     }
@@ -213,13 +213,12 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getMapValueType(DartType type) {
     type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
-      InterfaceType? mapType =
-          _classHierarchy.getInterfaceTypeAsInstanceOfClass(
-              type, _typeEnvironment.coreTypes.mapClass,
-              isNonNullableByDefault: true);
-      if (mapType != null) {
-        return mapType.typeArguments[1];
+    if (type is TypeDeclarationType) {
+      List<DartType>? typeArguments =
+          _classHierarchy.getTypeArgumentsAsInstanceOf(
+              type, _typeEnvironment.coreTypes.mapClass);
+      if (typeArguments != null) {
+        return typeArguments[1];
       }
     }
     return null;

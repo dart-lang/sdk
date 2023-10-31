@@ -32,7 +32,7 @@ main(List<String> args) async {
         TestConfig(analyzerMarker, 'analyzer with experiments',
             featureSet: FeatureSet.fromEnableFlags2(
                 sdkLanguageVersion: ExperimentStatus.currentVersion,
-                flags: ['patterns', 'records', 'sealed-class']))
+                flags: ['patterns', 'records', 'sealed-class', 'inline-class']))
       ]));
 }
 

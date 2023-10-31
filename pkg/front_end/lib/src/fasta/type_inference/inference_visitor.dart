@@ -1516,12 +1516,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         nullabilityPartErrorTemplate:
             templateForInLoopTypeNotIterablePartNullability);
     DartType inferredType = const DynamicType();
-    if (inferredExpressionType is InterfaceType) {
+    if (inferredExpressionType is TypeDeclarationType) {
       // TODO(johnniwinther): Should we use the type of
       //  `iterable.iterator.current` instead?
-      List<DartType>? supertypeArguments =
-          hierarchyBuilder.getInterfaceTypeArgumentsAsInstanceOfClass(
-              inferredExpressionType, iterableClass);
+      List<DartType>? supertypeArguments = hierarchyBuilder
+          .getTypeArgumentsAsInstanceOf(inferredExpressionType, iterableClass);
       if (supertypeArguments != null) {
         inferredType = supertypeArguments[0];
       }
@@ -2108,7 +2107,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return isNullAware ? const NullType() : null;
       }
     }
-    if (spreadTypeBound is InterfaceType) {
+    if (spreadTypeBound is TypeDeclarationType) {
       List<DartType>? supertypeArguments =
           typeSchemaEnvironment.getTypeArgumentsAsInstanceOf(
               spreadTypeBound, coreTypes.iterableClass);
@@ -3828,7 +3827,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           output[offset] = output[offset + 1] = const NullType();
         }
       }
-    } else if (typeBound is InterfaceType) {
+    } else if (typeBound is TypeDeclarationType) {
       List<DartType>? supertypeArguments = typeSchemaEnvironment
           .getTypeArgumentsAsInstanceOf(typeBound, coreTypes.mapClass);
       if (supertypeArguments != null) {
@@ -4591,6 +4590,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool typeContextIsIterable = false;
     DartType? unfuturedTypeContext = typeSchemaEnvironment.flatten(typeContext);
     // Ambiguous set/map literal
+    // TODO(johnniwinther): Should we support extension types as the type
+    //  context?
     if (unfuturedTypeContext is InterfaceType) {
       typeContextIsMap = typeContextIsMap ||
           hierarchyBuilder.isSubtypeOf(
