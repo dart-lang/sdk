@@ -7,12 +7,12 @@ library;
 // extension type S1(num id) implements String /* Error */ {}
 //                                      ^
 //
-// pkg/front_end/testcases/extension_types/issue53170.dart:11:41: Error: The representation type 'String' of extension type 'V2' must be a subtype of the representation type 'num' of the implemented extension type 'V1'.
+// pkg/front_end/testcases/extension_types/issue53170.dart:11:41: Error: The representation type 'String' of extension type 'V2' must be either a subtype of the representation type 'num' of the implemented extension type 'V1' or a subtype of 'V1' itself.
 // Try changing the representation type to a subtype of 'num'.
 // extension type V2(String id) implements V1 /* Error */ {}
 //                                         ^
 //
-// pkg/front_end/testcases/extension_types/issue53170.dart:17:41: Error: The representation type 'String' of extension type 'W2' must be a subtype of the representation type 'num' of the implemented extension type 'W1<num>'.
+// pkg/front_end/testcases/extension_types/issue53170.dart:17:41: Error: The representation type 'String' of extension type 'W2' must be either a subtype of the representation type 'num' of the implemented extension type 'W1<num>' or a subtype of 'W1<num>' itself.
 // Try changing the representation type to a subtype of 'num'.
 // extension type W2(String id) implements W1<num> /* Error */ {}
 //                                         ^
