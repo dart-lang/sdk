@@ -910,7 +910,12 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       RELEASE_ASSERT(ok);
       __ LoadImmediate(
           tmp, pair_index == 0 ? Utils::Low32Bits(v) : Utils::High32Bits(v));
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ LoadImmediate(tmp, float_bits);
     } else {
+      ASSERT(representation() == kTagged);
       __ LoadObject(tmp, value_);
     }
     __ StoreToOffset(tmp, destination.base_reg(), dest_offset);

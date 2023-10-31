@@ -725,6 +725,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
+    compiler::OperandSize operand_size = compiler::kWordBytes;
     if (representation() == kUnboxedInt32 ||
         representation() == kUnboxedUint32 ||
         representation() == kUnboxedInt64) {
@@ -734,6 +735,11 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       } else {
         __ LoadImmediate(tmp, value);
       }
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ LoadImmediate(tmp, float_bits);
+      operand_size = compiler::kFourBytes;
     } else {
       ASSERT(representation() == kTagged);
       if (value_.IsNull()) {
@@ -744,7 +750,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
         __ LoadObject(tmp, value_);
       }
     }
-    __ StoreToOffset(tmp, destination.base_reg(), dest_offset);
+    __ StoreToOffset(tmp, destination.base_reg(), dest_offset, operand_size);
   }
 }
 

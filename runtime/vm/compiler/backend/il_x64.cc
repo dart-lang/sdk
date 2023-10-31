@@ -659,6 +659,11 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       const int64_t value = Integer::Cast(value_).AsInt64Value();
       __ movq(LocationToStackSlotAddress(destination),
               compiler::Immediate(value));
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ movl(LocationToStackSlotAddress(destination),
+              compiler::Immediate(float_bits));
     } else {
       ASSERT(representation() == kTagged);
       __ StoreObject(LocationToStackSlotAddress(destination), value_);

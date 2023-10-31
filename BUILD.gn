@@ -225,7 +225,7 @@ if (is_fuchsia) {
   }
 
   dart_fuchsia_test_component("fuchsia_test_component") {
-    manifest = "build/fuchsia/fuchsia_test_component.cmx"
+    manifest = "build/fuchsia/fuchsia_test_component.cml"
     resource_dirs = [
       "pkg/async_helper",
       "pkg/expect",
@@ -253,7 +253,7 @@ if (is_fuchsia) {
   }
 
   dart_fuchsia_test_component("fuchsia_ffi_test_component") {
-    manifest = "build/fuchsia/fuchsia_ffi_test_component.cmx"
+    manifest = "build/fuchsia/fuchsia_ffi_test_component.cml"
     data_deps = [
       "runtime/bin:ffi_test_dynamic_library",
       "runtime/bin:ffi_test_functions",
@@ -273,29 +273,5 @@ if (is_fuchsia) {
   dart_fuchsia_test_package("fuchsia_ffi_test_package") {
     package_name = "dart_ffi_test"
     deps = [ ":fuchsia_ffi_test_component" ]
-  }
-
-  # TODO(38752): Remove "cfv2" once everything is migrated to CFv2.
-  dart_fuchsia_test_component("fuchsia_ffi_test_component_cfv2") {
-    manifest = "build/fuchsia/fuchsia_ffi_test_component.cml"
-    data_deps = [
-      "runtime/bin:ffi_test_dynamic_library",
-      "runtime/bin:ffi_test_functions",
-    ]
-    library_files = [
-      "libffi_test_dynamic_library.so",
-      "libffi_test_functions.so",
-    ]
-    resource_dirs = [
-      "pkg/expect",
-      "pkg/meta",
-      "tests/ffi",
-      "third_party/pkg/ffi",
-    ]
-  }
-
-  dart_fuchsia_test_package("fuchsia_ffi_test_package_cfv2") {
-    package_name = "dart_ffi_test_cfv2"
-    deps = [ ":fuchsia_ffi_test_component_cfv2" ]
   }
 }

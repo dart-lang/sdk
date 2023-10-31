@@ -25,8 +25,8 @@ class MissingDependencyTest with ResourceProviderMixin {
   /// Assert that when the validator is used on the given [content] the
   /// [expectedErrorCodes] are produced.
   void assertErrors(String content,
-      {Set<String> usedDeps = const {},
-      Set<String> usedDevDeps = const {},
+      {required Set<String> usedDeps,
+      required Set<String> usedDevDeps,
       List<String> addDeps = const [],
       List<String> addDevDeps = const [],
       List<String> removeDevDeps = const []}) {
@@ -56,7 +56,7 @@ class MissingDependencyTest with ResourceProviderMixin {
 name: sample
 dependencies:
   path: any
-''', usedDeps: {'path', 'matcher'}, addDeps: ['matcher']);
+''', usedDeps: {'path', 'matcher'}, addDeps: ['matcher'], usedDevDeps: {});
   }
 
   test_missingDependency_move_to_dev() {
@@ -66,7 +66,11 @@ dependencies:
   path: any
 dev_dependencies:
   test: any
-''', usedDeps: {'path', 'test'}, addDeps: ['test'], removeDevDeps: ['test']);
+''',
+        usedDeps: {'path', 'test'},
+        addDeps: ['test'],
+        removeDevDeps: ['test'],
+        usedDevDeps: {});
   }
 
   test_missingDependency_noError() {
@@ -74,7 +78,17 @@ dev_dependencies:
 name: sample
 dependencies:
   test: any
-''', usedDeps: {'test'});
+''', usedDeps: {'test'}, usedDevDeps: {});
+  }
+
+  test_missingDependency_package_noError() {
+    assertNoErrors('''
+name: sample
+dependencies:
+  test: any
+dev_dependencies:
+  lints: any
+''', usedDeps: {'test', 'sample'}, usedDevDeps: {'lints'});
   }
 
   test_missingDevDependency_error() {
@@ -95,6 +109,16 @@ dependencies:
 dev_dependencies:
   lints: any
 ''', usedDeps: {'test'}, usedDevDeps: {'lints'});
+  }
+
+  test_missingDevDependency_package_noError() {
+    assertNoErrors('''
+name: sample
+dependencies:
+  test: any
+dev_dependencies:
+  lints: any
+''', usedDeps: {'test'}, usedDevDeps: {'lints', 'sample'});
   }
 
   List<AnalysisError> _runValidator(

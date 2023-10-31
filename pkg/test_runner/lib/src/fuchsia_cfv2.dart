@@ -11,7 +11,7 @@ import 'fuchsia.dart';
 
 // Runs tests on a fuchsia emulator with chromium maintained test-scripts and
 // CFv2 targets.
-// TODO(#38752): Need implementation.
+// TODO(#38752): Merge back to fuchsia.dart.
 class FuchsiaEmulatorCFv2 extends FuchsiaEmulator {
   static const String ffx = "./third_party/fuchsia/sdk/linux/tools/x64/ffx";
   static const String testScriptRoot =
@@ -94,6 +94,10 @@ class FuchsiaEmulatorCFv2 extends FuchsiaEmulator {
           _tempDirectoryOf("out"),
           "--test-name",
           "fuchsia-pkg://fuchsia.com/${_testPackageName(mode)}#meta/$cmName",
+          "--test-realm",
+          // VmexResource not available in default hermetic realm
+          // TODO(38752): Setup a Dart test realm.
+          "/core/testing:system-tests",
           "--logs-dir",
           _tempDirectoryOf("logs"),
           "--package-deps",
@@ -104,7 +108,7 @@ class FuchsiaEmulatorCFv2 extends FuchsiaEmulator {
   }
 
   static String _testPackageName(String mode) {
-    return "dart_ffi_test_cfv2_$mode";
+    return "dart_ffi_test_$mode";
   }
 
   static String _testPackagePath(String buildDir, String mode) {
