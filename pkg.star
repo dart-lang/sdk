@@ -34,14 +34,12 @@ dart.ci_sandbox_builder(
     channels = ["try"],
     dimensions = [mac, arm64],
     properties = [chrome, no_android],
-    experiments = {"dart.use_update_script": 100},
 )
 dart.ci_sandbox_builder(
     "pkg-win-release",
     category = "pkg|w",
     dimensions = windows,
     properties = chrome,
-    experiments = {"dart.use_update_script": 100},
 )
 dart.ci_sandbox_builder(
     "pkg-linux-debug",

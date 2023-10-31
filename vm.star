@@ -144,7 +144,6 @@ _extra_builder(
     "vm-checked-mac-release-arm64",
     category = "vm|jit|rc",
     dimensions = [mac, arm64],
-    experiments = {"dart.use_update_script": 100},
 )
 _builder(
     "vm-mac-release-x64",

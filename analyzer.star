@@ -42,5 +42,4 @@ dart.ci_sandbox_builder(
     category = "analyzer|w",
     channels = dart.channels,
     dimensions = windows,
-    experiments = {"dart.use_update_script": 100},
 )
