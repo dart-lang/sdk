@@ -782,12 +782,16 @@ class RegularFieldEncoding implements FieldEncoding {
 
   @override
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) =>
-      <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: false)];
+      <ClassMember>[
+        new SourceFieldMember(fieldBuilder, ClassMemberKind.Getter)
+      ];
 
   @override
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) =>
       fieldBuilder.isAssignable
-          ? <ClassMember>[new SourceFieldMember(fieldBuilder, forSetter: true)]
+          ? <ClassMember>[
+              new SourceFieldMember(fieldBuilder, ClassMemberKind.Setter)
+            ]
           : const <ClassMember>[];
 
   @override
@@ -818,9 +822,9 @@ class SourceFieldMember extends BuilderClassMember {
   Covariance? _covariance;
 
   @override
-  final bool forSetter;
+  final ClassMemberKind memberKind;
 
-  SourceFieldMember(this.memberBuilder, {required this.forSetter});
+  SourceFieldMember(this.memberBuilder, this.memberKind);
 
   @override
   void inferType(ClassMembersBuilder membersBuilder) {
@@ -839,6 +843,13 @@ class SourceFieldMember extends BuilderClassMember {
   }
 
   @override
+  Member? getTearOff(ClassMembersBuilder membersBuilder) {
+    // Ensure field type is computed.
+    getMember(membersBuilder);
+    return null;
+  }
+
+  @override
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= forSetter
         ? new Covariance.fromMember(getMember(membersBuilder),
@@ -848,9 +859,6 @@ class SourceFieldMember extends BuilderClassMember {
 
   @override
   bool get isSourceDeclaration => true;
-
-  @override
-  bool get isProperty => true;
 
   @override
   bool get isSynthesized => memberBuilder.isSynthesized;
@@ -1210,15 +1218,23 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   List<ClassMember> getLocalMembers(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[
       new _SynthesizedFieldClassMember(fieldBuilder, field, field.name,
-          _SynthesizedFieldMemberKind.LateField,
+          _SynthesizedFieldMemberKind.LateField, ClassMemberKind.Getter,
           isInternalImplementation: true),
-      new _SynthesizedFieldClassMember(fieldBuilder, _lateGetter,
-          fieldBuilder.memberName, _SynthesizedFieldMemberKind.LateGetterSetter,
+      new _SynthesizedFieldClassMember(
+          fieldBuilder,
+          _lateGetter,
+          fieldBuilder.memberName,
+          _SynthesizedFieldMemberKind.LateGetterSetter,
+          ClassMemberKind.Getter,
           isInternalImplementation: false)
     ];
     if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(fieldBuilder, _lateIsSetField!,
-          _lateIsSetField!.name, _SynthesizedFieldMemberKind.LateIsSet,
+      list.add(new _SynthesizedFieldClassMember(
+          fieldBuilder,
+          _lateIsSetField!,
+          _lateIsSetField!.name,
+          _SynthesizedFieldMemberKind.LateIsSet,
+          ClassMemberKind.Getter,
           isInternalImplementation: true));
     }
     return list;
@@ -1228,18 +1244,26 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   List<ClassMember> getLocalSetters(SourceFieldBuilder fieldBuilder) {
     List<ClassMember> list = <ClassMember>[
       new _SynthesizedFieldClassMember(fieldBuilder, field, field.name,
-          _SynthesizedFieldMemberKind.LateField,
-          forSetter: true, isInternalImplementation: true),
+          _SynthesizedFieldMemberKind.LateField, ClassMemberKind.Setter,
+          isInternalImplementation: true),
     ];
     if (_lateIsSetField != null) {
-      list.add(new _SynthesizedFieldClassMember(fieldBuilder, _lateIsSetField!,
-          _lateIsSetField!.name, _SynthesizedFieldMemberKind.LateIsSet,
-          forSetter: true, isInternalImplementation: true));
+      list.add(new _SynthesizedFieldClassMember(
+          fieldBuilder,
+          _lateIsSetField!,
+          _lateIsSetField!.name,
+          _SynthesizedFieldMemberKind.LateIsSet,
+          ClassMemberKind.Setter,
+          isInternalImplementation: true));
     }
     if (_lateSetter != null) {
-      list.add(new _SynthesizedFieldClassMember(fieldBuilder, _lateSetter!,
-          fieldBuilder.memberName, _SynthesizedFieldMemberKind.LateGetterSetter,
-          forSetter: true, isInternalImplementation: false));
+      list.add(new _SynthesizedFieldClassMember(
+          fieldBuilder,
+          _lateSetter!,
+          fieldBuilder.memberName,
+          _SynthesizedFieldMemberKind.LateGetterSetter,
+          ClassMemberKind.Setter,
+          isInternalImplementation: false));
     }
     return list;
   }
@@ -1539,19 +1563,26 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Covariance? _covariance;
 
   @override
-  final bool forSetter;
-
-  @override
   final bool isInternalImplementation;
 
+  @override
+  final ClassMemberKind memberKind;
+
   _SynthesizedFieldClassMember(
-      this.fieldBuilder, this._member, this._name, this._kind,
-      {this.forSetter = false, required this.isInternalImplementation});
+      this.fieldBuilder, this._member, this._name, this._kind, this.memberKind,
+      {required this.isInternalImplementation});
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
     fieldBuilder._ensureType(membersBuilder);
     return _member;
+  }
+
+  @override
+  Member? getTearOff(ClassMembersBuilder membersBuilder) {
+    // Ensure field type is computed.
+    getMember(membersBuilder);
+    return null;
   }
 
   @override
@@ -1574,7 +1605,10 @@ class _SynthesizedFieldClassMember implements ClassMember {
   bool get isSourceDeclaration => true;
 
   @override
-  bool get isProperty => isField || isGetter || isSetter;
+  bool get forSetter => memberKind == ClassMemberKind.Setter;
+
+  @override
+  bool get isProperty => memberKind != ClassMemberKind.Method;
 
   @override
   DeclarationBuilder get declarationBuilder => fieldBuilder.declarationBuilder!;
@@ -1970,7 +2004,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             _getter,
             fieldBuilder.memberName,
             _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-            forSetter: false,
+            ClassMemberKind.Getter,
             isInternalImplementation: false)
       ];
 
@@ -1983,7 +2017,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
                   _setter!,
                   fieldBuilder.memberName,
                   _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
-                  forSetter: true,
+                  ClassMemberKind.Setter,
                   isInternalImplementation: false)
             ]
           : const <ClassMember>[];
@@ -2117,7 +2151,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
             _getter,
             fieldBuilder.memberName,
             _SynthesizedFieldMemberKind.RepresentationField,
-            forSetter: false,
+            ClassMemberKind.Getter,
             isInternalImplementation: false)
       ];
 

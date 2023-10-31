@@ -22,6 +22,12 @@ import '../forwarding_node.dart' show ForwardingNode;
 import '../member_covariance.dart';
 import 'members_builder.dart';
 
+enum ClassMemberKind {
+  Method,
+  Getter,
+  Setter,
+}
+
 abstract class ClassMember {
   Name get name;
   bool get isStatic;
@@ -33,6 +39,8 @@ abstract class ClassMember {
   bool get isConst;
   bool get forSetter;
 
+  ClassMemberKind get memberKind;
+
   /// Returns `true` if this member corresponds to a declaration in the source
   /// code.
   bool get isSourceDeclaration;
@@ -42,6 +50,12 @@ abstract class ClassMember {
 
   /// Computes the [Member] node resulting from this class member.
   Member getMember(ClassMembersBuilder membersBuilder);
+
+  /// Computes the tear off [Member] node resulting from this class member, if
+  /// this is different from the [Member] returned from [getMember].
+  ///
+  /// Returns `null` if this class member does not have a tear off.
+  Member? getTearOff(ClassMembersBuilder membersBuilder);
 
   /// Returns the member [Covariance] for this class member.
   Covariance getCovariance(ClassMembersBuilder membersBuilder);
@@ -154,13 +168,15 @@ abstract class SynthesizedMember extends ClassMember {
   final Name name;
 
   @override
-  final bool forSetter;
+  final ClassMemberKind memberKind;
+
+  SynthesizedMember(this.name, this.memberKind);
 
   @override
-  final bool isProperty;
+  bool get forSetter => memberKind == ClassMemberKind.Setter;
 
-  SynthesizedMember(this.name,
-      {required this.forSetter, required this.isProperty});
+  @override
+  bool get isProperty => memberKind != ClassMemberKind.Method;
 
   @override
   List<ClassMember> get declarations => throw new UnimplementedError();
@@ -206,6 +222,13 @@ abstract class SynthesizedMember extends ClassMember {
 
   @override
   bool get isExtensionTypeMember => false;
+
+  @override
+  Member? getTearOff(ClassMembersBuilder membersBuilder) {
+    // Ensure member is computed.
+    getMember(membersBuilder);
+    return null;
+  }
 }
 
 /// Class member for a set of interface members.
@@ -316,15 +339,14 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
       ClassMember? canonicalMember,
       ClassMember? mixedInMember,
       ClassMember? noSuchMethodTarget,
-      required bool isProperty,
-      required bool forSetter,
+      required ClassMemberKind memberKind,
       required bool shouldModifyKernel})
       : this._superClassMember = superClassMember,
         this._canonicalMember = canonicalMember,
         this._mixedInMember = mixedInMember,
         this._noSuchMethodTarget = noSuchMethodTarget,
         this._shouldModifyKernel = shouldModifyKernel,
-        super(name, isProperty: isProperty, forSetter: forSetter);
+        super(name, memberKind);
 
   @override
   bool get hasDeclarations => true;
@@ -540,9 +562,8 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   InheritedClassMemberImplementsInterface(this.classBuilder, Name name,
       {required this.inheritedClassMember,
       required this.implementedInterfaceMember,
-      required bool isProperty,
-      required bool forSetter})
-      : super(name, isProperty: isProperty, forSetter: forSetter);
+      required ClassMemberKind memberKind})
+      : super(name, memberKind);
 
   @override
   DeclarationBuilder get declarationBuilder => classBuilder;
@@ -713,11 +734,9 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
 
   SynthesizedNonExtensionTypeMember(
       this.extensionTypeDeclarationBuilder, Name name, this.declarations,
-      {required bool isProperty,
-      required bool forSetter,
-      required bool shouldModifyKernel})
+      {required ClassMemberKind memberKind, required bool shouldModifyKernel})
       : this._shouldModifyKernel = shouldModifyKernel,
-        super(name, isProperty: isProperty, forSetter: forSetter);
+        super(name, memberKind);
 
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;

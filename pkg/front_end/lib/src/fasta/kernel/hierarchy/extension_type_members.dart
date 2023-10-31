@@ -972,8 +972,7 @@ class _SanitizedMember {
             extensionTypeDeclarationBuilder,
             name,
             _implementedNonExtensionTypeMembers,
-            isProperty: _definingMember.isProperty,
-            forSetter: _definingMember.forSetter,
+            memberKind: _definingMember.memberKind,
             shouldModifyKernel: builder.shouldModifyKernel);
         builder._membersBuilder.registerMemberComputation(classMember);
         return nonExtensionTypeMemberMap[name] = classMember;
