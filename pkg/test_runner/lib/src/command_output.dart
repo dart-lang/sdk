@@ -906,6 +906,15 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
 
   @override
   Expectation result(TestCase testCase) {
+    // `ffx test` isn't preserving exit codes.
+    // TODO(38752): Plumb exit codes through something else?
+    if (testCase.configuration.system == System.fuchsia) {
+      if (utf8.decode(stdout).contains("completed with result: PASSED")) {
+        return Expectation.pass;
+      }
+      return Expectation.fail;
+    }
+
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
     if (hasCrashed) return Expectation.crash;
@@ -948,6 +957,15 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   /// Delete existing result() function and rename, when status files are gone.
   @override
   Expectation realResult(TestCase testCase) {
+    // `ffx test` isn't preserving exit codes.
+    // TODO(38752): Plumb exit codes through something else?
+    if (testCase.configuration.system == System.fuchsia) {
+      if (utf8.decode(stdout).contains("completed with result: PASSED")) {
+        return Expectation.pass;
+      }
+      return Expectation.fail;
+    }
+
     // Handle crashes and timeouts first.
     if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
     if (hasCrashed) return Expectation.crash;

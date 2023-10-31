@@ -88,7 +88,7 @@ class LibraryMacroApplier {
     required LibraryOrAugmentationElementImpl container,
     required ast.CompilationUnit unit,
   }) async {
-    for (final declaration in unit.declarations) {
+    for (final declaration in unit.declarations.reversed) {
       switch (declaration) {
         case ast.ClassDeclaration():
           final element = declaration.declaredElement!;
@@ -267,7 +267,7 @@ class LibraryMacroApplier {
       annotations: classAnnotations,
     );
 
-    for (final member in members) {
+    for (final member in members.reversed) {
       await _addAnnotations(
         container: container,
         targetNode: member,

@@ -44,8 +44,323 @@ main() {
     defineReflectiveTests(MacroDeclarationsTest_fromBytes);
     defineReflectiveTests(MacroElementsTest_keepLinking);
     defineReflectiveTests(MacroElementsTest_fromBytes);
+    defineReflectiveTests(MacroApplicationOrderTest_keepLinking);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+abstract class MacroApplicationOrderTest extends MacroElementsBaseTest {
+  String get _orderCode {
+    var code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/order.dart')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
+  }
+
+  test_phases_class_types_declarations() async {
+    newFile('$testPackageLibPath/a.dart', _orderCode);
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddClass('A1')
+@AddFunction('f1')
+class X {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class X @59
+        reference: self::@class::X
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A1 {}
+void f1() {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class A1 @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A1
+        functions
+          f1 @47
+            reference: self::@augmentation::package:test/test.macro.dart::@function::f1
+            returnType: void
+''');
+  }
+
+  test_types_class_method_rightToLeft() async {
+    newFile('$testPackageLibPath/a.dart', _orderCode);
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+class X {
+  @AddClass('A1')
+  @AddClass('A2')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class X @24
+        reference: self::@class::X
+        methods
+          foo @71
+            reference: self::@class::X::@method::foo
+            returnType: void
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A2 {}
+class A1 {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class A2 @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A2
+          class A1 @48
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A1
+''');
+  }
+
+  test_types_class_method_sourceOrder() async {
+    newFile('$testPackageLibPath/a.dart', _orderCode);
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+class X {
+  @AddClass('A1')
+  void foo() {}
+
+  @AddClass('A2')
+  void bar() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class X @24
+        reference: self::@class::X
+        methods
+          foo @53
+            reference: self::@class::X::@method::foo
+            returnType: void
+          bar @88
+            reference: self::@class::X::@method::bar
+            returnType: void
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A1 {}
+class A2 {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class A1 @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A1
+          class A2 @48
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A2
+''');
+  }
+
+  test_types_class_rightToLeft() async {
+    newFile('$testPackageLibPath/a.dart', _orderCode);
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddClass('A1')
+@AddClass('A2')
+class X {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class X @56
+        reference: self::@class::X
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A2 {}
+class A1 {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class A2 @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A2
+          class A1 @48
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A1
+''');
+  }
+
+  test_types_class_sourceOrder() async {
+    newFile('$testPackageLibPath/a.dart', _orderCode);
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddClass('A1')
+class X {}
+
+@AddClass('A2')
+class Y {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class X @40
+        reference: self::@class::X
+      class Y @68
+        reference: self::@class::Y
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A1 {}
+class A2 {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class A1 @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A1
+          class A2 @48
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A2
+''');
+  }
+
+  test_types_innerBeforeOuter_class_method() async {
+    newFile('$testPackageLibPath/a.dart', _orderCode);
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddClass('A1')
+class X {
+  @AddClass('A2')
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class X @40
+        reference: self::@class::X
+        methods
+          foo @69
+            reference: self::@class::X::@method::foo
+            returnType: void
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class A2 {}
+class A1 {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class A2 @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A2
+          class A1 @48
+            reference: self::@augmentation::package:test/test.macro.dart::@class::A1
+''');
+  }
+}
+
+@reflectiveTest
+class MacroApplicationOrderTest_keepLinking extends MacroApplicationOrderTest {
+  @override
+  bool get keepLinkingLibraries => true;
 }
 
 @reflectiveTest
@@ -2796,103 +3111,6 @@ elementFactory
     package:test/test.dart
 ''');
     }
-  }
-
-  test_order_class2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-class B {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-import 'a.dart';
-
-macro class AddInterfaceA implements ClassTypesMacro {
-  const AddInterfaceA();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
-    builder.appendInterfaces([
-      NamedTypeAnnotationCode(
-        name: await builder.resolveIdentifier(
-          Uri.parse('package:test/a.dart'),
-          'A',
-        ),
-      ),
-    ]);
-  }
-}
-
-macro class AddInterfaceB implements ClassTypesMacro {
-  const AddInterfaceB();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
-    builder.appendInterfaces([
-      NamedTypeAnnotationCode(
-        name: await builder.resolveIdentifier(
-          Uri.parse('package:test/a.dart'),
-          'B',
-        ),
-      ),
-    ]);
-  }
-}
-''');
-
-    var library = await buildLibrary(r'''
-import 'b.dart';
-
-@AddInterfaceB()
-@AddInterfaceA()
-class X {}
-''');
-
-    configuration
-      ..withConstructors = false
-      ..withMetadata = false
-      ..withReferences = true;
-    checkElementText(library, r'''
-library
-  reference: self
-  imports
-    package:test/b.dart
-  definingUnit
-    reference: self
-    classes
-      class X @58
-        reference: self::@class::X
-        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
-        augmented
-          interfaces
-            A
-            B
-          constructors
-            self::@class::X::@constructor::new
-  augmentationImports
-    package:test/test.macro.dart
-      reference: self::@augmentation::package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-import 'package:test/a.dart' as prefix0;
-
-augment class X implements prefix0.A, prefix0.B {
-}
----
-      imports
-        package:test/a.dart as prefix0 @62
-      definingUnit
-        reference: self::@augmentation::package:test/test.macro.dart
-        classes
-          augment class X @86
-            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::X
-            augmentationTarget: self::@class::X
-            interfaces
-              A
-              B
-''');
   }
 }
 

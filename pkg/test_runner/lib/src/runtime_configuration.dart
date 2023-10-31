@@ -484,6 +484,13 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     if (isCrashExpected) {
       arguments.insert(0, '--suppress-core-dump');
     }
+
+    // Rewrite paths on the host to paths in the Fuchsia package.
+    arguments = arguments
+        .map((argument) =>
+            argument.replaceAll(Directory.current.path, "pkg/data"))
+        .toList();
+
     var command = FuchsiaEmulator.instance().getTestCommand(
         _configuration.buildDirectory,
         _configuration.mode.name,

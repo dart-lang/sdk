@@ -1066,6 +1066,12 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
     }
     node.visitChildren(this);
   }
+
+  @override
+  visitExtensionType(ExtensionType node) {
+    shaker.addUsedExtensionTypeDeclaration(node.extensionTypeDeclaration);
+    node.visitChildren(this);
+  }
 }
 
 /// The first pass of [TreeShaker].
@@ -2071,11 +2077,8 @@ class _TreeShakerPass2 extends RemovingTransformer {
       node.memberDescriptors.length = writeIndex;
 
       // The procedures of the extension type declaration are never used.
-      node.procedures.length = 0;
+      node.procedures.clear();
 
-      // We only retain the extension type declaration if at least one member is
-      // retained.
-      assert(node.memberDescriptors.isNotEmpty);
       return node;
     }
     return removalSentinel!;
