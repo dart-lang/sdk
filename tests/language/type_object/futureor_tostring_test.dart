@@ -16,6 +16,8 @@
 // Also checks for types `T` where normalization removes or changes
 // the `FutureOr`.
 
+// Requirements=nnbd-strong
+
 import "dart:async" show FutureOr;
 import "package:expect/expect.dart";
 

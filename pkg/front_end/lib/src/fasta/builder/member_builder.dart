@@ -255,6 +255,12 @@ abstract class BuilderClassMember implements ClassMember {
   bool get hasDeclarations => false;
 
   @override
+  bool get forSetter => memberKind == ClassMemberKind.Setter;
+
+  @override
+  bool get isProperty => memberKind != ClassMemberKind.Method;
+
+  @override
   List<ClassMember> get declarations =>
       throw new UnsupportedError("$runtimeType.declarations");
 

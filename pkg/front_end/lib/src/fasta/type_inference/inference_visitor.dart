@@ -41,6 +41,7 @@ import '../kernel/collections.dart'
         SpreadMapEntry,
         convertToElement;
 import '../kernel/exhaustiveness.dart';
+import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
@@ -673,7 +674,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.extensionMember:
         case ObjectAccessTargetKind.extensionTypeMember:
           if (callMember.tearoffTarget != null &&
-              callMember.declarationMethodKind == ProcedureKind.Method) {
+              callMember.declarationMethodKind == ClassMemberKind.Method) {
             operandType = callMember.getGetterType(this);
             operand = new StaticInvocation(
                 callMember.tearoffTarget as Procedure,
@@ -1063,7 +1064,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ensureAssignableResult(receiverType, receiverResult).expression;
 
     ObjectAccessTarget target = new ExtensionAccessTarget(receiverType,
-        node.target, null, ProcedureKind.Setter, extensionTypeArguments);
+        node.target, null, ClassMemberKind.Setter, extensionTypeArguments);
 
     DartType valueType = target.getSetterType(this);
 
@@ -1145,7 +1146,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget readTarget = node.getter == null
         ? const ObjectAccessTarget.missing()
         : new ExtensionAccessTarget(receiverType, node.getter!, null,
-            ProcedureKind.Getter, extensionTypeArguments);
+            ClassMemberKind.Getter, extensionTypeArguments);
 
     DartType readType = readTarget.getGetterType(this);
 
@@ -1168,7 +1169,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget writeTarget = node.setter == null
         ? const ObjectAccessTarget.missing()
         : new ExtensionAccessTarget(receiverType, node.setter!, null,
-            ProcedureKind.Setter, extensionTypeArguments);
+            ClassMemberKind.Setter, extensionTypeArguments);
 
     DartType valueType = writeTarget.getSetterType(this);
 
@@ -5459,7 +5460,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     ObjectAccessTarget target = new ExtensionAccessTarget(receiverType,
-        node.setter, null, ProcedureKind.Operator, extensionTypeArguments);
+        node.setter, null, ClassMemberKind.Method, extensionTypeArguments);
 
     DartType indexType = target.getIndexKeyType(this);
     DartType valueType = target.getIndexSetValueType(this);
@@ -5864,14 +5865,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget readTarget = node.getter != null
         ? new ExtensionAccessTarget(receiverType, node.getter!, null,
-            ProcedureKind.Operator, extensionTypeArguments)
+            ClassMemberKind.Method, extensionTypeArguments)
         : const ObjectAccessTarget.missing();
 
     DartType readIndexType = readTarget.getIndexKeyType(this);
 
     ObjectAccessTarget writeTarget = node.setter != null
         ? new ExtensionAccessTarget(receiverType, node.setter!, null,
-            ProcedureKind.Operator, extensionTypeArguments)
+            ClassMemberKind.Method, extensionTypeArguments)
         : const ObjectAccessTarget.missing();
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
@@ -6178,7 +6179,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableExtensionMember:
       case ObjectAccessTargetKind.extensionTypeMember:
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
-        assert(binaryTarget.declarationMethodKind != ProcedureKind.Setter);
+        assert(binaryTarget.declarationMethodKind != ClassMemberKind.Setter);
         binary = new StaticInvocation(
             binaryTarget.member as Procedure,
             new Arguments(<Expression>[
@@ -6323,7 +6324,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableExtensionMember:
       case ObjectAccessTargetKind.extensionTypeMember:
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
-        assert(unaryTarget.declarationMethodKind != ProcedureKind.Setter);
+        assert(unaryTarget.declarationMethodKind != ClassMemberKind.Setter);
         unary = new StaticInvocation(
             unaryTarget.member as Procedure,
             new Arguments(<Expression>[
@@ -6583,7 +6584,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableExtensionMember:
       case ObjectAccessTargetKind.extensionTypeMember:
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
-        assert(writeTarget.declarationMethodKind != ProcedureKind.Setter);
+        assert(writeTarget.declarationMethodKind != ClassMemberKind.Setter);
         write = new StaticInvocation(
             writeTarget.member as Procedure,
             new Arguments(<Expression>[receiver, index, value],
@@ -7307,7 +7308,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget readTarget = node.getter != null
         ? new ExtensionAccessTarget(receiverType, node.getter!, null,
-            ProcedureKind.Operator, extensionTypeArguments)
+            ClassMemberKind.Method, extensionTypeArguments)
         : const ObjectAccessTarget.missing();
 
     Expression receiver =
@@ -7368,7 +7369,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget writeTarget = node.setter != null
         ? new ExtensionAccessTarget(receiverType, node.setter!, null,
-            ProcedureKind.Operator, extensionTypeArguments)
+            ClassMemberKind.Method, extensionTypeArguments)
         : const ObjectAccessTarget.missing();
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);

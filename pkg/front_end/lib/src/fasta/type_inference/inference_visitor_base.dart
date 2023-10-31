@@ -35,6 +35,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
@@ -967,11 +968,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ExtensionType extensionType, Name name, int fileOffset,
       {required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
-    Member? member = _getExtensionTypeMember(
+    ClassMember? classMember = _getExtensionTypeMember(
         extensionType.extensionTypeDeclaration, name, isSetter);
-    if (member == null) {
+    if (classMember == null) {
       return null;
     }
+    Member? member = classMember.getMember(engine.membersBuilder);
     if (member is Procedure &&
         member.stubKind == ProcedureStubKind.RepresentationField) {
       return new ObjectAccessTarget.extensionTypeRepresentation(
@@ -979,50 +981,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     }
     if (member.isExtensionTypeMember) {
-      // TODO(johnniwinther): Derive this from the [ClassMember].
-      ExtensionTypeMemberDescriptor? memberDescriptor;
-      ExtensionTypeDeclaration? extensionTypeDeclaration;
-      outer:
-      for (ExtensionTypeDeclaration declaration
-          in member.enclosingLibrary.extensionTypeDeclarations) {
-        for (ExtensionTypeMemberDescriptor descriptor
-            in declaration.memberDescriptors) {
-          if (descriptor.memberReference == member.reference) {
-            extensionTypeDeclaration = declaration;
-            memberDescriptor = descriptor;
-            break outer;
-          }
-        }
-      }
-      assert(extensionTypeDeclaration != null,
-          "No enclosing extension type declaration found for $member.");
-      assert(memberDescriptor != null,
-          "No extension type member descriptor found for $member.");
-      ProcedureKind kind;
-      switch (memberDescriptor!.kind) {
-        case ExtensionTypeMemberKind.Method:
-          kind = ProcedureKind.Method;
-        case ExtensionTypeMemberKind.Operator:
-          kind = ProcedureKind.Operator;
-        case ExtensionTypeMemberKind.Getter:
-          kind = ProcedureKind.Getter;
-        case ExtensionTypeMemberKind.Setter:
-          kind = ProcedureKind.Setter;
-        case ExtensionTypeMemberKind.Constructor:
-        case ExtensionTypeMemberKind.Factory:
-        case ExtensionTypeMemberKind.Field:
-        case ExtensionTypeMemberKind.RedirectingFactory:
-          throw new UnsupportedError("Unexpected extension type member kind: "
-              "${memberDescriptor.kind}.");
-      }
-
+      ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+          classMember.declarationBuilder as ExtensionTypeDeclarationBuilder;
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          extensionTypeDeclarationBuilder.extensionTypeDeclaration;
+      ClassMemberKind kind = classMember.memberKind;
       return new ObjectAccessTarget.extensionTypeMember(
           receiverType,
-          memberDescriptor.memberReference.asMember,
-          memberDescriptor.tearOffReference?.asMember,
+          member,
+          classMember.getTearOff(engine.membersBuilder),
           kind,
           hierarchyBuilder.getTypeArgumentsAsInstanceOf(
-              extensionType, extensionTypeDeclaration!)!,
+              extensionType, extensionTypeDeclaration)!,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     } else {
       return new ObjectAccessTarget.interfaceMember(receiverType, member,
@@ -1117,16 +1087,31 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                     receiverType,
                     setter ? thisBuilder.writeTarget! : thisBuilder.readTarget!,
                     thisBuilder.readTarget,
-                    setter ? ProcedureKind.Setter : ProcedureKind.Getter,
+                    setter ? ClassMemberKind.Setter : ClassMemberKind.Getter,
                     inferredTypeArguments,
                     isPotentiallyNullable: isPotentiallyNullableAccess);
               }
             } else {
+              ClassMemberKind classMemberKind;
+              switch (thisBuilder.kind) {
+                case ProcedureKind.Method:
+                case ProcedureKind.Operator:
+                  classMemberKind = ClassMemberKind.Method;
+                case ProcedureKind.Getter:
+                  classMemberKind = ClassMemberKind.Getter;
+                case ProcedureKind.Setter:
+                  classMemberKind = ClassMemberKind.Setter;
+                case ProcedureKind.Factory:
+                case null:
+                  throw new UnsupportedError(
+                      "Unexpected procedure kind ${thisBuilder.kind} on "
+                      "builder $thisBuilder.");
+              }
               target = new ObjectAccessTarget.extensionMember(
                   receiverType,
                   setter ? thisBuilder.writeTarget! : thisBuilder.invokeTarget!,
                   thisBuilder.readTarget,
-                  thisBuilder.kind!,
+                  classMemberKind,
                   inferredTypeArguments,
                   isPotentiallyNullable: isPotentiallyNullableAccess);
             }
@@ -2458,7 +2443,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType calleeType = target.getGetterType(this);
     FunctionType functionType = target.getFunctionType(this);
 
-    if (target.declarationMethodKind == ProcedureKind.Getter) {
+    if (target.declarationMethodKind == ClassMemberKind.Getter) {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
           fileOffset, target, receiver, new Arguments.empty());
       ExpressionInferenceResult result = inferMethodInvocation(
@@ -3828,13 +3813,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
   }
 
-  Member? _getExtensionTypeMember(
+  ClassMember? _getExtensionTypeMember(
       ExtensionTypeDeclaration extensionTypeDeclaration,
       Name name,
       bool setter) {
-    Member? member = engine.membersBuilder
-        .getExtensionTypeMember(extensionTypeDeclaration, name, setter: setter);
-    return TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
+    ClassMember? member = engine.membersBuilder.getExtensionTypeClassMember(
+        extensionTypeDeclaration, name,
+        setter: setter);
+    TypeInferenceEngine.resolveInferenceNode(
+        member?.getMember(engine.membersBuilder), hierarchyBuilder);
+    return member;
   }
 
   bool _isLoweredSetLiteral(Expression expression) {
@@ -4093,7 +4081,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.extensionTypeMember:
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
         switch (readTarget.declarationMethodKind) {
-          case ProcedureKind.Getter:
+          case ClassMemberKind.Getter:
             read = new StaticInvocation(
                 readTarget.member as Procedure,
                 new ArgumentsImpl(<Expression>[
@@ -4102,7 +4090,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset;
             break;
-          case ProcedureKind.Method:
+          case ClassMemberKind.Method:
             read = new StaticInvocation(
                 readTarget.tearoffTarget as Procedure,
                 new Arguments(<Expression>[
@@ -4112,9 +4100,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ..fileOffset = fileOffset;
             readResult = instantiateTearOff(readType, typeContext, read);
             break;
-          case ProcedureKind.Setter:
-          case ProcedureKind.Factory:
-          case ProcedureKind.Operator:
+          case ClassMemberKind.Setter:
             unhandled('$readTarget', "inferPropertyGet", -1, null);
         }
         break;
