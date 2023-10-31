@@ -70,6 +70,8 @@ group("runtime") {
 
   if (is_linux || is_android) {
     deps += [ "runtime/bin:abstract_socket_test" ]
+  } else if (is_fuchsia) {
+    deps += [ ":fuchsia_test_package" ]
   }
 }
 
@@ -167,41 +169,38 @@ if (is_fuchsia) {
   import("third_party/fuchsia/sdk/${host_os}/build/component.gni")
   import("third_party/fuchsia/sdk/${host_os}/build/package.gni")
 
-  template("dart_fuchsia_test_package") {
-    fuchsia_package(target_name) {
-      package_name = invoker.package_name
-      if (is_debug) {
-        package_name += "_debug"
-      } else if (is_release) {
-        package_name += "_release"
-      } else if (is_product) {
-        package_name += "_product"
-      }
-      testonly = true
-      deps = invoker.deps
-    }
-  }
+  test_binaries = [
+    "dart",
+    "dart_precompiled_runtime",
+    "run_vm_tests",
+  ]
 
-  template("dart_fuchsia_test_component") {
-    fuchsia_component(target_name) {
+  foreach(binary, test_binaries) {
+    fuchsia_component("${binary}_test_component") {
       testonly = true
-      data_deps = [ "runtime/bin:dart" ]
-      if (defined(invoker.data_deps)) {
-        data_deps += invoker.data_deps
-      }
-      manifest = invoker.manifest
-
-      library_files = []
-      if (defined(invoker.library_files)) {
-        library_files += invoker.library_files
-      }
+      manifest = "runtime/bin/${binary}_test_component.cml"
+      data_deps = [
+        "runtime/bin:${binary}",
+        "runtime/bin:ffi_test_dynamic_library",
+        "runtime/bin:ffi_test_functions",
+      ]
+      library_files = [
+        "libffi_test_dynamic_library.so",
+        "libffi_test_functions.so",
+      ]
       resource_files = [
         ".dart_tool/package_config.json",
         "pkg/testing/test/hello_test.dart",
         "tools/addlatexhash.dart",
       ]
-      resource_dirs = invoker.resource_dirs
-
+      resource_dirs = [
+        "pkg/async_helper",
+        "pkg/expect",
+        "pkg/meta",
+        "tests/ffi",
+        "third_party/pkg/ffi",
+        "third_party/pkg/path",
+      ]
       resources = []
       foreach(file, library_files) {
         resources += [
@@ -224,54 +223,18 @@ if (is_fuchsia) {
     }
   }
 
-  dart_fuchsia_test_component("fuchsia_test_component") {
-    manifest = "build/fuchsia/fuchsia_test_component.cml"
-    resource_dirs = [
-      "pkg/async_helper",
-      "pkg/expect",
-      "pkg/meta",
-      "pkg/native_stack_traces",
-      "pkg/smith",
-      "third_party/pkg/args",
-      "third_party/pkg/async",
-      "third_party/pkg/collection",
-      "third_party/pkg/convert",
-      "third_party/pkg/crypto",
-      "third_party/pkg/http",
-      "third_party/pkg/http_parser",
-      "third_party/pkg/path",
-      "third_party/pkg/pool",
-      "third_party/pkg/stack_trace",
-      "third_party/pkg/string_scanner",
-      "third_party/pkg/typed_data",
-    ]
-  }
-
-  dart_fuchsia_test_package("fuchsia_test_package") {
-    package_name = "dart_test"
-    deps = [ ":fuchsia_test_component" ]
-  }
-
-  dart_fuchsia_test_component("fuchsia_ffi_test_component") {
-    manifest = "build/fuchsia/fuchsia_ffi_test_component.cml"
-    data_deps = [
-      "runtime/bin:ffi_test_dynamic_library",
-      "runtime/bin:ffi_test_functions",
-    ]
-    library_files = [
-      "libffi_test_dynamic_library.so",
-      "libffi_test_functions.so",
-    ]
-    resource_dirs = [
-      "pkg/expect",
-      "pkg/meta",
-      "tests/ffi",
-      "third_party/pkg/ffi",
-    ]
-  }
-
-  dart_fuchsia_test_package("fuchsia_ffi_test_package") {
-    package_name = "dart_ffi_test"
-    deps = [ ":fuchsia_ffi_test_component" ]
+  fuchsia_package("fuchsia_test_package") {
+    testonly = true
+    if (is_debug) {
+      package_name = "dart_test_debug"
+    } else if (is_release) {
+      package_name = "dart_test_release"
+    } else if (is_product) {
+      package_name = "dart_test_product"
+    }
+    deps = []
+    foreach(binary, test_binaries) {
+      deps += [ ":${binary}_test_component" ]
+    }
   }
 }

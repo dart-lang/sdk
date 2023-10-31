@@ -1687,10 +1687,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime",
-            "create_sdk",
-            "fuchsia_test_package",
-            "fuchsia_ffi_test_package"
+            "runtime"
           ]
         },
         {
@@ -1716,10 +1713,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime",
-            "create_sdk",
-            "fuchsia_test_package",
-            "fuchsia_ffi_test_package"
+            "runtime"
           ]
         }
       ]
