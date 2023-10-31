@@ -448,6 +448,44 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
   return result;
 }
 
+typedef ServiceExtensionHandler = Future<Map<String, dynamic>> Function(
+  Map<String, dynamic> cb,
+);
+
+/// Registers a service extension and returns the actual service name used to
+/// invoke the service.
+Future<String> registerServiceHelper(
+  VmService primaryClient,
+  VmService serviceRegisterClient,
+  String serviceName,
+  ServiceExtensionHandler callback,
+) async {
+  final serviceNameCompleter = Completer<String>();
+  late final StreamSubscription sub;
+  sub = primaryClient.onServiceEvent.listen((event) {
+    if (event.kind == EventKind.kServiceRegistered &&
+        event.method!.endsWith(serviceName)) {
+      serviceNameCompleter.complete(event.method!);
+      sub.cancel();
+    }
+  });
+  // TODO(bkonyi): if we end up in a situation where this call throws due to a
+  // prior subscription to the Service stream, we should do something similar
+  // to _subscribeDebugStream in this method.
+  await primaryClient.streamListen(EventStreams.kService);
+
+  // Register the service.
+  serviceRegisterClient.registerServiceCallback(serviceName, callback);
+  await serviceRegisterClient.registerService(serviceName, serviceName);
+
+  // Wait for the service registered event on the non-registering client to get
+  // the actual service name.
+  final actualServiceName = await serviceNameCompleter.future;
+  print("Service '$serviceName' registered as '$actualServiceName'");
+  await primaryClient.streamCancel(EventStreams.kService);
+  return actualServiceName;
+}
+
 Future<void> evaluateInFrameAndExpect(
   VmService service,
   String isolateId,
