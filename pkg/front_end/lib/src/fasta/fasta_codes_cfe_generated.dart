@@ -2799,7 +2799,7 @@ const Template<
                 DartType _type3, bool isNonNullableByDefault)>(
         "InvalidExtensionTypeSuperExtensionType",
         problemMessageTemplate:
-            r"""The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'.""",
+            r"""The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself.""",
         correctionMessageTemplate:
             r"""Try changing the representation type to a subtype of '#type2'.""",
         withArguments: _withArgumentsInvalidExtensionTypeSuperExtensionType);
@@ -2832,7 +2832,7 @@ Message _withArgumentsInvalidExtensionTypeSuperExtensionType(
   String type3 = type3Parts.join();
   return new Message(codeInvalidExtensionTypeSuperExtensionType,
       problemMessage:
-          """The representation type '${type}' of extension type '${name}' must be a subtype of the representation type '${type2}' of the implemented extension type '${type3}'.""" +
+          """The representation type '${type}' of extension type '${name}' must be either a subtype of the representation type '${type2}' of the implemented extension type '${type3}' or a subtype of '${type3}' itself.""" +
               labeler.originMessages,
       correctionMessage: """Try changing the representation type to a subtype of '${type2}'.""",
       arguments: {

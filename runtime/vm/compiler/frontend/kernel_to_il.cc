@@ -1384,8 +1384,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         LocalVariable* pointer = MakeTemporary();
         body += LoadLocal(pointer);
         body += LoadLocal(address);
-        body += UnboxTruncate(kUnboxedIntPtr);
-        body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
+        body += UnboxTruncate(kUnboxedFfiIntPtr);
+        body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
         body += StoreNativeField(Slot::PointerBase_data(),
                                  InnerPointerAccess::kCannotBeInnerPointer,
                                  StoreFieldInstr::Kind::kInitializing);
@@ -1467,8 +1467,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
       body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
-      body += UnboxTruncate(kUnboxedIntPtr);
-      body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
       body += StoreNativeField(Slot::PointerBase_data(),
                                InnerPointerAccess::kCannotBeInnerPointer,
                                StoreFieldInstr::Kind::kInitializing);
@@ -1800,11 +1800,12 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += LoadLocal(typed_data);
   body += LoadNativeField(Slot::PointerBase_data(),
                           InnerPointerAccess::kMayBeInnerPointer);
-  body += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
   body += LoadLocal(offset_in_bytes);
-  body += UnboxTruncate(kUnboxedIntPtr);
-  body += BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
-  body += ConvertUnboxedToUntagged(kUnboxedIntPtr);
+  body += UnboxTruncate(kUnboxedFfiIntPtr);
+  body +=
+      BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /*is_truncating=*/true);
+  body += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
   body += StoreNativeField(Slot::PointerBase_data(),
                            InnerPointerAccess::kMayBeInnerPointer,
                            StoreFieldInstr::Kind::kInitializing);
@@ -1865,27 +1866,27 @@ Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
   call_memmove += LoadLocal(arg_to);
   call_memmove += LoadNativeField(Slot::PointerBase_data(),
                                   InnerPointerAccess::kMayBeInnerPointer);
-  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
   call_memmove += LoadLocal(arg_to_start);
   call_memmove += IntConstant(element_size);
   call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
-  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove += UnboxTruncate(kUnboxedFfiIntPtr);
   call_memmove +=
-      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+      BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /*is_truncating=*/true);
   call_memmove += LoadLocal(arg_from);
   call_memmove += LoadNativeField(Slot::PointerBase_data(),
                                   InnerPointerAccess::kMayBeInnerPointer);
-  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
   call_memmove += LoadLocal(arg_from_start);
   call_memmove += IntConstant(element_size);
   call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
-  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove += UnboxTruncate(kUnboxedFfiIntPtr);
   call_memmove +=
-      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+      BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /*is_truncating=*/true);
   call_memmove += LoadLocal(arg_count);
   call_memmove += IntConstant(element_size);
   call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
-  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove += UnboxTruncate(kUnboxedFfiIntPtr);
   call_memmove += LoadThread();
   call_memmove += LoadUntagged(
       compiler::target::Thread::OffsetFromThread(&kMemoryMoveRuntimeEntry));
@@ -4529,8 +4530,8 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress() {
   LocalVariable* pointer = MakeTemporary();
   code += LoadLocal(pointer);
   code += LoadLocal(address);
-  code += UnboxTruncate(kUnboxedIntPtr);
-  code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
+  code += UnboxTruncate(kUnboxedFfiIntPtr);
+  code += ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
   code += StoreNativeField(Slot::PointerBase_data(),
                            InnerPointerAccess::kCannotBeInnerPointer,
                            StoreFieldInstr::Kind::kInitializing);

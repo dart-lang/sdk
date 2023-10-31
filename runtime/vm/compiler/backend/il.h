@@ -8511,6 +8511,8 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   void mark_truncating() { is_truncating_ = true; }
 
+  virtual bool ComputeCanDeoptimize() const;
+
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(const Instruction& other) const {
@@ -8520,6 +8522,8 @@ class UnboxIntegerInstr : public UnboxInstr {
   }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DECLARE_ABSTRACT_INSTRUCTION(UnboxInteger)
 
@@ -8570,10 +8574,6 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
     ASSERT(is_truncating());
   }
 
-  virtual bool ComputeCanDeoptimize() const;
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxUint32)
 
   DECLARE_EMPTY_SERIALIZATION(UnboxUint32Instr, UnboxInteger32Instr)
@@ -8594,12 +8594,6 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
                             deopt_id,
                             speculative_mode) {}
 
-  virtual bool ComputeCanDeoptimize() const;
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt32)
 
   DECLARE_EMPTY_SERIALIZATION(UnboxInt32Instr, UnboxInteger32Instr)
@@ -8618,18 +8612,6 @@ class UnboxInt64Instr : public UnboxIntegerInstr {
                           value,
                           deopt_id,
                           speculative_mode) {}
-
-  virtual void InferRange(RangeAnalysis* analysis, Range* range);
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  virtual bool ComputeCanDeoptimize() const {
-    if (SpeculativeModeOfInputs() == kNotSpeculative) {
-      return false;
-    }
-
-    return !value()->Type()->IsInt();
-  }
 
   DECLARE_INSTRUCTION_NO_BACKEND(UnboxInt64)
 

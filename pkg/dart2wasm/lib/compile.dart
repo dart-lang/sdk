@@ -151,7 +151,9 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   }
 
   final wasmModule = translator.translate();
-  String jsRuntime =
-      jsRuntimeFinalizer.generate(translator.functions.translatedProcedures);
+  String jsRuntime = jsRuntimeFinalizer.generate(
+      translator.functions.translatedProcedures,
+      translator.internalizedStringsForJSRuntime,
+      mode);
   return CompilerOutput(wasmModule, jsRuntime);
 }

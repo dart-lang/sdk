@@ -21,6 +21,20 @@ final class JSStringImpl implements String {
 
   WasmExternRef? get toExternRef => _ref;
 
+  @pragma("wasm:entry-point")
+  static String interpolate(List<Object?> values) {
+    final array = JSArrayImpl.fromLength(values.length);
+    for (int i = 0; i < values.length; i++) {
+      final o = values[i];
+      final s = o.toString();
+      final jsString =
+          s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
+      array[i] = jsString;
+    }
+    return JSStringImpl(
+        js.JS<WasmExternRef?>("a => a.join('')", array.toExternRef));
+  }
+
   @override
   int codeUnitAt(int index) {
     RangeError.checkValueInInterval(index, 0, length - 1);
@@ -635,4 +649,33 @@ final class JSStringImpl implements String {
 
   @override
   String toString() => js.stringify(toExternRef);
+
+  int firstNonWhitespace() {
+    final len = this.length;
+    int first = 0;
+    for (; first < len; first++) {
+      if (!_isWhitespace(this.codeUnitAt(first))) {
+        break;
+      }
+    }
+    return first;
+  }
+
+  int lastNonWhitespace() {
+    int last = this.length - 1;
+    for (; last >= 0; last--) {
+      if (!_isWhitespace(this.codeUnitAt(last))) {
+        break;
+      }
+    }
+    return last;
+  }
 }
+
+@pragma("wasm:export", "\$jsStringToJSStringImpl")
+JSStringImpl _jsStringToJSStringImpl(WasmExternRef? string) =>
+    JSStringImpl(string);
+
+@pragma("wasm:export", "\$jsStringFromJSStringImpl")
+WasmExternRef? _jsStringFromJSStringImpl(JSStringImpl string) =>
+    string.toExternRef;

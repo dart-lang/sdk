@@ -1,19 +1,13 @@
-// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Note: the VM concatenates all patch files into a single patch file. This
-/// file is the first patch in "dart:convert" which contains all the imports
-/// used by patches of that library. We plan to change this when we have a
-/// shared front end and simply use parts.
+import "dart:_internal" show ClassID, patch, POWERS_OF_TEN, unsafeCast;
+import "dart:_js_types";
+import 'dart:_wasm';
+import 'dart:_js_helper' as js;
 
-import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
-import "dart:_string";
 import "dart:typed_data" show Uint8List, Uint16List;
-
-/// This patch library has no additional parts.
-
-// JSON conversion.
 
 @patch
 dynamic _parseJson(
@@ -29,43 +23,100 @@ dynamic _parseJson(
 
 @patch
 class Utf8Decoder {
+  // Always fall back to the Dart implementation for strings shorter than this
+  // threshold, as there is a large, constant overhead for using TextDecoder.
+  // TODO(omersa): This is copied from dart2js runtime, make sure the value is
+  // right for dart2wasm.
+  static const int _shortInputThreshold = 15;
+
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
-    if (next is JsonDecoder) {
-      return new _JsonUtf8Decoder(
-              (next as JsonDecoder)._reviver, this._allowMalformed)
-          as dynamic/*=Converter<List<int>, T>*/;
-    }
-    // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
-    return super.fuse<T>(next);
+    return super.fuse(next);
   }
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
   @patch
   static String? _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int? end) {
+    if (codeUnits is JSUint8ArrayImpl) {
+      final JSUint8ArrayImpl jsCodeUnits = codeUnits;
+      end ??= jsCodeUnits.length;
+      if (end - start < _shortInputThreshold) {
+        return null;
+      }
+      return _convertInterceptedUint8List(
+          allowMalformed, jsCodeUnits, start, end);
+    }
     return null; // This call was not intercepted.
   }
-}
 
-class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
-  final Object? Function(Object? key, Object? value)? _reviver;
-  final bool _allowMalformed;
+  static String? _convertInterceptedUint8List(
+      bool allowMalformed, JSUint8ArrayImpl codeUnits, int start, int end) {
+    // TODO(omersa): There's a bug somewhere when compiling lazy statics that
+    // return `WasmExternRef`?
+    // final WasmExternRef? decoder = allowMalformed ? _decoderNonfatal : _decoder;
+    // if (decoder == WasmExternRef.nullRef) {
+    //   return null;
+    // }
+    final WasmExternRef? decoder;
+    try {
+      decoder = allowMalformed
+          ? js.JS<WasmExternRef?>(
+              '() => new TextDecoder("utf-8", {fatal: false})')
+          : js.JS<WasmExternRef?>(
+              '() => new TextDecoder("utf-8", {fatal: true})');
+    } catch (e) {
+      return null;
+    }
 
-  _JsonUtf8Decoder(this._reviver, this._allowMalformed);
-
-  Object? convert(List<int> input) {
-    var parser = _JsonUtf8DecoderSink._createParser(_reviver, _allowMalformed);
-    parser.chunk = input;
-    parser.chunkEnd = input.length;
-    parser.parse(0);
-    parser.close();
-    return parser.result;
+    if (0 == start && end == codeUnits.length) {
+      return _useTextDecoder(decoder, codeUnits.toExternRef);
+    }
+    final length = codeUnits.length;
+    end = RangeError.checkValidRange(start, end, length);
+    return _useTextDecoder(
+        decoder,
+        js.JS<WasmExternRef?>(
+            '(codeUnits, start, end) => codeUnits.subarray(start, end)',
+            codeUnits.toExternRef,
+            start.toDouble,
+            end.toDouble));
   }
 
-  ByteConversionSink startChunkedConversion(Sink<Object?> sink) {
-    return new _JsonUtf8DecoderSink(_reviver, sink, _allowMalformed);
+  static String? _useTextDecoder(
+      WasmExternRef? decoder, WasmExternRef? codeUnits) {
+    // If the input is malformed, catch the exception and return `null` to fall
+    // back on unintercepted decoder. The fallback will either succeed in
+    // decoding, or report the problem better than TextDecoder.
+    try {
+      return JSStringImpl(js.JS<WasmExternRef?>(
+          '(decoder, codeUnits) => decoder.decode(codeUnits)',
+          decoder,
+          codeUnits));
+    } catch (e) {}
+    return null;
   }
+
+  // TODO(omersa): These values seem to be miscompiled at the use sites, see
+  // above.
+  //
+  // // TextDecoder is not defined on some browsers and on the stand-alone d8 and
+  // // jsshell engines. Use a lazy initializer to do feature detection once.
+  // static final WasmExternRef? _decoder = () {
+  //   try {
+  //     return js
+  //         .JS<WasmExternRef?>('() => new TextDecoder("utf-8", {fatal: true})');
+  //   } catch (e) {}
+  //   return null;
+  // }();
+
+  // static final WasmExternRef? _decoderNonfatal = () {
+  //   try {
+  //     return js
+  //         .JS<WasmExternRef?>('() => new TextDecoder("utf-8", {fatal: false})');
+  //   } catch (e) {}
+  //   return null;
+  // }();
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
@@ -1425,49 +1476,29 @@ class _JsonStringParser extends _ChunkedJsonParser<String> {
 class JsonDecoder {
   @patch
   StringConversionSink startChunkedConversion(Sink<Object?> sink) {
-    return new _JsonStringDecoderSink(this._reviver, sink);
+    // return _JsonStringDecoderSink(this._reviver, sink);
+    return _JsonDecoderSink(_reviver, sink);
   }
 }
 
-/**
- * Implements the chunked conversion from a JSON string to its corresponding
- * object.
- *
- * The sink only creates one object, but its input can be chunked.
- */
-class _JsonStringDecoderSink extends StringConversionSinkBase {
-  _JsonStringParser _parser;
+/// Implements the chunked conversion from a JSON string to its corresponding
+/// object.
+///
+/// The sink only creates one object, but its input can be chunked.
+// TODO(floitsch): don't accumulate everything before starting to decode.
+class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
   final Object? Function(Object? key, Object? value)? _reviver;
   final Sink<Object?> _sink;
 
-  _JsonStringDecoderSink(this._reviver, this._sink)
-      : _parser = _createParser(_reviver);
-
-  static _JsonStringParser _createParser(
-      Object? Function(Object? key, Object? value)? reviver) {
-    return new _JsonStringParser(new _JsonListener(reviver));
-  }
-
-  void addSlice(String chunk, int start, int end, bool isLast) {
-    _parser.chunk = chunk;
-    _parser.chunkEnd = end;
-    _parser.parse(start);
-    if (isLast) _parser.close();
-  }
-
-  void add(String chunk) {
-    addSlice(chunk, 0, chunk.length, false);
-  }
+  _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));
 
   void close() {
-    _parser.close();
-    var decoded = _parser.result;
+    super.close();
+    String accumulated = _stringSink.toString();
+    _stringSink.clear();
+    Object? decoded = _parseJson(accumulated, _reviver);
     _sink.add(decoded);
     _sink.close();
-  }
-
-  ByteConversionSink asUtf8Sink(bool allowMalformed) {
-    return new _JsonUtf8DecoderSink(_reviver, _sink, allowMalformed);
   }
 }
 
@@ -1477,13 +1508,13 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
 class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   static final Uint8List emptyChunk = Uint8List(0);
 
-  final _Utf8Decoder decoder;
+  final bool allowMalformed;
+
   List<int> chunk = emptyChunk;
   int chunkEnd = 0;
 
-  _JsonUtf8Parser(_JsonListener listener, bool allowMalformed)
-      : decoder = new _Utf8Decoder(allowMalformed),
-        super(listener) {
+  _JsonUtf8Parser(_JsonListener listener, this.allowMalformed)
+      : super(listener) {
     // Starts out checking for an optional BOM (KWD_BOM, count = 0).
     partialState =
         _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
@@ -1503,24 +1534,22 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   }
 
   void beginString() {
-    decoder.reset();
     this.buffer = new StringBuffer();
   }
 
   void addSliceToString(int start, int end) {
     final StringBuffer buffer = this.buffer;
-    buffer.write(decoder.convertChunked(chunk, start, end));
+    buffer
+        .write(_Utf8Decoder(allowMalformed).convertChunked(chunk, start, end));
   }
 
   void addCharToString(int charCode) {
     final StringBuffer buffer = this.buffer;
-    decoder.flush(buffer);
     buffer.writeCharCode(charCode);
   }
 
   String endString() {
     final StringBuffer buffer = this.buffer;
-    decoder.flush(buffer);
     this.buffer = null;
     return buffer.toString();
   }
@@ -1536,476 +1565,21 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   }
 }
 
-@pragma("wasm:prefer-inline")
-double _parseDouble(String source, int start, int end) =>
-    double.parse(source.substring(start, end));
-
-/**
- * Implements the chunked conversion from a UTF-8 encoding of JSON
- * to its corresponding object.
- */
-class _JsonUtf8DecoderSink extends ByteConversionSink {
-  final _JsonUtf8Parser _parser;
-  final Sink<Object?> _sink;
-
-  _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
-      : _parser = _createParser(reviver, allowMalformed);
-
-  static _JsonUtf8Parser _createParser(
-      Object? Function(Object? key, Object? value)? reviver,
-      bool allowMalformed) {
-    return new _JsonUtf8Parser(new _JsonListener(reviver), allowMalformed);
-  }
-
-  void addSlice(List<int> chunk, int start, int end, bool isLast) {
-    _addChunk(chunk, start, end);
-    if (isLast) close();
-  }
-
-  void add(List<int> chunk) {
-    _addChunk(chunk, 0, chunk.length);
-  }
-
-  void _addChunk(List<int> chunk, int start, int end) {
-    _parser.chunk = chunk;
-    _parser.chunkEnd = end;
-    _parser.parse(start);
-  }
-
-  void close() {
-    _parser.close();
-    var decoded = _parser.result;
-    _sink.add(decoded);
-    _sink.close();
-  }
-}
-
 @patch
 class _Utf8Decoder {
-  /// Flags indicating presence of the various kinds of bytes in the input.
-  int _scanFlags = 0;
-
-  /// How many bytes of the BOM have been read so far. Set to -1 when the BOM
-  /// has been skipped (or was not present).
-  int _bomIndex = 0;
-
-  // Table for the scanning phase, which quickly scans through the input.
-  //
-  // Each input byte is looked up in the table, providing a size and some flags.
-  // The sizes are summed, and the flags are or'ed together.
-  //
-  // The resulting size and flags indicate:
-  // A) How many UTF-16 code units will be emitted by the decoding of this
-  //    input. This can be used to allocate a string of the correct length up
-  //    front.
-  // B) Which decoder and resulting string representation is appropriate. There
-  //    are three cases:
-  //    1) Pure ASCII (flags == 0): The input can simply be put into a
-  //       OneByteString without further decoding.
-  //    2) Latin1 (flags == (flagLatin1 | flagExtension)): The result can be
-  //       represented by a OneByteString, and the decoder can assume that only
-  //       Latin1 characters are present.
-  //    3) Arbitrary input (otherwise): Needs a full-featured decoder. Output
-  //       can be represented by a TwoByteString.
-
-  static const int sizeMask = 0x03;
-  static const int flagsMask = 0x3C;
-
-  static const int flagExtension = 1 << 2;
-  static const int flagLatin1 = 1 << 3;
-  static const int flagNonLatin1 = 1 << 4;
-  static const int flagIllegal = 1 << 5;
-
-  // ASCII     'A' = 64 + (1);
-  // Extension 'D' = 64 + (0 | flagExtension);
-  // Latin1    'I' = 64 + (1 | flagLatin1);
-  // BMP       'Q' = 64 + (1 | flagNonLatin1);
-  // Non-BMP   'R' = 64 + (2 | flagNonLatin1);
-  // Illegal   'a' = 64 + (1 | flagIllegal);
-  // Illegal   'b' = 64 + (2 | flagIllegal);
-  static const String scanTable = ""
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 00-1F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 20-3F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 40-5F
-      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 60-7F
-      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // 80-9F
-      "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD" // A0-BF
-      "aaIIQQQQQQQQQQQQQQQQQQQQQQQQQQQQ" // C0-DF
-      "QQQQQQQQQQQQQQQQRRRRRbbbbbbbbbbb" // E0-FF
-      ;
-
-  /// Max chunk to scan at a time.
-  ///
-  /// Avoids staying away from safepoints too long.
-  /// The Utf8ScanInstr relies on this being small enough to ensure the
-  /// decoded length stays within Smi range.
-  static const int scanChunkSize = 65536;
-
-  /// Reset the decoder to a state where it is ready to decode a new string but
-  /// will not skip a leading BOM. Used by the fused UTF-8 / JSON decoder.
-  void reset() {
-    _state = initial;
-    _bomIndex = -1;
-  }
-
-  @pragma("vm:prefer-inline")
-  int scan(Uint8List bytes, int start, int end) {
-    // Assumes 0 <= start <= end <= bytes.length
-    int size = 0;
-    _scanFlags = 0;
-    int localStart = start;
-    while (end - localStart > scanChunkSize) {
-      int localEnd = localStart + scanChunkSize;
-      size += _scan(bytes, localStart, localEnd, scanTable);
-      localStart = localEnd;
-    }
-    size += _scan(bytes, localStart, end, scanTable);
-    return size;
-  }
-
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  int _scan(Uint8List bytes, int start, int end, String scanTable) {
-    int size = 0;
-    int flags = 0;
-    for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAt(bytes[i]);
-      size += t & sizeMask;
-      flags |= t;
-    }
-    _scanFlags |= flags & flagsMask;
-    return size;
-  }
-
-  // The VM decoder handles BOM explicitly instead of via the state machine.
   @patch
-  _Utf8Decoder(this.allowMalformed) : _state = initial;
+  _Utf8Decoder(this.allowMalformed) : _state = beforeBom;
 
   @patch
   String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
-    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
-
-    // Have bytes as Uint8List.
-    Uint8List bytes;
-    int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = unsafeCast<Uint8List>(codeUnits);
-      errorOffset = 0;
-    } else {
-      bytes = _makeUint8List(codeUnits, start, end);
-      errorOffset = start;
-      end -= start;
-      start = 0;
-    }
-
-    // Skip initial BOM.
-    start = skipBomSingle(bytes, start, end);
-
-    // Special case empty input.
-    if (start == end) return "";
-
-    // Scan input to determine size and appropriate decoder.
-    int size = scan(bytes, start, end);
-    int flags = _scanFlags;
-
-    if (flags == 0) {
-      // Pure ASCII.
-      assert(size == end - start);
-      OneByteString result = OneByteString.withLength(size);
-      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
-      return result;
-    }
-
-    String result;
-    if (flags == (flagLatin1 | flagExtension)) {
-      // Latin1.
-      result = decode8(bytes, start, end, size);
-    } else {
-      // Arbitrary Unicode.
-      result = decode16(bytes, start, end, size);
-    }
-    if (_state == accept) {
-      return result;
-    }
-
-    if (!allowMalformed) {
-      if (!isErrorState(_state)) {
-        // Unfinished sequence.
-        _state = errorUnfinished;
-        _charOrIndex = end;
-      }
-      final String message = errorDescription(_state);
-      throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
-    }
-
-    // Start over on slow path.
-    _state = initial;
-    result = decodeGeneral(bytes, start, end, true);
-    assert(!isErrorState(_state));
-    return result;
+    return convertGeneral(codeUnits, start, maybeEnd, true);
   }
 
   @patch
   String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
-    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
-
-    // Have bytes as Uint8List.
-    Uint8List bytes;
-    int errorOffset;
-    if (codeUnits is Uint8List) {
-      bytes = unsafeCast<Uint8List>(codeUnits);
-      errorOffset = 0;
-    } else {
-      bytes = _makeUint8List(codeUnits, start, end);
-      errorOffset = start;
-      end -= start;
-      start = 0;
-    }
-
-    // Skip initial BOM.
-    start = skipBomChunked(bytes, start, end);
-
-    // Special case empty input.
-    if (start == end) return "";
-
-    // Scan input to determine size and appropriate decoder.
-    int size = scan(bytes, start, end);
-    int flags = _scanFlags;
-
-    // Adjust scan flags and size based on carry-over state.
-    switch (_state) {
-      case IA:
-        break;
-      case X1:
-        flags |= _charOrIndex < (0x100 >> 6) ? flagLatin1 : flagNonLatin1;
-        if (end - start >= 1) {
-          size += _charOrIndex < (0x10000 >> 6) ? 1 : 2;
-        }
-        break;
-      case X2:
-        flags |= flagNonLatin1;
-        if (end - start >= 2) {
-          size += _charOrIndex < (0x10000 >> 12) ? 1 : 2;
-        }
-        break;
-      case TO:
-      case TS:
-        flags |= flagNonLatin1;
-        if (end - start >= 2) size += 1;
-        break;
-      case X3:
-      case QO:
-      case QR:
-        flags |= flagNonLatin1;
-        if (end - start >= 3) size += 2;
-        break;
-    }
-
-    if (flags == 0) {
-      // Pure ASCII.
-      assert(_state == accept);
-      assert(size == end - start);
-      OneByteString result = OneByteString.withLength(size);
-      copyRangeFromUint8ListToOneByteString(bytes, result, start, 0, size);
-      return result;
-    }
-
-    // Do not include any final, incomplete character in size.
-    int extensionCount = 0;
-    int i = end - 1;
-    while (i >= start && (bytes[i] & 0xC0) == 0x80) {
-      extensionCount++;
-      i--;
-    }
-    if (i >= start && bytes[i] >= ((~0x3F >> extensionCount) & 0xFF)) {
-      size -= bytes[i] >= 0xF0 ? 2 : 1;
-    }
-
-    final int carryOverState = _state;
-    final int carryOverChar = _charOrIndex;
-    String result;
-    if (flags == (flagLatin1 | flagExtension)) {
-      // Latin1.
-      result = decode8(bytes, start, end, size);
-    } else {
-      // Arbitrary Unicode.
-      result = decode16(bytes, start, end, size);
-    }
-    if (!isErrorState(_state)) {
-      return result;
-    }
-    assert(_bomIndex == -1);
-
-    if (!allowMalformed) {
-      final String message = errorDescription(_state);
-      _state = initial; // Ready for more input.
-      throw FormatException(message, codeUnits, errorOffset + _charOrIndex);
-    }
-
-    // Start over on slow path.
-    _state = carryOverState;
-    _charOrIndex = carryOverChar;
-    result = decodeGeneral(bytes, start, end, false);
-    assert(!isErrorState(_state));
-    return result;
-  }
-
-  @pragma("vm:prefer-inline")
-  int skipBomSingle(Uint8List bytes, int start, int end) {
-    if (end - start >= 3 &&
-        bytes[start] == 0xEF &&
-        bytes[start + 1] == 0xBB &&
-        bytes[start + 2] == 0xBF) {
-      return start + 3;
-    }
-    return start;
-  }
-
-  @pragma("vm:prefer-inline")
-  int skipBomChunked(Uint8List bytes, int start, int end) {
-    assert(start <= end);
-    int bomIndex = _bomIndex;
-    // Already skipped?
-    if (bomIndex == -1) return start;
-
-    const bomValues = <int>[0xEF, 0xBB, 0xBF];
-    int i = start;
-    while (bomIndex < 3) {
-      if (i == end) {
-        // Unfinished BOM.
-        _bomIndex = bomIndex;
-        return start;
-      }
-      if (bytes[i++] != bomValues[bomIndex++]) {
-        // No BOM.
-        _bomIndex = -1;
-        return start;
-      }
-    }
-    // Complete BOM.
-    _bomIndex = -1;
-    _state = initial;
-    return i;
-  }
-
-  String decode8(Uint8List bytes, int start, int end, int size) {
-    assert(start < end);
-    OneByteString result = OneByteString.withLength(size);
-    int i = start;
-    int j = 0;
-    if (_state == X1) {
-      // Half-way though 2-byte sequence
-      assert(_charOrIndex == 2 || _charOrIndex == 3);
-      final int e = bytes[i++] ^ 0x80;
-      if (e >= 0x40) {
-        _state = errorMissingExtension;
-        _charOrIndex = i - 1;
-        return "";
-      }
-      writeIntoOneByteString(result, j++, (_charOrIndex << 6) | e);
-      _state = accept;
-    }
-    assert(_state == accept);
-    while (i < end) {
-      int byte = bytes[i++];
-      if (byte >= 0x80) {
-        if (byte < 0xC0) {
-          _state = errorUnexpectedExtension;
-          _charOrIndex = i - 1;
-          return "";
-        }
-        assert(byte == 0xC2 || byte == 0xC3);
-        if (i == end) {
-          _state = X1;
-          _charOrIndex = byte & 0x1F;
-          break;
-        }
-        final int e = bytes[i++] ^ 0x80;
-        if (e >= 0x40) {
-          _state = errorMissingExtension;
-          _charOrIndex = i - 1;
-          return "";
-        }
-        byte = (byte << 6) | e;
-      }
-      writeIntoOneByteString(result, j++, byte);
-    }
-    // Output size must match, unless we are doing single conversion and are
-    // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
-    return result;
-  }
-
-  String decode16(Uint8List bytes, int start, int end, int size) {
-    assert(start < end);
-    final String typeTable = _Utf8Decoder.typeTable;
-    final String transitionTable = _Utf8Decoder.transitionTable;
-    TwoByteString result = TwoByteString.withLength(size);
-    int i = start;
-    int j = 0;
-    int state = _state;
-    int char;
-
-    // First byte
-    assert(!isErrorState(state));
-    final int byte = bytes[i++];
-    final int type = typeTable.codeUnitAt(byte) & typeMask;
-    if (state == accept) {
-      char = byte & (shiftedByteMask >> type);
-      state = transitionTable.codeUnitAt(type);
-    } else {
-      char = (byte & 0x3F) | (_charOrIndex << 6);
-      state = transitionTable.codeUnitAt(state + type);
-    }
-
-    while (i < end) {
-      final int byte = bytes[i++];
-      final int type = typeTable.codeUnitAt(byte) & typeMask;
-      if (state == accept) {
-        if (char >= 0x10000) {
-          assert(char < 0x110000);
-          writeIntoTwoByteString(result, j++, 0xD7C0 + (char >> 10));
-          writeIntoTwoByteString(result, j++, 0xDC00 + (char & 0x3FF));
-        } else {
-          writeIntoTwoByteString(result, j++, char);
-        }
-        char = byte & (shiftedByteMask >> type);
-        state = transitionTable.codeUnitAt(type);
-      } else if (isErrorState(state)) {
-        _state = state;
-        _charOrIndex = i - 2;
-        return "";
-      } else {
-        char = (byte & 0x3F) | (char << 6);
-        state = transitionTable.codeUnitAt(state + type);
-      }
-    }
-
-    // Final write?
-    if (state == accept) {
-      if (char >= 0x10000) {
-        assert(char < 0x110000);
-        writeIntoTwoByteString(result, j++, 0xD7C0 + (char >> 10));
-        writeIntoTwoByteString(result, j++, 0xDC00 + (char & 0x3FF));
-      } else {
-        writeIntoTwoByteString(result, j++, char);
-      }
-    } else if (isErrorState(state)) {
-      _state = state;
-      _charOrIndex = end - 1;
-      return "";
-    }
-
-    _state = state;
-    _charOrIndex = char;
-    // Output size must match, unless we are doing single conversion and are
-    // inside an unfinished sequence (which will trigger an error later).
-    assert(_bomIndex == 0 && _state != accept
-        ? (j == size - 1 || j == size - 2)
-        : (j == size));
-    return result;
+    return convertGeneral(codeUnits, start, maybeEnd, false);
   }
 }
+
+double _parseDouble(String source, int start, int end) =>
+    double.parse(source.substring(start, end));

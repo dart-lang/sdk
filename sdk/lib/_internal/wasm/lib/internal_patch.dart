@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_js_helper" show JS;
-import "dart:_string";
 
 part "class_id.dart";
 part "deferred.dart";
@@ -13,38 +12,6 @@ part "symbol_patch.dart";
 // Compilation to Wasm is always fully null safe.
 @patch
 bool typeAcceptsNull<T>() => null is T;
-
-// String accessors used to perform Dart<->JS string conversion
-
-@pragma("wasm:export", "\$stringLength")
-double _stringLength(String string) {
-  return string.length.toDouble();
-}
-
-@pragma("wasm:export", "\$stringRead")
-double _stringRead(String string, double index) {
-  return string.codeUnitAt(index.toInt()).toDouble();
-}
-
-@pragma("wasm:export", "\$stringAllocate1")
-OneByteString _stringAllocate1(double length) {
-  return OneByteString.withLength(length.toInt());
-}
-
-@pragma("wasm:export", "\$stringWrite1")
-void _stringWrite1(OneByteString string, double index, double codePoint) {
-  writeIntoOneByteString(string, index.toInt(), codePoint.toInt());
-}
-
-@pragma("wasm:export", "\$stringAllocate2")
-TwoByteString _stringAllocate2(double length) {
-  return TwoByteString.withLength(length.toInt());
-}
-
-@pragma("wasm:export", "\$stringWrite2")
-void _stringWrite2(TwoByteString string, double index, double codePoint) {
-  writeIntoTwoByteString(string, index.toInt(), codePoint.toInt());
-}
 
 const bool has63BitSmis = false;
 

@@ -7309,7 +7309,7 @@ InvalidExtensionTypeSuperInterface:
     extension type E(num n) implements int {}
 
 InvalidExtensionTypeSuperExtensionType:
-  problemMessage: "The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'."
+  problemMessage: "The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself."
   correctionMessage: "Try changing the representation type to a subtype of '#type2'."
   experiments: inline-class
   script: |

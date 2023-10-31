@@ -458,23 +458,27 @@ class SourceExtensionTypeDeclarationBuilder
                 typeBuilder.fileUri);
           }
         } else if (interface is ExtensionType) {
-          DartType instantiatedRepresentationType =
-              Substitution.fromExtensionType(interface).substituteType(interface
-                  .extensionTypeDeclaration.declaredRepresentationType);
-          if (!hierarchyBuilder.types.isSubtypeOf(
-              declaredRepresentationType,
-              instantiatedRepresentationType,
-              SubtypeCheckMode.withNullabilities)) {
-            libraryBuilder.addProblem(
-                templateInvalidExtensionTypeSuperExtensionType.withArguments(
-                    declaredRepresentationType,
-                    name,
-                    instantiatedRepresentationType,
-                    interface,
-                    true),
-                typeBuilder.charOffset!,
-                noLength,
-                typeBuilder.fileUri);
+          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
+              interface, SubtypeCheckMode.withNullabilities)) {
+            DartType instantiatedImplementedRepresentationType =
+                Substitution.fromExtensionType(interface).substituteType(
+                    interface
+                        .extensionTypeDeclaration.declaredRepresentationType);
+            if (!hierarchyBuilder.types.isSubtypeOf(
+                declaredRepresentationType,
+                instantiatedImplementedRepresentationType,
+                SubtypeCheckMode.withNullabilities)) {
+              libraryBuilder.addProblem(
+                  templateInvalidExtensionTypeSuperExtensionType.withArguments(
+                      declaredRepresentationType,
+                      name,
+                      instantiatedImplementedRepresentationType,
+                      interface,
+                      true),
+                  typeBuilder.charOffset!,
+                  noLength,
+                  typeBuilder.fileUri);
+            }
           }
         }
       }

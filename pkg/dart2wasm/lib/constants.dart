@@ -322,6 +322,15 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   @override
   ConstantInfo? visitStringConstant(StringConstant constant) {
+    if (translator.options.jsCompatibility) {
+      ClassInfo info = translator.classInfo[translator.jsStringClass]!;
+      return createConstant(constant, info.nonNullableType, (function, b) {
+        b.i32_const(info.classId);
+        b.i32_const(initialIdentityHash);
+        b.global_get(translator.getInternalizedStringGlobal(constant.value));
+        b.struct_new(info.struct);
+      });
+    }
     bool isOneByte = constant.value.codeUnits.every((c) => c <= 255);
     ClassInfo info = translator.classInfo[isOneByte
         ? translator.oneByteStringClass
@@ -885,8 +894,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitSymbolConstant(SymbolConstant constant) {
     ClassInfo info = translator.classInfo[translator.symbolClass]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType stringType =
-        translator.classInfo[translator.coreTypes.stringClass]!.nonNullableType;
+    w.RefType stringType = translator
+        .classInfo[translator.coreTypes.stringClass]!.repr.nonNullableType;
     StringConstant nameConstant = StringConstant(constant.name);
     bool lazy = ensureConstant(nameConstant)?.isLazy ?? false;
     return createConstant(constant, info.nonNullableType, lazy: lazy,
