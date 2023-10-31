@@ -57,6 +57,7 @@ html/file_sample_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
 html/fileapi_supported_throws_test: Skip # FileSystem not supported on FireFox.
 html/history_test: Skip # Issue 22050
+html/mediadevices_test: SkipByDesign # Not supported on FF, likely requires user-interaction that causes timeout
 html/request_animation_frame_test: Skip # Async test hangs.
 
 [ $compiler == dart2js && $runtime == safari ]
