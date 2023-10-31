@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'introspect_shared.dart';
 
 /*macro*/ class DeclarationTextMacro
-    implements ClassTypesMacro, MethodTypesMacro {
+    implements ClassTypesMacro, MethodTypesMacro, MixinTypesMacro {
   const DeclarationTextMacro();
 
   @override
@@ -46,6 +46,28 @@ import 'introspect_shared.dart';
       sink: sink,
     );
     await printer.writeMethodDeclaration(method);
+    final text = buffer.toString();
+
+    builder.declareType(
+      'x',
+      DeclarationCode.fromString(
+        'const x = r"""$text""";',
+      ),
+    );
+  }
+
+  @override
+  Future<void> buildTypesForMixin(declaration, builder) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final printer = _DeclarationPrinter(
+      sink: sink,
+    );
+    await printer.writeMixinDeclaration(declaration);
     final text = buffer.toString();
 
     builder.declareType(
@@ -103,6 +125,23 @@ class _DeclarationPrinter {
       await _writePositionalFormalParameters(e.positionalParameters);
       await _writeTypeAnnotation('returnType', e.returnType);
       await _writeTypeParameters(e.typeParameters);
+    });
+  }
+
+  Future<void> writeMixinDeclaration(MixinDeclaration e) async {
+    sink.writelnWithIndent('mixin ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasBase': e.hasBase,
+      });
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations(
+        'superclassConstraints',
+        e.superclassConstraints,
+      );
+      await _writeTypeAnnotations('interfaces', e.interfaces);
     });
   }
 

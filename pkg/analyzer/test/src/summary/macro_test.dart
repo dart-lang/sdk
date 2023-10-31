@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
     as macro;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -610,12 +611,11 @@ import 'arguments_text.dart';
 class A {}
 ''');
 
-    final A = library.definingCompilationUnit.getClass('A')!;
     if (expectedErrors != null) {
-      expect(A.errorsStrForClassElement, expectedErrors);
+      expect(library.macroErrorsStr, expectedErrors);
       return;
     } else {
-      A.assertNoErrorsForClassElement();
+      library.assertNoMacroErrors();
     }
 
     if (expected != null) {
@@ -641,6 +641,13 @@ class MacroDeclarationsIntrospectTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
+  String get _appendMacrosCode {
+    var code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/append.dart')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
+  }
+
   /// Return the code for `IntrospectDeclarationsPhaseMacro`.
   String get _introspectDeclarationsPhaseCode {
     final path = 'test/src/summary/macro/introspect_declarations_phase.dart';
@@ -651,36 +658,13 @@ class MacroDeclarationsIntrospectTest extends MacroElementsBaseTest {
   }
 
   test_class_appendInterfaces() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-import 'a.dart';
-
-macro class AddInterfaceA implements ClassTypesMacro {
-  const AddInterfaceA();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
-    builder.appendInterfaces([
-      NamedTypeAnnotationCode(
-        name: await builder.resolveIdentifier(
-          Uri.parse('package:test/a.dart'),
-          'A',
-        ),
-      ),
-    ]);
-  }
-}
-''');
+    _newAppendMacrosFile();
 
     await _assertIntrospectDeclarationsText(r'''
-import 'b.dart';
+import 'append.dart';
 
-@AddInterfaceA()
 @IntrospectDeclarationsPhaseMacro()
+@AppendInterfaceA()
 class X {}
 ''', r'''
 class X
@@ -690,41 +674,118 @@ class X
   }
 
   test_class_appendMixins() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-import 'a.dart';
-
-macro class AddInterfaceA implements ClassTypesMacro {
-  const AddInterfaceA();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
-    builder.appendMixins([
-      NamedTypeAnnotationCode(
-        name: await builder.resolveIdentifier(
-          Uri.parse('package:test/a.dart'),
-          'A',
-        ),
-      ),
-    ]);
-  }
-}
-''');
+    _newAppendMacrosFile();
 
     await _assertIntrospectDeclarationsText(r'''
-import 'b.dart';
+import 'append.dart';
 
-@AddInterfaceA()
 @IntrospectDeclarationsPhaseMacro()
+@AppendMixinA()
 class X {}
 ''', r'''
 class X
   mixins
     A
+''');
+  }
+
+  test_class_fieldDeclaration_isExternal() async {
+    await _assertIntrospectDeclarationsText(r'''
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
+class X {
+  external int a;
+  int b = 0;
+}
+''', r'''
+class X
+  fields
+    a
+      flags: hasExternal
+      type: int
+    b
+      type: int
+''');
+  }
+
+  test_class_fieldDeclaration_isFinal() async {
+    await _assertIntrospectDeclarationsText(r'''
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
+class X {
+  final int a = 0;
+  int b = 0;
+}
+''', r'''
+class X
+  fields
+    a
+      flags: hasFinal
+      type: int
+    b
+      type: int
+''');
+  }
+
+  test_class_fieldDeclaration_isLate() async {
+    await _assertIntrospectDeclarationsText(r'''
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
+class X {
+  late final int a;
+  final int b = 0;
+}
+''', r'''
+class X
+  fields
+    a
+      flags: hasFinal hasLate
+      type: int
+    b
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_class_fieldDeclaration_isStatic() async {
+    await _assertIntrospectDeclarationsText(r'''
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
+class X {
+  static int a = 0;
+  int b = 0;
+}
+''', r'''
+class X
+  fields
+    a
+      flags: isStatic
+      type: int
+    b
+      type: int
+''');
+  }
+
+  test_class_fieldDeclaration_type_explicit() async {
+    await _assertIntrospectDeclarationsText(r'''
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
+class X {
+  int a = 0;
+  List<String> b = [];
+}
+''', r'''
+class X
+  fields
+    a
+      type: int
+    b
+      type: List<String>
 ''');
   }
 
@@ -876,103 +937,39 @@ class X
 ''');
   }
 
-  test_fieldDeclaration_isExternal() async {
+  test_mixin_appendInterfaces() async {
+    _newAppendMacrosFile();
+
     await _assertIntrospectDeclarationsText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
-class X {
-  external int a;
-  int b = 0;
-}
+import 'append.dart';
+
+@IntrospectDeclarationsPhaseMacro()
+@AppendInterfaceA()
+mixin X {}
 ''', r'''
-class X
-  fields
-    a
-      flags: hasExternal
-      type: int
-    b
-      type: int
+mixin X
+  interfaces
+    A
 ''');
   }
 
-  test_fieldDeclaration_isFinal() async {
+  test_mixin_fieldDeclaration_isFinal() async {
     await _assertIntrospectDeclarationsText(r'''
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'X'},
 )
-class X {
+mixin X {
   final int a = 0;
   int b = 0;
 }
 ''', r'''
-class X
+mixin X
   fields
     a
       flags: hasFinal
       type: int
     b
       type: int
-''');
-  }
-
-  test_fieldDeclaration_isLate() async {
-    await _assertIntrospectDeclarationsText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
-class X {
-  late final int a;
-  final int b = 0;
-}
-''', r'''
-class X
-  fields
-    a
-      flags: hasFinal hasLate
-      type: int
-    b
-      flags: hasFinal
-      type: int
-''');
-  }
-
-  test_fieldDeclaration_isStatic() async {
-    await _assertIntrospectDeclarationsText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
-class X {
-  static int a = 0;
-  int b = 0;
-}
-''', r'''
-class X
-  fields
-    a
-      flags: isStatic
-      type: int
-    b
-      type: int
-''');
-  }
-
-  test_fieldDeclaration_type_explicit() async {
-    await _assertIntrospectDeclarationsText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
-class X {
-  int a = 0;
-  List<String> b = [];
-}
-''', r'''
-class X
-  fields
-    a
-      type: int
-    b
-      type: List<String>
 ''');
   }
 
@@ -1008,15 +1005,20 @@ import 'introspect_declarations_phase.dart';
 $declarationCode
 ''');
 
-    for (final class_ in library.definingCompilationUnit.classes) {
-      class_.assertNoErrorsForClassElement();
-    }
+    library.assertNoMacroErrors();
 
     return library.topLevelElements
         .whereType<ConstTopLevelVariableElementImpl>()
         .where((e) => e.name.startsWith('introspect_'))
         .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
         .join('\n');
+  }
+
+  void _newAppendMacrosFile() {
+    newFile(
+      '$testPackageLibPath/append.dart',
+      _appendMacrosCode,
+    );
   }
 }
 
@@ -1918,6 +1920,19 @@ foo
 ''');
   }
 
+  test_class_mixinDeclaration_method() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+mixin A {
+  @DeclarationTextMacro()
+  void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
   test_classDeclaration_interfaces() async {
     await _assertTypesPhaseIntrospectionText(r'''
 @DeclarationTextMacro()
@@ -2076,6 +2091,83 @@ class A
 ''');
   }
 
+  test_mixin_methodDeclaration_getter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+mixin A {
+  @DeclarationTextMacro()
+  int get foo => 0;
+}
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_mixin_methodDeclaration_setter() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+mixin A {
+  @DeclarationTextMacro()
+  set foo(int value) {}
+}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
+  returnType: OmittedType
+''');
+  }
+
+  test_mixinDeclaration_flags_hasBase() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
+base mixin A {}
+''', r'''
+mixin A
+  flags: hasBase
+''');
+  }
+
+  test_mixinDeclaration_interfaces() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
+mixin A implements B, C {}
+''', r'''
+mixin A
+  interfaces
+    B
+    C
+''');
+  }
+
+  test_mixinDeclaration_superclassConstraints() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
+mixin A on B, C {}
+''', r'''
+mixin A
+  superclassConstraints
+    B
+    C
+''');
+  }
+
+  test_mixinDeclaration_typeParameters() async {
+    await _assertTypesPhaseIntrospectionText(r'''
+@DeclarationTextMacro()
+mixin A<T, U extends List<T>> {}
+''', r'''
+mixin A
+  typeParameters
+    T
+    U
+      bound: List<T>
+''');
+  }
+
   test_namedTypeAnnotation_prefixed() async {
     await _assertTypesPhaseIntrospectionText(r'''
 @DeclarationTextMacro()
@@ -2123,8 +2215,7 @@ import 'declaration_text.dart';
 $declarationCode
 ''');
 
-    final A = library.definingCompilationUnit.getClass('A')!;
-    A.assertNoErrorsForClassElement();
+    library.assertNoMacroErrors();
 
     final macroAugmentation = library.augmentations.first;
     final macroUnit = macroAugmentation.definingCompilationUnit;
@@ -3126,17 +3217,35 @@ class MacroTypesTest_keepLinking extends MacroTypesTest {
   bool get keepLinkingLibraries => true;
 }
 
-extension on ClassElement {
-  String get errorsStrForClassElement {
-    final element = this as ClassElementImpl;
-    return element.macroApplicationErrors.map((e) {
+class _MacroApplicationErrorsCollector
+    extends GeneralizingElementVisitor<void> {
+  final List<MacroApplicationError> errors = [];
+
+  @override
+  void visitElement(Element element) {
+    if (element case final MacroTargetElement element) {
+      errors.addAll(element.macroApplicationErrors);
+    }
+
+    super.visitElement(element);
+  }
+}
+
+extension on LibraryElement {
+  List<MacroApplicationError> get macroErrors {
+    final collector = _MacroApplicationErrorsCollector();
+    accept(collector);
+    return collector.errors;
+  }
+
+  String get macroErrorsStr {
+    return macroErrors.map((e) {
       return e.toStringForTest();
     }).join('\n');
   }
 
-  void assertNoErrorsForClassElement() {
-    final actual = errorsStrForClassElement;
-    expect(actual, isEmpty);
+  void assertNoMacroErrors() {
+    expect(macroErrorsStr, isEmpty);
   }
 }
 

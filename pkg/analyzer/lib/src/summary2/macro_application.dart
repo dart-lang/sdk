@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
@@ -91,12 +90,24 @@ class LibraryMacroApplier {
     for (final declaration in unit.declarations.reversed) {
       switch (declaration) {
         case ast.ClassDeclaration():
-          final element = declaration.declaredElement!;
+          final element = declaration.declaredElement;
+          element as ClassElementImpl;
           await _addClassLike(
             container: container,
-            targetElement: element.declarationElement as MacroTargetElement,
+            targetElement: element.declarationElement,
             classNode: declaration,
             classDeclarationKind: macro.DeclarationKind.classType,
+            classAnnotations: declaration.metadata,
+            members: declaration.members,
+          );
+        case ast.MixinDeclaration():
+          final element = declaration.declaredElement;
+          element as MixinElementImpl;
+          await _addClassLike(
+            container: container,
+            targetElement: element.declarationElement,
+            classNode: declaration,
+            classDeclarationKind: macro.DeclarationKind.mixinType,
             classAnnotations: declaration.metadata,
             members: declaration.members,
           );
@@ -285,6 +296,8 @@ class LibraryMacroApplier {
         return fromNode.classDeclaration(targetNode);
       case ast.MethodDeclaration():
         return fromNode.methodDeclaration(targetNode);
+      case ast.MixinDeclaration():
+        return fromNode.mixinDeclaration(targetNode);
       default:
         // TODO(scheglov) incomplete
         throw UnimplementedError('${targetNode.runtimeType}');
@@ -395,6 +408,8 @@ class LibraryMacroApplier {
     final element = (identifier as IdentifierImpl).element;
     if (element is ClassElementImpl) {
       return declarationBuilder.fromElement.classElement(element);
+    } else if (element is MixinElementImpl) {
+      return declarationBuilder.fromElement.mixinElement(element);
     } else {
       throw ArgumentError('element: $element');
     }
@@ -583,13 +598,19 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<List<macro.FieldDeclaration>> fieldsOf(
     covariant macro.IntrospectableType type,
   ) async {
-    if (type is! IntrospectableClassDeclarationImpl) {
-      throw UnsupportedError('Only introspection on classes is supported');
+    switch (type) {
+      case IntrospectableClassDeclarationImpl():
+        return type.element.fields
+            .where((e) => !e.isSynthetic)
+            .map(declarationBuilder.fromElement.fieldElement)
+            .toList();
+      case IntrospectableMixinDeclarationImpl():
+        return type.element.fields
+            .where((e) => !e.isSynthetic)
+            .map(declarationBuilder.fromElement.fieldElement)
+            .toList();
     }
-    return type.element.fields
-        .where((e) => !e.isSynthetic)
-        .map(declarationBuilder.fromElement.fieldElement)
-        .toList();
+    throw UnsupportedError('Only introspection on classes is supported');
   }
 
   @override
@@ -716,7 +737,7 @@ extension on macro.MacroExecutionResult {
       typeAugmentations.isNotEmpty;
 }
 
-extension<T extends InstanceElement> on T {
+extension<T extends InstanceElementImpl> on T {
   T get declarationElement {
     switch (augmented) {
       case T(:final T declaration):
