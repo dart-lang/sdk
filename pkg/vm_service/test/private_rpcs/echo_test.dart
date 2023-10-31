@@ -1,11 +1,11 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:vm_service/src/vm_service.dart';
-import 'common/test_helper.dart';
+import '../common/test_helper.dart';
 
 class EchoResponse extends Response {
   static EchoResponse? parse(Map<String, dynamic>? json) =>
