@@ -2,6 +2,15 @@
 
 ### Libraries
 
+#### `dart:nativewrappers`
+
+- **Breaking Change** [#51896][]: The NativeWrapperClasses are marked `base` so
+  that none of their subtypes can be implemented. Implementing subtypes can lead
+  to crashes when passing such native wrapper to a native call, as it will try to
+  unwrap a native field that doesn't exist.
+
+[#51896]: https://github.com/dart-lang/sdk/issues/51896
+
 #### `dart:typed_data`
 
 - **BREAKING CHANGE** (https://github.com/dart-lang/sdk/issues/53218) The
