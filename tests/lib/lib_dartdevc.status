@@ -31,6 +31,9 @@ typed_data/typed_data_hierarchy_int64_test: SkipByDesign # ddc does not support 
 [ $compiler == ddc && $runtime == chrome ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
 
+[ $compiler == ddc && $runtime == ff ]
+html/mediadevices_test: SkipByDesign # Not supported on FF, likely requires user-interaction that causes timeout
+
 [ $compiler == ddc && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
 
