@@ -21,7 +21,6 @@ load(
     "windows11",
 )
 load("//lib/paths.star", "paths")
-load("//lib/priority.star", "priority")
 
 _postponed_alt_console_entries = []
 
@@ -32,41 +31,30 @@ luci.notifier(
     notify_emails = ["dart-vm-team-breakages@google.com"],
 )
 
-def _builder(name, category = None, **kwargs):
-    dart.ci_sandbox_builder(name, category = category, **kwargs)
-    _postponed_alt_console_entry(name, category)
-
-def _extra_builder(name, on_cq = False, location_filters = None, **kwargs):
+def _vm_builder(name, category = None, on_cq = False, location_filters = None, **kwargs):
     """
     Creates a Dart builder that is only triggered by VM commits.
 
     Args:
         name: The builder name.
+        category: The column heading for the builder on a console.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
         location_filters: Locations that trigger this builder.
         **kwargs: Extra arguments are passed on to dart_ci_sandbox_builder.
     """
-    triggered_by = ["dart-vm-gitiles-trigger-%s"]
     if on_cq and not location_filters:
-        # Don't add extra builders to the default CQ, trigger only on VM paths.
+        # Don't add VM builders to the default CQ, trigger only on VM paths.
         location_filters = paths.to_location_filters(paths.vm)
         on_cq = False
-    _builder(
+    dart.ci_sandbox_builder(
         name,
-        triggered_by = triggered_by,
+        category = category,
+        triggered_by = ["dart-vm-gitiles-trigger-%s"],
         on_cq = on_cq,
         location_filters = location_filters,
         **kwargs
     )
-
-def _low_priority_builder(name, **kwargs):
-    _extra_builder(
-        name,
-        channels = ["try"],
-        priority = priority.low,
-        expiration_timeout = time.day,
-        **kwargs
-    )
+    _postponed_alt_console_entry(name, category)
 
 def _nightly_builder(name, category, **kwargs):
     cron.nightly_builder(name, category = category, notifies = "dart-vm-team", **kwargs)
@@ -86,11 +74,11 @@ def add_postponed_alt_console_entries():
         luci.console_view_entry(console_view = "alt", **entry)
 
 # vm|jit
-_extra_builder(
+_vm_builder(
     "vm-linux-debug-x64",
     category = "vm|jit|d",
 )
-_extra_builder(
+_vm_builder(
     "vm-linux-release-x64",
     category = "vm|jit|r",
 )
@@ -105,7 +93,7 @@ _nightly_builder(
     category = "vm|jit|r3",
     channels = ["try"],
 )
-_extra_builder(
+_vm_builder(
     "vm-linux-release-simarm",
     category = "vm|jit|ra",
 )
@@ -114,38 +102,38 @@ _nightly_builder(
     category = "vm|jit|rv",
     channels = ["try"],
 )
-_extra_builder(
+_vm_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|a6",
     dimensions = [jammy, arm64],
     goma = False,
 )
-_extra_builder(
+_vm_builder(
     "vm-mac-debug-arm64",
     category = "vm|jit|m1d",
     dimensions = [mac, arm64],
     properties = [no_android, slow_shards],
     on_cq = True,
 )
-_builder(
+_vm_builder(
     "vm-mac-debug-x64",
     category = "vm|jit|md",
     dimensions = mac,
     properties = slow_shards,
 )
-_extra_builder(
+_vm_builder(
     "vm-mac-release-arm64",
     category = "vm|jit|m1r",
     dimensions = [mac, arm64],
     properties = no_android,
     on_cq = True,
 )
-_extra_builder(
+_vm_builder(
     "vm-checked-mac-release-arm64",
     category = "vm|jit|rc",
     dimensions = [mac, arm64],
 )
-_builder(
+_vm_builder(
     "vm-mac-release-x64",
     category = "vm|jit|mr",
     dimensions = mac,
@@ -156,24 +144,24 @@ _nightly_builder(
     channels = ["try"],
     dimensions = windows,
 )
-_builder(
+_vm_builder(
     "vm-win-debug-x64",
     category = "vm|jit|wd",
     properties = slow_shards,
     dimensions = windows,
 )
-_builder(
+_vm_builder(
     "vm-win-release-x64",
     category = "vm|jit|wr",
     dimensions = windows,
 )
-_extra_builder(
+_vm_builder(
     "vm-win-debug-arm64",
     category = "vm|jit|wad",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
 )
-_extra_builder(
+_vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
     dimensions = [windows11, arm64, flutter_pool],
@@ -181,12 +169,12 @@ _extra_builder(
 )
 
 # vm|appjit
-_extra_builder(
+_vm_builder(
     "vm-appjit-linux-debug-x64",
     category = "vm|appjit|d",
     properties = slow_shards,
 )
-_extra_builder(
+_vm_builder(
     "vm-appjit-linux-release-x64",
     category = "vm|appjit|r",
 )
@@ -197,16 +185,16 @@ _nightly_builder(
 )
 
 # vm|aot
-_extra_builder(
+_vm_builder(
     "vm-aot-linux-release-x64",
     category = "vm|aot|r",
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-linux-debug-simarm_x64",
     category = "vm|aot|da",
     properties = slow_shards,
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-linux-release-simarm_x64",
     category = "vm|aot|ra",
 )
@@ -228,14 +216,14 @@ _nightly_builder(
     dimensions = [jammy, arm64],
     goma = False,
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-mac-release-arm64",
     category = "vm|aot|m1",
     channels = ["try"],
     dimensions = [mac, arm64],
     properties = [no_android, slow_shards],
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-mac-release-x64",
     category = "vm|aot|m",
     # The x64 Mac pool contains a mix of 4- and 8-core machines. This build
@@ -243,18 +231,18 @@ _extra_builder(
     dimensions = [mac, {"cores": "8"}],
     properties = slow_shards,
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-win-release-x64",
     category = "vm|aot|wr",
     dimensions = windows,
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-win-debug-arm64",
     category = "vm|aot|wad",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
     dimensions = [windows11, arm64, flutter_pool],
@@ -262,12 +250,12 @@ _extra_builder(
 )
 
 # vm|aot|android
-_extra_builder(
+_vm_builder(
     "vm-aot-android-release-arm_x64",
     category = "vm|aot|android|a32",
     properties = [android_deps, slow_shards],
 )
-_extra_builder(
+_vm_builder(
     "vm-aot-android-release-arm64c",
     category = "vm|aot|android|a64",
     properties = [android_deps, slow_shards],
@@ -405,14 +393,16 @@ _nightly_builder(
     dimensions = windows,
     properties = slow_shards,
 )
-_low_priority_builder(
+_vm_builder(
     "vm-fuchsia-release-arm64",
     category = "vm|misc|f",
+    channels = ["try"],
     properties = [fuchsia_deps],
 )
-_low_priority_builder(
+_vm_builder(
     "vm-fuchsia-release-x64",
     category = "vm|misc|f",
+    channels = ["try"],
     properties = [fuchsia_deps],
 )
 
@@ -440,42 +430,42 @@ _nightly_builder(
 )
 
 # vm|ffi
-_extra_builder(
+_vm_builder(
     "vm-ffi-android-debug-arm",
     category = "vm|ffi|d32",
     properties = [android_deps],
 )
-_extra_builder(
+_vm_builder(
     "vm-ffi-android-release-arm",
     category = "vm|ffi|r32",
     properties = [android_deps],
 )
-_extra_builder(
+_vm_builder(
     "vm-ffi-android-product-arm",
     category = "vm|ffi|p32",
     properties = [android_deps],
 )
-_extra_builder(
+_vm_builder(
     "vm-ffi-android-debug-arm64c",
     category = "vm|ffi|d64",
     properties = [android_deps],
 )
-_extra_builder(
+_vm_builder(
     "vm-ffi-android-release-arm64c",
     category = "vm|ffi|r64",
     properties = [android_deps],
 )
-_extra_builder(
+_vm_builder(
     "vm-ffi-android-product-arm64c",
     category = "vm|ffi|p64",
     properties = [android_deps],
 )
-_extra_builder(
+_vm_builder(
     "vm-ffi-qemu-linux-release-arm",
     category = "vm|ffi|qa",
     dimensions = jammy,
 )
-_extra_builder(
+_vm_builder(
     "vm-ffi-qemu-linux-release-riscv64",
     category = "vm|ffi|qr",
     dimensions = [jammy, arm64],
@@ -507,7 +497,7 @@ _nightly_builder(
 )
 
 # Isolate stress test builder
-_extra_builder(
+_vm_builder(
     "iso-stress-linux",
     channels = [],
     notifies = "dart-vm-team",
