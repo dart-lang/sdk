@@ -76,13 +76,11 @@ vars = {
   "d8_tag": "version:11.9.95",
   "jsshell_tag": "version:95.0",
 
-  # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
-  # should be kept up to date with the revisions pulled by the Flutter engine.
-  # The list of revisions for these tools comes from Fuchsia, here:
-  # https://fuchsia.googlesource.com/integration/+/HEAD/toolchain
-  # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_version": "git_revision:6d667d4b261e81f325756fdfd5bb43b3b3d2451d",
-  "gn_version": "git_revision:991530ce394efb58fcd848195469022fa17ae126",
+  # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
+  "clang_version": "git_revision:00396e6a1a0b79fda008cb4e86b616d7952b33c8",
+
+  # https://chrome-infra-packages.appspot.com/p/gn/gn
+  "gn_version": "git_revision:e4702d7409069c4f12d45ea7b7f0890717ca3f4b",
 
   "reclient_version": "git_revision:81e819b39d4743462857cc55430d898b9fcca1af",
 
