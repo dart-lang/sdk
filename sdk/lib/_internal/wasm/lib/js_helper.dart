@@ -287,6 +287,9 @@ WasmExternRef? newObjectRaw() => JS<WasmExternRef?>('() => ({})');
 
 WasmExternRef? newArrayRaw() => JS<WasmExternRef?>('() => []');
 
+WasmExternRef? newArrayFromLengthRaw(int length) =>
+    JS<WasmExternRef?>('l => new Array(l)', length.toDouble());
+
 WasmExternRef? globalThisRaw() => JS<WasmExternRef?>('() => globalThis');
 
 WasmExternRef? callConstructorVarArgsRaw(

@@ -54,6 +54,7 @@ class FieldIndex {
   static const syncStarIteratorCurrent = 3;
   static const syncStarIteratorYieldStarIterable = 4;
   static const recordFieldBase = 2;
+  static const jsStringImplRef = 2;
 
   static void validate(Translator translator) {
     void check(Class cls, String name, int expectedIndex) {
@@ -82,8 +83,10 @@ class FieldIndex {
     check(translator.boxedBoolClass, "value", FieldIndex.boxValue);
     check(translator.boxedIntClass, "value", FieldIndex.boxValue);
     check(translator.boxedDoubleClass, "value", FieldIndex.boxValue);
-    check(translator.oneByteStringClass, "_array", FieldIndex.stringArray);
-    check(translator.twoByteStringClass, "_array", FieldIndex.stringArray);
+    if (!translator.options.jsCompatibility) {
+      check(translator.oneByteStringClass, "_array", FieldIndex.stringArray);
+      check(translator.twoByteStringClass, "_array", FieldIndex.stringArray);
+    }
     check(translator.listBaseClass, "_length", FieldIndex.listLength);
     check(translator.listBaseClass, "_data", FieldIndex.listArray);
     check(translator.hashFieldBaseClass, "_indexNullable",
@@ -259,6 +262,7 @@ class ClassInfoCollector {
   /// These types switch from properly reified non-masquerading types in regular
   /// Dart2Wasm mode to masquerading types in js compatibility mode.
   final Set<String> jsCompatibilityTypes = {
+    "JSStringImpl",
     "JSArrayBufferImpl",
     "JSArrayBufferViewImpl",
     "JSDataViewImpl",
@@ -284,7 +288,6 @@ class ClassInfoCollector {
     final jsTypesLibraryIndex =
         LibraryIndex(translator.component, ["dart:_js_types"]);
     final neverMasquerades = [
-      "JSStringImpl",
       if (!translator.options.jsCompatibility) ...jsCompatibilityTypes,
     ]
         .map((name) => jsTypesLibraryIndex.tryGetClass("dart:_js_types", name))
@@ -344,7 +347,9 @@ class ClassInfoCollector {
       ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
               cls == translator.coreTypes.numClass
           ? topInfo
-          : cls == translator.stringBaseClass || cls == translator.typeClass
+          : (!translator.options.jsCompatibility &&
+                      cls == translator.stringBaseClass) ||
+                  cls == translator.typeClass
               ? translator.classInfo[cls.implementedTypes.single.classNode]!
               : translator.classInfo[superclass]!;
 

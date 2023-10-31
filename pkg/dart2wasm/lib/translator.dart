@@ -84,6 +84,10 @@ class Translator with KernelNodes {
   /// [ClassInfoCollector].
   final Map<Class, ClassInfo> classInfo = {};
 
+  /// Internalized strings to move to the JS runtime
+  final List<String> internalizedStringsForJSRuntime = [];
+  final Map<String, w.Global> _internalizedStringGlobals = {};
+
   final Map<w.HeapType, ClassInfo> classForHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
@@ -161,8 +165,11 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    oneByteStringClass: stringBaseClass,
-    twoByteStringClass: stringBaseClass,
+    if (!options.jsCompatibility) ...{
+      oneByteStringClass: stringBaseClass,
+      twoByteStringClass: stringBaseClass
+    },
+    if (options.jsCompatibility) ...{jsStringClass: jsStringClass},
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in
@@ -1026,6 +1033,19 @@ class Translator with KernelNodes {
 
   ClassInfo getRecordClassInfo(RecordType recordType) =>
       classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
+
+  w.Global getInternalizedStringGlobal(String s) {
+    w.Global? internalizedString = _internalizedStringGlobals[s];
+    if (internalizedString != null) {
+      return internalizedString;
+    }
+    final i = internalizedStringsForJSRuntime.length;
+    internalizedString = m.globals.import('s', '$i',
+        w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+    _internalizedStringGlobals[s] = internalizedString;
+    internalizedStringsForJSRuntime.add(s);
+    return internalizedString;
+  }
 }
 
 abstract class _FunctionGenerator {
