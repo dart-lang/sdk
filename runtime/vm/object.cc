@@ -21529,6 +21529,17 @@ bool AbstractType::IsTypeClassAllowedBySpawnUri() const {
   candidate_cls = object_store->transferable_class();
   if (cid == candidate_cls.id()) return true;
 
+  const auto& typed_data_lib =
+      Library::Handle(object_store->typed_data_library());
+
+#define IS_CHECK(name)                                                         \
+  candidate_cls = typed_data_lib.LookupClass(Symbols::name##List());           \
+  if (cid == candidate_cls.id()) {                                             \
+    return true;                                                               \
+  }
+  DART_CLASS_LIST_TYPED_DATA(IS_CHECK)
+#undef IS_CHECK
+
   return false;
 }
 
