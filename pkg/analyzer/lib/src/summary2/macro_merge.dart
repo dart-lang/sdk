@@ -35,6 +35,7 @@ class MacroElementsMerger {
   void perform() {
     _rewriteImportPrefixes();
     _mergeClasses();
+    _mergeFunctions();
     _mergeUnitPropertyAccessors();
     _mergeUnitVariables();
   }
@@ -61,6 +62,32 @@ class MacroElementsMerger {
       }
       unitElement.classes = [
         ...unitElement.classes,
+        ...elementsToAdd,
+      ].toFixedList();
+    }
+  }
+
+  void _mergeFunctions() {
+    for (final partialUnit in partialUnits) {
+      final elementsToAdd = <FunctionElementImpl>[];
+      for (final element in partialUnit.element.functions) {
+        final reference = element.reference!;
+        final containerRef = element.isAugmentation
+            ? unitReference.getChild('@functionAugmentation')
+            : unitReference.getChild('@function');
+        final existingRef = containerRef[element.name];
+        if (existingRef == null) {
+          elementsToAdd.add(element);
+          containerRef.addChildReference(element.name, reference);
+        } else {
+          final existingElement = existingRef.element as FunctionElementImpl;
+          if (existingElement.augmentation == element) {
+            existingElement.augmentation = null;
+          }
+        }
+      }
+      unitElement.functions = [
+        ...unitElement.functions,
         ...elementsToAdd,
       ].toFixedList();
     }
