@@ -97,8 +97,19 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   UNREACHABLE();
   return nullptr;
 #else
+
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_PRECOMPILED_RUNTIME)
+  // If we are not going to use vm_remap then we need to pass
+  // is_executable=true so that pages get allocated with MAP_JIT flag if
+  // necessary. Otherwise OS will kill us with a codesigning violation if
+  // hardened runtime is enabled.
+  const bool is_executable = true;
+#else
+  const bool is_executable = false;
+#endif
+
   VirtualMemory* new_page = VirtualMemory::AllocateAligned(
-      MappingSize(), MappingAlignment(), /*is_executable=*/false,
+      MappingSize(), MappingAlignment(), is_executable,
       /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
   if (new_page == nullptr) {
     return nullptr;
