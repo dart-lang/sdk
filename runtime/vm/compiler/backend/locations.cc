@@ -121,6 +121,12 @@ int64_t RepresentationUtils::MaxValue(Representation rep) {
 }
 #undef REP_MAX_VALUE_CLAUSE
 
+bool RepresentationUtils::IsRepresentable(Representation rep, int64_t value) {
+  const intptr_t bit_size = ValueSize(rep) * kBitsPerByte;
+  return IsUnsigned(rep) ? Utils::IsUint(bit_size, value)
+                         : Utils::IsInt(bit_size, value);
+}
+
 const char* Location::RepresentationToCString(Representation repr) {
   switch (repr) {
 #define REPR_CASE(Name, __, ___)                                               \

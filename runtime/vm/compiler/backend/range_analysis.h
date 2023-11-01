@@ -429,6 +429,9 @@ class Range : public ZoneAllocated {
   bool IsWithin(int64_t min_int, int64_t max_int) const;
 
   // Inclusive.
+  bool IsWithin(const Range* other) const;
+
+  // Inclusive.
   bool Overlaps(int64_t min_int, int64_t max_int) const;
 
   bool IsUnsatisfiable() const;
@@ -560,8 +563,12 @@ class RangeUtils : public AllStatic {
     return !Range::IsUnknown(range) && range->Fits(size);
   }
 
-  static bool IsWithin(Range* range, int64_t min, int64_t max) {
+  static bool IsWithin(const Range* range, int64_t min, int64_t max) {
     return !Range::IsUnknown(range) && range->IsWithin(min, max);
+  }
+
+  static bool IsWithin(const Range* range, const Range* other) {
+    return !Range::IsUnknown(range) && range->IsWithin(other);
   }
 
   static bool IsPositive(Range* range) {
