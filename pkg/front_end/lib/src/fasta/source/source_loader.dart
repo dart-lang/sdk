@@ -2774,9 +2774,19 @@ severity: $severity
         .logMs("Updated ${changedClasses.length} classes in kernel hierarchy");
   }
 
-  void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
+  void checkRedirectingFactories(
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarationBuilders) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
     for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
+        builder.checkRedirectingFactories(
+            typeInferenceEngine.typeSchemaEnvironment);
+      }
+    }
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarationBuilders) {
       if (builder.libraryBuilder.loader == this && !builder.isPatch) {
         builder.checkRedirectingFactories(
             typeInferenceEngine.typeSchemaEnvironment);

@@ -14,9 +14,14 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%> /* redirection-target: self::B::•<self::A::•::T%>*/
-    return self::B::•<self::A::•::T%>();
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>;
+  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916f.dart:10:17: Error: Cyclic definition of factory 'B'.
+  const factory B() = C;
+                ^";
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916f.dart:10:17: Error: Cyclic definition of factory 'B'.
+  const factory B() = C;
+                ^";
 }
 abstract class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
   static factory •<T extends core::Object? = dynamic>() → self::B<self::B::•::T%>

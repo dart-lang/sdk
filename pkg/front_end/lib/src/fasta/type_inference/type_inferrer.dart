@@ -248,7 +248,7 @@ class TypeInferrerImpl implements TypeInferrer {
         staticTarget: target);
     visitor.checkCleanState();
     DartType resultType = result.inferredType;
-    if (resultType is InterfaceType) {
+    if (resultType is TypeDeclarationType) {
       return resultType.typeArguments;
     } else {
       return null;

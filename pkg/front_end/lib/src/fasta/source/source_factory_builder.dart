@@ -336,6 +336,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   FreshTypeParameters? _tearOffTypeParameters;
 
+  bool _hasBeenCheckedAsRedirectingFactory = false;
+
   RedirectingFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -737,6 +739,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   @override
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {
+    if (_hasBeenCheckedAsRedirectingFactory) return;
+    _hasBeenCheckedAsRedirectingFactory = true;
+
     // Check that factory declaration is not cyclic.
     if (_isCyclicRedirectingFactory(this)) {
       libraryBuilder.addProblemForRedirectingFactory(
@@ -786,6 +791,16 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // happened during [_computeRedirecteeType].
     if (redirecteeType == null) {
       return;
+    }
+
+    Builder? redirectionTargetBuilder = redirectionTarget.target;
+    if (redirectionTargetBuilder is RedirectingFactoryBuilder) {
+      redirectionTargetBuilder._checkRedirectingFactory(typeEnvironment);
+      String? errorMessage = redirectionTargetBuilder
+          .function.redirectingFactoryTarget?.errorMessage;
+      if (errorMessage != null) {
+        setRedirectingFactoryError(errorMessage);
+      }
     }
 
     // Redirection to generative enum constructors is forbidden and is reported

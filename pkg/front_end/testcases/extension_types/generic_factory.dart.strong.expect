@@ -24,7 +24,7 @@ static inline-class-member method ET3|constructor#c1<T extends core::num>() → 
 }
 static inline-class-member method ET3|constructor#_#c1#tearOff<T extends core::num>() → self::ET3<self::ET3|constructor#_#c1#tearOff::T> /* = core::int */
   return self::ET3|constructor#c1<self::ET3|constructor#_#c1#tearOff::T>();
-static inline-class-member method ET3|constructor#f1<T extends core::num>() → self::ET3<self::ET3|constructor#f1::T> /* = core::int */ /* redirection-target: self::ET3|constructor#c1<dynamic>*/
-  return self::ET3|constructor#c1<dynamic>();
+static inline-class-member method ET3|constructor#f1<T extends core::num>() → self::ET3<self::ET3|constructor#f1::T> /* = core::int */ /* redirection-target: self::ET3|constructor#c1<self::ET3|constructor#f1::T>*/
+  return self::ET3|constructor#c1<self::ET3|constructor#f1::T>();
 static inline-class-member method ET3|constructor#_#f1#tearOff<T extends core::num>() → self::ET3<self::ET3|constructor#_#f1#tearOff::T> /* = core::int */
-  return self::ET3|constructor#c1<dynamic>();
+  return self::ET3|constructor#c1<self::ET3|constructor#_#f1#tearOff::T>();
