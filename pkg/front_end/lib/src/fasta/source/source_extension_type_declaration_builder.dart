@@ -201,8 +201,7 @@ class SourceExtensionTypeDeclarationBuilder
             }
           } else {
             Class cls = interface.classNode;
-            if (LibraryBuilder.isObject(cls, coreLibrary) ||
-                LibraryBuilder.isFunction(cls, coreLibrary) ||
+            if (LibraryBuilder.isFunction(cls, coreLibrary) ||
                 LibraryBuilder.isRecord(cls, coreLibrary)) {
               if (aliasBuilder != null) {
                 errorMessage =
