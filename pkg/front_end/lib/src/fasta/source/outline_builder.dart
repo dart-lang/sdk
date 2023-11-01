@@ -2816,15 +2816,29 @@ class OutlineBuilder extends StackListenerImpl {
         }
       }
     }
-    if (formals == null &&
-        declarationContext == DeclarationContext.ExtensionType &&
-        kind == MemberKind.PrimaryConstructor) {
+    if (declarationContext == DeclarationContext.ExtensionType &&
+        kind == MemberKind.PrimaryConstructor &&
+        formals == null) {
       // In case of primary constructors of extension types, an error is
       // reported by the parser if the formals together with the parentheses
       // around them are missing. To distinguish that case from the case of the
       // formal parameters present, but lacking the representation field, we
       // pass the empty list further along instead of `null`.
       formals = const [];
+    } else if ((declarationContext == DeclarationContext.ExtensionType &&
+                kind == MemberKind.PrimaryConstructor ||
+            declarationContext ==
+                DeclarationContext.ExtensionTypeConstructor) &&
+        formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isSuperInitializingFormal) {
+          libraryBuilder.addProblem(
+              messageExtensionTypeConstructorWithSuperFormalParameter,
+              formal.charOffset,
+              formal.name.length,
+              formal.fileUri);
+        }
+      }
     }
     push(beginToken.charOffset);
     push(formals ?? NullValues.FormalParameters);

@@ -97,12 +97,16 @@ struct RepresentationUtils : AllStatic {
   static compiler::OperandSize OperandSize(Representation rep);
 
   // The minimum integral value that can be represented.
-  // Assumes that [rep] is a unboxed integer.
+  // Assumes that [rep] is an unboxed integer.
   static int64_t MinValue(Representation rep);
 
   // The maximum integral value that can be represented.
-  // Assumes that [rep] is a unboxed integer.
+  // Assumes that [rep] is an unboxed integer.
   static int64_t MaxValue(Representation rep);
+
+  // Whether the given value is representable in the given representation.
+  // Assumes that [rep] is an unboxed integer.
+  static bool IsRepresentable(Representation rep, int64_t value);
 };
 
 // The representation for word-sized unboxed fields.

@@ -1521,6 +1521,12 @@ void Instruction::InheritDeoptTarget(Zone* zone, Instruction* other) {
   other->env()->DeepCopyTo(zone, this);
 }
 
+bool Instruction::CanEliminate(const BlockEntryInstr* block) const {
+  ASSERT(const_cast<Instruction*>(this)->GetBlock() == block);
+  return !MayHaveVisibleEffect() && !CanDeoptimize() &&
+         this != block->last_instruction();
+}
+
 bool Instruction::IsDominatedBy(Instruction* dom) {
   BlockEntryInstr* block = GetBlock();
   BlockEntryInstr* dom_block = dom->GetBlock();
@@ -1980,41 +1986,25 @@ bool IntConverterInstr::ComputeCanDeoptimize() const {
                            RangeBoundary::kRangeBoundaryInt32);
 }
 
-bool UnboxInt32Instr::ComputeCanDeoptimize() const {
+bool UnboxIntegerInstr::ComputeCanDeoptimize() const {
   if (SpeculativeModeOfInputs() == kNotSpeculative) {
     return false;
   }
-  const intptr_t value_cid = value()->Type()->ToCid();
-  if (value_cid == kSmiCid) {
-    return (compiler::target::kSmiBits > 32) && !is_truncating() &&
-           !RangeUtils::Fits(value()->definition()->range(),
-                             RangeBoundary::kRangeBoundaryInt32);
-  } else if (value_cid == kMintCid) {
-    return !is_truncating() &&
-           !RangeUtils::Fits(value()->definition()->range(),
-                             RangeBoundary::kRangeBoundaryInt32);
-  } else if (is_truncating() && value()->definition()->IsBoxInteger()) {
-    return false;
-  } else if ((compiler::target::kSmiBits < 32) && value()->Type()->IsInt()) {
-    return !RangeUtils::Fits(value()->definition()->range(),
-                             RangeBoundary::kRangeBoundaryInt32);
-  } else {
+  if (!value()->Type()->IsInt()) {
     return true;
   }
-}
-
-bool UnboxUint32Instr::ComputeCanDeoptimize() const {
-  ASSERT(is_truncating());
-  if (SpeculativeModeOfInputs() == kNotSpeculative) {
+  if (representation() == kUnboxedInt64 || is_truncating()) {
     return false;
   }
-  if ((value()->Type()->ToCid() == kSmiCid) ||
-      (value()->Type()->ToCid() == kMintCid)) {
+  const intptr_t rep_bitsize =
+      RepresentationUtils::ValueSize(representation()) * kBitsPerByte;
+  if (value()->Type()->ToCid() == kSmiCid &&
+      compiler::target::kSmiBits <= rep_bitsize) {
     return false;
   }
-  // Check input value's range.
-  Range* value_range = value()->definition()->range();
-  return !RangeUtils::Fits(value_range, RangeBoundary::kRangeBoundaryInt64);
+  return !RangeUtils::IsWithin(value()->definition()->range(),
+                               RepresentationUtils::MinValue(representation()),
+                               RepresentationUtils::MaxValue(representation()));
 }
 
 bool BinaryInt32OpInstr::ComputeCanDeoptimize() const {
@@ -2072,9 +2062,18 @@ bool ShiftIntegerOpInstr::IsShiftCountInRange(int64_t max) const {
   return RangeUtils::IsWithin(shift_range(), 0, max);
 }
 
+bool BinaryIntegerOpInstr::RightIsNonZero() const {
+  if (right()->BindsToConstant()) {
+    const auto& constant = right()->BoundConstant();
+    if (!constant.IsInteger()) return false;
+    return Integer::Cast(constant).AsInt64Value() != 0;
+  }
+  return !RangeUtils::CanBeZero(right()->definition()->range());
+}
+
 bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
-  if (!right()->definition()->IsConstant()) return false;
-  const Object& constant = right()->definition()->AsConstant()->value();
+  if (!right()->BindsToConstant()) return false;
+  const Object& constant = right()->BoundConstant();
   if (!constant.IsSmi()) return false;
   const intptr_t int_value = Smi::Cast(constant).Value();
   ASSERT(int_value != kIntptrMin);
@@ -2340,7 +2339,35 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   return op;
 }
 
+Definition* UnaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  // If range analysis has already determined a single possible value for
+  // this operation, then replace it if possible.
+  if (RangeUtils::IsSingleton(range()) && CanReplaceWithConstant()) {
+    const auto& value =
+        Integer::Handle(Integer::NewCanonical(range()->Singleton()));
+    auto* const replacement =
+        flow_graph->TryCreateConstantReplacementFor(this, value);
+    if (replacement != this) {
+      return replacement;
+    }
+  }
+
+  return this;
+}
+
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  // If range analysis has already determined a single possible value for
+  // this operation, then replace it if possible.
+  if (RangeUtils::IsSingleton(range()) && CanReplaceWithConstant()) {
+    const auto& value =
+        Integer::Handle(Integer::NewCanonical(range()->Singleton()));
+    auto* const replacement =
+        flow_graph->TryCreateConstantReplacementFor(this, value);
+    if (replacement != this) {
+      return replacement;
+    }
+  }
+
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
   // have already been run.
@@ -3306,40 +3333,24 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
     set_speculative_mode(kNotSpeculative);
   }
 
-  return this;
-}
-
-Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
-  Definition* replacement = UnboxIntegerInstr::Canonicalize(flow_graph);
-  if (replacement != this) {
-    return replacement;
-  }
-
-  ConstantInstr* c = value()->definition()->AsConstant();
-  if ((c != nullptr) && c->value().IsInteger()) {
-    if (!is_truncating()) {
-      // Check that constant fits into 32-bit integer.
-      const int64_t value = Integer::Cast(c->value()).AsInt64Value();
-      if (!Utils::IsInt(32, value)) {
-        return this;
+  if (value()->BindsToConstant()) {
+    const auto& obj = value()->BoundConstant();
+    if (obj.IsInteger()) {
+      if (representation() == kUnboxedInt64) {
+        return flow_graph->GetConstant(obj, representation());
+      }
+      const int64_t intval = Integer::Cast(obj).AsInt64Value();
+      if (RepresentationUtils::IsRepresentable(representation(), intval)) {
+        return flow_graph->GetConstant(obj, representation());
+      }
+      if (is_truncating()) {
+        const int64_t result = Evaluator::TruncateTo(intval, representation());
+        return flow_graph->GetConstant(
+            Integer::ZoneHandle(flow_graph->zone(),
+                                Integer::NewCanonical(result)),
+            representation());
       }
     }
-
-    return flow_graph->GetConstant(c->value(), kUnboxedInt32);
-  }
-
-  return this;
-}
-
-Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
-  Definition* replacement = UnboxIntegerInstr::Canonicalize(flow_graph);
-  if (replacement != this) {
-    return replacement;
-  }
-
-  ConstantInstr* c = value()->definition()->AsConstant();
-  if (c != nullptr && c->value().IsInteger()) {
-    return flow_graph->GetConstant(c->value(), kUnboxedInt64);
   }
 
   return this;

@@ -35,7 +35,6 @@ import '../messages.dart'
     show
         LocatedMessage,
         Message,
-        messageExtensionTypeConstructorWithSuperFormalParameter,
         messageMoreThanOneSuperInitializer,
         messageRedirectingConstructorWithAnotherInitializer,
         messageRedirectingConstructorWithMultipleRedirectInitializers,
@@ -1176,11 +1175,6 @@ class SourceExtensionTypeConstructorBuilder
         if (formal.isSuperInitializingFormal) {
           TypeBuilder formalTypeBuilder = formal.type;
           if (formalTypeBuilder is InferableTypeBuilder) {
-            libraryBuilder.addProblem(
-                messageExtensionTypeConstructorWithSuperFormalParameter,
-                formal.charOffset,
-                formal.name.length,
-                formal.fileUri);
             formalTypeBuilder.registerType(const InvalidType());
           }
         }
