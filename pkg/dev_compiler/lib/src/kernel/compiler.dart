@@ -4203,9 +4203,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         .computeThisFunctionType(_currentLibrary!.nonNullable,
             reuseTypeParameters: true)
         .returnType;
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       var matchArguments =
-          _hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(type, expected);
+          _hierarchy.getTypeArgumentsAsInstanceOf(type, expected);
       if (matchArguments != null) return matchArguments[0];
     }
     return const DynamicType();

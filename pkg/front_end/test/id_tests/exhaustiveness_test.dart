@@ -30,7 +30,8 @@ Future<void> main(List<String> args) async {
             explicitExperimentalFlags: const {
               ExperimentalFlag.patterns: true,
               ExperimentalFlag.records: true,
-              ExperimentalFlag.sealedClass: true
+              ExperimentalFlag.sealedClass: true,
+              ExperimentalFlag.inlineClass: true
             })
       ]));
 }

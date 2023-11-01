@@ -1,0 +1,1 @@
+This directory contains tests that make VM service requests via HTTP rather than a web socket, only making use of `package:vm_service` to parse the response JSON.

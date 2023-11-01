@@ -79,18 +79,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, CoreTypes coreTypes,
-      {required bool isNonNullableByDefault}) {
-    return hierarchy.getInterfaceTypeAsInstanceOfClass(type, superclass,
-        isNonNullableByDefault: isNonNullableByDefault);
-  }
-
-  @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      InterfaceType type, Class superclass) {
-    return hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
-        type, superclass);
+      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
+    return hierarchy.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }
 
   @override

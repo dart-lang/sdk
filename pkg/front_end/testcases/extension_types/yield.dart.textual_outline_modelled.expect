@@ -1,0 +1,3 @@
+extension type MyList<T>(List<T> it) implements List<T> {}
+extension type MyStream<T>(Stream<T> it) implements Stream<T> {}
+method(MyList<int> list, MyStream<String> stream) {}

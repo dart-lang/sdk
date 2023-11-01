@@ -61,12 +61,8 @@ abstract class TypeConstraintGatherer {
 
   Member? getInterfaceMember(Class class_, Name name, {bool setter = false});
 
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, CoreTypes coreTypes,
-      {required bool isNonNullableByDefault});
-
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      InterfaceType type, Class superclass);
+      TypeDeclarationType type, TypeDeclaration typeDeclaration);
 
   List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
       ExtensionType type, ExtensionTypeDeclaration superclass);
@@ -1177,17 +1173,9 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   }
 
   @override
-  InterfaceType? getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, CoreTypes coreTypes,
-      {required bool isNonNullableByDefault}) {
-    return environment.getTypeAsInstanceOf(type, superclass, coreTypes,
-        isNonNullableByDefault: isNonNullableByDefault);
-  }
-
-  @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
-      InterfaceType type, Class superclass) {
-    return environment.getTypeArgumentsAsInstanceOf(type, superclass);
+      TypeDeclarationType type, TypeDeclaration typeDeclaration) {
+    return environment.getTypeArgumentsAsInstanceOf(type, typeDeclaration);
   }
 
   @override

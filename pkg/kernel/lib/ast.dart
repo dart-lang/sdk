@@ -4027,7 +4027,7 @@ sealed class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, type.nullability);
     }
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? upcastTypeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(type, superclass);
       if (upcastTypeArguments != null) {
@@ -9780,7 +9780,7 @@ class ForInStatement extends Statement {
     if (iterableType is InvalidType) {
       return iterableType;
     }
-    if (iterableType is! InterfaceType) {
+    if (iterableType is! TypeDeclarationType) {
       // TODO(johnniwinther): Change this to an assert once the CFE correctly
       // inserts casts for all invalid iterable types.
       return const InvalidType();

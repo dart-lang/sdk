@@ -108,46 +108,46 @@ class Expect {
     if (expected is String && actual is String) {
       String stringDifference = _stringDifference(expected, actual);
       if (stringDifference.isNotEmpty) {
-        _fail("Expect.equals($stringDifference$msg) fails.");
+        fail("Expect.equals($stringDifference$msg) fails.");
       }
-      _fail("Expect.equals(expected: <${_escapeString(expected)}>"
+      fail("Expect.equals(expected: <${_escapeString(expected)}>"
           ", actual: <${_escapeString(actual)}>$msg) fails.");
     }
-    _fail("Expect.equals(expected: <$expected>, actual: <$actual>$msg) fails.");
+    fail("Expect.equals(expected: <$expected>, actual: <$actual>$msg) fails.");
   }
 
   /// Checks whether the actual value is a bool and its value is true.
   static void isTrue(dynamic actual, [String reason = ""]) {
     if (_identical(actual, true)) return;
     String msg = _getMessage(reason);
-    _fail("Expect.isTrue($actual$msg) fails.");
+    fail("Expect.isTrue($actual$msg) fails.");
   }
 
   /// Checks whether the actual value is a bool and its value is false.
   static void isFalse(dynamic actual, [String reason = ""]) {
     if (_identical(actual, false)) return;
     String msg = _getMessage(reason);
-    _fail("Expect.isFalse($actual$msg) fails.");
+    fail("Expect.isFalse($actual$msg) fails.");
   }
 
   /// Checks whether [actual] is null.
   static void isNull(dynamic actual, [String reason = ""]) {
     if (null == actual) return;
     String msg = _getMessage(reason);
-    _fail("Expect.isNull(actual: <$actual>$msg) fails.");
+    fail("Expect.isNull(actual: <$actual>$msg) fails.");
   }
 
   /// Checks whether [actual] is not null.
   static void isNotNull(dynamic actual, [String reason = ""]) {
     if (null != actual) return;
     String msg = _getMessage(reason);
-    _fail("Expect.isNotNull(actual: <$actual>$msg) fails.");
+    fail("Expect.isNotNull(actual: <$actual>$msg) fails.");
   }
 
   static String _getMessage(String reason) =>
       (reason.isEmpty) ? "" : ", '$reason'";
 
-  static Never _fail(String message) {
+  static Never fail(String message) {
     throw ExpectException(message);
   }
 }

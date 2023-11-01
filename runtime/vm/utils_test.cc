@@ -276,54 +276,97 @@ VM_UNIT_TEST_CASE(ReverseBitsWord) {
 
 VM_UNIT_TEST_CASE(IsInt) {
   EXPECT(Utils::IsInt(8, 16));
+  EXPECT(Utils::IsInt(8, 16U));
   EXPECT(Utils::IsInt(8, 127));
+  EXPECT(Utils::IsInt(8, 127U));
   EXPECT(Utils::IsInt(8, -128));
+  EXPECT(!Utils::IsInt(8, static_cast<unsigned int>(-128)));
   EXPECT(!Utils::IsInt(8, 255));
+  EXPECT(!Utils::IsInt(8, 255U));
   EXPECT(Utils::IsInt(16, 16));
+  EXPECT(Utils::IsInt(16, 16U));
   EXPECT(!Utils::IsInt(16, 65535));
+  EXPECT(!Utils::IsInt(16, 65535U));
   EXPECT(Utils::IsInt(16, 32767));
+  EXPECT(Utils::IsInt(16, 32767U));
   EXPECT(Utils::IsInt(16, -32768));
+  EXPECT(!Utils::IsInt(16, static_cast<unsigned int>(-32768)));
   EXPECT(Utils::IsInt(32, 16LL));
+  EXPECT(Utils::IsInt(32, 16ULL));
   EXPECT(Utils::IsInt(32, 2147483647LL));
+  EXPECT(Utils::IsInt(32, 2147483647ULL));
   EXPECT(Utils::IsInt(32, -2147483648LL));
+  EXPECT(!Utils::IsInt(32, static_cast<uint64_t>(-2147483648LL)));
   EXPECT(!Utils::IsInt(32, 4294967295LL));
+  EXPECT(!Utils::IsInt(32, 4294967295ULL));
 }
 
 VM_UNIT_TEST_CASE(IsUint) {
   EXPECT(Utils::IsUint(8, 16));
+  EXPECT(Utils::IsUint(8, 16U));
   EXPECT(Utils::IsUint(8, 0));
+  EXPECT(Utils::IsUint(8, 0U));
   EXPECT(Utils::IsUint(8, 255));
+  EXPECT(Utils::IsUint(8, 255U));
   EXPECT(!Utils::IsUint(8, 256));
+  EXPECT(!Utils::IsUint(8, 256U));
   EXPECT(Utils::IsUint(16, 16));
+  EXPECT(Utils::IsUint(16, 16U));
   EXPECT(Utils::IsUint(16, 0));
+  EXPECT(Utils::IsUint(16, 0U));
   EXPECT(Utils::IsUint(16, 65535));
+  EXPECT(Utils::IsUint(16, 65535U));
   EXPECT(!Utils::IsUint(16, 65536));
+  EXPECT(!Utils::IsUint(16, 65536U));
   EXPECT(Utils::IsUint(32, 16LL));
+  EXPECT(Utils::IsUint(32, 16ULL));
   EXPECT(Utils::IsUint(32, 0LL));
+  EXPECT(Utils::IsUint(32, 0ULL));
   EXPECT(Utils::IsUint(32, 4294967295LL));
+  EXPECT(Utils::IsUint(32, 4294967295ULL));
   EXPECT(!Utils::IsUint(32, 4294967296LL));
+  EXPECT(!Utils::IsUint(32, 4294967296ULL));
 }
 
 VM_UNIT_TEST_CASE(MagnitudeIsUint) {
   EXPECT(Utils::MagnitudeIsUint(8, 16));
+  EXPECT(Utils::MagnitudeIsUint(8, 16U));
   EXPECT(Utils::MagnitudeIsUint(8, 0));
+  EXPECT(Utils::MagnitudeIsUint(8, 0U));
   EXPECT(Utils::MagnitudeIsUint(8, -128));
+  EXPECT(!Utils::MagnitudeIsUint(8, static_cast<unsigned int>(-128)));
   EXPECT(Utils::MagnitudeIsUint(8, 255));
+  EXPECT(Utils::MagnitudeIsUint(8, 255U));
   EXPECT(!Utils::MagnitudeIsUint(8, 256));
+  EXPECT(!Utils::MagnitudeIsUint(8, 256U));
   EXPECT(Utils::MagnitudeIsUint(12, 4095));
+  EXPECT(Utils::MagnitudeIsUint(12, 4095U));
   EXPECT(Utils::MagnitudeIsUint(12, -4095));
+  EXPECT(!Utils::MagnitudeIsUint(12, static_cast<unsigned int>(-4095)));
   EXPECT(!Utils::MagnitudeIsUint(12, 4096));
+  EXPECT(!Utils::MagnitudeIsUint(12, 4096U));
   EXPECT(!Utils::MagnitudeIsUint(12, -4096));
+  EXPECT(!Utils::MagnitudeIsUint(12, static_cast<unsigned int>(-4096)));
   EXPECT(Utils::MagnitudeIsUint(16, 16));
+  EXPECT(Utils::MagnitudeIsUint(16, 16U));
   EXPECT(Utils::MagnitudeIsUint(16, 0));
+  EXPECT(Utils::MagnitudeIsUint(16, 0U));
   EXPECT(Utils::MagnitudeIsUint(16, 65535));
+  EXPECT(Utils::MagnitudeIsUint(16, 65535U));
   EXPECT(Utils::MagnitudeIsUint(16, -32768));
+  EXPECT(!Utils::MagnitudeIsUint(16, static_cast<unsigned int>(-32768)));
   EXPECT(!Utils::MagnitudeIsUint(16, 65536));
+  EXPECT(!Utils::MagnitudeIsUint(16, 65536U));
   EXPECT(Utils::MagnitudeIsUint(32, 16LL));
+  EXPECT(Utils::MagnitudeIsUint(32, 16ULL));
   EXPECT(Utils::MagnitudeIsUint(32, 0LL));
+  EXPECT(Utils::MagnitudeIsUint(32, 0ULL));
   EXPECT(Utils::MagnitudeIsUint(32, -2147483648LL));
+  EXPECT(!Utils::MagnitudeIsUint(32, static_cast<uint64_t>(-2147483648LL)));
   EXPECT(Utils::MagnitudeIsUint(32, 4294967295LL));
+  EXPECT(Utils::MagnitudeIsUint(32, 4294967295ULL));
   EXPECT(!Utils::MagnitudeIsUint(32, 4294967296LL));
+  EXPECT(!Utils::MagnitudeIsUint(32, 4294967296ULL));
 }
 
 VM_UNIT_TEST_CASE(LowBits) {

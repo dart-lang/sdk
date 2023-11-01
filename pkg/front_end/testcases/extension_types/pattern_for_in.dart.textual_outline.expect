@@ -1,0 +1,5 @@
+import 'dart:async';
+extension type MyList<T>(List<T> it) implements List<T> {}
+extension type MyStream<T>(Stream<T> it) implements Stream<T> {}
+method1(MyList<int> list, MyStream<int> stream) async {}
+method2(MyList<(int, String)> list, MyStream<(int, String)> stream) async {}

@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
+import '../common/test_helper.dart';
 
 Future<Response> getImplementationFields(
     VmService service, String isolateId, String objectId) async {
