@@ -493,7 +493,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   h0
     kind: function
 ''');
@@ -511,7 +511,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   b2
     kind: functionInvocation
   h0
@@ -553,7 +553,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   b2
     kind: function
   h0
@@ -573,7 +573,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   b2
     kind: functionInvocation
   h0
@@ -6902,7 +6902,7 @@ replacement
   left: 4
 suggestions
   f0
-    kind: function
+    kind: functionInvocation
 ''');
     }
   }

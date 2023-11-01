@@ -193,7 +193,7 @@ vars = {
   "vector_math_rev": "294896dedc6da2a736f47c3c6a19643df934641c",
   "watcher_rev": "6ad58dcbbf328fbecf18d6ad2357c67be300b489",
   "web_socket_channel_rev": "f3ac1bf2bd3c93eb6d5d78646ff7de31797f4cf6",
-  "webdev_rev": "50534a1299d1fdcac065ac337abcad26886ff029",
+  "webdev_rev": "5ad79c240b000a50057612d6af4573f6e649f65c", # https://github.com/dart-lang/webdev/issues/2276
   "webdriver_rev": "eaf9c582e6e72c3551d3a875b2d522cd1ad06593",
   "webkit_inspection_protocol_rev": "82f0c1c46dfdba5edf7c5fa84456233121dd69e1",
   "yaml_rev": "9f0d64934c07bc27438074616455618b7103582d",

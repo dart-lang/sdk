@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/completion/dart/declaration_helper.
 import 'package:analysis_server/src/services/completion/dart/keyword_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/label_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
+import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -32,16 +33,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// The suggestion collector to which suggestions will be added.
   final SuggestionCollector collector;
 
-  /// The helper used to suggest declarations that are in scope.
-  late final DeclarationHelper declarationHelper =
-      DeclarationHelper(collector: collector, offset: offset);
-
   /// The helper used to suggest keywords.
   late final KeywordHelper keywordHelper = KeywordHelper(
       collector: collector, featureSet: featureSet, offset: offset);
 
   /// The helper used to suggest labels.
   late final LabelHelper labelHelper = LabelHelper(collector: collector);
+
+  /// The helper used to suggest declarations that are in scope.
+  DeclarationHelper? _declarationHelper;
 
   /// Initialize a newly created completion visitor that can use the [state] to
   /// add candidate suggestions to the [collector].
@@ -53,6 +53,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   /// Return the offset at which completion was requested.
   int get offset => state.selection.offset;
+
+  /// Returns the visibility tracker used by this pass.
+  VisibilityTracker? get visibilityTracker =>
+      _declarationHelper?.visibilityTracker;
 
   /// Return the node that should be used as the context in which completion is
   /// occurring.
@@ -94,6 +98,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void computeSuggestions() {
     _completionNode.accept(this);
   }
+
+  /// Return the helper used to suggest declarations that are in scope.
+  DeclarationHelper declarationHelper() => _declarationHelper =
+      DeclarationHelper(collector: collector, offset: offset);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -295,7 +303,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    declarationHelper.addLexicalDeclarations(node);
+    declarationHelper().addLexicalDeclarations(node);
   }
 
   @override
@@ -829,7 +837,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    declarationHelper.addLexicalDeclarations(node);
+    declarationHelper().addLexicalDeclarations(node);
   }
 
   @override
@@ -1512,7 +1520,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       TypedLiteral literal, NodeList<CollectionElement> elements) {
     var preceedingElement = elements.elementBefore(offset);
     keywordHelper.addCollectionElementKeywords(literal, elements);
-    declarationHelper.addLexicalDeclarations(preceedingElement ?? literal);
+    declarationHelper().addLexicalDeclarations(preceedingElement ?? literal);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1539,7 +1547,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var inConstantContext = node is Expression && node.inConstantContext;
     keywordHelper.addConstantExpressionKeywords(
         inConstantContext: inConstantContext);
-    declarationHelper.addLexicalDeclarations(node, mustBeConstant: true);
+    declarationHelper().addLexicalDeclarations(node, mustBeConstant: true);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1561,7 +1569,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forExpression(AstNode? node) {
     keywordHelper.addExpressionKeywords(node);
     if (node != null) {
-      declarationHelper.addLexicalDeclarations(node);
+      declarationHelper().addLexicalDeclarations(node);
     }
   }
 
@@ -1652,7 +1660,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a pattern.
   void _forPattern(AstNode node, {bool mustBeConst = true}) {
     keywordHelper.addPatternKeywords();
-    declarationHelper.addLexicalDeclarations(node, mustBeConstant: mustBeConst);
+    declarationHelper()
+        .addLexicalDeclarations(node, mustBeConstant: mustBeConst);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1804,7 +1813,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (!node.inKeyword.isSynthetic) {
       keywordHelper.addKeyword(Keyword.AWAIT);
-      declarationHelper.addLexicalDeclarations(node);
+      declarationHelper().addLexicalDeclarations(node);
     }
   }
 

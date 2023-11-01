@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
+import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -23,7 +24,7 @@ class DeclarationHelper {
 
   /// The visibility tracker used to prevent suggesting elements that have been
   /// shadowed by local declarations.
-  final _VisibilityTracker _visibilityTracker = _VisibilityTracker();
+  final VisibilityTracker visibilityTracker = VisibilityTracker();
 
   /// A flag indicating whether suggestions should be limited to only include
   /// valid constants.
@@ -73,6 +74,9 @@ class DeclarationHelper {
         case FieldDeclaration():
           return currentNode;
         case ForElement(forLoopParts: var parts):
+          if (parts != previousNode) {
+            _visitForLoopParts(parts);
+          }
         case ForStatement(forLoopParts: var parts):
           if (parts != previousNode) {
             _visitForLoopParts(parts);
@@ -117,7 +121,7 @@ class DeclarationHelper {
 
   /// Add a suggestion for the local function represented by the [element].
   void _suggestFunction(ExecutableElement element) {
-    if (_visibilityTracker.isVisible(element)) {
+    if (element is FunctionElement && visibilityTracker.isVisible(element)) {
       var suggestion = LocalFunctionSuggestion(element);
       collector.addSuggestion(suggestion);
     }
@@ -128,7 +132,7 @@ class DeclarationHelper {
     if (mustBeConstant && !element.isConst) {
       return;
     }
-    if (_visibilityTracker.isVisible(element) && !_isUnused(element.name)) {
+    if (visibilityTracker.isVisible(element) && !_isUnused(element.name)) {
       var suggestion = FormalParameterSuggestion(element);
       collector.addSuggestion(suggestion);
     }
@@ -139,7 +143,7 @@ class DeclarationHelper {
     if (mustBeConstant && !element.isConst) {
       return;
     }
-    if (_visibilityTracker.isVisible(element)) {
+    if (visibilityTracker.isVisible(element)) {
       var suggestion = LocalVariableSuggestion(element, _variableDistance++);
       collector.addSuggestion(suggestion);
     }
@@ -162,6 +166,8 @@ class DeclarationHelper {
     switch (member) {
       case ConstructorDeclaration():
         _visitParameterList(member.parameters);
+      case FunctionDeclaration():
+        _visitParameterList(member.functionExpression.parameters);
       case FunctionExpression():
         _visitParameterList(member.parameters);
       case MethodDeclaration():
@@ -361,21 +367,5 @@ class DeclarationHelper {
         }
       }
     }
-  }
-}
-
-/// This class tracks the set of names already added in the completion list in
-/// order to prevent suggesting elements that have been shadowed by local
-/// declarations.
-class _VisibilityTracker {
-  /// The set of known previously declared names in this contributor.
-  final Set<String> declaredNames = {};
-
-  /// Before completions are added by this contributor, we verify with this
-  /// method if the element has already been added, this prevents suggesting
-  /// [Element]s that are shadowed.
-  bool isVisible(Element? element) {
-    var name = element?.name;
-    return name != null && declaredNames.add(name);
   }
 }

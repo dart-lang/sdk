@@ -249,7 +249,7 @@ class U6<T> {
     Expect.isFalse(f1 is F1<bool>);
     Expect.isTrue(confuse(f1) is F1<int>);
     Expect.isFalse(confuse(f1) is F1<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x1 = (f1 as dynamic);
       });
@@ -472,7 +472,7 @@ class U6<T> {
     Expect.isFalse(f9 is F9<bool>);
     Expect.isTrue(confuse(f9) is F9<int>);
     Expect.isFalse(confuse(f9) is F9<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x9 = (f9 as dynamic);
       });
@@ -548,7 +548,7 @@ class U6<T> {
     Expect.isFalse(f11 is F11<bool>);
     Expect.isTrue(confuse(f11) is F11<int>);
     Expect.isFalse(confuse(f11) is F11<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x11 = (f11 as dynamic);
       });
@@ -651,7 +651,7 @@ class U6<T> {
     Expect.isFalse(f14 is F14<bool>);
     Expect.isTrue(confuse(f14) is F14<int>);
     Expect.isFalse(confuse(f14) is F14<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x14 = (f14 as dynamic);
       });
@@ -702,7 +702,7 @@ class U6<T> {
     Expect.isFalse(f15 is F15<bool>);
     Expect.isTrue(confuse(f15) is F15<int>);
     Expect.isFalse(confuse(f15) is F15<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x15 = (f15 as dynamic);
       });
@@ -850,7 +850,7 @@ class U6<T> {
     Expect.isFalse(f20 is F20<bool>);
     Expect.isTrue(confuse(f20) is F20<int>);
     Expect.isFalse(confuse(f20) is F20<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x20 = (f20 as dynamic);
       });
@@ -951,7 +951,7 @@ class U6<T> {
     Expect.isFalse(f23 is F23<bool>);
     Expect.isTrue(confuse(f23) is F23<int>);
     Expect.isFalse(confuse(f23) is F23<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x23 = (f23 as dynamic);
       });
@@ -975,7 +975,7 @@ class U6<T> {
 }
 
 void main() {
-  new U6().runTests();
-  new U6<int>(tIsInt: true).runTests();
-  new U6<bool>(tIsBool: true).runTests();
+  U6().runTests();
+  U6<int>(tIsInt: true).runTests();
+  U6<bool>(tIsBool: true).runTests();
 }
