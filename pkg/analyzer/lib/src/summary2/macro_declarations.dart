@@ -61,6 +61,9 @@ class DeclarationBuilderFromElement {
   final Map<ClassElement, IntrospectableClassDeclarationImpl> _classMap =
       Map.identity();
 
+  final Map<MixinElement, IntrospectableMixinDeclarationImpl> _mixinMap =
+      Map.identity();
+
   final Map<FieldElement, FieldDeclarationImpl> _fieldMap = Map.identity();
 
   final Map<ExecutableElement, MethodDeclarationImpl> _methodMap =
@@ -108,6 +111,10 @@ class DeclarationBuilderFromElement {
     return _methodMap[element] ??= _methodElement(element);
   }
 
+  macro.IntrospectableMixinDeclarationImpl mixinElement(MixinElement element) {
+    return _mixinMap[element] ??= _introspectableMixinElement(element);
+  }
+
   macro.TypeParameterDeclarationImpl typeParameter(
     TypeParameterElement element,
   ) {
@@ -146,7 +153,7 @@ class DeclarationBuilderFromElement {
   }
 
   FieldDeclarationImpl _fieldElement(FieldElement element) {
-    final enclosingClass = element.enclosingElement as ClassElement;
+    final enclosingElement = element.enclosingElement;
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -156,7 +163,7 @@ class DeclarationBuilderFromElement {
       hasFinal: element.isFinal,
       hasLate: element.isLate,
       type: _dartType(element.type),
-      definingType: identifier(enclosingClass),
+      definingType: identifier(enclosingElement),
       isStatic: element.isStatic,
     );
   }
@@ -188,6 +195,22 @@ class DeclarationBuilderFromElement {
       hasSealed: element.isSealed,
       mixins: element.mixins.map(_interfaceType).toList(),
       superclass: element.supertype.mapOrNull(_interfaceType),
+      element: element,
+    );
+  }
+
+  IntrospectableMixinDeclarationImpl _introspectableMixinElement(
+      MixinElement element) {
+    return IntrospectableMixinDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      hasBase: element.isBase,
+      interfaces: element.interfaces.map(_interfaceType).toList(),
+      superclassConstraints:
+          element.superclassConstraints.map(_interfaceType).toList(),
       element: element,
     );
   }
@@ -278,6 +301,12 @@ class DeclarationBuilderFromNode {
     return _methodDeclaration(node);
   }
 
+  macro.MixinDeclarationImpl mixinDeclaration(
+    ast.MixinDeclaration node,
+  ) {
+    return _introspectableMixinDeclaration(node);
+  }
+
   List<macro.MetadataAnnotationImpl> _buildMetadata(
     List<ast.Annotation> elements,
   ) {
@@ -292,6 +321,23 @@ class DeclarationBuilderFromNode {
       name: name.lexeme,
       element: element,
     );
+  }
+
+  macro.IdentifierImpl _definingType(ast.AstNode node) {
+    final parentNode = node.parent;
+    switch (parentNode) {
+      case ast.ClassDeclaration():
+        final parentElement = parentNode.declaredElement!;
+        final typeElement = parentElement.augmentationTarget ?? parentElement;
+        return _declaredIdentifier(parentNode.name, typeElement);
+      case ast.MixinDeclaration():
+        final parentElement = parentNode.declaredElement!;
+        final typeElement = parentElement.augmentationTarget ?? parentElement;
+        return _declaredIdentifier(parentNode.name, typeElement);
+      default:
+        // TODO(scheglov) other parents
+        throw UnimplementedError('(${parentNode.runtimeType}) $parentNode');
+    }
   }
 
   macro.ParameterDeclarationImpl _formalParameter(ast.FormalParameter node) {
@@ -385,15 +431,45 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  IntrospectableMixinDeclarationImpl _introspectableMixinDeclaration(
+    ast.MixinDeclaration node,
+  ) {
+    final element = node.declaredElement as MixinElementImpl;
+
+    final onNodes = <ast.NamedType>[];
+    final interfaceNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.onClause case final clause?) {
+        onNodes.addAll(clause.superclassConstraints);
+      }
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.MixinDeclaration) {
+        break;
+      }
+      current = nextNode;
+    }
+
+    return IntrospectableMixinDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(node.metadata),
+      typeParameters: _typeParameters(node.typeParameters),
+      hasBase: node.baseKeyword != null,
+      interfaces: _namedTypes(interfaceNodes),
+      superclassConstraints: _namedTypes(onNodes),
+      element: element,
+    );
+  }
+
   MethodDeclarationImpl _methodDeclaration(
     ast.MethodDeclaration node,
   ) {
-    // TODO(scheglov) other parents
-    final parentNode = node.parent as ast.ClassDeclaration;
-    final parentElement = parentNode.declaredElement!;
-    final typeElement = parentElement.augmentationTarget ?? parentElement;
-    final definingType = _declaredIdentifier(parentNode.name, typeElement);
-
+    final definingType = _definingType(node);
     final element = node.declaredElement!;
 
     return MethodDeclarationImpl._(
@@ -587,6 +663,23 @@ class IntrospectableClassDeclarationImpl
     required super.hasSealed,
     required super.mixins,
     required super.superclass,
+    required this.element,
+  });
+}
+
+class IntrospectableMixinDeclarationImpl
+    extends macro.IntrospectableMixinDeclarationImpl {
+  final MixinElement element;
+
+  IntrospectableMixinDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.hasBase,
+    required super.interfaces,
+    required super.superclassConstraints,
     required this.element,
   });
 }

@@ -19,7 +19,8 @@ main() {
   var maxNonIntFloorAsDouble = maxNonIntFloorAsInt.toDouble();
   var maxExactIntAsDouble = 9007199254740992.0;
   var maxExactIntAsInt = 9007199254740992;
-  var two53 = 1 << 53; // Same as maxExactIntAsInt.
+  // Can't use 1 << 53 with web numbers. 2^53 = (2^10)^5 * 2^3.
+  int two53 = 1024 * 1024 * 1024 * 1024 * 1024 * 8; // Same as maxExactIntAsInt.
   var two53p1 = two53 + 1;
   var maxFiniteAsDouble = 1.7976931348623157e+308;
   var maxFiniteAsInt = maxFiniteAsDouble.truncate();
@@ -28,14 +29,16 @@ main() {
   var mnan = negate(nan);
   var minInt64 = -0x8000000000000000;
   var minInt64AsDouble = minInt64.toDouble();
-  var maxInt64 = 0x7fffffffffffffff;
+  // Split 0x7fffffffffffffff into sum of two web numbers. When compiled to
+  // JavaScript the sum will round up.
+  var maxInt64 = 0x7ffffffffffff000 + 0xfff;
   var maxInt64AsDouble = maxInt64.toDouble(); // 1 << 63
   var matrix = [
     -inf,
     -maxFiniteAsDouble,
-    [minInt64, minInt64AsDouble],
-    [-maxInt64, -maxFiniteAsInt],
-    -two53p1,
+    [minInt64, if (!webNumbers) minInt64AsDouble],
+    if (!webNumbers) [-maxInt64, -maxFiniteAsInt],
+    if (!webNumbers) -two53p1,
     [-two53, -maxExactIntAsInt, -maxExactIntAsDouble],
     -maxNonInt,
     [-maxNonIntFloorAsDouble, -maxNonIntFloorAsInt],
@@ -58,9 +61,9 @@ main() {
     [maxNonIntFloorAsDouble, maxNonIntFloorAsInt],
     maxNonInt,
     [two53, maxExactIntAsInt, maxExactIntAsDouble],
-    two53p1,
-    [maxInt64, maxFiniteAsInt],
-    maxInt64AsDouble,
+    if (!webNumbers) two53p1,
+    [maxInt64, if (!webNumbers) maxFiniteAsInt],
+    if (!webNumbers) maxInt64AsDouble,
     maxFiniteAsDouble,
     inf,
     [nan, mnan],

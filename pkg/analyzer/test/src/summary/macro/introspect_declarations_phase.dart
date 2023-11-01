@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'introspect_shared.dart';
 
 /*macro*/ class IntrospectDeclarationsPhaseMacro
-    implements ClassDeclarationsMacro {
+    implements ClassDeclarationsMacro, MixinDeclarationsMacro {
   final Set<Object?> withDetailsFor;
 
   const IntrospectDeclarationsPhaseMacro({
@@ -33,6 +33,33 @@ import 'introspect_shared.dart';
       declarationPhaseIntrospector: builder,
     );
     await printer.writeClassDeclaration(declaration);
+    final text = buffer.toString();
+
+    final resultName = 'introspect_${declaration.identifier.name}';
+    builder.declareInLibrary(
+      DeclarationCode.fromString(
+        'const $resultName = r"""$text""";',
+      ),
+    );
+  }
+
+  @override
+  Future<void> buildDeclarationsForMixin(
+    IntrospectableMixinDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final printer = _DeclarationPrinter(
+      sink: sink,
+      withDetailsFor: withDetailsFor.cast(),
+      declarationPhaseIntrospector: builder,
+    );
+    await printer.writeMixinDeclaration(declaration);
     final text = buffer.toString();
 
     final resultName = 'introspect_${declaration.identifier.name}';
@@ -93,6 +120,34 @@ class _DeclarationPrinter {
 
       await _writeTypeParameters(e.typeParameters);
       await _writeTypeAnnotations('mixins', e.mixins);
+      await _writeTypeAnnotations('interfaces', e.interfaces);
+
+      _enclosingDeclarationIdentifier = e.identifier;
+      await sink.writeElements<FieldDeclaration>(
+        'fields',
+        await declarationPhaseIntrospector.fieldsOf(e),
+        _writeField,
+      );
+    });
+  }
+
+  Future<void> writeMixinDeclaration(IntrospectableMixinDeclaration e) async {
+    sink.writelnWithIndent('mixin ${e.identifier.name}');
+
+    if (!_shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasBase': e.hasBase,
+      });
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations(
+        'superclassConstraints',
+        e.superclassConstraints,
+      );
       await _writeTypeAnnotations('interfaces', e.interfaces);
 
       _enclosingDeclarationIdentifier = e.identifier;

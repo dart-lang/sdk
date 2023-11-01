@@ -117,7 +117,8 @@ class UnknownMacroApplicationError extends MacroApplicationError {
 
   @override
   String toStringForTest() {
-    return 'Unknown(annotation: $annotationIndex, message: $message)';
+    return 'Unknown(annotation: $annotationIndex, '
+        'message: $message, stackTrace: $stackTrace)';
   }
 
   @override
