@@ -1334,6 +1334,17 @@ class Instruction : public ZoneAllocated {
 
   virtual bool MayThrow() const = 0;
 
+  // Returns true if instruction may have a "visible" effect,
+  virtual bool MayHaveVisibleEffect() const {
+    return HasUnknownSideEffects() || MayThrow();
+  }
+
+  // Returns true if this instruction can be eliminated if its result is not
+  // used without changing the behavior of the program. For Definitions,
+  // overwrite CanReplaceWithConstant() instead.
+  virtual bool CanEliminate(const BlockEntryInstr* block) const;
+  bool CanEliminate() { return CanEliminate(GetBlock()); }
+
   bool IsDominatedBy(Instruction* dom);
 
   void ClearEnv() { env_ = nullptr; }
@@ -2546,6 +2557,18 @@ class Definition : public Instruction {
   void AddInputUse(Value* value) { Value::AddToList(value, &input_use_list_); }
   void AddEnvUse(Value* value) { Value::AddToList(value, &env_use_list_); }
 
+  // Returns true if the definition can be replaced with a constant without
+  // changing the behavior of the program.
+  virtual bool CanReplaceWithConstant() const {
+    return !MayHaveVisibleEffect() && !CanDeoptimize();
+  }
+
+  virtual bool CanEliminate(const BlockEntryInstr* block) const {
+    // Basic blocks should not end in a definition, so treat this as replacing
+    // the definition with a constant (that is then unused).
+    return CanReplaceWithConstant();
+  }
+
   // Replace uses of this definition with uses of other definition or value.
   // Precondition: use lists must be properly calculated.
   // Postcondition: use lists and use values are still valid.
@@ -2998,6 +3021,7 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
   }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool MayHaveVisibleEffect() const { return true; }
 
   virtual bool AttributesEqual(const Instruction& other) const {
     return other.AsStoreIndexedUnsafe()->offset() == offset();
@@ -4053,6 +4077,10 @@ class ReachabilityFenceInstr : public TemplateInstruction<1, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual bool CanEliminate(const BlockEntryInstr* block) const {
+    return false;
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
   DECLARE_EMPTY_SERIALIZATION(ReachabilityFenceInstr, TemplateInstruction)
@@ -4183,6 +4211,9 @@ class UnboxedConstantInstr : public ConstantInstr {
 
   DECLARE_INSTRUCTION(UnboxedConstant)
   DECLARE_CUSTOM_SERIALIZATION(UnboxedConstantInstr)
+
+  DECLARE_ATTRIBUTES_NAMED(("value", "representation"),
+                           (&value(), representation()))
 
  private:
   const Representation representation_;
@@ -6160,6 +6191,10 @@ class RawStoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  virtual bool CanEliminate(const BlockEntryInstr* block) const {
+    return false;
+  }
+
 #define FIELD_LIST(F) F(const int32_t, offset_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(RawStoreFieldInstr,
@@ -6378,6 +6413,8 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool MayHaveVisibleEffect() const { return true; }
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
@@ -6642,6 +6679,8 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool MayHaveVisibleEffect() const { return true; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
@@ -7032,6 +7071,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool MayHaveVisibleEffect() const { return true; }
 
   void PrintOperandsTo(BaseTextBuffer* f) const;
 
@@ -7597,6 +7638,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool CanReplaceWithConstant() const { return false; }
 
   Location* locations() { return locations_; }
   void set_locations(Location* locations) { locations_ = locations; }
@@ -8799,6 +8841,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
     return GetDeoptId();
   }
 
+  DECLARE_ATTRIBUTE(op_kind())
+
   PRINT_OPERANDS_TO_SUPPORT
 
   DECLARE_INSTRUCTION(BinaryDoubleOp)
@@ -8980,6 +9024,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
   Token::Kind op_kind() const { return op_kind_; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   virtual bool AttributesEqual(const Instruction& other) const {
     return other.AsUnaryIntegerOp()->op_kind() == op_kind();
   }
@@ -8993,6 +9039,8 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
   DECLARE_ABSTRACT_INSTRUCTION(UnaryIntegerOp)
+
+  DECLARE_ATTRIBUTE(op_kind())
 
 #define FIELD_LIST(F) F(const Token::Kind, op_kind_)
 
@@ -9149,6 +9197,10 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
     set_can_overflow(false);
   }
 
+  // Returns true if right is either a non-zero Integer constant or has a range
+  // that does not include the possibility of being zero.
+  bool RightIsNonZero() const;
+
   // Returns true if right is a non-zero Smi constant which absolute value is
   // a power of two.
   bool RightIsPowerOfTwoConstant() const;
@@ -9164,6 +9216,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
   DECLARE_ABSTRACT_INSTRUCTION(BinaryIntegerOp)
+
+  DECLARE_ATTRIBUTE(op_kind())
 
 #define FIELD_LIST(F)                                                          \
   F(const Token::Kind, op_kind_)                                               \
@@ -9337,7 +9391,8 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
   }
 
   virtual bool MayThrow() const {
-    return op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV;
+    return (op_kind() == Token::kMOD || op_kind() == Token::kTRUNCDIV) &&
+           !RightIsNonZero();
   }
 
   virtual Representation representation() const { return kUnboxedInt64; }
@@ -9598,6 +9653,8 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
            (representation_ == other_op->representation_);
   }
 
+  DECLARE_ATTRIBUTE(op_kind())
+
   PRINT_OPERANDS_TO_SUPPORT
 
 #define FIELD_LIST(F)                                                          \
@@ -9655,6 +9712,10 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool CanEliminate(const BlockEntryInstr* block) const {
+    return false;
+  }
 
   virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
     return SlowPathSharingSupported(is_optimizing);
@@ -9959,6 +10020,8 @@ class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Token::Kind op_kind() const { return op_kind_; }
 
   DECLARE_INSTRUCTION(FloatCompare)
+
+  DECLARE_ATTRIBUTE(op_kind())
 
   virtual CompileType ComputeType() const;
 

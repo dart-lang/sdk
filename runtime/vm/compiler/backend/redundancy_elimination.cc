@@ -1534,19 +1534,6 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 }
 
-// Returns true if instruction may have a "visible" effect,
-static bool MayHaveVisibleEffect(Instruction* instr) {
-  switch (instr->tag()) {
-    case Instruction::kStoreField:
-    case Instruction::kStoreStaticField:
-    case Instruction::kStoreIndexed:
-    case Instruction::kStoreIndexedUnsafe:
-      return true;
-    default:
-      return instr->HasUnknownSideEffects() || instr->MayThrow();
-  }
-}
-
 void LICM::Optimize() {
   if (flow_graph()->function().ProhibitsInstructionHoisting()) {
     // Do not hoist any.
@@ -1624,7 +1611,7 @@ void LICM::Optimize() {
         // effect invalidates the first "visible" effect flag.
         if (is_loop_invariant) {
           Hoist(&it, pre_header, current);
-        } else if (!seen_visible_effect && MayHaveVisibleEffect(current)) {
+        } else if (!seen_visible_effect && current->MayHaveVisibleEffect()) {
           seen_visible_effect = true;
         }
       }
@@ -4441,20 +4428,6 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
   }
 }
 
-// Returns true if [current] instruction can be possibly eliminated
-// (if its result is not used).
-static bool CanEliminateInstruction(Instruction* current,
-                                    BlockEntryInstr* block) {
-  ASSERT(current->GetBlock() == block);
-  if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
-      current == block->last_instruction() || current->IsMaterializeObject() ||
-      current->IsCheckStackOverflow() || current->IsReachabilityFence() ||
-      current->IsRawStoreField()) {
-    return false;
-  }
-  return true;
-}
-
 void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
   GrowableArray<Instruction*> worklist;
   BitVector live(flow_graph->zone(), flow_graph->current_ssa_temp_index());
@@ -4468,7 +4441,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       ASSERT(!current->IsMoveArgument());
       // TODO(alexmarkov): take control dependencies into account and
       // eliminate dead branches/conditions.
-      if (!CanEliminateInstruction(current, block)) {
+      if (!current->CanEliminate(block)) {
         worklist.Add(current);
         if (Definition* def = current->AsDefinition()) {
           if (def->HasSSATemp()) {
@@ -4525,7 +4498,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!CanEliminateInstruction(current, block)) {
+      if (!current->CanEliminate(block)) {
         continue;
       }
       ASSERT(!current->IsMoveArgument());

@@ -1521,6 +1521,12 @@ void Instruction::InheritDeoptTarget(Zone* zone, Instruction* other) {
   other->env()->DeepCopyTo(zone, this);
 }
 
+bool Instruction::CanEliminate(const BlockEntryInstr* block) const {
+  ASSERT(const_cast<Instruction*>(this)->GetBlock() == block);
+  return !MayHaveVisibleEffect() && !CanDeoptimize() &&
+         this != block->last_instruction();
+}
+
 bool Instruction::IsDominatedBy(Instruction* dom) {
   BlockEntryInstr* block = GetBlock();
   BlockEntryInstr* dom_block = dom->GetBlock();
@@ -2056,9 +2062,18 @@ bool ShiftIntegerOpInstr::IsShiftCountInRange(int64_t max) const {
   return RangeUtils::IsWithin(shift_range(), 0, max);
 }
 
+bool BinaryIntegerOpInstr::RightIsNonZero() const {
+  if (right()->BindsToConstant()) {
+    const auto& constant = right()->BoundConstant();
+    if (!constant.IsInteger()) return false;
+    return Integer::Cast(constant).AsInt64Value() != 0;
+  }
+  return !RangeUtils::CanBeZero(right()->definition()->range());
+}
+
 bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
-  if (!right()->definition()->IsConstant()) return false;
-  const Object& constant = right()->definition()->AsConstant()->value();
+  if (!right()->BindsToConstant()) return false;
+  const Object& constant = right()->BoundConstant();
   if (!constant.IsSmi()) return false;
   const intptr_t int_value = Smi::Cast(constant).Value();
   ASSERT(int_value != kIntptrMin);
@@ -2324,7 +2339,35 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   return op;
 }
 
+Definition* UnaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  // If range analysis has already determined a single possible value for
+  // this operation, then replace it if possible.
+  if (RangeUtils::IsSingleton(range()) && CanReplaceWithConstant()) {
+    const auto& value =
+        Integer::Handle(Integer::NewCanonical(range()->Singleton()));
+    auto* const replacement =
+        flow_graph->TryCreateConstantReplacementFor(this, value);
+    if (replacement != this) {
+      return replacement;
+    }
+  }
+
+  return this;
+}
+
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  // If range analysis has already determined a single possible value for
+  // this operation, then replace it if possible.
+  if (RangeUtils::IsSingleton(range()) && CanReplaceWithConstant()) {
+    const auto& value =
+        Integer::Handle(Integer::NewCanonical(range()->Singleton()));
+    auto* const replacement =
+        flow_graph->TryCreateConstantReplacementFor(this, value);
+    if (replacement != this) {
+      return replacement;
+    }
+  }
+
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
   // have already been run.

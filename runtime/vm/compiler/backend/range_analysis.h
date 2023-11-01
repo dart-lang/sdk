@@ -438,6 +438,16 @@ class Range : public ZoneAllocated {
 
   bool IsFinite() const { return !min_.IsInfinity() && !max_.IsInfinity(); }
 
+  bool IsSingleton() const {
+    return min_.IsConstant() && max_.IsConstant() &&
+           min_.ConstantValue() == max_.ConstantValue();
+  }
+
+  int64_t Singleton() const {
+    ASSERT(IsSingleton());
+    return min_.ConstantValue();
+  }
+
   Range Intersect(const Range* other) const {
     return Range(RangeBoundary::IntersectionMin(min(), other->min()),
                  RangeBoundary::IntersectionMax(max(), other->max()));
@@ -586,6 +596,10 @@ class RangeUtils : public AllStatic {
 
   static bool OnlyLessThanOrEqualTo(Range* range, intptr_t value) {
     return !Range::IsUnknown(range) && range->OnlyLessThanOrEqualTo(value);
+  }
+
+  static bool IsSingleton(Range* range) {
+    return !Range::IsUnknown(range) && range->IsSingleton();
   }
 };
 
