@@ -1,0 +1,317 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:20:39: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// extension type E5(Null it) implements void {} // Error.
+//                                       ^^^^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:20:39: Error: Type 'void' not found.
+// extension type E5(Null it) implements void {} // Error.
+//                                       ^^^^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:20:39: Error: The type 'void' can't be implemented by an extension type.
+// extension type E5(Null it) implements void {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:21:39: Error: The type 'dynamic' can't be implemented by an extension type.
+// extension type E6(Null it) implements dynamic {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:22:39: Error: The type 'double' which is an alias of 'double?' can't be implemented by an extension type because it is nullable.
+// extension type E7(Null it) implements double? {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:23:39: Error: The type 'FutureOr<bool>' can't be implemented by an extension type.
+// extension type E8(bool it) implements FutureOr<bool> {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:24:39: Error: The type 'FutureOr<X>' can't be implemented by an extension type.
+// extension type E9<X>(X it) implements FutureOr<X> {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:25:54: Error: The type 'Function' can't be implemented by an extension type.
+// extension type E10(void Function(int) it) implements Function {} // Error.
+//                                                      ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:26:60: Error: The type '() -> String' can't be implemented by an extension type.
+// extension type E11(String Function() it) implements String Function() {} // Error.
+//                                                            ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:27:50: Error: The type 'Record' can't be implemented by an extension type.
+// extension type E12((int, Object?) it) implements Record {} // Error.
+//                                                  ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:28:47: Error: The type '(Null, num)' can't be implemented by an extension type.
+// extension type E13((Null, num) it) implements (Null, num) {} // Error.
+//                                               ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:29:40: Error: The type 'Null' can't be implemented by an extension type.
+// extension type E14(Null it) implements Null {} // Error.
+//                                        ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:30:40: Error: The type 'Never' can't be implemented by an extension type.
+// extension type E15<X>(X it) implements Never {} // Error.
+//                                        ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:31:40: Error: The type 'Never' can't be implemented by an extension type.
+// extension type E16(Null it) implements Never {} // Error.
+//                                        ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:17:42: Error: The implemented interface 'Object' must be a supertype of the representation type 'String?' of extension type 'E3'.
+//  - 'Object' is from 'dart:core'.
+// Try changing the interface type to a supertype of 'String?' or the representation type to a subtype of 'Object'.
+// extension type E3(String? it) implements Object {} // Error.
+//                                          ^
+//
+// pkg/front_end/testcases/extension_types/issue53840.dart:18:37: Error: The implemented interface 'Object' must be a supertype of the representation type 'E3' of extension type 'E4'.
+//  - 'Object' is from 'dart:core'.
+// Try changing the interface type to a supertype of 'E3' or the representation type to a subtype of 'Object'.
+// extension type E4(E3 it) implements Object {} // Error.
+//                                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+abstract class M extends self::A /*isMixinDeclaration*/  {
+}
+class En extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::En> values = #C4;
+  enum-element static const field self::En element = #C3;
+  const synthetic constructor •(core::int #index, core::String #name) → self::En
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "En.${this.{core::_Enum::_name}{core::String}}";
+}
+extension type E1(core::num it) implements core::Object {
+  abstract inline-class-member representation-field get it() → core::num;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(self::E1 /* = core::num */ it) implements core::Object {
+  abstract inline-class-member representation-field get it() → self::E1 /* = core::num */;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+extension type E3(core::String? it) implements core::Object {
+  abstract inline-class-member representation-field get it() → core::String?;
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+extension type E4(self::E3 /* = core::String? */ it) implements core::Object {
+  abstract inline-class-member representation-field get it() → self::E3 /* = core::String? */;
+  constructor • = self::E4|constructor#;
+  constructor tearoff • = self::E4|constructor#_#new#tearOff;
+}
+extension type E5(Null it) {
+  abstract inline-class-member representation-field get it() → Null;
+  constructor • = self::E5|constructor#;
+  constructor tearoff • = self::E5|constructor#_#new#tearOff;
+}
+extension type E6(Null it) {
+  abstract inline-class-member representation-field get it() → Null;
+  constructor • = self::E6|constructor#;
+  constructor tearoff • = self::E6|constructor#_#new#tearOff;
+}
+extension type E7(Null it) {
+  abstract inline-class-member representation-field get it() → Null;
+  constructor • = self::E7|constructor#;
+  constructor tearoff • = self::E7|constructor#_#new#tearOff;
+}
+extension type E8(core::bool it) {
+  abstract inline-class-member representation-field get it() → core::bool;
+  constructor • = self::E8|constructor#;
+  constructor tearoff • = self::E8|constructor#_#new#tearOff;
+}
+extension type E9<X extends core::Object? = dynamic>(X% it) {
+  abstract inline-class-member representation-field get it() → X%;
+  constructor • = self::E9|constructor#;
+  constructor tearoff • = self::E9|constructor#_#new#tearOff;
+}
+extension type E10((core::int) → void it) {
+  abstract inline-class-member representation-field get it() → (core::int) → void;
+  constructor • = self::E10|constructor#;
+  constructor tearoff • = self::E10|constructor#_#new#tearOff;
+}
+extension type E11(() → core::String it) {
+  abstract inline-class-member representation-field get it() → () → core::String;
+  constructor • = self::E11|constructor#;
+  constructor tearoff • = self::E11|constructor#_#new#tearOff;
+}
+extension type E12((core::int, core::Object?) it) {
+  abstract inline-class-member representation-field get it() → (core::int, core::Object?);
+  constructor • = self::E12|constructor#;
+  constructor tearoff • = self::E12|constructor#_#new#tearOff;
+}
+extension type E13((Null, core::num) it) {
+  abstract inline-class-member representation-field get it() → (Null, core::num);
+  constructor • = self::E13|constructor#;
+  constructor tearoff • = self::E13|constructor#_#new#tearOff;
+}
+extension type E14(Null it) {
+  abstract inline-class-member representation-field get it() → Null;
+  constructor • = self::E14|constructor#;
+  constructor tearoff • = self::E14|constructor#_#new#tearOff;
+}
+extension type E15<X extends core::Object? = dynamic>(X% it) {
+  abstract inline-class-member representation-field get it() → X%;
+  constructor • = self::E15|constructor#;
+  constructor tearoff • = self::E15|constructor#_#new#tearOff;
+}
+extension type E16(Null it) {
+  abstract inline-class-member representation-field get it() → Null;
+  constructor • = self::E16|constructor#;
+  constructor tearoff • = self::E16|constructor#_#new#tearOff;
+}
+extension type E17(self::A a) implements self::A {
+  abstract inline-class-member representation-field get a() → self::A;
+  constructor • = self::E17|constructor#;
+  constructor tearoff • = self::E17|constructor#_#new#tearOff;
+}
+extension type E18(self::M m) implements self::M {
+  abstract inline-class-member representation-field get m() → self::M;
+  constructor • = self::E18|constructor#;
+  constructor tearoff • = self::E18|constructor#_#new#tearOff;
+}
+extension type E19(self::En en) implements self::En {
+  abstract inline-class-member representation-field get en() → self::En;
+  constructor • = self::E19|constructor#;
+  constructor tearoff • = self::E19|constructor#_#new#tearOff;
+}
+static inline-class-member method E1|constructor#(core::num it) → self::E1 /* = core::num */ {
+  lowered final self::E1 /* = core::num */ #this = it;
+  return #this;
+}
+static inline-class-member method E1|constructor#_#new#tearOff(core::num it) → self::E1 /* = core::num */
+  return self::E1|constructor#(it);
+static inline-class-member method E2|constructor#(self::E1 /* = core::num */ it) → self::E2 /* = core::num */ {
+  lowered final self::E2 /* = core::num */ #this = it;
+  return #this;
+}
+static inline-class-member method E2|constructor#_#new#tearOff(self::E1 /* = core::num */ it) → self::E2 /* = core::num */
+  return self::E2|constructor#(it);
+static inline-class-member method E3|constructor#(core::String? it) → self::E3 /* = core::String? */ {
+  lowered final self::E3 /* = core::String? */ #this = it;
+  return #this;
+}
+static inline-class-member method E3|constructor#_#new#tearOff(core::String? it) → self::E3 /* = core::String? */
+  return self::E3|constructor#(it);
+static inline-class-member method E4|constructor#(self::E3 /* = core::String? */ it) → self::E4 /* = core::String? */ {
+  lowered final self::E4 /* = core::String? */ #this = it;
+  return #this;
+}
+static inline-class-member method E4|constructor#_#new#tearOff(self::E3 /* = core::String? */ it) → self::E4 /* = core::String? */
+  return self::E4|constructor#(it);
+static inline-class-member method E5|constructor#(Null it) → self::E5 /* = Null */ {
+  lowered final self::E5 /* = Null */ #this = it;
+  return #this;
+}
+static inline-class-member method E5|constructor#_#new#tearOff(Null it) → self::E5 /* = Null */
+  return self::E5|constructor#(it);
+static inline-class-member method E6|constructor#(Null it) → self::E6 /* = Null */ {
+  lowered final self::E6 /* = Null */ #this = it;
+  return #this;
+}
+static inline-class-member method E6|constructor#_#new#tearOff(Null it) → self::E6 /* = Null */
+  return self::E6|constructor#(it);
+static inline-class-member method E7|constructor#(Null it) → self::E7 /* = Null */ {
+  lowered final self::E7 /* = Null */ #this = it;
+  return #this;
+}
+static inline-class-member method E7|constructor#_#new#tearOff(Null it) → self::E7 /* = Null */
+  return self::E7|constructor#(it);
+static inline-class-member method E8|constructor#(core::bool it) → self::E8 /* = core::bool */ {
+  lowered final self::E8 /* = core::bool */ #this = it;
+  return #this;
+}
+static inline-class-member method E8|constructor#_#new#tearOff(core::bool it) → self::E8 /* = core::bool */
+  return self::E8|constructor#(it);
+static inline-class-member method E9|constructor#<X extends core::Object? = dynamic>(self::E9|constructor#::X% it) → self::E9<self::E9|constructor#::X%> /* = self::E9|constructor#::X% */ {
+  lowered final self::E9<self::E9|constructor#::X%> /* = self::E9|constructor#::X% */ #this = it;
+  return #this;
+}
+static inline-class-member method E9|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E9|constructor#_#new#tearOff::X% it) → self::E9<self::E9|constructor#_#new#tearOff::X%>% /* = self::E9|constructor#_#new#tearOff::X% */
+  return self::E9|constructor#<self::E9|constructor#_#new#tearOff::X%>(it);
+static inline-class-member method E10|constructor#((core::int) → void it) → self::E10 /* = (core::int) → void */ {
+  lowered final self::E10 /* = (core::int) → void */ #this = it;
+  return #this;
+}
+static inline-class-member method E10|constructor#_#new#tearOff((core::int) → void it) → self::E10 /* = (core::int) → void */
+  return self::E10|constructor#(it);
+static inline-class-member method E11|constructor#(() → core::String it) → self::E11 /* = () → core::String */ {
+  lowered final self::E11 /* = () → core::String */ #this = it;
+  return #this;
+}
+static inline-class-member method E11|constructor#_#new#tearOff(() → core::String it) → self::E11 /* = () → core::String */
+  return self::E11|constructor#(it);
+static inline-class-member method E12|constructor#((core::int, core::Object?) it) → self::E12 /* =(core::int, core::Object?) */ {
+  lowered final self::E12 /* =(core::int, core::Object?) */ #this = it;
+  return #this;
+}
+static inline-class-member method E12|constructor#_#new#tearOff((core::int, core::Object?) it) → self::E12 /* =(core::int, core::Object?) */
+  return self::E12|constructor#(it);
+static inline-class-member method E13|constructor#_#new#tearOff((Null, core::num) it) → self::E13 /* =(Null, core::num) */
+  return self::E13|constructor#(it);
+static inline-class-member method E13|constructor#((Null, core::num) it) → self::E13 /* =(Null, core::num) */ {
+  lowered final self::E13 /* =(Null, core::num) */ #this = it;
+  return #this;
+}
+static inline-class-member method E14|constructor#(Null it) → self::E14 /* = Null */ {
+  lowered final self::E14 /* = Null */ #this = it;
+  return #this;
+}
+static inline-class-member method E14|constructor#_#new#tearOff(Null it) → self::E14 /* = Null */
+  return self::E14|constructor#(it);
+static inline-class-member method E15|constructor#<X extends core::Object? = dynamic>(self::E15|constructor#::X% it) → self::E15<self::E15|constructor#::X%> /* = self::E15|constructor#::X% */ {
+  lowered final self::E15<self::E15|constructor#::X%> /* = self::E15|constructor#::X% */ #this = it;
+  return #this;
+}
+static inline-class-member method E15|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E15|constructor#_#new#tearOff::X% it) → self::E15<self::E15|constructor#_#new#tearOff::X%>% /* = self::E15|constructor#_#new#tearOff::X% */
+  return self::E15|constructor#<self::E15|constructor#_#new#tearOff::X%>(it);
+static inline-class-member method E16|constructor#(Null it) → self::E16 /* = Null */ {
+  lowered final self::E16 /* = Null */ #this = it;
+  return #this;
+}
+static inline-class-member method E16|constructor#_#new#tearOff(Null it) → self::E16 /* = Null */
+  return self::E16|constructor#(it);
+static inline-class-member method E17|constructor#(self::A a) → self::E17 /* = self::A */ {
+  lowered final self::E17 /* = self::A */ #this = a;
+  return #this;
+}
+static inline-class-member method E17|constructor#_#new#tearOff(self::A a) → self::E17 /* = self::A */
+  return self::E17|constructor#(a);
+static inline-class-member method E18|constructor#(self::M m) → self::E18 /* = self::M */ {
+  lowered final self::E18 /* = self::M */ #this = m;
+  return #this;
+}
+static inline-class-member method E18|constructor#_#new#tearOff(self::M m) → self::E18 /* = self::M */
+  return self::E18|constructor#(m);
+static inline-class-member method E19|constructor#(self::En en) → self::E19 /* = self::En */ {
+  lowered final self::E19 /* = self::En */ #this = en;
+  return #this;
+}
+static inline-class-member method E19|constructor#_#new#tearOff(self::En en) → self::E19 /* = self::En */
+  return self::E19|constructor#(en);
+
+constants  {
+  #C1 = 0
+  #C2 = "element"
+  #C3 = self::En {index:#C1, _name:#C2}
+  #C4 = <self::En*>[#C3]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue53840.dart:
+- En. (from org-dartlang-testcase:///issue53840.dart:11:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

@@ -35,10 +35,6 @@ library;
 // extension type ET_Never(Never it) implements Never /* Error */ {}
 //                               ^^
 //
-// pkg/front_end/testcases/extension_types/implement_all.dart:37:48: Error: The type 'Object' can't be implemented by an extension type.
-// extension type ET_Object(Object it) implements Object /* Error */ {}
-//                                                ^
-//
 // pkg/front_end/testcases/extension_types/implement_all.dart:39:48: Error: The type 'Record' can't be implemented by an extension type.
 // extension type ET_Record(Record it) implements Record /* Error */ {}
 //                                                ^
@@ -140,7 +136,7 @@ extension type ET_Never(invalid-type it) {
   constructor • = self::ET_Never|constructor#;
   constructor tearoff • = self::ET_Never|constructor#_#new#tearOff;
 }
-extension type ET_Object(core::Object it) {
+extension type ET_Object(core::Object it) implements core::Object {
   abstract inline-class-member representation-field get it() → core::Object;
   constructor • = self::ET_Object|constructor#;
   constructor tearoff • = self::ET_Object|constructor#_#new#tearOff;

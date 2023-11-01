@@ -530,7 +530,8 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_checkRedirectingFactories);
-      loader.checkRedirectingFactories(sortedSourceClassBuilders);
+      loader.checkRedirectingFactories(
+          sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders);
 
       benchmarker
           ?.enterPhase(BenchmarkPhases.outline_finishSynthesizedParameters);

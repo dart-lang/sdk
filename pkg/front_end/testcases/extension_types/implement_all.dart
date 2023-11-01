@@ -34,7 +34,7 @@ extension type ET_Void(Null it) implements void /* Error */ {}
 
 extension type ET_Never(Never it) implements Never /* Error */ {}
 
-extension type ET_Object(Object it) implements Object /* Error */ {}
+extension type ET_Object(Object it) implements Object /* Ok */ {}
 
 extension type ET_Record(Record it) implements Record /* Error */ {}
 
