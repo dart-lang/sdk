@@ -10049,7 +10049,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_completion_dartDoc_reference_forFunction_1() async {
     allowedIdentifiers = {'aaa', 'bbb'};
     await computeSuggestions('''
@@ -10061,7 +10060,16 @@ suggestions
 functionA(aaa, bbb) {}
 functionB() {}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  aaa
+    kind: parameter
+''');
+    } else {
+      assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -10070,6 +10078,7 @@ suggestions
   bbb
     kind: parameter
 ''');
+    }
   }
 
   Future<void> test_completion_dartDoc_reference_forFunction_2() async {
