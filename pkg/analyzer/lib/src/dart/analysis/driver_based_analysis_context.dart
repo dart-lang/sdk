@@ -28,7 +28,7 @@ class DriverBasedAnalysisContext implements AnalysisContext {
     this.resourceProvider,
     this.contextRoot, [
     @Deprecated('AnalysisDriver will set itself, remove this')
-        AnalysisDriver? analysisDriver,
+    AnalysisDriver? analysisDriver,
   ]);
 
   @override
