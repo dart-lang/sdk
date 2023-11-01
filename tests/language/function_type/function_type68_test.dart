@@ -226,7 +226,7 @@ class U68<T> {
     Expect.isFalse(f2 is F2<bool>);
     Expect.isTrue(confuse(f2) is F2<int>);
     Expect.isFalse(confuse(f2) is F2<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x2 = (f2 as dynamic);
       });
@@ -347,7 +347,7 @@ class U68<T> {
     Expect.isFalse(f6 is F6<bool>);
     Expect.isTrue(confuse(f6) is F6<int>);
     Expect.isFalse(confuse(f6) is F6<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x6 = (f6 as dynamic);
       });
@@ -420,7 +420,7 @@ class U68<T> {
     Expect.isFalse(f8 is F8<bool>);
     Expect.isTrue(confuse(f8) is F8<int>);
     Expect.isFalse(confuse(f8) is F8<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x8 = (f8 as dynamic);
       });
@@ -568,7 +568,7 @@ class U68<T> {
     Expect.isFalse(f13 is F13<bool>);
     Expect.isTrue(confuse(f13) is F13<int>);
     Expect.isFalse(confuse(f13) is F13<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x13 = (f13 as dynamic);
       });
@@ -617,7 +617,7 @@ class U68<T> {
     Expect.isFalse(f14 is F14<bool>);
     Expect.isTrue(confuse(f14) is F14<int>);
     Expect.isFalse(confuse(f14) is F14<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x14 = (f14 as dynamic);
       });
@@ -666,7 +666,7 @@ class U68<T> {
     Expect.isFalse(f15 is F15<bool>);
     Expect.isTrue(confuse(f15) is F15<int>);
     Expect.isFalse(confuse(f15) is F15<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x15 = (f15 as dynamic);
       });
@@ -739,7 +739,7 @@ class U68<T> {
     Expect.isFalse(f17 is F17<bool>);
     Expect.isTrue(confuse(f17) is F17<int>);
     Expect.isFalse(confuse(f17) is F17<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x17 = (f17 as dynamic);
       });
@@ -861,7 +861,7 @@ class U68<T> {
     Expect.isFalse(f21 is F21<bool>);
     Expect.isTrue(confuse(f21) is F21<int>);
     Expect.isFalse(confuse(f21) is F21<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x21 = (f21 as dynamic);
       });
@@ -909,7 +909,7 @@ class U68<T> {
 }
 
 void main() {
-  new U68().runTests();
-  new U68<int>(tIsInt: true).runTests();
-  new U68<bool>(tIsBool: true).runTests();
+  U68().runTests();
+  U68<int>(tIsInt: true).runTests();
+  U68<bool>(tIsBool: true).runTests();
 }

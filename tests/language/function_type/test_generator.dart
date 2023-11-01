@@ -49,8 +49,8 @@ int parameterNameCounter = 0;
 bool shouldReplaceTWithInt = false;
 
 class Parameter implements TypeLike {
-  final TypeLike type;
-  final String name;
+  final TypeLike? type;
+  final String? name;
 
   Parameter(this.type, this.name);
 
@@ -60,7 +60,7 @@ class Parameter implements TypeLike {
     if (type == null) {
       buffer.write("null");
     } else {
-      type.writeIdentifier(buffer);
+      type!.writeIdentifier(buffer);
     }
     buffer.write("_");
     buffer.write(name);
@@ -69,26 +69,26 @@ class Parameter implements TypeLike {
   void writeType(StringBuffer buffer) {
     assert(type != null || name != null);
     if (name == null) {
-      type.writeType(buffer);
+      type!.writeType(buffer);
     } else if (type == null) {
       buffer.write(name);
     } else {
-      type.writeType(buffer);
+      type!.writeType(buffer);
       buffer.write(" ");
       buffer.write(name);
     }
   }
 
-  void writeInFunction(StringBuffer buffer, {bool optional}) {
+  void writeInFunction(StringBuffer buffer, {required bool optional}) {
     assert(type != null || name != null);
     if (name == null) {
-      type.writeType(buffer);
+      type!.writeType(buffer);
       buffer.write(" x");
       buffer.write(parameterNameCounter++);
     } else if (type == null) {
       buffer.write(name);
     } else {
-      type.writeType(buffer);
+      type!.writeType(buffer);
       buffer.write(" ");
       buffer.write(name);
     }
@@ -130,7 +130,7 @@ class Parameter implements TypeLike {
 
 class GenericParameter implements TypeLike {
   final String name;
-  final TypeLike bound;
+  final TypeLike? bound;
 
   GenericParameter(this.name, [this.bound]);
 
@@ -142,7 +142,7 @@ class GenericParameter implements TypeLike {
     if (bound == null) {
       buffer.write("null");
     } else {
-      bound.writeIdentifier(buffer);
+      bound!.writeIdentifier(buffer);
     }
   }
 
@@ -151,7 +151,7 @@ class GenericParameter implements TypeLike {
     buffer.write(name);
     if (bound != null) {
       buffer.write(" extends ");
-      bound.writeType(buffer);
+      bound!.writeType(buffer);
     }
   }
 
@@ -170,7 +170,7 @@ class GenericParameter implements TypeLike {
   bool get returnsT => bound?.returnsT ?? false;
 }
 
-void _describeList(StringBuffer buffer, List<Printable> list) {
+void _describeList(StringBuffer buffer, List<Printable>? list) {
   if (list == null) {
     buffer.write("0");
     return;
@@ -183,7 +183,7 @@ void _describeList(StringBuffer buffer, List<Printable> list) {
   }
 }
 
-void _writeTypes(StringBuffer buffer, List<TypeLike> list,
+void _writeTypes(StringBuffer buffer, List<TypeLike>? list,
     [String prefix = "", String postfix = ""]) {
   if (list == null || list.isEmpty) return;
   buffer.write(prefix);
@@ -200,7 +200,7 @@ void _writeTypes(StringBuffer buffer, List<TypeLike> list,
 /// output are formal parameter types of a function type (where default values
 /// and names of positional parameters are omitted).
 void _writeParameters(
-    StringBuffer buffer, List<Parameter> list, bool inFunction,
+    StringBuffer buffer, List<Parameter>? list, bool inFunction,
     [String prefix = "", String postfix = ""]) {
   if (list == null || list.isEmpty) return;
   buffer.write(prefix);
@@ -215,12 +215,12 @@ void _writeParameters(
   buffer.write(postfix);
 }
 
-bool _listUsesT(List elements) {
+bool _listUsesT(List? elements) {
   if (elements == null) return false;
   return elements.any((p) => p.usesT);
 }
 
-bool _listEquals(List list1, List list2) {
+bool _listEquals(List? list1, List? list2) {
   if (list1 == list2) return true; // Also covers both being null.
   if (list1 == null || list2 == null) return false;
   for (int i = 0; i < list1.length; i++) {
@@ -229,7 +229,7 @@ bool _listEquals(List list1, List list2) {
   return true;
 }
 
-int _listHash(List list) {
+int _listHash(List? list) {
   if (list == null) return null.hashCode;
   int result = 71;
   for (int i = 0; i < list.length; i++) {
@@ -239,11 +239,11 @@ int _listHash(List list) {
 }
 
 class FunctionType implements TypeLike {
-  final TypeLike returnType;
-  final List<GenericParameter> generic;
+  final TypeLike? returnType;
+  final List<GenericParameter>? generic;
   final List<Parameter> required;
-  final List<Parameter> optional;
-  final List<Parameter> named;
+  final List<Parameter>? optional;
+  final List<Parameter>? named;
 
   FunctionType(this.returnType, this.generic, this.required,
       [this.optional, this.named]);
@@ -254,7 +254,7 @@ class FunctionType implements TypeLike {
     if (returnType == null) {
       buffer.write("null");
     } else {
-      returnType.writeIdentifier(buffer);
+      returnType!.writeIdentifier(buffer);
     }
     buffer.write("_");
     _describeList(buffer, generic);
@@ -269,7 +269,7 @@ class FunctionType implements TypeLike {
   @override
   writeType(buffer) {
     if (returnType != null) {
-      returnType.writeType(buffer);
+      returnType!.writeType(buffer);
       buffer.write(" ");
     }
     buffer.write("Function");
@@ -277,9 +277,7 @@ class FunctionType implements TypeLike {
     buffer.write("(");
     bool inFunction = false;
     _writeParameters(buffer, required, inFunction);
-    if ((optional != null || named != null) &&
-        required != null &&
-        required.isNotEmpty) {
+    if ((optional != null || named != null) && required.isNotEmpty) {
       buffer.write(", ");
     }
     _writeParameters(buffer, optional, inFunction, "[", "]");
@@ -293,7 +291,7 @@ class FunctionType implements TypeLike {
     parameterNameCounter = 0;
 
     if (returnType != null) {
-      returnType.writeType(buffer);
+      returnType!.writeType(buffer);
       buffer.write(" ");
     }
 
@@ -302,9 +300,7 @@ class FunctionType implements TypeLike {
     buffer.write("(");
     bool inFunction = true;
     _writeParameters(buffer, required, inFunction);
-    if ((optional != null || named != null) &&
-        required != null &&
-        required.isNotEmpty) {
+    if ((optional != null || named != null) && required.isNotEmpty) {
       buffer.write(", ");
     }
     _writeParameters(buffer, optional, inFunction, "[", "]");
@@ -315,7 +311,8 @@ class FunctionType implements TypeLike {
   }
 
   bool operator ==(other) {
-    return returnType == other.returnType &&
+    return other is FunctionType &&
+        returnType == other.returnType &&
         _listEquals(generic, other.generic) &&
         _listEquals(required, other.required) &&
         _listEquals(optional, other.optional) &&
@@ -354,9 +351,9 @@ class FunctionType implements TypeLike {
 }
 
 class NominalType implements TypeLike {
-  final String prefix;
+  final String? prefix;
   final String name;
-  final List<TypeLike> generic;
+  final List<TypeLike>? generic;
 
   NominalType(this.name, [this.prefix, this.generic]);
 
@@ -392,145 +389,144 @@ class NominalType implements TypeLike {
 
   bool get usesT => name == "T" || _listUsesT(generic);
 
-  bool get returnsT => name == "T" || generic?.any((t) => t.returnsT) ?? false;
+  bool get returnsT =>
+      name == "T" || (generic?.any((t) => t.returnsT) ?? false);
 
   bool get takesT => generic?.any((t) => t.takesT) ?? false;
 }
 
-List<TypeLike> buildFunctionTypes() {
+List<FunctionType> buildFunctionTypes() {
   List<GenericParameter> as = [
-    new GenericParameter("A"),
+    GenericParameter("A"),
     // new GenericParameter("A", new NominalType("int")),
     // new GenericParameter("A", new NominalType("int", "core")),
   ];
   List<GenericParameter> bs = [
     // new GenericParameter("B"),
     // new GenericParameter("B", new NominalType("int")),
-    new GenericParameter("B", new NominalType("int", "core")),
+    GenericParameter("B", NominalType("int", "core")),
   ];
   List<TypeLike> basicTypes = [
-    new NominalType("int"),
+    NominalType("int"),
     // new NominalType("int", "core"),
     // new NominalType("List"),
     // new NominalType("List", "core"),
-    new NominalType("Function"),
-    new NominalType("List", "", [new NominalType("Function")]),
-    new NominalType("List", "core", [new NominalType("int", "core")]),
-    new NominalType("List", "", [new NominalType("T")]),
+    NominalType("Function"),
+    NominalType("List", "", [NominalType("Function")]),
+    NominalType("List", "core", [NominalType("int", "core")]),
+    NominalType("List", "", [NominalType("T")]),
     // new NominalType("List", "", [new NominalType("Function")]),
   ];
 
-  List<TypeLike> basicsPlusNull = [
+  List<TypeLike?> basicsPlusNull = [
     basicTypes,
-    <TypeLike>[null]
+    <TypeLike?>[null]
   ].expand((x) => x).toList();
 
-  List<TypeLike> basicsPlusNullPlusVoid = [
+  List<TypeLike?> basicsPlusNullPlusVoid = [
     basicsPlusNull,
-    [new NominalType("void")],
+    [NominalType("void")],
   ].expand((x) => x).toList();
 
-  List<TypeLike> basicsPlusNullPlusB = [
+  List<TypeLike?> basicsPlusNullPlusB = [
     basicsPlusNull,
     [
-      new NominalType("B"),
-      new NominalType("List", "", [new NominalType("B")])
+      NominalType("B"),
+      NominalType("List", "", [NominalType("B")])
     ]
   ].expand((x) => x).toList();
 
-  List<TypeLike> basicsPlusNullPlusBPlusVoid = [
+  List<TypeLike?> basicsPlusNullPlusBPlusVoid = [
     basicsPlusNullPlusB,
-    [new NominalType("void")],
+    [NominalType("void")],
   ].expand((x) => x).toList();
 
-  List<TypeLike> basicsPlusNullPlusA = [
+  List<TypeLike?> basicsPlusNullPlusA = [
     basicsPlusNull,
     [
-      new NominalType("A"),
-      new NominalType("List", "", [new NominalType("A")])
+      NominalType("A"),
+      NominalType("List", "", [NominalType("A")])
     ]
   ].expand((x) => x).toList();
 
-  List<TypeLike> basicsPlusNullPlusAPlusVoid = [
+  List<TypeLike?> basicsPlusNullPlusAPlusVoid = [
     basicsPlusNullPlusA,
-    [new NominalType("void")],
+    [NominalType("void")],
   ].expand((x) => x).toList();
 
-  List<TypeLike> buildFunctionTypes(TypeLike returnType, TypeLike parameterType,
-      [List<GenericParameter> generics,
+  List<FunctionType> buildFunctionTypes(
+      TypeLike? returnType, TypeLike? parameterType,
+      [List<GenericParameter>? generics,
       bool generateMoreCombinations = false]) {
-    List<TypeLike> result = [];
+    List<FunctionType> result = [];
 
     if (parameterType == null) {
       // int Function().
-      result.add(new FunctionType(returnType, generics, null));
+      result.add(FunctionType(returnType, generics, []));
       return result;
     }
 
     // int Function(int x).
-    result.add(new FunctionType(
-        returnType, generics, [new Parameter(parameterType, "x")]));
+    result.add(
+        FunctionType(returnType, generics, [Parameter(parameterType, "x")]));
 
     if (!generateMoreCombinations) return result;
 
     // int Function([int x]).
-    result.add(new FunctionType(
-        returnType, generics, null, [new Parameter(parameterType, "x")]));
+    result.add(FunctionType(
+        returnType, generics, [], [Parameter(parameterType, "x")]));
     // int Function(int, [int x])
-    result.add(new FunctionType(
+    result.add(FunctionType(
         returnType,
         generics,
-        [new Parameter(new NominalType("int"), null)],
-        [new Parameter(parameterType, "x")]));
+        [Parameter(NominalType("int"), null)],
+        [Parameter(parameterType, "x")]));
     // int Function(int x, [int x])
-    result.add(new FunctionType(
-        returnType,
-        generics,
-        [new Parameter(new NominalType("int"), "y")],
-        [new Parameter(parameterType, "x")]));
+    result.add(FunctionType(returnType, generics,
+        [Parameter(NominalType("int"), "y")], [Parameter(parameterType, "x")]));
     // int Function(int);
-    result.add(new FunctionType(
-        returnType, generics, [new Parameter(parameterType, null)]));
+    result.add(
+        FunctionType(returnType, generics, [Parameter(parameterType, null)]));
     // int Function([int]);
-    result.add(new FunctionType(
-        returnType, generics, null, [new Parameter(parameterType, null)]));
+    result.add(FunctionType(
+        returnType, generics, [], [Parameter(parameterType, null)]));
     // int Function(int, [int])
-    result.add(new FunctionType(
+    result.add(FunctionType(
         returnType,
         generics,
-        [new Parameter(new NominalType("int"), null)],
-        [new Parameter(parameterType, null)]));
+        [Parameter(NominalType("int"), null)],
+        [Parameter(parameterType, null)]));
     // int Function(int x, [int])
-    result.add(new FunctionType(
+    result.add(FunctionType(
         returnType,
         generics,
-        [new Parameter(new NominalType("int"), "x")],
-        [new Parameter(parameterType, null)]));
+        [Parameter(NominalType("int"), "x")],
+        [Parameter(parameterType, null)]));
     // int Function({int x}).
-    result.add(new FunctionType(
-        returnType, generics, null, null, [new Parameter(parameterType, "x")]));
+    result.add(FunctionType(
+        returnType, generics, [], null, [Parameter(parameterType, "x")]));
     // int Function(int, {int x})
-    result.add(new FunctionType(
+    result.add(FunctionType(
         returnType,
         generics,
-        [new Parameter(new NominalType("int"), null)],
+        [Parameter(NominalType("int"), null)],
         null,
-        [new Parameter(parameterType, "x")]));
+        [Parameter(parameterType, "x")]));
     // int Function(int x, {int x})
-    result.add(new FunctionType(
+    result.add(FunctionType(
         returnType,
         generics,
-        [new Parameter(new NominalType("int"), "y")],
+        [Parameter(NominalType("int"), "y")],
         null,
-        [new Parameter(parameterType, "x")]));
+        [Parameter(parameterType, "x")]));
     return result;
   }
 
   // The "smaller" function types. May also be used non-nested.
-  List<TypeLike> functionTypes = [];
+  List<FunctionType> functionTypes = [];
 
-  for (TypeLike returnType in basicsPlusNullPlusVoid) {
-    for (TypeLike parameterType in basicsPlusNull) {
+  for (TypeLike? returnType in basicsPlusNullPlusVoid) {
+    for (TypeLike? parameterType in basicsPlusNull) {
       bool generateMoreCombinations = true;
       functionTypes.addAll(buildFunctionTypes(
           returnType, parameterType, null, generateMoreCombinations));
@@ -539,17 +535,17 @@ List<TypeLike> buildFunctionTypes() {
 
   // These use `B` from the generic type of the enclosing function.
   List<TypeLike> returnFunctionTypesB = [];
-  for (TypeLike returnType in basicsPlusNullPlusBPlusVoid) {
-    TypeLike parameterType = new NominalType("B");
+  for (TypeLike? returnType in basicsPlusNullPlusBPlusVoid) {
+    TypeLike parameterType = NominalType("B");
     returnFunctionTypesB.addAll(buildFunctionTypes(returnType, parameterType));
   }
-  for (TypeLike parameterType in basicsPlusNull) {
-    TypeLike returnType = new NominalType("B");
+  for (TypeLike? parameterType in basicsPlusNull) {
+    TypeLike returnType = NominalType("B");
     returnFunctionTypesB.addAll(buildFunctionTypes(returnType, parameterType));
   }
 
-  for (TypeLike returnType in basicsPlusNullPlusAPlusVoid) {
-    for (TypeLike parameterType in basicsPlusNullPlusA) {
+  for (TypeLike? returnType in basicsPlusNullPlusAPlusVoid) {
+    for (TypeLike? parameterType in basicsPlusNullPlusA) {
       for (GenericParameter a in as) {
         functionTypes
             .addAll(buildFunctionTypes(returnType, parameterType, [a]));
@@ -557,22 +553,22 @@ List<TypeLike> buildFunctionTypes() {
     }
   }
 
-  List<TypeLike> types = [];
+  List<FunctionType> types = [];
   types.addAll(functionTypes);
 
   // Now add some higher-order function types.
   for (TypeLike returnType in functionTypes) {
     types.addAll(buildFunctionTypes(returnType, null));
-    types.addAll(buildFunctionTypes(returnType, new NominalType("int")));
+    types.addAll(buildFunctionTypes(returnType, NominalType("int")));
     for (var b in bs) {
       types.addAll(buildFunctionTypes(returnType, null, [b]));
-      types.addAll(buildFunctionTypes(returnType, new NominalType("int"), [b]));
+      types.addAll(buildFunctionTypes(returnType, NominalType("int"), [b]));
     }
   }
   for (TypeLike returnType in returnFunctionTypesB) {
     for (var b in bs) {
       types.addAll(buildFunctionTypes(returnType, null, [b]));
-      types.addAll(buildFunctionTypes(returnType, new NominalType("int"), [b]));
+      types.addAll(buildFunctionTypes(returnType, NominalType("int"), [b]));
     }
   }
 
@@ -607,13 +603,13 @@ void _voidFunction() {}
 class Unit {
   int typeCounter = 0;
   final String name;
-  final StringBuffer typedefs = new StringBuffer();
-  final StringBuffer globals = new StringBuffer();
-  final StringBuffer tests = new StringBuffer();
-  final StringBuffer fields = new StringBuffer();
-  final StringBuffer statics = new StringBuffer();
-  final StringBuffer testMethods = new StringBuffer();
-  final StringBuffer methods = new StringBuffer();
+  final StringBuffer typedefs = StringBuffer();
+  final StringBuffer globals = StringBuffer();
+  final StringBuffer tests = StringBuffer();
+  final StringBuffer fields = StringBuffer();
+  final StringBuffer statics = StringBuffer();
+  final StringBuffer testMethods = StringBuffer();
+  final StringBuffer methods = StringBuffer();
 
   Unit(this.name);
 
@@ -632,7 +628,7 @@ class $name<T> {
 
 $fields
 
-  $name({this.tIsBool: false, this.tIsInt: false})
+  $name({this.tIsBool = false, this.tIsInt = false})
       : tIsDynamic = !tIsBool && !tIsInt;
 
 $methods
@@ -643,9 +639,9 @@ $testMethods
 }
 
 void main() {
-  new $name().runTests();
-  new $name<int>(tIsInt: true).runTests();
-  new $name<bool>(tIsBool: true).runTests();
+  $name().runTests();
+  $name<int>(tIsInt: true).runTests();
+  $name<bool>(tIsBool: true).runTests();
 }
     """);
   }
@@ -697,7 +693,7 @@ final TYPEDEF_T_TESTS_TEMPLATE = """
     Expect.isFalse(#staticFunName is #typeName<bool>);
     Expect.isTrue(confuse(#staticFunName) is #typeName<int>);
     Expect.isFalse(confuse(#staticFunName) is #typeName<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() { #fieldName = (#staticFunName as dynamic); });
       Expect.throws(() { #fieldName = confuse(#staticFunName); });
       Expect.throws(() { #localName = (#staticFunName as dynamic); });
@@ -721,19 +717,19 @@ String createLocalName(int id) => "l$id";
 String createTestName(int id) => "test${createTypeName(id)}";
 
 String createTypeCode(FunctionType type) {
-  StringBuffer typeBuffer = new StringBuffer();
+  StringBuffer typeBuffer = StringBuffer();
   type.writeType(typeBuffer);
   return typeBuffer.toString();
 }
 
 String createStaticFunCode(FunctionType type, int id) {
-  StringBuffer staticFunBuffer = new StringBuffer();
+  StringBuffer staticFunBuffer = StringBuffer();
   type.writeFunction(staticFunBuffer, createStaticFunName(id));
   return staticFunBuffer.toString();
 }
 
 String createMethodFunCode(FunctionType type, int id) {
-  StringBuffer methodFunBuffer = new StringBuffer();
+  StringBuffer methodFunBuffer = StringBuffer();
   type.writeFunction(methodFunBuffer, createMethodFunName(id), replaceT: false);
   return methodFunBuffer.toString();
 }
@@ -775,10 +771,10 @@ void generateTests() {
   // classes.
   List<Unit> units = [];
   for (int i = 0; i < 100; i++) {
-    units.add(new Unit("U$i"));
+    units.add(Unit("U$i"));
   }
 
-  var types = buildFunctionTypes();
+  List<FunctionType> types = buildFunctionTypes();
 
   int unitCounter = 0;
   for (var type in types) {
@@ -807,10 +803,10 @@ void generateTests() {
 
   for (int i = 0; i < units.length; i++) {
     var unit = units[i];
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     unit.write(buffer);
     var path = Platform.script.resolve("function_type${i}_test.dart").path;
-    new File(path).writeAsStringSync(buffer.toString());
+    File(path).writeAsStringSync(buffer.toString());
   }
 }
 

@@ -234,7 +234,7 @@ class U21<T> {
     Expect.isFalse(f2 is F2<bool>);
     Expect.isTrue(confuse(f2) is F2<int>);
     Expect.isFalse(confuse(f2) is F2<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x2 = (f2 as dynamic);
       });
@@ -478,7 +478,7 @@ class U21<T> {
     Expect.isFalse(f11 is F11<bool>);
     Expect.isTrue(confuse(f11) is F11<int>);
     Expect.isFalse(confuse(f11) is F11<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x11 = (f11 as dynamic);
       });
@@ -553,7 +553,7 @@ class U21<T> {
     Expect.isFalse(f13 is F13<bool>);
     Expect.isTrue(confuse(f13) is F13<int>);
     Expect.isFalse(confuse(f13) is F13<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x13 = (f13 as dynamic);
       });
@@ -602,7 +602,7 @@ class U21<T> {
     Expect.isFalse(f14 is F14<bool>);
     Expect.isTrue(confuse(f14) is F14<int>);
     Expect.isFalse(confuse(f14) is F14<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x14 = (f14 as dynamic);
       });
@@ -652,7 +652,7 @@ class U21<T> {
     Expect.isFalse(f15 is F15<bool>);
     Expect.isTrue(confuse(f15) is F15<int>);
     Expect.isFalse(confuse(f15) is F15<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x15 = (f15 as dynamic);
       });
@@ -797,7 +797,7 @@ class U21<T> {
     Expect.isFalse(f20 is F20<bool>);
     Expect.isTrue(confuse(f20) is F20<int>);
     Expect.isFalse(confuse(f20) is F20<bool>);
-    if (tIsBool) {
+    if (tIsBool && !dart2jsProductionMode) {
       Expect.throws(() {
         x20 = (f20 as dynamic);
       });
@@ -893,7 +893,7 @@ class U21<T> {
 }
 
 void main() {
-  new U21().runTests();
-  new U21<int>(tIsInt: true).runTests();
-  new U21<bool>(tIsBool: true).runTests();
+  U21().runTests();
+  U21<int>(tIsInt: true).runTests();
+  U21<bool>(tIsBool: true).runTests();
 }
