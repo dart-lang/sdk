@@ -99,7 +99,6 @@ class ContextLocatorImpl2 implements ContextLocator {
         defaultPackagesFile: defaultPackagesFile,
         defaultRootFolder: () => folder,
       );
-
       ContextRootImpl? root;
       for (var existingRoot in roots) {
         if (existingRoot.root.isOrContains(folder.path) &&
@@ -251,6 +250,10 @@ class ContextLocatorImpl2 implements ContextLocator {
     var root = ContextRootImpl(resourceProvider, rootFolder, workspace);
     root.packagesFile = packagesFile;
     root.optionsFile = optionsFile;
+    if (optionsFile != null) {
+      root.optionsFileMap[rootFolder] = optionsFile;
+    }
+
     root.excludedGlobs = _getExcludedGlobs(root);
     roots.add(root);
     return root;
@@ -290,13 +293,18 @@ class ContextLocatorImpl2 implements ContextLocator {
       localPackagesFile = _getPackagesFile(folder);
     }
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
+
+    if (localOptionsFile != null) {
+      // todo(pq): remove cast when API is finalized.
+      (containingRoot as ContextRootImpl).optionsFileMap[folder] =
+          localOptionsFile;
+    }
+
     //
-    // Create a context root for the given [folder] if at least one of the
-    // options and packages file is locally specified.
+    // Create a context root for the given [folder] if a packages or build file
+    // is locally specified.
     //
-    if (localPackagesFile != null ||
-        localOptionsFile != null ||
-        buildGnFile != null) {
+    if (localPackagesFile != null || buildGnFile != null) {
       if (optionsFile != null) {
         localOptionsFile = optionsFile;
       }

@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/context_builder.dart';
+import 'package:analyzer/src/dart/analysis/context_builder2.dart';
+import 'package:analyzer/src/dart/analysis/context_locator2.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -81,7 +81,7 @@ class AnalysisContextCollectionImpl2 implements AnalysisContextCollection {
 
     this.macroSupport = macroSupport ??= KernelMacroSupport();
 
-    var contextLocator = ContextLocator(
+    var contextLocator = ContextLocatorImpl2(
       resourceProvider: this.resourceProvider,
     );
     var roots = contextLocator.locateRoots(
@@ -91,7 +91,7 @@ class AnalysisContextCollectionImpl2 implements AnalysisContextCollection {
       packagesFile: packagesFile,
     );
     for (var root in roots) {
-      var contextBuilder = ContextBuilderImpl(
+      var contextBuilder = ContextBuilderImpl2(
         resourceProvider: this.resourceProvider,
       );
       var context = contextBuilder.createContext(

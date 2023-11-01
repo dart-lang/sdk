@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection2.dart';
@@ -15,12 +16,12 @@ import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisContextCollectionTest);
+    defineReflectiveTests(AnalysisContextCollection2Test);
   });
 }
 
 @reflectiveTest
-class AnalysisContextCollectionTest with ResourceProviderMixin {
+class AnalysisContextCollection2Test with ResourceProviderMixin {
   Folder get sdkRoot => newFolder('/sdk');
 
   void setUp() {
@@ -124,34 +125,52 @@ linter:
   }
 
   test_new_outer_inner() {
+    // OUTER
     var outerFolder = newFolder('/test/outer');
-    newFile('/test/outer/lib/outer.dart', '');
+    newAnalysisOptionsYamlFile('/test/outer', r'''
+linter:
+  rules:
+    - always_specify_types
+''');
+    var outerFile = newFile('/test/outer/lib/outer.dart', '');
 
-    var innerFolder = newFolder('/test/outer/inner');
-    newAnalysisOptionsYamlFile('/test/outer/inner', '');
-    newFile('/test/outer/inner/inner.dart', '');
+    // INNER
+    newFolder('/test/outer/inner');
+    newAnalysisOptionsYamlFile('/test/outer/inner', r'''
+linter:
+  rules:
+    - camel_case_types
+''');
+    var innerFile = newFile('/test/outer/inner/inner.dart', '');
 
     var collection = _newCollection(includedPaths: [outerFolder.path]);
+    expect(collection.contexts, hasLength(1));
+    var context = collection.contexts.first;
 
-    expect(collection.contexts, hasLength(2));
-
-    var outerContext = collection.contexts
-        .singleWhere((c) => c.contextRoot.root == outerFolder);
-    var innerContext = collection.contexts
-        .singleWhere((c) => c.contextRoot.root == innerFolder);
-    expect(innerContext, isNot(same(outerContext)));
-
-    // Outer and inner contexts own corresponding files.
+    // Files with different analysis options, share a single context.
     expect(collection.contextFor(convertPath('/test/outer/lib/outer.dart')),
-        same(outerContext));
+        same(context));
     expect(collection.contextFor(convertPath('/test/outer/inner/inner.dart')),
-        same(innerContext));
+        same(context));
 
-    // The file does not have to exist, during creation, or at all.
+    // But have their own analysis options.
+    var outerOptions = context.getAnalysisOptionsForFile(outerFile);
+    expectContainsExactly(
+      outerOptions,
+      lints: ['always_specify_types'],
+    );
+
+    var innerOptions = context.getAnalysisOptionsForFile(innerFile);
+    expectContainsExactly(
+      innerOptions,
+      lints: ['camel_case_types'],
+    );
+
+    // Files do not have to exist, during creation, or at all.
     expect(collection.contextFor(convertPath('/test/outer/lib/outer2.dart')),
-        same(outerContext));
+        same(context));
     expect(collection.contextFor(convertPath('/test/outer/inner/inner2.dart')),
-        same(innerContext));
+        same(context));
   }
 
   test_new_sdkPath_notAbsolute() {
@@ -177,5 +196,14 @@ linter:
       includedPaths: includedPaths,
       sdkPath: sdkRoot.path,
     );
+  }
+
+  static void expectContainsExactly(AnalysisOptions? options,
+      {List<String>? lints}) {
+    expect(options, isNotNull);
+    if (lints != null) {
+      var rules = options!.lintRules.map((e) => e.name);
+      expect(rules, unorderedEquals(lints));
+    }
   }
 }

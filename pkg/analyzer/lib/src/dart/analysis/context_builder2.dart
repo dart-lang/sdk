@@ -11,8 +11,10 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
     show ByteStore, MemoryByteStore;
+import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show
         AnalysisDriver,
@@ -118,6 +120,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
 
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
 
+    // todo(pq): remove
     var options = _getAnalysisOptions(contextRoot, sourceFactory);
     if (updateAnalysisOptions != null) {
       updateAnalysisOptions(options);
@@ -132,6 +135,9 @@ class ContextBuilderImpl2 implements ContextBuilder {
     final analysisContext =
         DriverBasedAnalysisContext(resourceProvider, contextRoot);
 
+    var analysisOptionsMap = _createOptionsMap(contextRoot, sourceFactory,
+        updateAnalysisOptions, updateAnalysisOptions2, sdk);
+
     var driver = AnalysisDriver(
       scheduler: scheduler,
       logger: performanceLog,
@@ -139,6 +145,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
       byteStore: byteStore,
       sourceFactory: sourceFactory,
       analysisOptions: options,
+      analysisOptionsMap: analysisOptionsMap,
       packages: _createPackageMap(
         contextRoot: contextRoot,
       ),
@@ -163,6 +170,48 @@ class ContextBuilderImpl2 implements ContextBuilder {
     }
 
     return analysisContext;
+  }
+
+  AnalysisOptionsMap _createOptionsMap(
+      ContextRoot contextRoot,
+      SourceFactory sourceFactory,
+      void Function(AnalysisOptionsImpl p1)? updateAnalysisOptions,
+      void Function(
+              {required AnalysisOptionsImpl analysisOptions,
+              required ContextRoot contextRoot,
+              required DartSdk sdk})?
+          updateAnalysisOptions2,
+      DartSdk sdk) {
+    var map = AnalysisOptionsMap();
+    var provider = AnalysisOptionsProvider(sourceFactory);
+    var pubspecFile = _findPubspecFile(contextRoot);
+    for (var entry in (contextRoot as ContextRootImpl).optionsFileMap.entries) {
+      var options = AnalysisOptionsImpl();
+      var optionsYaml = provider.getOptionsFromFile(entry.value);
+      options.applyOptions(optionsYaml);
+
+      if (pubspecFile != null) {
+        var extractor = SdkConstraintExtractor(pubspecFile);
+        var sdkVersionConstraint = extractor.constraint();
+        if (sdkVersionConstraint != null) {
+          options.sdkVersionConstraint = sdkVersionConstraint;
+        }
+      }
+
+      if (updateAnalysisOptions != null) {
+        updateAnalysisOptions(options);
+      } else if (updateAnalysisOptions2 != null) {
+        updateAnalysisOptions2(
+          analysisOptions: options,
+          contextRoot: contextRoot,
+          sdk: sdk,
+        );
+      }
+
+      map.add(entry.key, options);
+    }
+
+    return map;
   }
 
   /// Return [Packages] to analyze the [contextRoot].
