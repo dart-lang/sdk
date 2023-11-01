@@ -14,6 +14,14 @@ library;
 //   E3.named(this.foo, [super.bar = null]);
 //                             ^^^
 //
+// pkg/front_end/testcases/extension_types/issue53212.dart:17:25: Error: Extension type constructors can't declare super formal parameters.
+// extension type E4(super.foo) {} // Error.
+//                         ^^^
+//
+// pkg/front_end/testcases/extension_types/issue53212.dart:17:25: Error: Expected a representation type.
+// extension type E4(super.foo) {} // Error.
+//                         ^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -37,6 +45,11 @@ extension type E3(core::int foo) {
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
   constructor named = self::E3|constructor#named;
   constructor tearoff named = self::E3|constructor#_#named#tearOff;
+}
+extension type E4(dynamic foo) {
+  abstract inline-class-member representation-field get foo() → dynamic;
+  constructor • = self::E4|constructor#;
+  constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
 static inline-class-member method E1|constructor#(core::int foo) → self::E1 /* = core::int */ {
   lowered final self::E1 /* = core::int */ #this = foo;
@@ -74,6 +87,12 @@ static inline-class-member method E3|constructor#named(core::int foo, [has-decla
 }
 static inline-class-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar]) → self::E3 /* = core::int */
   return self::E3|constructor#named(foo, bar);
+static inline-class-member method E4|constructor#(dynamic foo) → self::E4 /* = dynamic */ {
+  lowered final self::E4 /* = dynamic */ #this = foo;
+  return #this;
+}
+static inline-class-member method E4|constructor#_#new#tearOff(dynamic foo) → self::E4 /* = dynamic */
+  return self::E4|constructor#(foo);
 
 constants  {
   #C1 = null

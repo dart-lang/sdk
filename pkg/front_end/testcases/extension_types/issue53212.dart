@@ -13,3 +13,5 @@ extension type E2(int foo) {
 extension type E3(int foo) {
   E3.named(this.foo, [super.bar = null]);
 }
+
+extension type E4(super.foo) {} // Error.
