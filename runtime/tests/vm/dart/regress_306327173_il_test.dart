@@ -30,12 +30,7 @@ void matchIL$deref(FlowGraph graph) {
       // and int64 on 64-bit arches.
       if (is32BitConfiguration) ...[
         // 'unboxed' needs to be converted to int64 before returning.
-        //
-        // Note: The first two conversions here should be fixed once all
-        // kUnboxedIntPtr uses are appropriately converted to kUnboxedFfiIntPtr.
-        'extra1' << match.IntConverter('unboxed', from: 'uint32', to: 'int32'),
-        'extra2' << match.IntConverter('extra1', from: 'int32', to: 'uint32'),
-        'address' << match.IntConverter('extra2', from: 'uint32', to: 'int64'),
+        'address' << match.IntConverter('unboxed', from: 'uint32', to: 'int64'),
       ],
       match.Return(retvalName),
     ]),
