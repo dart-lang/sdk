@@ -146,7 +146,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** invoke `cancel` on instances of `dart.async.StreamSubscription`.\n\nCancelling instances of StreamSubscription prevents memory leaks and unexpected\nbehavior.\n\n**BAD:**\n```dart\nclass A {\n  StreamSubscription _subscriptionA; // LINT\n  void init(Stream stream) {\n    _subscriptionA = stream.listen((_) {});\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  StreamSubscription _subscriptionF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  StreamSubscription _subscriptionB; // OK\n  void init(Stream stream) {\n    _subscriptionB = stream.listen((_) {});\n  }\n\n  void dispose(filename) {\n    _subscriptionB.cancel();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  StreamSubscription _subscriptionB; // OK\n  _subscriptionB.cancel();\n}\n```\n\n",
+    "details": "**DO** invoke `cancel` on instances of `dart.async.StreamSubscription`.\n\nCancelling instances of StreamSubscription prevents memory leaks and unexpected\nbehavior.\n\n**BAD:**\n```dart\nclass A {\n  StreamSubscription _subscriptionA; // LINT\n  void init(Stream stream) {\n    _subscriptionA = stream.listen((_) {});\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  StreamSubscription _subscriptionF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  StreamSubscription _subscriptionB; // OK\n  void init(Stream stream) {\n    _subscriptionB = stream.listen((_) {});\n  }\n\n  void dispose(filename) {\n    _subscriptionB.cancel();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  StreamSubscription _subscriptionB; // OK\n  _subscriptionB.cancel();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of StreamSubscription instantiations and\ncancellations. See [linter#317](https://github.com/dart-lang/linter/issues/317)\nfor more information.\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -157,7 +157,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** invoke `close` on instances of `dart.core.Sink`.\n\nClosing instances of Sink prevents memory leaks and unexpected behavior.\n\n**BAD:**\n```dart\nclass A {\n  IOSink _sinkA;\n  void init(filename) {\n    _sinkA = File(filename).openWrite(); // LINT\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  IOSink _sinkF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  IOSink _sinkB;\n  void init(filename) {\n    _sinkB = File(filename).openWrite(); // OK\n  }\n\n  void dispose(filename) {\n    _sinkB.close();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  IOSink _sinkFOK; // OK\n  _sinkFOK.close();\n}\n```\n\n",
+    "details": "**DO** invoke `close` on instances of `dart.core.Sink`.\n\nClosing instances of Sink prevents memory leaks and unexpected behavior.\n\n**BAD:**\n```dart\nclass A {\n  IOSink _sinkA;\n  void init(filename) {\n    _sinkA = File(filename).openWrite(); // LINT\n  }\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction() {\n  IOSink _sinkF; // LINT\n}\n```\n\n**GOOD:**\n```dart\nclass B {\n  IOSink _sinkB;\n  void init(filename) {\n    _sinkB = File(filename).openWrite(); // OK\n  }\n\n  void dispose(filename) {\n    _sinkB.close();\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunctionOK() {\n  IOSink _sinkFOK; // OK\n  _sinkFOK.close();\n}\n```\n\n**Known limitations**\n\nThis rule does not track all patterns of Sink instantiations and\nclosures. See [linter#1381](https://github.com/dart-lang/linter/issues/1381)\nfor more information.\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -182,8 +182,8 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "noFix",
-    "details": "**DO** reference only in scope identifiers in doc comments.\n\nIf you surround things like variable, method, or type names in square brackets,\nthen [`dart doc`](https://dart.dev/tools/dart-doc) will look\nup the name and link to its docs.  For this all to work, ensure that all\nidentifiers in docs wrapped in brackets are in scope.\n\nFor example, assuming `outOfScopeId` is out of scope:\n\n**BAD:**\n```dart\n/// Return true if [value] is larger than [outOfScopeId].\nbool isOutOfRange(int value) { ... }\n```\n\n**GOOD:**\n```dart\n/// Return the larger of [a] or [b].\nint max_int(int a, int b) { ... }\n```\n\nNote that the square bracket comment format is designed to allow\ncomments to refer to declarations using a fairly natural format\nbut does not allow *arbitrary expressions*.  In particular, code\nreferences within square brackets can consist of either\n\n- a single identifier where the identifier is any identifier in scope for the comment (see the spec for what is in scope in doc comments),\n- two identifiers separated by a period where the first identifier is the name of a class that is in scope and the second is the name of a member declared in the class,\n- a single identifier followed by a pair of parentheses where the identifier is the name of a class that is in scope (used to refer to the unnamed constructor for the class), or\n- two identifiers separated by a period and followed by a pair of parentheses where the first identifier is the name of a class that is in scope and the second is the name of a named constructor (not strictly necessary, but allowed for consistency).\n\n",
+    "fixStatus": "hasFix",
+    "details": "**DO** reference only in scope identifiers in doc comments.\n\nIf you surround things like variable, method, or type names in square brackets,\nthen [`dart doc`](https://dart.dev/tools/dart-doc) will look up the name and\nlink to its docs.  For this all to work, ensure that all identifiers in docs\nwrapped in brackets are in scope.\n\nFor example, assuming `outOfScopeId` is out of scope:\n\n**BAD:**\n```dart\n/// Return true if [value] is larger than [outOfScopeId].\nbool isOutOfRange(int value) { ... }\n```\n\n**GOOD:**\n```dart\n/// Return the larger of [a] or [b].\nint max_int(int a, int b) { ... }\n```\n\nNote that the square bracket comment format is designed to allow comments to\nrefer to declarations using a fairly natural format but does not allow\n*arbitrary expressions*.  In particular, code references within square brackets\ncan consist of either\n\n- a single identifier where the identifier is any identifier in scope for the\n  comment (see the spec for what is in scope in doc comments),\n- two identifiers separated by a period where the first identifier is the name\n  of a class that is in scope and the second is the name of a member declared in\n  the class,\n- a single identifier followed by a pair of parentheses where the identifier is\n  the name of a class that is in scope (used to refer to the unnamed constructor\n  for the class), or\n- two identifiers separated by a period and followed by a pair of parentheses\n  where the first identifier is the name of a class that is in scope and the\n  second is the name of a named constructor (not strictly necessary, but allowed\n  for consistency).\n\n**Known limitations**\n\nThe `comment_references` linter rule aligns with the Dart analyzer's notion of\ncomment references, which is separate from Dartdoc's notion of comment\nreferences. The linter rule may report comment references which cannot be\nresolved by the analyzer, but which Dartdoc can. See\n[dartdoc#1142](https://github.com/dart-lang/linter/issues/1142) for more\ninformation.\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -207,7 +207,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "Elements that are annotated with `@Deprecated` should not be referenced from\nwithin the package in which they are declared.\n\n**AVOID** using deprecated elements.\n\n...\n\n**BAD:**\n```dart\n// Declared in one library:\nclass Foo {\n  @Deprecated(\"Use 'm2' instead\")\n  void m1() {}\n\n  void m2({\n      @Deprecated('This is an old parameter') int? p,\n  })\n}\n\n@Deprecated('Do not use')\nint x = 0;\n\n// In the same or another library, but within the same package:\nvoid m(Foo foo) {\n  foo.m1();\n  foo.m2(p: 7);\n  x = 1;\n}\n```\n\nDeprecated elements can be used from within _other_ deprecated elements, in\norder to allow for the deprecation of a collection of APIs together as one unit.\n\n**GOOD:**\n```dart\n// Declared in one library:\nclass Foo {\n  @Deprecated(\"Use 'm2' instead\")\n  void m1() {}\n\n  void m2({\n      @Deprecated('This is an old parameter') int? p,\n  })\n}\n\n@Deprecated('Do not use')\nint x = 0;\n\n// In the same or another library, but within the same package:\n@Deprecated('Do not use')\nvoid m(Foo foo) {\n  foo.m1();\n  foo.m2(p: 7);\n  x = 1;\n}\n```\n",
     "sinceDartSdk": "3.0.0"
   },
@@ -384,7 +384,11 @@
     "group": "errors",
     "state": "stable",
     "incompatible": [],
-    "sets": [],
+    "sets": [
+      "core",
+      "recommended",
+      "flutter"
+    ],
     "fixStatus": "needsEvaluation",
     "details": "**DON'T** use wildcard parameters or variables.\n\nWildcard parameters and local variables\n(e.g. underscore-only names like `_`, `__`, `___`, etc.) will\nbecome non-binding in a future version of the Dart language.\nAny existing code that uses wildcard parameters or variables will\nbreak. In anticipation of this change, and to make adoption easier,\nthis lint disallows wildcard and variable parameter uses.\n\n\n**BAD:**\n```dart\nvar _ = 1;\nprint(_); // LINT\n```\n\n```dart\nvoid f(int __) {\n  print(__); // LINT multiple underscores too\n}\n```\n\n**GOOD:**\n```dart\nfor (var _ in [1, 2, 3]) count++;\n```\n\n```dart\nvar [a, _, b, _] = [1, 2, 3, 4];\n```\n",
     "sinceDartSdk": "3.1.0"

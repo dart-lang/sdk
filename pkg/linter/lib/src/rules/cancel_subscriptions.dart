@@ -55,6 +55,12 @@ void someFunctionOK() {
 }
 ```
 
+**Known limitations**
+
+This rule does not track all patterns of StreamSubscription instantiations and
+cancellations. See [linter#317](https://github.com/dart-lang/linter/issues/317)
+for more information.
+
 ''';
 
 bool _isSubscription(DartType type) =>
