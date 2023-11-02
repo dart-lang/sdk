@@ -3262,10 +3262,12 @@ bool isSubtype(Object? universe, Rti s, Rti t) {
     result = _isSubtypeUncached(universe, s, t);
     _Utils.mapSet(sCache, t, result);
   }
-  if (result == _subtypeResultFalse) return false;
-  if (result == _subtypeResultTrue) return true;
-  _onExtraNullSafetyError(
-      _InconsistentSubtypingError._forTypes(s, t), StackTrace.current);
+  if (_subtypeResultFalse == result) return false;
+  if (_subtypeResultTrue == result) return true;
+  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
+    _onExtraNullSafetyError(
+        _InconsistentSubtypingError._forTypes(s, t), StackTrace.current);
+  }
   return true;
 }
 
