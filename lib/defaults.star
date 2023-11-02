@@ -36,6 +36,7 @@ _WINDOWS10 = {"os": "Windows-10"}
 _WINDOWS11 = {"os": "Windows-11"}
 
 _FLUTTER_POOL = {"pool": "luci.flutter.prod"}
+_FLUTTER_STAGING_POOL = {"pool": "luci.flutter.staging"}
 _EXPERIMENTAL = {"host_class": "experimental"}
 
 def _union(x, overrides):
@@ -79,6 +80,7 @@ defaults = struct(
 arm64 = _ARM64
 experimental = _EXPERIMENTAL
 flutter_pool = _FLUTTER_POOL
+flutter_staging_pool = _FLUTTER_STAGING_POOL
 focal = _FOCAL
 jammy = _JAMMY
 linux = _FOCAL

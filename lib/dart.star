@@ -124,7 +124,7 @@ def _try_builder(
 
     # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering
     # of host_class.
-    if dimensions["pool"] == "luci.flutter.prod":
+    if dimensions["pool"] in ["luci.flutter.prod", "luci.flutter.staging"]:
         dimensions.pop("host_class")
     properties = defaults.properties(properties)
     builder_properties = _with_goma(goma, dimensions, properties)
@@ -211,7 +211,7 @@ def _builder(
 
     # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering
     # of host_class.
-    if dimensions["pool"] == "luci.flutter.prod":
+    if dimensions["pool"] in ["luci.flutter.prod", "luci.flutter.staging"]:
         dimensions.pop("host_class")
     properties = defaults.properties(properties)
 

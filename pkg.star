@@ -10,10 +10,12 @@ load(
     "//lib/defaults.star",
     "arm64",
     "chrome",
+    "flutter_staging_pool",
     "jammy",
     "mac",
     "no_android",
     "windows",
+    "windows11",
 )
 load("//lib/paths.star", "paths")
 
@@ -48,6 +50,13 @@ dart.ci_sandbox_builder(
     category = "pkg|w",
     dimensions = windows,
     properties = chrome,
+)
+dart.ci_sandbox_builder(
+    "pkg-win-release-arm64",
+    category = "pkg|wa",
+    dimensions = [windows11, arm64, flutter_staging_pool],
+    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+    properties = {"clobber": False},
 )
 dart.ci_sandbox_builder(
     "pkg-linux-debug",
