@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -37,6 +39,43 @@ void main() {
         );
       }
     });
+
+    test('has implemented methods ticked', () {
+      final readmeContent = readmeFile.readAsStringSync();
+
+      final handlerGenerators = [
+        ...InitializedLspStateMessageHandler.lspHandlerGenerators,
+        ...InitializedStateMessageHandler.sharedHandlerGenerators,
+      ];
+
+      final missingMethods = StringBuffer();
+      for (final generator in handlerGenerators) {
+        final handler = generator(_MockServer());
+        final method = handler.handlesMessage.toString();
+
+        if (method.startsWith('dart')) {
+          // Dart methods are included under their own heading.
+          final expectedHeading = '### $method Method';
+          if (!readmeContent.contains(expectedHeading)) {
+            missingMethods.writeln('$method does not have a section');
+          }
+        } else {
+          // Standard methods should be listed in the table and ticked.
+          final escapedMethod = RegExp.escape(method);
+          final expectedMarkdown = RegExp(' $escapedMethod .*\\| ✅ \\|');
+          if (!readmeContent.contains(expectedMarkdown)) {
+            missingMethods.writeln('$method is not listed/ticked in the table');
+          }
+        }
+      }
+
+      if (missingMethods.isNotEmpty) {
+        fail(
+          'The following are not listed correctly in the README.md file:\n\n'
+          '$missingMethods',
+        );
+      }
+    });
   });
 }
 
@@ -45,4 +84,15 @@ String _getAnalysisServerPkgPath() {
   final components = path.split(script);
   final index = components.indexOf('analysis_server');
   return path.joinAll(components.sublist(0, index + 1));
+}
+
+class _MockServer implements LspAnalysisServer {
+  @override
+  final initializationOptions = LspInitializationOptions(null);
+
+  @override
+  bool get onlyAnalyzeProjectsWithOpenFiles => false;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
