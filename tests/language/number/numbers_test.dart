@@ -13,18 +13,18 @@ class NumbersTest {
     Expect.equals(true, one is Object);
     Expect.equals(true, one is num);
     Expect.equals(true, one is int);
-    Expect.equals(false, one is double);
+    Expect.equals(webNumbers, one is double);
 
     var two = 2.0;
     Expect.equals(true, two is Object);
     Expect.equals(true, two is num);
-    Expect.equals(false, two is int);
+    Expect.equals(webNumbers, two is int);
     Expect.equals(true, two is double);
 
     var result = one + two;
     Expect.equals(true, result is Object);
     Expect.equals(true, result is num);
-    Expect.equals(false, result is int);
+    Expect.equals(webNumbers, result is int);
     Expect.equals(true, result is double);
 
     Expect.equals(3.0, result);
