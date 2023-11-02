@@ -1223,7 +1223,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
       if (guard is InterfaceType) {
         return translator.hierarchy
-            .isSubtypeOf(translator.javaScriptErrorClass, guard.classNode);
+            .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
       }
       if (guard is TypeParameterType) {
         return guardCanMatchJSException(guard.bound);
@@ -3681,7 +3681,7 @@ class SwitchInfo {
             e is NullLiteral ||
             (e is ConstantExpression &&
                 (e.constant is C || e.constant is NullConstant) &&
-                (translator.hierarchy.isSubtypeOf(
+                (translator.hierarchy.isSubInterfaceOf(
                     translator.classForType(codeGen.dartTypeOf(e)),
                     switchExprClass))));
 

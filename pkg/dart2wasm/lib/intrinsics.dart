@@ -571,7 +571,7 @@ class Intrinsifier {
               t != boolType &&
               t != doubleType &&
               !translator.hierarchy
-                  .isSubtypeOf(intType.classNode, t.classNode))) {
+                  .isSubInterfaceOf(intType.classNode, t.classNode))) {
             codeGen.wrap(first, w.RefType.eq(nullable: true));
             codeGen.wrap(second, w.RefType.eq(nullable: true));
             b.ref_eq();

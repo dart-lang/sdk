@@ -1817,7 +1817,7 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  List<DartType> implements;
+  List<TypeDeclarationType> implements;
 
   int flags = 0;
 
@@ -1835,14 +1835,14 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
       List<TypeParameter>? typeParameters,
       DartType? declaredRepresentationType,
       List<ExtensionTypeMemberDescriptor>? memberDescriptors,
-      List<DartType>? implements,
+      List<TypeDeclarationType>? implements,
       List<Procedure>? procedures,
       required this.fileUri,
       Reference? reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.memberDescriptors =
             memberDescriptors ?? <ExtensionTypeMemberDescriptor>[],
-        this.implements = implements ?? <DartType>[],
+        this.implements = implements ?? <TypeDeclarationType>[],
         this._procedures = procedures ?? <Procedure>[],
         super(reference) {
     setParents(this.typeParameters, this);
@@ -15269,6 +15269,11 @@ final List<ExtensionTypeMemberDescriptor>
 /// Almost const <ExtensionType>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<ExtensionType> emptyListOfExtensionType =
+    List.filled(0, dummyExtensionType, growable: false);
+
+/// Almost const <TypeDeclarationType>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<TypeDeclarationType> emptyListOfTypeDeclarationType =
     List.filled(0, dummyExtensionType, growable: false);
 
 /// Almost const <Constructor>[], but not const in an attempt to avoid

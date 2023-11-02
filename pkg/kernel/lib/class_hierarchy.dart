@@ -81,8 +81,7 @@ abstract class ClassHierarchyBase {
 
   /// True if [subtype] inherits from [superclass] though zero or more
   /// `extends`, `with`, and `implements` relationships.
-  // TODO(johnniwinther): Should [subtype] be a [TypeDeclaration] instead?
-  bool isSubtypeOf(Class subtype, Class superclass);
+  bool isSubInterfaceOf(Class subtype, Class superclass);
 
   /// Returns the least upper bound of two interface types, as defined by Dart
   /// 1.0.
@@ -821,7 +820,7 @@ class ClosedWorldClassHierarchy
   }
 
   @override
-  bool isSubtypeOf(Class subtype, Class superclass) {
+  bool isSubInterfaceOf(Class subtype, Class superclass) {
     if (identical(subtype, superclass)) return true;
     return infoFor(subtype).isSubtypeOf(infoFor(superclass));
   }

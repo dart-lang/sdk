@@ -118,7 +118,6 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   Map<Key, DartType> getFieldTypes(DartType type) {
-    // TODO(johnniwinther): Handle [ExtensionType]s.
     if (type is InterfaceType) {
       Map<Key, DartType> fieldTypes = {};
       Map<Class, Substitution> substitutions = {};
@@ -143,6 +142,68 @@ class CfeTypeOperations implements TypeOperations<DartType> {
             fieldType = substitution.substituteType(fieldType);
           }
           fieldTypes[new NameKey(member.name.text)] = fieldType;
+        }
+      }
+      return fieldTypes;
+    } else if (type is ExtensionType) {
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          type.extensionTypeDeclaration;
+      Map<Key, DartType> fieldTypes = {};
+      for (TypeDeclarationType implementedType
+          in extensionTypeDeclaration.implements) {
+        Map<Key, DartType> implementedFieldTypes =
+            getFieldTypes(implementedType);
+        if (implementedType.typeDeclaration.typeParameters.isNotEmpty) {
+          Substitution substitution = Substitution.fromTypeDeclarationType(
+              _classHierarchy.getTypeAsInstanceOf(
+                  type, implementedType.typeDeclaration,
+                  isNonNullableByDefault: true)!);
+          for (MapEntry<Key, DartType> entry in implementedFieldTypes.entries) {
+            fieldTypes[entry.key] = substitution.substituteType(entry.value);
+          }
+        } else {
+          fieldTypes.addAll(implementedFieldTypes);
+        }
+      }
+      Substitution substitution = Substitution.fromExtensionType(type);
+      for (Procedure procedure in extensionTypeDeclaration.procedures) {
+        if (!procedure.isSetter) {
+          DartType fieldType =
+              substitution.substituteType(procedure.getterType);
+          fieldTypes[new NameKey(procedure.name.text)] = fieldType;
+        }
+      }
+      for (ExtensionTypeMemberDescriptor descriptor
+          in extensionTypeDeclaration.memberDescriptors) {
+        if (descriptor.isStatic) {
+          continue;
+        }
+        switch (descriptor.kind) {
+          case ExtensionTypeMemberKind.Method:
+            Procedure tearOff = descriptor.tearOffReference!.asProcedure;
+            FunctionType functionType = tearOff.getterType as FunctionType;
+            if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
+              functionType = FunctionTypeInstantiator.instantiate(
+                  functionType, type.typeArguments);
+            }
+            fieldTypes[new NameKey(descriptor.name.text)] =
+                functionType.returnType;
+          case ExtensionTypeMemberKind.Getter:
+            Procedure member = descriptor.memberReference.asProcedure;
+            FunctionType functionType = member.getterType as FunctionType;
+            if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
+              functionType = FunctionTypeInstantiator.instantiate(
+                  functionType, type.typeArguments);
+            }
+            fieldTypes[new NameKey(descriptor.name.text)] =
+                functionType.returnType;
+          case ExtensionTypeMemberKind.Field:
+          case ExtensionTypeMemberKind.Constructor:
+          case ExtensionTypeMemberKind.Factory:
+          case ExtensionTypeMemberKind.Setter:
+          case ExtensionTypeMemberKind.Operator:
+          case ExtensionTypeMemberKind.RedirectingFactory:
+            break;
         }
       }
       return fieldTypes;
@@ -464,7 +525,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       Map<String, DartType> extensionPropertyTypes = {};
       for (NamedPattern field in pattern.fields) {
         properties[field.name] = field.pattern;
-        if (field.accessKind == ObjectAccessKind.Static) {
+        if (field.accessKind == ObjectAccessKind.Extension) {
           extensionPropertyTypes[field.name] = field.resultType!;
         }
       }

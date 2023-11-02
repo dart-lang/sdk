@@ -468,7 +468,8 @@ class AnnotateKernel extends RecursiveVisitor {
         // here), then the receiver cannot be _Smi. This heuristic covers most
         // cases, so we skip these to avoid showering the AST with annotations.
         if (interfaceTarget == null ||
-            hierarchy.isSubtypeOf(_intClass, interfaceTarget.enclosingClass!)) {
+            hierarchy.isSubInterfaceOf(
+                _intClass, interfaceTarget.enclosingClass!)) {
           markReceiverNotInt = true;
         }
       }

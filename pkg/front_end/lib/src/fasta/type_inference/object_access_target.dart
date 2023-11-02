@@ -1091,6 +1091,9 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   final DartType receiverType;
   @override
   final Member member;
+  // TODO(johnniwinther): Normalize this. [ExtensionAccessTarget] has a tear-off
+  // target for all readable members, whereas [ExtensionTypeAccessTarget] only
+  // has a tear-off target when it differs from the [member].
   @override
   final Member? tearoffTarget;
   @override

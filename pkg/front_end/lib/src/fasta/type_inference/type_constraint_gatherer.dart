@@ -668,25 +668,9 @@ abstract class TypeConstraintGatherer {
     // If C1<B0, ..., Bj> is a superinterface of C0<M0, ..., Mk> and C1<B0, ...,
     // Bj> is a subtype match for C1<N0, ..., Nj> with respect to L under
     // constraints C.
-    if (p is InterfaceType && q is InterfaceType) {
+    if (p is TypeDeclarationType && q is TypeDeclarationType) {
       final List<DartType>? sArguments =
-          getTypeArgumentsAsInstanceOf(p, q.classNode);
-      if (sArguments != null) {
-        assert(sArguments.length == q.typeArguments.length);
-
-        final int baseConstraintCount = _protoConstraints.length;
-        bool isMatch = true;
-        for (int i = 0; isMatch && i < sArguments.length; ++i) {
-          isMatch = isMatch &&
-              _isNullabilityAwareSubtypeMatch(sArguments[i], q.typeArguments[i],
-                  constrainSupertype: constrainSupertype);
-        }
-        if (isMatch) return true;
-        _protoConstraints.length = baseConstraintCount;
-      }
-    } else if (p is ExtensionType && q is ExtensionType) {
-      final List<DartType>? sArguments =
-          getExtensionTypeArgumentsAsInstanceOf(p, q.extensionTypeDeclaration);
+          getTypeArgumentsAsInstanceOf(p, q.typeDeclaration);
       if (sArguments != null) {
         assert(sArguments.length == q.typeArguments.length);
 

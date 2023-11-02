@@ -516,7 +516,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       List<ParsedType> interfaces = node.interfaces;
       for (int i = 0; i < interfaces.length; i++) {
         extensionTypeDeclaration.implements
-            .add(_parseType(interfaces[i], environment));
+            .add(_parseType(interfaces[i], environment) as TypeDeclarationType);
       }
     }
     return extensionTypeDeclaration;

@@ -989,7 +989,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     ];
     final superClass = klass.superclass;
     for (final onlyDirectExtendsClass in onlyDirectExtendsClasses) {
-      if (hierarchy.isSubtypeOf(klass, onlyDirectExtendsClass)) {
+      if (hierarchy.isSubInterfaceOf(klass, onlyDirectExtendsClass)) {
         if (superClass == onlyDirectExtendsClass) {
           // Directly extending is fine.
           return null;

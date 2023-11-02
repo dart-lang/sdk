@@ -18,7 +18,7 @@ main() {
   MySet<String> set = {};
   //                  ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'MySet<String>'.
+  // [cfe] A value of type 'Set<dynamic>' can't be assigned to a variable of type 'MySet<String>'.
   MyMap<String, bool> map = {};
   //                        ^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
