@@ -2017,6 +2017,28 @@ List
 ''');
   }
 
+  test_visitListLiteral_listElement_field_final() async {
+    await assertErrorsInCode(r'''
+class A {
+  final String bar = '';
+  const A();
+  List<String> foo() => const [bar];
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 79, 3),
+    ]);
+  }
+
+  test_visitListLiteral_listElement_field_static() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static const String bar = '';
+  const A();
+  List<String> foo() => const [bar];
+}
+''');
+  }
+
   test_visitListLiteral_listElement_simple() async {
     await assertNoErrorsInCode(r'''
 const x = ['a', 'b', 'c'];
