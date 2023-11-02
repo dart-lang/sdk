@@ -5,6 +5,8 @@
 Defaults for properties and dimensions used in main.star.
 """
 
+load("//lib/helpers.star", "union")
+
 _PROPERTIES = {"clobber": True}
 _DIMENSIONS = {
     "cpu": "x86-64",
@@ -39,40 +41,10 @@ _FLUTTER_POOL = {"pool": "luci.flutter.prod"}
 _FLUTTER_STAGING_POOL = {"pool": "luci.flutter.staging"}
 _EXPERIMENTAL = {"host_class": "experimental"}
 
-def _union(x, overrides):
-    """ Creates a new dict with the values from all passed dictionaries
-
-    If dicts contain the same keys, their values are merged if the values are
-    dicts. This merging only happens at the top level, not recursively into
-    dicts containing dicts.
-    Otherwise, the earlier value is overwritten by the value from the
-    later override.
-
-    Args:
-        x (dict): A dict.
-        overrides (list): dicts to merge with x.
-
-    Returns:
-        dict: The merged dict.
-    """
-    z = {}
-    z.update(x)
-    if type(overrides) == type({}):
-        overrides = [overrides]
-    for y in overrides or []:
-        for k in y.keys():
-            v = z.get(k)
-            if v and type(v) == type({}):
-                v = dict(v, **y[k])
-                z[k] = v
-            else:
-                z[k] = y[k]
-    return z
-
 defaults = struct(
     caches = lambda os: _CACHES.get(os),
-    dimensions = lambda overrides: _union(_DIMENSIONS, overrides),
-    properties = lambda overrides: _union(_PROPERTIES, overrides),
+    dimensions = lambda overrides: union(_DIMENSIONS, overrides),
+    properties = lambda overrides: union(_PROPERTIES, overrides),
 )
 
 # Dimensions

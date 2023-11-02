@@ -20,6 +20,7 @@ load(
     "windows",
     "windows11",
 )
+load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 
 _postponed_alt_console_entries = []
@@ -56,8 +57,9 @@ def _vm_builder(name, category = None, on_cq = False, location_filters = None, *
     )
     _postponed_alt_console_entry(name, category)
 
-def _nightly_builder(name, category, **kwargs):
-    cron.nightly_builder(name, category = category, notifies = "dart-vm-team", **kwargs)
+def _nightly_builder(name, category, channels = ["try"], properties = {}, **kwargs):
+    properties = union({"bisection_enabled": True}, properties)
+    cron.nightly_builder(name, category = category, channels = channels, properties = properties, notifies = "dart-vm-team", **kwargs)
     _postponed_alt_console_entry(name, category)
 
 def _postponed_alt_console_entry(name, category):
@@ -85,13 +87,11 @@ _vm_builder(
 _nightly_builder(
     "vm-linux-debug-ia32",
     category = "vm|jit|d3",
-    channels = ["try"],
     properties = slow_shards,
 )
 _nightly_builder(
     "vm-linux-release-ia32",
     category = "vm|jit|r3",
-    channels = ["try"],
 )
 _vm_builder(
     "vm-linux-release-simarm",
@@ -100,7 +100,6 @@ _vm_builder(
 _nightly_builder(
     "vm-linux-debug-simriscv64",
     category = "vm|jit|rv",
-    channels = ["try"],
 )
 _vm_builder(
     "vm-linux-release-arm64",
@@ -142,7 +141,6 @@ _vm_builder(
 _nightly_builder(
     "vm-win-release-ia32",
     category = "vm|jit|wr3",
-    channels = ["try"],
     dimensions = windows,
 )
 _vm_builder(
@@ -184,7 +182,6 @@ _vm_builder(
 _nightly_builder(
     "vm-appjit-linux-product-x64",
     category = "vm|appjit|p",
-    channels = ["try"],
 )
 
 # vm|aot
@@ -204,13 +201,11 @@ _vm_builder(
 _nightly_builder(
     "vm-aot-linux-debug-x64",
     category = "vm|aot|d",
-    channels = ["try"],
     properties = slow_shards,
 )
 _nightly_builder(
     "vm-aot-linux-debug-simriscv64",
     category = "vm|aot|rv",
-    channels = ["try"],
     properties = [slow_shards],
 )
 _nightly_builder(
@@ -271,18 +266,15 @@ _vm_builder(
 _nightly_builder(
     "vm-aot-linux-product-x64",
     category = "vm|aot|product|l",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-aot-mac-product-arm64",
     category = "vm|aot|product|m",
-    channels = ["try"],
     dimensions = [mac, arm64],
 )
 _nightly_builder(
     "vm-aot-win-product-x64",
     category = "vm|aot|product|w",
-    channels = ["try"],
     dimensions = windows,
 )
 
@@ -290,112 +282,91 @@ _nightly_builder(
 _nightly_builder(
     "vm-aot-obfuscate-linux-release-x64",
     category = "vm|aot|o",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-aot-dwarf-linux-product-x64",
     category = "vm|aot|dw",
-    channels = ["try"],
 )
 
 # vm|misc
 _nightly_builder(
     "vm-eager-optimization-linux-release-ia32",
     category = "vm|misc|j",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-eager-optimization-linux-release-x64",
     category = "vm|misc|j",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-aot-optimization-level-linux-release-x64",
     category = "vm|misc|a",
-    channels = ["try"],
 )
 
-def dart_vm_sanitizer_builder(name, **kwargs):
-    _nightly_builder(
-        name,
-        channels = ["try"],
-        properties = {"bisection_enabled": True},
-        **kwargs
-    )
-
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-asan-linux-release-x64",
     category = "vm|misc|sanitizer|a",
 )
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-msan-linux-release-x64",
     category = "vm|misc|sanitizer|m",
 )
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-tsan-linux-release-x64",
     category = "vm|misc|sanitizer|t",
 )
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-ubsan-linux-release-x64",
     category = "vm|misc|sanitizer|u",
 )
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-aot-asan-linux-release-x64",
     category = "vm|misc|sanitizer|a",
 )
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-aot-msan-linux-release-x64",
     category = "vm|misc|sanitizer|m",
 )
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-aot-tsan-linux-release-x64",
     category = "vm|misc|sanitizer|t",
 )
-dart_vm_sanitizer_builder(
+_nightly_builder(
     "vm-aot-ubsan-linux-release-x64",
     category = "vm|misc|sanitizer|u",
 )
 _nightly_builder(
     "vm-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-reload-linux-release-x64",
     category = "vm|misc|reload|r",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-reload-rollback-linux-debug-x64",
     category = "vm|misc|reload|drb",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-reload-rollback-linux-release-x64",
     category = "vm|misc|reload|rrb",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-linux-debug-x64c",
     category = "vm|misc|compressed|jl",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-aot-linux-debug-x64c",
     category = "vm|misc|compressed|al",
-    channels = ["try"],
     properties = slow_shards,
 )
 _nightly_builder(
     "vm-win-debug-x64c",
     category = "vm|misc|compressed|jw",
-    channels = ["try"],
     dimensions = windows,
 )
 _nightly_builder(
     "vm-aot-win-debug-x64c",
     category = "vm|misc|compressed|aw",
-    channels = ["try"],
     dimensions = windows,
     properties = slow_shards,
 )
@@ -416,7 +387,6 @@ _vm_builder(
 _nightly_builder(
     "vm-gcc-linux",
     category = "vm|misc|g",
-    channels = ["try"],
     dimensions = jammy,
     execution_timeout = 5 * time.hour,
     goma = False,
@@ -430,7 +400,6 @@ _nightly_builder(
 _nightly_builder(
     "vm-msvc-windows",
     category = "vm|misc|m",
-    channels = ["try"],
     dimensions = windows,
     goma = False,
 )
@@ -483,24 +452,20 @@ _vm_builder(
 _nightly_builder(
     "vm-kernel-linux-debug-x64",
     category = "vm|legacy|jit|d",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-kernel-linux-release-x64",
     category = "vm|legacy|jit|r",
-    channels = ["try"],
 )
 
 # vm|legacy|aot
 _nightly_builder(
     "vm-kernel-precomp-linux-debug-x64",
     category = "vm|legacy|aot|d",
-    channels = ["try"],
 )
 _nightly_builder(
     "vm-kernel-precomp-linux-release-x64",
     category = "vm|legacy|aot|r",
-    channels = ["try"],
 )
 
 # Isolate stress test builder
