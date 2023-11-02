@@ -10,6 +10,7 @@ load(
     "//lib/defaults.star",
     "arm64",
     "chrome",
+    "jammy",
     "mac",
     "no_android",
     "windows",
@@ -23,6 +24,12 @@ dart.ci_sandbox_builder(
     properties = chrome,
 )
 dart.ci_sandbox_builder(
+    "pkg-linux-release-arm64",
+    category = "pkg|la",
+    dimensions = [jammy, arm64],
+    goma = False,
+)
+dart.ci_sandbox_builder(
     "pkg-mac-release",
     category = "pkg|m",
     dimensions = mac,
@@ -30,7 +37,7 @@ dart.ci_sandbox_builder(
 )
 dart.ci_sandbox_builder(
     "pkg-mac-release-arm64",
-    category = "pkg|m1",
+    category = "pkg|ma",
     channels = ["try"],
     dimensions = [mac, arm64],
     properties = [chrome, no_android],
