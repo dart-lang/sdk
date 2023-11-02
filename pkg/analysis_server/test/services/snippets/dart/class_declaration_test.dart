@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,28 +28,30 @@ class ClassDeclarationTest extends DartSnippetProducerTest {
   String get prefix => ClassDeclaration.prefix;
 
   Future<void> test_class() async {
-    var code = r'''
+    final code = TestCode.parse(r'''
 class A {}
   
 ^
 
-class B {}''';
+class B {}
+''');
     final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
-    code = withoutMarkers(code);
+    var result = code.code;
     for (var edit in snippet.change.edits) {
-      code = SourceEdit.applySequence(code, edit.edits);
+      result = SourceEdit.applySequence(result, edit.edits);
     }
-    expect(code, '''
+    expect(result, '''
 class A {}
   
 class ClassName {
   
 }
 
-class B {}''');
+class B {}
+''');
     expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 34);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [

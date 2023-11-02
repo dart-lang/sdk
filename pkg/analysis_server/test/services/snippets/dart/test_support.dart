@@ -10,7 +10,6 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
-import '../test_support.dart';
 
 export '../test_support.dart';
 
@@ -30,7 +29,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
   Future<void> assertSnippet(String content, String expected) async {
     final code = TestCode.parse(content);
     final expectedCode = TestCode.parse(expected);
-    final snippet = await expectValidSnippet2(code);
+    final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
@@ -78,21 +77,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     expect(await producer.isValid(), isFalse);
   }
 
-  Future<Snippet> expectValidSnippet(String code) async {
-    // TODO(dantup): Remove this function and convert other snippets to new
-    //  format.
-    await resolveTestCode(withoutMarkers(code));
-    final request = DartSnippetRequest(
-      unit: testAnalysisResult,
-      offset: offsetFromMarker(code),
-    );
-
-    final producer = generator(request, elementImportCache: {});
-    expect(await producer.isValid(), isTrue);
-    return producer.compute();
-  }
-
-  Future<Snippet> expectValidSnippet2(TestCode code) async {
+  Future<Snippet> expectValidSnippet(TestCode code) async {
     await resolveTestCode(code.code);
     final request = DartSnippetRequest(
       unit: testAnalysisResult,
@@ -142,7 +127,7 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   Future<void> test_valid_importsAndEditsOverlap() async {
     writeTestPackageConfig(flutter: true);
 
-    final snippet = await expectValidSnippet('$prefix^');
+    final snippet = await expectValidSnippet(TestCode.parse('$prefix^'));
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
 
@@ -160,11 +145,11 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   Future<void> test_valid_suffixReplacement() async {
     writeTestPackageConfig(flutter: true);
 
-    final snippet = await expectValidSnippet('''
+    final snippet = await expectValidSnippet(TestCode.parse('''
 class A {}
 
 $prefix^
-''');
+'''));
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
 

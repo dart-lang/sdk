@@ -30,15 +30,16 @@ class FlutterStatefulWidgetTest extends FlutterSnippetProducerTest {
   Future<void> test_noSuperParams() async {
     writeTestPackageConfig(flutter: true, languageVersion: '2.16');
 
-    final snippet = await expectValidSnippet('^');
+    final code = TestCode.empty;
+    final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
-    var code = '';
+    var result = code.code;
     expect(snippet.change.edits, hasLength(1));
     for (var edit in snippet.change.edits) {
-      code = SourceEdit.applySequence(code, edit.edits);
+      result = SourceEdit.applySequence(result, edit.edits);
     }
-    expect(code, '''
+    expect(result, '''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
@@ -65,7 +66,7 @@ class _MyWidgetState extends State<MyWidget> {
   Future<void> test_valid() async {
     writeTestPackageConfig(flutter: true);
 
-    final snippet = await expectValidSnippet('^');
+    final snippet = await expectValidSnippet(TestCode.empty);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     final expected = TestCode.parse('''

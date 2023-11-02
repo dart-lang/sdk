@@ -4,9 +4,11 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -60,28 +62,26 @@ class Foo {
   }
 
   Future<void> test_single() async {
-    final content = '''
+    final code = TestCode.parse('''
 class Foo<T> {
   void a(String b) {
     print((1 ^+ 2) * 3);
   }
 }
-''';
-    final contentWithoutMarker = withoutMarkers(content);
+''');
 
     await initialize();
-    await openFile(mainFileUri, contentWithoutMarker);
-    final lineInfo = LineInfo.fromContent(contentWithoutMarker);
+    await openFile(mainFileUri, code.code);
+    final lineInfo = LineInfo.fromContent(code.code);
 
     // The returned List corresponds to the input list of positions, and not
     // the set of ranges - each range within that list has a (recursive) parent
     // to walk up all ranges for that position.
     final regions =
-        await getSelectionRanges(mainFileUri, [positionFromMarker(content)]);
+        await getSelectionRanges(mainFileUri, [code.position.position]);
     expect(regions!.length, equals(1)); // Only one position was sent.
     final regionTexts =
-        _getSelectionRangeText(lineInfo, contentWithoutMarker, regions.first)
-            .toList();
+        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
 
     expect(
         regionTexts,

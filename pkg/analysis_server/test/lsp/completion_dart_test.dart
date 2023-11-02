@@ -1474,7 +1474,7 @@ import 'package:^';
   Future<void> test_concurrentRequestsCancellation() async {
     // We expect a new completion request to cancel any in-flight request so
     // send multiple without awaiting, then check only the last one completes.
-    final code = TestCode.parse('^');
+    final code = TestCode.empty;
 
     await initialize();
     await openFile(mainFileUri, code.code);
