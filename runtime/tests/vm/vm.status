@@ -19,6 +19,7 @@ dart/byte_array_test: Pass, Slow # Uses --opt-counter-threshold=10
 dart/data_uri_import_test/none: SkipByDesign
 dart/disassemble_aot_test: Pass, Slow # Spawns several subprocesses
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
+dart/gc/*: Pass, Slow # Tests that involve expensive heap verification steps
 dart/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
@@ -122,11 +123,10 @@ dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
 dart/analyze_snapshot_binary_test: SkipSlow
 dart/appjit_cha_deopt_test: SkipSlow
 dart/flutter_regress_93676_test: Pass, Slow
-dart/gc/chunked_binary_trees_array_test: SkipSlow
-dart/gc/chunked_binary_trees_test: SkipSlow
+dart/gc/chunked_binary_trees*: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
-dart/gc/scavenger_abort_test: SkipSlow
+dart/gc/scavenger_abort_test: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/regress_40462_test: SkipSlow
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
@@ -135,11 +135,8 @@ dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not loc
 dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
 dart/v8_snapshot_profile_writer_test: SkipSlow
-dart/weak_canonical_string_table_test: Pass, Slow # This test can take a longer time to complete.
 
 [ $system == android ]
-dart/gc/chunked_binary_trees_array_test: SkipSlow
-dart/gc/chunked_binary_trees_test: SkipSlow
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # On android this test does not work due to not being able to identify library uri.
 dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
 
@@ -199,8 +196,6 @@ cc/Profiler_ToggleRecordAllocation: SkipByDesign
 cc/Profiler_TrivialRecordAllocation: SkipByDesign
 cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
-dart/gc/chunked_binary_trees_array_test: SkipSlow
-dart/gc/chunked_binary_trees_test: SkipSlow
 dart/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
@@ -370,8 +365,6 @@ dart/thread_priority_windows_test: SkipByDesign
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
 dart/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
-dart/gc/chunked_binary_trees_array_test: SkipSlow
-dart/gc/chunked_binary_trees_test: SkipSlow
 dart/issue_31959_31960_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
