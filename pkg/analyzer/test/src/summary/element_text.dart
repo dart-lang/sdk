@@ -55,6 +55,7 @@ class ElementTextConfiguration {
   bool withPropertyLinking = false;
   bool withRedirectedConstructors = false;
   bool withReferences = false;
+  bool withReturnType = true;
   bool withSyntheticDartCoreImport = false;
 
   ElementTextConfiguration({
@@ -539,7 +540,7 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType);
+      _writeReturnType(e.returnType);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -710,10 +711,12 @@ class _ElementWriter {
 
     _writeElements('exports', e.libraryExports, _writeExportElement);
 
-    _sink.writelnWithIndent('definingUnit');
-    _sink.withIndent(() {
-      _writeUnitElement(e.definingCompilationUnit);
-    });
+    if (configuration.filter(e.definingCompilationUnit)) {
+      _sink.writelnWithIndent('definingUnit');
+      _sink.withIndent(() {
+        _writeUnitElement(e.definingCompilationUnit);
+      });
+    }
 
     if (e is LibraryElementImpl) {
       _writeLibraryAugmentations(e);
@@ -760,7 +763,7 @@ class _ElementWriter {
 
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType);
+      _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
 
       if (e.isAugmentation) {
@@ -967,7 +970,7 @@ class _ElementWriter {
 
       expect(e.typeParameters, isEmpty);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType);
+      _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
       writeLinking();
       _writeAugmentationTarget(e);
@@ -1058,6 +1061,12 @@ class _ElementWriter {
     }
   }
 
+  void _writeReturnType(DartType type) {
+    if (configuration.withReturnType) {
+      _writeType('returnType', type);
+    }
+  }
+
   void _writeShouldUseTypeForInitializerInference(
     PropertyInducingElementImpl e,
   ) {
@@ -1129,7 +1138,7 @@ class _ElementWriter {
         _sink.withIndent(() {
           _writeTypeParameterElements(aliasedElement.typeParameters);
           _writeParameterElements(aliasedElement.parameters);
-          _writeType('returnType', aliasedElement.returnType);
+          _writeReturnType(aliasedElement.returnType);
         });
       }
     });

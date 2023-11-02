@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
@@ -18,6 +19,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:collection/collection.dart';
 
 /// The full list of [macro.ArgumentKind]s for this dart type (includes the type
 /// itself as well as type arguments, in source order with
@@ -71,7 +73,24 @@ class LibraryMacroApplier {
   final MultiMacroExecutor macroExecutor;
   final bool Function(Uri) isLibraryBeingLinked;
   final DeclarationBuilder declarationBuilder;
+
+  /// The reversed queue of macro applications to apply.
+  ///
+  /// We add classes before methods, and methods in the reverse order,
+  /// classes in the reverse order, annotations in the direct order.
+  ///
+  /// We iterate from the end looking for the next application to apply.
+  /// This way we ensure two ordering rules:
+  /// 1. inner before outer
+  /// 2. right to left
+  /// 3. source order
   final List<_MacroApplication> _applications = [];
+
+  /// The map from [InstanceElement] to the applications associated with it.
+  /// This includes applications on the class itself, and on the methods of
+  /// the class.
+  final Map<InstanceElement, List<_MacroApplication>> _interfaceApplications =
+      {};
 
   late final macro.TypePhaseIntrospector _typesPhaseIntrospector =
       _TypePhaseIntrospector(elementFactory, declarationBuilder);
@@ -84,6 +103,7 @@ class LibraryMacroApplier {
   });
 
   Future<void> add({
+    required LibraryElementImpl libraryElement,
     required LibraryOrAugmentationElementImpl container,
     required ast.CompilationUnit unit,
   }) async {
@@ -92,23 +112,31 @@ class LibraryMacroApplier {
         case ast.ClassDeclaration():
           final element = declaration.declaredElement;
           element as ClassElementImpl;
+          final declarationElement = element.augmented?.declaration ?? element;
+          declarationElement as ClassElementImpl;
           await _addClassLike(
+            libraryElement: libraryElement,
             container: container,
-            targetElement: element.declarationElement,
+            targetElement: declarationElement,
             classNode: declaration,
             classDeclarationKind: macro.DeclarationKind.classType,
             classAnnotations: declaration.metadata,
+            declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
         case ast.MixinDeclaration():
           final element = declaration.declaredElement;
           element as MixinElementImpl;
+          final declarationElement = element.augmented?.declaration ?? element;
+          declarationElement as MixinElementImpl;
           await _addClassLike(
+            libraryElement: libraryElement,
             container: container,
-            targetElement: element.declarationElement,
+            targetElement: declarationElement,
             classNode: declaration,
             classDeclarationKind: macro.DeclarationKind.mixinType,
             classAnnotations: declaration.metadata,
+            declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
       }
@@ -134,9 +162,11 @@ class LibraryMacroApplier {
   }
 
   Future<List<macro.MacroExecutionResult>?> executeDeclarationsPhase({
-    required TypeSystemImpl typeSystem,
+    required LibraryElementImpl library,
   }) async {
-    final application = _nextForDeclarationsPhase();
+    final application = _nextForDeclarationsPhase(
+      library: library,
+    );
     if (application == null) {
       return null;
     }
@@ -150,7 +180,7 @@ class LibraryMacroApplier {
         final introspector = _DeclarationPhaseIntrospector(
           elementFactory,
           declarationBuilder,
-          typeSystem,
+          library.typeSystem,
         );
 
         final result = await macroExecutor.executeDeclarationsPhase(
@@ -204,7 +234,9 @@ class LibraryMacroApplier {
   }
 
   Future<void> _addAnnotations({
+    required LibraryElementImpl libraryElement,
     required LibraryOrAugmentationElementImpl container,
+    required InstanceElement? declarationsPhaseElement,
     required ast.Declaration targetNode,
     required macro.DeclarationKind targetDeclarationKind,
     required List<ast.Annotation> annotations,
@@ -251,39 +283,54 @@ class LibraryMacroApplier {
         return instance.shouldExecute(targetDeclarationKind, phase);
       }).toSet();
 
-      _applications.add(
-        _MacroApplication(
-          targetNode: targetNode,
-          targetElement: targetElement,
-          targetDeclarationKind: targetDeclarationKind,
-          instance: instance,
-          phasesToExecute: phasesToExecute,
-        ),
+      final application = _MacroApplication(
+        libraryElement: libraryElement,
+        declarationsPhaseElement: declarationsPhaseElement,
+        targetNode: targetNode,
+        targetElement: targetElement,
+        targetDeclarationKind: targetDeclarationKind,
+        annotationNode: annotation,
+        instance: instance,
+        phasesToExecute: phasesToExecute,
       );
+
+      _applications.add(application);
+
+      // Record mapping for declarations phase dependencies.
+      if (declarationsPhaseElement != null) {
+        (_interfaceApplications[declarationsPhaseElement] ??= [])
+            .add(application);
+      }
     }
   }
 
   Future<void> _addClassLike({
+    required LibraryElementImpl libraryElement,
     required LibraryOrAugmentationElementImpl container,
     required MacroTargetElement targetElement,
     required ast.Declaration classNode,
     required macro.DeclarationKind classDeclarationKind,
     required List<ast.Annotation> classAnnotations,
+    required InterfaceElement? declarationsPhaseInterface,
     required List<ast.ClassMember> members,
   }) async {
     await _addAnnotations(
+      libraryElement: libraryElement,
       container: container,
       targetNode: classNode,
       targetDeclarationKind: classDeclarationKind,
+      declarationsPhaseElement: declarationsPhaseInterface,
       annotations: classAnnotations,
     );
 
     for (final member in members.reversed) {
       await _addAnnotations(
+        libraryElement: libraryElement,
         container: container,
         targetNode: member,
         // TODO(scheglov) incomplete
         targetDeclarationKind: macro.DeclarationKind.method,
+        declarationsPhaseElement: declarationsPhaseInterface,
         annotations: member.metadata,
       );
     }
@@ -302,6 +349,28 @@ class LibraryMacroApplier {
         // TODO(scheglov) incomplete
         throw UnimplementedError('${targetNode.runtimeType}');
     }
+  }
+
+  bool _hasInterfaceDependenciesSatisfied(_MacroApplication application) {
+    final dependencyElements = _interfaceDependencies(
+      application.declarationsPhaseElement,
+    );
+    if (dependencyElements == null) {
+      return true;
+    }
+
+    for (final dependencyElement in dependencyElements) {
+      final applications = _interfaceApplications[dependencyElement];
+      if (applications != null) {
+        for (final dependencyApplication in applications) {
+          if (dependencyApplication.hasDeclarationsPhase) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
   }
 
   /// If [annotation] references a macro, invokes the right callback.
@@ -385,13 +454,58 @@ class LibraryMacroApplier {
     throw UnimplementedError();
   }
 
-  /// TODO(scheglov) Should use dependencies.
-  _MacroApplication? _nextForDeclarationsPhase() {
-    for (final application in _applications.reversed) {
-      if (application.phasesToExecute.remove(macro.Phase.declarations)) {
-        return application;
-      }
+  Set<InstanceElement>? _interfaceDependencies(InstanceElement? element) {
+    // TODO(scheglov) other elements
+    switch (element) {
+      case ExtensionElement():
+        // TODO(scheglov) implement
+        throw UnimplementedError();
+      case MixinElement():
+        final augmented = element.augmented;
+        switch (augmented) {
+          case null:
+            return const {};
+          default:
+            return [
+              ...augmented.superclassConstraints.map((e) => e.element),
+              ...augmented.interfaces.map((e) => e.element),
+            ].whereNotNull().toSet();
+        }
+      case InterfaceElement():
+        final augmented = element.augmented;
+        switch (augmented) {
+          case null:
+            return const {};
+          default:
+            return [
+              element.supertype?.element,
+              ...augmented.mixins.map((e) => e.element),
+              ...augmented.interfaces.map((e) => e.element),
+            ].whereNotNull().toSet();
+        }
+      default:
+        return null;
     }
+  }
+
+  _MacroApplication? _nextForDeclarationsPhase({
+    required LibraryElementImpl library,
+  }) {
+    for (final application in _applications.reversed) {
+      if (!application.hasDeclarationsPhase) {
+        continue;
+      }
+      if (application.libraryElement != library) {
+        continue;
+      }
+      if (!_hasInterfaceDependenciesSatisfied(application)) {
+        continue;
+      }
+      // The application has no dependencies to run.
+      application.removeDeclarationsPhase();
+      return application;
+    }
+
     return null;
   }
 
@@ -610,14 +724,22 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
             .map(declarationBuilder.fromElement.fieldElement)
             .toList();
     }
+    // TODO(scheglov) implement
     throw UnsupportedError('Only introspection on classes is supported');
   }
 
   @override
   Future<List<macro.MethodDeclaration>> methodsOf(
-      covariant macro.IntrospectableType clazz) {
-    // TODO: implement methodsOf
-    throw UnimplementedError();
+      covariant macro.IntrospectableType type) async {
+    switch (type) {
+      case IntrospectableClassDeclarationImpl():
+        return type.element.augmented!.methods
+            .where((e) => !e.isSynthetic)
+            .map(declarationBuilder.fromElement.methodElement)
+            .toList();
+    }
+    // TODO(scheglov) implement
+    throw UnsupportedError('Only introspection on classes is supported');
   }
 
   @override
@@ -675,19 +797,33 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 }
 
 class _MacroApplication {
+  final LibraryElementImpl libraryElement;
+  final InstanceElement? declarationsPhaseElement;
   final ast.AstNode targetNode;
   final MacroTargetElement targetElement;
   final macro.DeclarationKind targetDeclarationKind;
+  final ast.Annotation annotationNode;
   final macro.MacroInstanceIdentifier instance;
   final Set<macro.Phase> phasesToExecute;
 
   _MacroApplication({
+    required this.libraryElement,
+    required this.declarationsPhaseElement,
     required this.targetNode,
     required this.targetElement,
     required this.targetDeclarationKind,
+    required this.annotationNode,
     required this.instance,
     required this.phasesToExecute,
   });
+
+  bool get hasDeclarationsPhase {
+    return phasesToExecute.contains(macro.Phase.declarations);
+  }
+
+  void removeDeclarationsPhase() {
+    phasesToExecute.remove(macro.Phase.declarations);
+  }
 }
 
 class _StaticTypeImpl implements macro.StaticType {
@@ -735,15 +871,4 @@ extension on macro.MacroExecutionResult {
       libraryAugmentations.isNotEmpty ||
       mixinAugmentations.isNotEmpty ||
       typeAugmentations.isNotEmpty;
-}
-
-extension<T extends InstanceElementImpl> on T {
-  T get declarationElement {
-    switch (augmented) {
-      case T(:final T declaration):
-        return declaration;
-      default:
-        return this;
-    }
-  }
 }
