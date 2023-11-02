@@ -106,7 +106,8 @@ _vm_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|a6",
     dimensions = [jammy, arm64],
-    goma = False,
+    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
+    properties = {"clobber": False},
 )
 _vm_builder(
     "vm-mac-debug-arm64",
@@ -160,12 +161,14 @@ _vm_builder(
     category = "vm|jit|wad",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+    properties = {"clobber": False},
 )
 _vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|war",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+    properties = {"clobber": False},
 )
 
 # vm|appjit
@@ -214,7 +217,8 @@ _nightly_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|a6",
     dimensions = [jammy, arm64],
-    goma = False,
+    goma = False,  # no such package: infra_internal/goma/client/linux-arm64
+    properties = {"clobber": False},
 )
 _vm_builder(
     "vm-aot-mac-release-arm64",
@@ -241,12 +245,14 @@ _vm_builder(
     category = "vm|aot|wad",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+    properties = {"clobber": False},
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|war",
     dimensions = [windows11, arm64, flutter_pool],
     goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+    properties = {"clobber": False},
 )
 
 # vm|aot|android
@@ -470,6 +476,7 @@ _vm_builder(
     category = "vm|ffi|qr",
     dimensions = [jammy, arm64],
     goma = False,  # no such package: infra_internal/goma/client/linux-arm64
+    properties = {"clobber": False},
 )
 
 # vm|legacy|jit
