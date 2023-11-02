@@ -1,4 +1,4 @@
-# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -26,3 +26,4 @@ general/error_recovery/issue_39058_prime.crash: UnknownChunk # Test has parser e
 general/error_recovery/issue_39202.crash: UnknownChunk # Test has parser errors
 regress/ambiguous_builder_01: UnknownChunk # Test has parser errors
 regress/issue_34850: UnknownChunk # Test has parser errors
+extension_types/with_dependencies/issue53209_2/main: UnknownChunk

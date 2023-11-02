@@ -1,0 +1,78 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:7: Error: A class declaration must have a body, even if it is empty.
+// Try adding an empty body.
+// class A(String foo) {
+//       ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:8: Error: Expected a declaration, but got '('.
+// class A(String foo) {
+//        ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:16: Error: Expected ';' after this.
+// class A(String foo) {
+//                ^^^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:19: Error: Expected a declaration, but got ')'.
+// class A(String foo) {
+//                   ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:21: Error: Expected a declaration, but got '{'.
+// class A(String foo) {
+//                     ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart:7:16: Error: Field 'foo' should be initialized because its type 'String' doesn't allow null.
+// class A(String foo) {
+//                ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+static field core::String foo;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:7:41: Error: The implemented interface 'A' must be a supertype of the representation type 'String' of extension type 'E'.
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main.dart'.
+// Try changing the interface type to a supertype of 'String' or the representation type to a subtype of 'A'.
+// extension type E(String foo) implements A {
+//                                         ^
+//
+// pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:8:61: Error: The constructor function type 'E Function(String)' isn't a subtype of 'E Function()'.
+//   factory E.redirectingFactoryWithMismatchingParameters() = E;
+//                                                             ^
+//
+import self as self2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main.dart";
+
+extension type E(core::String foo) implements #lib1::A {
+  abstract inline-class-member representation-field get foo() → core::String;
+  constructor • = self2::E|constructor#;
+  constructor tearoff • = self2::E|constructor#_#new#tearOff;
+  static redirecting-factory redirectingFactoryWithMismatchingParameters = self2::E|constructor#redirectingFactoryWithMismatchingParameters;
+  static redirecting-factory tearoff redirectingFactoryWithMismatchingParameters = self2::E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff;
+}
+static inline-class-member method E|constructor#(core::String foo) → self2::E /* = core::String */
+  ;
+static inline-class-member method E|constructor#_#new#tearOff(core::String foo) → self2::E /* = core::String */
+  return self2::E|constructor#(foo);
+static inline-class-member method E|constructor#redirectingFactoryWithMismatchingParameters() → self2::E /* = core::String */
+  return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:8:61: Error: The constructor function type 'E Function(String)' isn't a subtype of 'E Function()'.
+  factory E.redirectingFactoryWithMismatchingParameters() = E;
+                                                            ^";
+static inline-class-member method E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff() → self2::E /* = core::String */
+  return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:8:61: Error: The constructor function type 'E Function(String)' isn't a subtype of 'E Function()'.
+  factory E.redirectingFactoryWithMismatchingParameters() = E;
+                                                            ^";

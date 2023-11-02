@@ -15,6 +15,7 @@ import '../builder/function_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../dill/dill_extension_type_member_builder.dart';
 import '../fasta_codes.dart';
 import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
@@ -610,6 +611,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (targetBuilder == null) return null;
     if (targetBuilder is FunctionBuilder) {
       targetNode = targetBuilder.function;
+    } else if (targetBuilder is DillExtensionTypeFactoryBuilder) {
+      targetNode = targetBuilder.member.function!;
     } else if (targetBuilder is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
       // issued.
@@ -617,7 +620,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       // https://dart-review.googlesource.com/c/sdk/+/85390/.
       return null;
     } else {
-      unhandled("${redirectionTarget.target}", "computeRedirecteeType",
+      unhandled("${targetBuilder.runtimeType}", "computeRedirecteeType",
           charOffset, fileUri);
     }
 

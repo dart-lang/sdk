@@ -1,0 +1,4 @@
+import './main_lib.dart';
+extension type E1(String foo) {
+  factory E1.redirectingFactoryToSubtype() = E2.redirectingFactoryWithMismatchingParameters;
+}
