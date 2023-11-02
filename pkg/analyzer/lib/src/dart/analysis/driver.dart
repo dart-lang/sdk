@@ -13,6 +13,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -49,6 +50,7 @@ import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
+import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
@@ -265,6 +267,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   bool _disposed = false;
 
+  /// A map that associates files to corresponding analysis options.
+  /// todo(pq): his will replace the single [_analysisOptions] instance.
+  final AnalysisOptionsMap? _analysisOptionsMap;
+
   /// Create a new instance of [AnalysisDriver].
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -280,6 +286,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     this.macroSupport,
     this.ownedFiles,
     this.analysisContext,
+    // todo(pq): to replace analysis options instance
+    AnalysisOptionsMap? analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
@@ -297,6 +305,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _infoDeclarationStore =
             infoDeclarationStore ?? NoOpInfoDeclarationStore(),
         _analysisOptions = analysisOptions,
+        _analysisOptionsMap = analysisOptionsMap,
         _logger = logger,
         _packages = packages,
         _sourceFactory = sourceFactory,
@@ -318,6 +327,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Set<String> get addedFiles => _fileTracker.addedFiles;
 
   /// Return the analysis options used to control analysis.
+  //todo(pq): @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions => _analysisOptions;
 
   /// Return the current analysis session.
@@ -657,6 +667,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _scheduler.notify(this);
     return completer.future;
   }
+
+  @experimental
+  AnalysisOptions? getAnalysisOptionsForFile(File file) =>
+      _analysisOptionsMap?.getOptions(file);
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
   /// [path]. If there is no cached result, return `null`. Usually only results
