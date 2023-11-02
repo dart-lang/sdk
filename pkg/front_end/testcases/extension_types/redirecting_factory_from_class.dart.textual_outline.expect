@@ -1,0 +1,28 @@
+class A1 {
+  final int foo;
+  const A1(this.foo);
+  const factory A1.redir(A1 it) = E1.redir;
+}
+extension type const E1(A1 it) implements A1 {
+  const factory E1.redir(A1 it) = E1;
+}
+test1() {}
+class A2 {
+  final int foo;
+  const A2(this.foo);
+  const factory A2.redir(bool b) = E2.pick;
+}
+class B2 extends A2 {
+  static const B2 element = const B2(0);
+  const B2(super.foo);
+}
+class C2 extends A2 {
+  static const C2 element = const C2(0);
+  const C2(super.foo);
+}
+extension type const E2(A2 it) implements A2 {
+  const E2.pick(bool b) : this(b ? B2.element : C2.element);
+}
+test2() {}
+expectIdentical(expected, actual) {}
+main() {}

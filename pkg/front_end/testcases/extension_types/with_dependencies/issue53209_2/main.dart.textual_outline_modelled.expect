@@ -1,0 +1,9 @@
+import './main_lib.dart';
+class A{}
+---- unknown chunk starts ----
+(
+---- unknown chunk ends ----
+String foo;
+---- unknown chunk starts ----
+) { factory A.redirectingFactoryToSubtype() = E.redirectingFactoryWithMismatchingParameters; }
+---- unknown chunk ends ----

@@ -19,6 +19,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color_presentation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_document_link.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_exit.dart';
@@ -76,6 +77,7 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
     CompletionHandler.new,
     CompletionResolveHandler.new,
     DefinitionHandler.new,
+    DocumentLinkHandler.new,
     SuperHandler.new,
     ReferencesHandler.new,
     CodeActionHandler.new,

@@ -8,9 +8,8 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/context_builder.dart';
 import 'package:analyzer/src/dart/analysis/context_builder2.dart';
-import 'package:analyzer/src/dart/analysis/context_locator.dart';
+import 'package:analyzer/src/dart/analysis/context_locator2.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -29,12 +28,12 @@ import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContextBuilderImplTest);
+    defineReflectiveTests(ContextBuilderImplTest2);
   });
 }
 
 @reflectiveTest
-class ContextBuilderImplTest with ResourceProviderMixin {
+class ContextBuilderImplTest2 with ResourceProviderMixin {
   late final ContextBuilderImpl2 contextBuilder;
   late final ContextRoot contextRoot;
 
@@ -64,16 +63,17 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_invalid() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(projectPath, ';');
+    var optionsFile = newAnalysisOptionsYamlFile(projectPath, ';');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
     _expectEqualOptions(analysisOptions, AnalysisOptionsImpl());
   }
 
   void test_analysisOptions_languageOptions() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(
+    var optionsFile = newAnalysisOptionsYamlFile(
       projectPath,
       AnalysisOptionsFileConfig(
         strictRawTypes: true,
@@ -81,7 +81,8 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     );
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
     _expectEqualOptions(
       analysisOptions,
       AnalysisOptionsImpl()..strictRawTypes = true,
@@ -90,22 +91,23 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_sdkVersionConstraint_hasPubspec_hasSdk() {
     var projectPath = convertPath('/home/test');
-    newPubspecYamlFile(projectPath, '''
+    var pubspec = newPubspecYamlFile(projectPath, '''
 environment:
   sdk: ^2.1.0
 ''');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsImplForFile(pubspec);
     expect(analysisOptions.sdkVersionConstraint.toString(), '^2.1.0');
   }
 
   void test_analysisOptions_sdkVersionConstraint_noPubspec() {
     var projectPath = convertPath('/home/test');
-    newFile('$projectPath/lib/a.dart', '');
+    var file = newFile('$projectPath/lib/a.dart', '');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.driver.analysisOptions;
+    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
     expect(analysisOptions.sdkVersionConstraint, isNull);
   }
 
@@ -207,11 +209,11 @@ environment:
 
   /// Return a single expected analysis context at the [path].
   DriverBasedAnalysisContext _createSingleAnalysisContext(String path) {
-    var roots = ContextLocatorImpl(
+    var roots = ContextLocatorImpl2(
       resourceProvider: resourceProvider,
     ).locateRoots(includedPaths: [path]);
 
-    return ContextBuilderImpl(
+    return ContextBuilderImpl2(
       resourceProvider: resourceProvider,
     ).createContext(
       contextRoot: roots.single,
@@ -239,11 +241,10 @@ environment:
 }
 
 extension on DriverBasedAnalysisContext {
-  AnalysisOptionsImpl get analysisOptionsImpl {
-    return driver.analysisOptions as AnalysisOptionsImpl;
-  }
-
   List<UriResolver> get uriResolvers {
     return (driver.sourceFactory as SourceFactoryImpl).resolvers;
   }
+
+  AnalysisOptionsImpl getAnalysisOptionsImplForFile(File file) =>
+      getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
 }

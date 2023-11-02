@@ -319,6 +319,17 @@ mixin LspRequestHelpersMixin {
         request, _fromJsonList(DocumentHighlight.fromJson));
   }
 
+  Future<List<DocumentLink>?> getDocumentLinks(Uri uri) {
+    final request = makeRequest(
+      Method.textDocument_documentLink,
+      DocumentLinkParams(textDocument: TextDocumentIdentifier(uri: uri)),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _fromJsonList(DocumentLink.fromJson),
+    );
+  }
+
   Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
       getDocumentSymbols(Uri uri) {
     final request = makeRequest(

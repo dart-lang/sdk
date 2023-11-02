@@ -147,6 +147,7 @@ extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # 
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
+extension_types/with_dependencies/issue53209_1/main: SemiFuzzFailure
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError

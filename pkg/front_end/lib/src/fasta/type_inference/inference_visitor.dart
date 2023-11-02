@@ -4587,19 +4587,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (node.valueType is ImplicitTypeArgument));
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
     bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
-    bool typeContextIsIterable = false;
+    DartType? typeContextAsIterable;
     DartType? unfuturedTypeContext = typeSchemaEnvironment.flatten(typeContext);
     // Ambiguous set/map literal
-    // TODO(johnniwinther): Should we support extension types as the type
-    //  context?
-    if (unfuturedTypeContext is InterfaceType) {
-      typeContextIsMap = typeContextIsMap ||
-          hierarchyBuilder.isSubtypeOf(
-              unfuturedTypeContext.classNode, coreTypes.mapClass);
-      typeContextIsIterable = typeContextIsIterable ||
-          hierarchyBuilder.isSubtypeOf(
-              unfuturedTypeContext.classNode, coreTypes.iterableClass);
-      if (node.entries.isEmpty && typeContextIsIterable && !typeContextIsMap) {
+    if (unfuturedTypeContext is TypeDeclarationType) {
+      if (!typeContextIsMap) {
+        // TODO(johnniwinther): Can we use the found type arguments instead of
+        // the inferred types?
+        typeContextIsMap = hierarchyBuilder.getTypeArgumentsAsInstanceOf(
+                unfuturedTypeContext, coreTypes.mapClass) !=
+            null;
+      }
+      typeContextAsIterable = hierarchyBuilder.getTypeAsInstanceOf(
+          unfuturedTypeContext, coreTypes.iterableClass,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (node.entries.isEmpty &&
+          typeContextAsIterable != null &&
+          !typeContextIsMap) {
         // Set literal
         SetLiteral setLiteral = new SetLiteral([],
             typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
@@ -4640,13 +4644,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool hasIterableSpread = false;
     _MapLiteralEntryOffsets offsets = new _MapLiteralEntryOffsets();
     DartType spreadTypeContext = const UnknownType();
-    if (typeContextIsIterable && !typeContextIsMap) {
-      spreadTypeContext = typeSchemaEnvironment.getTypeAsInstanceOf(
-          unfuturedTypeContext as InterfaceType,
-          coreTypes.iterableClass,
-          coreTypes,
-          isNonNullableByDefault: isNonNullableByDefault)!;
-    } else if (!typeContextIsIterable && typeContextIsMap) {
+    if (typeContextAsIterable != null && !typeContextIsMap) {
+      spreadTypeContext = typeContextAsIterable;
+    } else if (typeContextAsIterable == null && typeContextIsMap) {
       spreadTypeContext = new InterfaceType(
           coreTypes.mapClass,
           libraryBuilder.nonNullable,
@@ -4675,7 +4675,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     hasIterableSpread = offsets.iterableSpreadOffset != null;
     if (inferenceNeeded) {
       bool canBeSet = !hasMapSpread && !hasMapEntry && !typeContextIsMap;
-      bool canBeMap = !hasIterableSpread && !typeContextIsIterable;
+      bool canBeMap = !hasIterableSpread && typeContextAsIterable == null;
       if (canBeSet && !canBeMap) {
         List<Expression> setElements = <Expression>[];
         List<DartType> formalTypesForSet = <DartType>[];
@@ -10487,11 +10487,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           problems.unsupported(
               'Object field target $fieldTarget', node.fileOffset, helper.uri);
         case ObjectAccessTargetKind.extensionMember:
-        case ObjectAccessTargetKind.extensionTypeMember:
-          field.accessKind = ObjectAccessKind.Static;
+          field.accessKind = ObjectAccessKind.Extension;
           field.resultType = fieldTarget.getGetterType(this);
           field.typeArguments = fieldTarget.receiverTypeArguments;
           field.target = fieldTarget.tearoffTarget;
+          break;
+        case ObjectAccessTargetKind.extensionTypeMember:
+          field.accessKind = ObjectAccessKind.ExtensionType;
+          field.resultType = fieldTarget.getGetterType(this);
+          field.typeArguments = fieldTarget.receiverTypeArguments;
+          // TODO(johnniwinther): Extension type getters currently have no
+          // explicitly set tear-off target. Maybe they should.
+          field.target = fieldTarget.tearoffTarget ?? fieldTarget.member;
           break;
         case ObjectAccessTargetKind.dynamic:
           field.accessKind = ObjectAccessKind.Dynamic;
@@ -11081,6 +11088,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               contextType: matchedType);
           requiredType = new InterfaceType(requiredType.classNode,
               requiredType.declaredNullability, inferredTypeArguments);
+        }
+      } else if (requiredType is ExtensionType) {
+        List<TypeParameter> typeParameters =
+            requiredType.extensionTypeDeclaration.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          // It's possible that one of the callee type parameters might match a
+          // type that already exists as part of inference.  This might happen,
+          // for instance, in the case where a method in a generic class
+          // contains an object pattern naming the enclosing class.  To avoid
+          // creating invalid inference results, we need to create fresh type
+          // parameters.
+          FreshTypeParameters fresh = getFreshTypeParameters(typeParameters);
+          ExtensionType declaredType = new ExtensionType(
+              requiredType.extensionTypeDeclaration,
+              requiredType.declaredNullability,
+              fresh.freshTypeArguments);
+          typeParameters = fresh.freshTypeParameters;
+
+          List<DartType> inferredTypeArguments = _inferTypeArguments(
+              typeParameters: typeParameters,
+              declaredType: declaredType,
+              contextType: matchedType);
+          requiredType = new ExtensionType(
+              requiredType.extensionTypeDeclaration,
+              requiredType.declaredNullability,
+              inferredTypeArguments);
         }
       }
     }

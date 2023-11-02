@@ -37,22 +37,7 @@ if (is_linux) {
       assert(false)
     }
   } else if (dart_sysroot == "debian") {
-    if (current_cpu == "x86") {
-      target_sysroot = rebase_path("//build/linux/debian_stretch_i386-sysroot",
-                                   root_build_dir)
-    } else if (current_cpu == "x64") {
-      target_sysroot = rebase_path("//build/linux/debian_stretch_amd64-sysroot",
-                                   root_build_dir)
-    } else if (current_cpu == "arm") {
-      target_sysroot = rebase_path("//build/linux/debian_stretch_arm-sysroot",
-                                   root_build_dir)
-    } else if (current_cpu == "arm64") {
-      target_sysroot = rebase_path("//build/linux/debian_stretch_arm64-sysroot",
-                                   root_build_dir)
-    } else {
-      print("There is no $dart_sysroot sysroot present for $current_cpu")
-      assert(false)
-    }
+    target_sysroot = rebase_path("//buildtools/sysroot/linux", root_build_dir)
   } else if (dart_sysroot != "") {
     print("There is no $dart_sysroot sysroot support")
     assert(false)

@@ -3109,7 +3109,14 @@
           ]
         },
         {
-          "name": "build dart",
+          "name": "build dart - step 1 - divided to avoid timeout",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart - step 2 - divided to avoid timeout",
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",

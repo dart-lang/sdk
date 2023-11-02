@@ -185,11 +185,8 @@ class ContextBuilderImpl2 implements ContextBuilder {
     var map = AnalysisOptionsMap();
     var provider = AnalysisOptionsProvider(sourceFactory);
     var pubspecFile = _findPubspecFile(contextRoot);
-    for (var entry in (contextRoot as ContextRootImpl).optionsFileMap.entries) {
-      var options = AnalysisOptionsImpl();
-      var optionsYaml = provider.getOptionsFromFile(entry.value);
-      options.applyOptions(optionsYaml);
 
+    void updateOptions(AnalysisOptionsImpl options) {
       if (pubspecFile != null) {
         var extractor = SdkConstraintExtractor(pubspecFile);
         var sdkVersionConstraint = extractor.constraint();
@@ -197,7 +194,6 @@ class ContextBuilderImpl2 implements ContextBuilder {
           options.sdkVersionConstraint = sdkVersionConstraint;
         }
       }
-
       if (updateAnalysisOptions != null) {
         updateAnalysisOptions(options);
       } else if (updateAnalysisOptions2 != null) {
@@ -207,8 +203,25 @@ class ContextBuilderImpl2 implements ContextBuilder {
           sdk: sdk,
         );
       }
+    }
 
-      map.add(entry.key, options);
+    var optionsMappings =
+        (contextRoot as ContextRootImpl).optionsFileMap.entries;
+
+    // If there are no options files, we still want to propagate sdk constraints
+    // and options updates to the context root.
+    if (optionsMappings.isEmpty) {
+      var options = AnalysisOptionsImpl();
+      updateOptions(options);
+      map.add(contextRoot.root, options);
+    } else {
+      for (var entry in optionsMappings) {
+        var options = AnalysisOptionsImpl();
+        var optionsYaml = provider.getOptionsFromFile(entry.value);
+        options.applyOptions(optionsYaml);
+        updateOptions(options);
+        map.add(entry.key, options);
+      }
     }
 
     return map;

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/while_statement.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,24 +28,26 @@ class WhileStatementTest extends DartSnippetProducerTest {
   String get prefix => WhileStatement.prefix;
 
   Future<void> test_while() async {
-    var code = r'''
+    final code = TestCode.parse(r'''
 void f() {
   while^
-}''';
+}
+''');
     final snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
     expect(snippet.change.edits, hasLength(1));
-    code = withoutMarkers(code);
+    var result = code.code;
     for (var edit in snippet.change.edits) {
-      code = SourceEdit.applySequence(code, edit.edits);
+      result = SourceEdit.applySequence(result, edit.edits);
     }
-    expect(code, '''
+    expect(result, '''
 void f() {
   while (condition) {
     
   }
-}''');
+}
+''');
     expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 37);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [

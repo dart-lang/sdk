@@ -86,7 +86,7 @@ void main(List<String> args) {
     Class firstClass = classes[first];
     Class secondClass = classes[second];
     classHierarchy.isSubclassOf(firstClass, secondClass);
-    classHierarchy.isSubtypeOf(firstClass, secondClass);
+    classHierarchy.isSubInterfaceOf(firstClass, secondClass);
     classHierarchy.getClassAsInstanceOf(firstClass, secondClass);
   }
 
@@ -108,7 +108,7 @@ void main(List<String> args) {
     int second = rnd.nextInt(classes.length);
     Class firstClass = classes[first];
     Class secondClass = classes[second];
-    classHierarchy.isSubtypeOf(firstClass, secondClass);
+    classHierarchy.isSubInterfaceOf(firstClass, secondClass);
   }
   int subtypeQueryTime = watch.elapsedMicroseconds;
 

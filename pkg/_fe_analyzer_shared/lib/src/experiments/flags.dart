@@ -92,7 +92,7 @@ enum ExperimentalFlag {
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion),
+      experimentReleasedVersion: const Version(3, 3)),
 
   namedArgumentsAnywhere(
       name: 'named-arguments-anywhere',

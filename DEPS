@@ -514,6 +514,17 @@ Var("dart_root") + "/third_party/pkg/tar":
   Var("dart_root") + "/third_party/pkg/yaml":
       Var("dart_git") + "yaml.git" + "@" + Var("yaml_rev"),
 
+  Var("dart_root") + "/buildtools/sysroot/linux": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/sysroot/linux",
+              "version": "git_revision:fa7a5a9710540f30ff98ae48b62f2cdf72ed2acd",
+          },
+      ],
+      "condition": "host_os == linux",
+      "dep_type": "cipd",
+  },
+
   # Keep consistent with pkg/test_runner/lib/src/options.dart.
   Var("dart_root") + "/buildtools/linux-x64/clang": {
       "packages": [
@@ -766,34 +777,6 @@ hooks = [
     'name': 'Generate sdk/version',
     'pattern': '.',
     'action': ['python3', 'sdk/tools/generate_sdk_version_file.py'],
-  },
-  {
-    'name': 'sysroot_arm',
-    'pattern': '.',
-    'condition': 'checkout_linux',
-    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch=arm'],
-  },
-  {
-    'name': 'sysroot_arm64',
-    'pattern': '.',
-    'condition': 'checkout_linux',
-    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch=arm64'],
-  },
-  {
-    'name': 'sysroot_x86',
-    'pattern': '.',
-    'condition': 'checkout_linux',
-    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch=x86'],
-  },
-  {
-    'name': 'sysroot_x64',
-    'pattern': '.',
-    'condition': 'checkout_linux',
-    'action': ['python3', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--arch=x64'],
   },
   {
     'name': 'buildtools',

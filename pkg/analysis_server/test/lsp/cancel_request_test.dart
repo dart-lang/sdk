@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -18,15 +20,15 @@ void main() {
 @reflectiveTest
 class CancelRequestTest extends AbstractLspAnalysisServerTest {
   Future<void> test_cancel() async {
-    final content = '''
+    final code = TestCode.parse('''
 void f() {
   InOtherF^
 }
-    ''';
+''');
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(mainFileUri, code.code);
     await initialAnalysis;
 
     // Create a completion request that we'll cancel.
@@ -34,7 +36,7 @@ void f() {
       Method.textDocument_completion,
       CompletionParams(
         textDocument: TextDocumentIdentifier(uri: mainFileUri),
-        position: positionFromMarker(content),
+        position: code.position.position,
       ),
     );
     // And a request to cancel it.

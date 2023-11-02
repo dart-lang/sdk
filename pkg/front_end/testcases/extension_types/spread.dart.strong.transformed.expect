@@ -7,8 +7,8 @@ library;
 //   MyList<int> list = []; // Error
 //                      ^
 //
-// pkg/front_end/testcases/extension_types/spread.dart:19:23: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'MySet<String>'.
-//  - 'Map' is from 'dart:core'.
+// pkg/front_end/testcases/extension_types/spread.dart:19:23: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'MySet<String>'.
+//  - 'Set' is from 'dart:core'.
 //   MySet<String> set = {}; // Error
 //                       ^
 //
@@ -70,10 +70,12 @@ static method test() → dynamic {
  - 'List' is from 'dart:core'.
   MyList<int> list = []; // Error
                      ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} self::MyList<core::int> /* = core::List<core::int> */;
-  self::MySet<core::String> /* = core::Set<core::String> */ set = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:19:23: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'MySet<String>'.
- - 'Map' is from 'dart:core'.
+  self::MySet<core::String> /* = core::Set<core::String> */ set = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:19:23: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'MySet<String>'.
+ - 'Set' is from 'dart:core'.
   MySet<String> set = {}; // Error
-                      ^" in <dynamic, dynamic>{} as{TypeError} self::MySet<core::String> /* = core::Set<core::String> */;
+                      ^" in ( block {
+    final core::Set<dynamic> #t4 = new col::_Set::•<dynamic>();
+  } =>#t4) as{TypeError} self::MySet<core::String> /* = core::Set<core::String> */;
   self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ map = invalid-expression "pkg/front_end/testcases/extension_types/spread.dart:20:29: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'MyMap<String, bool>'.
  - 'Map' is from 'dart:core'.
   MyMap<String, bool> map = {}; // Error

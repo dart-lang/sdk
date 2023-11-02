@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../utils/test_code_extensions.dart';
 import 'integration_tests.dart';
 
 void main() {
@@ -16,14 +18,14 @@ void main() {
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
   Future<void> test_contextMessage() async {
-    const content = '''
+    final code = TestCode.parse('''
 void f() {
   x = 0;
-  int [[x]] = 1;
+  int [!x!] = 1;
   print(x);
 }
-''';
-    newFile(mainFilePath, withoutMarkers(content));
+''');
+    newFile(mainFilePath, code.code);
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
@@ -41,7 +43,7 @@ void f() {
     final relatedInfo = relatedInformation.first;
     expect(relatedInfo.message, equals("The declaration of 'x' is here."));
     expect(relatedInfo.location.uri, equals(mainFileUri));
-    expect(relatedInfo.location.range, equals(rangeFromMarkers(content)));
+    expect(relatedInfo.location.range, equals(code.range.range));
   }
 
   Future<void> test_initialAnalysis() async {

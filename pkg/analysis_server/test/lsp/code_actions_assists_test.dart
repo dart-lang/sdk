@@ -409,17 +409,17 @@ build() {
     setDocumentChangesSupport();
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
-    const content = '''
+    final code = TestCode.parse('''
 import 'package:flutter/widgets.dart';
 
 build() => Contai^ner(child: Container());
-''';
+''');
 
-    newFile(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, code.code);
     await initialize();
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
+    final codeActions =
+        await getCodeActions(mainFileUri, position: code.position.position);
     final names = codeActions.map(
       (e) => e.map((command) => command.title, (action) => action.title),
     );

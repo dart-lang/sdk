@@ -1,0 +1,56 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/extension_object_pattern.dart:13:27: Error: The type 'int' is not exhaustively matched by the switch cases since it doesn't match 'int(getter: double())'.
+// Try adding a wildcard pattern or cases that match 'int(getter: double())'.
+// method2(int i) => switch (i) /* Error */ {
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+extension Extension on core::int {
+  get getter = self::Extension|get#getter;
+}
+static extension-member method Extension|get#getter(lowered final core::int #this) → core::num
+  return #this;
+static method method1(core::int i) → dynamic
+  return block {
+    core::int #t1;
+    final synthesized core::int #0#0 = i;
+    function ##0#1#initializer() → core::num
+      return self::Extension|get#getter(#0#0);
+    late final synthesized core::num #0#1 = ##0#1#initializer(){() → core::num};
+    #L1:
+    {
+      {
+        hoisted core::num getter;
+        if(#0#1 is core::num && (let final core::num #t2 = getter = #0#1 in true)) {
+          #t1 = 0;
+          break #L1;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+static method method2(core::int i) → dynamic
+  return block {
+    core::int #t3;
+    final synthesized core::int #0#0 = i;
+    function ##0#1#initializer() → core::num
+      return self::Extension|get#getter(#0#0);
+    late final synthesized core::num #0#1 = ##0#1#initializer(){() → core::num};
+    #L2:
+    {
+      {
+        hoisted core::int getter;
+        if(#0#1 is core::int && (let final core::int #t4 = getter = #0#1{core::int} in true)) {
+          #t3 = 0;
+          break #L2;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t3;

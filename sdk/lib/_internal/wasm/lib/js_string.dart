@@ -319,14 +319,20 @@ final class JSStringImpl implements String {
 
   @override
   String toLowerCase() {
-    return JSStringImpl(
-        js.JS<WasmExternRef?>('s => s.toLowerCase()', toExternRef));
+    final thisRef = toExternRef;
+    final lowerCaseRef = js.JS<WasmExternRef?>('s => s.toLowerCase()', thisRef);
+    return _jsIdentical(thisRef, lowerCaseRef)
+        ? this
+        : JSStringImpl(lowerCaseRef);
   }
 
   @override
   String toUpperCase() {
-    return JSStringImpl(
-        js.JS<WasmExternRef?>('s => s.toUpperCase()', toExternRef));
+    final thisRef = toExternRef;
+    final upperCaseRef = js.JS<WasmExternRef?>('s => s.toUpperCase()', thisRef);
+    return _jsIdentical(thisRef, upperCaseRef)
+        ? this
+        : JSStringImpl(upperCaseRef);
   }
 
   // Characters with Whitespace property (Unicode 6.3).
@@ -679,3 +685,6 @@ JSStringImpl _jsStringToJSStringImpl(WasmExternRef? string) =>
 @pragma("wasm:export", "\$jsStringFromJSStringImpl")
 WasmExternRef? _jsStringFromJSStringImpl(JSStringImpl string) =>
     string.toExternRef;
+
+bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
+    js.JS<bool>('Object.is', ref1, ref2);

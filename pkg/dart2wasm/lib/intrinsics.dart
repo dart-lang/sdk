@@ -12,7 +12,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'abi.dart' show kWasmAbiEnumIndex;
 
-typedef CodeGenCallback = void Function(w.InstructionsBuilder);
+typedef CodeGenCallback = void Function(CodeGenerator);
 
 /// Specialized code generation for external members.
 ///
@@ -29,42 +29,43 @@ class Intrinsifier {
       _binaryOperatorMap = {
     boolType: {
       boolType: {
-        '|': (b) => b.i32_or(),
-        '^': (b) => b.i32_xor(),
-        '&': (b) => b.i32_and(),
+        '|': (c) => c.b.i32_or(),
+        '^': (c) => c.b.i32_xor(),
+        '&': (c) => c.b.i32_and(),
       }
     },
     intType: {
       intType: {
-        '+': (b) => b.i64_add(),
-        '-': (b) => b.i64_sub(),
-        '*': (b) => b.i64_mul(),
-        '&': (b) => b.i64_and(),
-        '|': (b) => b.i64_or(),
-        '^': (b) => b.i64_xor(),
-        '<': (b) => b.i64_lt_s(),
-        '<=': (b) => b.i64_le_s(),
-        '>': (b) => b.i64_gt_s(),
-        '>=': (b) => b.i64_ge_s(),
-        '_div_s': (b) => b.i64_div_s(),
-        '_shl': (b) => b.i64_shl(),
-        '_shr_s': (b) => b.i64_shr_s(),
-        '_shr_u': (b) => b.i64_shr_u(),
-        '_le_u': (b) => b.i64_le_u(),
-        '_lt_u': (b) => b.i64_lt_u(),
+        '+': (c) => c.b.i64_add(),
+        '-': (c) => c.b.i64_sub(),
+        '*': (c) => c.b.i64_mul(),
+        '&': (c) => c.b.i64_and(),
+        '|': (c) => c.b.i64_or(),
+        '^': (c) => c.b.i64_xor(),
+        '<': (c) => c.b.i64_lt_s(),
+        '<=': (c) => c.b.i64_le_s(),
+        '>': (c) => c.b.i64_gt_s(),
+        '>=': (c) => c.b.i64_ge_s(),
+        '_div_s': (c) => c.b.i64_div_s(),
+        '_shl': (c) => c.b.i64_shl(),
+        '_shr_s': (c) => c.b.i64_shr_s(),
+        '_shr_u': (c) => c.b.i64_shr_u(),
+        '_le_u': (c) => c.b.i64_le_u(),
+        '_lt_u': (c) => c.b.i64_lt_u(),
+        '~/': (c) => c.call(c.translator.truncDiv.reference),
       }
     },
     doubleType: {
       doubleType: {
-        '+': (b) => b.f64_add(),
-        '-': (b) => b.f64_sub(),
-        '*': (b) => b.f64_mul(),
-        '/': (b) => b.f64_div(),
-        '<': (b) => b.f64_lt(),
-        '<=': (b) => b.f64_le(),
-        '>': (b) => b.f64_gt(),
-        '>=': (b) => b.f64_ge(),
-        '_copysign': (b) => b.f64_copysign(),
+        '+': (c) => c.b.f64_add(),
+        '-': (c) => c.b.f64_sub(),
+        '*': (c) => c.b.f64_mul(),
+        '/': (c) => c.b.f64_div(),
+        '<': (c) => c.b.f64_lt(),
+        '<=': (c) => c.b.f64_le(),
+        '>': (c) => c.b.f64_gt(),
+        '>=': (c) => c.b.f64_ge(),
+        '_copysign': (c) => c.b.f64_copysign(),
       }
     },
   };
@@ -72,33 +73,33 @@ class Intrinsifier {
   static final Map<w.ValueType, Map<String, CodeGenCallback>>
       _unaryOperatorMap = {
     intType: {
-      'unary-': (b) {
-        b.i64_const(-1);
-        b.i64_mul();
+      'unary-': (c) {
+        c.b.i64_const(-1);
+        c.b.i64_mul();
       },
-      '~': (b) {
-        b.i64_const(-1);
-        b.i64_xor();
+      '~': (c) {
+        c.b.i64_const(-1);
+        c.b.i64_xor();
       },
-      'toDouble': (b) {
-        b.f64_convert_i64_s();
+      'toDouble': (c) {
+        c.b.f64_convert_i64_s();
       },
     },
     doubleType: {
-      'unary-': (b) {
-        b.f64_neg();
+      'unary-': (c) {
+        c.b.f64_neg();
       },
-      'floorToDouble': (b) {
-        b.f64_floor();
+      'floorToDouble': (c) {
+        c.b.f64_floor();
       },
-      'ceilToDouble': (b) {
-        b.f64_ceil();
+      'ceilToDouble': (c) {
+        c.b.f64_ceil();
       },
-      'truncateToDouble': (b) {
-        b.f64_trunc();
+      'truncateToDouble': (c) {
+        c.b.f64_trunc();
       },
-      '_toInt': (b) {
-        b.i64_trunc_sat_f64_s();
+      '_toInt': (c) {
+        c.b.i64_trunc_sat_f64_s();
       },
     },
   };
@@ -436,7 +437,6 @@ class Intrinsifier {
       Expression left = node.receiver;
       Expression right = node.arguments.positional.single;
       DartType argType = dartTypeOf(right);
-      if (argType is VoidType) return null;
       w.ValueType leftType = translator.translateType(receiverType);
       w.ValueType rightType = translator.translateType(argType);
       var code = _binaryOperatorMap[leftType]?[rightType]?[name];
@@ -444,7 +444,7 @@ class Intrinsifier {
         w.ValueType outType = isComparison(name) ? w.NumType.i32 : leftType;
         codeGen.wrap(left, leftType);
         codeGen.wrap(right, rightType);
-        code(b);
+        code(codeGen);
         return outType;
       }
     } else if (node.arguments.positional.isEmpty) {
@@ -454,7 +454,7 @@ class Intrinsifier {
       var code = _unaryOperatorMap[opType]?[name];
       if (code != null) {
         codeGen.wrap(operand, opType);
-        code(b);
+        code(codeGen);
         return _unaryResultMap[name] ?? opType;
       }
     }
@@ -572,7 +572,7 @@ class Intrinsifier {
               t != boolType &&
               t != doubleType &&
               !translator.hierarchy
-                  .isSubtypeOf(intType.classNode, t.classNode))) {
+                  .isSubInterfaceOf(intType.classNode, t.classNode))) {
             codeGen.wrap(first, w.RefType.eq(nullable: true));
             codeGen.wrap(second, w.RefType.eq(nullable: true));
             b.ref_eq();
@@ -1319,7 +1319,7 @@ class Intrinsifier {
           w.ValueType outputType = function.type.outputs.single;
           b.local_get(function.locals[0]);
           translator.convertType(function, inputType, intType);
-          code(b);
+          code(codeGen);
           translator.convertType(function, resultType, outputType);
           return true;
         }
@@ -1334,7 +1334,7 @@ class Intrinsifier {
             b.local_get(function.locals[0]);
             translator.convertType(function, leftType, intType);
             b.local_get(function.locals[1]);
-            code(b);
+            code(codeGen);
             if (!isComparison(op)) {
               translator.convertType(function, intType, outputType);
             }
@@ -1356,7 +1356,7 @@ class Intrinsifier {
           // Inline double op
           CodeGenCallback doubleCode =
               _binaryOperatorMap[doubleType]![doubleType]![op]!;
-          doubleCode(b);
+          doubleCode(codeGen);
           if (!isComparison(op)) {
             translator.convertType(function, doubleType, outputType);
           }
@@ -1369,7 +1369,7 @@ class Intrinsifier {
           b.local_get(function.locals[0]);
           translator.convertType(function, leftType, intType);
           b.local_get(rightTemp);
-          code(b);
+          code(codeGen);
           if (!isComparison(op)) {
             translator.convertType(function, intType, outputType);
           }
@@ -1390,7 +1390,7 @@ class Intrinsifier {
           w.ValueType outputType = function.type.outputs.single;
           b.local_get(function.locals[0]);
           translator.convertType(function, inputType, doubleType);
-          code(b);
+          code(codeGen);
           translator.convertType(function, resultType, outputType);
           return true;
         }

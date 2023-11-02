@@ -238,7 +238,7 @@ void checkMacroApplications(
         if (annotation is ConstantExpression) {
           Constant constant = annotation.constant;
           if (constant is InstanceConstant &&
-              hierarchy.isSubtypeOf(constant.classNode, macroClass)) {
+              hierarchy.isSubInterfaceOf(constant.classNode, macroClass)) {
             List<MacroApplication>? applications =
                 macroApplications[constant.classNode];
             if (applications != null) {

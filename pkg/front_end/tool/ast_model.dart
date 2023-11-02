@@ -697,12 +697,12 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
       if (node == classNode) {
         astClass = new AstClass(node,
             kind: AstClassKind.root, isInterchangeable: isInterchangeable);
-      } else if (classHierarchy.isSubtypeOf(node, classNode)) {
+      } else if (classHierarchy.isSubInterfaceOf(node, classNode)) {
         AstClass? superclass = computeAstClass(node.superclass);
         AstClassKind? kind;
         String? declarativeName;
         if (!node.isAbstract &&
-            classHierarchy.isSubtypeOf(node, classNamedNode)) {
+            classHierarchy.isSubInterfaceOf(node, classNamedNode)) {
           kind = AstClassKind.named;
         } else if (declarativeClasses.contains(node)) {
           kind = AstClassKind.declarative;

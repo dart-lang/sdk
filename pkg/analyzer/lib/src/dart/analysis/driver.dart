@@ -88,7 +88,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 316;
+  static const int DATA_VERSION = 317;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -669,8 +669,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   @experimental
-  AnalysisOptions? getAnalysisOptionsForFile(File file) =>
-      _analysisOptionsMap?.getOptions(file);
+  AnalysisOptions getAnalysisOptionsForFile(File file) =>
+      _analysisOptionsMap?.getOptions(file) ?? AnalysisOptionsImpl();
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
   /// [path]. If there is no cached result, return `null`. Usually only results
@@ -1370,6 +1370,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           performance: OperationPerformanceImpl('<root>'),
         );
 
+        // todo(pq): pass this into the library analyzer.
+        //var options = libraryContext.analysisContext.getAnalysisOptionsForFile(file.resource);
+
         var results = LibraryAnalyzer(
           analysisOptions as AnalysisOptionsImpl,
           declaredVariables,
@@ -1479,6 +1482,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         targetLibrary: library,
         performance: OperationPerformanceImpl('<root>'),
       );
+
+      // todo(pq): pass this into the library analyzer.
+      //var options = libraryContext.analysisContext.getAnalysisOptionsForFile(library.file.resource);
 
       var unitResults = LibraryAnalyzer(
               analysisOptions as AnalysisOptionsImpl,
@@ -1939,6 +1945,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         },
       );
       var unitElement = libraryContext.computeUnitElement(library, file);
+
+      // todo(pq): pass this into the library analyzer.
+      //var options = libraryContext.analysisContext.getAnalysisOptionsForFile(file.resource);
 
       var analysisResult = LibraryAnalyzer(
         analysisOptions as AnalysisOptionsImpl,

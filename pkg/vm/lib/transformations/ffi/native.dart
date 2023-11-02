@@ -183,81 +183,6 @@ class FfiNativeTransformer extends FfiTransformer {
     );
   }
 
-  // Create field holding the resolved native function pointer.
-  //
-  // For:
-  //   @FfiNative<IntPtr Function(Pointer<Void>)>('DoXYZ', isLeaf:true)
-  //   external int doXyz(NativeFieldWrapperClass1 obj);
-  //
-  // Create:
-  //   static final _doXyz$FfiNative$ptr =
-  //       Pointer<NativeFunction<IntPtr Function(Pointer<Void>)>>
-  //           .fromAddress(_ffi_resolver('..', 'DoXYZ', 1))
-  //           .asFunction<int Function(Pointer<Void>)>(isLeaf:true);
-  Field _createResolvedFfiNativeField(
-    String dartFunctionName,
-    StringConstant nativeFunctionName,
-    StringConstant? assetName,
-    bool isLeaf,
-    FunctionType dartFunctionType,
-    FunctionType ffiFunctionType,
-    int fileOffset,
-    Uri fileUri,
-  ) {
-    // Derive number of arguments from the native function signature.
-    final numberNativeArgs = ffiFunctionType.positionalParameters.length;
-
-    final nativeFunctionType = InterfaceType(
-      nativeFunctionClass,
-      Nullability.legacy,
-      <DartType>[ffiFunctionType],
-    );
-
-    // _ffi_resolver('...', 'DoXYZ', 1)
-    final resolverInvocation = FunctionInvocation(
-        FunctionAccessKind.FunctionType,
-        StaticGet(resolverField),
-        Arguments(<Expression>[
-          ConstantExpression(
-              assetName ?? StringConstant(currentLibrary.importUri.toString())),
-          ConstantExpression(nativeFunctionName),
-          ConstantExpression(IntConstant(numberNativeArgs)),
-        ]),
-        functionType: resolverField.type as FunctionType)
-      ..fileOffset = fileOffset;
-
-    // _fromAddress<NativeFunction<Double Function(Double)>>(...)
-    final functionPointerExpression = StaticInvocation(
-        fromAddressInternal,
-        Arguments(
-          <Expression>[resolverInvocation],
-          types: [nativeFunctionType],
-        ))
-      ..fileOffset = fileOffset;
-
-    final asFunctionInvocation = buildAsFunctionInternal(
-      functionPointer: functionPointerExpression,
-      dartSignature: dartFunctionType,
-      nativeSignature: ffiFunctionType,
-      isLeaf: isLeaf,
-      fileOffset: fileOffset,
-    );
-
-    // static final _doXyz$FfiNative$Ptr = ...
-    final fieldName =
-        Name('_$dartFunctionName\$FfiNative\$Ptr', currentLibrary);
-    final functionPointerField = Field.immutable(fieldName,
-        type: dartFunctionType,
-        initializer: asFunctionInvocation,
-        isStatic: true,
-        isFinal: true,
-        fileUri: fileUri,
-        getterReference: currentLibraryIndex?.lookupGetterReference(fieldName))
-      ..fileOffset = fileOffset;
-
-    return functionPointerField;
-  }
-
   // Whether a parameter of [dartParameterType], passed as [ffiParameterType],
   // needs to be converted to Pointer.
   bool _requiresPointerConversion(
@@ -350,7 +275,7 @@ class FfiNativeTransformer extends FfiTransformer {
   //     reachabilityFence(#t0);
   //   } => #t1
   Expression _wrapArgumentsAndReturn({
-    required FunctionInvocation invocation,
+    required StaticInvocation invocation,
     required FunctionType dartFunctionType,
     required FunctionType ffiFunctionType,
     bool checkReceiverForNullptr = false,
@@ -487,6 +412,8 @@ class FfiNativeTransformer extends FfiTransformer {
     return validSignature;
   }
 
+  static const vmFfiNative = 'vm:ffi:native';
+
   Procedure _transformProcedure(
     Procedure node,
     StringConstant nativeFunctionName,
@@ -508,74 +435,135 @@ class FfiNativeTransformer extends FfiTransformer {
       return node;
     }
 
-    final parent = node.parent;
-
-    // static final _myMethod$FfiNative$Ptr = ..
-    final resolvedField = _createResolvedFfiNativeField(
-      '${node.name.text}\$${node.kind.name}',
-      nativeFunctionName,
-      assetName,
-      isLeaf,
-      wrappedDartFunctionType,
-      ffiFunctionType,
-      node.fileOffset,
-      node.fileUri,
+    final pragmaConstant = ConstantExpression(
+      InstanceConstant(pragmaClass.reference, [], {
+        pragmaName.fieldReference: StringConstant(vmFfiNative),
+        pragmaOptions.fieldReference: InstanceConstant(
+          nativeClass.reference,
+          [ffiFunctionType],
+          {
+            nativeSymbolField.fieldReference: nativeFunctionName,
+            nativeAssetField.fieldReference: assetName ??
+                StringConstant(currentLibrary.importUri.toString()),
+            nativeIsLeafField.fieldReference: BoolConstant(isLeaf),
+          },
+        )
+      }),
+      InterfaceType(
+        pragmaClass,
+        Nullability.nonNullable,
+        [],
+      ),
     );
 
-    // Add field to the parent the FfiNative function belongs to.
+    final possibleCompoundReturn = findCompoundReturnType(dartFunctionType);
+    if (dartFunctionType == wrappedDartFunctionType &&
+        node.isStatic &&
+        possibleCompoundReturn == null) {
+      // We are not wrapping/unwrapping arguments or return value.
+      node.addAnnotation(pragmaConstant);
+      return node;
+    }
+
+    // Introduce a new function as external with the annotation and give the
+    // current function a body that does the wrapping/unwrapping.
+    node.isExternal = false;
+
+    node.addAnnotation(ConstantExpression(
+      InstanceConstant(pragmaClass.reference, [], {
+        pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
+        pragmaOptions.fieldReference: NullConstant(),
+      }),
+    ));
+
+    final parent = node.parent;
+    var fileUri = currentLibrary.fileUri;
     if (parent is Class) {
-      parent.addField(resolvedField);
+      fileUri = parent.fileUri;
     } else if (parent is Library) {
-      parent.addField(resolvedField);
+      fileUri = parent.fileUri;
+    }
+
+    int varCounter = 0;
+    final nonWrappedFfiNative = Procedure(
+      Name('_${node.name.text}\$${node.kind.name}\$FfiNative', currentLibrary),
+      ProcedureKind.Method,
+      FunctionNode(
+        /*body=*/ null,
+        requiredParameterCount: wrappedDartFunctionType.requiredParameterCount,
+        positionalParameters: [
+          for (final positionalParameter
+              in wrappedDartFunctionType.positionalParameters)
+            VariableDeclaration(
+              /*name=*/ '#t${varCounter++}',
+              type: positionalParameter,
+            )..fileOffset = node.fileOffset,
+        ],
+        returnType: wrappedDartFunctionType.returnType,
+      )..fileOffset = node.fileOffset,
+      fileUri: fileUri,
+      isStatic: true,
+      isExternal: true,
+    )
+      ..isNonNullableByDefault = node.isNonNullableByDefault
+      ..fileOffset = node.fileOffset;
+    nonWrappedFfiNative.addAnnotation(pragmaConstant);
+
+    // Add procedure to the parent the FfiNative function belongs to.
+    if (parent is Class) {
+      parent.addProcedure(nonWrappedFfiNative);
+    } else if (parent is Library) {
+      parent.addProcedure(nonWrappedFfiNative);
     } else {
-      throw 'Unexpected parent of @FfiNative function. '
+      throw 'Unexpected parent of @Native function. '
           'Expected Class or Library, but found ${parent}.';
     }
 
-    // _myFunction$FfiNative$Ptr(obj, x)
-    final functionPointerInvocation = FunctionInvocation(
-        FunctionAccessKind.FunctionType,
-        StaticGet(resolvedField),
-        Arguments(argumentList),
-        functionType: wrappedDartFunctionType)
-      ..fileOffset = node.fileOffset;
+    final nonWrappedInvocation = StaticInvocation(
+      nonWrappedFfiNative,
+      Arguments(argumentList),
+    )..fileOffset = node.fileOffset;
 
     Expression result = (wrappedDartFunctionType == dartFunctionType
-        ? functionPointerInvocation
+        ? nonWrappedInvocation
         : _wrapArgumentsAndReturn(
-            invocation: functionPointerInvocation,
+            invocation: nonWrappedInvocation,
             dartFunctionType: dartFunctionType,
             ffiFunctionType: ffiFunctionType,
             checkReceiverForNullptr: checkReceiverForNullptr,
           ));
+    if (possibleCompoundReturn != null) {
+      result = invokeCompoundConstructor(result, possibleCompoundReturn);
+    }
 
-    //   => _myFunction$FfiNative$Ptr(
-    //     Pointer<Void>.fromAddress(_getNativeField(obj)), x)
     node.function.body = ReturnStatement(result)..parent = node.function;
 
     return node;
   }
 
   // Transform FfiNative instance methods.
+  //
   // Example:
+  //
   //   class MyNativeClass extends NativeFieldWrapperClass1 {
-  //     @FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('MyClass_MyMethod')
+  //     @Native<IntPtr Function(Pointer<Void>, IntPtr)>(symbol: 'MyClass_MyMethod')
   //     external int myMethod(int x);
   //   }
+  //
   // Becomes, roughly:
-  //   ... {
-  //     static final _myMethod$FfiNative$Ptr = ...
-  //     static _myMethod$FfiNative(MyNativeClass self, int x)
-  //       => _myMethod$FfiNative$Ptr(
-  //         Pointer<Void>.fromAddress(_getNativeField(self)), x);
-  //     int myMethod(int x) => _myMethod$FfiNative(this, x);
-  //   }
   //
   //   ... {
-  //     static final _myMethod$FfiNative$Ptr = ...
-  //     int myMethod(int x)
-  //       => _myMethod$FfiNative$Ptr(
-  //         Pointer<Void>.fromAddress(_getNativeField(this)), x);
+  //     @pragma(
+  //       'vm:ffi:native',
+  //       Native<IntPtr Function(Pointer<Void>, IntPtr)>(
+  //         symbol: 'MyClass_MyMethod',
+  //         assetId: '<library uri>',
+  //       ),
+  //     )
+  //     external int _myFunction$FfiNative(Pointer<Void> self, int x);
+  //
+  //     @pragma('vm:prefer-inline')
+  //     int myMethod(int x) => _myMethod$FfiNative(_getNativeField(this), x);
   //   }
   Procedure _transformInstanceMethod(
       Procedure node,
@@ -609,13 +597,26 @@ class FfiNativeTransformer extends FfiTransformer {
   }
 
   // Transform FfiNative static functions.
+  //
   // Example:
-  //   @FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('MyFunction')
+  //
+  //   @Native<IntPtr Function(Pointer<Void>, IntPtr)>(symbol: 'MyFunction')
   //   external int myFunction(MyNativeClass obj, int x);
+  //
   // Becomes, roughly:
-  //   static final _myFunction$FfiNative$Ptr = ...
+  //
+  //   @pragma(
+  //     'vm:ffi:native',
+  //     Native<IntPtr Function(Pointer<Void>, IntPtr)>(
+  //       symbol: 'MyFunction',
+  //       assetId: '<library uri>',
+  //     ),
+  //   )
+  //   external int _myFunction$FfiNative(Pointer<Void> self, int x);
+  //
+  //   @pragma('vm:prefer-inline')
   //   int myFunction(MyNativeClass obj, int x)
-  //     => myFunction$FfiNative$Ptr(
+  //     => _myFunction$FfiNative(
   //       Pointer<Void>.fromAddress(_getNativeField(obj)), x);
   Procedure _transformStaticFunction(
       Procedure node,
@@ -648,7 +649,7 @@ class FfiNativeTransformer extends FfiTransformer {
   @override
   visitProcedure(Procedure node) {
     // Only transform functions that are external and have FfiNative annotation:
-    //   @FfiNative<Double Function(Double)>('Math_sqrt')
+    //   @Native<Double Function(Double)>(symbol: 'Math_sqrt')
     //   external double _square_root(double x);
     final ffiNativeAnnotation =
         tryGetNativeAnnotation(node) ?? tryGetFfiNativeAnnotation(node);
@@ -661,7 +662,6 @@ class FfiNativeTransformer extends FfiTransformer {
           1, node.location?.file);
       return node;
     }
-    node.isExternal = false;
 
     node.annotations.remove(ffiNativeAnnotation);
 

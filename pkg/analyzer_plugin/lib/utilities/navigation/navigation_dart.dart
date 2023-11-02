@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,19 +14,21 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
+import 'package:analyzer_plugin/utilities/navigation/document_links.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
 NavigationCollector computeDartNavigation(
     ResourceProvider resourceProvider,
     NavigationCollector collector,
-    CompilationUnit unit,
+    ParsedUnitResult result,
     int? offset,
     int? length) {
   var dartCollector = _DartNavigationCollector(collector, offset, length);
+  var unit = result.unit;
   var visitor = _DartNavigationComputerVisitor(
     resourceProvider: resourceProvider,
     computer: dartCollector,
-    unitElement: unit.declaredElement!,
+    unit: result,
   );
   if (offset == null || length == null) {
     unit.accept(visitor);
@@ -173,29 +176,15 @@ class _DartNavigationCollector {
 
 class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   final ResourceProvider resourceProvider;
-  final CompilationUnitElement unitElement;
+  final ParsedUnitResult unit;
+  final DartDocumentLinkVisitor _documentLinkVisitor;
   final _DartNavigationCollector computer;
-
-  /// The directory that contains `examples/api`, `null` if not found.
-  late final Folder? folderWithExamplesApi = () {
-    var filePath = unitElement.source.fullName;
-    var file = resourceProvider.getFile(filePath);
-    for (var parent in file.parent.withAncestors) {
-      var apiFolder = parent
-          .getChildAssumingFolder('examples')
-          .getChildAssumingFolder('api');
-      if (apiFolder.exists) {
-        return parent;
-      }
-    }
-    return null;
-  }();
 
   _DartNavigationComputerVisitor({
     required this.resourceProvider,
-    required this.unitElement,
+    required this.unit,
     required this.computer,
-  });
+  }) : _documentLinkVisitor = DartDocumentLinkVisitor(resourceProvider, unit);
 
   @override
   void visitAnnotation(Annotation node) {
@@ -245,69 +234,23 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
-    if (!node.isDocumentation) {
-      super.visitComment(node);
-      return;
-    }
+    super.visitComment(node);
 
-    for (var commentReference in node.references) {
-      commentReference.accept(this);
-    }
-
-    var inToolAnnotation = false;
-    for (var token in node.tokens) {
-      if (token.isEof) {
-        break;
-      }
-      var strValue = token.toString();
-      if (strValue.isEmpty) {
-        continue;
-      }
-
-      if (inToolAnnotation) {
-        if (strValue.contains('{@end-tool}')) {
-          inToolAnnotation = false;
-        } else {
-          var seeCodeIn = '** See code in ';
-          var startIndex = strValue.indexOf('${seeCodeIn}examples/api/');
-          if (startIndex != -1) {
-            final folderWithExamplesApi = this.folderWithExamplesApi;
-            if (folderWithExamplesApi == null) {
-              // Examples directory doesn't exist.
-              super.visitComment(node);
-              return;
-            }
-            startIndex += seeCodeIn.length;
-            var endIndex = strValue.indexOf('.dart') + 5;
-            var pathSnippet = strValue.substring(startIndex, endIndex);
-            // Split on '/' because that's what the comment syntax uses, but
-            // re-join it using the resource provider to get the right separator
-            // for the platform.
-            var examplePath = resourceProvider.pathContext.joinAll([
-              folderWithExamplesApi.path,
-              ...pathSnippet.split('/'),
-            ]);
-            var start = token.offset + startIndex;
-            var end = token.offset + endIndex;
-            computer._addRegion(
-              start,
-              end - start,
-              protocol.ElementKind.LIBRARY,
-              protocol.Location(
-                examplePath,
-                0,
-                0,
-                0,
-                0,
-                endLine: 0,
-                endColumn: 0,
-              ),
-            );
-          }
-        }
-      } else if (strValue.contains('{@tool ')) {
-        inToolAnnotation = true;
-      }
+    for (final link in _documentLinkVisitor.findLinks(node)) {
+      computer._addRegion(
+        link.offset,
+        link.length,
+        protocol.ElementKind.LIBRARY,
+        protocol.Location(
+          link.targetPath,
+          0,
+          0,
+          0,
+          0,
+          endLine: 0,
+          endColumn: 0,
+        ),
+      );
     }
   }
 

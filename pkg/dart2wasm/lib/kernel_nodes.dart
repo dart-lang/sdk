@@ -199,6 +199,8 @@ mixin KernelNodes {
       index.getProcedure("dart:_string", "StringBase", "==");
   late final Procedure stringInterpolate =
       index.getProcedure("dart:_string", "StringBase", "_interpolate");
+  late final Procedure truncDiv =
+      index.getProcedure("dart:core", "_BoxedInt", "_truncDiv");
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =

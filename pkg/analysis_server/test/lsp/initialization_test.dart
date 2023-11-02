@@ -281,6 +281,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       assertDynamicRegistration(
           'documentHighlight', {Method.textDocument_documentHighlight});
 
+  Future<void> test_dynamicRegistration_config_documentLink() =>
+      assertDynamicRegistration(
+          'documentLink', {Method.textDocument_documentLink});
+
   Future<void> test_dynamicRegistration_config_documentSymbol() =>
       assertDynamicRegistration(
           'documentSymbol', {Method.textDocument_documentSymbol});
