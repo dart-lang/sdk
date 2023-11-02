@@ -2443,7 +2443,7 @@ void func() {
     // No resolved files yet.
     _assertResolvedFiles([]);
 
-    await resolveFile2(testFile.path);
+    await resolveFile2(testFile);
     var result1 = result;
 
     // The file was resolved.
@@ -2453,7 +2453,7 @@ void func() {
     expect(fileResolver.cachedResults, contains(testFile.path));
 
     // Ask again, no changes, not resolved.
-    await resolveFile2(testFile.path);
+    await resolveFile2(testFile);
     _assertResolvedFiles([]);
 
     // The same result was returned.
@@ -2464,7 +2464,7 @@ void func() {
     fileResolver.changeFiles([a_path]);
 
     // The was a change to a file, no matter which, resolve again.
-    await resolveFile2(testFile.path);
+    await resolveFile2(testFile);
     _assertResolvedFiles([testFile]);
 
     // Get should get a new result.

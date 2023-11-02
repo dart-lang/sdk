@@ -30,28 +30,28 @@ import 'dart:_internal';
   }
 
   test_wasm_fromJs() async {
-    var filePath = _inPackage('js');
-    newFile(filePath, '''
+    var filePath = _pathInPackage('js');
+    final file = newFile(filePath, '''
 import 'dart:_wasm';
 ''');
-    await resolveFile2(filePath);
+    await resolveFile2(file);
     assertErrorsInResolvedUnit(result, [
       error(WarningCode.UNUSED_IMPORT, 7, 12),
     ]);
   }
 
   test_wasm_fromUi() async {
-    var filePath = _inPackage('ui');
-    newFile(filePath, '''
+    var filePath = _pathInPackage('ui');
+    final file = newFile(filePath, '''
 import 'dart:_wasm';
 ''');
-    await resolveFile2(filePath);
+    await resolveFile2(file);
     assertErrorsInResolvedUnit(result, [
       error(WarningCode.UNUSED_IMPORT, 7, 12),
     ]);
   }
 
-  String _inPackage(String packageName) {
+  String _pathInPackage(String packageName) {
     var packageRoot = '$workspaceRootPath/$packageName';
     var builder = PackageConfigFileBuilder();
     builder.add(
@@ -61,6 +61,6 @@ import 'dart:_wasm';
     );
     var path = '$packageRoot/.dart_tool/package_config.json';
     writePackageConfig(path, builder);
-    return convertPath('$packageRoot/lib/$packageName.dart');
+    return '$packageRoot/lib/$packageName.dart';
   }
 }

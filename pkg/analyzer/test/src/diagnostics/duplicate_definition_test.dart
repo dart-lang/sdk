@@ -172,7 +172,7 @@ class A {
     await resolveTestFile();
     assertNoErrorsInResult();
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
   }
 
@@ -196,7 +196,7 @@ class A {
     await resolveTestFile();
     assertNoErrorsInResult();
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertErrorsInResult([
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 55, 3,
           contextMessages: [message('/home/test/lib/test.dart', 43, 3)]),
@@ -1591,7 +1591,7 @@ mixin A {
     await resolveTestFile();
     assertNoErrorsInResult();
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
   }
 
@@ -1615,7 +1615,7 @@ mixin A {
     await resolveTestFile();
     assertNoErrorsInResult();
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertErrorsInResult([
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 55, 3,
           contextMessages: [message('/home/test/lib/test.dart', 43, 3)]),
@@ -2150,7 +2150,7 @@ class A {}
     await resolveTestFile();
     assertNoErrorsInResult();
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
   }
 
@@ -2170,7 +2170,7 @@ mixin A {}
     await resolveTestFile();
     assertNoErrorsInResult();
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
   }
 

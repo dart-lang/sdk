@@ -157,7 +157,7 @@ void foo() {}
 class A {}
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
 
     final node = findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
