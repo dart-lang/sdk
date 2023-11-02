@@ -10,6 +10,7 @@ inference_update_2/external_field_test: SkipByDesign # Non-JS-interop external m
 inference_update_2/why_not_promoted_external_error_test: SkipByDesign # Non-JS-interop external members are not supported
 mixin_method_override_test/G5: Skip # Issue 34354
 number/int64_literal_runtime*_test: Skip # This is testing Dart 2.0 int64 semantics
+regress/regress41983_test: Slow, Pass # Stress test that requires longer time to compile
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
