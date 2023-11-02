@@ -1347,3 +1347,6 @@ external Pointer<NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>
 final _ffi_resolver = _get_ffi_native_resolver<
         NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>()
     .asFunction<int Function(Object, Object, int)>();
+
+@pragma('vm:entry-point')
+int _ffi_resolver_function(Object a, Object s, int n) => _ffi_resolver(a, s, n);

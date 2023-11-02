@@ -1377,7 +1377,7 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
   // * Selector matches a symbol used in Resolver::ResolveDynamic calls
   //   in dart_entry.cc or dart_api_impl.cc.
   // * _Closure.call (used in async stack handling)
-  if (function.is_native()) {
+  if (function.is_old_native()) {
     return "native function";
   }
 
@@ -1648,7 +1648,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.is_native()) {
+        if (function.is_old_native()) {
           // The embedder will need to lookup this library to provide the native
           // resolver, even if there are no embedder calls into the library.
           AddApiUse(lib);
@@ -2193,7 +2193,7 @@ void Precompiler::DropFunctions() {
       // FFI trampolines may be dynamically called.
       return AddRetainReason(sig, RetainReasons::kFfiTrampolineSignature);
     }
-    if (function.is_native()) {
+    if (function.is_old_native()) {
       return AddRetainReason(sig, RetainReasons::kNativeSignature);
     }
     if (function.HasRequiredNamedParameters()) {
@@ -2983,7 +2983,7 @@ void Precompiler::DiscardCodeObjects() {
       if (functions_to_retain_.ContainsKey(function_)) {
         // Retain Code objects corresponding to native functions
         // (to find native implementation).
-        if (function_.is_native()) {
+        if (function_.is_old_native()) {
           ++codes_with_native_function_;
           return;
         }

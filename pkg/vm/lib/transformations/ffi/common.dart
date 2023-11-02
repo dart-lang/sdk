@@ -1160,17 +1160,29 @@ class FfiTransformer extends Transformer {
         ]))
       ..fileOffset = fileOffset;
 
-    if (dartSignature is FunctionType) {
-      final returnType = dartSignature.returnType;
-      if (returnType is InterfaceType) {
-        final clazz = returnType.classNode;
-        if (clazz.superclass == structClass || clazz.superclass == unionClass) {
-          return invokeCompoundConstructor(asFunctionInternalInvocation, clazz);
-        }
-      }
+    final possibleCompoundReturn = findCompoundReturnType(dartSignature);
+    if (possibleCompoundReturn != null) {
+      return invokeCompoundConstructor(
+          asFunctionInternalInvocation, possibleCompoundReturn);
     }
 
     return asFunctionInternalInvocation;
+  }
+
+  /// Returns the compound [Class] if a compound is returned, otherwise `null`.
+  Class? findCompoundReturnType(DartType dartSignature) {
+    if (dartSignature is! FunctionType) {
+      return null;
+    }
+    final returnType = dartSignature.returnType;
+    if (returnType is! InterfaceType) {
+      return null;
+    }
+    final clazz = returnType.classNode;
+    if (clazz.superclass == structClass || clazz.superclass == unionClass) {
+      return clazz;
+    }
+    return null;
   }
 
   /// Returns

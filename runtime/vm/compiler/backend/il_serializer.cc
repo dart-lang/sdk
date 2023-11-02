@@ -259,6 +259,7 @@ template <>
 void FlowGraphSerializer::WriteTrait<const compiler::ffi::CallMarshaller&>::
     Write(FlowGraphSerializer* s, const compiler::ffi::CallMarshaller& x) {
   s->Write<const Function&>(x.dart_signature());
+  s->Write<const FunctionType&>(x.c_signature());
 }
 
 template <>
@@ -266,9 +267,10 @@ const compiler::ffi::CallMarshaller&
 FlowGraphDeserializer::ReadTrait<const compiler::ffi::CallMarshaller&>::Read(
     FlowGraphDeserializer* d) {
   const Function& dart_signature = d->Read<const Function&>();
+  const FunctionType& c_signature = d->Read<const FunctionType&>();
   const char* error = nullptr;
   return *compiler::ffi::CallMarshaller::FromFunction(d->zone(), dart_signature,
-                                                      &error);
+                                                      c_signature, &error);
 }
 
 template <>

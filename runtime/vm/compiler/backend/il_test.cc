@@ -1209,8 +1209,11 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
   // Construct the FFICallInstr from the trampoline matching our native
   // function.
   const char* error = nullptr;
+  auto* const zone = thread->zone();
+  const auto& c_signature =
+      FunctionType::ZoneHandle(zone, ffi_trampoline.FfiCSignature());
   const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
-      thread->zone(), ffi_trampoline, &error);
+      zone, ffi_trampoline, c_signature, &error);
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;

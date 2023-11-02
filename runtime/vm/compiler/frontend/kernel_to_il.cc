@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "lib/ffi_dynamic_library.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/class_id.h"
@@ -593,7 +594,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
 
   // Emit a type check of the return type in checked mode for all functions
   // and in strong mode for native functions.
-  if (!omit_result_type_check && function.is_native()) {
+  if (!omit_result_type_check && function.is_old_native()) {
     const AbstractType& return_type =
         AbstractType::Handle(Z, function.result_type());
     instructions += CheckAssignable(return_type, Symbols::FunctionResult());
@@ -857,7 +858,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
                                               LocalVariable* first_parameter) {
-  ASSERT(function.is_native());
+  ASSERT(function.is_old_native());
   ASSERT(!IsRecognizedMethodForFlowGraph(function));
 
   Fragment body;
@@ -4984,33 +4985,133 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     case FfiFunctionKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
     case FfiFunctionKind::kCall:
-      return BuildGraphOfFfiNative(function);
+      return BuildGraphOfFfiCall(function);
   }
   UNREACHABLE();
   return nullptr;
 }
 
-FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
+Fragment FlowGraphBuilder::FfiNativeLookupAddress(const Function& function) {
+  ASSERT(function.is_ffi_native());
+  ASSERT(!IsRecognizedMethodForFlowGraph(function));
+  auto const& native_instance =
+      Instance::Handle(function.GetNativeAnnotation());
+  const auto& native_class = Class::Handle(Z, native_instance.clazz());
+  ASSERT(String::Handle(Z, native_class.UserVisibleName())
+             .Equals(Symbols::FfiNative()));
+  const auto& native_class_fields = Array::Handle(Z, native_class.fields());
+  ASSERT(native_class_fields.Length() == 3);
+  const auto& symbol_field =
+      Field::Handle(Z, Field::RawCast(native_class_fields.At(0)));
+  const auto& asset_id_field =
+      Field::Handle(Z, Field::RawCast(native_class_fields.At(1)));
+  const auto& symbol = String::ZoneHandle(
+      Z, String::RawCast(native_instance.GetField(symbol_field)));
+  const auto& asset_id = String::ZoneHandle(
+      Z, String::RawCast(native_instance.GetField(asset_id_field)));
+  const auto& type_args =
+      TypeArguments::Handle(Z, native_instance.GetTypeArguments());
+  ASSERT(type_args.Length() == 1);
+  const auto& native_type =
+      FunctionType::Cast(AbstractType::ZoneHandle(Z, type_args.TypeAt(0)));
+  const intptr_t arg_n =
+      native_type.NumParameters() - native_type.num_implicit_parameters();
+  const auto& ffi_resolver =
+      Function::ZoneHandle(Z, IG->object_store()->ffi_resolver_function());
+
+#if !defined(TARGET_ARCH_IA32)
+  // Access to the pool, use cacheable static call.
+  Fragment body;
+  body += Constant(asset_id);
+  body += Constant(symbol);
+  body += Constant(Smi::ZoneHandle(Smi::New(arg_n)));
+  body += CachableIdempotentCall(TokenPosition::kNoSource, ffi_resolver,
+                                 /*argument_count=*/3,
+                                 /*argument_names=*/Array::null_array(),
+                                 /*type_args_count=*/0);
+  return body;
+#else
+  // IA32 only has JIT and no pool. This function will only be compiled if
+  // immediately run afterwards, so do the lookup here.
+  char* error = nullptr;
+#if !defined(DART_PRECOMPILER) || defined(TESTING)
+  const uintptr_t function_address =
+      FfiResolveInternal(asset_id, symbol, arg_n, &error);
+#else
+  const uintptr_t function_address = 0;
+  UNREACHABLE();  // JIT runtime should not contain AOT code
+#endif
+  if (error == nullptr) {
+    Fragment body;
+    body += UnboxedIntConstant(function_address, kUnboxedFfiIntPtr);
+    return body;
+  } else {
+    free(error);
+    // Lookup failed, we want to throw an error consistent with AOT, just
+    // compile into a lookup so that we can throw the error from the same
+    // error path.
+    Fragment body;
+    body += Constant(asset_id);
+    body += Constant(symbol);
+    body += Constant(Smi::ZoneHandle(Smi::New(arg_n)));
+    // Non-cacheable call, this is IA32.
+    body += StaticCall(TokenPosition::kNoSource, ffi_resolver,
+                       /*argument_count=*/3, ICData::kStatic);
+    body += UnboxTruncate(kUnboxedFfiIntPtr);
+    return body;
+  }
+#endif
+}
+
+Fragment FlowGraphBuilder::FfiCallLookupAddress(const Function& function) {
+  ASSERT(function.IsFfiTrampoline());
   const intptr_t kClosureParameterOffset = 0;
-  const intptr_t kFirstArgumentParameterOffset = kClosureParameterOffset + 1;
+  Fragment body;
+  // Push the function pointer, which is stored (as Pointer object) in the
+  // first slot of the context.
+  body +=
+      LoadLocal(parsed_function_->ParameterVariable(kClosureParameterOffset));
+  body += LoadNativeField(Slot::Closure_context());
+  body += LoadNativeField(Slot::GetContextVariableSlotFor(
+      thread_, *MakeImplicitClosureScope(
+                    Z, Class::Handle(IG->object_store()->ffi_pointer_class()))
+                    ->context_variables()[0]));
 
-  graph_entry_ =
-      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+  // This can only be Pointer, so it is always safe to LoadUntagged.
+  body += LoadUntagged(compiler::target::PointerBase::data_offset());
+  body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+  return body;
+}
 
-  auto normal_entry = BuildFunctionEntry(graph_entry_);
-  graph_entry_->set_normal_entry(normal_entry);
+Fragment FlowGraphBuilder::FfiNativeFunctionBody(const Function& function) {
+  ASSERT(function.is_ffi_native());
+  ASSERT(!IsRecognizedMethodForFlowGraph(function));
 
-  PrologueInfo prologue_info(-1, -1);
+  const auto& c_signature =
+      FunctionType::ZoneHandle(Z, function.FfiCSignature());
 
-  BlockEntryInstr* instruction_cursor =
-      BuildPrologue(normal_entry, &prologue_info);
+  Fragment body;
+  body += FfiNativeLookupAddress(function);
+  body += FfiCallFunctionBody(function, c_signature);
+  return body;
+}
 
-  Fragment function_body(instruction_cursor);
-  function_body += CheckStackOverflowInPrologue(function.token_pos());
+Fragment FlowGraphBuilder::FfiCallFunctionBody(
+    const Function& function,
+    const FunctionType& c_signature) {
+  ASSERT(function.is_ffi_native() || function.IsFfiTrampoline());
+  const bool is_ffi_native = function.is_ffi_native();
+  const intptr_t kClosureParameterOffset = 0;
+  const intptr_t first_argument_parameter_offset =
+      is_ffi_native ? 0 : kClosureParameterOffset + 1;
+
+  LocalVariable* address = MakeTemporary("address");
+
+  Fragment body;
 
   const char* error = nullptr;
-  const auto marshaller_ptr =
-      compiler::ffi::CallMarshaller::FromFunction(Z, function, &error);
+  const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
+      Z, function, c_signature, &error);
   // AbiSpecific integers can be incomplete causing us to not know the calling
   // convention. However, this is caught in asFunction in both JIT/AOT.
   RELEASE_ASSERT(error == nullptr);
@@ -5030,21 +5131,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     if (marshaller.IsHandle(i)) {
       continue;
     }
-    function_body += LoadLocal(
-        parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
+    body += LoadLocal(parsed_function_->ParameterVariable(
+        first_argument_parameter_offset + i));
     // TODO(http://dartbug.com/47486): Support entry without checking for null.
     // Check for 'null'.
-    function_body += CheckNullOptimized(
+    body += CheckNullOptimized(
         String::ZoneHandle(
-            Z, function.ParameterNameAt(kFirstArgumentParameterOffset + i)),
+            Z, function.ParameterNameAt(first_argument_parameter_offset + i)),
         CheckNullInstr::kArgumentError);
-    function_body += StoreLocal(
-        TokenPosition::kNoSource,
-        parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
-    function_body += Drop();
+    body += StoreLocal(TokenPosition::kNoSource,
+                       parsed_function_->ParameterVariable(
+                           first_argument_parameter_offset + i));
+    body += Drop();
   }
 
-  Fragment body;
   intptr_t try_handler_index = -1;
   if (signature_contains_handles) {
     // Wrap in Try catch to transition from Native to Generated on a throw from
@@ -5072,12 +5172,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
     if (marshaller.IsCompound(i)) {
       body += FfiCallConvertCompoundArgumentToNative(
-          parsed_function_->ParameterVariable(kFirstArgumentParameterOffset +
+          parsed_function_->ParameterVariable(first_argument_parameter_offset +
                                               i),
           marshaller, i);
     } else {
       body += LoadLocal(parsed_function_->ParameterVariable(
-          kFirstArgumentParameterOffset + i));
+          first_argument_parameter_offset + i));
       // FfiCallInstr specifies all handle locations as Stack, and will pass a
       // pointer to the stack slot as the native handle argument.
       // Therefore we do not need to wrap handles.
@@ -5087,20 +5187,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     }
   }
 
-  // Push the function pointer, which is stored (as Pointer object) in the
-  // first slot of the context.
-  body +=
-      LoadLocal(parsed_function_->ParameterVariable(kClosureParameterOffset));
-  body += LoadNativeField(Slot::Closure_context());
-  body += LoadNativeField(Slot::GetContextVariableSlotFor(
-      thread_, *MakeImplicitClosureScope(
-                    Z, Class::Handle(IG->object_store()->ffi_pointer_class()))
-                    ->context_variables()[0]));
-
-  // This can only be Pointer, so it is safe to load the data field.
-  body += LoadNativeField(Slot::PointerBase_data(),
-                          InnerPointerAccess::kCannotBeInnerPointer);
-  body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+  body += LoadLocal(address);
 
   if (marshaller.PassTypedData()) {
     body += LoadLocal(typed_data);
@@ -5111,7 +5198,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
     if (marshaller.IsPointer(i)) {
       body += LoadLocal(parsed_function_->ParameterVariable(
-          kFirstArgumentParameterOffset + i));
+          first_argument_parameter_offset + i));
       body += ReachabilityFence();
     }
   }
@@ -5119,12 +5206,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   const intptr_t num_defs = marshaller.NumReturnDefinitions();
   ASSERT(num_defs >= 1);
   auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);
-  LocalVariable* def = MakeTemporary();
+  LocalVariable* def = MakeTemporary("ffi call result");
   defs->Add(def);
 
   if (marshaller.PassTypedData()) {
     // Drop call result, typed data with contents is already on the stack.
-    body += Drop();
+    body += DropTemporary(&def);
   }
 
   if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {
@@ -5141,13 +5228,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     body += ExitHandleScope();
   }
 
+  body += DropTempsPreserveTop(1);  // Drop address.
   body += Return(TokenPosition::kNoSource);
 
   if (signature_contains_handles) {
     --try_depth_;
   }
-
-  function_body += body;
 
   if (signature_contains_handles) {
     ++catch_depth_;
@@ -5166,6 +5252,30 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     catch_body += RethrowException(TokenPosition::kNoSource, try_handler_index);
     --catch_depth_;
   }
+
+  return body;
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCall(const Function& function) {
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto normal_entry = BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
+
+  PrologueInfo prologue_info(-1, -1);
+
+  BlockEntryInstr* instruction_cursor =
+      BuildPrologue(normal_entry, &prologue_info);
+
+  Fragment function_body(instruction_cursor);
+  function_body += CheckStackOverflowInPrologue(function.token_pos());
+
+  const auto& c_signature =
+      FunctionType::ZoneHandle(Z, function.FfiCSignature());
+
+  function_body += FfiCallLookupAddress(function);
+  function_body += FfiCallFunctionBody(function, c_signature);
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
