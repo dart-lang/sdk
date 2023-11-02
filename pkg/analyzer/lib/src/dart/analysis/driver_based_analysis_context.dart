@@ -58,6 +58,6 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   }
 
   @experimental
-  AnalysisOptions? getAnalysisOptionsForFile(File file) =>
+  AnalysisOptions getAnalysisOptionsForFile(File file) =>
       driver.getAnalysisOptionsForFile(file);
 }
