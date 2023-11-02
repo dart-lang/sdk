@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
@@ -18,8 +19,8 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -34,18 +35,26 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer/src/workspace/blaze.dart';
+import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceFileEdit;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:collection/collection.dart';
+import 'package:yaml/yaml.dart';
 
+import 'fix/pubspec/fix_generator.dart';
 import 'organize_imports.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
@@ -250,10 +259,12 @@ class BulkFixProcessor {
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
       var library = await performance.runAsync(
         'getResolvedLibrary',
-        (_) => context.currentSession.getResolvedLibrary(path),
+        (_) => context.currentSession.getResolvedContainingLibrary(path),
       );
-      if (!isCancelled && library is ResolvedLibraryResult) {
-        await _fixErrorsInLibrary(library, autoTriggered: autoTriggered);
+      final unit = library?.unitWithPath(path);
+      if (!isCancelled && library != null && unit != null) {
+        await _fixErrorsInLibraryUnit(unit, library,
+            autoTriggered: autoTriggered);
       }
     }
 
@@ -266,6 +277,11 @@ class BulkFixProcessor {
   Future<BulkFixRequestResult> fixErrorsUsingParsedResult(
           List<AnalysisContext> contexts) =>
       _computeFixesUsingParsedResult(contexts);
+
+  /// Return a [PubspecFixRequestResult] that includes edits to the pubspec
+  /// files in the given [contexts].
+  Future<PubspecFixRequestResult> fixPubspec(List<AnalysisContext> contexts) =>
+      _computeChangesToPubspec(contexts);
 
   /// Return a [BulkFixRequestResult] that includes a change builder that has
   /// been used to format the dart files in the given [contexts].
@@ -316,6 +332,77 @@ class BulkFixProcessor {
         }
       }
     }
+  }
+
+  Future<PubspecFixRequestResult> _computeChangesToPubspec(
+      List<AnalysisContext> contexts) async {
+    var fixes = <SourceFileEdit>[];
+    var details = <BulkFix>[];
+    for (var context in contexts) {
+      var workspace = context.contextRoot.workspace;
+      if (workspace is GnWorkspace || workspace is BlazeWorkspace) {
+        continue;
+      }
+      // Find the pubspec file
+      var rootFolder = context.contextRoot.root;
+      var pubspecFile = rootFolder.getChild('pubspec.yaml') as File;
+      if (!pubspecFile.exists) {
+        continue;
+      }
+      var packages = <String>{};
+      var devPackages = <String>{};
+
+      var pathContext = context.contextRoot.resourceProvider.pathContext;
+      final libPath = rootFolder.getChild('lib').path;
+      final binPath = rootFolder.getChild('bin').path;
+
+      bool isPublic(String path) {
+        if (path.startsWith(libPath) || path.startsWith(binPath)) {
+          return true;
+        }
+        return false;
+      }
+
+      for (var path in context.contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
+          continue;
+        }
+        // Get the list of imports used in the files.
+        var result = context.currentSession.getParsedLibrary(path)
+            as ParsedLibraryResult;
+        for (var unit in result.units) {
+          var directives = unit.unit.directives;
+          for (var directive in directives) {
+            var uri =
+                (directive is ImportDirective) ? directive.uri.stringValue : '';
+            if (uri!.startsWith('package:')) {
+              final name = Uri.parse(uri).pathSegments.first;
+              if (isPublic(path)) {
+                packages.add(name);
+              } else {
+                devPackages.add(name);
+              }
+            }
+          }
+        }
+      }
+
+      // Compute changes to pubspec.
+      var result = await _runPubspecValidatorAndFixGenerator(
+          FileSource(pubspecFile),
+          packages,
+          devPackages,
+          context.contextRoot.resourceProvider);
+      if (result.isNotEmpty) {
+        for (var fix in result) {
+          fixes.addAll(fix.change.edits);
+        }
+        details.add(BulkFix(pubspecFile.path,
+            [BulkFixDetail(PubspecWarningCode.MISSING_DEPENDENCY.name, 1)]));
+      }
+    }
+    return PubspecFixRequestResult(fixes, details);
   }
 
   /// Implementation for [fixErrors] and [hasFixes].
@@ -373,7 +460,6 @@ class BulkFixProcessor {
         }
       }
     }
-
     return BulkFixRequestResult(builder);
   }
 
@@ -477,33 +563,42 @@ class BulkFixProcessor {
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
       {bool stopAfterFirst = false, bool autoTriggered = false}) async {
-    var analysisOptions = result.session.analysisContext.analysisOptions;
+    for (var unitResult in result.units) {
+      await _fixErrorsInLibraryUnit(unitResult, result,
+          stopAfterFirst: stopAfterFirst, autoTriggered: autoTriggered);
+    }
+  }
+
+  /// Use the change [builder] to create fixes for the diagnostics in
+  /// [unit].
+  Future<void> _fixErrorsInLibraryUnit(
+      ResolvedUnitResult unit, ResolvedLibraryResult library,
+      {bool stopAfterFirst = false, bool autoTriggered = false}) async {
+    var analysisOptions = unit.session.analysisContext.analysisOptions;
 
     DartFixContextImpl fixContext(
-      ResolvedUnitResult result,
       AnalysisError diagnostic, {
       required bool autoTriggered,
     }) {
       return DartFixContextImpl(
         instrumentationService,
         workspace,
-        result,
+        unit,
         diagnostic,
         autoTriggered: autoTriggered,
       );
     }
 
     CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
-        ResolvedUnitResult result, AnalysisError diagnostic) {
-      var overrideSet = _readOverrideSet(result);
-      var context =
-          fixContext(result, diagnostic, autoTriggered: autoTriggered);
+        AnalysisError diagnostic) {
+      var overrideSet = _readOverrideSet(unit);
+      var context = fixContext(diagnostic, autoTriggered: autoTriggered);
       return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
         dartFixContext: context,
         diagnostic: diagnostic,
         overrideSet: overrideSet,
-        resolvedResult: result,
+        resolvedResult: unit,
         selectionOffset: diagnostic.offset,
         selectionLength: diagnostic.length,
         workspace: workspace,
@@ -513,59 +608,58 @@ class BulkFixProcessor {
     //
     // Attempt to apply the fixes that aren't related to directives.
     //
-    for (var unitResult in result.units) {
-      var overrideSet = _readOverrideSet(unitResult);
-      for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
-        var context =
-            fixContext(unitResult, error, autoTriggered: autoTriggered);
-        await _fixSingleError(context, unitResult, error, overrideSet);
+    var overrideSet = _readOverrideSet(unit);
+    for (var error in _filterErrors(analysisOptions, unit.errors)) {
+      var context = fixContext(error, autoTriggered: autoTriggered);
+      await _fixSingleError(context, unit, error, overrideSet);
+      if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+        return;
+      }
+    }
+
+    // Only if this unit is the defining unit, we don't have other fixes and
+    // we were not auto-triggered should be continue with fixes for directives.
+    if (unit != library.units.first ||
+        autoTriggered ||
+        builder.hasEditsFor(unit.path)) {
+      return;
+    }
+
+    AnalysisError? directivesOrderingError;
+    var unusedImportErrors = <AnalysisError>[];
+    for (var error in _filterErrors(analysisOptions, unit.errors)) {
+      var errorCode = error.errorCode;
+      if (errorCode is LintCode) {
+        var lintName = errorCode.name;
+        if (lintName == LintNames.directives_ordering) {
+          directivesOrderingError = error;
+          break;
+        }
+      } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
+          errorCode == HintCode.UNNECESSARY_IMPORT ||
+          errorCode == WarningCode.UNUSED_IMPORT) {
+        unusedImportErrors.add(error);
+      }
+    }
+    if (directivesOrderingError != null) {
+      // `OrganizeImports` will also remove some of the unused imports, so we
+      // apply it first.
+      var context = correctionContext(directivesOrderingError);
+      if (context != null) {
+        await _generateFix(
+            context, OrganizeImports(), directivesOrderingError.errorCode.name);
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
         }
       }
-    }
-    //
-    // If there are no such fixes in the defining compilation unit, then apply
-    // the fixes related to directives.
-    //
-    var definingUnit = result.units[0];
-    AnalysisError? directivesOrderingError;
-    var unusedImportErrors = <AnalysisError>[];
-    if (!autoTriggered && !builder.hasEditsFor(definingUnit.path)) {
-      for (var error in _filterErrors(analysisOptions, definingUnit.errors)) {
-        var errorCode = error.errorCode;
-        if (errorCode is LintCode) {
-          var lintName = errorCode.name;
-          if (lintName == LintNames.directives_ordering) {
-            directivesOrderingError = error;
-            break;
-          }
-        } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
-            errorCode == HintCode.UNNECESSARY_IMPORT ||
-            errorCode == WarningCode.UNUSED_IMPORT) {
-          unusedImportErrors.add(error);
-        }
-      }
-      if (directivesOrderingError != null) {
-        // `OrganizeImports` will also remove some of the unused imports, so we
-        // apply it first.
-        var context = correctionContext(definingUnit, directivesOrderingError);
+    } else {
+      for (var error in unusedImportErrors) {
+        var context = correctionContext(error);
         if (context != null) {
-          await _generateFix(context, OrganizeImports(),
-              directivesOrderingError.errorCode.name);
+          await _generateFix(
+              context, RemoveUnusedImport(), error.errorCode.name);
           if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
             return;
-          }
-        }
-      } else {
-        for (var error in unusedImportErrors) {
-          var context = correctionContext(definingUnit, error);
-          if (context != null) {
-            await _generateFix(
-                context, RemoveUnusedImport(), error.errorCode.name);
-            if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
-              return;
-            }
           }
         }
       }
@@ -828,6 +922,28 @@ class BulkFixProcessor {
     }
     return null;
   }
+
+  Future<List<Fix>> _runPubspecValidatorAndFixGenerator(
+      Source pubspec,
+      Set<String> usedDeps,
+      Set<String> usedDevDeps,
+      ResourceProvider resourceProvider) async {
+    String contents = pubspec.contents.data;
+    YamlNode node = loadYamlNode(contents);
+    if (node is! YamlMap) {
+      // The file is empty.
+      node = YamlMap();
+    }
+
+    var errors = MissingDependencyValidator(node, pubspec, resourceProvider)
+        .validate(usedDeps, usedDevDeps);
+    if (errors.isNotEmpty) {
+      var generator =
+          PubspecFixGenerator(resourceProvider, errors[0], contents, node);
+      return await generator.computeFixes();
+    }
+    return [];
+  }
 }
 
 class BulkFixRequestResult {
@@ -944,6 +1060,13 @@ class IterativeBulkFixProcessor {
       return changes;
     });
   }
+}
+
+class PubspecFixRequestResult {
+  final List<SourceFileEdit> edits;
+  final List<BulkFix> details;
+
+  PubspecFixRequestResult(this.edits, this.details);
 }
 
 extension on String {

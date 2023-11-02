@@ -593,9 +593,6 @@ static constexpr int kReparseDataHeaderSize =
     sizeof(ULONG) + 2 * sizeof(USHORT);
 static constexpr int kMountPointHeaderSize = 4 * sizeof(USHORT);
 
-// Note: CreateLink used to create junctions on Windows instead of true
-// symbolic links. All File::*Link methods now support handling links created
-// as junctions and symbolic links.
 bool File::CreateLink(Namespace* namespc,
                       const char* utf8_name,
                       const char* utf8_target) {
@@ -671,6 +668,18 @@ bool File::Rename(Namespace* namespc,
   Utf8ToWideScope system_old_path(prefixed_old_path);
   Utf8ToWideScope system_new_path(prefixed_new_path);
   DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
+
+  // Symbolic links (e.g. produced by Link.create) to directories on Windows
+  // appear as special directories. MoveFileExW's MOVEFILE_REPLACE_EXISTING
+  // does not allow for replacement of directories, so we need to remove it
+  // before renaming.
+  if ((Directory::Exists(namespc, prefixed_new_path) == Directory::EXISTS) &&
+      (GetType(namespc, prefixed_new_path, false) == kIsLink)) {
+    // Bail out if the DeleteLink call fails.
+    if (!DeleteLink(namespc, prefixed_new_path)) {
+      return false;
+    }
+  }
   int move_status =
       MoveFileExW(system_old_path.wide(), system_new_path.wide(), flags);
   return (move_status != 0);
@@ -690,10 +699,10 @@ bool File::RenameLink(Namespace* namespc,
   Utf8ToWideScope system_new_path(prefixed_new_path);
   DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
 
-  // Junction links on Windows appear as special directories. MoveFileExW's
-  // MOVEFILE_REPLACE_EXISTING does not allow for replacement of directories,
-  // so we need to remove it before renaming a link. This step is only
-  // necessary for junctions created by the old Link.create implementation.
+  // Symbolic links (e.g. produced by Link.create) to directories on Windows
+  // appear as special directories. MoveFileExW's MOVEFILE_REPLACE_EXISTING
+  // does not allow for replacement of directories, so we need to remove it
+  // before renaming.
   if ((Directory::Exists(namespc, prefixed_new_path) == Directory::EXISTS) &&
       (GetType(namespc, prefixed_new_path, false) == kIsLink)) {
     // Bail out if the DeleteLink call fails.
@@ -1121,7 +1130,12 @@ File::Type File::GetType(Namespace* namespc,
           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
           OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
       if (target_handle == INVALID_HANDLE_VALUE) {
-        result = File::kIsLink;
+        DWORD last_error = GetLastError();
+        if ((last_error == ERROR_FILE_NOT_FOUND) ||
+            (last_error == ERROR_PATH_NOT_FOUND)) {
+          return kDoesNotExist;
+        }
+        result = kIsLink;
       } else {
         BY_HANDLE_FILE_INFORMATION info;
         if (!GetFileInformationByHandle(target_handle, &info)) {
@@ -1130,8 +1144,8 @@ File::Type File::GetType(Namespace* namespc,
         }
         CloseHandle(target_handle);
         return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-                   ? File::kIsDirectory
-                   : File::kIsFile;
+                   ? kIsDirectory
+                   : kIsFile;
       }
     } else {
       result = kIsLink;

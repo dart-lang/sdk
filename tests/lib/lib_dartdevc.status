@@ -20,8 +20,8 @@ html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
 html/custom_elements_23127_test: Skip # Issue 29922
 html/custom_elements_test: Skip # Issue 29922
+html/fileapi_*: SkipByDesign # Issue 53864
 html/interactive_geolocation_test: Skip # Requires allowing geo location.
-html/notification_permission_test: Skip # Issue 32002
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/js_util/js_prefix_test: SkipByDesign # JS$ prefix not implemented on ddc.
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
@@ -30,6 +30,9 @@ typed_data/typed_data_hierarchy_int64_test: SkipByDesign # ddc does not support 
 
 [ $compiler == ddc && $runtime == chrome ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
+
+[ $compiler == ddc && $runtime == ff ]
+html/mediadevices_test: SkipByDesign # Not supported on FF, likely requires user-interaction that causes timeout
 
 [ $compiler == ddc && $system == linux ]
 html/interactive_geolocation_test: Skip # Requires allowing geo location.

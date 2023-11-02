@@ -347,11 +347,12 @@ class Comment {
 abstract class Entry {
   /// The one-based line number where the entry appears in the file.
   final int lineNumber;
+
   Entry(this.lineNumber);
 }
 
 class EmptyEntry extends Entry {
-  EmptyEntry(lineNumber) : super(lineNumber);
+  EmptyEntry(super.lineNumber);
 
   @override
   String toString() {
@@ -361,7 +362,8 @@ class EmptyEntry extends Entry {
 
 class CommentEntry extends Entry {
   final Comment comment;
-  CommentEntry(lineNumber, this.comment) : super(lineNumber);
+
+  CommentEntry(super.lineNumber, this.comment);
 
   @override
   String toString() {
@@ -375,8 +377,7 @@ class StatusEntry extends Entry {
   final List<Expectation> expectations;
   final Comment? comment;
 
-  StatusEntry(this.path, lineNumber, this.expectations, this.comment)
-      : super(lineNumber);
+  StatusEntry(this.path, super.lineNumber, this.expectations, this.comment);
 
   @override
   String toString() {

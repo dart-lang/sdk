@@ -19,6 +19,7 @@
 #include "platform/utils.h"
 #include "vm/code_entry_kind.h"
 #include "vm/compiler/assembler/assembler_base.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
@@ -798,11 +799,16 @@ class Assembler : public AssemblerBase {
   void BranchLink(const Code& code,
                   ObjectPoolBuilderEntry::Patchability patchable =
                       ObjectPoolBuilderEntry::kNotPatchable,
-                  CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+                  CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+                  ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+                      ObjectPoolBuilderEntry::kSnapshotable);
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(const Code& code,
-                           CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+  void BranchLinkPatchable(
+      const Code& code,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -977,9 +983,21 @@ class Assembler : public AssemblerBase {
                              intptr_t index,
                              Register pp = PP,
                              Condition cond = AL);
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP.
+  void StoreWordToPoolIndex(Register value,
+                            intptr_t index,
+                            Register pp = PP,
+                            Condition cond = AL);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
+  void LoadUniqueObject(
+      Register rd,
+      const Object& object,
+      Condition cond = AL,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable,
@@ -1372,11 +1390,8 @@ class Assembler : public AssemblerBase {
     b(label, NE);
   }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    LoadInt32FromBoxOrSmi(result, value);
-  }
-
-  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
     if (result == value) {
       ASSERT(TMP != value);
       MoveRegister(TMP, value);
@@ -1664,11 +1679,14 @@ class Assembler : public AssemblerBase {
 
   void BranchLink(const ExternalLabel* label);
 
-  void LoadObjectHelper(Register rd,
-                        const Object& object,
-                        Condition cond,
-                        bool is_unique,
-                        Register pp);
+  void LoadObjectHelper(
+      Register rd,
+      const Object& object,
+      Condition cond,
+      bool is_unique,
+      Register pp,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   void EmitType01(Condition cond,
                   int type,

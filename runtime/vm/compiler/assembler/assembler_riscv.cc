@@ -2992,11 +2992,13 @@ void Assembler::Jump(const Code& target,
   Jump(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
 }
 
-void Assembler::JumpAndLink(const Code& target,
-                            ObjectPoolBuilderEntry::Patchability patchable,
-                            CodeEntryKind entry_kind) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
+void Assembler::JumpAndLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
   LoadWordFromPoolIndex(CODE_REG, index);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
@@ -3708,6 +3710,24 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
     lui(dst, hi);
     add(dst, dst, pp);
     lx(dst, Address(dst, lo));
+  }
+}
+
+void Assembler::StoreWordToPoolIndex(Register src,
+                                     intptr_t index,
+                                     Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(src != pp);
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  // PP is untagged.
+  intx_t lo = ImmLo(offset);
+  intx_t hi = ImmHi(offset);
+  if (hi == 0) {
+    sx(src, Address(pp, lo));
+  } else {
+    lui(TMP, hi);
+    add(TMP, TMP, pp);
+    sx(src, Address(TMP, lo));
   }
 }
 
@@ -4682,9 +4702,11 @@ void Assembler::LoadFieldAddressForRegOffset(Register address,
 }
 
 // Note: the function never clobbers TMP, TMP2 scratch registers.
-void Assembler::LoadObjectHelper(Register dst,
-                                 const Object& object,
-                                 bool is_unique) {
+void Assembler::LoadObjectHelper(
+    Register dst,
+    const Object& object,
+    bool is_unique,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   ASSERT(IsOriginalObject(object));
   // `is_unique == true` effectively means object has to be patchable.
   // (even if the object is null)
@@ -4713,10 +4735,12 @@ void Assembler::LoadObjectHelper(Register dst,
   }
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   const intptr_t index =
-      is_unique ? object_pool_builder().AddObject(
-                      object, ObjectPoolBuilderEntry::kPatchable)
-                : object_pool_builder().FindObject(
-                      object, ObjectPoolBuilderEntry::kNotPatchable);
+      is_unique
+          ? object_pool_builder().AddObject(
+                object, ObjectPoolBuilderEntry::kPatchable, snapshot_behavior)
+          : object_pool_builder().FindObject(
+                object, ObjectPoolBuilderEntry::kNotPatchable,
+                snapshot_behavior);
   LoadWordFromPoolIndex(dst, index);
 }
 

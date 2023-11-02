@@ -1,9 +1,0 @@
-{
-  "configVersion": 2,
-  "packages": [
-    {
-      "name": "foo",
-      "rootUri": "../foo"
-    }
-  ]
-}

@@ -15,8 +15,6 @@ dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://
 macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 
 # INCREMENTAL COMPILATION ERRORS
-dart2js/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
-dartdevc/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/annotations: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/constructor_formal_parameters: SemiFuzzFailure # @methods::I| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
 inline_class/external: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
@@ -33,6 +31,7 @@ dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because 
 dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
+extension_types/inherited_representation_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 general/patch_annotations/main: semiFuzzFailureOnForceRebuildBodies # 'dart:test' stuff.
 general/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
@@ -229,7 +228,6 @@ general/supertype_conflict: TypeCheckError
 general/type_variable_as_super: RuntimeError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
-generic_metadata/from_dill/main: Crash
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError

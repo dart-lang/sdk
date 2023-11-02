@@ -11,12 +11,14 @@ import '../scope.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_type_member_builder.dart';
 import 'dill_library_builder.dart';
+import 'dill_member_builder.dart';
 
 class DillExtensionTypeDeclarationBuilder
-    extends ExtensionTypeDeclarationBuilderImpl {
+    extends ExtensionTypeDeclarationBuilderImpl
+    with DillClassMemberAccessMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  List<TypeVariableBuilder>? _typeParameters;
+  List<NominalVariableBuilder>? _typeParameters;
 
   List<TypeBuilder>? _interfaceBuilders;
 
@@ -41,21 +43,46 @@ class DillExtensionTypeDeclarationBuilder
                 isModifiable: false),
             new ConstructorScope(
                 _extensionTypeDeclaration.name, <String, MemberBuilder>{})) {
+    for (Procedure procedure in _extensionTypeDeclaration.procedures) {
+      String name = procedure.name.text;
+      switch (procedure.kind) {
+        case ProcedureKind.Factory:
+          throw new UnsupportedError(
+              "Unexpected procedure kind in extension type declaration: "
+              "$procedure (${procedure.kind}).");
+        case ProcedureKind.Setter:
+          scope.addLocalMember(name, new DillSetterBuilder(procedure, this),
+              setter: true);
+          break;
+        case ProcedureKind.Getter:
+          scope.addLocalMember(name, new DillGetterBuilder(procedure, this),
+              setter: false);
+          break;
+        case ProcedureKind.Operator:
+          scope.addLocalMember(name, new DillOperatorBuilder(procedure, this),
+              setter: false);
+          break;
+        case ProcedureKind.Method:
+          scope.addLocalMember(name, new DillMethodBuilder(procedure, this),
+              setter: false);
+          break;
+      }
+    }
     for (ExtensionTypeMemberDescriptor descriptor
-        in _extensionTypeDeclaration.members) {
+        in _extensionTypeDeclaration.memberDescriptors) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
         case ExtensionTypeMemberKind.Method:
           if (descriptor.isStatic) {
-            Procedure procedure = descriptor.member.asProcedure;
+            Procedure procedure = descriptor.memberReference.asProcedure;
             scope.addLocalMember(
                 name.text,
                 new DillExtensionTypeStaticMethodBuilder(
                     procedure, descriptor, this),
                 setter: false);
           } else {
-            Procedure procedure = descriptor.member.asProcedure;
-            Procedure? tearOff = descriptor.tearOff?.asProcedure;
+            Procedure procedure = descriptor.memberReference.asProcedure;
+            Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
             assert(tearOff != null, "No tear found for ${descriptor}");
             scope.addLocalMember(
                 name.text,
@@ -65,32 +92,32 @@ class DillExtensionTypeDeclarationBuilder
           }
           break;
         case ExtensionTypeMemberKind.Getter:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionTypeGetterBuilder(procedure, descriptor, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Field:
-          Field field = descriptor.member.asField;
+          Field field = descriptor.memberReference.asField;
           scope.addLocalMember(name.text,
               new DillExtensionTypeFieldBuilder(field, descriptor, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Setter:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionTypeSetterBuilder(procedure, descriptor, this),
               setter: true);
           break;
         case ExtensionTypeMemberKind.Operator:
-          Procedure procedure = descriptor.member.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
           scope.addLocalMember(name.text,
               new DillExtensionTypeOperatorBuilder(procedure, descriptor, this),
               setter: false);
           break;
         case ExtensionTypeMemberKind.Constructor:
-          Procedure procedure = descriptor.member.asProcedure;
-          Procedure? tearOff = descriptor.tearOff?.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
+          Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
           constructorScope.addLocalMember(
               name.text,
               new DillExtensionTypeConstructorBuilder(
@@ -98,8 +125,8 @@ class DillExtensionTypeDeclarationBuilder
           break;
         case ExtensionTypeMemberKind.Factory:
         case ExtensionTypeMemberKind.RedirectingFactory:
-          Procedure procedure = descriptor.member.asProcedure;
-          Procedure? tearOff = descriptor.tearOff?.asProcedure;
+          Procedure procedure = descriptor.memberReference.asProcedure;
+          Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
           constructorScope.addLocalMember(
               name.text,
               new DillExtensionTypeFactoryBuilder(
@@ -126,8 +153,8 @@ class DillExtensionTypeDeclarationBuilder
       _extensionTypeDeclaration;
 
   @override
-  List<TypeVariableBuilder>? get typeParameters {
-    List<TypeVariableBuilder>? typeVariables = _typeParameters;
+  List<NominalVariableBuilder>? get typeParameters {
+    List<NominalVariableBuilder>? typeVariables = _typeParameters;
     if (typeVariables == null &&
         _extensionTypeDeclaration.typeParameters.isNotEmpty) {
       typeVariables = _typeParameters =

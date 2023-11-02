@@ -43,7 +43,12 @@ void testTypeCheckRemoval() {
   obj.execute(list);
 }
 
+class C5<T> {}
+class C6 {}
+extension type C5Ext(C5<C6> rep) {}
+
 main() {
   C4().foo3(IC2(42));
   testTypeCheckRemoval();
+  print(C5Ext);
 }

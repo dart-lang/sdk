@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
@@ -35,17 +34,6 @@ A a2 = new A(const {});
 ```
 
 ''';
-
-/// The name of the top-level variable used to mark a immutable class.
-String _immutableVarName = 'immutable';
-
-/// The name of `meta` library, used to define analysis annotations.
-String _metaLibName = 'meta';
-
-bool _isImmutable(Element? element) =>
-    element is PropertyAccessorElement &&
-    element.name == _immutableVarName &&
-    element.library.name == _metaLibName;
 
 class PreferConstLiteralsToCreateImmutables extends LintRule {
   static const LintCode code = LintCode(
@@ -122,9 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     InterfaceType? current = type;
     while (current != null) {
-      for (var annotation in current.element.metadata) {
-        if (_isImmutable(annotation.element)) return true;
-      }
+      if (current.element.hasImmutable) return true;
       current = current.superclass;
     }
 

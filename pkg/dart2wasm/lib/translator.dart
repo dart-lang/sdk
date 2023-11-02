@@ -84,6 +84,10 @@ class Translator with KernelNodes {
   /// [ClassInfoCollector].
   final Map<Class, ClassInfo> classInfo = {};
 
+  /// Internalized strings to move to the JS runtime
+  final List<String> internalizedStringsForJSRuntime = [];
+  final Map<String, w.Global> _internalizedStringGlobals = {};
+
   final Map<w.HeapType, ClassInfo> classForHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
@@ -161,8 +165,11 @@ class Translator with KernelNodes {
     boxedIntClass: boxedIntClass,
     boxedDoubleClass: boxedDoubleClass,
     boxedBoolClass: coreTypes.boolClass,
-    oneByteStringClass: stringBaseClass,
-    twoByteStringClass: stringBaseClass,
+    if (!options.jsCompatibility) ...{
+      oneByteStringClass: stringBaseClass,
+      twoByteStringClass: stringBaseClass
+    },
+    if (options.jsCompatibility) ...{jsStringClass: jsStringClass},
   };
 
   /// Type for vtable entries for dynamic calls. These entries are used in
@@ -173,13 +180,13 @@ class Translator with KernelNodes {
     w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
 
     // Type arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
   ], [
     topInfo.nullableType
   ]);
@@ -191,13 +198,13 @@ class Translator with KernelNodes {
     topInfo.nonNullableType,
 
     // Type arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[fixedLengthListClass]!.nonNullableType,
+    classInfo[listBaseClass]!.nonNullableType,
   ], [
     topInfo.nullableType
   ]);
@@ -465,7 +472,8 @@ class Translator with KernelNodes {
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
     w.FunctionType tagType = m.types.defineFunction(
-        [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
+        [topInfo.nonNullableType, stackTraceInfo.repr.nonNullableType],
+        const []);
     w.Tag tag = m.tags.define(tagType);
     return tag;
   }
@@ -586,7 +594,7 @@ class Translator with KernelNodes {
           nullable: nullable);
     }
     if (type is ExtensionType) {
-      return translateStorageType(type.typeErasure);
+      return translateStorageType(type.extensionTypeErasure);
     }
     if (type is RecordType) {
       return getRecordClassInfo(type).typeWithNullability(nullable);
@@ -913,12 +921,17 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
+    if (getPragma<bool>(member, "wasm:never-inline", true) == true) {
+      return false;
+    }
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
     if (target.isInitializerReference) return true;
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
-    if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
+    if (getPragma<bool>(member, "wasm:prefer-inline", true) == true) {
+      return true;
+    }
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
@@ -935,13 +948,17 @@ class Translator with KernelNodes {
             if (nameConstant is StringConstant && nameConstant.value == name) {
               Constant? value =
                   constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
+              if (value == null || value is NullConstant) {
+                return defaultValue;
+              }
               if (value is PrimitiveConstant<T>) {
                 return value.value;
               }
-              if (value is NullConstant) {
-                return defaultValue;
+              if (value is! T) {
+                throw ArgumentError("$name pragma argument has unexpected type "
+                    "${value.runtimeType} (expected $T)");
               }
-              return value as T? ?? defaultValue;
+              return value as T;
             }
           }
         }
@@ -1016,6 +1033,19 @@ class Translator with KernelNodes {
 
   ClassInfo getRecordClassInfo(RecordType recordType) =>
       classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
+
+  w.Global getInternalizedStringGlobal(String s) {
+    w.Global? internalizedString = _internalizedStringGlobals[s];
+    if (internalizedString != null) {
+      return internalizedString;
+    }
+    final i = internalizedStringsForJSRuntime.length;
+    internalizedString = m.globals.import('s', '$i',
+        w.GlobalType(w.RefType.extern(nullable: true), mutable: false));
+    _internalizedStringGlobals[s] = internalizedString;
+    internalizedStringsForJSRuntime.add(s);
+    return internalizedString;
+  }
 }
 
 abstract class _FunctionGenerator {

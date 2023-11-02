@@ -9,10 +9,6 @@ import "dart:typed_data" show Int64List;
 
 @patch
 class int {
-  @patch
-  external const factory int.fromEnvironment(String name,
-      {int defaultValue = 0});
-
   static int? _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
     var ix = first;
@@ -298,22 +294,4 @@ class int {
         -unsafeCast<int>(_minInt64.remainder(multiplier));
     return _int64OverflowLimits[tableIndex];
   }
-
-  /// Wasm i64.div_s instruction.
-  external int _div_s(int divisor);
-
-  /// Wasm i64.le_u instruction.
-  external bool _le_u(int other);
-
-  /// Wasm i64.lt_u instruction.
-  external bool _lt_u(int other);
-
-  /// Wasm i64.shr_s instruction.
-  external int _shr_s(int shift);
-
-  /// Wasm i64.shr_u instruction.
-  external int _shr_u(int shift);
-
-  /// Wasm i64.shl instruction.
-  external int _shl(int shift);
 }

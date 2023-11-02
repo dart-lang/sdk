@@ -16,6 +16,7 @@ void main() {
     defineReflectiveTests(HasFixesTest);
     defineReflectiveTests(ChangeMapTest);
     defineReflectiveTests(NoFixTest);
+    defineReflectiveTests(PubspecFixTest);
   });
 }
 
@@ -143,5 +144,89 @@ void bad() {
 
     var processor = await computeFixes();
     expect(processor.fixDetails, isEmpty);
+  }
+}
+
+@reflectiveTest
+class PubspecFixTest extends BulkFixProcessorTest {
+  Future<void> test_fix() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode('''
+import 'package:a/a.dart';
+
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_multiple_changes() async {
+    var content = '''
+name: test
+dependencies:
+  a: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode('''
+import 'package:b/b.dart';
+import 'package:c/c.dart';
+
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_no_fix() async {
+    var content = '''
+name: test
+dependencies:
+  a: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+
+    updateTestPubspecFile(content);
+    await resolveTestCode('''
+import 'package:a/a.dart';
+
+void bad() {
+  try {
+  } on Error catch (e) {
+    print(e);
+  }
+}
+''');
+
+    await assertFixPubspec(content, expected);
   }
 }

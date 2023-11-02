@@ -50,6 +50,8 @@
 /// The framework is agnostic of what the flags are, but at this time we only
 /// use the name of experimental language features. These are then used to
 /// decide what options to pass to the tools that compile and run the tests.
+library;
+
 import 'package:yaml/yaml.dart';
 
 /// Parses [contents] containing a module dependencies specification written in

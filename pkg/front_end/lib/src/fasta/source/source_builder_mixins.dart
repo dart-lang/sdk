@@ -170,32 +170,41 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
   void _buildMember(SourceMemberBuilder memberBuilder, Member member,
       Member? tearOff, BuiltMemberKind memberKind,
       {required bool addMembersToLibrary}) {
-    if (addMembersToLibrary &&
-        !memberBuilder.isPatch &&
+    if (!memberBuilder.isPatch &&
         !memberBuilder.isDuplicate &&
         !memberBuilder.isConflictingSetter) {
-      Reference addMember(Member member) {
-        if (member is Field) {
-          libraryBuilder.library.addField(member);
-          return member.fieldReference;
-        } else if (member is Procedure) {
-          libraryBuilder.library.addProcedure(member);
-          return member.reference;
-        } else {
-          unhandled("${member.runtimeType}", "buildBuilders", member.fileOffset,
-              member.fileUri);
+      if (memberKind == BuiltMemberKind.ExtensionTypeRepresentationField) {
+        addMemberInternal(memberBuilder, memberKind, member, tearOff);
+      } else {
+        if (addMembersToLibrary) {
+          Reference addMember(Member member) {
+            if (member is Field) {
+              libraryBuilder.library.addField(member);
+              return member.fieldReference;
+            } else if (member is Procedure) {
+              libraryBuilder.library.addProcedure(member);
+              return member.reference;
+            } else {
+              unhandled("${member.runtimeType}", "buildBuilders",
+                  member.fileOffset, member.fileUri);
+            }
+          }
+
+          Reference memberReference = addMember(member);
+          Reference? tearOffReference;
+          if (tearOff != null) {
+            tearOffReference = addMember(tearOff);
+          }
+          addMemberDescriptorInternal(
+              memberBuilder, memberKind, memberReference, tearOffReference);
         }
       }
-
-      Reference memberReference = addMember(member);
-      Reference? tearOffReference;
-      if (tearOff != null) {
-        tearOffReference = addMember(tearOff);
-      }
-      addMemberDescriptorInternal(
-          memberBuilder, memberKind, memberReference, tearOffReference);
     }
   }
+
+  /// Adds [member] and [tearOff] to this declaration.
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind, Member member, Member? tearOff);
 
   /// Adds a descriptor for [member] to this declaration.
   void addMemberDescriptorInternal(

@@ -10,149 +10,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
-
-/// The instantiation of a [ClassElement] with type arguments.
-///
-/// It is not a [DartType] itself, because it does not have nullability.
-/// But it should be used where nullability does not make sense - to specify
-/// superclasses, mixins, and implemented interfaces.
-class InstantiatedClass {
-  final InterfaceElement element;
-  final List<DartType> arguments;
-
-  final Substitution _substitution;
-
-  InstantiatedClass(this.element, this.arguments)
-      : _substitution = Substitution.fromPairs(
-          element.typeParameters,
-          arguments,
-        );
-
-  /// Return the [InstantiatedClass] that corresponds to the [type] - with the
-  /// same element and type arguments, ignoring its nullability suffix.
-  factory InstantiatedClass.of(InterfaceType type) {
-    return InstantiatedClass(type.element, type.typeArguments);
-  }
-
-  @override
-  int get hashCode {
-    var hash = 0x3fffffff & element.hashCode;
-    for (var i = 0; i < arguments.length; i++) {
-      hash = 0x3fffffff & (hash * 31 + (hash ^ arguments[i].hashCode));
-    }
-    return hash;
-  }
-
-  /// Return the interfaces that are directly implemented by this class.
-  List<InstantiatedClass> get interfaces {
-    var interfaces = element.interfaces;
-    return _toInstantiatedClasses(interfaces);
-  }
-
-  /// Return `true` if this type represents the type 'Function' defined in the
-  /// dart:core library.
-  bool get isDartCoreFunction {
-    return element.name == 'Function' && element.library.isDartCore;
-  }
-
-  /// Return the mixin that are directly implemented by this class.
-  List<InstantiatedClass> get mixins {
-    var mixins = element.mixins;
-    return _toInstantiatedClasses(mixins);
-  }
-
-  /// Return the superclass of this type, or `null` if this type represents
-  /// the class 'Object'.
-  InstantiatedClass? get superclass {
-    final element = this.element;
-
-    var supertype = element.supertype;
-    if (supertype == null) return null;
-
-    supertype = _substitution.substituteType(supertype) as InterfaceType;
-    return InstantiatedClass.of(supertype);
-  }
-
-  /// Return a list containing all of the superclass constraints defined for
-  /// this class. The list will be empty if this class does not represent a
-  /// mixin declaration. If this class _does_ represent a mixin declaration but
-  /// the declaration does not have an `on` clause, then the list will contain
-  /// the type for the class `Object`.
-  List<InstantiatedClass> get superclassConstraints {
-    final element = this.element;
-    if (element is MixinElement) {
-      var constraints = element.superclassConstraints;
-      return _toInstantiatedClasses(constraints);
-    } else {
-      return [];
-    }
-  }
-
-  @visibleForTesting
-  InterfaceType get withNullabilitySuffixNone {
-    return withNullability(NullabilitySuffix.none);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    if (other is InstantiatedClass) {
-      if (element != other.element) return false;
-      if (arguments.length != other.arguments.length) return false;
-      for (var i = 0; i < arguments.length; i++) {
-        if (arguments[i] != other.arguments[i]) return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  InstantiatedClass mapArguments(DartType Function(DartType) f) {
-    var mappedArguments = arguments.map(f).toList();
-    return InstantiatedClass(element, mappedArguments);
-  }
-
-  @override
-  String toString() {
-    var buffer = StringBuffer();
-    buffer.write(element.name);
-    if (arguments.isNotEmpty) {
-      buffer.write('<');
-      buffer.write(arguments.join(', '));
-      buffer.write('>');
-    }
-    return buffer.toString();
-  }
-
-  InterfaceTypeImpl withNullability(NullabilitySuffix nullability) {
-    return InterfaceTypeImpl(
-      element: element,
-      typeArguments: arguments,
-      nullabilitySuffix: nullability,
-    );
-  }
-
-  List<InstantiatedClass> _toInstantiatedClasses(
-    List<InterfaceType> interfaces,
-  ) {
-    var result = <InstantiatedClass>[];
-    for (var i = 0; i < interfaces.length; i++) {
-      var interface = interfaces[i];
-      var substituted =
-          _substitution.substituteType(interface) as InterfaceType;
-      result.add(InstantiatedClass.of(substituted));
-    }
-
-    return result;
-  }
-}
 
 class InterfaceLeastUpperBoundHelper {
   final TypeSystemImpl typeSystem;
@@ -218,10 +80,8 @@ class InterfaceLeastUpperBoundHelper {
           if (!typeSystem.isSubtypeOf(args1[i], args2[i]) ||
               !typeSystem.isSubtypeOf(args2[i], args1[i])) {
             // No bound will be valid, find bound at the interface level.
-            return _computeLeastUpperBound(
-              InstantiatedClass.of(type1),
-              InstantiatedClass.of(type2),
-            ).withNullability(nullability);
+            return _computeLeastUpperBound(type1, type2)
+                .withNullability(nullability);
           }
           // TODO (kallentu) : Fix asymmetric bounds behavior for invariant type
           //  parameters.
@@ -239,24 +99,77 @@ class InterfaceLeastUpperBoundHelper {
       );
     }
 
-    var result = _computeLeastUpperBound(
-      InstantiatedClass.of(type1),
-      InstantiatedClass.of(type2),
-    );
-    return result.withNullability(nullability);
+    var result = _computeLeastUpperBound(type1, type2);
+    if (nullability != NullabilitySuffix.none) {
+      result = result.withNullability(nullability);
+    }
+    return result;
   }
 
   /// Return all of the superinterfaces of the given [type].
   @visibleForTesting
-  Set<InstantiatedClass> computeSuperinterfaceSet(InstantiatedClass type) {
-    var result = <InstantiatedClass>{};
+  Set<InterfaceTypeImpl> computeSuperinterfaceSet(InterfaceType type) {
+    var result = <InterfaceTypeImpl>{};
     _addSuperinterfaces(result, type);
     if (typeSystem.isNonNullableByDefault) {
       return result;
     } else {
-      return result.map((e) {
-        return e.mapArguments(typeSystem.toLegacyTypeIfOptOut);
-      }).toSet();
+      return result
+          .map(typeSystem.toLegacyTypeIfOptOut)
+          .cast<InterfaceTypeImpl>()
+          .toSet();
+    }
+  }
+
+  /// Add all of the superinterfaces of the given [type] to the given [set].
+  void _addSuperinterfaces(Set<InterfaceType> set, InterfaceType type) {
+    type as InterfaceTypeImpl;
+
+    if (type.isDartCoreObjectNone || type.isDartCoreNull) {
+      set.add(typeSystem.objectQuestion);
+      return;
+    }
+
+    final representationType = type.representationType;
+    if (representationType != null) {
+      // TODO(scheglov) See https://github.com/dart-lang/language/pull/3402
+      // When it lands, we might need to remove `Object` from the element
+      // interfaces, and return from the type interfaces.
+      final first = type.interfaces.singleOrNull;
+      if (first != null && first.isDartCoreObject) {
+        final replacement = typeSystem.isNonNullable(representationType)
+            ? typeSystem.objectNone
+            : typeSystem.objectQuestion;
+        if (set.add(replacement)) {
+          _addSuperinterfaces(set, replacement);
+        }
+        return;
+      }
+    }
+
+    for (var interface in type.interfaces) {
+      if (set.add(interface)) {
+        _addSuperinterfaces(set, interface);
+      }
+    }
+
+    for (var mixin in type.mixins) {
+      if (set.add(mixin)) {
+        _addSuperinterfaces(set, mixin);
+      }
+    }
+
+    for (var constraint in type.superclassConstraints) {
+      if (set.add(constraint)) {
+        _addSuperinterfaces(set, constraint);
+      }
+    }
+
+    var supertype = type.superclass;
+    if (supertype != null) {
+      if (set.add(supertype)) {
+        _addSuperinterfaces(set, supertype);
+      }
     }
   }
 
@@ -265,9 +178,9 @@ class InterfaceLeastUpperBoundHelper {
   ///
   /// In the event that the algorithm fails (which might occur due to a bug in
   /// the analyzer), `null` is returned.
-  InstantiatedClass _computeLeastUpperBound(
-    InstantiatedClass i,
-    InstantiatedClass j,
+  InterfaceTypeImpl _computeLeastUpperBound(
+    InterfaceTypeImpl i,
+    InterfaceTypeImpl j,
   ) {
     // compute set of supertypes
     var si = computeSuperinterfaceSet(i);
@@ -278,51 +191,15 @@ class InterfaceLeastUpperBoundHelper {
     sj.add(j);
 
     // compute intersection, reference as set 's'
-    var s = _intersection(si, sj);
+    var s = si.intersection(sj).toList();
     return _computeTypeAtMaxUniqueDepth(s);
   }
 
-  /// Return the length of the longest inheritance path from the [element] to
+  /// Return the length of the longest inheritance path from the [type] to
   /// Object.
   @visibleForTesting
-  static int computeLongestInheritancePathToObject(InterfaceElement element) {
-    return _computeLongestInheritancePathToObject(
-        element, <InterfaceElement>{});
-  }
-
-  /// Add all of the superinterfaces of the given [type] to the given [set].
-  static void _addSuperinterfaces(
-      Set<InstantiatedClass> set, InstantiatedClass type) {
-    for (var interface in type.interfaces) {
-      if (!interface.isDartCoreFunction) {
-        if (set.add(interface)) {
-          _addSuperinterfaces(set, interface);
-        }
-      }
-    }
-
-    for (var mixin in type.mixins) {
-      if (!mixin.isDartCoreFunction) {
-        if (set.add(mixin)) {
-          _addSuperinterfaces(set, mixin);
-        }
-      }
-    }
-
-    for (var constraint in type.superclassConstraints) {
-      if (!constraint.isDartCoreFunction) {
-        if (set.add(constraint)) {
-          _addSuperinterfaces(set, constraint);
-        }
-      }
-    }
-
-    var supertype = type.superclass;
-    if (supertype != null && !supertype.isDartCoreFunction) {
-      if (set.add(supertype)) {
-        _addSuperinterfaces(set, supertype);
-      }
-    }
+  static int computeLongestInheritancePathToObject(InterfaceType type) {
+    return _computeLongestInheritancePathToObject(type, <InterfaceElement>{});
   }
 
   static NullabilitySuffix _chooseNullability(
@@ -347,11 +224,21 @@ class InterfaceLeastUpperBoundHelper {
   /// is used to prevent infinite recursion in the case of a cyclic type
   /// structure.
   static int _computeLongestInheritancePathToObject(
-      InterfaceElement element, Set<InterfaceElement> visitedElements) {
-    // Object case
-    if (element is ClassElement && element.isDartCoreObject ||
-        visitedElements.contains(element)) {
+      InterfaceType type, Set<InterfaceElement> visitedElements) {
+    final element = type.element;
+    // recursion
+    if (visitedElements.contains(element)) {
       return 0;
+    }
+    // Null, direct subtype of Object?
+    if (type.isDartCoreNull) {
+      return 1;
+    }
+    // Object case
+    if (element is ClassElement) {
+      if (element.isDartCoreObject) {
+        return type.nullabilitySuffix == NullabilitySuffix.none ? 1 : 0;
+      }
     }
     int longestPath = 0;
     try {
@@ -362,7 +249,7 @@ class InterfaceLeastUpperBoundHelper {
       if (element is MixinElement) {
         for (InterfaceType interface in element.superclassConstraints) {
           var pathLength = _computeLongestInheritancePathToObject(
-              interface.element, visitedElements);
+              interface, visitedElements);
           longestPath = max(longestPath, 1 + pathLength);
         }
       }
@@ -370,8 +257,8 @@ class InterfaceLeastUpperBoundHelper {
       // loop through each of the superinterfaces recursively calling this
       // method and keeping track of the longest path to return
       for (InterfaceType interface in element.interfaces) {
-        var pathLength = _computeLongestInheritancePathToObject(
-            interface.element, visitedElements);
+        var pathLength =
+            _computeLongestInheritancePathToObject(interface, visitedElements);
         longestPath = max(longestPath, 1 + pathLength);
       }
 
@@ -384,15 +271,15 @@ class InterfaceLeastUpperBoundHelper {
         return longestPath;
       }
 
-      var superLength = _computeLongestInheritancePathToObject(
-          supertype.element, visitedElements);
+      var superLength =
+          _computeLongestInheritancePathToObject(supertype, visitedElements);
 
       var mixins = element.mixins;
       for (var i = 0; i < mixins.length; i++) {
         // class _X&S&M extends S implements M {}
         // So, we choose the maximum length from S and M.
         var mixinLength = _computeLongestInheritancePathToObject(
-          mixins[i].element,
+          mixins[i],
           visitedElements,
         );
         superLength = max(superLength, mixinLength);
@@ -409,14 +296,14 @@ class InterfaceLeastUpperBoundHelper {
 
   /// Return the type from the [types] list that has the longest inheritance
   /// path to Object of unique length.
-  static InstantiatedClass _computeTypeAtMaxUniqueDepth(
-    List<InstantiatedClass> types,
+  static InterfaceTypeImpl _computeTypeAtMaxUniqueDepth(
+    List<InterfaceTypeImpl> types,
   ) {
     // for each element in Set s, compute the largest inheritance path to Object
     List<int> depths = List<int>.filled(types.length, 0);
     int maxDepth = 0;
     for (int i = 0; i < types.length; i++) {
-      depths[i] = computeLongestInheritancePathToObject(types[i].element);
+      depths[i] = computeLongestInheritancePathToObject(types[i]);
       if (depths[i] > maxDepth) {
         maxDepth = depths[i];
       }
@@ -439,17 +326,6 @@ class InterfaceLeastUpperBoundHelper {
     // Should be impossible--there should always be exactly one type with the
     // maximum depth.
     throw StateError('Empty path: $types');
-  }
-
-  /// Return the intersection of the [first] and [second] sets of types, where
-  /// intersection is based on the equality of the types themselves.
-  static List<InstantiatedClass> _intersection(
-    Set<InstantiatedClass> first,
-    Set<InstantiatedClass> second,
-  ) {
-    var result = first.toSet();
-    result.retainAll(second);
-    return result.toList();
   }
 }
 

@@ -18,6 +18,7 @@
 ///         dart pkg/vm/bin/kernel_service.dart --train <source-file>
 ///
 ///
+library;
 
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
@@ -524,12 +525,14 @@ Future _processExpressionCompilationRequest(request) async {
   final String? klass = request[11];
   final String? method = request[12];
   final bool isStatic = request[13];
-  final List<List<int>> dillData = request[14].cast<List<int>>();
-  final int blobLoadCount = request[15];
-  final bool enableAsserts = request[16];
+  final int offset = request[14];
+  final String? scriptUri = request[15];
+  final List<List<int>> dillData = request[16].cast<List<int>>();
+  final int blobLoadCount = request[17];
+  final bool enableAsserts = request[18];
   final List<String>? experimentalFlags =
-      request[17] != null ? request[17].cast<String>() : null;
-  final bool enableMirrors = request[18];
+      request[17] != null ? request[19].cast<String>() : null;
+  final bool enableMirrors = request[20];
 
   IncrementalCompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -651,6 +654,8 @@ Future _processExpressionCompilationRequest(request) async {
         libraryUri,
         klass,
         method,
+        offset,
+        scriptUri,
         isStatic);
 
     if (procedure == null) {

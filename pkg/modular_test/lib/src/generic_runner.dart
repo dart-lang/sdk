@@ -7,6 +7,8 @@
 ///
 /// This library contains no logic related to the modular_test framework. It is
 /// used to help integrate tests with our test infrastructure.
+library;
+
 // TODO(sigmund): this library should move somewhere else.
 
 import 'dart:async';

@@ -94,6 +94,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.METHOD) {
     return ElementKind.METHOD;
   }
+  if (kind == engine.ElementKind.MIXIN) {
+    return ElementKind.MIXIN;
+  }
   if (kind == engine.ElementKind.PARAMETER) {
     return ElementKind.PARAMETER;
   }

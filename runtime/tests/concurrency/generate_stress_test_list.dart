@@ -22,11 +22,9 @@ final dartDirectories = [
   'tests/standalone',
 ];
 final dart2Directories = [
-  'runtime/tests/vm/dart_2',
   'tests/corelib_2',
   'tests/language_2',
   'tests/lib_2',
-  'tests/standalone_2',
 ];
 
 main(List<String> args) async {

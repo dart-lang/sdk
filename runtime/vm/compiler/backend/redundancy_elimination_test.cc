@@ -722,16 +722,16 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_LoadDataFieldOfNewTypedData) {
         new AllocateObjectInstr(InstructionSource(), view_cls, DeoptId::kNone));
 
     //   v1 <- LoadNativeField(array, Slot::PointerBase_data())
-    v1 = builder.AddDefinition(new LoadFieldInstr(new (zone) Value(array),
-                                                  Slot::PointerBase_data(),
-                                                  InstructionSource()));
+    v1 = builder.AddDefinition(new LoadFieldInstr(
+        new (zone) Value(array), Slot::PointerBase_data(),
+        InnerPointerAccess::kMayBeInnerPointer, InstructionSource()));
 
     //   StoreNativeField(Slot::PointerBase_data(), view, v1, kNoStoreBarrier,
     //                    kInitalizing)
     store = builder.AddInstruction(new StoreFieldInstr(
         Slot::PointerBase_data(), new (zone) Value(view), new (zone) Value(v1),
-        kNoStoreBarrier, InstructionSource(),
-        StoreFieldInstr::Kind::kInitializing));
+        kNoStoreBarrier, InnerPointerAccess::kMayBeInnerPointer,
+        InstructionSource(), StoreFieldInstr::Kind::kInitializing));
 
     //   return view
     ret = builder.AddInstruction(new ReturnInstr(

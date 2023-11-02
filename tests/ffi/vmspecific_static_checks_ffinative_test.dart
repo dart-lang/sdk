@@ -56,26 +56,6 @@ external Object badTooFewFfiParameter(int v, int v2); //# 07: compile-time error
 @FfiNative<Void Function()>('doesntmatter') //# 08: compile-time error
 void mustBeMarkedExternal() {} //# 08: compile-time error
 
-class DoesNotExtend implements NativeFieldWrapperClass1 {
-  // Error: Receiver type can't be converted to Pointer since it doesn't extend
-  // NativeFieldWrapperClass1.
-  @FfiNative<IntPtr Function(Pointer<Void>, Handle)>(//# 09: compile-time error
-      'doesntmatter') //# 09: compile-time error
-  external int bad1(DoesNotExtend obj); //# 09: compile-time error
-
-  // Error: Parameter type can't be converted to Pointer since it doesn't extend
-  // NativeFieldWrapperClass1.
-  @FfiNative<IntPtr Function(Handle, Pointer<Void>)>(//# 10: compile-time error
-      'doesntmatter') //# 10: compile-time error
-  external int bad2(DoesNotExtend obj); //# 10: compile-time error
-
-  // Error: Parameter type can't be converted to Pointer since it doesn't extend
-  // NativeFieldWrapperClass1.
-  @FfiNative<IntPtr Function(Pointer<Void>)>(//# 11: compile-time error
-      'doesntmatter') //# 11: compile-time error
-  external static int bad3(DoesNotExtend obj); //# 11: compile-time error
-}
-
 // Error: 'FfiNative' can't be declared with optional parameters.
 @FfiNative<Void Function([Double])>('doesntmatter') //# 12: compile-time error
 external static int badOptParam(); //# 12: compile-time error

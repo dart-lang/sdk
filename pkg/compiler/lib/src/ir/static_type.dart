@@ -238,11 +238,11 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
       return typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, currentLibrary.nullable);
     }
-    if (type is ir.InterfaceType) {
-      ir.InterfaceType? upcastType = typeEnvironment.getTypeAsInstanceOf(
+    if (type is ir.TypeDeclarationType) {
+      ir.TypeDeclarationType? upcastType = typeEnvironment.getTypeAsInstanceOf(
           type, superclass, typeEnvironment.coreTypes,
           isNonNullableByDefault: currentLibrary.isNonNullableByDefault);
-      if (upcastType != null) return upcastType;
+      if (upcastType is ir.InterfaceType) return upcastType;
     }
     // TODO(johnniwinther): Should we assert that this doesn't happen?
     return typeEnvironment.coreTypes
@@ -1124,10 +1124,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     if (declaringClass.typeParameters.isEmpty) {
       resultType = interfaceTarget.superGetterType;
     } else {
-      ir.InterfaceType receiver = typeEnvironment.getTypeAsInstanceOf(
+      ir.TypeDeclarationType receiver = typeEnvironment.getTypeAsInstanceOf(
           thisType, declaringClass, typeEnvironment.coreTypes,
           isNonNullableByDefault: currentLibrary.isNonNullableByDefault)!;
-      resultType = ir.Substitution.fromInterfaceType(receiver)
+      resultType = ir.Substitution.fromTypeDeclarationType(receiver)
           .substituteType(interfaceTarget.superGetterType);
     }
     _staticTypeCache._expressionTypes[node] = resultType;
@@ -1154,10 +1154,10 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType returnType;
     final interfaceTarget = node.interfaceTarget;
     ir.Class superclass = interfaceTarget.enclosingClass!;
-    ir.InterfaceType receiverType = typeEnvironment.getTypeAsInstanceOf(
+    ir.TypeDeclarationType receiverType = typeEnvironment.getTypeAsInstanceOf(
         thisType, superclass, typeEnvironment.coreTypes,
         isNonNullableByDefault: currentLibrary.isNonNullableByDefault)!;
-    returnType = ir.Substitution.fromInterfaceType(receiverType)
+    returnType = ir.Substitution.fromTypeDeclarationType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
     returnType = ir.Substitution.fromPairs(
             interfaceTarget.function.typeParameters, node.arguments.types)
@@ -1578,22 +1578,20 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.InterfaceType? iterableInterfaceType = getInterfaceTypeOf(iterableType);
     if (iterableInterfaceType != null) {
       if (node.isAsync) {
-        ir.InterfaceType? streamType = typeEnvironment.getTypeAsInstanceOf(
-            iterableInterfaceType,
-            typeEnvironment.coreTypes.streamClass,
-            typeEnvironment.coreTypes,
-            isNonNullableByDefault: currentLibrary.isNonNullableByDefault);
-        if (streamType != null) {
+        List<ir.DartType>? typeArguments =
+            typeEnvironment.getTypeArgumentsAsInstanceOf(
+                iterableInterfaceType, typeEnvironment.coreTypes.streamClass);
+        if (typeArguments != null) {
           iteratorType = ir.InterfaceType(
               typeEnvironment.coreTypes.streamIteratorClass,
               ir.Nullability.nonNullable,
-              streamType.typeArguments);
+              typeArguments);
         }
       } else {
         ir.Member? member = hierarchy.getInterfaceMember(
             iterableInterfaceType.classNode, ir.Name(Identifiers.iterator));
         if (member != null) {
-          iteratorType = ir.Substitution.fromInterfaceType(
+          iteratorType = ir.Substitution.fromTypeDeclarationType(
                   typeEnvironment.getTypeAsInstanceOf(iterableInterfaceType,
                       member.enclosingClass!, typeEnvironment.coreTypes,
                       isNonNullableByDefault:

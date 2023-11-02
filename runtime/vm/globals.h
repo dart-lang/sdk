@@ -34,13 +34,13 @@ const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
 const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
 #if defined(DART_COMPRESSED_POINTERS)
-static constexpr int kCompressedWordSize = kInt32Size;
-static constexpr int kCompressedWordSizeLog2 = kInt32SizeLog2;
+static constexpr intptr_t kCompressedWordSize = kInt32Size;
+static constexpr intptr_t kCompressedWordSizeLog2 = kInt32SizeLog2;
 typedef uint32_t compressed_uword;
 typedef int32_t compressed_word;
 #else
-static constexpr int kCompressedWordSize = kWordSize;
-static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
+static constexpr intptr_t kCompressedWordSize = kWordSize;
+static constexpr intptr_t kCompressedWordSizeLog2 = kWordSizeLog2;
 typedef uintptr_t compressed_uword;
 typedef intptr_t compressed_word;
 #endif

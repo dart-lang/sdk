@@ -824,7 +824,7 @@ class _SplayTreeMapEntryIterable<K, V>
 
 class _SplayTreeKeyIterator<K, Node extends _SplayTreeNode<K, Node>>
     extends _SplayTreeIterator<K, Node, K> {
-  _SplayTreeKeyIterator(_SplayTree<K, Node> map) : super(map);
+  _SplayTreeKeyIterator(_SplayTree<K, Node> tree) : super(tree);
   K _getValue(Node node) => node.key;
 }
 
@@ -836,7 +836,7 @@ class _SplayTreeValueIterator<K, V>
 
 class _SplayTreeMapEntryIterator<K, V>
     extends _SplayTreeIterator<K, _SplayTreeMapNode<K, V>, MapEntry<K, V>> {
-  _SplayTreeMapEntryIterator(SplayTreeMap<K, V> tree) : super(tree);
+  _SplayTreeMapEntryIterator(SplayTreeMap<K, V> map) : super(map);
   MapEntry<K, V> _getValue(_SplayTreeMapNode<K, V> node) =>
       MapEntry<K, V>(node.key, node.value);
 

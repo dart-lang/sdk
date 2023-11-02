@@ -125,7 +125,7 @@
 /// The converter finds characters that are significant in HTML source and
 /// replaces them with corresponding HTML entities.
 ///
-/// Custom escape modes can be created using the [HtmlEscapeMode.HtmlEscapeMode]
+/// Custom escape modes can be created using the [HtmlEscapeMode.new]
 /// constructor.
 ///
 /// Example:

@@ -408,12 +408,17 @@ class ElementResolver {
 
   void visitSuperExpression(SuperExpression node) {
     var context = SuperContext.of(node);
-    if (context == SuperContext.annotation || context == SuperContext.static) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
-    } else if (context == SuperContext.extension) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.SUPER_IN_EXTENSION, node);
+    switch (context) {
+      case SuperContext.annotation:
+      case SuperContext.static:
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
+      case SuperContext.extension:
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.SUPER_IN_EXTENSION, node);
+      case SuperContext.extensionType:
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, node);
     }
   }
 

@@ -9,19 +9,21 @@ import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'common/generate_common.dart';
-import 'dart/generate_dart.dart' as dart show Api, api, DartGenerator;
+import 'dart/generate_dart_client.dart';
+import 'dart/generate_dart_common.dart';
+import 'dart/generate_dart_interface.dart';
 import 'java/generate_java.dart' as java show Api, api, JavaGenerator;
 
 final bool _stampPubspecVersion = false;
 
 /// Parse the 'service.md' into a model and generate both Dart and Java
 /// libraries.
-void main(List<String> args) async {
-  String appDirPath = dirname(Platform.script.toFilePath());
+Future<void> main(List<String> args) async {
+  final codeGeneratorDir = dirname(Platform.script.toFilePath());
 
   // Parse service.md into a model.
   final file = File(
-    normalize(join(appDirPath, '../../../runtime/vm/service/service.md')),
+    normalize(join(codeGeneratorDir, '../../../runtime/vm/service/service.md')),
   );
   final document = Document();
   final buf = StringBuffer(file.readAsStringSync());
@@ -32,25 +34,70 @@ void main(List<String> args) async {
   // Generate code from the model.
   print('');
 
-  await _generateDart(appDirPath, nodes);
-  await _generateJava(appDirPath, nodes);
+  await _generateDartClient(codeGeneratorDir, nodes);
+  await _generateDartInterface(codeGeneratorDir, nodes);
+  await _generateJava(codeGeneratorDir, nodes);
 }
 
-Future _generateDart(String appDirPath, List<Node> nodes) async {
-  var outDirPath = normalize(join(appDirPath, '..', 'lib/src'));
-  var outDir = Directory(outDirPath);
-  if (!outDir.existsSync()) outDir.createSync(recursive: true);
-  var outputFile = File(join(outDirPath, 'vm_service.dart'));
-  var generator = dart.DartGenerator();
-  dart.api = dart.Api();
-  dart.api.parse(nodes);
-  dart.api.generate(generator);
-  outputFile.writeAsStringSync(generator.toString());
-  ProcessResult result = Process.runSync('dart', ['format', outDirPath]);
-  if (result.exitCode != 0) {
-    print('dart format: ${result.stdout}\n${result.stderr}');
-    throw result.exitCode;
+Future<void> _generateDartClient(
+    String codeGeneratorDir, List<Node> nodes) async {
+  final outputFilePath = await _generateDartCommon(
+    api: VmServiceApi(),
+    nodes: nodes,
+    codeGeneratorDir: codeGeneratorDir,
+    packageName: 'vm_service',
+    interfaceName: 'VmService',
+  );
+  print('Wrote Dart client to $outputFilePath.');
+}
+
+Future<void> _generateDartInterface(
+    String codeGeneratorDir, List<Node> nodes) async {
+  final outputFilePath = await _generateDartCommon(
+    api: VmServiceInterfaceApi(),
+    nodes: nodes,
+    codeGeneratorDir: codeGeneratorDir,
+    packageName: 'vm_service_interface',
+    interfaceName: 'VmServiceInterface',
+  );
+  print('Wrote Dart interface to $outputFilePath.');
+}
+
+Future<String> _generateDartCommon({
+  required Api api,
+  required List<Node> nodes,
+  required String codeGeneratorDir,
+  required String packageName,
+  required String interfaceName,
+}) async {
+  final outDirPath = normalize(
+    join(
+      codeGeneratorDir,
+      '../..',
+      packageName,
+      'lib/src',
+    ),
+  );
+  final outDir = Directory(outDirPath);
+  if (!outDir.existsSync()) {
+    outDir.createSync(recursive: true);
   }
+
+  final outputFile = File(
+    join(
+      outDirPath,
+      '$packageName.dart',
+    ),
+  );
+  final generator = DartGenerator(interfaceName: interfaceName);
+
+  // Generate the code.
+  api.parse(nodes);
+  api.generate(generator);
+  outputFile.writeAsStringSync(generator.toString());
+
+  // Clean up the code.
+  await _runDartFormat(outDirPath);
 
   if (_stampPubspecVersion) {
     // Update the pubspec file.
@@ -60,12 +107,19 @@ Future _generateDart(String appDirPath, List<Node> nodes) async {
     // Validate that the changelog contains an entry for the current version.
     _checkUpdateChangelog(version);
   }
-
-  print('Wrote Dart to ${outputFile.path}.');
+  return outputFile.path;
 }
 
-Future _generateJava(String appDirPath, List<Node> nodes) async {
-  var srcDirPath = normalize(join(appDirPath, '..', 'java', 'src'));
+Future<void> _runDartFormat(String outDirPath) async {
+  ProcessResult result = Process.runSync('dart', ['format', outDirPath]);
+  if (result.exitCode != 0) {
+    print('dart format: ${result.stdout}\n${result.stderr}');
+    throw result.exitCode;
+  }
+}
+
+Future<void> _generateJava(String codeGeneratorDir, List<Node> nodes) async {
+  var srcDirPath = normalize(join(codeGeneratorDir, '..', 'java', 'src'));
   var generator = java.JavaGenerator(srcDirPath);
 
   final scriptPath = Platform.script.toFilePath();
@@ -83,7 +137,7 @@ Future _generateJava(String appDirPath, List<Node> nodes) async {
       .map((path) => relative(path, from: 'java'))
       .toList();
   generatedPaths.sort();
-  File gitignoreFile = File(join(appDirPath, '..', 'java', '.gitignore'));
+  File gitignoreFile = File(join(codeGeneratorDir, '..', 'java', '.gitignore'));
   gitignoreFile.writeAsStringSync('''
 # This is a generated file.
 

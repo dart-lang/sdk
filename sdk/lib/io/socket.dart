@@ -464,11 +464,42 @@ final class RawSocketOption {
   external static int _getOptionValue(int key);
 }
 
-/// Events for the [RawSocket].
+/// Events for the [RawDatagramSocket], [RawSecureSocket], and [RawSocket].
 ///
-/// These event objects are used by the [Stream] behavior of [RawSocket]
+/// These event objects are used by the [Stream] behavior of the sockets
 /// (for example [RawSocket.listen], [RawSocket.forEach])
 /// when the socket's state change.
+///
+/// ```dart
+/// import 'dart:convert';
+/// import 'dart:io';
+///
+/// void main() async {
+///   final socket = await RawSocket.connect("example.com", 80);
+///
+///   socket.listen((event) {
+///     switch (event) {
+///       case RawSocketEvent.read:
+///         final data = socket.read();
+///         if (data != null) {
+///           print(ascii.decode(data));
+///         }
+///         break;
+///       case RawSocketEvent.write:
+///         socket.write(ascii.encode('GET /\r\nHost: example.com\r\n\r\n'));
+///         socket.writeEventsEnabled = false;
+///         break;
+///       case RawSocketEvent.readClosed:
+///         socket.close();
+///         break;
+///       case RawSocketEvent.closed:
+///         break;
+///       default:
+///         throw "Unexpected event $event";
+///     }
+///   });
+/// }
+/// ```
 class RawSocketEvent {
   /// An event indicates the socket is ready to be read.
   static const RawSocketEvent read = const RawSocketEvent._(0);
@@ -1165,21 +1196,26 @@ abstract interface class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// A return value of the size of [buffer] indicates that a request to
   /// transmit the datagram was made to the operating system. It does not
   /// indicate that the operating system successfully sent the datagram. If a
-  /// local failure to send the datagram occurs then a an error event will be
+  /// local failure to send the datagram occurs then an error event will be
   /// added to the [Stream]. If a networking or remote failure occurs then it
   /// will not be reported.
   ///
-  /// The maximum size of a UDP datagram is 65535 byes (including both data
-  /// and headers) but the practical maximum size is likely to be much lower
-  /// due to operating system limits and the network's maximum transmission
-  /// unit (MTU).
+  /// The maximum size of a IPv4 UDP datagram is 65535 bytes (including both
+  /// data and headers) but the practical maximum size is likely to be much
+  /// lower due to operating system limits and the network's maximum
+  /// transmission unit (MTU).
+  ///
+  /// Some IPv6 implementations may support payloads up to 4GB (see RFC-2675)
+  /// but that support is limited (see RFC-6434) and has been removed in later
+  /// standards (see RFC-8504).
+  ///
+  /// [Emperical testing by the Chromium team](https://groups.google.com/a/chromium.org/g/proto-quic/c/uKWLRh9JPCo)
+  /// suggests that payloads later than 1350 cannot be reliably received.
   int send(List<int> buffer, InternetAddress address, int port);
 
   /// Receives a datagram.
   ///
   /// Returns `null` if there are no datagrams available.
-  ///
-  /// The maximum length of the datagram that can be received is 65503 bytes.
   Datagram? receive();
 
   /// Joins a multicast group.

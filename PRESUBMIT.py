@@ -283,6 +283,49 @@ def _CheckClangTidy(input_api, output_api):
     ]
 
 
+def _CheckAnalyzerFiles(input_api, output_api):
+    """Run analyzer checks on source files."""
+
+    # The first (and so far, only) check, is to verify the "error fix status"
+    # file.
+    relevant_files = [
+        "pkg/analyzer/lib/src/error/error_code_values.g.dart",
+        "pkg/linter/lib/src/rules.dart",
+    ]
+
+    if any(f.LocalPath() in relevant_files for f in input_api.AffectedFiles()):
+        args = [
+            "tools/sdks/dart-sdk/bin/dart",
+            "pkg/analysis_server/tool/presubmit/verify_error_fix_status.dart",
+        ]
+        stdout = input_api.subprocess.check_output(args).strip()
+        if not stdout:
+            return []
+
+        return [
+            output_api.PresubmitError(
+                "The verify_error_fix_status Analyzer tool revealed issues:",
+                long_text=stdout)
+        ]
+
+    # TODO(srawlins): Check more:
+    # * "verify_sorted" for individual modified (not deleted) files in
+    #   Analyzer-team-owned directories.
+    # * "verify_tests" for individual modified (not deleted) test files in
+    #   Analyzer-team-owned directories.
+    # * Verify that `messages/generate.dart` does not produce different
+    #   content, when `pkg/analyzer/messages.yaml` is modified.
+    # * Verify that `diagnostics/generate.dart` does not produce different
+    #   content, when `pkg/analyzer/messages.yaml` is modified.
+    # * Verify that `machine.json` is not outdated, when any
+    #   `pkg/linter/lib/src/rules` file is modified.
+    # * Maybe "verify_no_solo" for individual modified (not deleted test files
+    #   in Analyzer-team-owned directories.
+
+    # No files are relevant.
+    return []
+
+
 def _CheckTestMatrixValid(input_api, output_api):
     """Run script to check that the test matrix has no errors."""
 
@@ -348,6 +391,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(
         input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
     results.extend(_CheckCopyrightYear(input_api, output_api))
+    results.extend(_CheckAnalyzerFiles(input_api, output_api))
     return results
 
 

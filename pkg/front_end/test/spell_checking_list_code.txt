@@ -400,6 +400,7 @@ dereferencing
 deregister
 descent
 descriptive
+descriptors
 deserializable
 deserializer
 deserializers
@@ -1391,6 +1392,8 @@ s
 safer
 sampled
 sandboxed
+sanitize
+sanitized
 sanitizing
 saw
 say
@@ -1681,6 +1684,7 @@ transfer
 transferable
 transformers
 transforming
+transitively
 translation
 traversal
 traverse

@@ -84,7 +84,10 @@ class DartSnippetRequest {
         return SnippetContext.inIdentifierDeclaration;
       }
 
-      if (node is PropertyAccess || node is FieldFormalParameter) {
+      if (node is PropertyAccess ||
+          node is FieldFormalParameter ||
+          node is PrefixedIdentifier ||
+          node is ConstructorReference) {
         return SnippetContext.inQualifiedMemberAccess;
       }
 

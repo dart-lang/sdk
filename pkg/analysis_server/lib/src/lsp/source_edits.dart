@@ -16,7 +16,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
 
-DartFormatter formatter = DartFormatter();
+DartFormatter _formatter = DartFormatter();
+
+/// Checks whether a string contains only whitespace and commas.
+final _isWhitespaceAndCommas = RegExp(r'^[\s,]*$').hasMatch;
 
 /// Transforms a sequence of LSP document change events to a sequence of source
 /// edits used by analysis plugins.
@@ -84,10 +87,10 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
   SourceCode formattedResult;
   try {
     // If the lineLength has changed, recreate the formatter with the new setting.
-    if (lineLength != formatter.pageWidth) {
-      formatter = DartFormatter(pageWidth: lineLength);
+    if (lineLength != _formatter.pageWidth) {
+      _formatter = DartFormatter(pageWidth: lineLength);
     }
-    formattedResult = formatter.formatSource(code);
+    formattedResult = _formatter.formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the
@@ -101,10 +104,10 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     return success(null);
   }
 
-  return _generateMinimalEdits(result, formattedSource, range: range);
+  return generateMinimalEdits(result, formattedSource, range: range);
 }
 
-List<TextEdit> _generateFullEdit(
+List<TextEdit> generateFullEdit(
     LineInfo lineInfo, String unformattedSource, String formattedSource) {
   final end = lineInfo.getLocation(unformattedSource.length);
   return [
@@ -116,15 +119,15 @@ List<TextEdit> _generateFullEdit(
   ];
 }
 
-/// Generates edits that modify the minimum amount of code (only whitespace) to
-/// change [unformatted] to [formatted].
+/// Generates edits that modify the minimum amount of code (if only whitespace,
+/// commas and comments) to change the source of [result] to [formatted].
 ///
 /// This allows editors to more easily track important locations (such as
 /// breakpoints) without needing to do their own diffing.
 ///
-/// If [range] is supplied, only whitespace edits that fall entirely inside this
-/// range will be included in the results.
-ErrorOr<List<TextEdit>> _generateMinimalEdits(
+/// If [range] is supplied, only edits that fall entirely inside this range will
+/// be included in the results.
+ErrorOr<List<TextEdit>> generateMinimalEdits(
   ParsedUnitResult result,
   String formatted, {
   Range? range,
@@ -146,7 +149,7 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
   final parsedFormatted = _parse(formatted, result.unit.featureSet);
   final parsedUnformatted = _parse(unformatted, result.unit.featureSet);
   if (parsedFormatted == null || parsedUnformatted == null) {
-    return success(_generateFullEdit(lineInfo, unformatted, formatted));
+    return success(generateFullEdit(lineInfo, unformatted, formatted));
   }
 
   final unformattedTokens = _iterateAllTokens(parsedUnformatted).iterator;
@@ -169,9 +172,9 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
         formatted.substring(formattedStart, formattedEnd);
 
     if (rangeStart != null && rangeEnd != null) {
-      // If this change crosses over the start of the requested range, discarding
-      // the change may result in leading whitespace of the next line not being
-      // formatted correctly.
+      // If this change crosses over the start of the requested range,
+      // discarding the change may result in leading whitespace of the next line
+      // not being formatted correctly.
       //
       // To handle this, if both unformatted/formatted contain at least one
       // newline, split this change into two around the last newline so that the
@@ -209,8 +212,8 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
         return;
       }
 
-      // If we're formatting only a range, skip over any segments that don't fall
-      // entirely within that range.
+      // If we're formatting only a range, skip over any segments that don't
+      // fall entirely within that range.
       if (unformattedStart < rangeStart.result ||
           unformattedEnd > rangeEnd.result) {
         return;
@@ -221,28 +224,47 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
       return;
     }
 
-    // Validate we didn't find more than whitespace. If this occurs, it's likely
-    // the token offsets used were incorrect. In this case it's better to not
-    // modify the code than potentially remove something important.
-    if (unformattedWhitespace.trim().isNotEmpty ||
-        formattedWhitespace.trim().isNotEmpty) {
+    // Validate we didn't find more than whitespace or commas. If this occurs,
+    // it's likely the token offsets used were incorrect. In this case it's
+    // better to not modify the code than potentially remove something
+    // important.
+    if (!_isWhitespaceAndCommas(unformattedWhitespace) ||
+        !_isWhitespaceAndCommas(formattedWhitespace)) {
       return;
     }
 
     var startOffset = unformattedStart;
     var endOffset = unformattedEnd;
+    var oldText = unformattedWhitespace;
     var newText = formattedWhitespace;
 
     // Simplify some common cases where the new whitespace is a subset of
     // the old.
-    if (formattedWhitespace.isNotEmpty) {
-      if (unformattedWhitespace.startsWith(formattedWhitespace)) {
-        startOffset = unformattedStart + formattedWhitespace.length;
-        newText = '';
-      } else if (unformattedWhitespace.endsWith(formattedWhitespace)) {
-        endOffset = unformattedEnd - formattedWhitespace.length;
-        newText = '';
-      }
+    // Remove common prefixes.
+    int commonPrefixLength = 0;
+    while (commonPrefixLength < oldText.length &&
+        commonPrefixLength < newText.length &&
+        oldText[commonPrefixLength] == newText[commonPrefixLength]) {
+      commonPrefixLength++;
+    }
+    if (commonPrefixLength != 0) {
+      oldText = oldText.substring(commonPrefixLength);
+      newText = newText.substring(commonPrefixLength);
+      startOffset += commonPrefixLength;
+    }
+
+    // Remove common suffixes.
+    int commonSuffixLength = 0;
+    while (commonSuffixLength < oldText.length &&
+        commonSuffixLength < newText.length &&
+        oldText[oldText.length - 1 - commonSuffixLength] ==
+            newText[newText.length - 1 - commonSuffixLength]) {
+      commonSuffixLength++;
+    }
+    if (commonSuffixLength != 0) {
+      oldText = oldText.substring(0, oldText.length - commonSuffixLength);
+      newText = newText.substring(0, newText.length - commonSuffixLength);
+      endOffset -= commonSuffixLength;
     }
 
     // Finally, append the edit for this whitespace.
@@ -258,42 +280,71 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     ));
   }
 
-  // Process the whitespace before each token.
+  // Walk through the token streams computing edits for the differences.
   bool unformattedHasMore, formattedHasMore;
   while ((unformattedHasMore =
-          unformattedTokens.moveNext()) & // Don't short-circuit
+          unformattedTokens.moveNext()) & // Don't short-circuit.
       (formattedHasMore = formattedTokens.moveNext())) {
-    final unformattedToken = unformattedTokens.current;
-    final formattedToken = formattedTokens.current;
+    var unformattedToken = unformattedTokens.current;
+    var formattedToken = formattedTokens.current;
+
+    // Compute the ranges from each side that that we will produce an edit for.
+    // This is usually just the whitespace from each side (the range between the
+    // end of the previous token and the start of the current), but in the case
+    // of commas will be expanded to include the commas (and then the following
+    // whitespace).
+    var unformattedStart = unformattedOffset;
+    var unformattedEnd = unformattedToken.offset;
+    var formattedStart = formattedOffset;
+    var formattedEnd = formattedToken.offset;
+
+    if (formattedToken.type == TokenType.COMMA &&
+        unformattedToken.type != TokenType.COMMA) {
+      // Push the end of the range back to include the comma and subsequent
+      // whitespace.
+      // Don't use `formattedToken.next?.offset`, that would skip comments.
+      formattedEnd = formattedToken.end;
+      if (formattedHasMore = formattedTokens.moveNext()) {
+        formattedToken = formattedTokens.current;
+        formattedEnd = formattedTokens.current.offset;
+      }
+    } else if (unformattedToken.type == TokenType.COMMA &&
+        formattedToken.type != TokenType.COMMA) {
+      // Push the end of the range back to include the comma and subsequent
+      // whitespace.
+      // Don't use `unformattedToken.next?.offset`, that would skip comments.
+      unformattedEnd = unformattedToken.end;
+      if (unformattedHasMore = unformattedTokens.moveNext()) {
+        unformattedToken = unformattedTokens.current;
+        unformattedEnd = unformattedTokens.current.offset;
+      }
+    }
 
     if (unformattedToken.lexeme != formattedToken.lexeme) {
       // If the token lexemes do not match, there is a difference in the parsed
       // token streams (this should not ordinarily happen) so fall back to a
       // full edit.
-      return success(_generateFullEdit(lineInfo, unformatted, formatted));
+      return success(generateFullEdit(lineInfo, unformatted, formatted));
     }
 
-    addEditFor(
-      unformattedOffset,
-      unformattedToken.offset,
-      formattedOffset,
-      formattedToken.offset,
-    );
+    // Add edits for the computed ranges.
+    addEditFor(unformattedStart, unformattedEnd, formattedStart, formattedEnd);
+
+    // And move the pointers along to after these tokens.
+    unformattedOffset = unformattedToken.end;
+    formattedOffset = formattedToken.end;
 
     // When range formatting, if we've processed a token that ends after the
     // range then there can't be any more relevant edits and we can return early.
-    if (rangeEnd != null && unformattedToken.end > rangeEnd.result) {
+    if (rangeEnd != null && unformattedOffset > rangeEnd.result) {
       return success(edits);
     }
-
-    unformattedOffset = unformattedToken.end;
-    formattedOffset = formattedToken.end;
   }
 
   // If we got here and either of the streams still have tokens, something
   // did not match so fall back to a full edit.
   if (unformattedHasMore || formattedHasMore) {
-    return success(_generateFullEdit(lineInfo, unformatted, formatted));
+    return success(generateFullEdit(lineInfo, unformatted, formatted));
   }
 
   // Finally, handle any whitespace that was after the last token.

@@ -1,0 +1,41 @@
+(Object?, Object?) f1 = f;
+(Object?, Object?) g1 = g;
+(Object?, Object?) testGetter0(E e) => e.getter;
+(Object?, Object?) testMethod0(E e) => e.method();
+(Object?, int) f2 = f;
+(Object?, int) g2 = g;
+(Object?, int) testGetter2(E e) => e.getter;
+(Object?, int) testMethod2(E e) => e.method();
+(int, Object?) f3 = f;
+(int, Object?) g3 = g;
+(int, Object?) testGetter1(E e) => e.getter;
+(int, Object?) testMethod1(E e) => e.method();
+E e = E(C());
+abstract class A {
+  (Object?, dynamic) get getter;
+  (Object?, dynamic) method();
+  void set setter((int, int) Function(Object?, dynamic) f);
+}
+abstract class B {
+  (dynamic, Object?) get getter;
+  (dynamic, Object?) method();
+  void set setter((int, int) Function(dynamic, Object?) f);
+}
+class C implements A, B {
+  (int, int) get getter => (42, 87);
+  (int, int) method() => (42, 87);
+  void set setter((int, int) Function(dynamic, dynamic) f) {}
+}
+expect(expected, actual) {}
+extension type E(C c) implements A, B {}
+main() {}
+testGetter5(E e) => g.$1.unresolved();
+testGetter6(E e) => g.$2.unresolved();
+testMethod3(E e) => e.method().$1.unresolved();
+testMethod4(E e) => e.method().$2.unresolved();
+testMethod5(E e) => f.$1.unresolved();
+testMethod6(E e) => f.$2.unresolved();
+var f = e.method();
+var g = e.getter;
+void method(E e) {}
+void testSetter(E e) {}

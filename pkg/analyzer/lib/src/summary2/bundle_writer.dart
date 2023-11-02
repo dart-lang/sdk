@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -123,6 +124,8 @@ class BundleWriter {
       _resolutionSink._writeAnnotationList(partElement.metadata);
     }
     _resolutionSink.writeElement(libraryElement.entryPoint);
+    _writeFieldNameNonPromotabilityInfo(
+        libraryElement.fieldNameNonPromotabilityInfo);
     LibraryElementFlags.write(_sink, libraryElement);
     _writeUnitElement(libraryElement.definingCompilationUnit);
     _writeList(libraryElement.parts, _writePartElement);
@@ -375,6 +378,8 @@ class BundleWriter {
   void _writeFieldElement(FieldElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeOptionalReference(element.getter?.reference);
+    _writeOptionalReference(element.setter?.reference);
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -387,6 +392,23 @@ class BundleWriter {
     }
 
     _resolutionSink._writeOptionalNode(element.constantInitializer);
+  }
+
+  void _writeFieldNameNonPromotabilityInfo(
+      Map<String, FieldNameNonPromotabilityInfo>? info) {
+    _resolutionSink.writeOptionalObject(info, (info) {
+      _resolutionSink.writeMap(
+        info,
+        writeKey: (key) {
+          _resolutionSink._writeStringReference(key);
+        },
+        writeValue: (value) {
+          _resolutionSink._writeElementList(value.conflictingFields);
+          _resolutionSink._writeElementList(value.conflictingGetters);
+          _resolutionSink._writeElementList(value.conflictingNsmClasses);
+        },
+      );
+    });
   }
 
   void _writeFunctionElement(FunctionElementImpl element) {
@@ -530,6 +552,13 @@ class BundleWriter {
     }
   }
 
+  void _writeOptionalReference(Reference? reference) {
+    _sink.writeOptionalObject(reference, (reference) {
+      final index = _references._indexOfReference(reference);
+      _sink.writeUInt30(index);
+    });
+  }
+
   /// TODO(scheglov) Deduplicate parameter writing implementation.
   void _writeParameterElement(ParameterElement element) {
     element as ParameterElementImpl;
@@ -537,6 +566,7 @@ class BundleWriter {
     _sink.writeBool(element is ConstVariableElement);
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
+    _writeOptionalReference(element.reference);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 
@@ -594,6 +624,8 @@ class BundleWriter {
   void _writeTopLevelVariableElement(TopLevelVariableElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
     _writeReference(element);
+    _writeOptionalReference(element.getter?.reference);
+    _writeOptionalReference(element.setter?.reference);
     _sink.writeBool(element.isConst);
     TopLevelVariableElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
@@ -731,6 +763,18 @@ class ResolutionSink extends _SummaryDataWriter {
     } else {
       writeByte(Tag.RawElement);
       _writeElement(element);
+    }
+  }
+
+  void writeMap<K, V>(
+    Map<K, V> map, {
+    required void Function(K key) writeKey,
+    required void Function(V value) writeValue,
+  }) {
+    writeUInt30(map.length);
+    for (final entry in map.entries) {
+      writeKey(entry.key);
+      writeValue(entry.value);
     }
   }
 

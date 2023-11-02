@@ -98,7 +98,44 @@ mixin ErrorDetectionHelpers {
           return;
         }
       }
-
+      if (errorCode == CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE) {
+        var additionalInfo = <String>[];
+        if (expectedStaticType is RecordType &&
+            actualStaticType is RecordType) {
+          var actualPositionalFields = actualStaticType.positionalFields.length;
+          var expectedPositionalFields =
+              expectedStaticType.positionalFields.length;
+          if (expectedPositionalFields != 0 &&
+              actualPositionalFields != expectedPositionalFields) {
+            additionalInfo.add(
+                'Expected $expectedPositionalFields positional arguments, but got $actualPositionalFields instead.');
+          }
+          var actualNamedFieldsLength = actualStaticType.namedFields.length;
+          var expectedNamedFieldsLength = expectedStaticType.namedFields.length;
+          if (expectedNamedFieldsLength != 0 &&
+              actualNamedFieldsLength != expectedNamedFieldsLength) {
+            additionalInfo.add(
+                'Expected $expectedNamedFieldsLength named arguments, but got $actualNamedFieldsLength instead.');
+          }
+          var namedFields = expectedStaticType.namedFields;
+          if (namedFields.isNotEmpty) {
+            for (var field in actualStaticType.namedFields) {
+              if (!namedFields.any((element) =>
+                  element.name == field.name && field.type == element.type)) {
+                additionalInfo.add(
+                    'Unexpected named argument `${field.name}` with type `${field.type.getDisplayString(withNullability: true)}`.');
+              }
+            }
+          }
+        }
+        errorReporter.reportErrorForNode(
+          errorCode,
+          getErrorNode(expression),
+          [actualStaticType, expectedStaticType, additionalInfo.join(' ')],
+          computeWhyNotPromotedMessages(expression, whyNotPromoted?.call()),
+        );
+        return;
+      }
       errorReporter.reportErrorForNode(
         errorCode,
         getErrorNode(expression),

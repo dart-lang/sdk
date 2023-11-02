@@ -30,11 +30,11 @@ extension type ET_Null(Null it) implements Null /* Error */ {}
 
 extension type ET_Dynamic(dynamic it) implements dynamic /* Error */ {}
 
-extension type ET_Void(Never it) implements void /* Error */ {}
+extension type ET_Void(Null it) implements void /* Error */ {}
 
 extension type ET_Never(Never it) implements Never /* Error */ {}
 
-extension type ET_Object(Object it) implements Object /* Error */ {}
+extension type ET_Object(Object it) implements Object /* Ok */ {}
 
 extension type ET_Record(Record it) implements Record /* Error */ {}
 
@@ -54,7 +54,7 @@ extension type ET_NullableExtensionType(int it)
 extension type ET_FutureOr(FutureOr<int> it)
     implements FutureOr<int> /* Error */ {}
 
-extension type ET_Extension(Never it) implements Extension /* Error */ {}
+extension type ET_Extension(int it) implements Extension /* Error */ {}
 
 extension type ET_TypeVariable<T>(T it) implements T /* Error */ {}
 

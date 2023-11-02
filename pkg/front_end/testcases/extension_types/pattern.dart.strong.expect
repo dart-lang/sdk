@@ -1,0 +1,89 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type MyList<T extends core::Object? = dynamic>(core::List<T%> it) implements core::List<T%> {
+  abstract inline-class-member representation-field get it() → core::List<T%>;
+  constructor • = self::MyList|constructor#;
+  constructor tearoff • = self::MyList|constructor#_#new#tearOff;
+}
+extension type MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<K%, V%> it) implements core::Map<K%, V%> {
+  abstract inline-class-member representation-field get it() → core::Map<K%, V%>;
+  constructor • = self::MyMap|constructor#;
+  constructor tearoff • = self::MyMap|constructor#_#new#tearOff;
+}
+static inline-class-member method MyList|constructor#<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#::T%> it) → self::MyList<self::MyList|constructor#::T%> /* = core::List<self::MyList|constructor#::T%> */ {
+  lowered final self::MyList<self::MyList|constructor#::T%> /* = core::List<self::MyList|constructor#::T%> */ #this = it;
+  return #this;
+}
+static inline-class-member method MyList|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#_#new#tearOff::T%> it) → self::MyList<self::MyList|constructor#_#new#tearOff::T%> /* = core::List<self::MyList|constructor#_#new#tearOff::T%> */
+  return self::MyList|constructor#<self::MyList|constructor#_#new#tearOff::T%>(it);
+static inline-class-member method MyMap|constructor#<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> it) → self::MyMap<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> /* = core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> */ {
+  lowered final self::MyMap<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> /* = core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> */ #this = it;
+  return #this;
+}
+static inline-class-member method MyMap|constructor#_#new#tearOff<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> it) → self::MyMap<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> /* = core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> */
+  return self::MyMap|constructor#<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%>(it);
+static method method(self::MyList<core::int> /* = core::List<core::int> */ list, self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ map) → dynamic {
+  hoisted has-declared-initializer core::int a;
+  {
+    final synthesized self::MyList<core::int> /* = core::List<core::int> */ #0#0 = list;
+    if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  hoisted has-declared-initializer core::bool b;
+  {
+    final synthesized self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ #1#0 = map;
+    late final synthesized core::bool? #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?};
+    if(!((!(#1#3 == null) || null is core::bool && #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t2 = b = #1#3{core::bool} in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  {
+    hoisted core::int c;
+    final synthesized self::MyList<core::int> /* = core::List<core::int> */ #2#0 = list;
+    if(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = c = #2#0.{core::List::[]}(0){(core::int) → core::int} in true)) {
+    }
+  }
+  {
+    hoisted core::bool d;
+    final synthesized self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ #3#0 = map;
+    late final synthesized core::bool? #3#3 = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?};
+    if((!(#3#3 == null) || null is core::bool && #3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final dynamic #t4 = d = #3#3{core::bool} in true)) {
+    }
+  }
+  #L1:
+  {
+    final synthesized self::MyList<core::int> /* = core::List<core::int> */ #4#0 = list;
+    late final synthesized core::int #4#1 = #4#0.{core::List::length}{core::int};
+    dynamic #t5;
+    {
+      lowered hoisted core::int e#case#0;
+      lowered hoisted core::int e#case#1;
+      if(#4#1 =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = e#case#0 = #4#0.{core::List::[]}(0){(core::int) → core::int} in true) && e#case#0.{core::num::>}(5){(core::num) → core::bool} && (let final dynamic #t7 = #t5 = e#case#0 in true) || #4#1 =={core::num::==}{(core::Object) → core::bool} #C3 && (let final dynamic #t8 = e#case#1 = #4#0.{core::List::[]}(1){(core::int) → core::int} in true) && e#case#1.{core::num::<}(5){(core::num) → core::bool} && (let final dynamic #t9 = #t5 = e#case#1 in true)) {
+        core::int e = #t5{core::int};
+        {
+          core::print(e);
+        }
+      }
+    }
+  }
+  #L2:
+  {
+    final synthesized self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ #5#0 = map;
+    late final synthesized core::bool? #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?};
+    {
+      hoisted core::bool e;
+      if((!(#5#3 == null) || null is core::bool && #5#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t10 = e = #5#3{core::bool} in true)) {
+        {
+          core::print(e);
+        }
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = "foo"
+  #C3 = 2
+}

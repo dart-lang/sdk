@@ -406,7 +406,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           DecoratedTypeOperations(
               _typeSystem, typeProvider, _variables, _graph),
           _assignedVariables!,
-          respectImplicitlyTypedVarInitializers: true);
+          respectImplicitlyTypedVarInitializers: true,
+          fieldPromotionEnabled: false);
     }
     try {
       _dispatch(node.constructorName);
@@ -2221,7 +2222,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             PromotableElement, DecoratedType>(
         DecoratedTypeOperations(_typeSystem, typeProvider, _variables, _graph),
         _assignedVariables!,
-        respectImplicitlyTypedVarInitializers: true);
+        respectImplicitlyTypedVarInitializers: true,
+        fieldPromotionEnabled: false);
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         var declaredElement = parameter.declaredElement!;

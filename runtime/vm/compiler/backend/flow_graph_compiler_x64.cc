@@ -356,13 +356,15 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
   } else {
-    __ Call(stub);
+    __ Call(stub, snapshot_behavior);
     AddStubCallTarget(stub);
   }
 }
@@ -402,11 +404,13 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   }
 }
 
-void FlowGraphCompiler::GeneratePatchableCall(const InstructionSource& source,
-                                              const Code& stub,
-                                              UntaggedPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  __ CallPatchable(stub);
+void FlowGraphCompiler::GeneratePatchableCall(
+    const InstructionSource& source,
+    const Code& stub,
+    UntaggedPcDescriptors::Kind kind,
+    LocationSummary* locs,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
+  __ CallPatchable(stub, CodeEntryKind::kNormal, snapshot_behavior);
   EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs,
                        pending_deoptimization_env_);
 }
@@ -537,6 +541,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -546,31 +551,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ movq(RDX, compiler::Address(RSP, (args_desc.Count() - 1) * kWordSize));
 
   // Use same code pattern as instance call so it can be parsed by code patcher.
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    __ call(RCX);
-  } else {
-    __ LoadUniqueObject(IC_DATA_REG, cache);
-    __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-    __ call(compiler::FieldAddress(
-        CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
-  }
+  __ LoadUniqueObject(IC_DATA_REG, cache);
+  __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+  __ call(compiler::FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 
   RecordSafepoint(locs);
   AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
-                           source);
-    }
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
   EmitDropArguments(args_desc.SizeWithTypeArgs());
@@ -601,7 +595,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
-    __ LoadUniqueObject(RCX, initial_stub);
+    const auto snapshot_behavior =
+        compiler::ObjectPoolBuilderEntry::kResetToSwitchableCallMissEntryPoint;
+    __ LoadUniqueObject(RCX, initial_stub, snapshot_behavior);
   } else {
     const intptr_t entry_point_offset =
         entry_kind == Code::EntryKind::kNormal

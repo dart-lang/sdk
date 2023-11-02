@@ -210,8 +210,16 @@ Future<CompiledData<T>?> computeData<T>(String name, Uri entryPoint,
   CommonElements commonElements = closedWorld.commonElements;
 
   Map<Id, ActualData<T>> actualMapFor(Entity entity) {
-    SourceSpan span =
-        compiler.backendStrategy.spanFromSpannable(entity, entity);
+    // The Entity objects passed here can be from the K-world but
+    // `compiler.backendStrategy.spanFromSpannable` does a J-world look up so
+    // we may have to convert the entity first.
+    final backendEntity = testFrontend
+        ? compiler
+                .backendClosedWorldForTesting?.elementMap.kToJMembers[entity] ??
+            entity
+        : entity;
+    SourceSpan span = compiler.backendStrategy
+        .spanFromSpannable(backendEntity, backendEntity);
     return actualMapForUri(span.uri);
   }
 

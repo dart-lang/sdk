@@ -298,7 +298,7 @@ DartDevIsolate::DartDev_Result DartDevIsolate::RunDartDev(
   return runner_.result();
 }
 
-#endif  // if !defined(DART_PRECOMPILED_RUNTIME)
-
 }  // namespace bin
 }  // namespace dart
+
+#endif  // if !defined(DART_PRECOMPILED_RUNTIME)

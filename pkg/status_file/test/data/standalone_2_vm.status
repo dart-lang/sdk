@@ -5,11 +5,6 @@
 [ $runtime == vm && !$checked ]
 io/file_constructor_test: RuntimeError
 
-[ $runtime == vm && ($arch == arm || $arch == arm64) ]
-io/file_stream_test: Skip # Issue 26109
-io/file_typed_data_test: Skip # Issue 26109
-io/file_input_stream_test: Skip # Issue 26109
-
 [ $runtime == vm && $system == windows && $mode == release ]
 io/http_server_close_response_after_error_test: Pass, Timeout # Issue 28370: timeout.
 io/regress_7191_test: Pass, Timeout # Issue 28374: timeout.

@@ -78,74 +78,7 @@ class InformativeDataApplier {
       var unitElement = unitElements[i];
       var unitInfoBytes = _getInfoUnitBytes(unitElement);
       if (unitInfoBytes != null) {
-        var unitReader = SummaryDataReader(unitInfoBytes);
-        var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
-
-        final enclosing = unitElement.enclosingElement;
-        if (enclosing is LibraryElementImpl) {
-          if (identical(enclosing.definingCompilationUnit, unitElement)) {
-            _applyToLibrary(enclosing, unitInfo);
-          }
-        } else if (enclosing is LibraryAugmentationElementImpl) {
-          _applyToAugmentation(enclosing, unitInfo);
-        }
-
-        unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
-        unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
-
-        _applyToAccessors(unitElement.accessors, unitInfo.accessors);
-
-        forCorrespondingPairs(
-          unitElement.classes
-              .where((element) => !element.isMixinApplication)
-              .toList(),
-          unitInfo.classDeclarations,
-          _applyToClassDeclaration,
-        );
-
-        forCorrespondingPairs(
-          unitElement.classes
-              .where((element) => element.isMixinApplication)
-              .toList(),
-          unitInfo.classTypeAliases,
-          _applyToClassTypeAlias,
-        );
-
-        forCorrespondingPairs(
-            unitElement.enums, unitInfo.enums, _applyToEnumDeclaration);
-
-        forCorrespondingPairs(unitElement.extensions, unitInfo.extensions,
-            _applyToExtensionDeclaration);
-
-        forCorrespondingPairs(unitElement.extensionTypes,
-            unitInfo.extensionTypes, _applyToExtensionTypeDeclaration);
-
-        forCorrespondingPairs(unitElement.functions, unitInfo.functions,
-            _applyToFunctionDeclaration);
-
-        forCorrespondingPairs(unitElement.mixins, unitInfo.mixinDeclarations,
-            _applyToMixinDeclaration);
-
-        forCorrespondingPairs(unitElement.topLevelVariables,
-            unitInfo.topLevelVariable, _applyToTopLevelVariable);
-
-        forCorrespondingPairs(
-          unitElement.typeAliases
-              .cast<TypeAliasElementImpl>()
-              .where((e) => e.isFunctionTypeAliasBased)
-              .toList(),
-          unitInfo.functionTypeAliases,
-          _applyToFunctionTypeAlias,
-        );
-
-        forCorrespondingPairs(
-          unitElement.typeAliases
-              .cast<TypeAliasElementImpl>()
-              .where((e) => !e.isFunctionTypeAliasBased)
-              .toList(),
-          unitInfo.genericTypeAliases,
-          _applyToGenericTypeAlias,
-        );
+        applyToUnit(unitElement, unitInfoBytes);
       } else {
         unitElement.lineInfo = LineInfo([0]);
       }
@@ -153,6 +86,78 @@ class InformativeDataApplier {
 
     libraryElement.linkedData?.unlock();
     _elementFactory.isApplyingInformativeData = false;
+  }
+
+  void applyToUnit(
+      CompilationUnitElementImpl unitElement, Uint8List unitInfoBytes) {
+    var unitReader = SummaryDataReader(unitInfoBytes);
+    var unitInfo = _InfoUnit(_infoDeclarationStore, unitReader);
+
+    final enclosing = unitElement.enclosingElement;
+    if (enclosing is LibraryElementImpl) {
+      if (identical(enclosing.definingCompilationUnit, unitElement)) {
+        _applyToLibrary(enclosing, unitInfo);
+      }
+    } else if (enclosing is LibraryAugmentationElementImpl) {
+      _applyToAugmentation(enclosing, unitInfo);
+    }
+
+    unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
+    unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
+
+    _applyToAccessors(unitElement.accessors, unitInfo.accessors);
+
+    forCorrespondingPairs(
+      unitElement.classes
+          .where((element) => !element.isMixinApplication)
+          .toList(),
+      unitInfo.classDeclarations,
+      _applyToClassDeclaration,
+    );
+
+    forCorrespondingPairs(
+      unitElement.classes
+          .where((element) => element.isMixinApplication)
+          .toList(),
+      unitInfo.classTypeAliases,
+      _applyToClassTypeAlias,
+    );
+
+    forCorrespondingPairs(
+        unitElement.enums, unitInfo.enums, _applyToEnumDeclaration);
+
+    forCorrespondingPairs(unitElement.extensions, unitInfo.extensions,
+        _applyToExtensionDeclaration);
+
+    forCorrespondingPairs(unitElement.extensionTypes, unitInfo.extensionTypes,
+        _applyToExtensionTypeDeclaration);
+
+    forCorrespondingPairs(
+        unitElement.functions, unitInfo.functions, _applyToFunctionDeclaration);
+
+    forCorrespondingPairs(unitElement.mixins, unitInfo.mixinDeclarations,
+        _applyToMixinDeclaration);
+
+    forCorrespondingPairs(unitElement.topLevelVariables,
+        unitInfo.topLevelVariable, _applyToTopLevelVariable);
+
+    forCorrespondingPairs(
+      unitElement.typeAliases
+          .cast<TypeAliasElementImpl>()
+          .where((e) => e.isFunctionTypeAliasBased)
+          .toList(),
+      unitInfo.functionTypeAliases,
+      _applyToFunctionTypeAlias,
+    );
+
+    forCorrespondingPairs(
+      unitElement.typeAliases
+          .cast<TypeAliasElementImpl>()
+          .where((e) => !e.isFunctionTypeAliasBased)
+          .toList(),
+      unitInfo.genericTypeAliases,
+      _applyToGenericTypeAlias,
+    );
   }
 
   void _applyToAccessors(
@@ -172,16 +177,20 @@ class InformativeDataApplier {
           info.parameters,
         );
 
-        var linkedData = element.linkedData;
+        final applyOffsets = ApplyConstantOffsets(
+          info.constantOffsets,
+          (applier) {
+            applier.applyToMetadata(element);
+            applier.applyToTypeParameters(element.typeParameters);
+            applier.applyToFormalParameters(element.parameters);
+          },
+        );
+
+        final linkedData = element.linkedData;
         if (linkedData is PropertyAccessorElementLinkedData) {
-          linkedData.applyConstantOffsets = ApplyConstantOffsets(
-            info.constantOffsets,
-            (applier) {
-              applier.applyToMetadata(element);
-              applier.applyToTypeParameters(element.typeParameters);
-              applier.applyToFormalParameters(element.parameters);
-            },
-          );
+          linkedData.applyConstantOffsets = applyOffsets;
+        } else {
+          applyOffsets.perform();
         }
       },
     );
@@ -198,8 +207,7 @@ class InformativeDataApplier {
     _applyToImports(element, info);
     _applyToExports(element, info);
 
-    var linkedData = element.linkedData as LibraryAugmentationElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
@@ -208,6 +216,13 @@ class InformativeDataApplier {
         applier.applyToAugmentationImports(element.augmentationImports);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is LibraryAugmentationElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToClassDeclaration(
@@ -223,20 +238,29 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    var linkedData = element.linkedData as ClassElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
       },
     );
-    linkedData.applyInformativeDataToMembers = () {
+
+    void applyToMembers() {
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);
       _applyToAccessors(element.accessors, info.accessors);
       _applyToMethods(element.methods, info.methods);
-    };
+    }
+
+    final linkedData = element.linkedData;
+    if (linkedData is ClassElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+      linkedData.applyInformativeDataToMembers = applyToMembers;
+    } else {
+      applyOffsets.perform();
+      applyToMembers();
+    }
   }
 
   void _applyToClassTypeAlias(
@@ -252,14 +276,20 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    var linkedData = element.linkedData as ClassElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is ClassElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToCombinators(
@@ -298,8 +328,7 @@ class InformativeDataApplier {
           info.parameters,
         );
 
-        var linkedData = element.linkedData as ConstructorElementLinkedData;
-        linkedData.applyConstantOffsets = ApplyConstantOffsets(
+        final applyOffsets = ApplyConstantOffsets(
           info.constantOffsets,
           (applier) {
             applier.applyToMetadata(element);
@@ -307,6 +336,13 @@ class InformativeDataApplier {
             applier.applyToConstructorInitializers(element);
           },
         );
+
+        final linkedData = element.linkedData;
+        if (linkedData is ConstructorElementLinkedData) {
+          linkedData.applyConstantOffsets = applyOffsets;
+        } else {
+          applyOffsets.perform();
+        }
       },
     );
   }
@@ -329,14 +365,20 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    var linkedData = element.linkedData as EnumElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is EnumElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToExports(
@@ -370,14 +412,20 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    var linkedData = element.linkedData as ExtensionElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is ExtensionElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToExtensionTypeDeclaration(
@@ -401,14 +449,19 @@ class InformativeDataApplier {
       infoRep.fieldCodeLength,
     );
 
-    final fieldLinkedData =
-        representationField.linkedData as FieldElementLinkedData;
-    fieldLinkedData.applyConstantOffsets = ApplyConstantOffsets(
+    var fieldApplyOffsets = ApplyConstantOffsets(
       infoRep.fieldConstantOffsets,
       (applier) {
         applier.applyToMetadata(representationField);
       },
     );
+
+    final fieldLinkedData = representationField.linkedData;
+    if (fieldLinkedData is FieldElementLinkedData) {
+      fieldLinkedData.applyConstantOffsets = fieldApplyOffsets;
+    } else {
+      fieldApplyOffsets.perform();
+    }
 
     final primaryConstructor = element.constructors.first;
     primaryConstructor.setCodeRange(
@@ -436,14 +489,20 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    final linkedData = element.linkedData as ExtensionTypeElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is ExtensionTypeElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToFields(
@@ -459,14 +518,20 @@ class InformativeDataApplier {
         element.nameOffset = info.nameOffset;
         element.documentationComment = info.documentationComment;
 
-        var linkedData = element.linkedData as FieldElementLinkedData;
-        linkedData.applyConstantOffsets = ApplyConstantOffsets(
+        final applyOffsets = ApplyConstantOffsets(
           info.constantOffsets,
           (applier) {
             applier.applyToMetadata(element);
             applier.applyToConstantInitializer(element);
           },
         );
+
+        final linkedData = element.linkedData;
+        if (linkedData is FieldElementLinkedData) {
+          linkedData.applyConstantOffsets = applyOffsets;
+        } else {
+          applyOffsets.perform();
+        }
       },
     );
   }
@@ -505,8 +570,7 @@ class InformativeDataApplier {
       info.parameters,
     );
 
-    var linkedData = element.linkedData as FunctionElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
@@ -514,6 +578,13 @@ class InformativeDataApplier {
         applier.applyToFormalParameters(element.parameters);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is FunctionElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToFunctionTypeAlias(
@@ -597,8 +668,7 @@ class InformativeDataApplier {
       },
     );
 
-    var linkedData = element.linkedData as LibraryElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.libraryConstantOffsets,
       (applier) {
         applier.applyToMetadata(element);
@@ -608,6 +678,13 @@ class InformativeDataApplier {
         applier.applyToPartDirectives(element.parts);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is LibraryElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToMethods(
@@ -631,8 +708,7 @@ class InformativeDataApplier {
           info.parameters,
         );
 
-        var linkedData = element.linkedData as MethodElementLinkedData;
-        linkedData.applyConstantOffsets = ApplyConstantOffsets(
+        final applyOffsets = ApplyConstantOffsets(
           info.constantOffsets,
           (applier) {
             applier.applyToMetadata(element);
@@ -640,6 +716,13 @@ class InformativeDataApplier {
             applier.applyToFormalParameters(element.parameters);
           },
         );
+
+        final linkedData = element.linkedData;
+        if (linkedData is MethodElementLinkedData) {
+          linkedData.applyConstantOffsets = applyOffsets;
+        } else {
+          applyOffsets.perform();
+        }
       },
     );
   }
@@ -661,14 +744,20 @@ class InformativeDataApplier {
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
 
-    var linkedData = element.linkedData as MixinElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToTypeParameters(element.typeParameters);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is MixinElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToTopLevelVariable(
@@ -680,14 +769,20 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    var linkedData = element.linkedData as TopLevelVariableElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       info.constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
         applier.applyToConstantInitializer(element);
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is TopLevelVariableElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 
   void _applyToTypeParameters(
@@ -725,8 +820,7 @@ class InformativeDataApplier {
     List<_InfoFormalParameter>? aliasedFormalParameters,
     List<_InfoTypeParameter>? aliasedTypeParameters,
   }) {
-    var linkedData = element.linkedData as TypeAliasElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+    final applyOffsets = ApplyConstantOffsets(
       constantOffsets,
       (applier) {
         applier.applyToMetadata(element);
@@ -751,6 +845,13 @@ class InformativeDataApplier {
         }
       },
     );
+
+    final linkedData = element.linkedData;
+    if (linkedData is TypeAliasElementLinkedData) {
+      linkedData.applyConstantOffsets = applyOffsets;
+    } else {
+      applyOffsets.perform();
+    }
   }
 }
 

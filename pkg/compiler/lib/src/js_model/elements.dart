@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' as ir show LocalFunction;
 
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
-import '../elements/indexed.dart';
+import '../elements/entity_map.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
@@ -18,7 +18,7 @@ import 'records.dart' show JRecordClass, JRecordGetter;
 
 const String jsElementPrefix = 'j:';
 
-class JLibrary extends IndexedLibrary {
+class JLibrary with EntityMapKey implements LibraryEntity {
   /// Tag used for identifying serialized [JLibrary] objects in a
   /// debugging data stream.
   static const String tag = 'library';
@@ -58,7 +58,9 @@ class JLibrary extends IndexedLibrary {
 /// Enum used for identifying [JClass] subclasses in serialization.
 enum JClassKind { node, closure, context, record }
 
-class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
+class JClass
+    with ClassHierarchyNodesMapKey, EntityMapKey
+    implements ClassEntity {
   /// Tag used for identifying serialized [JClass] objects in a
   /// debugging data stream.
   static const String tag = 'class';
@@ -127,7 +129,7 @@ enum JMemberKind {
   recordGetter,
 }
 
-abstract class JMember extends IndexedMember {
+abstract class JMember with EntityMapKey implements MemberEntity {
   @override
   final JLibrary library;
   @override
@@ -215,8 +217,7 @@ abstract class JMember extends IndexedMember {
       '(${enclosingClass != null ? '${enclosingClass!.name}.' : ''}$name)';
 }
 
-abstract class JFunction extends JMember
-    implements FunctionEntity, IndexedFunction {
+abstract class JFunction extends JMember implements FunctionEntity {
   @override
   final ParameterStructure parameterStructure;
   @override
@@ -229,8 +230,7 @@ abstract class JFunction extends JMember
       {super.isStatic, this.isExternal = false});
 }
 
-abstract class JConstructor extends JFunction
-    implements ConstructorEntity, IndexedConstructor {
+abstract class JConstructor extends JFunction implements ConstructorEntity {
   @override
   final bool isConst;
   @override
@@ -385,6 +385,17 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 
   @override
   String get _kind => 'constructor_body';
+
+  /// These lazy member bodies implement `==` since different SSA shards can
+  /// create different copies of the same constructor body. Upon deserialization
+  /// we should consider the different copies equivalent.
+  @override
+  bool operator ==(Object other) {
+    return other is JConstructorBody && constructor == other.constructor;
+  }
+
+  @override
+  int get hashCode => constructor.hashCode + 7;
 }
 
 class JMethod extends JFunction {
@@ -490,6 +501,14 @@ class JGeneratorBody extends JFunction {
 
   @override
   String get _kind => 'generator_body';
+
+  /// These lazy member bodies implement `==` since different SSA shards can
+  /// create different copies of the same constructor body. Upon deserialization
+  /// we should consider the different copies equivalent.
+  @override
+  bool operator ==(Object other) {
+    return other is JGeneratorBody && function == other.function;
+  }
 }
 
 class JGetter extends JFunction {
@@ -626,7 +645,7 @@ class JSetter extends JFunction {
   String get _kind => 'setter';
 }
 
-class JField extends JMember implements FieldEntity, IndexedField {
+class JField extends JMember implements FieldEntity {
   /// Tag used for identifying serialized [JField] objects in a
   /// debugging data stream.
   static const String tag = 'field';
@@ -759,7 +778,7 @@ class JSignatureMethod extends JMethod {
 /// J-world they use a [JClosureCallMethod] as [JTypeVariable.typeDeclaration].
 enum JTypeVariableKind { cls, member }
 
-class JTypeVariable extends IndexedTypeVariable {
+class JTypeVariable with EntityMapKey implements TypeVariableEntity {
   /// Tag used for identifying serialized [JTypeVariable] objects in a
   /// debugging data stream.
   static const String tag = 'type-variable';

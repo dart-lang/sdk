@@ -8,8 +8,8 @@
 
 library js_ast.printer.callback_test;
 
+import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
-import 'package:test/test.dart';
 
 enum TestMode {
   INPUT,
@@ -190,8 +190,8 @@ void check(TestCase testCase) {
     Printer(options, context).visit(node);
     // TODO(johnniwinther): Remove `replaceAll(...)` when dart2js behaves as the
     // VM on newline in multiline strings.
-    expect(context.getText(), equals(expectedOutput.replaceAll('\r\n', '\n')),
-        reason: 'Unexpected output for $code in $mode');
+    Expect.equals(expectedOutput.replaceAll('\r\n', '\n'), context.getText(),
+        'Unexpected output for $code in $mode');
   });
 }
 
@@ -245,7 +245,5 @@ class Context extends SimpleJavaScriptPrintingContext {
 }
 
 void main() {
-  test('printer callback test', () {
-    DATA.forEach(check);
-  });
+  DATA.forEach(check);
 }

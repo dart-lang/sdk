@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.2.0';
+const _currentVersion = '3.3.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -240,7 +240,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.inline_class,
     isExpired: IsExpired.inline_class,
     documentation: 'Extension Types',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.3.0'),
     releaseVersion: null,
   );
 

@@ -17,9 +17,6 @@ config("binaryen_flags") {
     ]
   }
 
-  # Use legacy encoding for WasmGC instructions
-  defines = [ "USE_LEGACY_GC_ENCODINGS" ]
-
   if (is_win) {
     libs = [ "shell32.lib" ]
   }

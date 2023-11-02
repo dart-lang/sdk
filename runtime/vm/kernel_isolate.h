@@ -93,6 +93,8 @@ class KernelIsolate : public AllStatic {
       const char* library_url,
       const char* klass,
       const char* method,
+      TokenPosition token_pos,
+      char const* script_uri,
       bool is_static);
 
   static Dart_KernelCompilationResult ListDependencies();

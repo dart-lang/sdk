@@ -8,7 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
@@ -24,6 +23,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
+import 'package:language_server_protocol/json_parsing.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' hide expect;
 import 'package:unified_analytics/unified_analytics.dart';
@@ -45,6 +45,8 @@ abstract class AbstractLspAnalysisServerTest
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
+        LspEditHelpersMixin,
+        LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
         ConfigurationFilesMixin {
   late MockLspServerChannel channel;
@@ -807,7 +809,8 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
   }
 }
 
-mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
+mixin LspAnalysisServerTestMixin
+    on LspRequestHelpersMixin, LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
@@ -1205,14 +1208,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     );
   }
 
-  Future<WorkspaceEdit> onWillRename(List<FileRename> renames) {
-    final request = makeRequest(
-      Method.workspace_willRenameFiles,
-      RenameFilesParams(files: renames),
-    );
-    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
-  }
-
   Future<void> openFile(Uri uri, String content, {int version = 1}) async {
     var notification = makeNotification(
       Method.textDocument_didOpen,
@@ -1369,18 +1364,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
       end: positionFromOffset(end, content),
     );
   }
-
-  /// Formats a path relative to the project root always using forward slashes.
-  ///
-  /// This is used in the text format for comparing edits.
-  String relativePath(String filePath) => pathContext
-      .relative(filePath, from: projectFolderPath)
-      .replaceAll(r'\', '/');
-
-  /// Formats a path relative to the project root always using forward slashes.
-  ///
-  /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
 
   Future<WorkspaceEdit?> rename(
     Uri uri,

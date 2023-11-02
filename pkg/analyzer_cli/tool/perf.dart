@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An entrypoint used to run portions of analyzer and measure its performance.
+library;
+
 import 'dart:io' show exit;
 
 import 'package:analyzer/dart/analysis/features.dart';

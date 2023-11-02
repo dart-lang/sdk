@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,12 +19,30 @@ void main() {
 
 @reflectiveTest
 class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
+  // Keep track of any added rules so they can be unregistered at tearDown
+  var addedRules = <LintRule>[];
+
   @override
   String get fileName => 'analysis_options.yaml';
 
   @override
   AnalysisOptionsGenerator get generator =>
       AnalysisOptionsGenerator(resourceProvider);
+
+  void registerRule(LintRule rule) {
+    addedRules.add(rule);
+    Registry.ruleRegistry.register(rule);
+  }
+
+  void setUp() {
+    registerLintRules();
+  }
+
+  void tearDown() {
+    for (var rule in addedRules) {
+      Registry.ruleRegistry.unregister(rule);
+    }
+  }
 
   void test_analyzer() {
     getCompletions('''
@@ -33,7 +53,6 @@ analyzer:
   }
 
   void test_analyzer_enableExperiment() {
-    registerLintRules();
     getCompletions('''
 analyzer:
   enable-experiment:
@@ -44,7 +63,6 @@ analyzer:
   }
 
   void test_analyzer_enableExperiment_nonDuplicate() {
-    registerLintRules();
     getCompletions('''
 analyzer:
   enable-experiment:
@@ -122,7 +140,6 @@ linter:
   }
 
   void test_linter_rules() {
-    registerLintRules();
     getCompletions('''
 linter:
   rules:
@@ -131,8 +148,19 @@ linter:
     assertSuggestion('annotate_overrides');
   }
 
+  void test_linter_rules_internal() {
+    registerRule(InternalLint());
+
+    getCompletions('''
+linter:
+  rules:
+    ^
+''');
+
+    assertNoSuggestion('internal_lint');
+  }
+
   void test_linter_rules_listItem_first() {
-    registerLintRules();
     getCompletions('''
 linter:
   rules:
@@ -144,7 +172,6 @@ linter:
   }
 
   void test_linter_rules_listItem_last() {
-    registerLintRules();
     getCompletions('''
 linter:
   rules:
@@ -156,7 +183,6 @@ linter:
   }
 
   void test_linter_rules_listItem_middle() {
-    registerLintRules();
     getCompletions('''
 linter:
   rules:
@@ -170,7 +196,6 @@ linter:
   }
 
   void test_linter_rules_listItem_nonDuplicate() {
-    registerLintRules();
     getCompletions('''
 linter:
   rules:
@@ -181,7 +206,6 @@ linter:
   }
 
   void test_linter_rules_listItem_only() {
-    registerLintRules();
     getCompletions('''
 linter:
   rules:
@@ -191,7 +215,6 @@ linter:
   }
 
   void test_linter_rules_listItem_partial() {
-    registerLintRules();
     getCompletions('''
 linter:
   rules:
@@ -225,4 +248,15 @@ li^
 ''');
     assertSuggestion('linter');
   }
+}
+
+class InternalLint extends LintRule {
+  InternalLint()
+      : super(
+          name: 'internal_lint',
+          group: Group.style,
+          state: State.internal(),
+          description: '',
+          details: '',
+        );
 }

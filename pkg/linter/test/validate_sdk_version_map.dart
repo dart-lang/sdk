@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/src/lint/state.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -14,7 +15,9 @@ void main() {
     var sinceFile = File('tool/since/sdk.yaml').readAsStringSync();
     var versionMap = loadYamlNode(sinceFile) as YamlMap;
     registerLintRules();
-    for (var rule in Analyzer.facade.registeredRules.map((r) => r.name)) {
+    var publicRules =
+        Analyzer.facade.registeredRules.where((rule) => !rule.state.isInternal);
+    for (var rule in publicRules.map((r) => r.name)) {
       test(rule, () async {
         expect(versionMap.keys, contains(rule),
             reason: "'$rule' should have and entry in `tool/since/sdk.yaml`.");

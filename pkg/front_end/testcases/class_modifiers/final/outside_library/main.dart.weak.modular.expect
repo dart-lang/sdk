@@ -45,7 +45,7 @@ final class ImplementsFinalClass extends core::Object implements mai::A {
 class EnumImplementsFinalMixin extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalMixin> values = #C4;
   enum-element static const field self::EnumImplementsFinalMixin x = #C3;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalMixin
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalMixin
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

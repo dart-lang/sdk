@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Logic to expand and deobfuscate stack traces.
+library;
 
 // ignore: implementation_imports
 import 'package:source_maps/src/utils.dart';

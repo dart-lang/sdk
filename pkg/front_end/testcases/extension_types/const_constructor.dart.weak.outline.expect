@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type Class(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::Class|constructor#;
   constructor tearoff • = self::Class|constructor#_#new#tearOff;
   constructor named = self::Class|constructor#named;

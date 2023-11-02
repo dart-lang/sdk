@@ -8,6 +8,8 @@
 ///
 /// Usually this means that someone accidentally left off the "_test" and the
 /// file is supposed to be a test but is silently getting ignored.
+library;
+
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';

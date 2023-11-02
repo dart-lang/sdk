@@ -437,10 +437,13 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   if (stub.InVMIsolateHeap()) {
     __ CallVmStub(stub);
   } else {
+    // Ignore snapshot_behavior, ia32 doesn't do snapshots.
     __ Call(stub);
   }
   AddStubCallTarget(stub);
@@ -567,6 +570,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),

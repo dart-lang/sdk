@@ -148,16 +148,6 @@ class TypesBuilder {
     if (element.isAugmentation) {
       _updatedAugmented(node.withClause, element);
     } else {
-      if (element.augmentation != null) {
-        final augmented = AugmentedClassElementImpl(element);
-        element.augmentedInternal = augmented;
-        augmented.mixins.addAll(element.mixins);
-        augmented.interfaces.addAll(element.interfaces);
-        augmented.fields.addAll(element.fields.notAugmented);
-        augmented.constructors.addAll(element.constructors.notAugmented);
-        augmented.accessors.addAll(element.accessors.notAugmented);
-        augmented.methods.addAll(element.methods.notAugmented);
-      }
       _toInferMixins[element] = _ToInferMixins(element, node.withClause);
     }
   }
@@ -242,6 +232,31 @@ class TypesBuilder {
       }
     } else {
       throw UnimplementedError('${node.runtimeType}');
+    }
+  }
+
+  AugmentedInstanceElementImpl? _ensureAugmented(
+    InstanceElementImpl augmentation,
+  ) {
+    var augmented = augmentation.augmented;
+    if (augmented is AugmentedInstanceElementImpl?) {
+      return augmented;
+    }
+
+    final declaration = augmented.declaration;
+    switch (declaration) {
+      case ClassElementImpl():
+        final augmented = AugmentedClassElementImpl(declaration);
+        declaration.augmentedInternal = augmented;
+        augmented.mixins.addAll(declaration.mixins);
+        augmented.interfaces.addAll(declaration.interfaces);
+        augmented.fields.addAll(declaration.fields.notAugmented);
+        augmented.constructors.addAll(declaration.constructors.notAugmented);
+        augmented.accessors.addAll(declaration.accessors.notAugmented);
+        augmented.methods.addAll(declaration.methods.notAugmented);
+        return augmented;
+      default:
+        return null;
     }
   }
 
@@ -394,7 +409,7 @@ class TypesBuilder {
   }
 
   void _updatedAugmented(WithClause? withClause, InstanceElementImpl element) {
-    final augmented = element.augmented;
+    final augmented = _ensureAugmented(element);
     if (augmented == null) {
       return;
     }
@@ -455,35 +470,33 @@ class TypesBuilder {
       );
     }
 
-    if (augmented is AugmentedInstanceElementImpl) {
-      augmented.fields.addAll(
-        element.fields.notAugmented.map((element) {
-          if (toDeclaration.map.isEmpty) {
-            return element;
-          }
-          return FieldMember(typeProvider, element, toDeclaration, false);
-        }),
-      );
+    augmented.fields.addAll(
+      element.fields.notAugmented.map((element) {
+        if (toDeclaration.map.isEmpty) {
+          return element;
+        }
+        return FieldMember(typeProvider, element, toDeclaration, false);
+      }),
+    );
 
-      augmented.accessors.addAll(
-        element.accessors.notAugmented.map((element) {
-          if (toDeclaration.map.isEmpty) {
-            return element;
-          }
-          return PropertyAccessorMember(
-              typeProvider, element, toDeclaration, false);
-        }),
-      );
+    augmented.accessors.addAll(
+      element.accessors.notAugmented.map((element) {
+        if (toDeclaration.map.isEmpty) {
+          return element;
+        }
+        return PropertyAccessorMember(
+            typeProvider, element, toDeclaration, false);
+      }),
+    );
 
-      augmented.methods.addAll(
-        element.methods.notAugmented.map((element) {
-          if (toDeclaration.map.isEmpty) {
-            return element;
-          }
-          return MethodMember(typeProvider, element, toDeclaration, false);
-        }),
-      );
-    }
+    augmented.methods.addAll(
+      element.methods.notAugmented.map((element) {
+        if (toDeclaration.map.isEmpty) {
+          return element;
+        }
+        return MethodMember(typeProvider, element, toDeclaration, false);
+      }),
+    );
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

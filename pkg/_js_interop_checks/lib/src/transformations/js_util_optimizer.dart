@@ -714,8 +714,8 @@ class ExtensionIndex {
   void _indexExtensions(Library library) {
     if (_processedExtensionLibraries.contains(library)) return;
     for (var extension in library.extensions) {
-      for (var descriptor in extension.members) {
-        var reference = descriptor.member;
+      for (var descriptor in extension.memberDescriptors) {
+        var reference = descriptor.memberReference;
         var onType = extension.onType;
         bool isInteropOnType = false;
         Annotatable? cls;
@@ -738,7 +738,7 @@ class ExtensionIndex {
         _extensionMemberIndex[reference] = descriptor;
         _extensionAnnotatableIndex[reference] = cls!;
         _extensionIndex[reference] = extension;
-        final tearOffReference = descriptor.tearOff;
+        final tearOffReference = descriptor.tearOffReference;
         if (tearOffReference != null) {
           _extensionMemberIndex[tearOffReference] = descriptor;
           _extensionIndex[tearOffReference] = extension;
@@ -795,7 +795,7 @@ class ExtensionIndex {
     }
     DartType repType = extensionType.declaredRepresentationType;
     if (repType is ExtensionType) {
-      repType = repType.typeErasure;
+      repType = repType.extensionTypeErasure;
     }
     if (repType is InterfaceType) {
       final cls = repType.classNode;
@@ -832,11 +832,11 @@ class ExtensionIndex {
     if (_processedExtensionTypeLibraries.contains(library)) return;
     for (var extensionType in library.extensionTypeDeclarations) {
       if (isInteropExtensionType(extensionType)) {
-        for (var descriptor in extensionType.members) {
-          final reference = descriptor.member;
+        for (var descriptor in extensionType.memberDescriptors) {
+          final reference = descriptor.memberReference;
           _extensionTypeMemberIndex[reference] = descriptor;
           _extensionTypeIndex[reference] = extensionType;
-          final tearOffReference = descriptor.tearOff;
+          final tearOffReference = descriptor.tearOffReference;
           if (tearOffReference != null) {
             _extensionTypeMemberIndex[tearOffReference] = descriptor;
             _extensionTypeIndex[tearOffReference] = extensionType;

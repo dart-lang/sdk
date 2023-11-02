@@ -361,11 +361,6 @@ try {
       if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (d8) {
       var runjs = '''
-// Seal the native JavaScript Object prototype to avoid pollution before
-// loading the Dart SDK module.
-delete Object.prototype.__proto__;
-Object.seal(Object.prototype);
-
 load("$ddcPath/lib/js/legacy/dart_library.js");
 load("$sdkJsPath/dart_sdk.js");
 load("$out");
@@ -385,13 +380,16 @@ self.dartMainRunner(function () {
   dart_library.start("$appname", "$uuid", "$basename", "$libname", false);
 });
 ''';
-      var dart2jsD8Preamble =
-          '$sdkRoot/sdk/lib/_internal/js_runtime/lib/preambles/d8.js';
+      var preamblesDir = p.join(
+          sdkRoot, 'sdk', 'lib', '_internal', 'js_runtime', 'lib', 'preambles');
       var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
-      var process =
-          await startProcess('D8', d8Binary, [dart2jsD8Preamble, d8File]);
+      var process = await startProcess('D8', d8Binary, [
+        p.join(preamblesDir, 'seal_native_object.js'),
+        p.join(preamblesDir, 'd8.js'),
+        d8File
+      ]);
       if (await process.exitCode != 0) exit(await process.exitCode);
     }
   }

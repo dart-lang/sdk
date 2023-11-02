@@ -833,6 +833,22 @@ class AssemblerBase : public StackResource {
                             Register address,
                             int32_t offset = 0) = 0;
 
+  // Truncates upper bits.
+  virtual void LoadInt32FromBoxOrSmi(Register result, Register value) = 0;
+
+#if !defined(TARGET_ARCH_IS_32_BIT)
+  virtual void LoadInt64FromBoxOrSmi(Register result, Register value) = 0;
+#endif
+
+  // Truncates upper bits on 32 bit archs.
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+    LoadInt32FromBoxOrSmi(result, value);
+#else
+    LoadInt64FromBoxOrSmi(result, value);
+#endif
+  }
+
   // Loads nullability from an AbstractType [type] to [dst].
   void LoadAbstractTypeNullability(Register dst, Register type);
   // Loads nullability from an AbstractType [type] and compares it

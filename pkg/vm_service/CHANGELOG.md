@@ -1,3 +1,26 @@
+## 13.0.0
+- Add Dart IO extension methods:
+  - `isSocketProfilingAvailable`
+  - `isHttpTimelineLoggingAvailable`
+  - `isHttpProfilingAvailable`.
+- Remove deprecated Dart IO extension methods:
+  - `startSocketProfiling`
+  - `pauseSocketProfiling`
+  - `getHttpEnableTimelineLogging`
+  - `setHttpEnableTimelineLogging`
+- Remove deprecated `vmServiceConnect` from `package:vm_service/vm_service_io.dart`.
+- Remove deprecated constants from `RPCError`.
+- Add `wrapFuture` method that can be overridden to add additional logic to
+each VM service RPC call (like logging, tracking values, etc.).
+- Add `vmServiceConnectUriWithFactory` helper that can create a generic [VmService]
+instance and connect it to a web socket URI.
+- Add `VmServiceFactory` typedef.
+- Add a static method `VmService.defaultFactory` that provides a `VmServiceFactory` method for the `VmService` class.
+- Update SDK constraint to ^3.0.0
+
+## 12.0.1
+- Fix Java VM service version bug.
+
 ## 12.0.0
 - Update to version `4.13` of the spec.
 - Add optional `librariesAlreadyCompiled` parameter to `getSourceReport` RPC.

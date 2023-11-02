@@ -20,10 +20,39 @@ class NonNullableBlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
   @override
   bool get isNullSafetyEnabled => true;
 
-  test_buildFile_legacy_commentedOut() async {
+  test_buildFile_legacy() async {
     newFile('$myPackageRootPath/BUILD', r'''
 dart_package(
-#  null_safety = True,
+   null_safety = False,
+''');
+
+    await resolveFileCode(
+      '$myPackageRootPath/lib/a.dart',
+      'int v = 0;',
+    );
+    assertNoErrorsInResult();
+    assertType(findNode.namedType('int v'), 'int*');
+  }
+
+  test_buildFile_legacy_oneLine_noComma() async {
+    newFile('$myPackageRootPath/BUILD', r'''
+dart_package(null_safety = False)
+''');
+
+    await resolveFileCode(
+      '$myPackageRootPath/lib/a.dart',
+      'int v = 0;',
+    );
+    assertNoErrorsInResult();
+    assertType(findNode.namedType('int v'), 'int*');
+  }
+
+  test_buildFile_legacy_withComments() async {
+    newFile('$myPackageRootPath/BUILD', r'''
+dart_package(
+  # Preceding comment.
+  null_safety = False,  # Trailing comment.
+)  # Last comment.
 ''');
 
     await resolveFileCode(
@@ -60,6 +89,20 @@ dart_package(
     // Non-nullable in bin/.
     await resolveFileCode(
       '$myPackageRootPath/bin/a.dart',
+      'int v = 0;',
+    );
+    assertNoErrorsInResult();
+    assertType(findNode.namedType('int v'), 'int');
+  }
+
+  test_buildFile_nonNullable_commentedOut() async {
+    newFile('$myPackageRootPath/BUILD', r'''
+dart_package(
+#  null_safety = False,
+''');
+
+    await resolveFileCode(
+      '$myPackageRootPath/lib/a.dart',
       'int v = 0;',
     );
     assertNoErrorsInResult();
@@ -112,19 +155,6 @@ dart_package(
     );
   }
 
-  test_buildFile_nonNullable_oneLine_noComma() async {
-    newFile('$myPackageRootPath/BUILD', r'''
-dart_package(null_safety = True)
-''');
-
-    await resolveFileCode(
-      '$myPackageRootPath/lib/a.dart',
-      'int v = 0;',
-    );
-    assertNoErrorsInResult();
-    assertType(findNode.namedType('int v'), 'int');
-  }
-
   test_buildFile_nonNullable_soundNullSafety() async {
     newFile('$myPackageRootPath/BUILD', r'''
 dart_package(
@@ -140,28 +170,12 @@ dart_package(
     assertType(findNode.namedType('int v'), 'int');
   }
 
-  test_buildFile_nonNullable_withComments() async {
-    newFile('$myPackageRootPath/BUILD', r'''
-dart_package(
-  # Preceding comment.
-  null_safety = True,  # Trailing comment.
-)  # Last comment.
-''');
-
-    await resolveFileCode(
-      '$myPackageRootPath/lib/a.dart',
-      'int v = 0;',
-    );
-    assertNoErrorsInResult();
-    assertType(findNode.namedType('int v'), 'int');
-  }
-
-  test_noBuildFile_legacy() async {
+  test_noBuildFile_nonNullable() async {
     await assertNoErrorsInCode('''
 int v = 0;
 ''');
 
-    assertType(findNode.namedType('int v'), 'int*');
+    assertType(findNode.namedType('int v'), 'int');
   }
 
   void _assertLanguageVersion({

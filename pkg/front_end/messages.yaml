@@ -2835,6 +2835,10 @@ DeclaredMemberConflictsWithInheritedMemberCause:
   problemMessage: "This is the inherited member."
   severity: CONTEXT
 
+DeclaredMemberConflictsWithInheritedMembersCause:
+  problemMessage: "This is one of the inherited members."
+  severity: CONTEXT
+
 DeclaredMemberConflictsWithOverriddenMembersCause:
   problemMessage: "This is one of the overridden members."
   severity: CONTEXT
@@ -3516,16 +3520,6 @@ DuplicatedDeclarationUse:
         class C {}
       lib2.dart: |
         class C {}
-
-DuplicatedNamePreviouslyUsed:
-  problemMessage: "Can't declare '#name' because it was already used in this scope."
-  analyzerCode: REFERENCED_BEFORE_DECLARATION
-  script:
-    - "main(arguments) { arguments; var arguments; }"
-
-DuplicatedNamePreviouslyUsedCause:
-  problemMessage: "Previous use of '#name'."
-  severity: CONTEXT
 
 DuplicatedNamedArgument:
   problemMessage: "Duplicated named argument '#name'."
@@ -5389,6 +5383,24 @@ CombinedMemberSignatureFailed:
 
       abstract class C implements I2, I1 {}
 
+ExtensionTypeCombinedMemberSignatureFailed:
+  problemMessage: "Extension type '#name' inherits multiple members named '#name2' with incompatible signatures."
+  correctionMessage: "Try adding a declaration of '#name2' to '#name'."
+  analyzerCode: INCONSISTENT_INHERITANCE
+  experiments: inline-class
+  script:
+    - |
+      abstract class I1 {
+        void foo(int? x);
+      }
+      abstract class I2 {
+        void foo();
+      }
+      abstract class I3 implements I1, I2 {
+        void foo([int? x]);
+      }
+      extension type C(I3 i) implements I2, I1 {}
+
 LanguageVersionTooHigh:
   problemMessage: "The specified language version is too high. The highest supported language version is #count.#count2."
   script: >
@@ -5469,7 +5481,7 @@ VariableCouldBeNullDueToWrite:
   correctionMessage: "Try null checking the variable after the assignment.  See #string"
 
 FieldNotPromotedBecauseNotEnabled:
-  problemMessage: "'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above."
+  problemMessage: "'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
   correctionMessage: "See #string"
   script: >
     // @dart=3.1
@@ -7297,7 +7309,7 @@ InvalidExtensionTypeSuperInterface:
     extension type E(num n) implements int {}
 
 InvalidExtensionTypeSuperExtensionType:
-  problemMessage: "The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'."
+  problemMessage: "The representation type '#type' of extension type '#name' must be either a subtype of the representation type '#type2' of the implemented extension type '#type3' or a subtype of '#type3' itself."
   correctionMessage: "Try changing the representation type to a subtype of '#type2'."
   experiments: inline-class
   script: |
@@ -7341,3 +7353,130 @@ ExtensionTypeWith:
   script: |
     extension type F(int i) {}
     extension type E(int i) with F {}
+
+LocalVariableUsedBeforeDeclared:
+  problemMessage: "Local variable '#name' can't be referenced before it is declared."
+  analyzerCode: REFERENCED_BEFORE_DECLARATION
+  script: |
+    foo(dynamic x, dynamic y) { y = x; dynamic x; }
+
+LocalVariableUsedBeforeDeclaredContext:
+  problemMessage: "This is the declaration of the variable '#name'."
+  severity: CONTEXT
+
+ImplementNonExtensionTypeAndExtensionTypeMember:
+  problemMessage: "The extension type '#name' can't inherit the member '#name2' as both an extension type member and a non-extension type member."
+  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+  experiments: inline-class
+  script: |
+    class Class {
+      void method() {}
+    }
+    extension type ExtensionType(Class c) {
+      void method() {}
+    }
+    extension type ExtensionType1(Class c) implements Class, ExtensionType {}
+
+ExtensionTypeMemberContext:
+  problemMessage: "This is the inherited extension type member."
+  severity: CONTEXT
+
+ExtensionTypeMemberOneOfContext:
+  problemMessage: "This is one of the inherited extension type members."
+  severity: CONTEXT
+
+NonExtensionTypeMemberContext:
+  problemMessage: "This is the inherited non-extension type member."
+  severity: CONTEXT
+
+NonExtensionTypeMemberOneOfContext:
+  problemMessage: "This is one of the inherited non-extension type members."
+  severity: CONTEXT
+
+ImplementMultipleExtensionTypeMembers:
+  problemMessage: "The extension type '#name' can't inherit the member '#name2' from more than one extension type."
+  correctionMessage: "Try declaring a member '#name2' in '#name' to resolve the conflict."
+  experiments: inline-class
+  script: |
+    extension type ExtensionType1(int i) {
+      void method() {}
+    }
+    extension type ExtensionType2(int i) {
+      void method() {}
+    }
+    extension type ExtensionType3(int i) implements ExtensionType1, ExtensionType2 {}
+
+RepresentationFieldModifier:
+  problemMessage: "Representation fields can't have modifiers."
+  experiments: inline-class
+  script: |
+    extension type E(final int foo) {}
+  analyzerCode: REPRESENTATION_FIELD_MODIFIER
+
+ExpectedRepresentationType:
+  problemMessage: "Expected a representation type."
+  experiments: inline-class
+  script: |
+    extension type E(var foo) {}
+  analyzerCode: EXPECTED_REPRESENTATION_TYPE
+
+ExpectedRepresentationField:
+  problemMessage: "Expected a representation field."
+  experiments: inline-class
+  script: |
+    extension type E() {}
+  analyzerCode: EXPECTED_REPRESENTATION_FIELD
+
+MultipleRepresentationFields:
+  problemMessage: "Each extension type should have exactly one representation field."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, String bar) {}
+  analyzerCode: MULTIPLE_REPRESENTATION_FIELDS
+
+ExtensionTypeConstructorWithSuperFormalParameter:
+  problemMessage: "Extension type constructors can't declare super formal parameters."
+  experiments: inline-class
+  script: |
+    extension type A(int foo) { A.named(this.foo, super.bar); }
+  analyzerCode: EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER
+
+ExtensionTypeRepresentationTypeBottom:
+  problemMessage: "The representation type can't be a bottom type."
+  experiments: inline-class
+  script: |
+    extension type E1(Never foo) {}
+  analyzerCode: EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM
+
+RepresentationFieldTrailingComma:
+  problemMessage: "The representation field can't have a trailing comma."
+  experiments: inline-class
+  script: |
+    extension type E(int foo,) {}
+  analyzerCode: REPRESENTATION_FIELD_TRAILING_COMMA
+
+WrongTypeParameterVarianceInSuperinterface:
+  problemMessage: "'#name' can't be used contravariantly or invariantly in '#type'."
+  experiments: inline-class
+  script: |
+    extension type E<X>(List<Function(Object?)> foo) implements List<Function(X)> {}
+  analyzerCode: WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
+
+AwaitOfExtensionTypeNotFuture:
+  problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
+  experiments: inline-class
+  script: |
+    extension type E(num foo) { test(E e) async { await e; } }
+  analyzerCode: AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE
+
+NamedParametersInExtensionTypeDeclaration:
+  problemMessage: "Extension type declarations can't have named parameters."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, {dynamic bar}) {}
+
+OptionalParametersInExtensionTypeDeclaration:
+  problemMessage: "Extension type declarations can't have optional parameters."
+  experiments: inline-class
+  script: |
+    extension type E(int foo, [dynamic bar]) {}

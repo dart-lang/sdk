@@ -41,9 +41,11 @@ class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
     newFile('$workspaceRootPath/${file_paths.blazeWorkspaceMarker}', '');
   }
 
-  Future<void> test_fileSystem_changeFile_buildFile() async {
-    // This BUILD file does not enable null safety.
-    newBlazeBuildFile(myPackageRootPath, '');
+  Future<void> test_fileSystem_changeFile_buildFile_legacy() async {
+    // This BUILD file disables null safety.
+    newBlazeBuildFile(myPackageRootPath, r'''
+dart_package(null_safety = False)
+''');
 
     newFile(myPackageTestFilePath, '''
 void f(int? a) {}
@@ -52,13 +54,11 @@ void f(int? a) {}
     await setRoots(included: [myPackageRootPath], excluded: []);
     await server.onAnalysisComplete;
 
-    // Cannot use `int?` without enabling null safety.
+    // Cannot use `int?` without null safety.
     assertHasErrors(myPackageTestFilePath);
 
-    // Enable null safety.
-    newBlazeBuildFile(myPackageRootPath, '''
-dart_package(null_safety = True)
-''');
+    // Stop disabling null safety.
+    newBlazeBuildFile(myPackageRootPath, '');
 
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;

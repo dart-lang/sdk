@@ -225,7 +225,76 @@ void g() {
   f((a: 1, b: 2));
 }
 ''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 44, 12),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 44, 12,
+          messageContains: [
+            'Expected 2 positional arguments, but got 0 instead.'
+          ]),
+    ]);
+  }
+
+  void test_recordType_namedArguments() async {
+    await assertErrorsInCode('''
+typedef A = ({
+  int b,
+  int c,
+});
+
+void f(A a){print(a);}
+
+main() {
+ f((bb:2, c:3));
+}
+''', [
+      error(
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        74,
+        11,
+        messageContains: ['Unexpected named argument `bb` with type `int`.'],
+      ),
+    ]);
+  }
+
+  void test_recordType_namedArguments_missing() async {
+    await assertErrorsInCode('''
+typedef A = ({
+  int b,
+  int c,
+});
+
+void f(A a){print(a);}
+
+main() {
+ f((b:2));
+}
+''', [
+      error(
+        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        74,
+        5,
+        messageContains: [
+          'Expected 2 named arguments, but got 1 instead.',
+        ],
+      ),
+    ]);
+  }
+
+  void test_recordType_positionalArguments() async {
+    await assertErrorsInCode('''
+typedef A = (
+  int b,
+  int c,
+);
+
+void f(A a){print(a);}
+
+main() {
+ f((3, 2, 1));
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 72, 9,
+          messageContains: [
+            'Expected 2 positional arguments, but got 3 instead.'
+          ]),
     ]);
   }
 }

@@ -395,45 +395,125 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
          TryOptimizeDoubleOperation(instr, op_kind);
 }
 
-// Modulo against a constant power-of-two can be optimized into a mask.
-// x % y -> x & (|y| - 1)  for smi masks only
-Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
-                                               Token::Kind op_kind,
-                                               Value* left_value,
-                                               Value* right_value) {
+Definition* AotCallSpecializer::TryOptimizeDivisionOperation(
+    TemplateDartCall<0>* instr,
+    Token::Kind op_kind,
+    Value* left_value,
+    Value* right_value) {
+  auto unboxed_constant = [&](int64_t value) -> Definition* {
+    ASSERT(compiler::target::IsSmi(value));
+#if defined(TARGET_ARCH_ARM)
+    Definition* const const_def = new (Z) UnboxedConstantInstr(
+        Smi::ZoneHandle(Z, Smi::New(value)), kUnboxedInt32);
+    InsertBefore(instr, const_def, /*env=*/nullptr, FlowGraph::kValue);
+    return new (Z) IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
+                                     new (Z) Value(const_def), DeoptId::kNone);
+#else
+    return new (Z) UnboxedConstantInstr(Smi::ZoneHandle(Z, Smi::New(value)),
+                                        kUnboxedInt64);
+#endif
+  };
+
   if (!right_value->BindsToConstant()) {
     return nullptr;
   }
 
   const Object& rhs = right_value->BoundConstant();
   const int64_t value = Integer::Cast(rhs).AsInt64Value();  // smi and mint
+
   if (value == kMinInt64) {
-    return nullptr;  // non-smi mask
+    return nullptr;  // The absolute value can't be held in an int64_t.
   }
-  const int64_t modulus = Utils::Abs(value);
-  if (!Utils::IsPowerOfTwo(modulus) || !compiler::target::IsSmi(modulus - 1)) {
+
+  const int64_t magnitude = Utils::Abs(value);
+  // The replacements for both operations assume that the magnitude of the
+  // value is a power of two and that the mask derived from the magnitude
+  // can fit in a Smi.
+  if (!Utils::IsPowerOfTwo(magnitude) ||
+      !compiler::target::IsSmi(magnitude - 1)) {
     return nullptr;
   }
 
-  left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+  if (op_kind == Token::kMOD) {
+    // Modulo against a constant power-of-two can be optimized into a mask.
+    // x % y -> x & (|y| - 1)  for smi masks only
+    left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
 
-#if defined(TARGET_ARCH_ARM)
-  Definition* right_definition = new (Z) UnboxedConstantInstr(
-      Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt32);
-  InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
-  right_definition = new (Z)
-      IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
-                        new (Z) Value(right_definition), DeoptId::kNone);
-#else
-  Definition* right_definition = new (Z) UnboxedConstantInstr(
-      Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt64);
+    Definition* right_definition = unboxed_constant(magnitude - 1);
+    if (magnitude == 1) return right_definition;
+    InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
+    right_value = new (Z) Value(right_definition);
+    return new (Z)
+        BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
+                           DeoptId::kNone, Instruction::kNotSpeculative);
+  } else {
+    ASSERT_EQUAL(op_kind, Token::kTRUNCDIV);
+#if !defined(TARGET_ARCH_IS_32_BIT)
+    // If BinaryInt64Op(kTRUNCDIV, ...) is supported, then only perform the
+    // simplest replacements and use the instruction otherwise.
+    if (magnitude != 1) return nullptr;
 #endif
-  if (modulus == 1) return right_definition;
-  InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
-  right_value = new (Z) Value(right_definition);
-  return new (Z)
-      BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
-                         DeoptId::kNone, Instruction::kNotSpeculative);
+
+    // If the divisor is negative, then we need to negate the final result.
+    const bool negate = value < 0;
+    Definition* result = nullptr;
+
+    left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
+    if (magnitude > 1) {
+      // For two's complement signed arithmetic where the bit width is k
+      // and the divisor is 2^n for some n in [0, k), we can perform a simple
+      // shift if m is non-negative:
+      //   m ~/ 2^n => m >> n
+      // For negative m, however, this won't work since just shifting m rounds
+      // towards negative infinity. Instead, we add (2^n - 1) first before
+      // shifting, which rounds the result towards positive infinity
+      // (and thus rounding towards zero, since m is negative):
+      //   m ~/ 2^n => (m + (2^n - 1)) >> n
+      // By sign extending the sign bit (the (k-1)-bit) and using that as a
+      // mask, we get a non-branching computation that only adds (2^n - 1)
+      // when m is negative, rounding towards zero in both cases:
+      //   m ~/ 2^n => (m + ((m >> (k - 1)) & (2^n - 1))) >> n
+      auto* const sign_bit_position = unboxed_constant(63);
+      InsertBefore(instr, sign_bit_position, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      auto* const sign_bit_extended = new (Z)
+          ShiftInt64OpInstr(Token::kSHR, left_value,
+                            new (Z) Value(sign_bit_position), DeoptId::kNone);
+      InsertBefore(instr, sign_bit_extended, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      auto* rounding_adjustment = unboxed_constant(magnitude - 1);
+      InsertBefore(instr, rounding_adjustment, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      rounding_adjustment = new (Z)
+          BinaryInt64OpInstr(Token::kBIT_AND, new (Z) Value(sign_bit_extended),
+                             new (Z) Value(rounding_adjustment), DeoptId::kNone,
+                             Instruction::kNotSpeculative);
+      InsertBefore(instr, rounding_adjustment, /*env=*/nullptr,
+                   FlowGraph::kValue);
+      auto* const left_definition = new (Z)
+          BinaryInt64OpInstr(Token::kADD, left_value->CopyWithType(Z),
+                             new (Z) Value(rounding_adjustment), DeoptId::kNone,
+                             Instruction::kNotSpeculative);
+      InsertBefore(instr, left_definition, /*env=*/nullptr, FlowGraph::kValue);
+      left_value = new (Z) Value(left_definition);
+      auto* const right_definition =
+          unboxed_constant(Utils::ShiftForPowerOfTwo(magnitude));
+      InsertBefore(instr, right_definition, /*env=*/nullptr, FlowGraph::kValue);
+      right_value = new (Z) Value(right_definition);
+      result = new (Z) ShiftInt64OpInstr(Token::kSHR, left_value, right_value,
+                                         DeoptId::kNone);
+    } else {
+      ASSERT_EQUAL(magnitude, 1);
+      // No division needed, just redefine the value.
+      result = new (Z) RedefinitionInstr(left_value);
+    }
+    if (negate) {
+      InsertBefore(instr, result, /*env=*/nullptr, FlowGraph::kValue);
+      result = new (Z) UnaryInt64OpInstr(Token::kNEGATE, new (Z) Value(result),
+                                         DeoptId::kNone);
+    }
+    return result;
+  }
 }
 
 bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
@@ -487,12 +567,14 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
             DeoptId::kNone, Instruction::kNotSpeculative);
         break;
       case Token::kMOD:
-        replacement = TryOptimizeMod(instr, op_kind, left_value, right_value);
-        if (replacement != nullptr) break;
-        FALL_THROUGH;
       case Token::kTRUNCDIV:
-#if !defined(TARGET_ARCH_IS_64_BIT)
-        // TODO(ajcbik): 32-bit archs too?
+        replacement = TryOptimizeDivisionOperation(instr, op_kind, left_value,
+                                                   right_value);
+        if (replacement != nullptr) break;
+#if defined(TARGET_ARCH_IS_32_BIT)
+        // Truncating 64-bit division and modulus via BinaryInt64OpInstr are
+        // not implemented on 32-bit architectures, so we can only optimize
+        // certain cases and otherwise must leave the call in.
         break;
 #else
         FALL_THROUGH;
@@ -1041,11 +1123,6 @@ void AotCallSpecializer::VisitPolymorphicInstanceCall(
 bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
     InstanceCallInstr* call,
     const AbstractType& type) {
-  if (precompiler_ == nullptr) {
-    // Loading not complete, can't do CHA yet.
-    return false;
-  }
-
   HierarchyInfo* hi = thread()->hierarchy_info();
   if (hi == nullptr) {
     return false;

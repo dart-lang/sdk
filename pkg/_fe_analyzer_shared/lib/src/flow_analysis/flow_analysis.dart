@@ -152,10 +152,12 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Node, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers}) {
+      {required bool respectImplicitlyTypedVarInitializers,
+      required bool fieldPromotionEnabled}) {
     return new _FlowAnalysisImpl(operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers);
+            respectImplicitlyTypedVarInitializers,
+        fieldPromotionEnabled: fieldPromotionEnabled);
   }
 
   factory FlowAnalysis.legacy(Operations<Variable, Type> operations,
@@ -767,7 +769,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// queried.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  If not `null`,
+  /// track of the field or property being accessed.  If not `null`, and field
+  /// promotion is enabled for the current library,
   /// [Operations.isPropertyPromotable] will be consulted to find out whether
   /// the property is promotable.  [unpromotedType] should be the static type of
   /// the value returned by the property get.
@@ -838,7 +841,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// of a compound assignment), [wholeExpression] may be `null`.
   ///
   /// [propertyMember] should be whatever data structure the client uses to keep
-  /// track of the field or property being accessed.  If not `null`,
+  /// track of the field or property being accessed.  If not `null`, and field
+  /// promotion is enabled for the current library,
   /// [Operations.isPropertyPromotable] will be consulted to find out whether
   /// the property is promotable.  In the event of non-promotion of a property
   /// get, this value can be retrieved from
@@ -1158,12 +1162,14 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
 
   factory FlowAnalysisDebug(Operations<Variable, Type> operations,
       AssignedVariables<Node, Variable> assignedVariables,
-      {required bool respectImplicitlyTypedVarInitializers}) {
+      {required bool respectImplicitlyTypedVarInitializers,
+      required bool fieldPromotionEnabled}) {
     print('FlowAnalysisDebug()');
     return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
         operations, assignedVariables,
         respectImplicitlyTypedVarInitializers:
-            respectImplicitlyTypedVarInitializers));
+            respectImplicitlyTypedVarInitializers,
+        fieldPromotionEnabled: fieldPromotionEnabled));
   }
 
   factory FlowAnalysisDebug.legacy(Operations<Variable, Type> operations,
@@ -2865,11 +2871,11 @@ abstract class NonPromotionReasonVisitor<R, Node extends Object,
 
   R visitDemoteViaExplicitWrite(DemoteViaExplicitWrite<Variable> reason);
 
-  R visitPropertyNotPromotedDueToConflict(
-      PropertyNotPromotedDueToConflict<Type> reason);
-
   R visitPropertyNotPromotedForInherentReason(
       PropertyNotPromotedForInherentReason<Type> reason);
+
+  R visitPropertyNotPromotedForNonInherentReason(
+      PropertyNotPromotedForNonInherentReason<Type> reason);
 
   R visitThisNotPromoted(ThisNotPromoted reason);
 }
@@ -2882,6 +2888,9 @@ abstract class Operations<Variable extends Object, Type extends Object>
   /// [property] will correspond to a `propertyMember` value passed to
   /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
   /// [FlowAnalysis.pushPropertySubpattern].
+  ///
+  /// This method will not be called if field promotion is disabled for the
+  /// current library.
   bool isPropertyPromotable(Object property);
 
   /// Returns additional information about why a given property couldn't be
@@ -2900,8 +2909,13 @@ abstract class Operations<Variable extends Object, Type extends Object>
   /// conflict with a field, getter, or noSuchMethod forwarder elsewhere in the
   /// library; if this happens, the closure returned by
   /// [FlowAnalysis.whyNotPromoted] will yield an object of type
-  /// [PropertyNotPromotedDueToConflict] containing enough information for the
-  /// client to be able to generate the appropriate context information.
+  /// [PropertyNotPromotedForNonInherentReason] containing enough information
+  /// for the client to be able to generate the appropriate context information.
+  ///
+  /// If this method is called when analyzing a library for which field
+  /// promotion is disabled, and the property in question *would* have been
+  /// promotable if field promotion had been enabled, the client should return
+  /// `null`; otherwise it should behave as if field promotion were enabled.
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(Object property);
 }
 
@@ -3561,30 +3575,11 @@ abstract base class PropertyNotPromoted<Type extends Object>
   /// the client as a convenience for ID testing.
   final Type staticType;
 
-  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType);
-}
+  /// Whether field promotion is enabled for the current library.
+  final bool fieldPromotionEnabled;
 
-/// Non-promotion reason describing the situation where an expression was not
-/// promoted due to the fact that it's a property get, and the target of the
-/// property get has the same name as something else in the library that is not
-/// promotable.
-final class PropertyNotPromotedDueToConflict<Type extends Object>
-    extends PropertyNotPromoted<Type> {
-  PropertyNotPromotedDueToConflict(
-      super.propertyName, super.propertyMember, super.staticType);
-
-  @override
-  Null get documentationLink => null;
-
-  @override
-  String get shortName => 'propertyNotPromotedDueToConflict';
-
-  @override
-  R accept<R, Node extends Object, Variable extends Object,
-              Type extends Object>(
-          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
-      visitor.visitPropertyNotPromotedDueToConflict(
-          this as PropertyNotPromotedDueToConflict<Type>);
+  PropertyNotPromoted(this.propertyName, this.propertyMember, this.staticType,
+      {required this.fieldPromotionEnabled});
 }
 
 /// Non-promotion reason describing the situation where an expression was not
@@ -3596,13 +3591,12 @@ final class PropertyNotPromotedForInherentReason<Type extends Object>
   final PropertyNonPromotabilityReason whyNotPromotable;
 
   PropertyNotPromotedForInherentReason(super.propertyName, super.propertyMember,
-      super.staticType, this.whyNotPromotable);
+      super.staticType, this.whyNotPromotable,
+      {required super.fieldPromotionEnabled});
 
   @override
   NonPromotionDocumentationLink get documentationLink =>
       switch (whyNotPromotable) {
-        PropertyNonPromotabilityReason.isNotEnabled =>
-          NonPromotionDocumentationLink.fieldPromotionUnavailable,
         PropertyNonPromotabilityReason.isNotField =>
           NonPromotionDocumentationLink.nonField,
         PropertyNonPromotabilityReason.isNotPrivate =>
@@ -3622,6 +3616,43 @@ final class PropertyNotPromotedForInherentReason<Type extends Object>
           NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
       visitor.visitPropertyNotPromotedForInherentReason(
           this as PropertyNotPromotedForInherentReason<Type>);
+}
+
+/// Non-promotion reason describing the situation where an expression was not
+/// promoted due to the fact that it's a property get, but the target of the
+/// property get is not something inherently non-promotable.
+///
+/// This could happen because the target of the property get has the same name
+/// as something else in the library that is not promotable, or because field
+/// promotion is disabled in the current library.
+///
+/// Note that it's possible that field promotion is disabled *and* the property
+/// get has the same name as something else in the library that is not
+/// promotable. If this happens, the client should report the name conflict as
+/// the reason for non-promotability. Since only the client knows about other
+/// declarations in the library, flow analysis can't distinguish this situation
+/// from the situation in which non-promotability is solely due to field
+/// promotion being disabled. So this class is used for both scenarios; it is up
+/// to the client to determine the correct non-promotion reason to report to the
+/// user.
+final class PropertyNotPromotedForNonInherentReason<Type extends Object>
+    extends PropertyNotPromoted<Type> {
+  PropertyNotPromotedForNonInherentReason(
+      super.propertyName, super.propertyMember, super.staticType,
+      {required super.fieldPromotionEnabled});
+
+  @override
+  Null get documentationLink => null;
+
+  @override
+  String get shortName => 'PropertyNotPromotedForNonInherentReason';
+
+  @override
+  R accept<R, Node extends Object, Variable extends Object,
+              Type extends Object>(
+          NonPromotionReasonVisitor<R, Node, Variable, Type> visitor) =>
+      visitor.visitPropertyNotPromotedForNonInherentReason(
+          this as PropertyNotPromotedForNonInherentReason<Type>);
 }
 
 /// Target for a property access that might undergo promotion.
@@ -4285,6 +4316,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// analyzing old language versions).
   final bool respectImplicitlyTypedVarInitializers;
 
+  final bool fieldPromotionEnabled;
+
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
@@ -4302,7 +4335,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   final List<_Reference<Type>> _cascadeTargetStack = [];
 
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers})
+      {required this.respectImplicitlyTypedVarInitializers,
+      required this.fieldPromotionEnabled})
       : promotionKeyStore = _assignedVariables.promotionKeyStore {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
@@ -5709,13 +5743,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
                 in allPreviouslyPromotedTypes!) {
               for (Type type in previouslyPromotedTypes) {
                 result[type] = whyNotPromotable == null
-                    ? new PropertyNotPromotedDueToConflict(
-                        reference.propertyName, propertyMember, reference._type)
+                    ? new PropertyNotPromotedForNonInherentReason(
+                        reference.propertyName, propertyMember, reference._type,
+                        fieldPromotionEnabled: fieldPromotionEnabled)
                     : new PropertyNotPromotedForInherentReason(
                         reference.propertyName,
                         propertyMember,
                         reference._type,
-                        whyNotPromotable);
+                        whyNotPromotable,
+                        fieldPromotionEnabled: fieldPromotionEnabled);
               }
             }
             return result;
@@ -5842,6 +5878,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // Find the SSA node for the target of the property access, and figure out
     // whether the property in question is promotable.
     bool isPromotable = propertyMember != null &&
+        fieldPromotionEnabled &&
         operations.isPropertyPromotable(propertyMember);
     _PropertySsaNode<Type> propertySsaNode = targetSsaNode.getProperty(
         propertyName, promotionKeyStore,

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Rapid type analysis on kernel AST.
+library;
 
 import 'dart:core' hide Type;
 
@@ -18,6 +19,7 @@ import 'native_code.dart'
     show EntryPointsListener, NativeCodeOracle, PragmaEntryPointsVisitor;
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'types.dart' show TFClass, Type, ConcreteType, RecordShape;
+import 'utils.dart' show combineHashes;
 import '../pragma.dart' show ConstantPragmaAnnotationParser;
 
 class Selector {
@@ -27,7 +29,7 @@ class Selector {
   Selector(this.name, this.setter);
 
   @override
-  int get hashCode => name.hashCode ^ setter.hashCode;
+  int get hashCode => combineHashes(name.hashCode, setter.hashCode);
 
   @override
   bool operator ==(Object other) =>

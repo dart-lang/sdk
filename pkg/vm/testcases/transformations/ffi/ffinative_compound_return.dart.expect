@@ -1,0 +1,55 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+import "dart:typed_data" as typ;
+
+import "dart:ffi";
+
+@#C6
+final class Struct1ByteInt extends ffi::Struct {
+  synthetic constructor •() → self::Struct1ByteInt
+    : super ffi::Struct::•()
+    ;
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase) → self::Struct1ByteInt
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    ;
+  @#C7
+  get a0() → core::int
+    return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+  @#C7
+  set a0(core::int #externalFieldValue) → void
+    return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+  method toString() → core::String
+    return "(${this.{self::Struct1ByteInt::a0}{core::int}})";
+  @#C11
+  static get #sizeOf() → core::int*
+    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+}
+static final field (core::int) → self::Struct1ByteInt _returnStruct1ByteIntNative$Method$FfiNative$Ptr = block {
+  _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C12)));
+} =>ffi::_asFunctionInternal<(core::int) → self::Struct1ByteInt, (ffi::Int8) → self::Struct1ByteInt>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>*>(ffi::_ffi_resolver(#C14, #C15, #C12){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
+static method main() → void {
+  final self::Struct1ByteInt result = self::returnStruct1ByteIntNative(1.{core::int::unary-}(){() → core::int});
+  core::print("result = ${result}");
+}
+static method returnStruct1ByteIntNative(core::int a0) → self::Struct1ByteInt
+  return self::_returnStruct1ByteIntNative$Method$FfiNative$Ptr(a0){(core::int) → self::Struct1ByteInt};
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Int8)
+  #C3 = <core::Type>[#C2]
+  #C4 = null
+  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = ffi::Int8 {}
+  #C8 = 0
+  #C9 = <core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
+  #C10 = "vm:prefer-inline"
+  #C11 = core::pragma {name:#C10, options:#C4}
+  #C12 = 1
+  #C13 = <core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
+  #C14 = "#lib"
+  #C15 = "ReturnStruct1ByteInt"
+}

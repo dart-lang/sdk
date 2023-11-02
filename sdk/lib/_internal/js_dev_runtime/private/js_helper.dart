@@ -887,7 +887,7 @@ Object? createRecordTypePredicate(String partialShapeTag, JSArray fieldRtis) {
           rti.pairwiseIsTest(fieldRtis, JS<JSArray>('!', '#.values', obj));
     };
   } else {
-    dart.throwUnimplementedInOldRti();
+    dart.throwUnimplementedInCurrentRti();
   }
 }
 
@@ -911,7 +911,7 @@ rti.Rti getRtiForRecord(Object? record) {
 
     return rti.evaluateRtiForRecord(recipeBuffer.toString(), recordObj.values);
   } else {
-    dart.throwUnimplementedInOldRti();
+    dart.throwUnimplementedInCurrentRti();
   }
 }
 

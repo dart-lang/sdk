@@ -1,0 +1,10 @@
+a0 int32
+a1 int32
+a2 int32
+t3 int32
+t4 int32
+t5 int32
+a6 int32
+M(a7 uint32, S+0 uint32) Struct(size: 6)
+=>
+a0 int32

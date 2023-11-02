@@ -118,6 +118,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   Map<Key, DartType> getFieldTypes(DartType type) {
+    // TODO(johnniwinther): Handle [ExtensionType]s.
     if (type is InterfaceType) {
       Map<Key, DartType> fieldTypes = {};
       Map<Class, Substitution> substitutions = {};
@@ -136,8 +137,8 @@ class CfeTypeOperations implements TypeOperations<DartType> {
           Class declaringClass = member.enclosingClass!;
           if (declaringClass.typeParameters.isNotEmpty) {
             Substitution substitution = substitutions[declaringClass] ??=
-                Substitution.fromInterfaceType(
-                    _classHierarchy.getTypeAsInstanceOf(type, declaringClass,
+                Substitution.fromInterfaceType(_classHierarchy
+                    .getInterfaceTypeAsInstanceOfClass(type, declaringClass,
                         isNonNullableByDefault: true)!);
             fieldType = substitution.substituteType(fieldType);
           }
@@ -187,12 +188,12 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getListElementType(DartType type) {
     type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
-      InterfaceType? listType = _classHierarchy.getTypeAsInstanceOf(
-          type, _typeEnvironment.coreTypes.listClass,
-          isNonNullableByDefault: true);
-      if (listType != null) {
-        return listType.typeArguments[0];
+    if (type is TypeDeclarationType) {
+      List<DartType>? typeArguments =
+          _classHierarchy.getTypeArgumentsAsInstanceOf(
+              type, _typeEnvironment.coreTypes.listClass);
+      if (typeArguments != null) {
+        return typeArguments[0];
       }
     }
     return null;
@@ -201,7 +202,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getListType(DartType type) {
     type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       return _classHierarchy.getTypeAsInstanceOf(
           type, _typeEnvironment.coreTypes.listClass,
           isNonNullableByDefault: true);
@@ -212,12 +213,12 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   @override
   DartType? getMapValueType(DartType type) {
     type = type.resolveTypeParameterType;
-    if (type is InterfaceType) {
-      InterfaceType? mapType = _classHierarchy.getTypeAsInstanceOf(
-          type, _typeEnvironment.coreTypes.mapClass,
-          isNonNullableByDefault: true);
-      if (mapType != null) {
-        return mapType.typeArguments[1];
+    if (type is TypeDeclarationType) {
+      List<DartType>? typeArguments =
+          _classHierarchy.getTypeArgumentsAsInstanceOf(
+              type, _typeEnvironment.coreTypes.mapClass);
+      if (typeArguments != null) {
+        return typeArguments[1];
       }
     }
     return null;
@@ -394,9 +395,9 @@ class CfeSealedClassOperations
       Class subClass, covariant InterfaceType sealedClassType) {
     InterfaceType thisType = subClass.getThisType(
         _typeEnvironment.coreTypes, Nullability.nonNullable);
-    InterfaceType asSealedType = _typeEnvironment.hierarchy.getTypeAsInstanceOf(
-        thisType, sealedClassType.classNode,
-        isNonNullableByDefault: true)!;
+    InterfaceType asSealedType = _typeEnvironment.hierarchy
+        .getInterfaceTypeAsInstanceOfClass(thisType, sealedClassType.classNode,
+            isNonNullableByDefault: true)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }
@@ -666,7 +667,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitExtensionType(ExtensionType type, CoreTypes coreTypes) {
-    return type.typeErasure.accept1(this, coreTypes);
+    return type.extensionTypeErasure.accept1(this, coreTypes);
   }
 
   @override

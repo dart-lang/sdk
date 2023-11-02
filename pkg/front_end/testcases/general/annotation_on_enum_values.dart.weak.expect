@@ -15,7 +15,7 @@ class Foo extends core::_Enum /*isEnum*/  {
   @#C12
   enum-element static const field self::Foo baz = #C6;
   enum-element static const field self::Foo cafebabe = #C9;
-  const constructor •(core::int #index, core::String #name) → self::Foo
+  const synthetic constructor •(core::int #index, core::String #name) → self::Foo
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

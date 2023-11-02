@@ -20,8 +20,6 @@ class Bar {
 @pragma('vm:entry-point') // prevent obfuscation
 base class NativeClass extends NativeFieldWrapperClass1 {}
 
-class MockNativeClass implements NativeFieldWrapperClass1 {}
-
 class Baz {
   @pragma('vm:entry-point') // prevent tree-shaking of the field.
   NativeClass? nativeClass;
@@ -66,12 +64,6 @@ bool checkForRetainingPath(Object? e, List<String> list) {
 
 main() async {
   asyncStart();
-
-  // Implementing (rather than extending) NativeFieldWrapperClassN doesn't
-  // prevent sending across isolates
-  // TODO(http://dartbug.com/51896): Remove this once it's no longer possible to
-  // implement NativeFieldWrapperClassN.
-  await sendAndReceive(MockNativeClass());
 
   final rp = ReceivePort();
 

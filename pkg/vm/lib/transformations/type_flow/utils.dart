@@ -6,6 +6,8 @@
 /// analysis.
 library vm.transformations.type_flow.utils;
 
+import 'dart:io';
+
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
@@ -21,8 +23,8 @@ const bool kPrintDebug =
 const bool kPrintTimings =
     const bool.fromEnvironment('global.type.flow.print.timings');
 
-const bool kPrintStats =
-    const bool.fromEnvironment('global.type.flow.print.stats');
+bool printStats = bool.fromEnvironment('global.type.flow.print.stats') ||
+    Platform.environment['DART_TFA_PRINT_STATS'] == '1';
 
 const bool kRemoveAsserts =
     const bool.fromEnvironment('global.type.flow.remove.asserts');
@@ -93,12 +95,16 @@ debugPrint(Object message) {
 }
 
 statPrint(Object message) {
-  if (kPrintStats) {
+  if (printStats) {
     _logger.log(message);
   }
 }
 
 const int kHashMask = 0x3fffffff;
+
+@pragma('vm:prefer-inline')
+int combineHashes(int hash1, int hash2) =>
+    (((hash1 * 31) & kHashMask) + hash2) & kHashMask;
 
 bool hasReceiverArg(Member member) =>
     member.isInstanceMember || (member is Constructor);
@@ -165,7 +171,7 @@ class CommutativePair {
           (v1 == other.v2 && v2 == other.v1));
 
   @override
-  int get hashCode => v1.hashCode ^ v2.hashCode;
+  int get hashCode => combineHashes(v1.hashCode, v2.hashCode);
 
   @override
   String toString() => "<$v1, $v2>";
@@ -293,7 +299,7 @@ class Statistics {
 int typeArgumentsHash(List<DartType> typeArgs) {
   int hash = 1237;
   for (var t in typeArgs) {
-    hash = (((hash * 31) & kHashMask) + t.hashCode) & kHashMask;
+    hash = combineHashes(hash, t.hashCode);
   }
   return hash;
 }
@@ -304,9 +310,7 @@ class SubtypePair {
 
   SubtypePair(this.subtype, this.supertype);
 
-  int get hashCode {
-    return subtype.hashCode ^ supertype.hashCode;
-  }
+  int get hashCode => combineHashes(subtype.hashCode, supertype.hashCode);
 
   bool operator ==(Object other) {
     if (other is SubtypePair) {

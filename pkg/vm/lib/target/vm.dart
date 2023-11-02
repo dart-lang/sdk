@@ -39,6 +39,7 @@ class VmTarget extends Target {
   Class? _twoByteString;
   Class? _smi;
   Class? _double; // _Double, not double.
+  Class? _closure;
   Class? _syncStarIterable;
 
   VmTarget(this.flags);
@@ -171,7 +172,7 @@ class VmTarget extends Target {
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi annotations");
 
-      // Transform @FfiNative(..) functions into FFI native call functions.
+      // Transform @Native(..) functions into FFI native call functions.
       // Pass instance method receivers as implicit first argument to the static
       // native function.
       // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
@@ -488,6 +489,11 @@ class VmTarget extends Target {
     }
     return _oneByteString ??=
         coreTypes.index.getClass('dart:core', '_OneByteString');
+  }
+
+  @override
+  Class concreteClosureClass(CoreTypes coreTypes) {
+    return _closure ??= coreTypes.index.getClass('dart:core', '_Closure');
   }
 
   @override

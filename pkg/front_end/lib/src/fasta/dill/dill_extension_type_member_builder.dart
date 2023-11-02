@@ -43,6 +43,9 @@ abstract class DillExtensionTypeMemberBuilder extends DillMemberBuilder {
     }
     return null;
   }
+
+  @override
+  Name get memberName => new Name(name, member.enclosingLibrary);
 }
 
 class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {

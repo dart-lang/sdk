@@ -3037,13 +3037,12 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   final TypeDeclarationBuilder declaration;
   List<TypeBuilder>? typeArguments;
 
-  @override
-  final String targetName;
+  final TypeName typeName;
 
   Expression? _expression;
 
   TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.declaration, this.targetName)
+      this.declaration, this.typeName)
       : super(
             helper,
             token,
@@ -3052,6 +3051,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             declaration is InvalidTypeDeclarationBuilder
                 ? ReadOnlyAccessKind.InvalidDeclaration
                 : ReadOnlyAccessKind.TypeLiteral);
+
+  @override
+  String get targetName => typeName.name;
 
   @override
   String get _debugName => "TypeUseGenerator";
@@ -3068,7 +3070,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       return new DependentTypeBuilder(
           (declaration as OmittedTypeDeclarationBuilder).omittedTypeBuilder);
     }
-    return new NamedTypeBuilderImpl(targetName, nullabilityBuilder,
+    return new NamedTypeBuilderImpl(typeName, nullabilityBuilder,
         arguments: arguments,
         fileUri: _uri,
         charOffset: fileOffset,
@@ -3155,7 +3157,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 ExtensionBuilder() => false,
                 ExtensionTypeDeclarationBuilder() => true,
                 TypeAliasBuilder() => false,
-                TypeVariableBuilder() => false,
+                NominalVariableBuilder() => false,
                 StructuralVariableBuilder() => false,
                 InvalidTypeDeclarationBuilder() => false,
                 BuiltinTypeDeclarationBuilder() => false,
@@ -3181,7 +3183,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         if (declarationBuilder is DeclarationBuilder) {
           if (aliasedTypeArguments != null) {
             new NamedTypeBuilderImpl(
-                aliasBuilder.name, const NullabilityBuilder.omitted(),
+                typeName, const NullabilityBuilder.omitted(),
                 arguments: aliasedTypeArguments,
                 fileUri: _uri,
                 charOffset: fileOffset,
@@ -3198,10 +3200,11 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               aliasBuilder.typeVariablesCount != 0) {
             isGenericTypedefTearOff = true;
             aliasedTypeArguments = <TypeBuilder>[];
-            for (TypeVariableBuilder typeVariable
+            for (NominalVariableBuilder typeVariable
                 in aliasBuilder.typeVariables!) {
               aliasedTypeArguments.add(new NamedTypeBuilderImpl(
-                  typeVariable.name, const NullabilityBuilder.omitted(),
+                  new SyntheticTypeName(typeVariable.name, fileOffset),
+                  const NullabilityBuilder.omitted(),
                   fileUri: _uri,
                   charOffset: fileOffset,
                   instanceTypeVariableAccess:
@@ -3468,7 +3471,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   @override
   Expression_Generator applyTypeArguments(
       int fileOffset, List<TypeBuilder>? typeArguments) {
-    return new TypeUseGenerator(_helper, token, declaration, targetName)
+    return new TypeUseGenerator(_helper, token, declaration, typeName)
       ..typeArguments = typeArguments;
   }
 }
@@ -4079,19 +4082,20 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  /* Expression | Generator */ Object qualifiedLookup(Token name) {
+  /* Expression | Generator */ Object qualifiedLookup(Token nameToken) {
     if (_helper.constantContext != ConstantContext.none && prefix.deferred) {
       _helper.addProblem(
           templateCantUseDeferredPrefixAsConstant.withArguments(token),
           fileOffset,
           lengthForToken(token));
     }
-    Object result = _helper.scopeLookup(prefix.exportScope, name.lexeme, name,
-        isQualified: true, prefix: prefix);
+    Object result = _helper.scopeLookup(prefix.exportScope, nameToken,
+        prefix: prefix, prefixToken: token);
     if (prefix.deferred) {
       if (result is Generator) {
         if (result is! LoadLibraryGenerator) {
-          result = new DeferredAccessGenerator(_helper, name, this, result);
+          result =
+              new DeferredAccessGenerator(_helper, nameToken, this, result);
         }
       } else {
         _helper.wrapInDeferredCheck(result as Expression, prefix, fileOffset);

@@ -4,15 +4,17 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
-import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
-import 'package:analysis_server/src/lsp/json_parsing.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:language_server_protocol/json_parsing.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
+import 'package:language_server_protocol/protocol_special.dart';
 
 /// The handler for the `lsp.handle` request.
 class LspOverLegacyHandler extends LegacyHandler {
@@ -70,7 +72,13 @@ class LspOverLegacyHandler extends LegacyHandler {
 
     ErrorOr<Object?> result;
     try {
-      result = await handler.handleMessage(message, messageInfo);
+      result = await handler.handleMessage(message, messageInfo,
+          cancellationToken: cancellationToken);
+    } on InconsistentAnalysisException {
+      result = error(
+        ErrorCodes.ContentModified,
+        'Document was modified before operation completed',
+      );
     } catch (e) {
       final errorMessage =
           'An error occurred while handling ${message.method} request: $e';

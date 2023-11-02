@@ -1,0 +1,47 @@
+class C1 {
+  void x() {}
+}
+class C2 implements C1 {
+  static int get x => 1;
+}
+extension type I1(int id) {
+  void x() {}
+}
+extension type I2(int id1) {}
+extension type I3(int id) {
+  int get property => 42;
+}
+extension type I4(int id) {
+  static void set property(int value) {}
+}
+extension type ET1(int id) implements I1 {
+  static int get x => 1;
+}
+extension type ET2(int id) implements I1 {
+  static int x() => 2;
+}
+extension type ET3(int id) implements I1 {
+  static void set x(int i) {}
+}
+extension type ET4(int id) implements I1 {
+  static int x = 4;
+}
+extension type ET5(int id) implements I2 {
+  static int id1() => 2;
+}
+extension type ET6(int id) implements I2 {
+  static int get id1 => 2;
+}
+extension type ET7(int id) implements I2 {
+  static int id1 = 5;
+}
+extension type ET8(int id) implements I2 {
+  static void set id1(int id) {}
+}
+extension type ET9(int id) implements I3, I4 {}
+extension type ET10(int id) implements I3 {
+  static void set property(int value) {}
+}
+extension type ET11(int id) implements I4 {
+  int get property => 42;
+}

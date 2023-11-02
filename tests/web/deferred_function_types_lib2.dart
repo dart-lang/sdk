@@ -9,11 +9,11 @@ method2() {
 class Class2 {}
 
 method4() {
-  return (Class2 c1, Class2 c2) => c1;
+  return (Class2? c1, Class2? c2) => c1;
 }
 
-test4(o) => o is Class2 Function(Class2, Class2);
+test4(o) => o is Class2? Function(Class2?, Class2?);
 
-method6(Class2 c, int i, String s) {}
+method6(Class2? c, int i, String s) {}
 
-test6(o) => o is Function(Class2, int, String);
+test6(o) => o is Function(Class2?, int, String);

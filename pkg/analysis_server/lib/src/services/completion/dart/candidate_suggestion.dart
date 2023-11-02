@@ -120,7 +120,7 @@ final class LabelSuggestion extends CandidateSuggestion {
 /// The information about a candidate suggestion based on a local function.
 final class LocalFunctionSuggestion extends CandidateSuggestion {
   /// The element on which the suggestion is based.
-  final ExecutableElement element;
+  final FunctionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
   LocalFunctionSuggestion(this.element);
@@ -160,8 +160,7 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case LabelSuggestion():
         suggestLabel(suggestion.label);
       case LocalFunctionSuggestion():
-        // TODO(brianwilkerson) Add support for suggesting a local function.
-        break;
+        suggestTopLevelFunction(suggestion.element);
       case LocalVariableSuggestion():
         // TODO(brianwilkerson) Enhance `suggestLocalVariable` to allow the
         //  distance to be passed in.

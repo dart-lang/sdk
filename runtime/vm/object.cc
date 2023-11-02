@@ -9020,22 +9020,81 @@ void Function::SetIsOptimizable(bool value) const {
   }
 }
 
+bool Function::IsTypedDataViewFactory() const {
+  switch (recognized_kind()) {
+    case MethodRecognizer::kTypedData_ByteDataView_factory:
+    case MethodRecognizer::kTypedData_Int8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_Int16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool Function::IsUnmodifiableTypedDataViewFactory() const {
+  switch (recognized_kind()) {
+    case MethodRecognizer::kTypedData_UnmodifiableByteDataView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableUint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableInt32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_UnmodifiableFloat64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
+static bool InVmTests(const Function& function) {
+#if defined(TESTING)
+  return true;
+#else
+  auto* zone = Thread::Current()->zone();
+  const auto& cls = Class::Handle(zone, function.Owner());
+  const auto& lib = Library::Handle(zone, cls.library());
+  const auto& url = String::Handle(zone, lib.url());
+  const bool in_vm_tests =
+      strstr(url.ToCString(), "runtime/tests/vm/") != nullptr;
+  return in_vm_tests;
+#endif
+}
+
 bool Function::ForceOptimize() const {
   if (RecognizedKindForceOptimize() || IsFfiTrampoline() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
     return true;
   }
 
-#if defined(TESTING)
-  // For run_vm_tests we allow marking arbitrary functions as force-optimize
-  // via `@pragma('vm:force-optimize')`.
-  if (has_pragma()) {
-    return Library::FindPragma(Thread::Current(), false, *this,
-                               Symbols::vm_force_optimize());
-  }
-#endif  // defined(TESTING)
+  if (!has_pragma()) return false;
 
-  return false;
+  const bool has_vm_pragma = Library::FindPragma(
+      Thread::Current(), false, *this, Symbols::vm_force_optimize());
+  if (!has_vm_pragma) return false;
+
+  // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions as
+  // force-optimize via `@pragma('vm:force-optimize')`.
+  return InVmTests(*this);
 }
 
 bool Function::IsIdempotent() const {
@@ -9049,6 +9108,18 @@ bool Function::IsIdempotent() const {
 
   return Library::FindPragma(Thread::Current(), kAllowOnlyForCoreLibFunctions,
                              *this, Symbols::vm_idempotent());
+}
+
+bool Function::IsCachableIdempotent() const {
+  if (!has_pragma()) return false;
+
+  const bool has_vm_pragma =
+      Library::FindPragma(Thread::Current(), /*only_core=*/false, *this,
+                          Symbols::vm_cachable_idempotent());
+  if (!has_vm_pragma) return false;
+
+  // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions.
+  return InVmTests(*this);
 }
 
 bool Function::RecognizedKindForceOptimize() const {
@@ -9107,6 +9178,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kTypedData_memMove4:
     case MethodRecognizer::kTypedData_memMove8:
     case MethodRecognizer::kTypedData_memMove16:
+    case MethodRecognizer::kMemCopy:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
     // kernel_to_il.cc that no GC can happen in between the relevant IL
@@ -15556,7 +15628,8 @@ ObjectPoolPtr ObjectPool::NewFromBuilder(
     auto entry = builder.EntryAt(i);
     auto type = entry.type();
     auto patchable = entry.patchable();
-    result.SetTypeAt(i, type, patchable);
+    auto snapshot_behavior = entry.snapshot_behavior();
+    result.SetTypeAt(i, type, patchable, snapshot_behavior);
     if (type == EntryType::kTaggedObject) {
       result.SetObjectAt(i, *entry.obj_);
     } else {
@@ -15575,16 +15648,18 @@ void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
   for (intptr_t i = 0; i < Length(); i++) {
     auto type = TypeAt(i);
     auto patchable = PatchableAt(i);
+    auto snapshot_behavior = SnapshotBehaviorAt(i);
     switch (type) {
       case compiler::ObjectPoolBuilderEntry::kTaggedObject: {
         compiler::ObjectPoolBuilderEntry entry(&Object::ZoneHandle(ObjectAt(i)),
-                                               patchable);
+                                               patchable, snapshot_behavior);
         builder->AddObject(entry);
         break;
       }
       case compiler::ObjectPoolBuilderEntry::kImmediate:
       case compiler::ObjectPoolBuilderEntry::kNativeFunction: {
-        compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable);
+        compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable,
+                                               snapshot_behavior);
         builder->AddObject(entry);
         break;
       }
@@ -21453,6 +21528,17 @@ bool AbstractType::IsTypeClassAllowedBySpawnUri() const {
   if (cid == candidate_cls.id()) return true;
   candidate_cls = object_store->transferable_class();
   if (cid == candidate_cls.id()) return true;
+
+  const auto& typed_data_lib =
+      Library::Handle(object_store->typed_data_library());
+
+#define IS_CHECK(name)                                                         \
+  candidate_cls = typed_data_lib.LookupClass(Symbols::name##List());           \
+  if (cid == candidate_cls.id()) {                                             \
+    return true;                                                               \
+  }
+  DART_CLASS_LIST_TYPED_DATA(IS_CHECK)
+#undef IS_CHECK
 
   return false;
 }

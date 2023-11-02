@@ -493,7 +493,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   h0
     kind: function
 ''');
@@ -511,7 +511,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   b2
     kind: functionInvocation
   h0
@@ -553,7 +553,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   b2
     kind: function
   h0
@@ -573,7 +573,7 @@ suggestions
   b0
     kind: function
   b1
-    kind: function
+    kind: functionInvocation
   b2
     kind: functionInvocation
   h0
@@ -5812,23 +5812,11 @@ void f() {
   ^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-suggestions
-  A2
-    kind: localVariable
-  A2
-    kind: constructorInvocation
-  A2.named
-    kind: constructorInvocation
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A2
     kind: localVariable
 ''');
-    }
   }
 
   Future<void> test_localVariableDeclarationName() async {
@@ -6914,7 +6902,7 @@ replacement
   left: 4
 suggestions
   f0
-    kind: function
+    kind: functionInvocation
 ''');
     }
   }

@@ -50,6 +50,7 @@ internal/object_members_test: SkipByDesign # Uses eval for interop
 regress/issue/49129_test: SkipByDesign # Uses eval for interop
 
 [ $compiler == dart2js && !$host_checked ]
+deferred/many_parts/many_parts_test: Slow, Pass # Large stress test by design
 dummy_compiler_test: Slow, Pass # Issue 32439. self-hosting doesn't work with CFE yet.
 
 [ $compiler == dart2js && $minified ]

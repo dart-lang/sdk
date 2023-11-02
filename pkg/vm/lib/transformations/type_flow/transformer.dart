@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Transformations based on type flow analysis.
+library;
 
 import 'dart:core' hide Type;
 
@@ -17,6 +18,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:vm/metadata/closure_id.dart';
 import 'package:vm/metadata/direct_call.dart';
 import 'package:vm/metadata/inferred_type.dart';
 import 'package:vm/metadata/procedure_attributes.dart';
@@ -309,6 +311,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final TableSelectorMetadataRepository _tableSelectorMetadata;
   final TableSelectorAssigner _tableSelectorAssigner;
+  final ClosureIdMetadataRepository _closureIdMetadata;
   final UnboxingInfoMetadataRepository _unboxingInfoMetadata;
   final UnboxingInfoManager _unboxingInfo;
   final Class _intClass;
@@ -324,6 +327,7 @@ class AnnotateKernel extends RecursiveVisitor {
         _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = TableSelectorMetadataRepository(),
+        _closureIdMetadata = ClosureIdMetadataRepository(),
         _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
@@ -331,6 +335,7 @@ class AnnotateKernel extends RecursiveVisitor {
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
     component.addMetadataRepository(_tableSelectorMetadata);
+    component.addMetadataRepository(_closureIdMetadata);
     component.addMetadataRepository(_unboxingInfoMetadata);
   }
 
@@ -343,6 +348,8 @@ class AnnotateKernel extends RecursiveVisitor {
       {bool skipCheck = false, bool receiverNotInt = false}) {
     Class? concreteClass;
     Constant? constantValue;
+    Member? closureMember;
+    int closureId = 0;
     bool isInt = false;
 
     final nullable = type is NullableType;
@@ -362,7 +369,27 @@ class AnnotateKernel extends RecursiveVisitor {
       }
 
       if (type is ConcreteType && !nullable) {
-        constantValue = type.constant;
+        constantValue = type.attributes?.constant;
+
+        final closure = type.attributes?.closure;
+        if (closure != null) {
+          closureMember = closure.member;
+          final function = closure.function;
+          if (function != null) {
+            _closureIdMetadata.indexClosures(closureMember);
+            closureId = _closureIdMetadata.getClosureId(function);
+            if (closureId < 0) {
+              // Closure was tree-shaken and doesn't belong to
+              // the body of [closureMember].
+              closureMember = null;
+              closureId = 0;
+            } else {
+              assert(closureId > 0);
+            }
+          } else {
+            closureId = 0;
+          }
+        }
       }
     }
 
@@ -380,8 +407,10 @@ class AnnotateKernel extends RecursiveVisitor {
         isInt ||
         constantValue != null ||
         skipCheck ||
-        receiverNotInt) {
+        receiverNotInt ||
+        closureMember != null) {
       return new InferredType(concreteClass, nullable, isInt, constantValue,
+          closureMember, closureId,
           exactTypeArguments: typeArgs,
           skipCheck: skipCheck,
           receiverNotInt: receiverNotInt);
@@ -571,7 +600,9 @@ class AnnotateKernel extends RecursiveVisitor {
 
   @override
   visitProcedure(Procedure node) {
-    _annotateMember(node);
+    if (node.stubKind != ProcedureStubKind.RepresentationField) {
+      _annotateMember(node);
+    }
     super.visitProcedure(node);
   }
 
@@ -855,9 +886,9 @@ class TreeShaker {
       if (m.isExtensionMember) {
         // The AST should have exactly one [Extension] for [m].
         final extension = m.enclosingLibrary.extensions.firstWhere((extension) {
-          return extension.members.any((descriptor) =>
-              descriptor.member.asMember == m ||
-              descriptor.tearOff?.asMember == m);
+          return extension.memberDescriptors.any((descriptor) =>
+              descriptor.memberReference.asMember == m ||
+              descriptor.tearOffReference?.asMember == m);
         });
 
         // Ensure we retain the [Extension] itself (though members might be
@@ -872,9 +903,9 @@ class TreeShaker {
         final extensionTypeDeclaration = m
             .enclosingLibrary.extensionTypeDeclarations
             .firstWhere((extensionTypeDeclaration) {
-          return extensionTypeDeclaration.members.any((descriptor) =>
-              descriptor.member.asMember == m ||
-              descriptor.tearOff?.asMember == m);
+          return extensionTypeDeclaration.memberDescriptors.any((descriptor) =>
+              descriptor.memberReference.asMember == m ||
+              descriptor.tearOffReference?.asMember == m);
         });
 
         // Ensure we retain the [ExtensionTypeDeclaration] itself (though
@@ -1033,6 +1064,12 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
     if (declaration is Class) {
       shaker.addClassUsedInType(declaration);
     }
+    node.visitChildren(this);
+  }
+
+  @override
+  visitExtensionType(ExtensionType node) {
+    shaker.addUsedExtensionTypeDeclaration(node.extensionTypeDeclaration);
     node.visitChildren(this);
   }
 }
@@ -1930,6 +1967,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
         switch (node.stubKind) {
           case ProcedureStubKind.Regular:
           case ProcedureStubKind.NoSuchMethodForwarder:
+          case ProcedureStubKind.RepresentationField:
             break;
           case ProcedureStubKind.MemberSignature:
           case ProcedureStubKind.AbstractForwardingStub:
@@ -1963,17 +2001,17 @@ class _TreeShakerPass2 extends RemovingTransformer {
   TreeNode visitExtension(Extension node, TreeNode? removalSentinel) {
     if (shaker.isExtensionUsed(node)) {
       int writeIndex = 0;
-      for (int i = 0; i < node.members.length; ++i) {
-        ExtensionMemberDescriptor descriptor = node.members[i];
+      for (int i = 0; i < node.memberDescriptors.length; ++i) {
+        ExtensionMemberDescriptor descriptor = node.memberDescriptors[i];
 
         // To avoid depending on the order in which members and extensions are
         // visited during the transformation, we handle both cases: either the
         // member was already removed or it will be removed later.
-        final Reference memberReference = descriptor.member;
+        final Reference memberReference = descriptor.memberReference;
         final bool memberIsBound = memberReference.node != null;
         final bool isMemberUsed =
             memberIsBound && shaker.isMemberUsed(memberReference.asMember);
-        final Reference? tearOffReference = descriptor.tearOff;
+        final Reference? tearOffReference = descriptor.tearOffReference;
         final bool tearOffIsBound = tearOffReference?.node != null;
         final bool isTearOffUsed =
             tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
@@ -1986,16 +2024,16 @@ class _TreeShakerPass2 extends RemovingTransformer {
                 name: descriptor.name,
                 kind: descriptor.kind,
                 isStatic: descriptor.isStatic,
-                member: descriptor.member,
-                tearOff: null);
+                memberReference: descriptor.memberReference,
+                tearOffReference: null);
           }
-          node.members[writeIndex++] = descriptor;
+          node.memberDescriptors[writeIndex++] = descriptor;
         }
       }
-      node.members.length = writeIndex;
+      node.memberDescriptors.length = writeIndex;
 
       // We only retain the extension if at least one member is retained.
-      assert(node.members.isNotEmpty);
+      assert(node.memberDescriptors.isNotEmpty);
       return node;
     }
     return removalSentinel!;
@@ -2006,18 +2044,18 @@ class _TreeShakerPass2 extends RemovingTransformer {
       ExtensionTypeDeclaration node, TreeNode? removalSentinel) {
     if (shaker.isExtensionTypeDeclarationUsed(node)) {
       int writeIndex = 0;
-      for (int i = 0; i < node.members.length; ++i) {
-        ExtensionTypeMemberDescriptor descriptor = node.members[i];
+      for (int i = 0; i < node.memberDescriptors.length; ++i) {
+        ExtensionTypeMemberDescriptor descriptor = node.memberDescriptors[i];
 
         // To avoid depending on the order in which members and extension type
         // declarations are visited during the transformation, we handle both
         // cases: either the member was already removed or it will be removed
         // later.
-        final Reference memberReference = descriptor.member;
+        final Reference memberReference = descriptor.memberReference;
         final bool memberIsBound = memberReference.node != null;
         final bool isMemberUsed =
             memberIsBound && shaker.isMemberUsed(memberReference.asMember);
-        final Reference? tearOffReference = descriptor.tearOff;
+        final Reference? tearOffReference = descriptor.tearOffReference;
         final bool tearOffIsBound = tearOffReference?.node != null;
         final bool isTearOffUsed =
             tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
@@ -2030,17 +2068,17 @@ class _TreeShakerPass2 extends RemovingTransformer {
                 name: descriptor.name,
                 kind: descriptor.kind,
                 isStatic: descriptor.isStatic,
-                member: descriptor.member,
-                tearOff: null);
+                memberReference: descriptor.memberReference,
+                tearOffReference: null);
           }
-          node.members[writeIndex++] = descriptor;
+          node.memberDescriptors[writeIndex++] = descriptor;
         }
       }
-      node.members.length = writeIndex;
+      node.memberDescriptors.length = writeIndex;
 
-      // We only retain the extension type declaration if at least one member is
-      // retained.
-      assert(node.members.isNotEmpty);
+      // The procedures of the extension type declaration are never used.
+      node.procedures.clear();
+
       return node;
     }
     return removalSentinel!;

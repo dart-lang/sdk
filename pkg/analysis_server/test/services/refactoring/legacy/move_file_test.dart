@@ -274,6 +274,91 @@ void f() {
     assertNoFileChange(testFile.path);
   }
 
+  Future<void> test_file_quotes_double() async {
+    var file = newFile('$testPackageLibPath/old_name.dart', '');
+    addTestSource(r'''
+import "package:test/old_name.dart";
+''');
+    await analyzeTestPackageFiles();
+    testAnalysisResult = await getResolvedUnit(file);
+
+    _createRefactoring('$testPackageLibPath/222/new_name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile.path, '''
+import "package:test/222/new_name.dart";
+''');
+  }
+
+  Future<void> test_file_quotes_doubleRaw() async {
+    var file = newFile('$testPackageLibPath/old_name.dart', '');
+    addTestSource(r'''
+import r"package:test/old_name.dart";
+''');
+    await analyzeTestPackageFiles();
+    testAnalysisResult = await getResolvedUnit(file);
+
+    _createRefactoring('$testPackageLibPath/222/new_name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile.path, '''
+import r"package:test/222/new_name.dart";
+''');
+  }
+
+  Future<void> test_file_quotes_raw() async {
+    var file = newFile('$testPackageLibPath/old_name.dart', '');
+    addTestSource(r'''
+import r'package:test/old_name.dart';
+''');
+    await analyzeTestPackageFiles();
+    testAnalysisResult = await getResolvedUnit(file);
+
+    _createRefactoring('$testPackageLibPath/222/new_name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile.path, '''
+import r'package:test/222/new_name.dart';
+''');
+  }
+
+  Future<void> test_file_quotes_triple() async {
+    var file = newFile('$testPackageLibPath/old_name.dart', '');
+    addTestSource(r"""
+import '''package:test/old_name.dart''';
+""");
+    await analyzeTestPackageFiles();
+    testAnalysisResult = await getResolvedUnit(file);
+
+    _createRefactoring('$testPackageLibPath/222/new_name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile.path, """
+import '''package:test/222/new_name.dart''';
+""");
+  }
+
+  Future<void> test_file_quotes_tripleRaw() async {
+    var file = newFile('$testPackageLibPath/old_name.dart', '');
+    addTestSource(r"""
+import r'''package:test/old_name.dart''';
+""");
+    await analyzeTestPackageFiles();
+    testAnalysisResult = await getResolvedUnit(file);
+
+    _createRefactoring('$testPackageLibPath/222/new_name.dart',
+        oldFile: file.path);
+    await _assertSuccessfulRefactoring();
+
+    assertFileChangeResult(testFile.path, """
+import r'''package:test/222/new_name.dart''';
+""");
+  }
+
   @failingTest
   Future<void> test_file_referenced_by_multiple_libraries() async {
     // This test fails because the search index doesn't support multiple uris for
@@ -373,7 +458,7 @@ import 'package:test/new/nested/d.dart';
     final pathB = convertPath('/home/test/lib/old/b.dart');
     newFile(pathB, '');
     await resolveTestCode('''
-import 'a.dart';
+import 'b.dart';
 ''');
     // Rename the whole 'old' folder to 'new''.
     _createRefactoring('/home/test/lib/new', oldFile: '/home/test/lib/old');

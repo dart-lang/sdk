@@ -1,0 +1,81 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract method method() → (core::Object?, dynamic);
+  abstract get getter() → (core::Object?, dynamic);
+  abstract set setter((core::Object?, dynamic) → (core::int, core::int) f) → void;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  abstract method method() → (dynamic, core::Object?);
+  abstract get getter() → (dynamic, core::Object?);
+  abstract set setter((dynamic, core::Object?) → (core::int, core::int) f) → void;
+}
+class C extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::C
+    ;
+  method method() → (core::int, core::int)
+    ;
+  get getter() → (core::int, core::int)
+    ;
+  set setter((dynamic, dynamic) → (core::int, core::int) f) → void
+    ;
+}
+extension type E(self::C c) implements self::A, self::B {
+  abstract inline-class-member representation-field get c() → self::C;
+  abstract member-signature method method() → (core::Object?, core::Object?); -> self::A::method
+  abstract member-signature get getter() → (core::Object?, core::Object?); -> self::A::getter
+  abstract member-signature set setter((core::Object?, core::Object?) → (core::int, core::int) f) → void; -> self::A::setter
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static field self::E /* = self::C */ e;
+static field (core::Object?, core::Object?) f;
+static field (core::Object?, core::Object?) f1;
+static field (core::Object?, core::int) f2;
+static field (core::int, core::Object?) f3;
+static field (core::Object?, core::Object?) g;
+static field (core::Object?, core::Object?) g1;
+static field (core::Object?, core::int) g2;
+static field (core::int, core::Object?) g3;
+static inline-class-member method E|constructor#(self::C c) → self::E /* = self::C */
+  ;
+static inline-class-member method E|constructor#_#new#tearOff(self::C c) → self::E /* = self::C */
+  return self::E|constructor#(c);
+static method testMethod0(self::E /* = self::C */ e) → (core::Object?, core::Object?)
+  ;
+static method testMethod1(self::E /* = self::C */ e) → (core::int, core::Object?)
+  ;
+static method testMethod2(self::E /* = self::C */ e) → (core::Object?, core::int)
+  ;
+static method testMethod3(self::E /* = self::C */ e) → dynamic
+  ;
+static method testMethod4(self::E /* = self::C */ e) → dynamic
+  ;
+static method testGetter0(self::E /* = self::C */ e) → (core::Object?, core::Object?)
+  ;
+static method testGetter1(self::E /* = self::C */ e) → (core::int, core::Object?)
+  ;
+static method testGetter2(self::E /* = self::C */ e) → (core::Object?, core::int)
+  ;
+static method testSetter(self::E /* = self::C */ e) → void
+  ;
+static method testMethod5(self::E /* = self::C */ e) → dynamic
+  ;
+static method testMethod6(self::E /* = self::C */ e) → dynamic
+  ;
+static method testGetter5(self::E /* = self::C */ e) → dynamic
+  ;
+static method testGetter6(self::E /* = self::C */ e) → dynamic
+  ;
+static method method(self::E /* = self::C */ e) → void
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

@@ -276,14 +276,16 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               classid_t array_cid,
                                               Register array_reg,
+                                              Representation array_rep,
                                               Location start_loc) {
-  intptr_t offset;
-  if (IsTypedDataBaseClassId(array_cid)) {
-    __ movq(array_reg,
-            compiler::FieldAddress(
-                array_reg, compiler::target::PointerBase::data_offset()));
-    offset = 0;
+  intptr_t offset = 0;
+  if (array_rep != kTagged) {
+    // Do nothing, array_reg already contains the payload address.
+  } else if (IsTypedDataBaseClassId(array_cid)) {
+    ASSERT_EQUAL(array_rep, kTagged);
+    __ LoadFromSlot(array_reg, array_reg, Slot::PointerBase_data());
   } else {
+    ASSERT_EQUAL(array_rep, kTagged);
     switch (array_cid) {
       case kOneByteStringCid:
         offset =
@@ -294,18 +296,12 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
             compiler::target::TwoByteString::data_offset() - kHeapObjectTag;
         break;
       case kExternalOneByteStringCid:
-        __ movq(array_reg,
-                compiler::FieldAddress(array_reg,
-                                       compiler::target::ExternalOneByteString::
-                                           external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalOneByteString_external_data());
         break;
       case kExternalTwoByteStringCid:
-        __ movq(array_reg,
-                compiler::FieldAddress(array_reg,
-                                       compiler::target::ExternalTwoByteString::
-                                           external_data_offset()));
-        offset = 0;
+        __ LoadFromSlot(array_reg, array_reg,
+                        Slot::ExternalTwoByteString_external_data());
         break;
       default:
         UNREACHABLE();
@@ -663,6 +659,11 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       const int64_t value = Integer::Cast(value_).AsInt64Value();
       __ movq(LocationToStackSlotAddress(destination),
               compiler::Immediate(value));
+    } else if (representation() == kUnboxedFloat) {
+      int32_t float_bits =
+          bit_cast<int32_t, float>(Double::Cast(value_).value());
+      __ movl(LocationToStackSlotAddress(destination),
+              compiler::Immediate(float_bits));
     } else {
       ASSERT(representation() == kTagged);
       __ StoreObject(LocationToStackSlotAddress(destination), value_);
@@ -1238,8 +1239,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler::ExternalLabel label(NativeEntry::LinkNativeCallEntry());
     __ LoadNativeEntry(RBX, &label,
                        compiler::ObjectPoolBuilderEntry::kPatchable);
-    compiler->GeneratePatchableCall(source(), *stub,
-                                    UntaggedPcDescriptors::kOther, locs());
+    compiler->GeneratePatchableCall(
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kResetToBootstrapNative);
   } else {
     if (is_bootstrap_native()) {
       stub = &StubCode::CallBootstrapNative();
@@ -1255,7 +1257,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // We can never lazy-deopt here because natives are never optimized.
     ASSERT(!compiler->is_optimizing());
     compiler->GenerateNonLazyDeoptableStubCall(
-        source(), *stub, UntaggedPcDescriptors::kOther, locs());
+        source(), *stub, UntaggedPcDescriptors::kOther, locs(),
+        compiler::ObjectPoolBuilderEntry::kNotSnapshotable);
   }
   __ LoadFromOffset(result, RSP, 0);
   compiler->EmitDropArguments(ArgumentCount());  // Drop the arguments.
@@ -1697,9 +1700,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label rest, rest_loop, rest_loop_in, done;
 
   // Address of input bytes.
-  __ movq(bytes_reg,
-          compiler::FieldAddress(bytes_reg,
-                                 compiler::target::PointerBase::data_offset()));
+  __ LoadFromSlot(bytes_reg, bytes_reg, Slot::PointerBase_data());
 
   // Pointers to start, end and end-16.
   __ leaq(bytes_ptr_reg, compiler::Address(bytes_reg, start_reg, TIMES_1, 0));
@@ -1814,24 +1815,6 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ orq(compiler::FieldAddress(decoder_reg, scan_flags_field_offset),
            flags_reg);
-  }
-}
-
-LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register obj = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
-  if (object()->definition()->representation() == kUntagged) {
-    __ movq(result, compiler::Address(obj, offset()));
-  } else {
-    ASSERT(object()->definition()->representation() == kTagged);
-    __ movq(result, compiler::FieldAddress(obj, offset()));
   }
 }
 
@@ -3865,25 +3848,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
 void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  compiler::Label done;
-#if !defined(DART_COMPRESSED_POINTERS)
-  ASSERT(value == result);
-  // Optimistically untag value.
-  __ SmiUntag(value);
-  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  // Undo untagging by multiplying value by 2.
-  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
-  __ movsxd(result,
-            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
-#else
-  ASSERT(value != result);
-  // Cannot speculatively untag with value == result because it erases the
-  // upper bits needed to dereference when it is a Mint.
-  __ SmiUntagAndSignExtend(result, value);
-  __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movsxd(result, compiler::FieldAddress(value, Mint::value_offset()));
-#endif
-  __ Bind(&done);
+  __ LoadInt32FromBoxOrSmi(result, value);
 }
 
 void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
@@ -4246,8 +4211,6 @@ Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   V(Int32x4BitXor, xorps)                                                      \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
-  V(Float32x4GreaterThan, cmppsnle)                                            \
-  V(Float32x4GreaterThanOrEqual, cmppsnlt)                                     \
   V(Float32x4LessThan, cmppslt)                                                \
   V(Float32x4LessThanOrEqual, cmppsle)
 
@@ -4618,6 +4581,8 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kFloat32x4GreaterThan:
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
       break;
   }
@@ -4636,6 +4601,8 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kFloat32x4GreaterThan:
+    case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
       UNREACHABLE();
       break;
@@ -4701,7 +4668,11 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
-  summary->set_out(0, Location::RequiresFpuRegister());
+  if (op_kind() == Token::kSQUARE) {
+    summary->set_out(0, Location::SameAsFirstInput());
+  } else {
+    summary->set_out(0, Location::RequiresFpuRegister());
+  }
   return summary;
 }
 
@@ -4717,9 +4688,7 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ sqrtsd(result, value);
       break;
     case Token::kSQUARE:
-      if (result != value) {
-        __ movsd(result, value);
-      }
+      ASSERT(result == value);
       __ mulsd(result, value);
       break;
     case Token::kTRUNCATE:

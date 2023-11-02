@@ -145,7 +145,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      experimentReleasedVersion: const Version(3, 3));
 
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
@@ -751,7 +751,11 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   ExperimentalFlag.records,
   ExperimentalFlag.classModifiers,
   ExperimentalFlag.sealedClass,
-}, sdkLibraryExperiments: {}, packageExperiments: {
+}, sdkLibraryExperiments: {
+  "js_interop": {
+    ExperimentalFlag.inlineClass,
+  },
+}, packageExperiments: {
   "async": {
     ExperimentalFlag.nonNullable,
   },
@@ -931,6 +935,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   },
   "video_player_web": {
     ExperimentalFlag.nonNullable,
+  },
+  "web": {
+    ExperimentalFlag.inlineClass,
   },
 });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {

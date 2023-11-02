@@ -191,6 +191,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   bool get isAugmentation => declaration.isAugmentation;
 
   @override
+  bool get isExtensionTypeMember => declaration.isExtensionTypeMember;
+
+  @override
   bool get isExternal => declaration.isExternal;
 
   @override
@@ -559,6 +562,9 @@ abstract class Member implements Element {
 
   @override
   bool get hasFactory => _declaration.hasFactory;
+
+  @override
+  bool get hasImmutable => _declaration.hasImmutable;
 
   @override
   bool get hasInternal => _declaration.hasInternal;

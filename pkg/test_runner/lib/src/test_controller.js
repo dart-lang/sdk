@@ -93,10 +93,14 @@ var hadTopLevelError = false;
 
 // Set window onerror to make sure that we catch test harness errors across all
 // browsers.
-window.onerror = function (message, url, lineNumber) {
+window.onerror = function (message, url, lineNumber, columnNumber, err) {
+  // Ensure the stack is included in the reported error, if available.
+  if (err && err.stack) {
+    message = message + '\n' + err.stack;
+  }
   if (url) {
     message = ('window.onerror called: \n\n' +
-        url + ':' + lineNumber + ':\n' + message + '\n\n');
+        url + ':' + lineNumber + ':' + columnNumber + ':\n' + message + '\n\n');
   }
   if (testExpectsGlobalError) {
     testSuppressedGlobalErrors.push({

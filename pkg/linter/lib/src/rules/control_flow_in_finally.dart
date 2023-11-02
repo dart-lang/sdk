@@ -140,7 +140,7 @@ mixin ControlFlowInFinallyBlockReporter {
       TryStatement tryStatement) {
     AstNode? enablerNode;
     if (ancestor == null) {
-      bool functionBlockPredicate(n) =>
+      bool functionBlockPredicate(AstNode n) =>
           n is FunctionBody &&
           n.thisOrAncestorMatching(finallyBlockAncestorPredicate) != null;
       enablerNode = node.thisOrAncestorMatching(functionBlockPredicate);

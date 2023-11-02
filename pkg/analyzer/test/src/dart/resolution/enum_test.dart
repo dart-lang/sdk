@@ -282,7 +282,7 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: <null>
-          staticType: null
+          staticType: int
       rightParenthesis: )
   constructorElement: <null>
   declaredElement: self::@enum::E::@field::v
@@ -310,7 +310,7 @@ EnumConstantDeclaration
         IntegerLiteral
           literal: 42
           parameter: <null>
-          staticType: null
+          staticType: int
       rightParenthesis: )
   constructorElement: <null>
   declaredElement: self::@enum::E::@field::v

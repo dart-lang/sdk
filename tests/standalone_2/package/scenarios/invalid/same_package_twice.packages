@@ -1,3 +1,0 @@
-foo:nonexistentdir/
-# This overrides the previous entry
-foo:foo/

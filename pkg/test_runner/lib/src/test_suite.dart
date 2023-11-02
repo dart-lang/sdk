@@ -10,6 +10,8 @@
 ///   and creating [TestCase]s for those files that meet the relevant criteria.
 /// - Preparing tests, including copying files and frameworks to temporary
 ///   directories, and computing the command line and arguments to be run.
+library;
+
 import 'dart:io';
 import 'dart:math';
 
@@ -398,6 +400,7 @@ class FfiTestSuite extends TestSuite {
     "arm64_ios",
     "arm64_linux",
     "arm64_macos",
+    "arm64_win",
     "arm_android",
     "arm_ios",
     "arm_linux",
@@ -736,7 +739,7 @@ class StandardTestSuite extends TestSuite {
       _enqueueStandardTest(testFile, expectationSet, onTest);
     } else if (configuration.runtime.isBrowser) {
       _enqueueBrowserTest(testFile, expectationSet, onTest);
-    } else if (suiteName == 'service' || suiteName == 'service_2') {
+    } else if (suiteName == 'service') {
       _enqueueServiceTest(testFile, expectationSet, onTest);
     } else {
       _enqueueStandardTest(testFile, expectationSet, onTest);

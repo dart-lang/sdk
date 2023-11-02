@@ -382,10 +382,14 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   String getMemberReference(Member node) {
     String name = getMemberName(node).text;
-    Class? enclosingClass = node.enclosingClass;
-    if (enclosingClass != null) {
-      String className = getClassReference(enclosingClass);
-      return '$className::$name';
+    GenericDeclaration? enclosingDeclaration = node.enclosingTypeDeclaration;
+    if (enclosingDeclaration is Class) {
+      String declarationName = getClassReference(enclosingDeclaration);
+      return '$declarationName::$name';
+    } else if (enclosingDeclaration is ExtensionTypeDeclaration) {
+      String declarationName =
+          getExtensionTypeDeclarationReference(enclosingDeclaration);
+      return '$declarationName::$name';
     } else {
       String library = getLibraryReference(node.enclosingLibrary);
       return '$library::$name';
@@ -1206,6 +1210,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       case ProcedureStubKind.ConcreteMixinStub:
         writeWord('mixin-super-stub');
         break;
+      case ProcedureStubKind.RepresentationField:
+        writeWord('representation-field');
+        break;
     }
     writeWord(procedureKindToString(node.kind));
     List<String> features = <String>[];
@@ -1237,6 +1244,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       case ProcedureStubKind.ConcreteForwardingStub:
       case ProcedureStubKind.NoSuchMethodForwarder:
       case ProcedureStubKind.ConcreteMixinStub:
+      case ProcedureStubKind.RepresentationField:
         writeFunction(node.function, name: getMemberName(node));
         break;
       case ProcedureStubKind.MemberSignature:
@@ -1360,7 +1368,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
     endLine(endLineString);
     ++indentation;
-    node.members.forEach((ExtensionMemberDescriptor descriptor) {
+    node.memberDescriptors.forEach((ExtensionMemberDescriptor descriptor) {
       void writeReference(Reference reference, {required bool isTearOff}) {
         writeIndentation();
         writeModifier(descriptor.isStatic, 'static');
@@ -1398,9 +1406,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine(';');
       }
 
-      writeReference(descriptor.member, isTearOff: false);
-      if (descriptor.tearOff != null) {
-        writeReference(descriptor.tearOff!, isTearOff: true);
+      writeReference(descriptor.memberReference, isTearOff: false);
+      if (descriptor.tearOffReference != null) {
+        writeReference(descriptor.tearOffReference!, isTearOff: true);
       }
     });
     --indentation;
@@ -1430,7 +1438,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
     endLine(endLineString);
     ++indentation;
-    node.members.forEach((ExtensionTypeMemberDescriptor descriptor) {
+    node.procedures.forEach(writeNode);
+    node.memberDescriptors.forEach((ExtensionTypeMemberDescriptor descriptor) {
       void writeReference(Reference reference, {required bool isTearOff}) {
         writeIndentation();
         writeModifier(descriptor.isStatic, 'static');
@@ -1477,9 +1486,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine(';');
       }
 
-      writeReference(descriptor.member, isTearOff: false);
-      if (descriptor.tearOff != null) {
-        writeReference(descriptor.tearOff!, isTearOff: true);
+      writeReference(descriptor.memberReference, isTearOff: false);
+      if (descriptor.tearOffReference != null) {
+        writeReference(descriptor.tearOffReference!, isTearOff: true);
       }
     });
     --indentation;
@@ -2706,7 +2715,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeNullability(node.declaredNullability);
 
     writeWord("/* =");
-    writeType(node.typeErasure);
+    writeType(node.extensionTypeErasure);
     writeWord("*/");
   }
 

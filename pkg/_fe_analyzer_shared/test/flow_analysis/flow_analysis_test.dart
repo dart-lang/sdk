@@ -594,7 +594,8 @@ main() {
       var s = if_(e, []);
       var flow = FlowAnalysis<Node, Statement, Expression, Var, Type>(
           h.typeOperations, AssignedVariables<Node, Var>(),
-          respectImplicitlyTypedVarInitializers: true);
+          respectImplicitlyTypedVarInitializers: true,
+          fieldPromotionEnabled: true);
       flow.ifStatement_conditionBegin();
       flow.ifStatement_thenBegin(e, s);
       expect(() => flow.finish(), _asserts);
@@ -1449,7 +1450,7 @@ main() {
     test(
         'initialize() does not store expressionInfo for implicitly typed '
         'vars, pre-bug fix', () {
-      h.respectImplicitlyTypedVarInitializers = false;
+      h.disableRespectImplicitlyTypedVarInitializers();
       var x = Var('x');
       var y = Var('y');
       h.run([
@@ -1464,7 +1465,6 @@ main() {
     test(
         'initialize() stores expressionInfo for implicitly typed '
         'vars, post-bug fix', () {
-      h.respectImplicitlyTypedVarInitializers = true;
       var x = Var('x');
       var y = Var('y');
       h.run([
@@ -1479,7 +1479,7 @@ main() {
     test(
         'initialize() stores expressionInfo for explicitly typed '
         'vars, pre-bug fix', () {
-      h.respectImplicitlyTypedVarInitializers = false;
+      h.disableRespectImplicitlyTypedVarInitializers();
       var x = Var('x');
       var y = Var('y');
       h.run([
@@ -4837,7 +4837,7 @@ main() {
     group('if statement', () {
       group('promotes a variable whose type is shown by its condition', () {
         test('within then-block', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4848,7 +4848,7 @@ main() {
         });
 
         test('but not within else-block', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4859,7 +4859,7 @@ main() {
         });
 
         test('unless the then-block mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4871,7 +4871,7 @@ main() {
         });
 
         test('even if the condition mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4888,7 +4888,7 @@ main() {
         });
 
         test('even if the else-block mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4901,7 +4901,7 @@ main() {
         });
 
         test('unless a closure mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4917,7 +4917,7 @@ main() {
         test(
             'unless a closure in the then-block accesses it and it is mutated '
             'anywhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4934,7 +4934,7 @@ main() {
         test(
             'unless a closure in the then-block accesses it and it is mutated '
             'anywhere, even if the access is deeply nested', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4953,7 +4953,7 @@ main() {
         test(
             'even if a closure in the condition accesses it and it is mutated '
             'somewhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4974,7 +4974,7 @@ main() {
         test(
             'even if a closure in the else-block accesses it and it is mutated '
             'somewhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -4992,7 +4992,7 @@ main() {
         test(
             'even if a closure in the then-block accesses it, provided it is '
             'not mutated anywhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5007,14 +5007,14 @@ main() {
       });
 
       test('handles arbitrary conditions', () {
-        h.legacy = true;
+        h.enableLegacy();
         h.run([
           if_(expr('bool'), []),
         ]);
       });
 
       test('handles a condition that is a variable', () {
-        h.legacy = true;
+        h.enableLegacy();
         var x = Var('x');
         h.run([
           declare(x, type: 'bool'),
@@ -5023,7 +5023,7 @@ main() {
       });
 
       test('handles multiple promotions', () {
-        h.legacy = true;
+        h.enableLegacy();
         var x = Var('x');
         var y = Var('y');
         h.run([
@@ -5040,7 +5040,7 @@ main() {
     group('conditional expression', () {
       group('promotes a variable whose type is shown by its condition', () {
         test('within then-expression', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5051,7 +5051,7 @@ main() {
         });
 
         test('but not within else-expression', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5061,7 +5061,7 @@ main() {
         });
 
         test('unless the then-expression mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5077,7 +5077,7 @@ main() {
         });
 
         test('even if the condition mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5092,7 +5092,7 @@ main() {
         });
 
         test('even if the else-expression mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5103,7 +5103,7 @@ main() {
         });
 
         test('unless a closure mutates it', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5118,7 +5118,7 @@ main() {
         test(
             'unless a closure in the then-expression accesses it and it is '
             'mutated anywhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5139,7 +5139,7 @@ main() {
         test(
             'even if a closure in the condition accesses it and it is mutated '
             'somewhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5158,7 +5158,7 @@ main() {
         test(
             'even if a closure in the else-expression accesses it and it is '
             'mutated somewhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5176,7 +5176,7 @@ main() {
         test(
             'even if a closure in the then-expression accesses it, provided it '
             'is not mutated anywhere', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5195,14 +5195,14 @@ main() {
       });
 
       test('handles arbitrary conditions', () {
-        h.legacy = true;
+        h.enableLegacy();
         h.run([
           expr('bool').conditional(expr('Object'), expr('Object')),
         ]);
       });
 
       test('handles a condition that is a variable', () {
-        h.legacy = true;
+        h.enableLegacy();
         var x = Var('x');
         h.run([
           declare(x, type: 'bool'),
@@ -5211,7 +5211,7 @@ main() {
       });
 
       test('handles multiple promotions', () {
-        h.legacy = true;
+        h.enableLegacy();
         var x = Var('x');
         var y = Var('y');
         h.run([
@@ -5233,7 +5233,7 @@ main() {
       group('and', () {
         group("shows a variable's type", () {
           test('if the lhs shows the type', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5244,7 +5244,7 @@ main() {
           });
 
           test('if the rhs shows the type', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5255,7 +5255,7 @@ main() {
           });
 
           test('unless the rhs mutates it', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5267,7 +5267,7 @@ main() {
 
           test('unless the rhs mutates it, even if the rhs also shows the type',
               () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5281,7 +5281,7 @@ main() {
           });
 
           test('unless a closure mutates it', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5297,7 +5297,7 @@ main() {
 
         group('promotes a variable whose type is shown by its lhs', () {
           test('within its rhs', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5306,7 +5306,7 @@ main() {
           });
 
           test('unless the lhs mutates it', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5321,7 +5321,7 @@ main() {
           });
 
           test('unless the rhs mutates it', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5332,7 +5332,7 @@ main() {
           });
 
           test('unless a closure mutates it', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5346,7 +5346,7 @@ main() {
           test(
               'unless a closure in the rhs accesses it and it is mutated '
               'anywhere', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5365,7 +5365,7 @@ main() {
           test(
               'even if a closure in the lhs accesses it and it is mutated '
               'somewhere', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5384,7 +5384,7 @@ main() {
           test(
               'even if a closure in the rhs accesses it, provided it is not '
               'mutated anywhere', () {
-            h.legacy = true;
+            h.enableLegacy();
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
@@ -5401,7 +5401,7 @@ main() {
         });
 
         test('uses lhs promotion if rhs is not to a subtype', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           // Note: for this to be an effective test, we need to mutate `x` on
           // the LHS of the outer `&&` so that `x` is not promoted on the RHS
@@ -5422,7 +5422,7 @@ main() {
         });
 
         test('uses rhs promotion if rhs is to a subtype', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5433,7 +5433,7 @@ main() {
         });
 
         test('can handle multiple promotions on lhs', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           var y = Var('y');
           h.run([
@@ -5449,7 +5449,7 @@ main() {
         });
 
         test('handles variables', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           var y = Var('y');
           h.run([
@@ -5460,7 +5460,7 @@ main() {
         });
 
         test('handles arbitrary expressions', () {
-          h.legacy = true;
+          h.enableLegacy();
           h.run([
             if_(expr('bool').and(expr('bool')), []),
           ]);
@@ -5468,7 +5468,7 @@ main() {
       });
 
       test('or is ignored', () {
-        h.legacy = true;
+        h.enableLegacy();
         var x = Var('x');
         h.run([
           declare(x, type: 'Object'),
@@ -5484,7 +5484,7 @@ main() {
     group('is test', () {
       group("shows a variable's type", () {
         test('normally', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5497,7 +5497,7 @@ main() {
         });
 
         test('unless the test is inverted', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5511,7 +5511,7 @@ main() {
 
         test('unless the tested type is not a subtype of the declared type',
             () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'String'),
@@ -5524,7 +5524,7 @@ main() {
         });
 
         test("even when the variable's type has been previously promoted", () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5541,7 +5541,7 @@ main() {
         test(
             'unless the tested type is not a subtype of the previously '
             'promoted type', () {
-          h.legacy = true;
+          h.enableLegacy();
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
@@ -5556,7 +5556,7 @@ main() {
         });
 
         test('even when the declared type is a type variable', () {
-          h.legacy = true;
+          h.enableLegacy();
           h.addPromotionException('T', 'int', 'T&int');
           var x = Var('x');
           h.run([
@@ -5569,7 +5569,7 @@ main() {
       });
 
       test('handles arbitrary expressions', () {
-        h.legacy = true;
+        h.enableLegacy();
         h.run([
           if_(expr('Object').is_('int'), []),
         ]);
@@ -5578,7 +5578,7 @@ main() {
 
     test('forwardExpression does not re-activate a deeply nested expression',
         () {
-      h.legacy = true;
+      h.enableLegacy();
       var x = Var('x');
       h.run([
         declare(x, type: 'Object'),
@@ -5591,7 +5591,7 @@ main() {
     test(
         'parenthesizedExpression does not re-activate a deeply nested '
         'expression', () {
-      h.legacy = true;
+      h.enableLegacy();
       var x = Var('x');
       h.run([
         declare(x, type: 'Object'),
@@ -5602,7 +5602,7 @@ main() {
     });
 
     test('variableRead returns the promoted type if promoted', () {
-      h.legacy = true;
+      h.enableLegacy();
       var x = Var('x');
       h.run([
         declare(x, type: 'Object'),
@@ -5759,64 +5759,55 @@ main() {
       ]);
     });
 
-    group('because property', () {
+    group('field promotion disabled', () {
       test('via explicit this', () {
+        h.disableFieldPromotion();
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?',
-            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
+        h.addMember('C', '_field', 'Object?', promotable: true);
         h.run([
-          if_(this_.property('field').eq(nullLiteral), [
+          if_(this_.property('_field').eq(nullLiteral), [
             return_(),
           ]),
-          this_.property('field').whyNotPromoted((reasons) {
+          this_.property('_field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason =
-                reasons.values.single as PropertyNotPromotedForInherentReason;
-            expect(nonPromotionReason.whyNotPromotable,
-                PropertyNonPromotabilityReason.isNotEnabled);
-            expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.fieldPromotionUnavailable);
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, false);
           }),
         ]);
       });
 
       test('via implicit this/super', () {
+        h.disableFieldPromotion();
         h.thisType = 'C';
-        h.addMember('C', 'field', 'Object?',
-            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
+        h.addMember('C', '_field', 'Object?', promotable: true);
         h.run([
-          if_(thisProperty('field').eq(nullLiteral), [
+          if_(thisProperty('_field').eq(nullLiteral), [
             return_(),
           ]),
-          thisProperty('field').whyNotPromoted((reasons) {
+          thisProperty('_field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason =
-                reasons.values.single as PropertyNotPromotedForInherentReason;
-            expect(nonPromotionReason.whyNotPromotable,
-                PropertyNonPromotabilityReason.isNotEnabled);
-            expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.fieldPromotionUnavailable);
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, false);
           }),
         ]);
       });
 
       test('via variable', () {
-        h.addMember('C', 'field', 'Object?',
-            whyNotPromotable: PropertyNonPromotabilityReason.isNotEnabled);
+        h.disableFieldPromotion();
+        h.addMember('C', '_field', 'Object?', promotable: true);
         var x = Var('x');
         h.run([
           declare(x, type: 'C', initializer: expr('C')),
-          if_(x.property('field').eq(nullLiteral), [
+          if_(x.property('_field').eq(nullLiteral), [
             return_(),
           ]),
-          x.property('field').whyNotPromoted((reasons) {
+          x.property('_field').whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
-            var nonPromotionReason =
-                reasons.values.single as PropertyNotPromotedForInherentReason;
-            expect(nonPromotionReason.whyNotPromotable,
-                PropertyNonPromotabilityReason.isNotEnabled);
-            expect(nonPromotionReason.documentationLink,
-                NonPromotionDocumentationLink.fieldPromotionUnavailable);
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, false);
           }),
         ]);
       });
@@ -7081,6 +7072,44 @@ main() {
         ]);
       });
     });
+
+    group('non promotion reasons:', () {
+      test('inherent reason', () {
+        // It's only necessary to test one of the inherent reasons, because flow
+        // analysis just passes it through.
+        h.thisType = 'C';
+        h.addMember('C', '_field', 'Object?',
+            whyNotPromotable: PropertyNonPromotabilityReason.isNotFinal);
+        h.run([
+          if_(thisProperty('_field').eq(nullLiteral), [
+            return_(),
+          ]),
+          thisProperty('_field').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('Object')]));
+            var nonPromotionReason =
+                reasons.values.single as PropertyNotPromotedForInherentReason;
+            expect(nonPromotionReason.whyNotPromotable,
+                PropertyNonPromotabilityReason.isNotFinal);
+          }),
+        ]);
+      });
+
+      test('due to conflict', () {
+        h.thisType = 'C';
+        h.addMember('C', '_field', 'Object?', whyNotPromotable: null);
+        h.run([
+          if_(thisProperty('_field').eq(nullLiteral), [
+            return_(),
+          ]),
+          thisProperty('_field').whyNotPromoted((reasons) {
+            expect(reasons.keys, unorderedEquals([Type('Object')]));
+            var nonPromotionReason = reasons.values.single
+                as PropertyNotPromotedForNonInherentReason;
+            expect(nonPromotionReason.fieldPromotionEnabled, true);
+          }),
+        ]);
+      });
+    });
   });
 
   group('Patterns:', () {
@@ -7475,7 +7504,7 @@ main() {
 
       test('Not guaranteed to match due to Null type with old language version',
           () {
-        h.patternsEnabled = false;
+        h.disablePatterns();
         h.run([
           switch_(
               expr('Null'),
@@ -7519,7 +7548,7 @@ main() {
 
       test("Null pattern doesn't promote scrutinee with old language version",
           () {
-        h.patternsEnabled = false;
+        h.disablePatterns();
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('int?')),
@@ -9889,7 +9918,7 @@ main() {
 
       group('pre-patterns exhaustiveness:', () {
         test('exhaustive', () {
-          h.patternsEnabled = false;
+          h.disablePatterns();
           h.run([
             switch_(
                 expr('E'),
@@ -9906,7 +9935,7 @@ main() {
         });
 
         test('non-exhaustive', () {
-          h.patternsEnabled = false;
+          h.disablePatterns();
           h.run([
             switch_(
                 expr('E'),

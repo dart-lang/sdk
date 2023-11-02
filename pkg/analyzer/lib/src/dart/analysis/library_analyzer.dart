@@ -508,8 +508,6 @@ class LibraryAnalyzer {
       return errors;
     }
 
-    LineInfo lineInfo = _fileToLineInfo[file]!;
-
     var unignorableCodes = _analysisOptions.unignorableNames;
 
     bool isIgnored(AnalysisError error) {
@@ -521,8 +519,7 @@ class LibraryAnalyzer {
           unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
-      int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      return ignoreInfo.ignoredAt(code, errorLine);
+      return ignoreInfo.ignored(error);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
@@ -722,7 +719,12 @@ class LibraryAnalyzer {
           errorReporter: containerErrorReporter,
         );
       } else if (directive is LibraryAugmentationDirectiveImpl) {
-        directive.element = containerElement;
+        _resolveLibraryAugmentationDirective(
+          directive: directive,
+          containerKind: containerKind,
+          containerElement: containerElement,
+          containerErrorReporter: containerErrorReporter,
+        );
       } else if (directive is LibraryDirectiveImpl) {
         directive.element = containerElement;
         libraryNameNode = directive.name2;
@@ -780,6 +782,54 @@ class LibraryAnalyzer {
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
+  }
+
+  void _resolveLibraryAugmentationDirective({
+    required LibraryAugmentationDirectiveImpl directive,
+    required LibraryOrAugmentationFileKind containerKind,
+    required LibraryOrAugmentationElementImpl containerElement,
+    required ErrorReporter containerErrorReporter,
+  }) {
+    directive.element = containerElement;
+
+    // If we had to treat this augmentation as a library.
+    if (containerKind is! LibraryFileKind) {
+      return;
+    }
+
+    // We should recover from an augmentation.
+    final recoveredFrom = containerKind.recoveredFrom;
+    if (recoveredFrom is! AugmentationFileKind) {
+      return;
+    }
+
+    final targetUri = recoveredFrom.uri;
+    if (targetUri is DirectiveUriWithFile) {
+      final targetFile = targetUri.file;
+      if (!targetFile.exists) {
+        containerErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+          directive.uri,
+          [targetUri.relativeUriStr],
+        );
+        return;
+      }
+
+      final targetFileKind = targetFile.kind;
+      if (targetFileKind is LibraryFileKind) {
+        containerErrorReporter.reportErrorForNode(
+          CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT,
+          directive.uri,
+        );
+        return;
+      }
+    }
+
+    // Otherwise, there are many other problems with the URI.
+    containerErrorReporter.reportErrorForNode(
+      CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY,
+      directive.uri,
+    );
   }
 
   void _resolveLibraryExportDirective({

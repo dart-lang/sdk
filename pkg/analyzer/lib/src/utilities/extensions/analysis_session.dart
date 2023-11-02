@@ -8,6 +8,20 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/library_element.dart';
 
 extension AnalysisSessionExtension on AnalysisSession {
+  /// Return the resolved library for the library containing the file with the
+  /// given [path].
+  Future<ResolvedLibraryResult?> getResolvedContainingLibrary(
+    String path,
+  ) async {
+    var unitElement = await getUnitElement(path);
+    if (unitElement is! UnitElementResult) {
+      return null;
+    }
+    var libraryPath = unitElement.element.library.source.fullName;
+    var result = await getResolvedLibrary(libraryPath);
+    return result is ResolvedLibraryResult ? result : null;
+  }
+
   /// Locates the [Element] that [location] represents.
   ///
   /// Local elements such as variables inside functions cannot be found using

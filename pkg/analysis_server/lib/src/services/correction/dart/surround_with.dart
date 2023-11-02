@@ -48,8 +48,9 @@ class SurroundWith extends MultiCorrectionProducer {
     // prepare environment
     var indentOld = utils.getNodePrefix(firstStatement);
     var indentNew = '$indentOld${utils.getIndent(1)}';
-    var indentedCode =
-        utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew);
+    var indentedCode = utils.replaceSourceRangeIndent(
+        statementsRange, indentOld, indentNew,
+        includeLeading: true, ensureTrailingNewline: true);
 
     return [
       _SurroundWithBlock(statementsRange, indentOld, indentNew, indentedCode),
@@ -98,8 +99,8 @@ class _SurroundWithBlock extends _SurroundWith {
       builder.addSimpleInsertion(statementsRange.offset, '$indentOld{$eol');
       builder.addSimpleReplacement(
           statementsRange,
-          utils.replaceSourceRangeIndent(
-              statementsRange, indentOld, indentNew));
+          utils.replaceSourceRangeIndent(statementsRange, indentOld, indentNew,
+              includeLeading: true, ensureTrailingNewline: true));
       builder.addSimpleInsertion(statementsRange.end, '$indentOld}$eol');
     });
   }

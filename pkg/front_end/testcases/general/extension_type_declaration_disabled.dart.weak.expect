@@ -3,7 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:7:11: Error: The 'inline-class' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.2 or higher.
+// Try removing the `@dart=` annotation or setting the language version to the current release or higher.
 // extension type ExtensionType1(int it) {}
 //           ^^^^
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'inline-class' language feature.
@@ -11,7 +11,7 @@ library;
 // ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:8:11: Error: The 'inline-class' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.2 or higher.
+// Try removing the `@dart=` annotation or setting the language version to the current release or higher.
 // extension type ExtensionType2<T>._(int it) implements int, ExtensionType1 {}
 //           ^^^^
 // pkg/front_end/testcases/general/extension_type_declaration_disabled.dart:5:1: Context: This is the annotation that opts out this library from the 'inline-class' language feature.
@@ -22,10 +22,12 @@ import self as self;
 import "dart:core" as core;
 
 extension type ExtensionType1(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ExtensionType1|constructor#;
   constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
 }
 extension type ExtensionType2<T extends core::Object? = dynamic>(core::int it) implements core::int, self::ExtensionType1 /* = core::int */ {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor _ = self::ExtensionType2|constructor#_;
   constructor tearoff _ = self::ExtensionType2|constructor#_#_#tearOff;
 }

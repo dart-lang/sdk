@@ -2547,7 +2547,6 @@ $declared foo() => new $declared<int>.value(1);
         error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
         error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 1),
         error(HintCode.UNUSED_LOCAL_VARIABLE, 475, 2),
-        error(WarningCode.UNNECESSARY_CAST, 480, 47),
       ],
     );
     await disposeAnalysisContextCollection();
@@ -3068,7 +3067,6 @@ main() {
           contextMessages: [message('/home/test/lib/test.dart', 12, 1)]),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1,
           contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
-      error(WarningCode.UNNECESSARY_CAST, 132, 12),
     ]);
   }
 
@@ -3601,12 +3599,8 @@ test1() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 171, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 201, 1),
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 572, 1),
-      error(
-          isNullSafetyEnabled
-              ? WarningCode.CAST_FROM_NULL_ALWAYS_FAILS
-              : WarningCode.UNNECESSARY_CAST,
-          591,
-          9),
+      if (isNullSafetyEnabled)
+        error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 591, 9),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 619, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 647, 4),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 687, 2),

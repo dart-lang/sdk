@@ -7,7 +7,6 @@ library fileapi;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:async_helper/async_helper.dart';
 import 'package:async_helper/async_minitest.dart';
 
 class FileAndDir {
@@ -16,20 +15,18 @@ class FileAndDir {
   FileAndDir(this.file, this.dir);
 }
 
-late FileSystem fs;
-
 main() async {
-  getFileSystem() async {
-    fs = await window.requestFileSystem(100);
-  }
-
   // Do the boilerplate to get several files and directories created to then
   // test the functions that use those items.
   Future doDirSetup(String testName) async {
-    await getFileSystem();
-
-    var file = await fs.root!.createFile('file_$testName') as FileEntry;
-    var dir = await fs.root!.createDirectory('dir_$testName') as DirectoryEntry;
+    final fs = await window.requestFileSystem(100);
+    // Prepend this file name to prevent collisions among tests runnning on the
+    // same browser.
+    const prefix = 'fileapi_directory_reader_';
+    var file =
+        await fs.root!.createFile('${prefix}file_$testName') as FileEntry;
+    var dir = await fs.root!.createDirectory('${prefix}dir_$testName')
+        as DirectoryEntry;
     return new Future.value(new FileAndDir(file, dir));
   }
 

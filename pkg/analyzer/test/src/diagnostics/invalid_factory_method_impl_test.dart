@@ -47,6 +47,20 @@ class State { }
     ]);
   }
 
+  test_badReturn_extensionType() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type E(int i) {
+  @factory
+  Object create() {
+    return i;
+  }  
+}
+''', [
+      error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 79, 6),
+    ]);
+  }
+
   test_block() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -57,6 +71,18 @@ class Stateful {
   }
 }
 class State { }
+''');
+  }
+
+  test_block_extensionType() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type E(int i) {
+  @factory
+  Object create() {
+    return Object();
+  }  
+}
 ''');
   }
 

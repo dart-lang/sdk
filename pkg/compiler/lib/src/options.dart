@@ -20,6 +20,7 @@ enum FeatureStatus {
   canary,
 }
 
+// TODO(fishythefish): Add an API to associate numbered phases with stages.
 enum Dart2JSStage {
   all(null,
       fromDillFlag: Dart2JSStage.allFromDill,
@@ -76,6 +77,21 @@ enum Dart2JSStage {
   bool get shouldComputeModularAnalysis =>
       this == Dart2JSStage.modularAnalysis ||
       this == Dart2JSStage.modularAnalysisFromDill;
+
+  /// Global kernel transformations should be run in phase 0b, i.e. after
+  /// concatenating dills, but before serializing the output of phase 0.
+  /// We also need to include modular analysis, or else the modular test suite
+  /// breaks when it deserializes module data because it reads transformed AST
+  /// nodes when it's expecting untransformed ones.
+  // TODO(fishythefish, natebiggs): Address the modular analysis inconsistency.
+  // Ideally, modular analysis shouldn't require global transformations to be
+  // run again, so we need to either delete modular analysis or make the data
+  // less brittle in the presence of AST modifications.
+  // TODO(fishythefish): Add AST metadata to ensure transformations aren't rerun
+  // unnecessarily.
+  bool get shouldRunGlobalTransforms =>
+      this.index <= Dart2JSStage.modularAnalysisFromDill.index;
+
   bool get canUseModularAnalysis =>
       this == Dart2JSStage.modularAnalysis ||
       this.index >= Dart2JSStage.modularAnalysisFromDill.index;
@@ -685,6 +701,19 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
+  /// Experiment to add additional runtime checks to detect code whose semantics
+  /// will change when sound null safety is enabled.
+  ///
+  /// In particular, runtime subtype checks (including those via `is` and `as`)
+  /// will produce diagnostics when they would provide different results in
+  /// sound vs. unsound mode. Note that this adds overhead, both to perform the
+  /// extra checks and because some checks that may have been optimized away
+  /// will be emitted.
+  ///
+  /// We assume this option will only be provided when all files have been
+  /// migrated to null safety (but before sound null safety is enabled).
+  bool experimentNullSafetyChecks = false;
+
   /// Whether the compiler should emit code with unsound or sound semantics.
   /// Since Dart 3.0 this is no longer inferred from sources, but defaults to
   /// sound semantics.
@@ -942,6 +971,8 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
+      ..experimentNullSafetyChecks =
+          _hasOption(options, Flags.experimentNullSafetyChecks)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       .._outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -1178,6 +1209,10 @@ class CompilerOptions implements DiagnosticOptions {
     if (nativeNullAssertions && _noNativeNullAssertions) {
       throw ArgumentError("'${Flags.nativeNullAssertions}' incompatible with "
           "'${Flags.noNativeNullAssertions}'");
+    }
+    if (nullSafetyMode == NullSafetyMode.sound && experimentNullSafetyChecks) {
+      throw ArgumentError('${Flags.experimentNullSafetyChecks} is incompatible '
+          'with sound null safety.');
     }
   }
 

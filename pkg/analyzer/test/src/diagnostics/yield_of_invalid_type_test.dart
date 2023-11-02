@@ -21,16 +21,11 @@ class YieldOfInvalidTypeTest extends PubPackageResolutionTest
 
 mixin YieldOfInvalidTypeTestCases on PubPackageResolutionTest {
   test_none_asyncStar_dynamic_to_streamInt() async {
-    await assertErrorsInCode(
-        '''
-Stream<int> f() async* {
-  dynamic a = 0;
+    await assertNoErrorsInCode('''
+Stream<int> f(dynamic a) async* {
   yield a;
 }
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 50, 1),
-        ], legacy: []));
+''');
   }
 
   test_none_asyncStar_int_to_basic() async {
@@ -120,16 +115,11 @@ Stream<int> f() async* {
   }
 
   test_none_syncStar_dynamic_to_iterableInt() async {
-    await assertErrorsInCode(
-        '''
-Iterable<int> f() sync* {
-  dynamic a = 0;
+    await assertNoErrorsInCode('''
+Iterable<int> f(dynamic a) sync* {
   yield a;
 }
-''',
-        expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 51, 1),
-        ], legacy: []));
+''');
   }
 
   test_none_syncStar_int_to_basic() async {

@@ -6,14 +6,21 @@ import("//build/config/sysroot.gni")
 import("//build/toolchain/ccache.gni")
 import("//build/toolchain/gcc_toolchain.gni")
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/rbe.gni")
 
 if (use_goma) {
   assert(!use_ccache, "Goma and ccache can't be used together.")
+  assembler_prefix = "$goma_dir/gomacc "
   compiler_prefix = "$goma_dir/gomacc "
+  link_prefix = "$goma_dir/gomacc "
 } else if (use_ccache) {
+  assembler_prefix = "ccache "
   compiler_prefix = "ccache "
+  link_prefix = "ccache "
 } else {
+  assembler_prefix = ""
   compiler_prefix = ""
+  link_prefix = ""
 }
 
 toolchain("fuchsia") {
@@ -24,10 +31,11 @@ toolchain("fuchsia") {
   # We can't do string interpolation ($ in strings) on things with dots in
   # them. To allow us to use $cc below, for example, we create copies of
   # these values in our scope.
-  cc = "${toolchain_bin}/clang"
-  cxx = "${toolchain_bin}/clang++"
+  cc = "${compiler_prefix}${toolchain_bin}/clang"
+  cxx = "${compiler_prefix}${toolchain_bin}/clang++"
+  asm = "${assembler_prefix}${toolchain_bin}/clang"
   ar = "${toolchain_bin}/llvm-ar"
-  ld = "${toolchain_bin}/clang++"
+  ld = "${link_prefix}${toolchain_bin}/clang++"
   readelf = "${toolchain_bin}/llvm-readelf"
   nm = "${toolchain_bin}/llvm-nm"
   strip = "${toolchain_bin}/llvm-strip"
@@ -51,7 +59,7 @@ toolchain("fuchsia") {
 
   tool("cc") {
     depfile = "{{output}}.d"
-    command = "$compiler_prefix $cc -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+    command = "$cc -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "CC {{output}}"
     outputs =
@@ -60,7 +68,7 @@ toolchain("fuchsia") {
 
   tool("cxx") {
     depfile = "{{output}}.d"
-    command = "$compiler_prefix $cxx -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+    command = "$cxx -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "CXX {{output}}"
     outputs =
@@ -69,7 +77,7 @@ toolchain("fuchsia") {
 
   tool("asm") {
     depfile = "{{output}}.d"
-    command = "$compiler_prefix $cc -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{asmflags}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+    command = "$asm -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{asmflags}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "ASM {{output}}"
     outputs =
@@ -101,7 +109,7 @@ toolchain("fuchsia") {
     # existing .TOC file, overwrite it, otherwise, don't change it.
     tocfile = sofile + ".TOC"
     temporary_tocname = sofile + ".tmp"
-    link_command = "$compiler_prefix $ld $target_triple_flags $sysroot_flags $lto_flags -shared {{ldflags}} -o $unstripped_sofile -Wl,--build-id -Wl,-soname=$soname @$rspfile"
+    link_command = "$ld $target_triple_flags $sysroot_flags $lto_flags -shared {{ldflags}} -o $unstripped_sofile -Wl,--build-id -Wl,-soname=$soname @$rspfile"
     toc_command = "{ $readelf -d $unstripped_sofile | grep SONAME ; $nm -gD -f posix $unstripped_sofile | cut -f1-2 -d' '; } > $temporary_tocname"
     replace_command = "if ! cmp -s $temporary_tocname $tocfile; then mv $temporary_tocname $tocfile; fi"
     strip_command = "$strip -o $sofile $unstripped_sofile"
@@ -145,7 +153,7 @@ toolchain("fuchsia") {
     # to point ./dart instead of ./exe.stripped/dart makes the build
     # fail because ./dart does not end up in the manifest file.
     unstripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
-    command = "$compiler_prefix $ld $target_triple_flags $sysroot_flags $lto_flags {{ldflags}} -o $unstripped_outfile -Wl,--build-id -Wl,--start-group @$rspfile {{solibs}} -Wl,--end-group {{libs}} && ${strip} -o $outfile $unstripped_outfile && $symbolizer_script --nm $nm --output $symfile --binary $unstripped_outfile"
+    command = "$ld $target_triple_flags $sysroot_flags $lto_flags {{ldflags}} -o $unstripped_outfile -Wl,--build-id -Wl,--start-group @$rspfile {{solibs}} -Wl,--end-group {{libs}} && ${strip} -o $outfile $unstripped_outfile && $symbolizer_script --nm $nm --output $symfile --binary $unstripped_outfile"
     description = "LINK $outfile"
     rspfile_content = "{{inputs}}"
     outputs = [

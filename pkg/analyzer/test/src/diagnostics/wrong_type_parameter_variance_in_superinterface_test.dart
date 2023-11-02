@@ -322,32 +322,34 @@ enum E<X> with A<X> {
 
   test_extensionType_contravariant() async {
     await assertErrorsInCode(r'''
-extension type A<T>(int it) {}
-extension type B<T>(int it) implements A<void Function(T)> {}
+class A<T> {}
+extension type B<T>(A<void Function(Object?)> it)
+  implements A<void Function(T)> {}
 ''', [
       error(
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        48,
-        1,
-      ),
+          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          31,
+          1),
     ]);
   }
 
   test_extensionType_covariant() async {
     await assertNoErrorsInCode(r'''
-extension type A<T>(int it) {}
-extension type B<T>(int it) implements A<T Function()> {}
+class A<T> {}
+extension type B<T>(A<Never Function()> it)
+  implements A<T Function()> {}
 ''');
   }
 
   test_extensionType_invariant() async {
     await assertErrorsInCode(r'''
-extension type A<T>(int it) {}
-extension type B<T>(int it) implements A<T Function(T)> {}
+class A<T> {}
+extension type B<T>(A<Never Function(Object?)> it)
+  implements A<T Function(T)> {}
 ''', [
       error(
         CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-        48,
+        31,
         1,
       ),
     ]);

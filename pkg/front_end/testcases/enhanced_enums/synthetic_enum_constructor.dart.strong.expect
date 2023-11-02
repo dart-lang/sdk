@@ -1,0 +1,84 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method mixinMethod() → void {}
+}
+abstract class _E&_Enum&M = core::_Enum with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&M
+    : super core::_Enum::•(index, _name)
+    ;
+  mixin-super-stub method mixinMethod() → void
+    return super.{self::M::mixinMethod}();
+}
+class E extends self::_E&_Enum&M /*isEnum*/  {
+  static const field core::List<self::E> values = #C10;
+  enum-element static const field self::E e1 = #C3;
+  enum-element static const field self::E e2 = #C6;
+  enum-element static const field self::E e3 = #C9;
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
+    : super self::_E&_Enum&M::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+class F extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::F> values = #C17;
+  enum-element static const field self::F f1 = #C12;
+  enum-element static const field self::F f2 = #C14;
+  enum-element static const field self::F f3 = #C16;
+  const synthetic constructor •(core::int #index, core::String #name) → self::F
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "F.${this.{core::_Enum::_name}{core::String}}";
+}
+class G extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::G> values = #C24;
+  enum-element static const field self::G g1 = #C19;
+  enum-element static const field self::G g2 = #C21;
+  enum-element static const field self::G g3 = #C23;
+  const constructor •(core::int #index, core::String #name) → self::G
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "G.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "e1"
+  #C3 = self::E {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "e2"
+  #C6 = self::E {index:#C4, _name:#C5}
+  #C7 = 2
+  #C8 = "e3"
+  #C9 = self::E {index:#C7, _name:#C8}
+  #C10 = <self::E>[#C3, #C6, #C9]
+  #C11 = "f1"
+  #C12 = self::F {index:#C1, _name:#C11}
+  #C13 = "f2"
+  #C14 = self::F {index:#C4, _name:#C13}
+  #C15 = "f3"
+  #C16 = self::F {index:#C7, _name:#C15}
+  #C17 = <self::F>[#C12, #C14, #C16]
+  #C18 = "g1"
+  #C19 = self::G {index:#C1, _name:#C18}
+  #C20 = "g2"
+  #C21 = self::G {index:#C4, _name:#C20}
+  #C22 = "g3"
+  #C23 = self::G {index:#C7, _name:#C22}
+  #C24 = <self::G>[#C19, #C21, #C23]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///synthetic_enum_constructor.dart:
+- E. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:9:6)
+- _E&_Enum&M. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:9:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- F. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:15:6)
+- G. (from org-dartlang-testcase:///synthetic_enum_constructor.dart:27:9)

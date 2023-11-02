@@ -39,6 +39,19 @@ const int x = 'foo';
     ]);
   }
 
+  test_enum_argument_methodInvocation() async {
+    await assertErrorsInCode('''
+enum E {
+  enumValue(["text"].map((x) => x));
+
+  const E(this.strings);
+  final Iterable<String> strings;
+}
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 21, 22),
+    ]);
+  }
+
   /// Enum constants can reference other constants.
   test_enum_enhanced_constants() async {
     await assertNoErrorsInCode('''
@@ -4476,13 +4489,163 @@ A
 
   /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsUtil() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
 ''');
-
-    assertDartObjectText(_topLevelVar('a'), '''
+    final result = _topLevelVar('a');
+    assertDartObjectText(result, '''
 <unknown> bool
   variable: self::@variable::a
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const x = [3, if (a) ...[1] else ...[1, 2], 4];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+<unknown> List<int>
+  variable: self::@variable::x
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list_eqeq_known() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = [3, if (a) ...[1] else ...[1, 2], 4];
+const left = [3, 1, 2, 4] == b;
+const right = b == [3, 1, 2, 4];
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_list_eqeq_unknown() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = [3, if (a) ...[1] else ...[1, 2], 4];
+const left = [3, if (a) ...[1] else ...[1, 2], 4] == b;
+const right = b == [3, if (a) ...[1] else ...[1, 2], 4];
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const x = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+<unknown> Map<int, String>
+  variable: self::@variable::x
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map_eqeq_known() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+const left = {3:'3', 2:'2', 4:'4'} == b;
+const right = b == {3:'3', 2:'2', 4:'4'};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_map_eqeq_unknown() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+const left = {3:'3', if (a) 1:'1' else 2:'2', 4:'4'} == b;
+const right = b == {3:'3', if (a) 1:'1' else 2:'2', 4:'4'};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const x = {3, if (a) ...[1] else ...[1, 2], 4};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+<unknown> Set<int>
+  variable: self::@variable::x
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set_eqeq_known() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3, if (a) ...[1] else ...[1, 2], 4};
+const left = {3, 1, 4} == b;
+const right = b == {3, 1, 4};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
+''');
+  }
+
+  test_bool_fromEnvironment_dartLibraryJsUtil_ifStatement_set_eqeq_unknown() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_util');
+const b = {3, if (a) ...[1] else ...[1, 2], 4};
+const left = {3, if (a) ...[1] else ...[1, 2], 4} == b;
+const right = b == {3, if (a) ...[1] else ...[1, 2], 4};
+''');
+    final leftResult = _topLevelVar('left');
+    assertDartObjectText(leftResult, '''
+<unknown> bool
+  variable: self::@variable::left
+''');
+    final rightResult = _topLevelVar('right');
+    assertDartObjectText(rightResult, '''
+<unknown> bool
+  variable: self::@variable::right
 ''');
   }
 

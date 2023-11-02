@@ -84,8 +84,8 @@ extension type ErroneousInlineClass(int a, String b) {
   void test() {
     var a1 = this.a;
     var a2 = a;
-    var a3 = this.b; // Error
-    var a4 = b; // Error
+    var a3 = this.b;
+    var a4 = b;
     var b1 = this.a<int>; // Error
     var b2 = a<int>; // Error
     var b3 = this.b<int>; // Error

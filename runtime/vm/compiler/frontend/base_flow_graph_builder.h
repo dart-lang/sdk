@@ -175,7 +175,13 @@ class BaseFlowGraphBuilder {
 
   Fragment LoadField(const Field& field, bool calls_initializer);
   Fragment LoadNativeField(const Slot& native_field,
+                           InnerPointerAccess loads_inner_pointer,
                            bool calls_initializer = false);
+  Fragment LoadNativeField(const Slot& native_field,
+                           bool calls_initializer = false) {
+    return LoadNativeField(native_field, InnerPointerAccess::kNotUntagged,
+                           calls_initializer);
+  }
   // Pass true for index_unboxed if indexing into external typed data.
   Fragment LoadIndexed(classid_t class_id,
                        intptr_t index_scale = compiler::target::kWordSize,
@@ -185,11 +191,8 @@ class BaseFlowGraphBuilder {
   Fragment LoadUntagged(intptr_t offset);
   Fragment ConvertUntaggedToUnboxed(Representation to);
   Fragment ConvertUnboxedToUntagged(Representation from);
-  Fragment UnboxSmiToIntptr();
   Fragment FloatToDouble();
   Fragment DoubleToFloat();
-
-  Fragment AddIntptrIntegers();
 
   void SetTempIndex(Definition* definition);
 
@@ -206,17 +209,40 @@ class BaseFlowGraphBuilder {
   Fragment StoreNativeField(
       TokenPosition position,
       const Slot& slot,
+      InnerPointerAccess stores_inner_pointer,
       StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
       compiler::Assembler::MemoryOrder memory_order =
           compiler::Assembler::kRelaxedNonAtomic);
+  Fragment StoreNativeField(
+      TokenPosition position,
+      const Slot& slot,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic) {
+    return StoreNativeField(position, slot, InnerPointerAccess::kNotUntagged,
+                            kind, emit_store_barrier, memory_order);
+  }
+  Fragment StoreNativeField(
+      const Slot& slot,
+      InnerPointerAccess stores_inner_pointer,
+      StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic) {
+    return StoreNativeField(TokenPosition::kNoSource, slot,
+                            stores_inner_pointer, kind, emit_store_barrier,
+                            memory_order);
+  }
   Fragment StoreNativeField(
       const Slot& slot,
       StoreFieldInstr::Kind kind = StoreFieldInstr::Kind::kOther,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
       compiler::Assembler::MemoryOrder memory_order =
           compiler::Assembler::kRelaxedNonAtomic) {
-    return StoreNativeField(TokenPosition::kNoSource, slot, kind,
+    return StoreNativeField(TokenPosition::kNoSource, slot,
+                            InnerPointerAccess::kNotUntagged, kind,
                             emit_store_barrier, memory_order);
   }
   Fragment StoreField(
@@ -316,6 +342,9 @@ class BaseFlowGraphBuilder {
                       classid_t dest_cid,
                       bool unboxed_inputs,
                       bool can_overlap = true);
+  Fragment MemoryCopyUntagged(intptr_t element_size,
+                              bool unboxed_inputs,
+                              bool can_overlap = true);
   Fragment TailCall(const Code& code);
   Fragment Utf8Scan();
 

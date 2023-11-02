@@ -906,6 +906,69 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress49460) {
   RunSignatureTest(Z, "regress49460", native_signature);
 }
 
+// Struct parameter that potentially is partially allocated to a register and
+// partially to the stack. Mainly interesting on ARM64 and RISC-V.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_stradle_last_register) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt32);
+  const auto& halfptr_type = *new (Z) NativePrimitiveType(kInt16);
+#elif defined(TARGET_ARCH_IS_64_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt64);
+  const auto& halfptr_type = *new (Z) NativePrimitiveType(kInt32);
+#endif
+
+  auto& member_types = *new (Z) NativeTypes(Z, 3);
+  member_types.Add(&halfptr_type);
+  member_types.Add(&halfptr_type);
+  member_types.Add(&halfptr_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, CallingConventions::kNumArgRegs);
+  for (intptr_t i = 1; i < CallingConventions::kNumArgRegs; i++) {
+    arguments.Add(&intptr_type);
+  }
+  arguments.Add(&struct_type);
+
+  const auto& native_signature =
+      *new (Z) NativeFunctionType(arguments, intptr_type);
+
+  RunSignatureTest(Z, "stradle_last_register", native_signature);
+}
+
+// Struct parameter that potentially is partially allocated to a register and
+// partially to the stack. Mainly interesting on ARM64 and RISC-V.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(
+    NativeCallingConvention_variadic_stradle_last_register) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt32);
+  const auto& halfptr_type = *new (Z) NativePrimitiveType(kInt16);
+#elif defined(TARGET_ARCH_IS_64_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt64);
+  const auto& halfptr_type = *new (Z) NativePrimitiveType(kInt32);
+#endif
+
+  auto& member_types = *new (Z) NativeTypes(Z, 3);
+  member_types.Add(&halfptr_type);
+  member_types.Add(&halfptr_type);
+  member_types.Add(&halfptr_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, CallingConventions::kNumArgRegs);
+  for (intptr_t i = 1; i < CallingConventions::kNumArgRegs; i++) {
+    arguments.Add(&intptr_type);
+  }
+  arguments.Add(&struct_type);
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, intptr_type, /*variadic_arguments_index=*/1);
+
+  RunSignatureTest(Z, "variadic_stradle_last_register", native_signature);
+}
+
 }  // namespace ffi
 }  // namespace compiler
 }  // namespace dart

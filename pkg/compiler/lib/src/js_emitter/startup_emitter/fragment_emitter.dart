@@ -1799,25 +1799,27 @@ class FragmentEmitter {
   /// This global maps minified names for selected classes (some important
   /// core classes, and some native classes) to their unminified names.
   js.Property emitMangledGlobalNames() {
-    List<js.Property> names = [];
-
     CommonElements commonElements = _closedWorld.commonElements;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
-    List<ClassEntity> nativeClassesNeedingUnmangledName = [
+    List<ClassEntity> commonClassesNeedingUnmangledName = [
       commonElements.intClass,
       commonElements.doubleClass,
       commonElements.numClass,
       commonElements.stringClass,
       commonElements.boolClass,
       commonElements.nullClass,
-      commonElements.listClass
+      commonElements.listClass,
+      commonElements.objectClass,
+      commonElements.mapClass,
     ];
     // TODO(floitsch): this should probably be on a per-fragment basis.
-    nativeClassesNeedingUnmangledName.forEach((element) {
-      names.add(js.Property(
-          js.quoteName(_namer.className(element)), js.string(element.name)));
-    });
+
+    List<js.Property> names = [
+      for (final element in commonClassesNeedingUnmangledName)
+        js.Property(
+            js.quoteName(_namer.className(element)), js.string(element.name))
+    ];
 
     return js.Property(
         js.string(MANGLED_GLOBAL_NAMES), js.ObjectInitializer(names));

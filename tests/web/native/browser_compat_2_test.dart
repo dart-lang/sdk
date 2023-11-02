@@ -48,9 +48,9 @@ function T1D() { this.v = "d"; }
 // T1A must not be leaf-cached otherwise we will pick up the interceptor for T1A
 // when looking for the dispatch record for an uncached or not-yet-cached T1B,
 // T1C or T1D.
-T1B.prototype.__proto__ = T1A.prototype;
-T1C.prototype.__proto__ = T1A.prototype;
-T1D.prototype.__proto__ = T1A.prototype;
+Object.setPrototypeOf(T1B.prototype, T1A.prototype);
+Object.setPrototypeOf(T1C.prototype, T1A.prototype);
+Object.setPrototypeOf(T1D.prototype, T1A.prototype);
 
 // All classes share one implementation of native method 'foo'.
 T1A.prototype.foo = function() { return this.v + this.name(); };

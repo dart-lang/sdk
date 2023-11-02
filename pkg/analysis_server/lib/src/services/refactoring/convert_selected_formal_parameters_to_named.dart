@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/src/services/refactoring/agnostic/change_method_signature.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
@@ -10,6 +9,7 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     show ArgumentsTrailingComma;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart';
 
 /// The refactoring that converts selected formal parameters into required
 /// named.

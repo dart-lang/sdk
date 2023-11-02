@@ -103,6 +103,16 @@ class PubspecWarningCode extends ErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the list of packages missing from the dependencies and the list of
+  ///  packages missing from the dev_dependencies (if any) in the pubspec file.
+  static const PubspecWarningCode MISSING_DEPENDENCY = PubspecWarningCode(
+    'MISSING_DEPENDENCY',
+    "Missing a dependency on imported package '{0}'.",
+    correctionMessage: "Try adding {0}.",
+    hasPublishedDocs: true,
+  );
+
   ///  No parameters.
   static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
     'MISSING_NAME',

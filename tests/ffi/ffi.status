@@ -42,6 +42,9 @@ function_callbacks_structs_by_value_generated_test: Pass, Slow
 [ $mode == product ]
 regress_47594_test: Skip # Profiler is not available in Product.
 
+[ $runtime == vm ]
+function_struct_by_value_out_of_bounds_test: Crash # https://github.com/dart-lang/sdk/issues/53829
+
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
 regress_47594_test: Skip # DartDev is not available on Android.
@@ -69,9 +72,6 @@ vmspecific_regress_37511_callbacks_test: SkipByDesign # Symbols are not exposed 
 vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_51794_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
-
-[ $arch == riscv32 || $arch == riscv64 ]
-*structs_by_value*: Skip # https://dartbug.com/48645
 
 # These tests trigger and catch an abort (intentionally) and terminate the VM.
 # They're incompatible with ASAN because not all memory is freed when aborting and

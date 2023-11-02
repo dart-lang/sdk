@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_ASSEMBLER_OBJECT_POOL_BUILDER_H_
 #define RUNTIME_VM_COMPILER_ASSEMBLER_OBJECT_POOL_BUILDER_H_
 
+#include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/bitfield.h"
 #include "vm/hash_map.h"
@@ -25,18 +26,33 @@ struct ObjectPoolBuilderEntry {
     kNotPatchable,
   };
 
+  enum SnapshotBehavior {
+    kSnapshotable,
+
+    // This should never be snapshot. Typically an memory address in the current
+    // process.
+    kNotSnapshotable,
+
+    // Set the value to StubCode::CallBootstrapNative() on snapshot reading.
+    kResetToBootstrapNative,
+
+    // Only used in AOT. Every switchable call site will put (`ic_data`,
+    // [kTaggedObject] `code`) into the object pool. The `code` is initialized
+    // (at AOT compile-time) to be [StubCode::SwitchableCallMiss].
+    //
+    // The extra indirection via the `code` object is removed by storing
+    // (`ic_data`, [kImmediate] `entrypoint`) in the object pool instead on
+    // deserialization.
+    kResetToSwitchableCallMissEntryPoint,
+
+    // Set the value to 0 on snapshot writing.
+    kSetToZero,
+  };
+
   enum EntryType {
     kImmediate = 0,
     kTaggedObject,
     kNativeFunction,
-
-    // Used only during AOT snapshot serialization/deserialization.
-    // Denotes kImmediate entry with
-    //  - StubCode::SwitchableCallMiss().MonomorphicEntryPoint()
-    //  - StubCode::MegamorphicCall().MonomorphicEntryPoint()
-    // values which become known only at run time.
-    kSwitchableCallMissEntryPoint,
-    kMegamorphicCallEntryPoint,
 
   // Used only during object pool building to find duplicates. Become multiple
   // kImmediate in the final pool.
@@ -46,25 +62,39 @@ struct ObjectPoolBuilderEntry {
     kImmediate128,
   };
 
-  using TypeBits = BitField<uint8_t, EntryType, 0, 7>;
+  using TypeBits = BitField<uint8_t, EntryType, 0, 4>;
   using PatchableBit = BitField<uint8_t, Patchability, TypeBits::kNextBit, 1>;
+  using SnapshotBehaviorBits =
+      BitField<uint8_t, SnapshotBehavior, PatchableBit::kNextBit, 3>;
 
-  static inline uint8_t EncodeTraits(EntryType type, Patchability patchable) {
-    return TypeBits::encode(type) | PatchableBit::encode(patchable);
+  static inline uint8_t EncodeTraits(
+      EntryType type,
+      Patchability patchable,
+      SnapshotBehavior snapshot_behavior = SnapshotBehavior::kSnapshotable) {
+    return TypeBits::encode(type) | PatchableBit::encode(patchable) |
+           PatchableBit::encode(patchable) |
+           SnapshotBehaviorBits::encode(snapshot_behavior);
   }
 
   ObjectPoolBuilderEntry() : imm128_(), entry_bits_(0), equivalence_() {}
-  ObjectPoolBuilderEntry(const Object* obj, Patchability patchable)
-      : ObjectPoolBuilderEntry(obj, obj, patchable) {}
+  ObjectPoolBuilderEntry(const Object* obj,
+                         Patchability patchable,
+                         SnapshotBehavior snapshot_behavior = kSnapshotable)
+      : ObjectPoolBuilderEntry(obj, obj, patchable, snapshot_behavior) {}
   ObjectPoolBuilderEntry(const Object* obj,
                          const Object* eqv,
-                         Patchability patchable)
+                         Patchability patchable,
+                         SnapshotBehavior snapshot_behavior = kSnapshotable)
       : obj_(obj),
-        entry_bits_(EncodeTraits(kTaggedObject, patchable)),
+        entry_bits_(EncodeTraits(kTaggedObject, patchable, snapshot_behavior)),
         equivalence_(eqv) {}
-  ObjectPoolBuilderEntry(uword value, EntryType info, Patchability patchable)
+  ObjectPoolBuilderEntry(
+      uword value,
+      EntryType info,
+      Patchability patchable,
+      SnapshotBehavior snapshot_behavior = SnapshotBehavior::kSnapshotable)
       : imm_(value),
-        entry_bits_(EncodeTraits(info, patchable)),
+        entry_bits_(EncodeTraits(info, patchable, snapshot_behavior)),
         equivalence_() {}
 #if defined(ARCH_IS_32_BIT)
   ObjectPoolBuilderEntry(uint64_t value, EntryType info, Patchability patchable)
@@ -82,6 +112,10 @@ struct ObjectPoolBuilderEntry {
   EntryType type() const { return TypeBits::decode(entry_bits_); }
 
   Patchability patchable() const { return PatchableBit::decode(entry_bits_); }
+
+  SnapshotBehavior snapshot_behavior() const {
+    return SnapshotBehaviorBits::decode(entry_bits_);
+  }
 
   union {
     const Object* obj_;
@@ -191,16 +225,27 @@ class ObjectPoolBuilder : public ValueObject {
     zone_ = zone;
   }
 
-  intptr_t AddObject(const Object& obj,
-                     ObjectPoolBuilderEntry::Patchability patchable =
-                         ObjectPoolBuilderEntry::kNotPatchable);
-  intptr_t AddImmediate(uword imm);
+  intptr_t AddObject(
+      const Object& obj,
+      ObjectPoolBuilderEntry::Patchability patchable =
+          ObjectPoolBuilderEntry::kNotPatchable,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
+  intptr_t AddImmediate(
+      uword imm,
+      ObjectPoolBuilderEntry::Patchability patchable =
+          ObjectPoolBuilderEntry::kNotPatchable,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshotability =
+          ObjectPoolBuilderEntry::kSnapshotable);
   intptr_t AddImmediate64(uint64_t imm);
   intptr_t AddImmediate128(simd128_value_t imm);
 
-  intptr_t FindObject(const Object& obj,
-                      ObjectPoolBuilderEntry::Patchability patchable =
-                          ObjectPoolBuilderEntry::kNotPatchable);
+  intptr_t FindObject(
+      const Object& obj,
+      ObjectPoolBuilderEntry::Patchability patchable =
+          ObjectPoolBuilderEntry::kNotPatchable,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   intptr_t FindObject(const Object& obj, const Object& equivalence);
   intptr_t FindImmediate(uword imm);
   intptr_t FindImmediate64(uint64_t imm);

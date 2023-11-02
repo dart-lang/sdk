@@ -107,6 +107,32 @@ void f(double x) {
 ''');
   }
 
+  test_interfaceType2_matchedExtensionType_requiredRepresentation() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case int _) {}
+}
+
+extension type A(int _) {}
+''');
+  }
+
+  test_interfaceType2_matchedExtensionTypeUnrelated_requiredFinal() async {
+    await assertErrorsInCode('''
+void f(A x) {
+  if (x case C _) {}
+}
+
+extension type A(B _) {}
+
+class B {}
+
+final class C {}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1),
+    ]);
+  }
+
   test_interfaceType2_matchedFinal_enumSubtype() async {
     await assertNoErrorsInCode('''
 void f(A x) {

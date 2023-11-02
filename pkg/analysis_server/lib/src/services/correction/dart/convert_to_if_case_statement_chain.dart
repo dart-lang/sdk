@@ -134,6 +134,8 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       range,
       firstIndent,
       blockIndent + singleIndent,
+      includeLeading: true,
+      ensureTrailingNewline: true,
     );
     builder.write(code);
   }

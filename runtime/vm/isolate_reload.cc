@@ -1666,6 +1666,7 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
         new_lib.set_native_entry_resolver(lib.native_entry_resolver());
         new_lib.set_native_entry_symbol_resolver(
             lib.native_entry_symbol_resolver());
+        new_lib.set_ffi_native_resolver(lib.ffi_native_resolver());
       }
     }
 

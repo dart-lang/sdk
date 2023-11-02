@@ -13,16 +13,10 @@ part of dart.async;
 /// A negative duration is treated the same as a duration of 0.
 /// If the duration is statically known to be 0, consider using [run].
 ///
-/// Frequently the duration is either a constant or computed as in the
-/// following example (taking advantage of the multiplication operator of
-/// the [Duration] class):
 /// ```dart
 /// void main() {
-///   scheduleTimeout(5 * 1000); // 5 seconds.
+///   Timer(const Duration(seconds: 5), handleTimeout);
 /// }
-///
-/// Timer scheduleTimeout([int milliseconds = 10000]) =>
-///     Timer(Duration(milliseconds: milliseconds), handleTimeout);
 ///
 /// void handleTimeout() {  // callback function
 ///   // Do some work.

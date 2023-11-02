@@ -2564,6 +2564,18 @@
           If this field is omitted the flag defaults to <tt>false</tt>.
         </p>
       </field>
+      <field name="updatePubspec" optional="true">
+        <ref>bool</ref>
+        <p>
+          A flag indicating whether to validate that the dependencies used by the included files are
+          listed in the pubspec file. If specified, the fix processor will compute the set of
+          packages imported in the source and check to see if they are listed in the corresponding
+          pubspec file, and compute the fixes, if any.
+        </p>
+        <p>
+          If this field is omitted the flag defaults to <tt>false</tt>.
+        </p>
+      </field>
       <field name="codes" optional="true">
         <list>
           <ref>String</ref>

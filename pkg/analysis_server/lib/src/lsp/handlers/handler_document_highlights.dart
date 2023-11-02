@@ -39,16 +39,23 @@ class DocumentHighlightsHandler extends SharedMessageHandler<
       final collector = OccurrencesCollectorImpl();
       addDartOccurrences(collector, unit.result.unit);
 
-      // Find an occurrence that has an instance that spans the position.
-      for (final occurrence in collector.allOccurrences) {
-        bool spansRequestedPosition(int offset) {
-          return offset <= requestedOffset &&
-              offset + occurrence.length >= requestedOffset;
-        }
+      /// Checks whether an Occurrence offset/length spans the requested
+      /// offset.
+      ///
+      /// It's possible multiple occurences might match because some nodes
+      /// such as object destructuring might match multiple elements (for
+      /// example the object getter and a declared variable).
+      bool spansRequestedPosition(int offset, int length) {
+        return offset <= requestedOffset && offset + length >= requestedOffset;
+      }
 
-        if (occurrence.offsets.any(spansRequestedPosition)) {
-          return success(toHighlights(unit.result.lineInfo, occurrence));
-        }
+      // Find an occurrence that has an instance that spans the position.
+      final occurrences = collector.allOccurrences
+          .where((occurrence) => occurrence.offsets.any(
+              (offset) => spansRequestedPosition(offset, occurrence.length)))
+          .toList();
+      if (occurrences.isNotEmpty) {
+        return success(toHighlights(unit.result.lineInfo, occurrences));
       }
 
       // No matches.

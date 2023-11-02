@@ -11,6 +11,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' as ast;
+import 'package:analyzer/src/dart/element/element.dart';
 
 class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   late final ClassElement element;
@@ -35,49 +37,42 @@ class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
 }
 
 class DeclarationBuilder {
-  final DeclarationBuilderFromNode fromNode = DeclarationBuilderFromNode();
+  final ast.AstNode? Function(Element?) nodeOfElement;
 
-  final DeclarationBuilderFromElement fromElement =
-      DeclarationBuilderFromElement();
+  final Map<Element, IdentifierImpl> _identifierMap = Map.identity();
+  final Map<Uri, List<ast.Annotation>> libraryMetadataMap = {};
 
-  /// Associate declarations that were previously created for nodes with the
-  /// corresponding elements. So, we can access them uniformly via interfaces,
-  /// mixins, etc.
-  void transferToElements() {
-    // TODO(scheglov) Make sure that these are only declarations?
-    for (final entry in fromNode._namedTypeMap.entries) {
-      final element = entry.key.element;
-      if (element != null) {
-        final declaration = entry.value;
-        fromElement._identifierMap[element] = declaration;
-      }
-    }
-    for (final entry in fromNode._declaredIdentifierMap.entries) {
-      final element = entry.key;
-      final declaration = entry.value;
-      fromElement._identifierMap[element] = declaration;
-    }
+  late final DeclarationBuilderFromNode fromNode =
+      DeclarationBuilderFromNode(this);
 
-    for (final entry in fromNode._classMap.entries) {
-      final element = entry.key.declaredElement!;
-      final declaration = entry.value;
-      declaration.element = element;
-      fromElement._classMap[element] = declaration;
-    }
-  }
+  late final DeclarationBuilderFromElement fromElement =
+      DeclarationBuilderFromElement(this);
+
+  DeclarationBuilder({
+    required this.nodeOfElement,
+  });
 }
 
 class DeclarationBuilderFromElement {
-  final Map<Element, IdentifierImpl> _identifierMap = Map.identity();
+  final DeclarationBuilder declarationBuilder;
+
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
   final Map<ClassElement, IntrospectableClassDeclarationImpl> _classMap =
       Map.identity();
 
+  final Map<MixinElement, IntrospectableMixinDeclarationImpl> _mixinMap =
+      Map.identity();
+
   final Map<FieldElement, FieldDeclarationImpl> _fieldMap = Map.identity();
+
+  final Map<ExecutableElement, MethodDeclarationImpl> _methodMap =
+      Map.identity();
 
   final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
       _typeParameterMap = Map.identity();
+
+  DeclarationBuilderFromElement(this.declarationBuilder);
 
   macro.IntrospectableClassDeclarationImpl classElement(ClassElement element) {
     return _classMap[element] ??= _introspectableClassElement(element);
@@ -88,7 +83,8 @@ class DeclarationBuilderFromElement {
   }
 
   macro.IdentifierImpl identifier(Element element) {
-    return _identifierMap[element] ??= IdentifierImplFromElement(
+    final map = declarationBuilder._identifierMap;
+    return map[element] ??= IdentifierImplFromElement(
       id: macro.RemoteInstance.uniqueId,
       name: element.name!,
       element: element,
@@ -103,13 +99,20 @@ class DeclarationBuilderFromElement {
           id: macro.RemoteInstance.uniqueId,
           languageVersion:
               macro.LanguageVersionImpl(version.major, version.minor),
-          // TODO: Provide metadata annotations.
-          metadata: const [],
+          metadata: _buildMetadata(element),
           uri: element.library!.source.uri,
           element: element);
       _libraryMap[element.library!] = library;
     }
     return library;
+  }
+
+  macro.MethodDeclarationImpl methodElement(MethodElement element) {
+    return _methodMap[element] ??= _methodElement(element);
+  }
+
+  macro.IntrospectableMixinDeclarationImpl mixinElement(MixinElement element) {
+    return _mixinMap[element] ??= _introspectableMixinElement(element);
   }
 
   macro.TypeParameterDeclarationImpl typeParameter(
@@ -118,59 +121,71 @@ class DeclarationBuilderFromElement {
     return _typeParameterMap[element] ??= _typeParameter(element);
   }
 
+  List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
+    // TODO: Provide metadata annotations.
+    return const [];
+  }
+
   macro.TypeAnnotationImpl _dartType(DartType type) {
-    if (type is InterfaceType) {
-      return macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        identifier: identifier(type.element),
-        typeArguments: type.typeArguments.map(_dartType).toList(),
-      );
-    } else if (type is TypeParameterType) {
-      return macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        identifier: identifier(type.element),
-        typeArguments: const [],
-      );
-    } else {
-      // TODO(scheglov) other types
-      throw UnimplementedError('(${type.runtimeType}) $type');
+    switch (type) {
+      case InterfaceType():
+        return _interfaceType(type);
+      case TypeParameterType():
+        return macro.NamedTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+          identifier: identifier(type.element),
+          typeArguments: const [],
+        );
+      case VoidType():
+        return macro.NamedTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          identifier: macro.IdentifierImpl(
+            id: macro.RemoteInstance.uniqueId,
+            name: 'void',
+          ),
+          isNullable: false,
+          typeArguments: const [],
+        );
+      default:
+        throw UnimplementedError('(${type.runtimeType}) $type');
     }
   }
 
   FieldDeclarationImpl _fieldElement(FieldElement element) {
-    assert(!_fieldMap.containsKey(element));
-    final enclosingClass = element.enclosingElement as ClassElement;
+    final enclosingElement = element.enclosingElement;
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
-      // TODO: Provide metadata annotations.
-      metadata: const [],
+      metadata: _buildMetadata(element),
       hasExternal: element.isExternal,
       hasFinal: element.isFinal,
       hasLate: element.isLate,
       type: _dartType(element.type),
-      definingType: identifier(enclosingClass),
+      definingType: identifier(enclosingElement),
       isStatic: element.isStatic,
+    );
+  }
+
+  macro.NamedTypeAnnotationImpl _interfaceType(InterfaceType type) {
+    return macro.NamedTypeAnnotationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
+      identifier: identifier(type.element),
+      typeArguments: type.typeArguments.map(_dartType).toList(),
     );
   }
 
   IntrospectableClassDeclarationImpl _introspectableClassElement(
       ClassElement element) {
-    assert(!_classMap.containsKey(element));
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
-      // TODO: Provide metadata annotations.
-      metadata: const [],
+      metadata: _buildMetadata(element),
       typeParameters: element.typeParameters.map(_typeParameter).toList(),
-      interfaces: element.interfaces
-          .map(_dartType)
-          .cast<macro.NamedTypeAnnotationImpl>()
-          .toList(),
+      interfaces: element.interfaces.map(_interfaceType).toList(),
       hasAbstract: element.isAbstract,
       hasBase: element.isBase,
       hasExternal: false,
@@ -178,13 +193,55 @@ class DeclarationBuilderFromElement {
       hasInterface: element.isInterface,
       hasMixin: element.isMixinClass,
       hasSealed: element.isSealed,
-      mixins: element.mixins
-          .map(_dartType)
-          .cast<macro.NamedTypeAnnotationImpl>()
-          .toList(),
-      superclass: element.supertype.mapOrNull(_dartType)
-          as macro.NamedTypeAnnotationImpl?,
-    )..element = element;
+      mixins: element.mixins.map(_interfaceType).toList(),
+      superclass: element.supertype.mapOrNull(_interfaceType),
+      element: element,
+    );
+  }
+
+  IntrospectableMixinDeclarationImpl _introspectableMixinElement(
+      MixinElement element) {
+    return IntrospectableMixinDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      hasBase: element.isBase,
+      interfaces: element.interfaces.map(_interfaceType).toList(),
+      superclassConstraints:
+          element.superclassConstraints.map(_interfaceType).toList(),
+      element: element,
+    );
+  }
+
+  MethodDeclarationImpl _methodElement(MethodElement element) {
+    final enclosingClass = element.enclosingElement as ClassElement;
+    return MethodDeclarationImpl._(
+      element: element,
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasAbstract: false,
+      // hasBody: node.body is! ast.EmptyFunctionBody,
+      hasBody: true,
+      // hasExternal: node.externalKeyword != null,
+      hasExternal: false,
+      // isGetter: node.isGetter,
+      isGetter: false,
+      // isOperator: node.isOperator,
+      isOperator: false,
+      // isSetter: node.isSetter,
+      isSetter: false,
+      // isStatic: node.isStatic,
+      isStatic: element.isStatic,
+      namedParameters: [], // TODO(scheglov) implement
+      positionalParameters: [], // TODO(scheglov) implement
+      returnType: _dartType(element.returnType),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      definingType: identifier(enclosingClass),
+    );
   }
 
   macro.TypeParameterDeclarationImpl _typeParameter(
@@ -194,54 +251,121 @@ class DeclarationBuilderFromElement {
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
-      // TODO: Provide metadata annotations.
-      metadata: const [],
+      metadata: _buildMetadata(element),
       bound: element.bound.mapOrNull(_dartType),
     );
   }
 }
 
 class DeclarationBuilderFromNode {
+  final DeclarationBuilder declarationBuilder;
+
   final Map<ast.NamedType, IdentifierImpl> _namedTypeMap = Map.identity();
 
-  final Map<Element, IdentifierImpl> _declaredIdentifierMap = Map.identity();
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
-  final Map<ast.ClassDeclaration, IntrospectableClassDeclarationImpl>
-      _classMap = Map.identity();
+  DeclarationBuilderFromNode(this.declarationBuilder);
 
   macro.ClassDeclarationImpl classDeclaration(
     ast.ClassDeclaration node,
   ) {
-    return _classMap[node] ??= _introspectableClassDeclaration(node);
+    return _introspectableClassDeclaration(node);
   }
 
   macro.LibraryImpl library(Element element) {
-    var library = _libraryMap[element.library];
-    if (library == null) {
-      final version = element.library!.languageVersion.effective;
-      library = LibraryImplFromElement(
-          id: macro.RemoteInstance.uniqueId,
-          languageVersion:
-              macro.LanguageVersionImpl(version.major, version.minor),
-          // TODO: Provide metadata annotations.
-          metadata: const [],
-          uri: element.library!.source.uri,
-          element: element);
-      _libraryMap[element.library!] = library;
+    final library = element.library!;
+
+    if (_libraryMap[library] case final result?) {
+      return result;
     }
-    return library;
+
+    final version = library.languageVersion.effective;
+    final uri = library.source.uri;
+    final metadataNodes = declarationBuilder.libraryMetadataMap[uri] ?? [];
+
+    return _libraryMap[library] = LibraryImplFromElement(
+      id: macro.RemoteInstance.uniqueId,
+      languageVersion: macro.LanguageVersionImpl(
+        version.major,
+        version.minor,
+      ),
+      metadata: _buildMetadata(metadataNodes),
+      uri: uri,
+      element: library,
+    );
+  }
+
+  macro.MethodDeclarationImpl methodDeclaration(
+    ast.MethodDeclaration node,
+  ) {
+    return _methodDeclaration(node);
+  }
+
+  macro.MixinDeclarationImpl mixinDeclaration(
+    ast.MixinDeclaration node,
+  ) {
+    return _introspectableMixinDeclaration(node);
+  }
+
+  List<macro.MetadataAnnotationImpl> _buildMetadata(
+    List<ast.Annotation> elements,
+  ) {
+    // TODO: Provide metadata annotations.
+    return const [];
   }
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
-    return _declaredIdentifierMap[element] ??= _DeclaredIdentifierImpl(
+    final map = declarationBuilder._identifierMap;
+    return map[element] ??= _DeclaredIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
       name: name.lexeme,
       element: element,
     );
   }
 
-  macro.FunctionTypeParameterImpl _formalParameter(
+  macro.IdentifierImpl _definingType(ast.AstNode node) {
+    final parentNode = node.parent;
+    switch (parentNode) {
+      case ast.ClassDeclaration():
+        final parentElement = parentNode.declaredElement!;
+        final typeElement = parentElement.augmentationTarget ?? parentElement;
+        return _declaredIdentifier(parentNode.name, typeElement);
+      case ast.MixinDeclaration():
+        final parentElement = parentNode.declaredElement!;
+        final typeElement = parentElement.augmentationTarget ?? parentElement;
+        return _declaredIdentifier(parentNode.name, typeElement);
+      default:
+        // TODO(scheglov) other parents
+        throw UnimplementedError('(${parentNode.runtimeType}) $parentNode');
+    }
+  }
+
+  macro.ParameterDeclarationImpl _formalParameter(ast.FormalParameter node) {
+    if (node is ast.DefaultFormalParameter) {
+      node = node.parameter;
+    }
+
+    final macro.TypeAnnotationImpl typeAnnotation;
+    if (node is ast.SimpleFormalParameter) {
+      typeAnnotation = _typeAnnotation(node.type);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+
+    final element = node.declaredElement!;
+
+    return macro.ParameterDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name!, element),
+      isNamed: node.isNamed,
+      isRequired: node.isRequired,
+      library: library(element),
+      metadata: _buildMetadata(node.metadata),
+      type: typeAnnotation,
+    );
+  }
+
+  macro.FunctionTypeParameterImpl _functionTypeFormalParameter(
     ast.FormalParameter node,
   ) {
     if (node is ast.DefaultFormalParameter) {
@@ -259,9 +383,8 @@ class DeclarationBuilderFromNode {
       id: macro.RemoteInstance.uniqueId,
       isNamed: node.isNamed,
       isRequired: node.isRequired,
+      metadata: _buildMetadata(node.metadata),
       name: node.name?.lexeme,
-      // TODO: Provide metadata annotations.
-      metadata: const [],
       type: typeAnnotation,
     );
   }
@@ -269,15 +392,32 @@ class DeclarationBuilderFromNode {
   IntrospectableClassDeclarationImpl _introspectableClassDeclaration(
     ast.ClassDeclaration node,
   ) {
-    assert(!_classMap.containsKey(node));
+    final element = node.declaredElement as ClassElementImpl;
+
+    final interfaceNodes = <ast.NamedType>[];
+    final mixinNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      if (current.withClause case final clause?) {
+        mixinNodes.addAll(clause.mixinTypes);
+      }
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.ClassDeclaration) {
+        break;
+      }
+      current = nextNode;
+    }
+
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
-      identifier: _declaredIdentifier(node.name, node.declaredElement!),
-      library: library(node.declaredElement!),
-      // TODO: Provide metadata annotations.
-      metadata: const [],
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(node.metadata),
       typeParameters: _typeParameters(node.typeParameters),
-      interfaces: _typeAnnotations(node.implementsClause?.interfaces),
+      interfaces: _namedTypes(interfaceNodes),
       hasAbstract: node.abstractKeyword != null,
       hasBase: node.baseKeyword != null,
       hasExternal: false,
@@ -285,10 +425,93 @@ class DeclarationBuilderFromNode {
       hasInterface: node.interfaceKeyword != null,
       hasMixin: node.mixinKeyword != null,
       hasSealed: node.sealedKeyword != null,
-      mixins: _typeAnnotations(node.withClause?.mixinTypes),
-      superclass: node.extendsClause?.superclass.mapOrNull(
-        _typeAnnotation,
-      ),
+      mixins: _namedTypes(mixinNodes),
+      superclass: node.extendsClause?.superclass.mapOrNull(_namedType),
+      element: element,
+    );
+  }
+
+  IntrospectableMixinDeclarationImpl _introspectableMixinDeclaration(
+    ast.MixinDeclaration node,
+  ) {
+    final element = node.declaredElement as MixinElementImpl;
+
+    final onNodes = <ast.NamedType>[];
+    final interfaceNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.onClause case final clause?) {
+        onNodes.addAll(clause.superclassConstraints);
+      }
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.MixinDeclaration) {
+        break;
+      }
+      current = nextNode;
+    }
+
+    return IntrospectableMixinDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(node.metadata),
+      typeParameters: _typeParameters(node.typeParameters),
+      hasBase: node.baseKeyword != null,
+      interfaces: _namedTypes(interfaceNodes),
+      superclassConstraints: _namedTypes(onNodes),
+      element: element,
+    );
+  }
+
+  MethodDeclarationImpl _methodDeclaration(
+    ast.MethodDeclaration node,
+  ) {
+    final definingType = _definingType(node);
+    final element = node.declaredElement!;
+
+    return MethodDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      definingType: definingType,
+      element: element,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(node.metadata),
+      hasAbstract: false,
+      hasBody: node.body is! ast.EmptyFunctionBody,
+      hasExternal: node.externalKeyword != null,
+      isGetter: node.isGetter,
+      isOperator: node.isOperator,
+      isSetter: node.isSetter,
+      isStatic: node.isStatic,
+      namedParameters: _namedFormalParameters(node.parameters),
+      positionalParameters: _positionalFormalParameters(node.parameters),
+      returnType: _typeAnnotation(node.returnType),
+      typeParameters: _typeParameters(node.typeParameters),
+    );
+  }
+
+  List<macro.ParameterDeclarationImpl> _namedFormalParameters(
+    ast.FormalParameterList? node,
+  ) {
+    if (node != null) {
+      return node.parameters
+          .where((e) => e.isNamed)
+          .map(_formalParameter)
+          .toList();
+    } else {
+      return const [];
+    }
+  }
+
+  macro.NamedTypeAnnotationImpl _namedType(ast.NamedType node) {
+    return macro.NamedTypeAnnotationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _namedTypeIdentifier(node),
+      isNullable: node.question != null,
+      typeArguments: _typeAnnotations(node.typeArguments?.arguments),
     );
   }
 
@@ -300,40 +523,58 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  T _typeAnnotation<T extends macro.TypeAnnotationImpl>(
-      ast.TypeAnnotation? node) {
-    if (node == null) {
-      return macro.OmittedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-      ) as T;
-    } else if (node is ast.GenericFunctionType) {
-      return macro.FunctionTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        isNullable: node.question != null,
-        namedParameters: node.parameters.parameters
-            .where((e) => e.isNamed)
-            .map(_formalParameter)
-            .toList(),
-        positionalParameters: node.parameters.parameters
-            .where((e) => e.isPositional)
-            .map(_formalParameter)
-            .toList(),
-        returnType: _typeAnnotation(node.returnType),
-        typeParameters: _typeParameters(node.typeParameters),
-      ) as T;
-    } else if (node is ast.NamedType) {
-      return macro.NamedTypeAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        identifier: _namedTypeIdentifier(node),
-        isNullable: node.question != null,
-        typeArguments: _typeAnnotations(node.typeArguments?.arguments),
-      ) as T;
+  List<macro.NamedTypeAnnotationImpl> _namedTypes(
+    List<ast.NamedType>? elements,
+  ) {
+    if (elements != null) {
+      return elements.map(_namedType).toList();
     } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
+      return const [];
     }
   }
 
-  List<T> _typeAnnotations<T extends macro.TypeAnnotationImpl>(
+  List<macro.ParameterDeclarationImpl> _positionalFormalParameters(
+    ast.FormalParameterList? node,
+  ) {
+    if (node != null) {
+      return node.parameters
+          .where((e) => e.isPositional)
+          .map(_formalParameter)
+          .toList();
+    } else {
+      return const [];
+    }
+  }
+
+  macro.TypeAnnotationImpl _typeAnnotation(ast.TypeAnnotation? node) {
+    switch (node) {
+      case null:
+        return macro.OmittedTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+        );
+      case ast.GenericFunctionType():
+        return macro.FunctionTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          isNullable: node.question != null,
+          namedParameters: node.parameters.parameters
+              .where((e) => e.isNamed)
+              .map(_functionTypeFormalParameter)
+              .toList(),
+          positionalParameters: node.parameters.parameters
+              .where((e) => e.isPositional)
+              .map(_functionTypeFormalParameter)
+              .toList(),
+          returnType: _typeAnnotation(node.returnType),
+          typeParameters: _typeParameters(node.typeParameters),
+        );
+      case ast.NamedType():
+        return _namedType(node);
+      default:
+        throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
+  List<macro.TypeAnnotationImpl> _typeAnnotations(
     List<ast.TypeAnnotation>? elements,
   ) {
     if (elements != null) {
@@ -351,8 +592,7 @@ class DeclarationBuilderFromNode {
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
       library: library(node.declaredElement!),
-      // TODO: Provide metadata annotations.
-      metadata: const [],
+      metadata: _buildMetadata(node.metadata),
       bound: node.bound.mapOrNull(_typeAnnotation),
     );
   }
@@ -405,7 +645,7 @@ class IdentifierImplFromElement extends IdentifierImpl {
 
 class IntrospectableClassDeclarationImpl
     extends macro.IntrospectableClassDeclarationImpl {
-  late final ClassElement element;
+  final ClassElement element;
 
   IntrospectableClassDeclarationImpl._({
     required super.id,
@@ -423,6 +663,24 @@ class IntrospectableClassDeclarationImpl
     required super.hasSealed,
     required super.mixins,
     required super.superclass,
+    required this.element,
+  });
+}
+
+class IntrospectableMixinDeclarationImpl
+    extends macro.IntrospectableMixinDeclarationImpl {
+  final MixinElement element;
+
+  IntrospectableMixinDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.hasBase,
+    required super.interfaces,
+    required super.superclassConstraints,
+    required this.element,
   });
 }
 
@@ -446,6 +704,30 @@ class LibraryImplFromElement extends LibraryImpl {
     required super.languageVersion,
     required super.metadata,
     required super.uri,
+    required this.element,
+  });
+}
+
+class MethodDeclarationImpl extends macro.MethodDeclarationImpl {
+  final ExecutableElement element;
+
+  MethodDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.hasAbstract,
+    required super.hasBody,
+    required super.hasExternal,
+    required super.isGetter,
+    required super.isOperator,
+    required super.isSetter,
+    required super.isStatic,
+    required super.namedParameters,
+    required super.positionalParameters,
+    required super.returnType,
+    required super.typeParameters,
+    required super.definingType,
     required this.element,
   });
 }

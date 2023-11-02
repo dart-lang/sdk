@@ -1102,7 +1102,7 @@ main() {
 
       group('Case completes normally:', () {
         test('Reported when patterns disabled', () {
-          h.patternsEnabled = false;
+          h.disablePatterns();
           h.run([
             (switch_(
               expr('int'),
@@ -1122,7 +1122,7 @@ main() {
         });
 
         test('Handles cases that share a body', () {
-          h.patternsEnabled = false;
+          h.disablePatterns();
           h.run([
             (switch_(
               expr('int'),
@@ -1146,7 +1146,7 @@ main() {
         });
 
         test('Not reported when unreachable', () {
-          h.patternsEnabled = false;
+          h.disablePatterns();
           h.run([
             switch_(
               expr('int'),
@@ -1164,7 +1164,7 @@ main() {
         });
 
         test('Not reported for final case', () {
-          h.patternsEnabled = false;
+          h.disablePatterns();
           h.run([
             switch_(
               expr('int'),
@@ -1183,7 +1183,7 @@ main() {
           // "falls through" are less accurate (since flow analysis isn't
           // available in legacy mode).  This logic is not currently implemented
           // in the shared analyzer.
-          h.legacy = true;
+          h.enableLegacy();
           h.run([
             switch_(
               expr('int'),
@@ -1203,7 +1203,6 @@ main() {
         test('Not reported when patterns enabled', () {
           // When patterns are enabled, there is an implicit `break` at the end
           // of every switch body.
-          h.patternsEnabled = true;
           h.run([
             switch_(
               expr('int'),
@@ -1223,7 +1222,7 @@ main() {
       group('Case expression type mismatch:', () {
         group('Pre-null safety:', () {
           test('subtype', () {
-            h.legacy = true;
+            h.enableLegacy();
             h.run([
               switch_(
                 expr('num'),
@@ -1238,7 +1237,7 @@ main() {
           });
 
           test('supertype', () {
-            h.legacy = true;
+            h.enableLegacy();
             h.run([
               switch_(
                 expr('int'),
@@ -1253,7 +1252,7 @@ main() {
           });
 
           test('unrelated types', () {
-            h.legacy = true;
+            h.enableLegacy();
             h.run([
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
@@ -1272,7 +1271,7 @@ main() {
           });
 
           test('dynamic scrutinee', () {
-            h.legacy = true;
+            h.enableLegacy();
             h.run([
               switch_(
                 expr('dynamic'),
@@ -1287,7 +1286,7 @@ main() {
           });
 
           test('dynamic case', () {
-            h.legacy = true;
+            h.enableLegacy();
             h.run([
               switch_(
                 expr('int'),
@@ -1304,7 +1303,7 @@ main() {
 
         group('Null safe, patterns disabled:', () {
           test('subtype', () {
-            h.patternsEnabled = false;
+            h.disablePatterns();
             h.run([
               switch_(
                 expr('num'),
@@ -1319,7 +1318,7 @@ main() {
           });
 
           test('supertype', () {
-            h.patternsEnabled = false;
+            h.disablePatterns();
             h.run([
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
@@ -1338,7 +1337,7 @@ main() {
           });
 
           test('unrelated types', () {
-            h.patternsEnabled = false;
+            h.disablePatterns();
             h.run([
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
@@ -1357,7 +1356,7 @@ main() {
           });
 
           test('dynamic scrutinee', () {
-            h.patternsEnabled = false;
+            h.disablePatterns();
             h.run([
               switch_(
                 expr('dynamic'),
@@ -1372,7 +1371,7 @@ main() {
           });
 
           test('dynamic case', () {
-            h.patternsEnabled = false;
+            h.disablePatterns();
             h.run([
               switch_(
                 expr('int')..errorId = 'SCRUTINEE',
@@ -1474,7 +1473,7 @@ main() {
               ],
             ).checkIR('switch(expr(int), case(heads(variables()), '
                 'block(break())))'),
-          ], errorRecoveryOk: true);
+          ], errorRecoveryOK: true);
         });
 
         test('Multiple', () {
@@ -1590,7 +1589,7 @@ main() {
         });
 
         test('When pattern support is disabled', () {
-          h.patternsEnabled = false;
+          h.disablePatterns();
           h.addExhaustiveness('E', true);
           h.run([
             switch_(

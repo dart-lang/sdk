@@ -67,6 +67,7 @@ library kernel.ast;
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
+import 'src/extension_type_erasure.dart';
 import 'visitor.dart';
 export 'visitor.dart';
 
@@ -529,7 +530,7 @@ class Library extends NamedNode
       extensions[i].bindCanonicalNames(canonicalName);
     }
     for (int i = 0; i < extensionTypeDeclarations.length; ++i) {
-      extensionTypeDeclarations[i].bindCanonicalNames(canonicalName);
+      extensionTypeDeclarations[i].ensureCanonicalNames(canonicalName);
     }
   }
 
@@ -990,14 +991,22 @@ sealed class GenericFunction implements GenericDeclaration {
   FunctionNode get function;
 }
 
+/// Common interface for [Class] and [ExtensionTypeDeclaration].
+sealed class TypeDeclaration
+    implements Annotatable, FileUriNode, GenericDeclaration {
+  /// The name of the declaration.
+  ///
+  /// This must be unique within the library.
+  String get name;
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-class Class extends NamedNode
-    implements Annotatable, FileUriNode, GenericDeclaration {
+class Class extends NamedNode implements TypeDeclaration {
   /// Start offset of the class in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -1026,6 +1035,7 @@ class Class extends NamedNode
   /// The name may contain characters that are not valid in a Dart identifier,
   /// in particular, the symbol '&' is used in class names generated for mixin
   /// applications.
+  @override
   String name;
 
   // Must match serialized bit positions.
@@ -1569,7 +1579,7 @@ class Extension extends NamedNode
   ///
   /// The members are converted into top-level members and only accessible
   /// by reference through [ExtensionMemberDescriptor].
-  List<ExtensionMemberDescriptor> members;
+  List<ExtensionMemberDescriptor> memberDescriptors;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -1593,11 +1603,12 @@ class Extension extends NamedNode
       {required this.name,
       List<TypeParameter>? typeParameters,
       DartType? onType,
-      List<ExtensionMemberDescriptor>? members,
+      List<ExtensionMemberDescriptor>? memberDescriptors,
       required this.fileUri,
       Reference? reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.members = members ?? <ExtensionMemberDescriptor>[],
+        this.memberDescriptors =
+            memberDescriptors ?? <ExtensionMemberDescriptor>[],
         super(reference) {
     setParents(this.typeParameters, this);
     if (onType != null) {
@@ -1721,18 +1732,18 @@ class ExtensionMemberDescriptor {
   int flags = 0;
 
   /// Reference to the top-level member created for the extension method.
-  final Reference member;
+  final Reference memberReference;
 
   /// Reference to the top-level member created for the extension member tear
   /// off, if any.
-  final Reference? tearOff;
+  final Reference? tearOffReference;
 
   ExtensionMemberDescriptor(
       {required this.name,
       required this.kind,
       bool isStatic = false,
-      required this.member,
-      required this.tearOff}) {
+      required this.memberReference,
+      required this.tearOffReference}) {
     this.isStatic = isStatic;
   }
 
@@ -1746,7 +1757,7 @@ class ExtensionMemberDescriptor {
   @override
   String toString() {
     return 'ExtensionMemberDescriptor($name,$kind,'
-        '${member.toStringInternal()},isStatic=${isStatic})';
+        '${memberReference.toStringInternal()},isStatic=${isStatic})';
   }
 }
 
@@ -1754,9 +1765,9 @@ class ExtensionMemberDescriptor {
 ///
 /// The members are converted into top-level procedures and only accessible
 /// by reference in the [ExtensionTypeDeclaration] node.
-class ExtensionTypeDeclaration extends NamedNode
-    implements Annotatable, FileUriNode, GenericDeclaration {
+class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   /// Name of the extension type declaration.
+  @override
   String name;
 
   /// The URI of the source file this class was loaded from.
@@ -1789,11 +1800,19 @@ class ExtensionTypeDeclaration extends NamedNode
   /// library of the extension type declaration.
   late String representationName;
 
+  /// Abstract procedures that are part of the extension type declaration
+  /// interface.
+  ///
+  /// This includes a getter for the representation field and member signatures
+  /// computed as the combined member signature of inherited non-extension type
+  /// members.
+  List<Procedure> _procedures;
+
   /// The members declared by the extension type declaration.
   ///
   /// The members are converted into top-level members and only accessible
   /// by reference through [ExtensionTypeMemberDescriptor].
-  List<ExtensionTypeMemberDescriptor> members;
+  List<ExtensionTypeMemberDescriptor> memberDescriptors;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -1815,26 +1834,53 @@ class ExtensionTypeDeclaration extends NamedNode
       {required this.name,
       List<TypeParameter>? typeParameters,
       DartType? declaredRepresentationType,
-      List<ExtensionTypeMemberDescriptor>? members,
+      List<ExtensionTypeMemberDescriptor>? memberDescriptors,
       List<DartType>? implements,
+      List<Procedure>? procedures,
       required this.fileUri,
       Reference? reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.members = members ?? <ExtensionTypeMemberDescriptor>[],
+        this.memberDescriptors =
+            memberDescriptors ?? <ExtensionTypeMemberDescriptor>[],
         this.implements = implements ?? <DartType>[],
+        this._procedures = procedures ?? <Procedure>[],
         super(reference) {
     setParents(this.typeParameters, this);
+    setParents(this._procedures, this);
     if (declaredRepresentationType != null) {
       this.declaredRepresentationType = declaredRepresentationType;
     }
   }
 
   @override
-  void bindCanonicalNames(CanonicalName parent) {
-    parent.getChild(name).bindTo(reference);
+  CanonicalName bindCanonicalNames(CanonicalName parent) {
+    return parent.getChild(name)..bindTo(reference);
+  }
+
+  /// Computes the canonical name for this extension type declarations and all
+  /// its members.
+  void ensureCanonicalNames(CanonicalName parent) {
+    CanonicalName canonicalName = bindCanonicalNames(parent);
+    for (int i = 0; i < procedures.length; ++i) {
+      procedures[i].bindCanonicalNames(canonicalName);
+    }
   }
 
   Library get enclosingLibrary => parent as Library;
+
+  void addProcedure(Procedure procedure) {
+    procedure.parent = this;
+    procedures.add(procedure);
+  }
+
+  List<Procedure> get procedures => _procedures;
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  void set proceduresInternal(List<Procedure> procedures) {
+    _procedures = procedures;
+  }
 
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitExtensionTypeDeclaration(this);
@@ -1851,6 +1897,7 @@ class ExtensionTypeDeclaration extends NamedNode
     visitList(annotations, v);
     visitList(typeParameters, v);
     declaredRepresentationType.accept(v);
+    visitList(procedures, v);
   }
 
   @override
@@ -1858,6 +1905,7 @@ class ExtensionTypeDeclaration extends NamedNode
     v.transformList(annotations, this);
     v.transformList(typeParameters, this);
     declaredRepresentationType = v.visitDartType(declaredRepresentationType);
+    v.transformList(procedures, this);
   }
 
   @override
@@ -1866,6 +1914,7 @@ class ExtensionTypeDeclaration extends NamedNode
     v.transformTypeParameterList(typeParameters, this);
     declaredRepresentationType =
         v.visitDartType(declaredRepresentationType, cannotRemoveSentinel);
+    v.transformProcedureList(procedures, this);
   }
 
   @override
@@ -1932,18 +1981,18 @@ class ExtensionTypeMemberDescriptor {
 
   /// Reference to the top-level member created for the extension type
   /// declaration member.
-  final Reference member;
+  final Reference memberReference;
 
   /// Reference to the top-level member created for the extension type
   /// declaration member tear off, if any.
-  final Reference? tearOff;
+  final Reference? tearOffReference;
 
   ExtensionTypeMemberDescriptor(
       {required this.name,
       required this.kind,
       bool isStatic = false,
-      required this.member,
-      required this.tearOff}) {
+      required this.memberReference,
+      required this.tearOffReference}) {
     this.isStatic = isStatic;
   }
 
@@ -1958,8 +2007,8 @@ class ExtensionTypeMemberDescriptor {
   @override
   String toString() {
     return 'ExtensionTypeMemberDescriptor($name,$kind,'
-        '${member.toStringInternal()},isStatic=${isStatic},'
-        '${tearOff?.toStringInternal()})';
+        '${memberReference.toStringInternal()},isStatic=${isStatic},'
+        '${tearOffReference?.toStringInternal()})';
   }
 }
 
@@ -2007,9 +2056,36 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
 
   Member(this.name, this.fileUri, Reference? reference) : super(reference);
 
+  /// The enclosing [TypeDeclaration] if this member a class member or an
+  /// abstract extension type member.
+  TypeDeclaration? get enclosingTypeDeclaration =>
+      parent is TypeDeclaration ? parent as TypeDeclaration : null;
+
+  /// The enclosing [Class] if this member a class member.
+  ///
+  /// This includes both declared and inherited members, and both static and
+  /// instance members.
   Class? get enclosingClass => parent is Class ? parent as Class : null;
-  Library get enclosingLibrary =>
-      (parent is Class ? parent!.parent : parent) as Library;
+
+  /// The enclosing [ExtensionTypeDeclaration] if this member an abstract
+  /// extension type member.
+  ///
+  /// This includes abstract getters for representation fields and combined
+  /// member signatures from inherited non-extension type members.
+  ExtensionTypeDeclaration? get enclosingExtensionTypeDeclaration =>
+      parent is ExtensionTypeDeclaration
+          ? parent as ExtensionTypeDeclaration
+          : null;
+
+  Library get enclosingLibrary {
+    TreeNode? parent = this.parent;
+    if (parent is Class) {
+      return parent.enclosingLibrary;
+    } else if (parent is ExtensionTypeDeclaration) {
+      return parent.enclosingLibrary;
+    }
+    return parent as Library;
+  }
 
   @override
   R accept<R>(MemberVisitor<R> v);
@@ -2814,6 +2890,12 @@ enum ProcedureStubKind {
   ///
   /// The stub target is the called mixin member.
   ConcreteMixinStub,
+
+  /// The representation field of an extension type declaration, encoded as
+  /// an abstract getter.
+  ///
+  /// The stub target is `null`.
+  RepresentationField,
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -2983,7 +3065,6 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagIsAbstractFieldAccessor = 1 << 8;
   static const int FlagExtensionTypeMember = 1 << 9;
   static const int FlagHasWeakTearoffReferencePragma = 1 << 10;
-  static const int FlagIsLoweredLateField = 1 << 11;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3152,15 +3233,6 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagHasWeakTearoffReferencePragma)
         : (flags & ~FlagHasWeakTearoffReferencePragma);
-  }
-
-  /// If `true` this procedure was generated from a late field.
-  bool get isLoweredLateField => flags & FlagIsLoweredLateField != 0;
-
-  void set isLoweredLateField(bool value) {
-    flags = value
-        ? (flags | FlagIsLoweredLateField)
-        : (flags & ~FlagIsLoweredLateField);
   }
 
   @override
@@ -3955,7 +4027,7 @@ sealed class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, type.nullability);
     }
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? upcastTypeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(type, superclass);
       if (upcastTypeArguments != null) {
@@ -9708,7 +9780,7 @@ class ForInStatement extends Statement {
     if (iterableType is InvalidType) {
       return iterableType;
     }
-    if (iterableType is! InterfaceType) {
+    if (iterableType is! TypeDeclarationType) {
       // TODO(johnniwinther): Change this to an assert once the CFE correctly
       // inserts casts for all invalid iterable types.
       return const InvalidType();
@@ -10993,6 +11065,20 @@ sealed class DartType extends Node {
   /// Returns the non-type parameter type bound of this type.
   DartType get resolveTypeParameterType;
 
+  /// Returns the type with all occurrences of [ExtensionType] replaced by their
+  /// representations, transitively. This is the type used at runtime to
+  /// represent this type.
+  ///
+  /// For instance, for these declarations
+  ///
+  ///    extension type ET1(int id) {}
+  ///    extension type ET2(ET1 id) {}
+  ///    extension type ET3<T>(T id) {}
+  ///
+  /// the extension type erasures for `ET1`, `ET2`, `ET3<ET2>` and `List<ET2>`
+  /// are `int`, `int`, `int`, `List<int>`, respectively.
+  DartType get extensionTypeErasure => computeExtensionTypeErasure(this);
+
   /// Internal implementation of equality using [assumptions] to handle equality
   /// of type parameters on function types coinductively.
   bool equals(Object other, Assumptions? assumptions);
@@ -11009,6 +11095,20 @@ sealed class DartType extends Node {
 
   @override
   void toTextInternal(AstPrinter printer);
+}
+
+/// A type which is an instantiation of a [TypeDeclaration].
+sealed class TypeDeclarationType extends DartType {
+  /// The [Reference] to the [TypeDeclaration] on which this
+  /// [TypeDeclarationType] is built.
+  Reference get typeDeclarationReference;
+
+  /// The type arguments used to instantiate this [TypeDeclarationType].
+  List<DartType> get typeArguments;
+
+  /// The [TypeDeclaration] on which this [TypeDeclarationType] is built.
+  TypeDeclaration get typeDeclaration =>
+      typeDeclarationReference.asTypeDeclaration;
 }
 
 abstract class AuxiliaryType extends DartType {
@@ -11274,12 +11374,13 @@ class NullType extends DartType {
   }
 }
 
-class InterfaceType extends DartType {
+class InterfaceType extends TypeDeclarationType {
   final Reference classReference;
 
   @override
   final Nullability declaredNullability;
 
+  @override
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
@@ -11291,6 +11392,9 @@ class InterfaceType extends DartType {
 
   InterfaceType.byReference(
       this.classReference, this.declaredNullability, this.typeArguments);
+
+  @override
+  Reference get typeDeclarationReference => classReference;
 
   Class get classNode => classReference.asClass;
 
@@ -11755,12 +11859,13 @@ class FutureOrType extends DartType {
   }
 }
 
-class ExtensionType extends DartType {
+class ExtensionType extends TypeDeclarationType {
   final Reference extensionTypeDeclarationReference;
 
   @override
   final Nullability declaredNullability;
 
+  @override
   final List<DartType> typeArguments;
 
   ExtensionType(ExtensionTypeDeclaration extensionTypeDeclaration,
@@ -11775,6 +11880,9 @@ class ExtensionType extends DartType {
 
   ExtensionTypeDeclaration get extensionTypeDeclaration =>
       extensionTypeDeclarationReference.asExtensionTypeDeclaration;
+
+  @override
+  Reference get typeDeclarationReference => extensionTypeDeclarationReference;
 
   /// Returns the type erasure of this extension type.
   ///
@@ -11793,14 +11901,26 @@ class ExtensionType extends DartType {
   ///
   /// the type erasure of `E1` is `int`, type erasure of `E2<num>` is `num` and
   /// the type erasure of `E3<String>` is `List<String>`.
-  DartType get typeErasure => _computeTypeErasure(
+  @override
+  DartType get extensionTypeErasure => _computeTypeErasure(
       extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
   @override
-  Nullability get nullability => declaredNullability;
+  Nullability get nullability {
+    Nullability nullabilityInducedByRepresentationType = _computeTypeErasure(
+                    extensionTypeDeclarationReference,
+                    typeArguments,
+                    Nullability.nonNullable)
+                .nullability ==
+            Nullability.nonNullable
+        ? Nullability.nonNullable
+        : Nullability.undetermined;
+    return combineNullabilitiesForSubstitution(
+        nullabilityInducedByRepresentationType, declaredNullability);
+  }
 
   @override
-  DartType get resolveTypeParameterType => typeErasure.resolveTypeParameterType;
+  DartType get resolveTypeParameterType => this;
 
   static List<DartType> _defaultTypeArguments(
       ExtensionTypeDeclaration extensionTypeDeclaration) {
@@ -11822,9 +11942,7 @@ class ExtensionType extends DartType {
     DartType result = Substitution.fromPairs(
             extensionTypeDeclaration.typeParameters, typeArguments)
         .substituteType(extensionTypeDeclaration.declaredRepresentationType);
-    if (result is ExtensionType) {
-      result = result.typeErasure;
-    }
+    result = result.extensionTypeErasure;
     result = result.withDeclaredNullability(combineNullabilitiesForSubstitution(
         result.nullability, declaredNullability));
     return result;
@@ -12291,18 +12409,8 @@ class IntersectionType extends DartType {
 }
 
 /// Reference to a type variable.
-///
-/// A type variable has an optional bound because type promotion can change the
-/// bound.  A bound of `null` indicates that the bound has not been promoted and
-/// is the same as the [TypeParameter]'s bound.  This allows one to detect
-/// whether the bound has been promoted.  The case of promoted bound can be
-/// viewed as representing an intersection type between the type-parameter type
-/// and the promoted bound.
 class TypeParameterType extends DartType {
   /// The declared nullability of a type-parameter type.
-  ///
-  /// When a [TypeParameterType] represents an intersection,
-  /// [declaredNullability] is the nullability of the left-hand side.
   @override
   Nullability declaredNullability;
 
@@ -15270,8 +15378,8 @@ final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
     new ExtensionMemberDescriptor(
         name: dummyName,
         kind: ExtensionMemberKind.Getter,
-        member: dummyReference,
-        tearOff: null);
+        memberReference: dummyReference,
+        tearOffReference: null);
 
 /// Non-nullable [ExtensionTypeDeclaration] dummy value.
 ///
@@ -15290,8 +15398,8 @@ final ExtensionTypeMemberDescriptor dummyExtensionTypeMemberDescriptor =
     new ExtensionTypeMemberDescriptor(
         name: dummyName,
         kind: ExtensionTypeMemberKind.Getter,
-        member: dummyReference,
-        tearOff: null);
+        memberReference: dummyReference,
+        tearOffReference: null);
 
 /// Non-nullable [ExtensionType] dummy value.
 ///

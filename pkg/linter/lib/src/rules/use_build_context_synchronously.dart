@@ -263,13 +263,18 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       _asynchronousIfAnyIsAsync([node.target, ...node.cascadeSections]);
 
   @override
+  AsyncState? visitCaseClause(CaseClause node) =>
+      node.guardedPattern.accept(this);
+
+  @override
   AsyncState? visitCatchClause(CatchClause node) =>
       node.body.accept(this)?.asynchronousOrNull;
 
   @override
   AsyncState? visitConditionalExpression(ConditionalExpression node) =>
       _visitIfLike(
-        condition: node.condition,
+        expression: node.condition,
+        caseClause: null,
         thenBranch: node.thenExpression,
         elseBranch: node.elseExpression,
       );
@@ -368,15 +373,21 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
           [node.function, ...node.argumentList.arguments]);
 
   @override
+  AsyncState? visitGuardedPattern(GuardedPattern node) =>
+      node.whenClause?.accept(this);
+
+  @override
   AsyncState? visitIfElement(IfElement node) => _visitIfLike(
-        condition: node.expression,
+        expression: node.expression,
+        caseClause: node.caseClause,
         thenBranch: node.thenElement,
         elseBranch: node.elseElement,
       );
 
   @override
   AsyncState? visitIfStatement(IfStatement node) => _visitIfLike(
-        condition: node.expression,
+        expression: node.expression,
+        caseClause: node.caseClause,
         thenBranch: node.thenStatement,
         elseBranch: node.elseStatement,
       );
@@ -708,26 +719,54 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         .firstWhereOrNull((state) => state != null);
   }
 
-  /// Compute the [AsyncState] of an "if-like" node which has a [condition], a
-  /// [thenBranch], and a possible [elseBranch].
+  /// Compute the [AsyncState] of an "if-like" node which has a [expression], a
+  /// possible [caseClause], a [thenBranch], and a possible [elseBranch].
   AsyncState? _visitIfLike({
-    required AstNode condition,
+    required Expression expression,
+    required CaseClause? caseClause,
     required AstNode thenBranch,
     required AstNode? elseBranch,
   }) {
-    if (reference == condition) {
+    if (reference == expression) {
+      // The async state of the condition is not affected by the case-clause,
+      // then-branch, or else-branch.
       return null;
     }
-    var conditionMountedCheck = condition.accept(this);
+    var expressionAsyncState = expression.accept(this);
+    if (reference == caseClause) {
+      return switch (expressionAsyncState) {
+        AsyncState.asynchronous => AsyncState.asynchronous,
+        AsyncState.mountedCheck => AsyncState.mountedCheck,
+        _ => null,
+      };
+    }
+
+    var caseClauseAsyncState = caseClause?.accept(this);
+    // The condition state is the combined state of `expression` and
+    // `caseClause`.
+    var conditionAsyncState =
+        switch ((expressionAsyncState, caseClauseAsyncState)) {
+      // If the left is uninteresting, just return the state of the right.
+      (null, _) => caseClauseAsyncState,
+      // If the right is uninteresting, just return the state of the left.
+      (_, null) => expressionAsyncState,
+      // Anything on the left followed by async on the right is async.
+      (_, AsyncState.asynchronous) => AsyncState.asynchronous,
+      // An async state on the left is superseded by the state on the right.
+      (AsyncState.asynchronous, _) => caseClauseAsyncState,
+      // Otherwise just use the state on the left.
+      (AsyncState.mountedCheck, _) => AsyncState.mountedCheck,
+      (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
+    };
 
     if (reference == thenBranch) {
-      return switch (conditionMountedCheck) {
+      return switch (conditionAsyncState) {
         AsyncState.asynchronous => AsyncState.asynchronous,
         AsyncState.mountedCheck => AsyncState.mountedCheck,
         _ => null,
       };
     } else if (reference == elseBranch) {
-      return switch (conditionMountedCheck) {
+      return switch (conditionAsyncState) {
         AsyncState.asynchronous => AsyncState.asynchronous,
         AsyncState.notMountedCheck => AsyncState.mountedCheck,
         _ => null,
@@ -756,16 +795,15 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         return AsyncState.asynchronous;
       }
 
-      if (conditionMountedCheck == AsyncState.asynchronous) {
+      if (conditionAsyncState == AsyncState.asynchronous) {
         return AsyncState.asynchronous;
       }
 
-      if (conditionMountedCheck == AsyncState.mountedCheck && elseTerminates) {
+      if (conditionAsyncState == AsyncState.mountedCheck && elseTerminates) {
         return AsyncState.notMountedCheck;
       }
 
-      if (conditionMountedCheck == AsyncState.notMountedCheck &&
-          thenTerminates) {
+      if (conditionAsyncState == AsyncState.notMountedCheck && thenTerminates) {
         return AsyncState.notMountedCheck;
       }
 

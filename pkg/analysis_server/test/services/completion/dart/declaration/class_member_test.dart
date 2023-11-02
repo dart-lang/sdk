@@ -10,19 +10,21 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberTest1);
     defineReflectiveTests(ClassMemberTest2);
+    defineReflectiveTests(StaticClassMemberTest1);
+    defineReflectiveTests(StaticClassMemberTest2);
   });
 }
 
 @reflectiveTest
 class ClassMemberTest1 extends AbstractCompletionDriverTest
-    with ClassMemberTestCases, StaticClassMemberTestCases {
+    with ClassMemberTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ClassMemberTest2 extends AbstractCompletionDriverTest
-    with ClassMemberTestCases, StaticClassMemberTestCases {
+    with ClassMemberTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
@@ -56,6 +58,20 @@ suggestions
     kind: field
 ''');
   }
+}
+
+@reflectiveTest
+class StaticClassMemberTest1 extends AbstractCompletionDriverTest
+    with StaticClassMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class StaticClassMemberTest2 extends AbstractCompletionDriverTest
+    with StaticClassMemberTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin StaticClassMemberTestCases on AbstractCompletionDriverTest {
@@ -356,5 +372,52 @@ suggestions
   m1
     kind: methodInvocation
 ''');
+  }
+
+  Future<void> test_expression_private_otherLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  // ignore: unused_field
+  static const int _s1 = 1;
+}
+''');
+    await computeSuggestions('''
+import 'a.dart';
+int f() {
+  print(_s^
+}
+''');
+    assertNoSuggestion(completion: 'A._s1');
+  }
+
+  Future<void> test_expression_private_sameLibrary_otherFile() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part of 'test.dart';
+class A {
+  // ignore: unused_field
+  static const int _s1 = 1;
+}
+''');
+    await computeSuggestions('''
+part 'a.dart';
+int f() {
+  print(_s^
+}
+''');
+    assertSuggestion(completion: 'A._s1');
+  }
+
+  Future<void> test_expression_private_sameLibrary_sameFile() async {
+    await computeSuggestions('''
+class A {
+  // ignore: unused_field
+  static const int _s1 = 1;
+}
+
+int f() {
+  print(_s^
+}
+''');
+    assertSuggestion(completion: 'A._s1');
   }
 }

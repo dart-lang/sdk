@@ -4,11 +4,12 @@
 
 part of 'declaration_builders.dart';
 
-abstract class ExtensionTypeDeclarationBuilder implements DeclarationBuilder {
+abstract class ExtensionTypeDeclarationBuilder
+    implements DeclarationBuilder, ClassMemberAccess {
   /// Type parameters declared on the extension type declaration.
   ///
   /// This is `null` if the extension type declaration is not generic.
-  List<TypeVariableBuilder>? get typeParameters;
+  List<NominalVariableBuilder>? get typeParameters;
 
   /// The type of the underlying representation.
   DartType get declaredRepresentationType;
@@ -67,6 +68,7 @@ abstract class ExtensionTypeDeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
+    buildRepresentationTypeAndName();
     ExtensionType type =
         new ExtensionType(extensionTypeDeclaration, nullability, arguments);
     if (typeVariablesCount != 0 && library is SourceLibraryBuilder) {
@@ -78,4 +80,6 @@ abstract class ExtensionTypeDeclarationBuilderImpl
 
   @override
   String get debugName => "ExtensionTypeDeclarationBuilder";
+
+  void buildRepresentationTypeAndName() {}
 }

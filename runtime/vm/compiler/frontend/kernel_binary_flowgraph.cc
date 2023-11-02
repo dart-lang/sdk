@@ -10,6 +10,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/kernel_binary.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
@@ -1878,6 +1879,7 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
   bool negate = false;
   while (PeekTag() == kNot) {
     SkipBytes(1);
+    ReadPosition();
     negate = !negate;
   }
 
@@ -1886,6 +1888,7 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
     // Handle '&&' and '||' operators specially to implement short circuit
     // evaluation.
     SkipBytes(1);  // tag.
+    ReadPosition();
 
     TestFragment left = TranslateConditionForControl();
     LogicalOperator op = static_cast<LogicalOperator>(ReadByte());
@@ -3333,6 +3336,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     ++argument_count;
   }
 
+  if (target.IsCachableIdempotent()) {
+    return BuildCachableIdempotentCall(position, target);
+  }
+
   const auto recognized_kind = target.recognized_kind();
   switch (recognized_kind) {
     case MethodRecognizer::kNativeEffect:
@@ -3523,8 +3530,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstructorInvocation(
   return instructions + Drop();
 }
 
-Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TokenPosition operand_position = TokenPosition::kNoSource;
   Fragment instructions =
@@ -3582,6 +3590,7 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
   // Skip negations of the right hand side.
   while (PeekTag() == kNot) {
     SkipBytes(1);
+    ReadPosition();
     negated = !negated;
   }
 
@@ -3591,6 +3600,7 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
 
   if (PeekTag() == kLogicalExpression) {
     SkipBytes(1);
+    ReadPosition();
     // Handle nested logical expressions specially to avoid materializing
     // intermediate boolean values.
     right_value += TranslateLogicalExpressionForValue(negated, side_exits);
@@ -3619,9 +3629,9 @@ Fragment StreamingFlowGraphBuilder::TranslateLogicalExpressionForValue(
   return Fragment(left.entry, right_value.current);
 }
 
-Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TestFragment exits;
   exits.true_successor_addresses = new TestFragment::SuccessorAddressArray(2);
@@ -3657,8 +3667,9 @@ Fragment StreamingFlowGraphBuilder::BuildLogicalExpression(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildConditionalExpression(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+    TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) *p = position;
 
   TestFragment condition = TranslateConditionForControl();  // read condition.
 
@@ -4243,6 +4254,8 @@ Fragment StreamingFlowGraphBuilder::BuildBlockExpression() {
   Fragment instructions;
 
   instructions += EnterScope(offset);
+
+  ReadPosition();                                 // ignore file offset.
   const intptr_t list_length = ReadListLength();  // read number of statements.
   for (intptr_t i = 0; i < list_length; ++i) {
     instructions += BuildStatement();  // read ith statement.
@@ -4363,8 +4376,9 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
-    TokenPosition* position) {
-  if (position != nullptr) *position = TokenPosition::kNoSource;
+    TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
 
   // Create a copy of the closure.
 
@@ -6231,6 +6245,66 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   ASSERT(named_args_len == 0);
 
   code += B->BuildFfiAsFunctionInternalCall(type_arguments, is_leaf);
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildArgumentsCachableIdempotentCall(
+    intptr_t* argument_count) {
+  *argument_count = ReadUInt();  // read arguments count.
+
+  // List of types.
+  const intptr_t types_list_length = ReadListLength();
+  if (types_list_length != 0) {
+    FATAL("Type arguments for vm:cachable-idempotent not (yet) supported.");
+  }
+
+  Fragment code;
+  // List of positional.
+  intptr_t positional_list_length = ReadListLength();
+  for (intptr_t i = 0; i < positional_list_length; ++i) {
+    code += BuildExpression();
+    Definition* target_def = B->Peek();
+    if (!target_def->IsConstant()) {
+      FATAL(
+          "Arguments for vm:cachable-idempotent must be const, argument on "
+          "index %" Pd " is not.",
+          i);
+    }
+  }
+
+  // List of named.
+  const intptr_t named_args_len = ReadListLength();
+  if (named_args_len != 0) {
+    FATAL("Named arguments for vm:cachable-idempotent not (yet) supported.");
+  }
+
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildCachableIdempotentCall(
+    TokenPosition position,
+    const Function& target) {
+  // The call site must me fore optimized because the cache is untagged.
+  if (!parsed_function()->function().ForceOptimize()) {
+    FATAL(
+        "vm:cachable-idempotent functions can only be called from "
+        "vm:force-optimize functions.");
+  }
+  const auto& target_result_type = AbstractType::Handle(target.result_type());
+  if (!target_result_type.IsIntType()) {
+    FATAL("The return type vm:cachable-idempotent functions must be int.")
+  }
+
+  Fragment code;
+  Array& argument_names = Array::ZoneHandle(Z);
+  intptr_t argument_count;
+  code += BuildArgumentsCachableIdempotentCall(&argument_count);
+
+  code += flow_graph_builder_->CachableIdempotentCall(
+      position, target, argument_count, argument_names,
+      /*type_args_len=*/0);
+  code += flow_graph_builder_->Box(kUnboxedFfiIntPtr);
+
   return code;
 }
 

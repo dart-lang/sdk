@@ -1,0 +1,36 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/call.dart:8:26: Error: The static type of the explicit instantiation operand must be a generic function type but is 'E'.
+// Try changing the operand or remove the type arguments.
+//   int Function(int) a = e<int>; // Error
+//                          ^
+//
+// pkg/front_end/testcases/extension_types/call.dart:9:25: Error: A value of type 'E' can't be assigned to a variable of type 'int Function(int)'.
+//   int Function(int) b = e; // Error
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type E(<T extends core::Object? = dynamic>(T%) → T% call) {
+  abstract inline-class-member representation-field get call() → <T extends core::Object? = dynamic>(T%) → T%;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static inline-class-member method E|constructor#(<T extends core::Object? = dynamic>(T%) → T% call) → self::E /* = <T extends core::Object? = dynamic>(T%) → T% */ {
+  lowered final self::E /* = <T extends core::Object? = dynamic>(T%) → T% */ #this = call;
+  return #this;
+}
+static inline-class-member method E|constructor#_#new#tearOff(<T extends core::Object? = dynamic>(T%) → T% call) → self::E /* = <T extends core::Object? = dynamic>(T%) → T% */
+  return self::E|constructor#(call);
+static method method(self::E /* = <T extends core::Object? = dynamic>(T%) → T% */ e) → dynamic {
+  (core::int) → core::int a = invalid-expression "pkg/front_end/testcases/extension_types/call.dart:8:26: Error: The static type of the explicit instantiation operand must be a generic function type but is 'E'.
+Try changing the operand or remove the type arguments.
+  int Function(int) a = e<int>; // Error
+                         ^";
+  (core::int) → core::int b = invalid-expression "pkg/front_end/testcases/extension_types/call.dart:9:25: Error: A value of type 'E' can't be assigned to a variable of type 'int Function(int)'.
+  int Function(int) b = e; // Error
+                        ^" in e as{TypeError} (core::int) → core::int;
+}

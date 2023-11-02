@@ -1654,24 +1654,11 @@ class Harness {
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
 
+  bool _fieldPromotionEnabled = true;
+
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
-  set legacy(bool value) {
-    assert(!_started);
-    _operations.legacy = value;
-  }
-
   bool get patternsEnabled => _patternsEnabled ?? !_operations.legacy;
-
-  set patternsEnabled(bool value) {
-    assert(!_started);
-    _patternsEnabled = value;
-  }
-
-  set respectImplicitlyTypedVarInitializers(bool value) {
-    assert(!_started);
-    _respectImplicitlyTypedVarInitializers = value;
-  }
 
   set thisType(String type) {
     assert(!_started);
@@ -1733,6 +1720,26 @@ class Harness {
 
   void addTypeVariable(String name, {String? bound}) {
     _operations.addTypeVariable(name, bound: bound);
+  }
+
+  void disableFieldPromotion() {
+    assert(!_started);
+    _fieldPromotionEnabled = false;
+  }
+
+  void disablePatterns() {
+    assert(!_started);
+    _patternsEnabled = false;
+  }
+
+  void disableRespectImplicitlyTypedVarInitializers() {
+    assert(!_started);
+    _respectImplicitlyTypedVarInitializers = false;
+  }
+
+  void enableLegacy() {
+    assert(!_started);
+    _operations.legacy = true;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
@@ -1797,7 +1804,7 @@ class Harness {
   /// Runs the given [statements] through flow analysis, checking any assertions
   /// they contain.
   void run(List<ProtoStatement> statements,
-      {bool errorRecoveryOk = false, Set<String> expectedErrors = const {}}) {
+      {bool errorRecoveryOK = false, Set<String> expectedErrors = const {}}) {
     try {
       _started = true;
       if (_operations.legacy && patternsEnabled) {
@@ -1812,13 +1819,14 @@ class Harness {
           : FlowAnalysis<Node, Statement, Expression, Var, Type>(
               _operations, visitor._assignedVariables,
               respectImplicitlyTypedVarInitializers:
-                  _respectImplicitlyTypedVarInitializers);
+                  _respectImplicitlyTypedVarInitializers,
+              fieldPromotionEnabled: _fieldPromotionEnabled);
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
       var assertInErrorRecoveryStack =
           typeAnalyzer.errors._assertInErrorRecoveryStack;
-      if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
+      if (!errorRecoveryOK && assertInErrorRecoveryStack != null) {
         fail('assertInErrorRecovery called but no errors reported: '
             '$assertInErrorRecoveryStack');
       }

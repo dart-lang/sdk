@@ -1,0 +1,4 @@
+expect(expected, actual) {}
+extension type V1(Future<int> id) implements Future<int> {}
+extension type V2<T extends Future<Object>>(T id) implements Future<Object>{}
+main() async {}

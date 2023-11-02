@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/common_element.dart';
 import 'package:dart2js_info/src/io.dart';
@@ -21,12 +20,19 @@ class CommonCommand extends Command<void> with PrintUsageException {
 
   CommonCommand() {
     argParser.addFlag('packages-only',
-        defaultsTo: false, help: "Show only packages in common");
+        defaultsTo: false,
+        help: "Show only packages in common. "
+            "Cannot be used with `main-only`.");
     argParser.addFlag('order-by-size',
         defaultsTo: false,
         help: "Show output ordered by size in bytes (decreasing). "
             "If there are size discrepancies, orders by the first "
             "dump-info file's reported size.");
+    argParser.addFlag('main-only',
+        defaultsTo: false,
+        help: "Only shows output comparison for main output unit. Provides "
+            "results by class and member rather than by library. "
+            "Cannot be used with `packages-only`.");
   }
 
   @override
@@ -40,10 +46,16 @@ class CommonCommand extends Command<void> with PrintUsageException {
 
     var oldInfo = await infoFromFile(args[0]);
     var newInfo = await infoFromFile(args[1]);
-    var packagesOnly = argRes['packages-only'];
-    var orderBySize = argRes['order-by-size'];
+    bool packagesOnly = argRes['packages-only'];
+    bool orderBySize = argRes['order-by-size'];
+    bool mainOnly = argRes['main-only'];
+    if (packagesOnly && mainOnly) {
+      throw ArgumentError(
+          'Only one of `main-only` and `packages-only` can be provided.');
+    }
 
-    var commonElements = findCommonalities(oldInfo, newInfo);
+    var commonElements =
+        findCommonalities(oldInfo, newInfo, mainOnly: mainOnly);
 
     if (packagesOnly) {
       reportPackages(commonElements, orderBySize: orderBySize);

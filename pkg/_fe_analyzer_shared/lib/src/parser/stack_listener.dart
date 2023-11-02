@@ -69,6 +69,8 @@ enum NullValues implements NullValue<Object> {
   MixinApplicationBuilder,
   Modifiers,
   Name,
+  NominalVariable,
+  NominalVariables,
   OperatorList,
   ParameterDefaultValue,
   Pattern,
@@ -77,6 +79,7 @@ enum NullValues implements NullValue<Object> {
   RecordTypeFieldList,
   ShowClause,
   StringLiteral,
+  StructuralVariables,
   SwitchScope,
   Token,
   Type,
@@ -84,8 +87,6 @@ enum NullValues implements NullValue<Object> {
   TypeBuilder,
   TypeBuilderList,
   TypeList,
-  TypeVariable,
-  TypeVariables,
   VarFinalOrConstToken,
   VariableDeclarationList,
   WithClause,
@@ -264,7 +265,7 @@ abstract class StackListener extends Listener with StackChecker {
   @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
-    push(NullValues.TypeVariables);
+    push(NullValues.NominalVariables);
   }
 
   @override

@@ -80,6 +80,7 @@ analysis_server/test/integration: SkipByDesign # Analysis server integration tes
 analysis_server/tool/*: SkipByDesign # Only meant to run on vm
 analysis_server_client/test/*: SkipByDesign # Only meant to run on vm
 analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
+analyzer_cli/tool/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm
 build_integration/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
@@ -93,6 +94,7 @@ modular_test/test/validate_suite_test: Slow, Pass
 native_assets_builder/test/*: SkipByDesign # Only meant to run on vm
 nnbd_migration/test/*: SkipByDesign # Uses mirrors
 nnbd_migration/tool/*: SkipByDesign # Only meant to run on vm
+service_extension_router/test/*: SkipByDesign # Only meant to run on vm
 smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
@@ -239,6 +241,9 @@ analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass # Issue 34231
 analyzer/test/src/task/strong/checker_test: Slow, Pass
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass
+vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
+vm_service/test/private_rpcs/dev_fs_http_put_weird_char_test: Skip # Windows disallows "\r" in paths
+vm_service/test/private_rpcs/dev_fs_weird_char_test: Skip # Windows disallows "\r" in paths
 
 [ $runtime == vm && $system == windows && $checked ]
 front_end/tool/perf_test: Slow, Pass

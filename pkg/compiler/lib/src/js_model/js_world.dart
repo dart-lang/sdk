@@ -14,7 +14,6 @@ import '../deferred_load/output_unit.dart'
     show LateOutputUnitDataBuilder, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
-import '../elements/indexed.dart' show IndexedClass;
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../environment.dart';
@@ -39,7 +38,7 @@ import '../universe/selector.dart';
 import '../world.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
-import 'locals.dart';
+import 'elements.dart';
 import 'records.dart' show RecordData;
 
 class JClosedWorld implements World {
@@ -420,7 +419,7 @@ class JClosedWorld implements World {
     if (!iterator.moveNext()) return const <ClassEntity>[];
 
     ClassEntity cls = iterator.current;
-    OrderedTypeSet typeSet = elementMap.getOrderedTypeSet(cls as IndexedClass);
+    OrderedTypeSet typeSet = elementMap.getOrderedTypeSet(cls as JClass);
     if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
 
     int depth = typeSet.maxDepth;
@@ -428,7 +427,7 @@ class JClosedWorld implements World {
     do {
       ClassEntity otherClass = iterator.current;
       OrderedTypeSet otherTypeSet =
-          elementMap.getOrderedTypeSet(otherClass as IndexedClass);
+          elementMap.getOrderedTypeSet(otherClass as JClass);
       otherTypeSets = otherTypeSets.prepend(otherTypeSet);
       if (otherTypeSet.maxDepth < depth) {
         depth = otherTypeSet.maxDepth;
@@ -445,7 +444,7 @@ class JClosedWorld implements World {
           !link.isEmpty;
           link = link.tail!) {
         if (link.head.asInstanceOf(
-                cls, elementMap.getHierarchyDepth(cls as IndexedClass)) ==
+                cls, elementMap.getHierarchyDepth(cls as JClass)) ==
             null) {
           continue OUTER;
         }
@@ -475,7 +474,7 @@ class JClosedWorld implements World {
       ClassEntity? current = cls;
       while (current != null) {
         ClassEntity? currentMixin =
-            elementMap.getAppliedMixin(current as IndexedClass);
+            elementMap.getAppliedMixin(current as JClass);
         if (currentMixin == mixin) return true;
         current = elementEnvironment.getSuperClass(current);
       }
@@ -729,18 +728,5 @@ class KernelSorter implements Sorter {
     MemberDefinition definition2 = elementMap.getMemberDefinition(b);
     return _compareByLocationThenName(
         a, definition1.location, b, definition2.location);
-  }
-}
-
-/// [LocalLookup] implementation used to deserialize [JClosedWorld].
-class LocalLookupImpl implements LocalLookup {
-  final GlobalLocalsMap _globalLocalsMap;
-
-  LocalLookupImpl(this._globalLocalsMap);
-
-  @override
-  Local getLocalByIndex(MemberEntity memberContext, int index) {
-    final map = _globalLocalsMap.getLocalsMap(memberContext);
-    return map.getLocalByIndex(index);
   }
 }

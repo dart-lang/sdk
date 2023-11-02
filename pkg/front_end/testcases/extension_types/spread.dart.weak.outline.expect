@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type MyList<T extends core::Object? = dynamic>(core::List<T%> it) implements core::List<T%> {
+  abstract inline-class-member representation-field get it() → core::List<T%>;
+  constructor • = self::MyList|constructor#;
+  constructor tearoff • = self::MyList|constructor#_#new#tearOff;
+}
+extension type MySet<T extends core::Object? = dynamic>(core::Set<T%> it) implements core::Set<T%> {
+  abstract inline-class-member representation-field get it() → core::Set<T%>;
+  constructor • = self::MySet|constructor#;
+  constructor tearoff • = self::MySet|constructor#_#new#tearOff;
+}
+extension type MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<K%, V%> it) implements core::Map<K%, V%> {
+  abstract inline-class-member representation-field get it() → core::Map<K%, V%>;
+  constructor • = self::MyMap|constructor#;
+  constructor tearoff • = self::MyMap|constructor#_#new#tearOff;
+}
+static inline-class-member method MyList|constructor#<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#::T%> it) → self::MyList<self::MyList|constructor#::T%> /* = core::List<self::MyList|constructor#::T%> */
+  ;
+static inline-class-member method MyList|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#_#new#tearOff::T%> it) → self::MyList<self::MyList|constructor#_#new#tearOff::T%> /* = core::List<self::MyList|constructor#_#new#tearOff::T%> */
+  return self::MyList|constructor#<self::MyList|constructor#_#new#tearOff::T%>(it);
+static inline-class-member method MySet|constructor#<T extends core::Object? = dynamic>(core::Set<self::MySet|constructor#::T%> it) → self::MySet<self::MySet|constructor#::T%> /* = core::Set<self::MySet|constructor#::T%> */
+  ;
+static inline-class-member method MySet|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Set<self::MySet|constructor#_#new#tearOff::T%> it) → self::MySet<self::MySet|constructor#_#new#tearOff::T%> /* = core::Set<self::MySet|constructor#_#new#tearOff::T%> */
+  return self::MySet|constructor#<self::MySet|constructor#_#new#tearOff::T%>(it);
+static inline-class-member method MyMap|constructor#<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> it) → self::MyMap<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> /* = core::Map<self::MyMap|constructor#::K%, self::MyMap|constructor#::V%> */
+  ;
+static inline-class-member method MyMap|constructor#_#new#tearOff<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> it) → self::MyMap<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> /* = core::Map<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%> */
+  return self::MyMap|constructor#<self::MyMap|constructor#_#new#tearOff::K%, self::MyMap|constructor#_#new#tearOff::V%>(it);
+static method method(self::MyList<core::int> /* = core::List<core::int> */ list, self::MySet<core::String> /* = core::Set<core::String> */ set, self::MyMap<core::bool, core::num> /* = core::Map<core::bool, core::num> */ map) → dynamic
+  ;
+static method test() → dynamic
+  ;

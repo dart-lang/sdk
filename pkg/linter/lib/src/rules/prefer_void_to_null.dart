@@ -142,6 +142,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    // extension type N(Null _) ...
+    if (parent is RepresentationDeclaration) {
+      return;
+    }
+
     // https://github.com/dart-lang/linter/issues/2792
     if (parent is MethodDeclaration &&
         isVoidIncompatibleOverride(parent, node)) {

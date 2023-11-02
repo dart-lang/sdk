@@ -53,7 +53,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilderComputer(this.loader);
 
-  final Map<TypeParameter, TypeVariableBuilder> functionTypeParameters = {};
+  final Map<TypeParameter, NominalVariableBuilder> functionTypeParameters = {};
 
   @override
   TypeBuilder visitInvalidType(InvalidType node) {
@@ -145,8 +145,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] = new FunctionTypeParameterBuilder(
-          /* metadata = */ null, kind, type, /* name = */ null);
+      formals[i] =
+          new FunctionTypeParameterBuilder(kind, type, /* name = */ null);
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
@@ -155,8 +155,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
           ? FormalParameterKind.requiredNamed
           : FormalParameterKind.optionalNamed;
       formals[i + positionalParameters.length] =
-          new FunctionTypeParameterBuilder(
-              /* metadata = */ null, kind, type, parameter.name);
+          new FunctionTypeParameterBuilder(kind, type, parameter.name);
     }
     return new FunctionTypeBuilderImpl(
         returnType,
@@ -171,7 +170,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new TypeVariableBuilder.fromKernel(parameter),
+        new NominalVariableBuilder.fromKernel(parameter),
         new NullabilityBuilder.fromNullability(node.nullability),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
         type: node);

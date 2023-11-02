@@ -19,7 +19,7 @@ import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' hide Arguments;
+import 'package:kernel/ast.dart' hide Arguments, TypeDeclaration;
 
 Future<void> main(List<String> args) async {
   enableMacros = true;

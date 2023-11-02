@@ -159,7 +159,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.builderName] = clsBuilder.name;
     if (clsBuilder.typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in clsBuilder.typeVariables!) {
+      for (NominalVariableBuilder typeVariable in clsBuilder.typeVariables!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
       }
@@ -167,11 +167,11 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
 
     if (clsBuilder.supertypeBuilder != null) {
       features[Tags.builderSupertype] =
-          clsBuilder.supertypeBuilder!.name as String;
+          clsBuilder.supertypeBuilder!.typeName as String;
     }
     if (clsBuilder.interfaceBuilders != null) {
       for (TypeBuilder superinterface in clsBuilder.interfaceBuilders!) {
-        features.addElement(Tags.builderInterfaces, superinterface.name);
+        features.addElement(Tags.builderInterfaces, superinterface.typeName);
       }
     }
     if (clsBuilder.onTypes != null) {
@@ -204,7 +204,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.builderName] = extensionBuilder.name;
     if (extensionBuilder.typeParameters != null) {
-      for (TypeVariableBuilder typeVariable
+      for (NominalVariableBuilder typeVariable
           in extensionBuilder.typeParameters!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
@@ -217,7 +217,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       features.addElement(
           Tags.extensionTypeParameters, typeParameterToText(typeParameter));
     }
-    for (ExtensionMemberDescriptor descriptor in extension.members) {
+    for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       for (String text in extensionMethodDescriptorToText(descriptor)) {
         features.addElement(Tags.extensionMembers, text);
       }
@@ -252,7 +252,8 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         features.markAsUnsorted(Tags.builderNamedParameters);
       }
       if (memberBuilder.typeVariables != null) {
-        for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables!) {
+        for (NominalVariableBuilder typeVariable
+            in memberBuilder.typeVariables!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }

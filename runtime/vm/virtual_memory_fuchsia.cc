@@ -168,10 +168,13 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif  // defined(DART_COMPRESSED_POINTERS)
   zx_handle_t vmo = ZX_HANDLE_INVALID;
   zx_status_t status = zx_vmo_create(size, 0u, &vmo);
-  if (status != ZX_OK) {
+  if (status == ZX_ERR_NO_MEMORY) {
     LOG_ERR("zx_vmo_create(0x%lx) failed: %s\n", size,
             zx_status_get_string(status));
     return nullptr;
+  } else if (status != ZX_OK) {
+    FATAL("zx_vmo_create(0x%lx) failed: %s\n", size,
+          zx_status_get_string(status));
   }
 
   if (name != nullptr) {
@@ -182,11 +185,14 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     // Add ZX_RIGHT_EXECUTE permission to VMO, so it can be mapped
     // into memory as executable (now or later).
     status = zx_vmo_replace_as_executable(vmo, vmex_resource_, &vmo);
-    if (status != ZX_OK) {
+    if (status == ZX_ERR_NO_MEMORY) {
       LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
               zx_status_get_string(status));
       zx_handle_close(vmo);
       return nullptr;
+    } else if (status != ZX_OK) {
+      FATAL("zx_vmo_replace_as_executable() failed: %s\n",
+            zx_status_get_string(status));
     }
   }
 

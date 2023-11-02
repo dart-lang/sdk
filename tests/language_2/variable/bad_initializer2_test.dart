@@ -9,8 +9,6 @@ import "package:expect/expect.dart";
 
 main() {
   var foo = (int n) {
-  //  ^
-  // [cfe] Can't declare 'foo' because it was already used in this scope.
     if (n == 0) {
       return 0;
     } else {
@@ -18,6 +16,7 @@ main() {
           + foo(n - 1)
           //^^^
           // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+          // [cfe] Local variable 'foo' can't be referenced before it is declared.
           // [cfe] Method not found: 'foo'.
           ;
     }

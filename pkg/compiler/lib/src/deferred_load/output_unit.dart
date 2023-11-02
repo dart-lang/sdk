@@ -22,6 +22,8 @@ import '../options.dart';
 ///
 /// We never create two OutputUnits sharing the same set of [imports].
 class OutputUnit implements Comparable<OutputUnit> {
+  static const String tag = 'output-unit';
+
   /// `true` if this output unit is for the main output file.
   final bool isMainOutput;
 
@@ -32,6 +34,23 @@ class OutputUnit implements Comparable<OutputUnit> {
   final Set<ImportEntity> imports;
 
   OutputUnit(this.isMainOutput, this.name, this.imports);
+
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.begin(tag);
+    sink.writeBool(isMainOutput);
+    sink.writeString(name);
+    sink.writeImports(imports);
+    sink.end(tag);
+  }
+
+  static OutputUnit readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    final isMainOutput = source.readBool();
+    final name = source.readString();
+    final imports = source.readImports().toSet();
+    source.end(tag);
+    return OutputUnit(isMainOutput, name, imports);
+  }
 
   @override
   int compareTo(OutputUnit other) {
@@ -167,12 +186,8 @@ class OutputUnitData {
   factory OutputUnitData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     bool isProgramSplit = source.readBool();
-    List<OutputUnit> outputUnits = source.readList(() {
-      bool isMainOutput = source.readBool();
-      String name = source.readString();
-      Set<ImportEntity> importSet = source.readImports().toSet();
-      return OutputUnit(isMainOutput, name, importSet);
-    });
+    List<OutputUnit> outputUnits =
+        source.readList(source.readOutputUnitReference);
     OutputUnit mainOutputUnit = outputUnits[source.readInt()];
 
     Map<ClassEntity, OutputUnit> classToUnit = source.readClassMap(() {
@@ -219,9 +234,7 @@ class OutputUnitData {
     Map<OutputUnit, int> outputUnitIndices = {};
     sink.writeList(outputUnits, (OutputUnit outputUnit) {
       outputUnitIndices[outputUnit] = outputUnitIndices.length;
-      sink.writeBool(outputUnit.isMainOutput);
-      sink.writeString(outputUnit.name);
-      sink.writeImports(outputUnit.imports);
+      sink.writeOutputUnitReference(outputUnit);
     });
     sink.writeInt(outputUnitIndices[mainOutputUnit]!);
     sink.writeClassMap(_classToUnit, (OutputUnit outputUnit) {

@@ -689,6 +689,28 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    // Make suggestions in the body of the extension type declaration
+    final entity = this.entity;
+    final isMember = node.members.contains(entity);
+    final isClosingBrace = identical(entity, node.rightBracket);
+    final isAnnotation = isClosingBrace &&
+        entity is Token &&
+        _isPotentialAnnotation(entity.previous);
+
+    // Annotations being typed before a closing brace will not be parsed as
+    // annotations (and not be handled by `visitAnnotation`) so need special
+    // handling.
+    if (isAnnotation) {
+      optype.completionLocation = 'Annotation_name';
+      optype.includeAnnotationSuggestions = true;
+    } else if (isMember || isClosingBrace) {
+      optype.completionLocation = 'ExtensionTypeDeclaration_member';
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (entity == node.fields) {
       optype.completionLocation = 'FieldDeclaration_fields';
@@ -1402,6 +1424,20 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return;
       }
       optype._forPattern('RelationalPattern_operand');
+    }
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    if (identical(entity, node.fieldType) ||
+        (identical(entity, node.fieldName) && node.fieldType.isSynthetic)) {
+      optype.completionLocation = 'RepresentationDeclaration_fieldType';
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.fieldName) ||
+        (identical(entity, node.rightParenthesis) &&
+            node.fieldType.isSynthetic)) {
+      optype.completionLocation = 'RepresentationDeclaration_fieldName';
+      optype.includeVarNameSuggestions = true;
     }
   }
 

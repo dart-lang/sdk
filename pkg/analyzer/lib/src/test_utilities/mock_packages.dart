@@ -65,9 +65,22 @@ class JS {
 ''');
   }
 
+  /// Create a fake 'kernel' package that can be used by tests.
+  static void addKernelPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('ast.dart').writeAsStringSync(r'''
+library kernel.ast;
+
+abstract class Node {}
+class DartType extends Node {}
+class InterfaceType extends DartType {}
+''');
+  }
+
   /// Create a fake 'meta' package that can be used by tests.
   static void addMetaPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.create();
     libFolder.getChildAssumingFile('meta.dart').writeAsStringSync(r'''
 library meta;
 
@@ -254,6 +267,10 @@ class _Protected {
 
 class _Sealed {
   const _Sealed();
+}
+
+class _Virtual {
+  const _Virtual();
 }
 
 class _VisibleForOverriding {

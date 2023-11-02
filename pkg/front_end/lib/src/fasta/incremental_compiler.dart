@@ -1837,14 +1837,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   Future<Procedure?> compileExpression(
-      String expression,
-      Map<String, DartType> definitions,
-      List<TypeParameter> typeDefinitions,
-      String syntheticProcedureName,
-      Uri libraryUri,
-      {String? className,
-      String? methodName,
-      bool isStatic = false}) async {
+    String expression,
+    Map<String, DartType> definitions,
+    List<TypeParameter> typeDefinitions,
+    String syntheticProcedureName,
+    Uri libraryUri, {
+    String? className,
+    String? methodName,
+    int offset = -1,
+    String? scriptUri,
+    bool isStatic = false,
+  }) async {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
 

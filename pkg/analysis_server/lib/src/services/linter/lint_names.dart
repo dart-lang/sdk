@@ -58,6 +58,7 @@ class LintNames {
   static const String cast_nullable_to_non_nullable =
       'cast_nullable_to_non_nullable';
   static const String combinators_ordering = 'combinators_ordering';
+  static const String comment_references = 'comment_references';
   static const String constant_identifier_names = 'constant_identifier_names';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';

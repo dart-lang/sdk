@@ -23,8 +23,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -357,10 +355,11 @@ class ContextManagerImpl implements ContextManager {
   void _analyzeAnalysisOptionsYaml(AnalysisDriver driver, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
-      var content = _readFile(path);
+      var file = resourceProvider.getFile(path);
+      var content = file.readAsStringSync();
       var lineInfo = LineInfo.fromContent(content);
       var errors = analyzeAnalysisOptions(
-        resourceProvider.getFile(path).createSource(),
+        file.createSource(),
         content,
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
@@ -381,9 +380,9 @@ class ContextManagerImpl implements ContextManager {
   void _analyzeAndroidManifestXml(AnalysisDriver driver, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
-      var content = _readFile(path);
-      var validator =
-          ManifestValidator(resourceProvider.getFile(path).createSource());
+      var file = resourceProvider.getFile(path);
+      var content = file.readAsStringSync();
+      var validator = ManifestValidator(file.createSource());
       var lineInfo = LineInfo.fromContent(content);
       var errors = validator.validate(
           content, driver.analysisOptions.chromeOsManifestChecks);
@@ -443,52 +442,22 @@ class ContextManagerImpl implements ContextManager {
   void _analyzePubspecYaml(AnalysisDriver driver, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
-      var content = _readFile(path);
-      var node = loadYamlNode(content);
-      if (node is YamlMap) {
-        var lineInfo = LineInfo.fromContent(content);
-        var errors = validatePubspec(
-          contents: node.nodes,
-          source: resourceProvider.getFile(path).createSource(),
-          provider: resourceProvider,
-        );
-
-        var converter = AnalyzerConverter();
-        convertedErrors = converter.convertAnalysisErrors(errors,
-            lineInfo: lineInfo, options: driver.analysisOptions);
-
-        if (driver.analysisOptions.lint) {
-          var visitors = <LintRule, PubspecVisitor<Object?>>{};
-          for (var linter in driver.analysisOptions.lintRules) {
-            if (linter is LintRule) {
-              var visitor = linter.getPubspecVisitor();
-              if (visitor != null) {
-                visitors[linter] = visitor;
-              }
-            }
-          }
-
-          if (visitors.isNotEmpty) {
-            var sourceUri = resourceProvider.pathContext.toUri(path);
-            var pubspecAst = Pubspec.parse(content,
-                sourceUrl: sourceUri, resourceProvider: resourceProvider);
-            var listener = RecordingErrorListener();
-            var reporter = ErrorReporter(listener,
-                resourceProvider.getFile(path).createSource(sourceUri),
-                isNonNullableByDefault: false);
-            for (var entry in visitors.entries) {
-              entry.key.reporter = reporter;
-              pubspecAst.accept(entry.value);
-            }
-            if (listener.errors.isNotEmpty) {
-              convertedErrors.addAll(converter.convertAnalysisErrors(
-                  listener.errors,
-                  lineInfo: lineInfo,
-                  options: driver.analysisOptions));
-            }
-          }
-        }
+      var file = resourceProvider.getFile(path);
+      var content = file.readAsStringSync();
+      var node = loadYamlNode(content, sourceUrl: file.toUri());
+      if (node is! YamlMap) {
+        node = YamlMap();
       }
+      var errors = validatePubspec(
+        contents: node,
+        source: resourceProvider.getFile(path).createSource(),
+        provider: resourceProvider,
+        analysisOptions: driver.analysisOptions,
+      );
+      var converter = AnalyzerConverter();
+      var lineInfo = LineInfo.fromContent(content);
+      convertedErrors = converter.convertAnalysisErrors(errors,
+          lineInfo: lineInfo, options: driver.analysisOptions);
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -881,12 +850,6 @@ class ContextManagerImpl implements ContextManager {
         .logError('Watcher error; refreshing contexts.\n$error\n$stackTrace');
     // TODO(mfairhurst): Optimize this, or perhaps be less complete.
     refresh();
-  }
-
-  /// Read the contents of the file at the given [path], or throw an exception
-  /// if the contents cannot be read.
-  String _readFile(String path) {
-    return resourceProvider.getFile(path).readAsStringSync();
   }
 
   /// Checks whether the current roots were built using the same paths as

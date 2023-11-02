@@ -237,8 +237,8 @@ abstract interface class File implements FileSystemEntity {
   /// only if all directories in its path already exist.
   /// If [recursive] is `true`, all non-existing parent paths are created first.
   ///
-  /// If [exclusive] is `true` and to-be-created file already exists, this
-  /// operation completes the future with a [FileSystemException].
+  /// If [exclusive] is `true` and to-be-created file already exists, then
+  /// a [FileSystemException] is thrown.
   ///
   /// If [exclusive] is `false`, existing files are left untouched by
   /// [createSync]. Calling [createSync] on an existing file still might fail
@@ -631,9 +631,23 @@ abstract interface class RandomAccessFile {
   int readByteSync();
 
   /// Reads up to [count] bytes from a file.
+  ///
+  /// May return fewer than [count] bytes. This can happen, for example, when
+  /// reading past the end of a file or when reading from a pipe that does not
+  /// currently contain additional data.
+  ///
+  /// An empty [Uint8List] will only be returned when reading past the end of
+  /// the file or when [count] is `0`.
   Future<Uint8List> read(int count);
 
   /// Synchronously reads up to [count] bytes from a file
+  ///
+  /// May return fewer than [count] bytes. This can happen, for example, when
+  /// reading past the end of a file or when reading from a pipe that does not
+  /// currently contain additional data.
+  ///
+  /// An empty [Uint8List] will only be returned when reading past the end of
+  /// the file or when [count] is `0`.
   ///
   /// Throws a [FileSystemException] if the operation fails.
   Uint8List readSync(int count);

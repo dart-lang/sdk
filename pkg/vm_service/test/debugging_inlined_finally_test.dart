@@ -1,11 +1,11 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
 
-import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:test/test.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -14,7 +14,7 @@ const int LINE_A = 25;
 const int LINE_B = 28;
 const int LINE_C = 31;
 
-testFunction() {
+Function testFunction() {
   debugger();
   var a;
   try {
@@ -30,112 +30,96 @@ testFunction() {
   } finally {
     a = 1; // LINE_C
   }
+  throw StateError('Unreachable');
 }
 
-testMain() {
-  var f = testFunction();
-  expect(f(), equals(11));
+void testMain() {
+  final f = testFunction();
+  expect(f(), 11);
 }
 
-var tests = <IsolateTest>[
+Future<void> Function(VmService, IsolateRef) checkBreakpoint(int line) =>
+    (VmService service, IsolateRef isolateRef) async {
+      final isolateId = isolateRef.id!;
+      final stack = await service.getStack(isolateId);
+      expect(stack.frames!.length, greaterThanOrEqualTo(1));
+
+      final frame = stack.frames![0];
+      final script = await service.getObject(
+          isolateId, frame.location!.script!.id!) as Script;
+
+      expect(script.getLineNumberFromTokenPos(frame.location!.tokenPos!), line);
+    };
+
+final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+
   // Add breakpoint
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    Isolate isolate = await service.getIsolate(isolateId);
+    var isolate = await service.getIsolate(isolateId);
     final rootLib =
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
 
-    final script =
-        await service.getObject(isolateId, rootLib.scripts![0].id!) as Script;
+    final scriptId = rootLib.scripts![0].id!;
+    final script = await service.getObject(isolateId, scriptId) as Script;
 
     // Add 3 breakpoints.
     {
       final bpt = await service.addBreakpoint(isolateId, script.id!, LINE_A);
-      expect(bpt.location!.script.id!, script.id);
-      final tmpScript =
-          await service.getObject(isolateId, script.id!) as Script;
-      expect(
-        tmpScript.getLineNumberFromTokenPos(bpt.location!.tokenPos),
-        LINE_A,
-      );
+      expect(bpt.location!.script!.id, scriptId);
+      expect(script.getLineNumberFromTokenPos(bpt.location!.tokenPos), LINE_A);
+
       isolate = await service.getIsolate(isolateId);
       expect(isolate.breakpoints!.length, 1);
     }
 
     {
-      final bpt = await service.addBreakpoint(isolateId, script.id!, LINE_B);
-      expect(bpt.location!.script.id, script.id);
-      final tmpScript =
-          await service.getObject(isolateId, script.id!) as Script;
-      expect(
-        tmpScript.getLineNumberFromTokenPos(bpt.location!.tokenPos),
-        LINE_B,
-      );
+      final bpt = await service.addBreakpoint(isolateId, scriptId, LINE_B);
+      expect(bpt.location!.script!.id, scriptId);
+      expect(script.getLineNumberFromTokenPos(bpt.location!.tokenPos), LINE_B);
+
       isolate = await service.getIsolate(isolateId);
-      expect(isolate.breakpoints!.length, 2);
+      expect(isolate.breakpoints!.length, equals(2));
     }
 
     {
-      final bpt = await service.addBreakpoint(isolateId, script.id!, LINE_C);
-      expect(bpt.location!.script.id, script.id!);
-      final tmpScript =
-          await service.getObject(isolateId, script.id!) as Script;
-      expect(
-        tmpScript.getLineNumberFromTokenPos(bpt.location!.tokenPos),
-        LINE_C,
-      );
+      final bpt = await service.addBreakpoint(isolateId, scriptId, LINE_C);
+      expect(bpt.location!.script!.id, scriptId);
+      expect(script.getLineNumberFromTokenPos(bpt.location!.tokenPos), LINE_C);
+
       isolate = await service.getIsolate(isolateId);
-      expect(isolate.breakpoints!.length, 3);
+      expect(isolate.breakpoints!.length, equals(3));
     }
+
     // Wait for breakpoint events.
   },
+
   resumeIsolate,
+
   hasStoppedAtBreakpoint,
+
   // We are at the breakpoint on line LINE_A.
-  (VmService service, IsolateRef isolateRef) async {
-    final stack = await service.getStack(isolateRef.id!);
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
+  checkBreakpoint(LINE_A),
 
-    final script = await service.getObject(
-        isolateRef.id!, stack.frames![0].location!.script!.id!) as Script;
-    expect(
-      script.getLineNumberFromTokenPos(stack.frames![0].location!.tokenPos!),
-      LINE_A,
-    );
-  },
   resumeIsolate,
+
   hasStoppedAtBreakpoint,
+
   // We are at the breakpoint on line LINE_B.
-  (VmService service, IsolateRef isolateRef) async {
-    final stack = await service.getStack(isolateRef.id!);
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
+  checkBreakpoint(LINE_B),
 
-    final script = await service.getObject(
-        isolateRef.id!, stack.frames![0].location!.script!.id!) as Script;
-    expect(
-      script.getLineNumberFromTokenPos(stack.frames![0].location!.tokenPos!),
-      LINE_B,
-    );
-  },
   resumeIsolate,
-  hasStoppedAtBreakpoint,
-  // We are at the breakpoint on line LINE_C.
-  (VmService service, IsolateRef isolateRef) async {
-    final stack = await service.getStack(isolateRef.id!);
-    expect(stack.frames!.length, greaterThanOrEqualTo(1));
 
-    final script = await service.getObject(
-        isolateRef.id!, stack.frames![0].location!.script!.id!) as Script;
-    expect(
-      script.getLineNumberFromTokenPos(stack.frames![0].location!.tokenPos!),
-      LINE_C,
-    );
-  },
+  hasStoppedAtBreakpoint,
+
+  // We are at the breakpoint on line LINE_C.
+  checkBreakpoint(LINE_C),
+
   resumeIsolate,
 ];
 
-main(args) => runIsolateTests(
+void main(List<String> args) => runIsolateTests(
       args,
       tests,
       'debugging_inlined_finally_test.dart',

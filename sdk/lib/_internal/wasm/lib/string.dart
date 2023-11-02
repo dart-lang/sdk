@@ -6,23 +6,11 @@ library dart._string;
 
 import "dart:_internal"
     show
-        allocateOneByteString,
-        allocateTwoByteString,
         CodeUnits,
         ClassID,
-        copyRangeFromUint8ListToOneByteString,
-        doubleToIntBits,
         EfficientLengthIterable,
-        intBitsToDouble,
-        IterableElementError,
-        jsonEncode,
-        Lists,
-        mix64,
         makeListFixedLength,
-        patch,
-        unsafeCast,
-        writeIntoOneByteString,
-        writeIntoTwoByteString;
+        unsafeCast;
 
 import 'dart:_js_helper' show JS;
 import 'dart:_js_types' show JSStringImpl;
@@ -32,6 +20,30 @@ import 'dart:_wasm';
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
+/// Static function for `OneByteString._setAt` to avoid making `_setAt` public,
+/// which would allow calling it in dynamic invocations.
+@pragma('wasm:prefer-inline')
+void writeIntoOneByteString(OneByteString s, int index, int codePoint) =>
+    s._setAt(index, codePoint);
+
+/// Same as `writeIntoOneByteString`, but for `TwoByteString`.
+@pragma('wasm:prefer-inline')
+void writeIntoTwoByteString(TwoByteString s, int index, int codePoint) =>
+    s._setAt(index, codePoint);
+
+/// Static function for `OneByteString._array` to avoid making `_array` public.
+@pragma('wasm:prefer-inline')
+WasmIntArray<WasmI8> oneByteStringArray(OneByteString s) => s._array;
+
+/// The [fromStart] and [toStart] indices together with the [length] must
+/// specify ranges within the bounds of the list / string.
+void copyRangeFromUint8ListToOneByteString(
+    Uint8List from, OneByteString to, int fromStart, int toStart, int length) {
+  for (int i = 0; i < length; i++) {
+    to._setAt(toStart + i, from[fromStart + i]);
+  }
+}
+
 const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
 
@@ -40,10 +52,6 @@ String _toUpperCase(String string) => JS<String>(
 
 String _toLowerCase(String string) => JS<String>(
     "s => stringToDartString(stringFromDartString(s).toLowerCase())", string);
-
-extension _StringExtension on String {
-  bool get _isOneByte => this is OneByteString;
-}
 
 /**
  * [StringBase] contains common methods used by concrete String
@@ -81,8 +89,6 @@ abstract final class StringBase implements String {
   // [replaceAll] is faster than [_joinReplaceAllOneByteResult].
   // TODO(lrn): See if this limit can be tweaked.
   static const int _maxJoinReplaceOneByteStringLength = 500;
-
-  StringBase._();
 
   int get hashCode {
     int hash = getHash(this);
@@ -209,11 +215,8 @@ abstract final class StringBase implements String {
     return createFromCharCodes(charCodeList, 0, length, bits);
   }
 
-  // Inlining is disabled as a workaround to http://dartbug.com/37800.
-
   static String createOneByteString(List<int> charCodes, int start, int len) {
-    // It's always faster to do this in Dart than to call into the runtime.
-    var s = OneByteString.allocate(len);
+    var s = OneByteString.withLength(len);
 
     // Special case for native Uint8 typed arrays.
     if (charCodes is Uint8List) {
@@ -223,16 +226,16 @@ abstract final class StringBase implements String {
 
     // Fall through to normal case.
     for (int i = 0; i < len; i++) {
-      s.setAt(i, charCodes[start + i]);
+      s._setAt(i, charCodes[start + i]);
     }
     return s;
   }
 
   static String _createFromOneByteCodes(
       List<int> charCodes, int start, int end) {
-    OneByteString result = OneByteString.allocate(end - start);
+    OneByteString result = OneByteString.withLength(end - start);
     for (int i = start; i < end; i++) {
-      result.setAt(i - start, charCodes[i]);
+      result._setAt(i - start, charCodes[i]);
     }
     return result;
   }
@@ -258,10 +261,6 @@ abstract final class StringBase implements String {
   }
 
   String operator [](int index) => String.fromCharCode(codeUnitAt(index));
-
-  int codeUnitAt(int index); // Implemented in the subclasses.
-
-  int get length; // Implemented in the subclasses.
 
   bool get isEmpty {
     return this.length == 0;
@@ -580,16 +579,18 @@ abstract final class StringBase implements String {
   String replaceRange(int start, int? end, String replacement) {
     final length = this.length;
     final localEnd = RangeError.checkValidRange(start, end, length);
-    bool replacementIsOneByte = replacement._isOneByte;
+    bool replacementIsOneByte = replacement is OneByteString;
     if (start == 0 && localEnd == length) return replacement;
     int replacementLength = replacement.length;
     int totalLength = start + (length - localEnd) + replacementLength;
-    if (replacementIsOneByte && this._isOneByte) {
-      var result = OneByteString.allocate(totalLength);
+    if (replacementIsOneByte && this is OneByteString) {
+      final this_ = unsafeCast<OneByteString>(this);
+      final result = OneByteString.withLength(totalLength);
       int index = 0;
-      index = result._setRange(index, this, 0, start);
-      index = result._setRange(start, replacement, 0, replacementLength);
-      result._setRange(index, this, localEnd, length);
+      index = result._setRange(index, this_, 0, start);
+      index = result._setRange(
+          start, unsafeCast<OneByteString>(replacement), 0, replacementLength);
+      result._setRange(index, this_, localEnd, length);
       return result;
     }
     List slices = [];
@@ -636,10 +637,10 @@ abstract final class StringBase implements String {
     // No match, or a zero-length match at start with zero-length replacement.
     if (startIndex == 0 && length == 0) return this;
     length += _addReplaceSlice(matches, startIndex, this.length);
-    bool replacementIsOneByte = replacement._isOneByte;
+    bool replacementIsOneByte = replacement is OneByteString;
     if (replacementIsOneByte &&
         length < _maxJoinReplaceOneByteStringLength &&
-        this._isOneByte) {
+        this is OneByteString) {
       // TODO(lrn): Is there a cut-off point, or is runtime always faster?
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
@@ -652,7 +653,7 @@ abstract final class StringBase implements String {
    */
   static String _joinReplaceAllOneByteResult(
       String base, List matches, int length) {
-    OneByteString result = OneByteString.allocate(length);
+    OneByteString result = OneByteString.withLength(length);
     int writeIndex = 0;
     for (int i = 0; i < matches.length; i++) {
       var entry = matches[i];
@@ -673,13 +674,13 @@ abstract final class StringBase implements String {
           sliceEnd = matches[i];
         }
         for (int j = sliceStart; j < sliceEnd; j++) {
-          result.setAt(writeIndex++, base.codeUnitAt(j));
+          result._setAt(writeIndex++, base.codeUnitAt(j));
         }
       } else {
         // Replacement is a one-byte string.
         String replacement = entry;
         for (int j = 0; j < replacement.length; j++) {
-          result.setAt(writeIndex++, replacement.codeUnitAt(j));
+          result._setAt(writeIndex++, replacement.codeUnitAt(j));
         }
       }
     }
@@ -707,7 +708,7 @@ abstract final class StringBase implements String {
     if (isOneByte) {
       return _joinReplaceAllOneByteResult(base, matches, length);
     }
-    TwoByteString result = TwoByteString.allocate(length);
+    TwoByteString result = TwoByteString.withLength(length);
     int writeIndex = 0;
     for (int i = 0; i < matches.length; i++) {
       var entry = matches[i];
@@ -728,13 +729,13 @@ abstract final class StringBase implements String {
           sliceEnd = matches[i];
         }
         for (int j = sliceStart; j < sliceEnd; j++) {
-          result.setAt(writeIndex++, base.codeUnitAt(j));
+          result._setAt(writeIndex++, base.codeUnitAt(j));
         }
       } else {
         // Replacement is a one-byte string.
         String replacement = entry;
         for (int j = 0; j < replacement.length; j++) {
-          result.setAt(writeIndex++, replacement.codeUnitAt(j));
+          result._setAt(writeIndex++, replacement.codeUnitAt(j));
         }
       }
     }
@@ -787,14 +788,14 @@ abstract final class StringBase implements String {
       matches.add(replacement);
       length += replacement.length;
       replacementStringsAreOneByte =
-          replacementStringsAreOneByte && replacement._isOneByte;
+          replacementStringsAreOneByte && replacement is OneByteString;
       startIndex = match.end;
     }
     if (matches.isEmpty) return this;
     length += _addReplaceSlice(matches, startIndex, this.length);
     if (replacementStringsAreOneByte &&
         length < _maxJoinReplaceOneByteStringLength &&
-        this._isOneByte) {
+        this is OneByteString) {
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
     return _joinReplaceAllResult(
@@ -986,7 +987,7 @@ abstract final class StringBase implements String {
         totalLength += unsafeCast<StringBase>(str).length;
       }
     }
-    TwoByteString result = TwoByteString.allocate(totalLength);
+    TwoByteString result = TwoByteString.withLength(totalLength);
     int offset = 0;
     for (int i = start; i < end; i++) {
       final str = strings[i];
@@ -1012,9 +1013,7 @@ final class OneByteString extends StringBase {
   @pragma("wasm:entry-point")
   WasmIntArray<WasmI8> _array;
 
-  OneByteString._withLength(int length)
-      : _array = WasmIntArray<WasmI8>(length),
-        super._();
+  OneByteString.withLength(int length) : _array = WasmIntArray<WasmI8>(length);
 
   // Same hash as VM
   @override
@@ -1042,17 +1041,11 @@ final class OneByteString extends StringBase {
     return StringBase._isOneByteWhitespace(codeUnit);
   }
 
-  bool operator ==(Object other) {
-    return super == other;
-  }
-
   @override
   String _substringUncheckedInternal(int startIndex, int endIndex) {
-    int length = endIndex - startIndex;
-    var result = OneByteString._withLength(length);
-    for (int i = 0; i < length; i++) {
-      result.setAt(i, codeUnitAt(startIndex + i));
-    }
+    final length = endIndex - startIndex;
+    final result = OneByteString.withLength(length);
+    result._array.copy(0, _array, startIndex, length);
     return result;
   }
 
@@ -1079,17 +1072,15 @@ final class OneByteString extends StringBase {
 
   // All element of 'strings' must be OneByteStrings.
   static _concatAll(List strings, int totalLength) {
-    final result = OneByteString.allocate(totalLength);
+    final result = OneByteString.withLength(totalLength);
     final to = result._array;
     final stringsLength = strings.length;
-    int j = 0;
+    int resultOffset = 0;
     for (int s = 0; s < stringsLength; s++) {
       final OneByteString e = unsafeCast<OneByteString>(strings[s]);
-      final from = e._array;
-      final length = from.length;
-      for (int i = 0; i < length; i++) {
-        to.write(j++, from.readUnsigned(i));
-      }
+      final length = e._array.length;
+      to.copy(resultOffset, e._array, 0, length);
+      resultOffset += length;
     }
     return result;
   }
@@ -1144,20 +1135,18 @@ final class OneByteString extends StringBase {
   String operator *(int times) {
     if (times <= 0) return "";
     if (times == 1) return this;
-    int length = this.length;
-    if (this.isEmpty) return this; // Don't clone empty string.
-    OneByteString result = OneByteString.allocate(length * times);
-    int index = 0;
+    final int length = this.length;
+    if (length == 0) return this; // Don't clone empty string.
+    final OneByteString result = OneByteString.withLength(length * times);
+    final WasmIntArray<WasmI8> array = result._array;
     for (int i = 0; i < times; i++) {
-      for (int j = 0; j < length; j++) {
-        result.setAt(index++, this.codeUnitAt(j));
-      }
+      array.copy(i * length, _array, 0, length);
     }
     return result;
   }
 
   String padLeft(int width, [String padding = ' ']) {
-    if (!padding._isOneByte) {
+    if (padding is! OneByteString) {
       return super.padLeft(width, padding);
     }
     int length = this.length;
@@ -1165,28 +1154,28 @@ final class OneByteString extends StringBase {
     if (delta <= 0) return this;
     int padLength = padding.length;
     int resultLength = padLength * delta + length;
-    OneByteString result = OneByteString.allocate(resultLength);
+    OneByteString result = OneByteString.withLength(resultLength);
     int index = 0;
     if (padLength == 1) {
       int padChar = padding.codeUnitAt(0);
       for (int i = 0; i < delta; i++) {
-        result.setAt(index++, padChar);
+        result._setAt(index++, padChar);
       }
     } else {
       for (int i = 0; i < delta; i++) {
         for (int j = 0; j < padLength; j++) {
-          result.setAt(index++, padding.codeUnitAt(j));
+          result._setAt(index++, padding.codeUnitAt(j));
         }
       }
     }
     for (int i = 0; i < length; i++) {
-      result.setAt(index++, this.codeUnitAt(i));
+      result._setAt(index++, this.codeUnitAt(i));
     }
     return result;
   }
 
   String padRight(int width, [String padding = ' ']) {
-    if (!padding._isOneByte) {
+    if (padding is! OneByteString) {
       return super.padRight(width, padding);
     }
     int length = this.length;
@@ -1194,20 +1183,20 @@ final class OneByteString extends StringBase {
     if (delta <= 0) return this;
     int padLength = padding.length;
     int resultLength = length + padLength * delta;
-    OneByteString result = OneByteString.allocate(resultLength);
+    OneByteString result = OneByteString.withLength(resultLength);
     int index = 0;
     for (int i = 0; i < length; i++) {
-      result.setAt(index++, this.codeUnitAt(i));
+      result._setAt(index++, this.codeUnitAt(i));
     }
     if (padLength == 1) {
       int padChar = padding.codeUnitAt(0);
       for (int i = 0; i < delta; i++) {
-        result.setAt(index++, padChar);
+        result._setAt(index++, padChar);
       }
     } else {
       for (int i = 0; i < delta; i++) {
         for (int j = 0; j < padLength; j++) {
-          result.setAt(index++, padding.codeUnitAt(j));
+          result._setAt(index++, padding.codeUnitAt(j));
         }
       }
     }
@@ -1265,12 +1254,12 @@ final class OneByteString extends StringBase {
       final c = this.codeUnitAt(i);
       if (c == _LC_TABLE.codeUnitAt(c)) continue;
       // Upper-case character found.
-      final result = allocate(this.length);
+      final result = OneByteString.withLength(this.length);
       for (int j = 0; j < i; j++) {
-        result.setAt(j, this.codeUnitAt(j));
+        result._setAt(j, this.codeUnitAt(j));
       }
       for (int j = i; j < this.length; j++) {
-        result.setAt(j, _LC_TABLE.codeUnitAt(this.codeUnitAt(j)));
+        result._setAt(j, _LC_TABLE.codeUnitAt(this.codeUnitAt(j)));
       }
       return result;
     }
@@ -1296,50 +1285,35 @@ final class OneByteString extends StringBase {
       }
       // Some lower-case characters found, but all upper-case to single Latin-1
       // characters.
-      final result = allocate(this.length);
+      final result = OneByteString.withLength(this.length);
       for (int j = 0; j < i; j++) {
-        result.setAt(j, this.codeUnitAt(j));
+        result._setAt(j, this.codeUnitAt(j));
       }
       for (int j = i; j < this.length; j++) {
-        result.setAt(j, _UC_TABLE.codeUnitAt(this.codeUnitAt(j)));
+        result._setAt(j, _UC_TABLE.codeUnitAt(this.codeUnitAt(j)));
       }
       return result;
     }
     return this;
   }
 
-  // Allocates a string of given length, expecting its content to be
-  // set using setAt.
-
-  static OneByteString allocate(int length) {
-    return unsafeCast<OneByteString>(allocateOneByteString(length));
+  /// This is internal helper method. Code point value must be a valid Latin1
+  /// value (0..0xFF), index must be valid.
+  @pragma('wasm:prefer-inline')
+  void _setAt(int index, int codePoint) {
+    _array.write(index, codePoint);
   }
 
-  external static OneByteString allocateFromOneByteList(
-      List<int> list, int start, int end);
-
-  // This is internal helper method. Code point value must be a valid
-  // Latin1 value (0..0xFF), index must be valid.
-
-  void setAt(int index, int codePoint) {
-    writeIntoOneByteString(this, index, codePoint);
-  }
-
-  // Should be optimizable to a memory move.
-  // Accepts both OneByteString and _ExternalOneByteString as argument.
-  // Returns index after last character written.
-  int _setRange(int index, String oneByteString, int start, int end) {
-    assert(oneByteString._isOneByte);
+  /// Returns index after last character written.
+  int _setRange(int index, OneByteString oneByteString, int start, int end) {
     assert(0 <= start);
     assert(start <= end);
     assert(end <= oneByteString.length);
     assert(0 <= index);
     assert(index + (end - start) <= length);
-    for (int i = start; i < end; i++) {
-      setAt(index, oneByteString.codeUnitAt(i));
-      index += 1;
-    }
-    return index;
+    final rangeLength = end - start;
+    _array.copy(index, oneByteString._array, start, rangeLength);
+    return index + rangeLength;
   }
 }
 
@@ -1348,9 +1322,7 @@ final class TwoByteString extends StringBase {
   @pragma("wasm:entry-point")
   WasmIntArray<WasmI16> _array;
 
-  TwoByteString._withLength(int length)
-      : _array = WasmIntArray<WasmI16>(length),
-        super._();
+  TwoByteString.withLength(int length) : _array = WasmIntArray<WasmI16>(length);
 
   // Same hash as VM
   @override
@@ -1364,16 +1336,9 @@ final class TwoByteString extends StringBase {
     return stringFinalizeHash(hash);
   }
 
-  // Allocates a string of given length, expecting its content to be
-  // set using setAt.
-
-  static TwoByteString allocate(int length) {
-    return unsafeCast<TwoByteString>(allocateTwoByteString(length));
-  }
-
   static String allocateFromTwoByteList(List<int> list, int start, int end) {
     final int length = end - start;
-    final s = allocate(length);
+    final s = TwoByteString.withLength(length);
     final array = s._array;
     for (int i = 0; i < length; i++) {
       array.write(i, list[start + i]);
@@ -1381,11 +1346,11 @@ final class TwoByteString extends StringBase {
     return s;
   }
 
-  // This is internal helper method. Code point value must be a valid
-  // UTF-16 value (0..0xFFFF), index must be valid.
-
-  void setAt(int index, int codePoint) {
-    writeIntoTwoByteString(this, index, codePoint);
+  /// This is internal helper method. Code point value must be a valid UTF-16
+  /// value (0..0xFFFF), index must be valid.
+  @pragma('wasm:prefer-inline')
+  void _setAt(int index, int codePoint) {
+    _array.write(index, codePoint);
   }
 
   @override
@@ -1402,29 +1367,49 @@ final class TwoByteString extends StringBase {
   @override
   int get length => _array.length;
 
-  bool operator ==(Object other) {
-    return super == other;
-  }
-
   @override
   String _substringUncheckedInternal(int startIndex, int endIndex) {
-    int length = endIndex - startIndex;
-    var result = TwoByteString._withLength(length);
-    for (int i = 0; i < length; i++) {
-      result.setAt(i, codeUnitAt(startIndex + i));
-    }
+    final length = endIndex - startIndex;
+    final result = TwoByteString.withLength(length);
+    result._array.copy(0, _array, startIndex, length);
     return result;
   }
 
   @override
   int _copyIntoTwoByteString(TwoByteString result, int offset) {
-    final from = _array;
-    final int length = from.length;
-    final to = result._array;
-    int j = offset;
-    for (int i = 0; i < length; i++) {
-      to.write(j++, from.readUnsigned(i));
-    }
-    return j;
+    result._array.copy(offset, _array, 0, length);
+    return offset + length;
   }
+}
+
+// String accessors used to perform Dart<->JS string conversion
+
+@pragma("wasm:export", "\$stringLength")
+double _stringLength(String string) {
+  return string.length.toDouble();
+}
+
+@pragma("wasm:export", "\$stringRead")
+double _stringRead(String string, double index) {
+  return string.codeUnitAt(index.toInt()).toDouble();
+}
+
+@pragma("wasm:export", "\$stringAllocate1")
+OneByteString _stringAllocate1(double length) {
+  return OneByteString.withLength(length.toInt());
+}
+
+@pragma("wasm:export", "\$stringWrite1")
+void _stringWrite1(OneByteString string, double index, double codePoint) {
+  writeIntoOneByteString(string, index.toInt(), codePoint.toInt());
+}
+
+@pragma("wasm:export", "\$stringAllocate2")
+TwoByteString _stringAllocate2(double length) {
+  return TwoByteString.withLength(length.toInt());
+}
+
+@pragma("wasm:export", "\$stringWrite2")
+void _stringWrite2(TwoByteString string, double index, double codePoint) {
+  writeIntoTwoByteString(string, index.toInt(), codePoint.toInt());
 }

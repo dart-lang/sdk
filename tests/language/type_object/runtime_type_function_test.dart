@@ -16,15 +16,21 @@ main() {
   check(fn('int', ''), () => 1); //       closure.
 
   var s = new Xyzzy().runtimeType.toString();
-  if (s.length <= 3) return; // dart2js --minify has minified names.
-
-  Expect.equals('Xyzzy', s, 'runtime type of plain class prints as class name');
+  if (!s.startsWith('minified')) {
+    Expect.equals(
+        'Xyzzy', s, 'runtime type of plain class prints as class name');
+  }
 
   check(fn('void', 'String, dynamic'), check);
 
   // Class static member tear-offs.
   check(fn('String', 'String, [String?, dynamic]'), Xyzzy.opt);
-  check(fn('String', 'String', {'a': 'String?', 'b': 'dynamic'}), Xyzzy.nam);
+  // TODO(dartbug.com/53879): VM obfuscation also obfuscates named parameters,
+  // but currently they are not deobfuscated if the function is annotated
+  // with @pragma("vm:keep-name"), just the function name.
+  if (!isObfuscated) {
+    check(fn('String', 'String', {'a': 'String?', 'b': 'dynamic'}), Xyzzy.nam);
+  }
 
   // Instance method tear-offs.
   check(fn('void', 'Object?'), new MyList<String>().add);
@@ -49,6 +55,7 @@ main() {
   check(fn('void', 'int'), localFunc2);
 }
 
+@pragma("vm:keep-name")
 class Xyzzy {
   static void foo() {}
   static String opt(String x, [String? a, b]) => "";

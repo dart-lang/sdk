@@ -1,0 +1,67 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+extension type H<T extends core::Object? = dynamic>(mai::E<T%> e) implements mai::F<T%> /* = mai::C<T%> */, mai::D<T%> {
+  abstract inline-class-member representation-field get e() → mai::E<T%>;
+  abstract member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, core::Object?); -> mai::D::method
+  constructor • = self::H|constructor#;
+  constructor tearoff • = self::H|constructor#_#new#tearOff;
+}
+static inline-class-member method H|constructor#<T extends core::Object? = dynamic>(mai::E<self::H|constructor#::T%> e) → self::H<self::H|constructor#::T%> /* = mai::E<self::H|constructor#::T%> */
+  ;
+static inline-class-member method H|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<self::H|constructor#_#new#tearOff::T%> e) → self::H<self::H|constructor#_#new#tearOff::T%> /* = mai::E<self::H|constructor#_#new#tearOff::T%> */
+  return self::H|constructor#<self::H|constructor#_#new#tearOff::T%>(e);
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → mai::A<mai::A::T%>
+    ;
+  abstract method method(covariant-by-class mai::A::T% t) → (core::Object?, dynamic, dynamic);
+}
+abstract class B<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → mai::B<mai::B::T%>
+    ;
+  abstract method method(covariant-by-class mai::B::T% t) → (dynamic, core::Object?, dynamic);
+}
+abstract class C<T extends core::Object? = dynamic> extends core::Object implements mai::A<mai::C::T%>, mai::B<mai::C::T%> {
+  synthetic constructor •() → mai::C<mai::C::T%>
+    ;
+  abstract member-signature method method(covariant-by-class mai::C::T% t) → (core::Object?, core::Object?, dynamic); -> mai::A::method
+}
+abstract class D<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → mai::D<mai::D::T%>
+    ;
+  abstract method method(covariant-by-class mai::D::T% t) → (dynamic, dynamic, core::Object?);
+}
+abstract class E<T extends core::Object? = dynamic> extends core::Object implements mai::C<mai::E::T%>, mai::D<mai::E::T%> {
+  synthetic constructor •() → mai::E<mai::E::T%>
+    ;
+  abstract member-signature method method(covariant-by-class mai::E::T% t) → (core::Object?, core::Object?, core::Object?); -> mai::A::method
+}
+extension type F<T extends core::Object? = dynamic>(mai::C<T%> c) implements mai::A<T%>, mai::B<T%> {
+  abstract inline-class-member representation-field get c() → mai::C<T%>;
+  abstract member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, dynamic); -> mai::A::method
+  constructor • = mai::F|constructor#;
+  constructor tearoff • = mai::F|constructor#_#new#tearOff;
+}
+extension type G<T extends core::Object? = dynamic>(mai::E<T%> e) implements mai::F<T%> /* = mai::C<T%> */, mai::D<T%> {
+  abstract inline-class-member representation-field get e() → mai::E<T%>;
+  abstract member-signature method method(covariant-by-class T% t) → (core::Object?, core::Object?, core::Object?); -> mai::D::method
+  constructor • = mai::G|constructor#;
+  constructor tearoff • = mai::G|constructor#_#new#tearOff;
+}
+static inline-class-member method F|constructor#<T extends core::Object? = dynamic>(mai::C<mai::F|constructor#::T%> c) → mai::F<mai::F|constructor#::T%> /* = mai::C<mai::F|constructor#::T%> */
+  ;
+static inline-class-member method F|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::C<mai::F|constructor#_#new#tearOff::T%> c) → mai::F<mai::F|constructor#_#new#tearOff::T%> /* = mai::C<mai::F|constructor#_#new#tearOff::T%> */
+  return mai::F|constructor#<mai::F|constructor#_#new#tearOff::T%>(c);
+static inline-class-member method G|constructor#<T extends core::Object? = dynamic>(mai::E<mai::G|constructor#::T%> e) → mai::G<mai::G|constructor#::T%> /* = mai::E<mai::G|constructor#::T%> */
+  ;
+static inline-class-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<mai::G|constructor#_#new#tearOff::T%> e) → mai::G<mai::G|constructor#_#new#tearOff::T%> /* = mai::E<mai::G|constructor#_#new#tearOff::T%> */
+  return mai::G|constructor#<mai::G|constructor#_#new#tearOff::T%>(e);

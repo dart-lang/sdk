@@ -1,0 +1,8 @@
+class B {}
+
+class C with M {}
+
+class D = Object with M;
+mixin M on Object {
+  void mixinMethod() {}
+}

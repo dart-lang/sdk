@@ -710,13 +710,13 @@ class WidgetCreatorTracker {
       return;
     }
 
-    for (ExtensionMemberDescriptor member in extension.members) {
+    for (ExtensionMemberDescriptor member in extension.memberDescriptors) {
       if (member.isStatic) {
         // We could support static extension methods but it is not clear that
         // there is a use case for this.
         continue;
       }
-      final Procedure method = member.member.asProcedure;
+      final Procedure method = member.memberReference.asProcedure;
       if (_hasWidgetFactoryAnnotation(method)) {
         _maybeAddNamedParameter(
           method.function,
@@ -730,7 +730,7 @@ class WidgetCreatorTracker {
           ),
         );
       }
-      final Procedure? tearOff = member.tearOff?.asProcedure;
+      final Procedure? tearOff = member.tearOffReference?.asProcedure;
       if (tearOff != null && _hasWidgetFactoryAnnotation(tearOff)) {
         _maybeAddNamedParameter(
           tearOff.function,

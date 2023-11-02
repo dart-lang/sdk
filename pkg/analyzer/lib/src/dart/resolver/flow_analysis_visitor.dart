@@ -79,6 +79,8 @@ class FlowAnalysisHelper {
   /// analyzing old language versions).
   final bool respectImplicitlyTypedVarInitializers;
 
+  final bool fieldPromotionEnabled;
+
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
       flow;
@@ -89,11 +91,14 @@ class FlowAnalysisHelper {
             retainDataForTesting ? FlowAnalysisDataForTesting() : null,
             isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
             respectImplicitlyTypedVarInitializers:
-                featureSet.isEnabled(Feature.constructor_tearoffs));
+                featureSet.isEnabled(Feature.constructor_tearoffs),
+            fieldPromotionEnabled:
+                featureSet.isEnabled(Feature.inference_update_2));
 
   FlowAnalysisHelper._(this.typeOperations, this.dataForTesting,
       {required this.isNonNullableByDefault,
-      required this.respectImplicitlyTypedVarInitializers});
+      required this.respectImplicitlyTypedVarInitializers,
+      required this.fieldPromotionEnabled});
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -250,7 +255,8 @@ class FlowAnalysisHelper {
         ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
                 DartType>(typeOperations, assignedVariables!,
             respectImplicitlyTypedVarInitializers:
-                respectImplicitlyTypedVarInitializers)
+                respectImplicitlyTypedVarInitializers,
+            fieldPromotionEnabled: fieldPromotionEnabled)
         : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
             DartType>.legacy(typeOperations, assignedVariables!);
   }
@@ -528,9 +534,6 @@ class TypeSystemOperations
   @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
       covariant ExecutableElement property) {
-    if (!property.library.featureSet.isEnabled(Feature.inference_update_2)) {
-      return PropertyNonPromotabilityReason.isNotEnabled;
-    }
     if (property is! PropertyAccessorElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }
@@ -548,7 +551,7 @@ class TypeSystemOperations
     if (field.isExternal) return PropertyNonPromotabilityReason.isExternal;
     if (!field.isFinal) return PropertyNonPromotabilityReason.isNotFinal;
     // Non-promotion reason must be due to a conflict with some other
-    // declaration.
+    // declaration, or because field promotion is disabled.
     return null;
   }
 }

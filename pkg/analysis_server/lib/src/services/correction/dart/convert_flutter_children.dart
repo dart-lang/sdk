@@ -30,8 +30,6 @@ class ConvertFlutterChildren extends ResolvedCorrectionProducer {
               widgetText,
               indentOld,
               indentNew,
-              includeLeading: false,
-              includeTrailingNewline: false,
             );
 
             await builder.addDartFileEdit(file, (builder) {

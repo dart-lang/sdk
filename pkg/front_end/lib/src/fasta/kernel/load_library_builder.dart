@@ -53,8 +53,7 @@ class LoadLibraryBuilder extends BuilderImpl {
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name!;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
-    Reference? reference =
-        parent.referencesFromIndexed?.lookupGetterReference(name);
+    Reference? reference = parent.indexedLibrary?.lookupGetterReference(name);
     return tearoff = new Procedure(
         name,
         ProcedureKind.Method,

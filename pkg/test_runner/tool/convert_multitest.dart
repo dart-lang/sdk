@@ -5,6 +5,7 @@
 /// Converts a multi-test to a test using the new static error test framework
 /// (see https://github.com/dart-lang/sdk/wiki/Testing#static-error-tests)
 /// and a copy of the '/none' test.
+library;
 
 import 'dart:collection';
 import 'dart:convert';

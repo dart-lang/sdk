@@ -118,10 +118,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ///  Parameters:
   ///  0: the name of the actual argument type
   ///  1: the name of the expected type
+  ///  2: additional information, if any, when problem is associated with records
   static const CompileTimeErrorCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
     'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-    "The argument type '{0}' can't be assigned to the parameter type '{1}'.",
+    "The argument type '{0}' can't be assigned to the parameter type '{1}'. "
+        "{2}",
     hasPublishedDocs: true,
   );
 
@@ -207,6 +209,22 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try marking the function body with either 'async' or 'async*', or "
         "removing the 'await' before the for-in loop.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_IMPORT =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_IMPORT',
+    "The library does not import this augmentation.",
+    correctionMessage:
+        "Try updating the augmented library to import this augmentation.",
+  );
+
+  static const CompileTimeErrorCode AUGMENTATION_WITHOUT_LIBRARY =
+      CompileTimeErrorCode(
+    'AUGMENTATION_WITHOUT_LIBRARY',
+    "The URI does not resolve to a library.",
+    correctionMessage:
+        "Try updating the URI to reference the augmented library",
   );
 
   ///  No parameters.
@@ -531,6 +549,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
         "arguments are different.",
     hasPublishedDocs: true,
+  );
+
+  ///  10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+  ///  error if the interface of `C` has an instance method named `n` and an
+  ///  instance setter with basename `n`.
+  ///
+  ///  Parameters:
+  ///  0: the name of the enclosing element kind - class, extension type, etc
+  ///  1: the name of the enclosing element
+  ///  2: the name of the conflicting method / setter
+  static const CompileTimeErrorCode CONFLICTING_INHERITED_METHOD_AND_SETTER =
+      CompileTimeErrorCode(
+    'CONFLICTING_INHERITED_METHOD_AND_SETTER',
+    "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
   );
 
   ///  10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -1710,6 +1742,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF = CompileTimeErrorCode(
     'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
     "The extension type representation can't depend on itself.",
+    correctionMessage: "Try specifying a different type.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
+    "The representation type can't be a bottom type.",
     correctionMessage: "Try specifying a different type.",
   );
 
@@ -4826,6 +4866,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The 'super' keyword can't be used in an extension because an extension "
         "doesn't have a superclass.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode SUPER_IN_EXTENSION_TYPE =
+      CompileTimeErrorCode(
+    'SUPER_IN_EXTENSION_TYPE',
+    "The 'super' keyword can't be used in an extension type because an "
+        "extension type doesn't have a superclass.",
   );
 
   ///  No parameters.

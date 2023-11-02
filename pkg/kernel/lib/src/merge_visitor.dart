@@ -51,8 +51,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
 
     DartType? mergeTypes(DartType a, DartType b) {
       if (aInstantiator != null) {
-        a = aInstantiator.visit(a);
-        b = bInstantiator!.visit(b);
+        a = aInstantiator.substitute(a);
+        b = bInstantiator!.substitute(b);
       }
       return a.accept1(this, b);
     }

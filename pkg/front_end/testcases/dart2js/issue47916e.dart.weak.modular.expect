@@ -10,9 +10,14 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  static factory •() → self::A /* redirection-target: self::B::• */
-    return self::B::•();
-  static method _#new#tearOff() → self::A;
+  static factory •() → self::A
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916e.dart:10:23: Error: Redirection constructor target not found: 'C.named'
+  const factory B() = C.named;
+                      ^";
+  static method _#new#tearOff() → self::A
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916e.dart:10:23: Error: Redirection constructor target not found: 'C.named'
+  const factory B() = C.named;
+                      ^";
 }
 abstract class B extends core::Object implements self::A {
   static factory •() → self::B

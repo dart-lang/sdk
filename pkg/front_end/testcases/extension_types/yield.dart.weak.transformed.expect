@@ -1,0 +1,35 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+extension type MyList<T extends core::Object? = dynamic>(core::List<T%> it) implements core::List<T%> {
+  abstract inline-class-member representation-field get it() → core::List<T%>;
+  constructor • = self::MyList|constructor#;
+  constructor tearoff • = self::MyList|constructor#_#new#tearOff;
+}
+extension type MyStream<T extends core::Object? = dynamic>(asy::Stream<T%> it) implements asy::Stream<T%> {
+  abstract inline-class-member representation-field get it() → asy::Stream<T%>;
+  constructor • = self::MyStream|constructor#;
+  constructor tearoff • = self::MyStream|constructor#_#new#tearOff;
+}
+static inline-class-member method MyList|constructor#<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#::T%> it) → self::MyList<self::MyList|constructor#::T%> /* = core::List<self::MyList|constructor#::T%> */ {
+  lowered final self::MyList<self::MyList|constructor#::T%> /* = core::List<self::MyList|constructor#::T%> */ #this = it;
+  return #this;
+}
+static inline-class-member method MyList|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::MyList|constructor#_#new#tearOff::T%> it) → self::MyList<self::MyList|constructor#_#new#tearOff::T%> /* = core::List<self::MyList|constructor#_#new#tearOff::T%> */
+  return self::MyList|constructor#<self::MyList|constructor#_#new#tearOff::T%>(it);
+static inline-class-member method MyStream|constructor#<T extends core::Object? = dynamic>(asy::Stream<self::MyStream|constructor#::T%> it) → self::MyStream<self::MyStream|constructor#::T%> /* = asy::Stream<self::MyStream|constructor#::T%> */ {
+  lowered final self::MyStream<self::MyStream|constructor#::T%> /* = asy::Stream<self::MyStream|constructor#::T%> */ #this = it;
+  return #this;
+}
+static inline-class-member method MyStream|constructor#_#new#tearOff<T extends core::Object? = dynamic>(asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> it) → self::MyStream<self::MyStream|constructor#_#new#tearOff::T%> /* = asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> */
+  return self::MyStream|constructor#<self::MyStream|constructor#_#new#tearOff::T%>(it);
+static method method(self::MyList<core::int> /* = core::List<core::int> */ list, self::MyStream<core::String> /* = asy::Stream<core::String> */ stream) → dynamic {
+  () → core::Iterable<core::int> a = () → core::Iterable<core::int> sync* {
+    yield* list;
+  };
+  () → asy::Stream<core::String> b = () → asy::Stream<core::String> async* {
+    yield* stream;
+  };
+}

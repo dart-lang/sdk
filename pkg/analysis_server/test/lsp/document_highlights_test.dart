@@ -81,6 +81,16 @@ void f() {
 }
 ''');
 
+  Future<void> test_pattern_object_destructure() => _testMarkedContent('''
+void f() {
+  final MapEntry(:/*[0*/key/*0]*/) = const MapEntry<String, int>('a', 1);
+  
+  if (const MapEntry('a', 1) case MapEntry(:final /*[1*/ke^y/*1]*/)) {
+    /*[2*/key/*2]*/;
+  }
+}
+''');
+
   Future<void> test_shadow_inner() => _testMarkedContent('''
 void f() {
   var foo = 1;

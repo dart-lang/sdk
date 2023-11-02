@@ -16,14 +16,16 @@ expectGTE(min, actual, msg) {
 }
 
 main() {
-  int interval = 20;
+  int interval = 50;
   asyncStart();
   var sw = new Stopwatch()..start();
   int nextTick = 1;
   new Timer.periodic(ms * interval, (t) {
     expectGTE(nextTick, t.tick, "tick {1} before expect next tick {0}.");
     int time = sw.elapsedMilliseconds;
-    int minTime = interval * t.tick;
+    // Timers are not exact and can fire early or late (+- 15ms), we add a
+    // margin of error (40ms) to avoid flakiness.
+    int minTime = interval * t.tick - 40;
     expectGTE(minTime, time, "Actual time {1} before {0} at tick ${t.tick}");
     while (sw.elapsedMilliseconds < time + 3 * interval) {
       // idle.

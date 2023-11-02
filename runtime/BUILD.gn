@@ -238,7 +238,10 @@ config("dart_config") {
                                         # pointers.
       ]
     } else {
-      cflags += [ "-Wno-cast-function-type" ]
+      cflags += [
+        "-Wno-cast-function-type",
+        "-Wno-dangling-reference",
+      ]
     }
 
     ldflags = []

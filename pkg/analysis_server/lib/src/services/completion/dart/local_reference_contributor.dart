@@ -7,8 +7,8 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -32,7 +32,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   /// The [_VisibilityTracker] tracks the set of elements already added in the
   /// completion list, this object helps prevents suggesting elements that have
   /// been shadowed by local declarations.
-  final _VisibilityTracker _visibilityTracker = _VisibilityTracker();
+  VisibilityTracker visibilityTracker = VisibilityTracker();
 
   LocalReferenceContributor(super.request, super.builder);
 
@@ -73,7 +73,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
           try {
             builder.laterReplacesEarlier = false;
             var localVisitor = _LocalVisitor(
-                request, builder, _visibilityTracker,
+                request, builder, visibilityTracker,
                 suggestLocalFields: suggestLocalFields);
             localVisitor.visit(node);
           } finally {
@@ -108,7 +108,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     if (!isFunctionalArgument) {
       for (var accessor in type.accessors) {
         if (!accessor.isStatic) {
-          if (_visibilityTracker._isVisible(accessor.declaration)) {
+          if (visibilityTracker.isVisible(accessor.declaration)) {
             if (accessor.isGetter) {
               if (opType.includeReturnValueSuggestions) {
                 memberBuilder.addSuggestionForAccessor(
@@ -128,7 +128,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     }
     for (var method in type.methods) {
       if (!method.isStatic) {
-        if (_visibilityTracker._isVisible(method.declaration)) {
+        if (visibilityTracker.isVisible(method.declaration)) {
           if (method.returnType is! VoidType) {
             if (opType.includeReturnValueSuggestions) {
               memberBuilder.addSuggestionForMethod(
@@ -207,7 +207,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// clause.
   bool inExtendsClause = false;
 
-  _VisibilityTracker visibilityTracker;
+  VisibilityTracker visibilityTracker;
 
   _LocalVisitor(this.request, this.builder, this.visibilityTracker,
       {required this.suggestLocalFields})
@@ -246,7 +246,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredExtension(ExtensionDeclaration declaration) {
     var declaredElement = declaration.declaredElement;
     if (declaredElement != null &&
-        visibilityTracker._isVisible(declaredElement) &&
+        visibilityTracker.isVisible(declaredElement) &&
         opType.includeReturnValueSuggestions &&
         declaration.name != null) {
       builder.suggestExtension(declaredElement, kind: _defaultKind);
@@ -257,7 +257,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     var field = varDecl.declaredElement;
     if (field is FieldElement &&
-        ((visibilityTracker._isVisible(field) &&
+        ((visibilityTracker.isVisible(field) &&
                 opType.includeReturnValueSuggestions &&
                 (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
             suggestLocalFields)) {
@@ -278,7 +278,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredFunction(FunctionDeclaration declaration) {
-    if (visibilityTracker._isVisible(declaration.declaredElement) &&
+    if (visibilityTracker.isVisible(declaration.declaredElement) &&
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions)) {
       if (declaration.isSetter) {
@@ -323,21 +323,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(
-    Token name,
-    TypeAnnotation? type,
-    LocalVariableElement declaredElement,
-  ) {
-    if (visibilityTracker._isVisible(declaredElement) &&
-        opType.includeReturnValueSuggestions) {
-      builder.suggestLocalVariable(declaredElement);
-    }
-  }
-
-  @override
   void declaredMethod(MethodDeclaration declaration) {
     var element = declaration.declaredElement;
-    if (visibilityTracker._isVisible(element) &&
+    if (visibilityTracker.isVisible(element) &&
         (opType.includeReturnValueSuggestions ||
             opType.includeVoidReturnSuggestions) &&
         (!opType.inStaticMethodBody || declaration.isStatic)) {
@@ -367,24 +355,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var declaredElement = declaration.declaredElement;
     if (!inExtendsClause &&
         declaredElement != null &&
-        visibilityTracker._isVisible(declaredElement) &&
+        visibilityTracker.isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestInterface(declaredElement);
-    }
-  }
-
-  @override
-  void declaredParam(Token name, Element? element, TypeAnnotation? type) {
-    if (visibilityTracker._isVisible(element) &&
-        opType.includeReturnValueSuggestions) {
-      if (_isUnused(name.lexeme)) {
-        return;
-      }
-      if (element is ParameterElement) {
-        builder.suggestParameter(element);
-      } else if (element is LocalVariableElement) {
-        builder.suggestCatchParameter(element);
-      }
     }
   }
 
@@ -393,8 +366,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       VariableDeclarationList varList, VariableDeclaration varDecl) {
     var variableElement = varDecl.declaredElement;
     if (variableElement is TopLevelVariableElement &&
-        visibilityTracker._isVisible(variableElement) &&
-        opType.includeReturnValueSuggestions) {
+        visibilityTracker.isVisible(variableElement) &&
+        (opType.includeReturnValueSuggestions ||
+            (opType.includeAnnotationSuggestions && variableElement.isConst))) {
       var getter = variableElement.getter;
       if (getter != null) {
         builder.suggestTopLevelPropertyAccessor(getter);
@@ -406,7 +380,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredTypeParameter(TypeParameter node) {
     var declaredElement = node.declaredElement;
     if (declaredElement != null &&
-        visibilityTracker._isVisible(declaredElement) &&
+        visibilityTracker.isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestTypeParameter(declaredElement);
     }
@@ -419,7 +393,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   void _declaredInterfaceElement(InterfaceElement? element) {
-    if (element != null && visibilityTracker._isVisible(element)) {
+    if (element != null && visibilityTracker.isVisible(element)) {
       if (opType.includeTypeNameSuggestions) {
         builder.suggestInterface(element);
       }
@@ -459,10 +433,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     }
   }
 
-  /// Return `true` if the [identifier] is composed of one or more underscore
-  /// characters and nothing else.
-  bool _isUnused(String identifier) => RegExp(r'^_+$').hasMatch(identifier);
-
   bool _isVoid(TypeAnnotation? returnType) {
     if (returnType is NamedType) {
       if (returnType.name2.lexeme == 'void') {
@@ -470,21 +440,5 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return false;
-  }
-}
-
-/// This class tracks the set of elements already added in the completion list,
-/// this object helps prevents suggesting elements that have been shadowed by
-/// local declarations.
-class _VisibilityTracker {
-  /// The set of known previously declared names in this contributor.
-  final Set<String> declaredNames = {};
-
-  /// Before completions are added by this contributor, we verify with this
-  /// method if the element has already been added, this prevents suggesting
-  /// [Element]s that are shadowed.
-  bool _isVisible(Element? element) {
-    var name = element?.name;
-    return name != null && declaredNames.add(name);
   }
 }

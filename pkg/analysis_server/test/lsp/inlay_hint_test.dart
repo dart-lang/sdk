@@ -490,6 +490,30 @@ void f() {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_patterns_ifCase_typeArguments() async {
+    final content = '''
+class Box<T> {
+  final T value;
+  Box(this.value);
+}
+
+void f(Box<List<String>> a) {
+  if (a case Box(value: List(:final int length))) {}
+}
+''';
+    final expected = '''
+class Box<T> {
+  final T value;
+  Box(this.value);
+}
+
+void f(Box<List<String>> a) {
+  if (a case Box(Type:<List<String>>)(value: List(Type:<String>)(:final int length))) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_patterns_switchExpression() async {
     final content = '''
 void f() {

@@ -11,14 +11,17 @@ environment:
 
 dependencies:
   args: ^2.0.0
-  vm_service: ^10.0.0
+  heap_snapshot: any
   mmap: any
+  vm_service: ^10.0.0
 
 dev_dependencies:
-  test: ^1.21.6
-  path: ^1.8.0
   dart_console: ^1.1.2
+  path: ^1.8.0
+  test: ^1.21.6
 
 dependency_overrides:
+  heap_snapshot:
+    path: ../../../pkg/heap_snapshot
   mmap:
     path: ../../../pkg/mmap

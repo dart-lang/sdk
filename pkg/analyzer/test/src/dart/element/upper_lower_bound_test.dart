@@ -2200,14 +2200,14 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var C = class_(
       name: 'C',
       interfaces: [
-        interfaceTypeNone(A, typeArguments: [intNone])
+        interfaceTypeNone(A, typeArguments: [intStar])
       ],
     );
 
     _checkLeastUpperBound(
-      interfaceTypeNone(B),
-      interfaceTypeNone(C),
-      interfaceTypeNone(A, typeArguments: [intStar]),
+      interfaceTypeStar(B),
+      interfaceTypeStar(C),
+      interfaceTypeStar(A, typeArguments: [intStar]),
     );
   }
 
@@ -2858,6 +2858,180 @@ class UpperBoundTest extends _BoundsTestBase {
         typeParameter('T', bound: objectQuestion),
         neverNone,
       ),
+    );
+  }
+
+  void test_extensionType_noTypeParameters_interfaces() {
+    // extension type A(int) implements int {}
+    // extension type B(double) implements double {}
+
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'A',
+          representationType: intNone,
+          interfaces: [intNone],
+        ),
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          representationType: doubleNone,
+          interfaces: [doubleNone],
+        ),
+      ),
+      numNone,
+    );
+  }
+
+  void test_extensionType_noTypeParameters_noInterfaces() {
+    // A(Object?) and B(Object?)
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'A',
+          representationType: objectQuestion,
+          interfaces: [objectQuestion],
+        ),
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          representationType: objectQuestion,
+          interfaces: [objectQuestion],
+        ),
+      ),
+      objectQuestion,
+    );
+
+    // A(Object) and B(Object?)
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'A',
+          representationType: objectNone,
+          interfaces: [objectNone],
+        ),
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          representationType: objectQuestion,
+          interfaces: [objectQuestion],
+        ),
+      ),
+      objectQuestion,
+    );
+
+    // A(Object) and B(Object)
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'A',
+          representationType: objectNone,
+          interfaces: [objectNone],
+        ),
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          representationType: objectNone,
+          interfaces: [objectNone],
+        ),
+      ),
+      objectNone,
+    );
+
+    // A(String) and B(num)
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'A',
+          representationType: stringNone,
+          interfaces: [objectNone],
+        ),
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          representationType: numNone,
+          interfaces: [objectNone],
+        ),
+      ),
+      objectNone,
+    );
+  }
+
+  void test_extensionType_withTypeParameters_objectNone() {
+    final T = typeParameter('T');
+
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'A',
+          typeParameters: [T],
+          representationType: typeParameterTypeNone(T),
+          interfaces: [objectQuestion],
+        ),
+        typeArguments: [stringNone],
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          typeParameters: [T],
+          representationType: typeParameterTypeNone(T),
+          interfaces: [objectQuestion],
+        ),
+        typeArguments: [numNone],
+      ),
+      objectNone,
+    );
+  }
+
+  void test_extensionType_withTypeParameters_withInterfaces() {
+    final T = typeParameter('T');
+    final T1 = typeParameter('T1', bound: stringNone);
+    final T2 = typeParameter('T2', bound: intNone);
+
+    final E = extensionType(
+      'E',
+      typeParameters: [T],
+      representationType: typeParameterTypeNone(T),
+      interfaces: [objectQuestion],
+    );
+
+    // A<T1> implements E<T1>, String
+    // B<T2> implements E<T2?>, num
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'A',
+          typeParameters: [T1],
+          representationType: typeParameterTypeNone(T1),
+          interfaces: [
+            interfaceTypeNone(E, typeArguments: [
+              typeParameterTypeNone(T1),
+            ]),
+            stringNone,
+          ],
+        ),
+        typeArguments: [stringNone],
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          typeParameters: [T2],
+          representationType: typeParameterTypeNone(T2),
+          interfaces: [
+            interfaceTypeNone(E, typeArguments: [
+              typeParameterTypeQuestion(T2),
+            ]),
+            numNone,
+          ],
+        ),
+        typeArguments: [numNone],
+      ),
+      objectNone,
     );
   }
 

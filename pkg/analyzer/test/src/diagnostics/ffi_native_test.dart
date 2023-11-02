@@ -313,6 +313,34 @@ external void doesntMatter(double x);
     ]);
   }
 
+  test_NativeVarArgs() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+@Native<Int8 Function(Int64, VarArgs<(Int32, Double)>)>()
+external int doesntMatter(int x, int y, double z);
+''');
+  }
+
+  test_NativeVarArgsTooFew() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@Native<Int8 Function(Int64, VarArgs<(Int32, Double)>)>()
+external int doesntMatter(int x, int y);
+''', [
+      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 98),
+    ]);
+  }
+
+  test_NativeVarArgsTooMany() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@Native<Int8 Function(Int64, VarArgs<(Int32, Double)>)>()
+external int doesntMatter(int x, int y, double z, int superfluous);
+''', [
+      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 125),
+    ]);
+  }
+
   test_NativeVoidReturn() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

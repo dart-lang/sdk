@@ -411,6 +411,11 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String? multiRootScheme,
       return sourcePath;
     }
 
+    if (scheme == 'org-dartlang-augmentation') {
+      // TODO: https://github.com/dart-lang/sdk/issues/53913
+      return sourcePath;
+    }
+
     if (uri.isScheme('http')) return sourcePath;
 
     // Convert to a local file path if it's not.

@@ -47,14 +47,13 @@ abstract class _SubClass&Class&Mixin = opt2::Class with opt2::Mixin /*isAnonymou
   abstract member-signature get classField2() → core::int*; -> opt2::Class::classField2
   abstract member-signature set classField2(core::int* value) → void; -> opt2::Class::classField2
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  mixin-super-stub method mixinMethod(core::int* i) → core::int*
+    return super.{opt2::Mixin::mixinMethod}(i);
   abstract member-signature method classMethod(core::int* i) → core::int*; -> opt2::Class::classMethod
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  method /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */ mixinMethod(core::int i) → core::int? {
-    super.{core::Object::toString}();
-  }
 }
 class SubClass extends opt::_SubClass&Class&Mixin {
   synthetic constructor •() → opt::SubClass*

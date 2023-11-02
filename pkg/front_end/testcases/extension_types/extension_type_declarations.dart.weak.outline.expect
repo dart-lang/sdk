@@ -3,18 +3,23 @@ import self as self;
 import "dart:core" as core;
 
 extension type ExtensionType1(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ExtensionType1|constructor#;
   constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
 }
 extension type ExtensionType2(core::int it) implements self::ExtensionType1 /* = core::int */, core::int {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ExtensionType2|constructor#;
   constructor tearoff • = self::ExtensionType2|constructor#_#new#tearOff;
 }
 extension type ExtensionType3<T extends core::num>(T it) {
+  abstract inline-class-member representation-field get it() → T;
   constructor • = self::ExtensionType3|constructor#;
   constructor tearoff • = self::ExtensionType3|constructor#_#new#tearOff;
 }
 extension type ExtensionType4(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
+  abstract inline-class-member representation-field get field() → core::int;
   get getter = self::ExtensionType4|get#getter;
   method method = self::ExtensionType4|method;
   method tearoff method = self::ExtensionType4|get#method;
@@ -37,14 +42,17 @@ extension type ExtensionType4(core::int it) {
   static redirecting-factory tearoff redirectingFactory = self::ExtensionType4|constructor#_#redirectingFactory#tearOff;
 }
 extension type ExtensionType5(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor • = self::ExtensionType5|constructor#;
   constructor tearoff • = self::ExtensionType5|constructor#_#new#tearOff;
 }
 extension type ExtensionType6(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor id = self::ExtensionType6|constructor#id;
   constructor tearoff id = self::ExtensionType6|constructor#_#id#tearOff;
 }
 extension type ExtensionType7<T extends core::num>(core::int it) {
+  abstract inline-class-member representation-field get it() → core::int;
   constructor id = self::ExtensionType7|constructor#id;
   constructor tearoff id = self::ExtensionType7|constructor#_#id#tearOff;
 }

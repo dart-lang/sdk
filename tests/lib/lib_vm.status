@@ -5,9 +5,6 @@
 [ $runtime != vm ]
 isolate/native_wrapper_message_test: Skip # A VM specific test.
 
-[ $arch == arm64 && $runtime == vm ]
-mirrors/immutable_collections_test: Pass, Slow # http://dartbug.com/33057
-
 [ $arch == ia32 && $mode == debug && $runtime == vm && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
 

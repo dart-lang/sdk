@@ -6,7 +6,7 @@ library kernel.core_types;
 
 import 'ast.dart';
 import 'library_index.dart';
-import 'type_algebra.dart';
+import 'type_algebra.dart' as type_algebra;
 
 /// Provides access to the classes and libraries in the core libraries.
 class CoreTypes {
@@ -352,6 +352,9 @@ class CoreTypes {
 
   late final Field enumNameField =
       index.getField('dart:core', '_Enum', '_name');
+
+  late final Procedure jsGetFlag =
+      index.getTopLevelProcedure('dart:_foreign_helper', 'JS_GET_FLAG');
 
   InterfaceType get objectLegacyRawType {
     return _objectLegacyRawType ??= _legacyRawTypes[objectClass] ??=
@@ -1157,7 +1160,8 @@ class CoreTypes {
     // TOP(T*) is true iff TOP(T) or OBJECT(T).
     if (type.declaredNullability == Nullability.nullable ||
         type.declaredNullability == Nullability.legacy) {
-      DartType nonNullableType = unwrapNullabilityConstructor(type, this);
+      DartType nonNullableType =
+          type_algebra.unwrapNullabilityConstructor(type);
       if (!identical(type, nonNullableType)) {
         return isTop(nonNullableType) || isObject(nonNullableType);
       }
@@ -1166,14 +1170,6 @@ class CoreTypes {
     // TOP(FutureOr<T>) is TOP(T).
     if (type is FutureOrType) {
       return isTop(type.typeArgument);
-    }
-
-    // If the instantiated representation type, R, is a top type then the
-    // extension type, V0, is a top type, otherwise V0 is a proper subtype of
-    // Object?.
-    // TODO(johnniwinther): Is this correct?
-    if (type is ExtensionType) {
-      return isTop(type.typeErasure);
     }
 
     return false;
@@ -1207,29 +1203,7 @@ class CoreTypes {
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
   @pragma("vm:prefer-inline")
   bool isBottom(DartType type) {
-    if (type is InterfaceType) return false;
-    return _isBottom(type);
-  }
-
-  bool _isBottom(DartType type) {
-    if (type is InvalidType) return false;
-
-    // BOTTOM(Never) is true.
-    if (type is NeverType && type.nullability == Nullability.nonNullable) {
-      return true;
-    }
-
-    // BOTTOM(X&T) is true iff BOTTOM(T).
-    if (type is IntersectionType && type.isPotentiallyNonNullable) {
-      return isBottom(type.right);
-    }
-
-    // BOTTOM(X extends T) is true iff BOTTOM(T).
-    if (type is TypeParameterType && type.isPotentiallyNonNullable) {
-      return isBottom(type.parameter.bound);
-    }
-
-    return false;
+    return type_algebra.isBottom(type);
   }
 
   /// Checks if [type] satisfies the NULL predicate.

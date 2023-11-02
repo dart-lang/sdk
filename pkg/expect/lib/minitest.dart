@@ -21,6 +21,8 @@
 ///
 /// Eventually, it would be good to refactor those tests to use the expect
 /// package directly and remove this.
+library;
+
 import 'dart:async';
 
 import 'package:expect/expect.dart';

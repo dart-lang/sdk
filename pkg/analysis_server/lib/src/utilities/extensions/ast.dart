@@ -299,11 +299,12 @@ extension NamedTypeExtension on NamedType {
 }
 
 extension NodeListExtension<E extends AstNode> on NodeList<E> {
-  /// Return the first element of the list whose end is at or before the
+  /// Return the last element of the list whose end is at or before the
   /// [offset], or `null` if the list is empty or if the offset is before the
   /// end of the first element.
   E? elementBefore(int offset) {
-    for (var element in this) {
+    for (var i = length - 1; i >= 0; i--) {
+      var element = this[i];
       if (element.end <= offset) {
         return element;
       }

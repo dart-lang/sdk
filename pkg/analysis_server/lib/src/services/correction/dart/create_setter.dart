@@ -87,7 +87,8 @@ class CreateSetter extends ResolvedCorrectionProducer {
     if (targetNode is CompilationUnitMember) {
       if (targetDeclarationResult.node is! ClassDeclaration &&
           targetDeclarationResult.node is! MixinDeclaration &&
-          targetDeclarationResult.node is! ExtensionDeclaration) {
+          targetDeclarationResult.node is! ExtensionDeclaration &&
+          targetDeclarationResult.node is! ExtensionTypeDeclaration) {
         return;
       }
     } else {

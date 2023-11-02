@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Global type flow analysis.
+library;
 
 import 'dart:collection';
 import 'dart:core' hide Type;
@@ -153,7 +154,7 @@ abstract base class _Invocation extends _DependencyTracker
           (this.args == other.args);
 
   @override
-  int get hashCode => (selector.hashCode ^ args.hashCode + 31) & kHashMask;
+  int get hashCode => combineHashes(selector.hashCode, args.hashCode);
 
   @override
   String toString() => "_Invocation $selector $args";
@@ -314,9 +315,29 @@ final class _DirectInvocation extends _Invocation {
       if (selector.callKind == CallKind.PropertyGet) {
         // Tear-off.
         // TODO(alexmarkov): capture receiver type
-        assert((member is Procedure) && !member.isGetter && !member.isSetter);
+        assert((member is Procedure) &&
+            !member.isGetter &&
+            !member.isSetter &&
+            !member.isFactory &&
+            !member.isAbstract);
         typeFlowAnalysis.addRawCall(new DirectSelector(member));
         typeFlowAnalysis._tearOffTaken.add(member);
+        final Class? concreteClass = typeFlowAnalysis.target
+            .concreteClosureClass(typeFlowAnalysis.coreTypes);
+        if (concreteClass != null) {
+          if (!member.isInstanceMember) {
+            return typeFlowAnalysis
+                .addAllocatedClass(concreteClass)
+                .cls
+                .constantConcreteType(
+                    StaticTearOffConstant(member as Procedure));
+          } else {
+            return typeFlowAnalysis
+                .addAllocatedClass(concreteClass)
+                .cls
+                .closureConcreteType(member, null);
+          }
+        }
         return nullableAnyType;
       } else {
         // Call via getter.

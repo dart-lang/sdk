@@ -10,7 +10,7 @@ class A extends core::Object {
 class E<X extends self::A> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E<self::A>> values = #C4;
   enum-element static const field self::E<self::A> element = #C3;
-  const constructor •(core::int #index, core::String #name) → self::E<self::E::X>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E<self::E::X>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

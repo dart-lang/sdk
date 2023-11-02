@@ -52,7 +52,7 @@ class NullBinarySink implements api.BinaryOutputSink {
   NullBinarySink(this.uri);
 
   @override
-  void write(List<int> buffer, [int start = 0, int? end]) {}
+  void add(List<int> buffer, [int start = 0, int? end]) {}
 
   @override
   void close() {}

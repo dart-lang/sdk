@@ -9,7 +9,8 @@ library RequestAnimationFrameTest;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:expect/minitest.dart';
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 
 Future testOneShot() async {
   final done = new Completer();
@@ -36,9 +37,9 @@ Future testTwoShot() async {
 Future testCancel1() async {
   final done = new Completer();
   var frame1 = window.requestAnimationFrame((timestamp1) {
-    fail('Should have been cancelled');
+    Expect.fail('Should have been cancelled');
   });
-  var frame2 = window.requestAnimationFrame(done.complete);
+  window.requestAnimationFrame(done.complete);
   window.cancelAnimationFrame(frame1);
   await done.future;
 }
@@ -46,18 +47,20 @@ Future testCancel1() async {
 Future testCancel2() async {
   final done1 = new Completer();
   final done2 = new Completer();
-  var frame1 = window.requestAnimationFrame(done1.complete);
+  window.requestAnimationFrame(done1.complete);
   var frame2 = window.requestAnimationFrame((timestamp2) {
-    fail('Should have been cancelled');
+    Expect.fail('Should have been cancelled');
   });
-  var frame3 = window.requestAnimationFrame(done2.complete);
+  window.requestAnimationFrame(done2.complete);
   window.cancelAnimationFrame(frame2);
   await Future.wait([done1.future, done2.future]);
 }
 
-main() async {
-  await testOneShot();
-  await testTwoShot();
-  await testCancel1();
-  await testCancel2();
+main() {
+  asyncTest(() async {
+    await testOneShot();
+    await testTwoShot();
+    await testCancel1();
+    await testCancel2();
+  });
 }

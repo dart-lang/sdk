@@ -165,7 +165,7 @@ class Types {
       for (InterfaceType subtype in subtypes) {
         interfaceTypeEnvironment._add(subtype);
         List<DartType>? typeArguments = translator.hierarchy
-            .getTypeArgumentsAsInstanceOf(subtype, superclass)
+            .getInterfaceTypeArgumentsAsInstanceOfClass(subtype, superclass)
             ?.map(normalize)
             .toList();
         ClassInfo subclassInfo = translator.classInfo[subtype.classNode]!;
@@ -349,7 +349,7 @@ class Types {
             type.positional.every(_isTypeConstant) &&
             type.named.every((n) => _isTypeConstant(n.type))) ||
         type is StructuralParameterType ||
-        type is ExtensionType && _isTypeConstant(type.typeErasure);
+        type is ExtensionType && _isTypeConstant(type.extensionTypeErasure);
   }
 
   Class classForType(DartType type) {
@@ -381,7 +381,7 @@ class Types {
     } else if (type is StructuralParameterType) {
       return translator.functionTypeParameterTypeClass;
     } else if (type is ExtensionType) {
-      return classForType(type.typeErasure);
+      return classForType(type.extensionTypeErasure);
     } else if (type is RecordType) {
       return translator.recordTypeClass;
     }
@@ -478,8 +478,12 @@ class Types {
 
     // The type is normalized, and remains a `FutureOr` so now we normalize its
     // nullability.
+    // Note: We diverge from the spec here and normalize the type to nullable if
+    // its type argument is nullable, since this simplifies subtype checking.
+    // We compensate for this difference when converting the type to a string,
+    // making the discrepancy invisible to the user.
     final declaredNullability = s.nullability == Nullability.nullable
-        ? Nullability.nonNullable
+        ? Nullability.nullable
         : type.declaredNullability;
     return FutureOrType(s, declaredNullability);
   }
@@ -573,7 +577,7 @@ class Types {
     }
 
     if (type is ExtensionType) {
-      return makeType(codeGen, type.typeErasure);
+      return makeType(codeGen, type.extensionTypeErasure);
     }
 
     ClassInfo info = translator.classInfo[classForType(type)]!;
@@ -664,7 +668,7 @@ class Types {
       // arguments.
       Class cls = translator.classForType(operandType);
       InterfaceType? base = translator.hierarchy
-          .getTypeAsInstanceOf(type, cls,
+          .getInterfaceTypeAsInstanceOfClass(type, cls,
               isNonNullableByDefault:
                   codeGen.member.enclosingLibrary.isNonNullableByDefault)
           ?.withDeclaredNullability(operandType.declaredNullability);

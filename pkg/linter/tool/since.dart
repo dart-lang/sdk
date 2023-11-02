@@ -34,12 +34,13 @@ class SdkVersionFile {
   void addRule(String rule) {
     var sinceFile = File(filePath);
     var versionMap = loadYamlNode(sinceFile.readAsStringSync()) as Map;
-    var sortedMap = SplayTreeMap()..addAll(versionMap);
+    var sortedMap = SplayTreeMap<String, String>()
+      ..addAll(versionMap.cast<String, String>());
     sortedMap[rule] = Changelog().readCurrentRelease();
 
     var output = StringBuffer();
-    for (var entry in sortedMap.entries) {
-      output.writeln('${entry.key}: ${entry.value}');
+    for (var MapEntry(key: lintName, value: sdkVersion) in sortedMap.entries) {
+      output.writeln('$lintName: $sdkVersion');
     }
 
     sinceFile.writeAsStringSync(output.toString());

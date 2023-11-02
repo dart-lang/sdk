@@ -69,7 +69,9 @@ void _postEvent(String eventKind, String eventData) {
 
 @patch
 bool _isDartStreamEnabled() {
-  return true;
+  // Timeline requires performance.measure API.
+  return JS('bool', r'typeof performance !== "undefined"') &&
+      JS('bool', r'typeof performance.measure !== "undefined"');
 }
 
 @patch

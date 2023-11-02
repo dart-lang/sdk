@@ -3,6 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type IC1(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::IC1|constructor#;
   constructor tearoff • = self::IC1|constructor#_#new#tearOff;
   static redirecting-factory f = self::IC1|constructor#f;

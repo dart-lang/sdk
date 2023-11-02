@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Creation of type flow summaries out of kernel AST.
+library;
 
 import 'dart:core' hide Type;
 
@@ -525,6 +526,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   // Join which accumulates all return values.
   Join? _returnValue;
 
+  Member? _enclosingMember;
   Parameter? _receiver;
   late ConstantAllocationCollector constantAllocationCollector;
   late RuntimeTypeTranslatorImpl _translator;
@@ -558,6 +560,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
     debugPrint("===== $summaryName =====");
     assert(!member.isAbstract);
+    _enclosingMember = member;
 
     _protobufHandler?.beforeSummaryCreation(member);
 
@@ -768,6 +771,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     member.enclosingClass?.annotations.forEach(_visit);
     member.enclosingLibrary.annotations.forEach(_visit);
 
+    _enclosingMember = null;
     _staticTypeContext = null;
 
     debugPrint("------------ SUMMARY ------------");
@@ -1369,6 +1373,25 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _returnValue = savedReturn;
   }
 
+  TypeExpr _closureType(LocalFunction node) {
+    final Class? concreteClass =
+        target.concreteClosureClass(_environment.coreTypes);
+    if (concreteClass != null) {
+      return _entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .closureConcreteType(_enclosingMember!, node);
+    }
+    switch (node) {
+      case FunctionExpression():
+        return _staticType(node);
+      case FunctionDeclaration():
+        return _typesBuilder.fromStaticType(node.variable.type, true);
+      default:
+        throw 'Unexpected ${node.runtimeType} $node';
+    }
+  }
+
   // Tests subtypes ignoring any nullabilities.
   bool _isSubtype(DartType subtype, DartType supertype) => _environment
       .isSubtypeOf(subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
@@ -1625,9 +1648,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitFunctionExpression(FunctionExpression node) {
     _handleNestedFunctionNode(node.function);
-    // TODO(alexmarkov): support function types.
-    // return _concreteType(node.function.functionType);
-    return _staticType(node);
+    return _closureType(node);
   }
 
   @override
@@ -2224,9 +2245,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr? visitFunctionDeclaration(FunctionDeclaration node) {
-    // TODO(alexmarkov): support function types.
     node.variable.annotations.forEach(_visit);
-    _declareVariableWithStaticType(node.variable);
+    _declareVariable(node.variable, _closureType(node));
     _handleNestedFunctionNode(node.function);
     return null;
   }
@@ -2684,7 +2704,7 @@ class RuntimeTypeTranslatorImpl
 
   @override
   TypeExpr visitExtensionType(ExtensionType type) =>
-      translate(type.typeErasure);
+      translate(type.extensionTypeErasure);
 
   @override
   TypeExpr visitIntersectionType(IntersectionType type) => unknownType;
@@ -2829,6 +2849,14 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
           .addAllocatedClass(member.enclosingClass);
     }
     summaryCollector._entryPointsListener.recordTearOff(member);
+    final Class? concreteClass = summaryCollector.target
+        .concreteClosureClass(summaryCollector._environment.coreTypes);
+    if (concreteClass != null) {
+      return summaryCollector._entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
+    }
     return _getStaticType(constant);
   }
 

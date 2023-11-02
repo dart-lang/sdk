@@ -49,12 +49,7 @@ class TransformSetManager {
     var packages = package.packagesAvailableTo(libraryPath);
     for (var package in packages.packages) {
       var folder = package.libFolder;
-      var cache = _cache[folder];
-      if (cache == null) {
-        cache = _fromFolder(folder);
-        _cache[folder] = cache;
-      }
-      transformSets.addAll(cache);
+      transformSets.addAll(fromFolder(folder));
     }
     if (_sdkCache != null) {
       transformSets.add(_sdkCache!);
@@ -72,8 +67,11 @@ class TransformSetManager {
     return transformSets;
   }
 
-  List<TransformSet> _fromFolder(Folder folder) {
-    var packageName = folder.parent.shortName;
+  List<TransformSet> fromFolder(Folder folder, {String? packageName}) {
+    var cache = _cache[folder];
+    if (cache != null) return cache;
+
+    packageName ??= folder.parent.shortName;
     var transformSets = <TransformSet>[];
     var file = folder.getChildAssumingFile(dataFileName);
     var transformSet = _loadTransformSet(file, packageName);
@@ -84,6 +82,7 @@ class TransformSetManager {
     if (childFolder.exists) {
       _loadTransforms(transformSets, childFolder, packageName);
     }
+    _cache[folder] = transformSets;
     return transformSets;
   }
 

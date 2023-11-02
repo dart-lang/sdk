@@ -1859,7 +1859,9 @@ void f(int? a) {
   }
 
   test_nullSafety_notEnabled() async {
-    newFile('/workspace/dart/test/BUILD', '');
+    newFile('/workspace/dart/test/BUILD', r'''
+dart_package(null_safety = False)
+''');
 
     await assertErrorsInCode(r'''
 void f(int? a) {}
@@ -2499,16 +2501,10 @@ void func() {
     newFile('/workspace/dart/bbb/BUILD', '');
 
     var aPath = '/workspace/dart/aaa/lib/a.dart';
-    var aResult = await assertErrorsInFile(aPath, r'''
-num a = 0;
-int b = a;
-''', []);
+    var aResult = await assertErrorsInFile(aPath, '', []);
 
     var bPath = '/workspace/dart/bbb/lib/a.dart';
-    var bResult = await assertErrorsInFile(bPath, r'''
-num a = 0;
-int b = a;
-''', []);
+    var bResult = await assertErrorsInFile(bPath, '', []);
 
     // Both files use the same (default) analysis options.
     // So, when we resolve 'bbb', we can reuse the context after 'aaa'.

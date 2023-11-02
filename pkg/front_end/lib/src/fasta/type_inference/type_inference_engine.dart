@@ -213,6 +213,7 @@ abstract class TypeInferenceEngine {
 
   static Member? resolveInferenceNode(
       Member? member, ClassHierarchyBase hierarchy) {
+    // TODO(johnniwinther): Can we remove this now?
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {
@@ -465,8 +466,14 @@ class OperationsCfe
 
   final Nullability nullability;
 
-  /// If `null`, field promotion is disabled for this library.  If not `null`,
-  /// information about which fields are promotable in this library.
+  /// Information about which fields are promotable in this library.
+  ///
+  /// If field promotion is disabled for the current library, this field is
+  /// still populated, so that [whyPropertyIsNotPromotable] can figure out
+  /// whether enabling field promotion would cause a field to be promotable.
+  ///
+  /// The value is `null` if the current source library builder is for a patch
+  /// file (patch files don't support field promotion).
   final FieldNonPromotabilityInfo? fieldNonPromotabilityInfo;
 
   final Map<DartType, DartType> typeCacheNonNullable;
@@ -475,7 +482,7 @@ class OperationsCfe
 
   OperationsCfe(this.typeEnvironment,
       {required this.nullability,
-      this.fieldNonPromotabilityInfo,
+      required this.fieldNonPromotabilityInfo,
       required this.typeCacheNonNullable,
       required this.typeCacheNullable,
       required this.typeCacheLegacy});
@@ -512,8 +519,16 @@ class OperationsCfe
   bool isPropertyPromotable(covariant Member property) {
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
-    if (fieldNonPromotabilityInfo == null) return false;
+    if (fieldNonPromotabilityInfo == null) {
+      // This only happens when compiling patch files. Patch files don't support
+      // field promotion.
+      return false;
+    }
     if (property is Procedure) {
+      if (property.stubKind == ProcedureStubKind.RepresentationField) {
+        // Representation fields are promotable if they're non-public.
+        return property.name.isPrivate;
+      }
       if (!property.isAccessor) {
         // We don't promote methods.
         return false;
@@ -534,7 +549,9 @@ class OperationsCfe
     FieldNonPromotabilityInfo? fieldNonPromotabilityInfo =
         this.fieldNonPromotabilityInfo;
     if (fieldNonPromotabilityInfo == null) {
-      return PropertyNonPromotabilityReason.isNotEnabled;
+      // This only happens when compiling patch files. Patch files don't support
+      // field promotion.
+      return null;
     }
     return fieldNonPromotabilityInfo.individualPropertyReasons[property];
   }
@@ -680,7 +697,7 @@ class OperationsCfe
 
   @override
   DartType? matchListType(DartType type) {
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
               type, typeEnvironment.coreTypes.listClass);
@@ -696,10 +713,10 @@ class OperationsCfe
 
   @override
   MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
-    if (type is! InterfaceType) {
+    if (type is! TypeDeclarationType) {
       return null;
     } else {
-      InterfaceType? mapType = typeEnvironment.getTypeAsInstanceOf(
+      TypeDeclarationType? mapType = typeEnvironment.getTypeAsInstanceOf(
           type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
           isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (mapType == null) {
@@ -714,7 +731,7 @@ class OperationsCfe
 
   @override
   DartType? matchStreamType(DartType type) {
-    if (type is InterfaceType) {
+    if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           typeEnvironment.getTypeArgumentsAsInstanceOf(
               type, typeEnvironment.coreTypes.streamClass);
@@ -741,11 +758,13 @@ class OperationsCfe
 
   @override
   DartType? matchIterableType(DartType type) {
-    if (type is! InterfaceType) {
+    if (type is! TypeDeclarationType) {
       return null;
     } else {
-      InterfaceType? interfaceType = typeEnvironment.getTypeAsInstanceOf(type,
-          typeEnvironment.coreTypes.iterableClass, typeEnvironment.coreTypes,
+      TypeDeclarationType? interfaceType = typeEnvironment.getTypeAsInstanceOf(
+          type,
+          typeEnvironment.coreTypes.iterableClass,
+          typeEnvironment.coreTypes,
           isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (interfaceType == null) {
         return null;

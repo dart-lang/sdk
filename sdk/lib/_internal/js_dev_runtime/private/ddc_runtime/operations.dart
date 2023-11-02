@@ -187,16 +187,10 @@ dput(obj, field, value) {
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-        return compileTimeFlag('soundNullSafety')
-            // Call the 'as' method directly in sound mode.
-            ? JS('', '#[#] = #.#(#)', obj, f, setterType,
-                JS_GET_NAME(JsGetName.RTI_FIELD_AS), value)
-            // Call `cast` in weak mode to provide optional warnings or errors.
-            : JS('', '#[#] = #', obj, f, cast(value, setterType));
-      } else {
-        return JS('', '#[#] = #.as(#)', obj, f, setterType, value);
-      }
+      return JS_GET_FLAG('NEW_RUNTIME_TYPES')
+          ? JS('', '#[#] = #.#(#)', obj, f, setterType,
+              JS_GET_NAME(JsGetName.RTI_FIELD_AS), value)
+          : JS('', '#[#] = #.as(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
     if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
@@ -269,43 +263,25 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
       }
     }
     // Now that we know the signature matches, we can perform type checks.
-    if (compileTimeFlag('soundNullSafety')) {
-      // Call the 'as' method directly in sound mode.
-      for (var i = 0; i < requiredCount; ++i) {
-        var requiredRti = JS<rti.Rti>('!', '#[#]', requiredPositional, i);
-        var passedValue = JS('', '#[#]', actuals, i);
-        JS('', '#.#(#)', requiredRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+    for (var i = 0; i < requiredCount; ++i) {
+      var requiredRti = JS<rti.Rti>('!', '#[#]', requiredPositional, i);
+      var passedValue = JS('', '#[#]', actuals, i);
+      JS('', '#.#(#)', requiredRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+          passedValue);
+    }
+    for (var i = 0; i < extras; ++i) {
+      var optionalRti = JS<rti.Rti>('!', '#[#]', optionalPositional, i);
+      var passedValue = JS('', '#[#]', actuals, i + requiredCount);
+      JS('', '#.#(#)', optionalRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
+          passedValue);
+    }
+    if (names != null) {
+      for (var name in names) {
+        var namedRti = JS<rti.Rti>(
+            '!', '#[#] || #[#]', requiredNamed, name, optionalNamed, name);
+        var passedValue = JS('', '#[#]', namedActuals, name);
+        JS('', '#.#(#)', namedRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
             passedValue);
-      }
-      for (var i = 0; i < extras; ++i) {
-        var optionalRti = JS<rti.Rti>('!', '#[#]', optionalPositional, i);
-        var passedValue = JS('', '#[#]', actuals, i + requiredCount);
-        JS('', '#.#(#)', optionalRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
-            passedValue);
-      }
-      if (names != null) {
-        for (var name in names) {
-          var namedRti = JS<rti.Rti>(
-              '!', '#[#] || #[#]', requiredNamed, name, optionalNamed, name);
-          var passedValue = JS('', '#[#]', namedActuals, name);
-          JS('', '#.#(#)', namedRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS),
-              passedValue);
-        }
-      }
-    } else {
-      // Call `cast` in weak mode to provide optional warnings or errors.
-      for (var i = 0; i < requiredCount; ++i) {
-        cast(JS('', '#[#]', actuals, i), JS('', '#[#]', requiredPositional, i));
-      }
-      for (var i = 0; i < extras; ++i) {
-        cast(JS('', '#[#]', actuals, i + requiredCount),
-            JS('', '#[#]', optionalPositional, i));
-      }
-      if (names != null) {
-        for (var name in names) {
-          cast(JS('', '#[#]', namedActuals, name),
-              JS('', '#[#] || #[#]', requiredNamed, name, optionalNamed, name));
-        }
       }
     }
     return null;
@@ -517,10 +493,10 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) {
           // there is no longer any warnings/errors in weak null safety mode.
           if (bound != typeArg) {
             var instantiatedBound = rti.substitute(bound, typeArgs);
-            var validSubtype = compileTimeFlag('soundNullSafety')
-                ? rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), typeArg,
-                    instantiatedBound)
-                : _isSubtypeWithWarning(typeArg, instantiatedBound);
+            var validSubtype = rti.isSubtype(
+                JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE),
+                typeArg,
+                instantiatedBound);
             if (!validSubtype) {
               throwTypeError("The type '${rti.rtiToString(typeArg)}' "
                   "is not a subtype of the type variable bound "
@@ -720,38 +696,7 @@ dsetindex(obj, index, value) =>
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    // When running without sound null safety is type tests are dispatched here
-    // to issue optional warnings/errors when the result is true but would be
-    // false with sound null safety.
-    var testRti = JS<rti.Rti>('!', '#', type);
-    // TODO(nshahan): Move to isSubtype in dart:rti once all fast path checks
-    // have been updated to be aware of
-    // `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
-    rti.Rti legacyErasedType;
-    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
-      // When preserving the legacy stars in the runtime type, avoid caching
-      // the version with erased types on the Rti.
-      var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(testRti);
-      legacyErasedType = rti.findType(legacyErasedRecipe);
-    } else {
-      legacyErasedType = rti.getLegacyErasedRti(testRti);
-    }
-    extraNullSafetyChecks = true;
-    legacyTypeChecks = false;
-    var result = JS<bool>('bool', '#.#(#)', legacyErasedType,
-        JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
-    extraNullSafetyChecks = false;
-    legacyTypeChecks = true;
-    if (result) return true;
-    result =
-        JS('bool', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
-    if (result) {
-      // Type test returned true but would be false with sound null safety.
-      var t1 = runtimeType(obj);
-      var t2 = rti.createRuntimeType(testRti);
-      _nullWarn('$t1 is not a subtype of $t2.');
-    }
-    return result;
+    throwUnimplementedInCurrentRti();
   } else {
     if (obj == null) {
       return _equalType(type, Null) ||
@@ -770,41 +715,7 @@ bool instanceOf(obj, type) {
 @JSExportName('as')
 cast(obj, type) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    // When running without sound null safety casts are dispatched here to issue
-    // optional warnings/errors when casts pass but would fail with sound null
-    // safety.
-    var testRti = JS<rti.Rti>('!', '#', type);
-    if (obj == null && !rti.isNullable(testRti)) {
-      // Allow cast to pass but warn that it would fail in sound null safety.
-      _nullWarnOnType(type);
-      return obj;
-    }
-    // TODO(nshahan): Move to isSubtype in dart:rti once all fast path checks
-    // have been updated to be aware of
-    // `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
-    rti.Rti legacyErasedType;
-    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
-      // When preserving the legacy stars in the runtime type, avoid caching
-      // the version with erased types on the Rti.
-      var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(testRti);
-      legacyErasedType = rti.findType(legacyErasedRecipe);
-    } else {
-      legacyErasedType = rti.getLegacyErasedRti(testRti);
-    }
-    extraNullSafetyChecks = true;
-    legacyTypeChecks = false;
-    var result = JS<bool>('!', '#.#(#)', legacyErasedType,
-        JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
-    extraNullSafetyChecks = false;
-    legacyTypeChecks = true;
-    if (result) return obj;
-    // Perform the actual cast and allow the error to be thrown if it fails.
-    JS('', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), obj);
-    // Cast succeeds but would fail with sound null safety.
-    var t1 = runtimeType(obj);
-    var t2 = rti.createRuntimeType(testRti);
-    _nullWarn('$t1 is not a subtype of $t2.');
-    return obj;
+    throwUnimplementedInCurrentRti();
   } else {
     // We hoist the common case where null is checked against another type here
     // for better performance.
@@ -816,54 +727,6 @@ cast(obj, type) {
     var actual = getReifiedType(obj);
     if (isSubtypeOf(actual, type)) return obj;
     return castError(obj, type);
-  }
-}
-
-/// Returns `true` if [t1] is a subtype of [t2].
-///
-/// This method should only be called when running with weak null safety.
-///
-/// Will produce a warning/error (if enabled) when the subtype passes but would
-/// fail in sound null safety.
-// TODO(48585) Revise argument types after removing old type representation.
-@notNull
-bool _isSubtypeWithWarning(@notNull t1, @notNull t2) {
-  // Avoid classes from the rti library appearing unless they are used.
-  if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    var t1Rti = JS<rti.Rti>('!', '#', t1);
-    var t2Rti = JS<rti.Rti>('!', '#', t2);
-    // TODO(nshahan): Move to isSubtype in dart:rti once all fast path checks
-    // have been updated to be aware of
-    // `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
-    rti.Rti legacyErasedType;
-    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
-      // When preserving the legacy stars in the runtime type, avoid caching
-      // the version with erased types on the Rti.
-      var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(t2Rti);
-      legacyErasedType = rti.findType(legacyErasedRecipe);
-    } else {
-      legacyErasedType = rti.getLegacyErasedRti(t2Rti);
-    }
-    extraNullSafetyChecks = true;
-    legacyTypeChecks = false;
-    var validSubtype = rti.isSubtype(
-        JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), t1Rti, legacyErasedType);
-    extraNullSafetyChecks = false;
-    legacyTypeChecks = true;
-    if (validSubtype) return true;
-    validSubtype =
-        rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), t1Rti, t2Rti);
-    if (validSubtype) {
-      // Subtype check passes but would fail with sound null safety.
-      _nullWarn('${rti.createRuntimeType(t1Rti)} '
-          'is not a subtype of '
-          '${rti.createRuntimeType(t2Rti)}.');
-    }
-    return validSubtype;
-  } else {
-    // Should never be reached because this method isn't called when using old
-    // runtime type representation.
-    throwUnimplementedInOldRti();
   }
 }
 

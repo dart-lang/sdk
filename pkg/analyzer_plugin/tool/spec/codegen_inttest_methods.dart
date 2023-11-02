@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Code generation for the file "integration_test_methods.dart".
+library;
+
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart' as path;
 
@@ -85,6 +87,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     outputHeader(year: '2017');
     writeln();
     writeln('/// Convenience methods for running integration tests.');
+    writeln('library;');
+    writeln();
     writeln("import 'dart:async';");
     writeln();
     for (var uri in api.types.importUris) {

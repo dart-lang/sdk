@@ -315,6 +315,8 @@ class PropertyGetInferenceResult {
   final ExpressionInferenceResult expressionInferenceResult;
 
   /// The property that was looked up, or `null` if no property was found.
+  // TODO(johnniwinther): This doesn't seem to be used anymore. Remove this
+  // class in favor of using [ExpressionInferenceResult]?
   final Member? member;
 
   PropertyGetInferenceResult(this.expressionInferenceResult, this.member);

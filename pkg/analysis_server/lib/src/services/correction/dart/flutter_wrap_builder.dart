@@ -49,8 +49,6 @@ class FlutterWrapBuilder extends ResolvedCorrectionProducer {
           widgetSrc,
           indentOld,
           indentNew2,
-          includeLeading: false,
-          includeTrailingNewline: false,
         );
         builder.write(indentNew2);
         builder.write('return $widgetSrc');

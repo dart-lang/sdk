@@ -6877,13 +6877,9 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 ///      | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
 ///            <identifierList>
 ///
-/// (Note: there is no <fieldDeclaration> production in the grammar; this is a
-/// subset of the grammar production <declaration>, which encompasses everything
-/// that can appear inside a class declaration except methods).
-///
-/// Prior to the 'extension-methods' experiment, these nodes were always
-/// children of a class declaration. When the experiment is enabled, these nodes
-/// can also be children of an extension declaration.
+/// (Note: there is no `<fieldDeclaration>` production in the grammar; this is a
+/// subset of the grammar production `<declaration>`, which encompasses
+/// everything that can appear inside a class declaration except methods).
 abstract final class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword was not used.
   Token? get abstractKeyword;
@@ -16121,7 +16117,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     implements SimpleIdentifier {
   /// The token representing the identifier.
   @override
-  final Token token;
+  Token token;
 
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure has not been resolved or if

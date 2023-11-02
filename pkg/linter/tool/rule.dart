@@ -54,8 +54,6 @@ void main(List<String> args) {
   generateRule(ruleName as String, outDir: outDir);
 }
 
-var _supportsTestMode = ['use_build_context_synchronously'];
-
 String get _thisYear => DateTime.now().year.toString();
 
 String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
@@ -131,6 +129,9 @@ GeneratedFile _generateAllTestsFile(String libName, String className) {
 
 ''');
 
+  sb.writeln('// ignore_for_file: library_prefixes');
+  sb.writeln();
+
   var paths = Directory(ruleTestDir).listSync().map((f) => f.path).toList()
     ..sort();
 
@@ -138,7 +139,7 @@ GeneratedFile _generateAllTestsFile(String libName, String className) {
   for (var file in paths) {
     if (!file.endsWith('_test.dart')) continue;
     var filePath = path.relative(file, from: path.join('test', 'rules'));
-    var testName = path.split(filePath).last.split('_test').first;
+    var testName = path.split(filePath).last.split('_test.dart').first;
     testNames.add(testName);
     sb.writeln("import '$filePath' as $testName;");
   }
@@ -165,7 +166,8 @@ linter:
 ''');
 
   var names = Registry.ruleRegistry.rules
-      .where((r) => !r.state.isDeprecated && !r.state.isRemoved)
+      .where((r) =>
+          !r.state.isDeprecated && !r.state.isInternal && !r.state.isRemoved)
       .map((r) => r.name)
       .toList();
   names.add(libName);
@@ -271,16 +273,15 @@ import 'analyzer.dart';
 
   sb.write('''
 
-void registerLintRules({bool inTestMode = false}) {
+void registerLintRules() {
   Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
 ''');
 
   for (var (i, name) in names.indexed) {
     var className = toClassName(name);
-    var args = _supportsTestMode.contains(name) ? 'inTestMode: inTestMode' : '';
     var suffix = i == names.length - 1 ? ';' : '';
-    sb.writeln('    ..register($className($args))$suffix');
+    sb.writeln('    ..register($className())$suffix');
   }
   sb.writeln('}');
   return (file: 'rules.dart', contents: sb.toString());
@@ -296,8 +297,6 @@ GeneratedFile _generateTest(String libName, String className) => (
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
-
-// TODO: add to all.dart
 
 main() {
   defineReflectiveSuite(() {

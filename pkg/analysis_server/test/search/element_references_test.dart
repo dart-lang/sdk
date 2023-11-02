@@ -1006,6 +1006,9 @@ LIBRARY my_lib''');
   }
 
   Future<void> test_path_inExtension_named() async {
+    // This test fails when run on macOS with a Windows pathContext because
+    // analysis_server/lib/plugin/protocol/protocol_dart.dart
+    // getElementDisplayName uses path.basename() without any path context.
     addTestFile('''
 class A {
   void foo() {}
@@ -1027,6 +1030,9 @@ LIBRARY''');
   }
 
   Future<void> test_path_inExtension_unnamed() async {
+    // This test fails when run on macOS with a Windows pathContext because
+    // analysis_server/lib/plugin/protocol/protocol_dart.dart
+    // getElementDisplayName uses path.basename() without any path context.
     addTestFile('''
 class A {
   void foo() {}

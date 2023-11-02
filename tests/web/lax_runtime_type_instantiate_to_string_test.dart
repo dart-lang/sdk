@@ -10,8 +10,7 @@ main() {
   T id<T>(T t) => t;
   int Function(int) x = id;
   var toString = "${x.runtimeType}";
-  if ('$Object' == 'Object') {
-    // `true` if non-minified.
+  if (!toString.contains('minified:')) {
     // The signature of `id` is not otherwise needed so the instantiation
     // wrapper doesn't have a function type.
     // The type parameter is present since it is required because `==`

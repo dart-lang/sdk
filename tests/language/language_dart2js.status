@@ -19,6 +19,7 @@ closure/minify_closure_variable_collision_test: SkipByDesign # Regression test f
 call/implicit_tearoff_exceptions_test: SkipByDesign # No argument type checks in production mode, issue 45528
 control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
 regress/regress45428_test: SkipByDesign # No argument type checks in production mode, issue 45528
+type_object/futureor_tostring_test: Skip # Type syntax is not preserved in minified mode
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Slow, Pass # TODO(kasperl): Please triage.

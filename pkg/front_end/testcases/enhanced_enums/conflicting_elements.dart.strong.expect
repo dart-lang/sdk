@@ -75,7 +75,7 @@ import "dart:core" as core;
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = #C1;
   final field core::int element = 42;
-  const constructor •(core::int #index, core::String #name) → self::E1
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -84,7 +84,7 @@ class E1 extends core::_Enum /*isEnum*/  {
 class E2 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2> values = #C5;
   enum-element static const field self::E2 element = #C4;
-  const constructor •(core::int #index, core::String #name) → self::E2
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -92,7 +92,7 @@ class E2 extends core::_Enum /*isEnum*/  {
 }
 class E3 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E3> values = #C6;
-  const constructor •(core::int #index, core::String #name) → self::E3
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -101,7 +101,7 @@ class E3 extends core::_Enum /*isEnum*/  {
 }
 class E4 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E4> values = #C7;
-  const constructor •(core::int #index, core::String #name) → self::E4
+  const synthetic constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -111,7 +111,7 @@ class E4 extends core::_Enum /*isEnum*/  {
 class E5 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E5> values = #C8;
   static field core::int element = 42;
-  const constructor •(core::int #index, core::String #name) → self::E5
+  const synthetic constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -120,7 +120,7 @@ class E5 extends core::_Enum /*isEnum*/  {
 class E6 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E6> values = #C10;
   enum-element static const field self::E6 element = #C9;
-  const constructor •(core::int #index, core::String #name) → self::E6
+  const synthetic constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -130,7 +130,7 @@ class E6 extends core::_Enum /*isEnum*/  {
 class E7 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E7> values = #C12;
   enum-element static const field self::E7 element = #C11;
-  const constructor •(core::int #index, core::String #name) → self::E7
+  const synthetic constructor •(core::int #index, core::String #name) → self::E7
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -150,7 +150,7 @@ abstract class _E8&_Enum&A8 = core::_Enum with self::A8 /*isAnonymousMixin,hasCo
 class E8 extends self::_E8&_Enum&A8 /*isEnum*/  {
   static const field core::List<self::E8> values = #C14;
   enum-element static const field self::E8 element = #C13;
-  const constructor •(core::int #index, core::String #name) → self::E8
+  const synthetic constructor •(core::int #index, core::String #name) → self::E8
     : super self::_E8&_Enum&A8::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -171,7 +171,7 @@ abstract class _E9&_Enum&A9 = core::_Enum with self::A9 /*isAnonymousMixin*/  {
 class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   static const field core::List<self::E9> values = invalid-expression "A constant constructor can't call a non-constant super constructor.";
   enum-element static const field self::E9 element = invalid-expression "A constant constructor can't call a non-constant super constructor.";
-  const constructor •(core::int #index, core::String #name) → self::E9
+  const synthetic constructor •(core::int #index, core::String #name) → self::E9
     : super self::_E9&_Enum&A9::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -190,7 +190,7 @@ abstract class _E10&_Enum&A10 = core::_Enum with self::A10 /*isAnonymousMixin,ha
 class E10 extends self::_E10&_Enum&A10 /*isEnum*/  {
   static const field core::List<self::E10> values = #C16;
   enum-element static const field self::E10 element = #C15;
-  const constructor •(core::int #index, core::String #name) → self::E10
+  const synthetic constructor •(core::int #index, core::String #name) → self::E10
     : super self::_E10&_Enum&A10::•(#index, #name)
     ;
   method _enumToString() → core::String

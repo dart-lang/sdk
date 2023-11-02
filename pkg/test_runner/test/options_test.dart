@@ -110,15 +110,12 @@ void testSelectors() {
   ]) {
     var configuration = parseConfiguration(arguments);
     Expect.setEquals({
-      'standalone_2',
       'corelib_2',
       'language_2',
       'vm',
       'utils',
       'lib_2',
-      'service_2',
       'kernel',
-      'observatory_ui_2',
       'ffi_2',
     }, configuration.selectors.keys, "suites for $arguments");
   }

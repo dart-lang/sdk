@@ -1737,6 +1737,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypedefTearOff(TypedefTearOff node) {
     writeByte(Tag.TypedefTearOff);
+    writeOffset(node.fileOffset);
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeNode(node.expression);
@@ -1886,6 +1887,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitNot(Not node) {
     writeByte(Tag.Not);
+    writeOffset(node.fileOffset);
     writeNode(node.operand);
   }
 
@@ -1908,6 +1910,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitLogicalExpression(LogicalExpression node) {
     writeByte(Tag.LogicalExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.left);
     writeByte(logicalOperatorIndex(node.operatorEnum));
     writeNode(node.right);
@@ -1916,6 +1919,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     writeByte(Tag.ConditionalExpression);
+    writeOffset(node.fileOffset);
     writeNode(node.condition);
     writeNode(node.then);
     writeNode(node.otherwise);
@@ -2158,6 +2162,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitBlockExpression(BlockExpression node) {
     writeByte(Tag.BlockExpression);
+    writeOffset(node.fileOffset);
     VariableIndexer variableIndexer =
         _variableIndexer ??= new VariableIndexer();
     variableIndexer.pushScope();
@@ -2169,6 +2174,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitInstantiation(Instantiation node) {
     writeByte(Tag.Instantiation);
+    writeOffset(node.fileOffset);
     writeNode(node.expression);
     writeNodeList(node.typeArguments);
   }
@@ -2491,10 +2497,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitExtensionType(ExtensionType node) {
     writeByte(Tag.ExtensionType);
-    writeByte(node.nullability.index);
+    writeByte(node.declaredNullability.index);
     writeNonNullReference(node.extensionTypeDeclarationReference);
     writeNodeList(node.typeArguments);
-    writeNode(node.typeErasure);
+    writeNode(node.extensionTypeErasure);
   }
 
   @override
@@ -2646,17 +2652,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
     leaveScope(typeParameters: node.typeParameters);
 
-    final int len = node.members.length;
+    final int len = node.memberDescriptors.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final ExtensionMemberDescriptor descriptor = node.members[i];
+      final ExtensionMemberDescriptor descriptor = node.memberDescriptors[i];
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
-      assert(descriptor.member.canonicalName != null,
+      assert(descriptor.memberReference.canonicalName != null,
           "No canonical name for ${descriptor}.");
-      writeNonNullCanonicalNameReference(descriptor.member);
-      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
+      writeNonNullCanonicalNameReference(descriptor.memberReference);
+      writeNullAllowedCanonicalNameReference(descriptor.tearOffReference);
     }
   }
 
@@ -2679,23 +2685,29 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeDartType(node.declaredRepresentationType);
     writeStringReference(node.representationName);
     writeNodeList(node.implements);
+    // Ensure that [procedureOffsets] is initialized before serializing the
+    // procedures. These offsets are not used for the extension type declaration
+    // encoding.
+    procedureOffsets = <int>[];
+    writeProcedureNodeList(node.procedures);
     leaveScope(typeParameters: node.typeParameters);
 
-    final int len = node.members.length;
+    final int len = node.memberDescriptors.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final ExtensionTypeMemberDescriptor descriptor = node.members[i];
+      final ExtensionTypeMemberDescriptor descriptor =
+          node.memberDescriptors[i];
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
-      assert(descriptor.member.canonicalName != null,
+      assert(descriptor.memberReference.canonicalName != null,
           "No canonical name for ${descriptor}.");
-      writeNonNullCanonicalNameReference(descriptor.member);
+      writeNonNullCanonicalNameReference(descriptor.memberReference);
       assert(
-          descriptor.tearOff == null ||
-              descriptor.tearOff?.canonicalName != null,
+          descriptor.tearOffReference == null ||
+              descriptor.tearOffReference?.canonicalName != null,
           "No canonical name for ${descriptor} tear-off.");
-      writeNullAllowedCanonicalNameReference(descriptor.tearOff);
+      writeNullAllowedCanonicalNameReference(descriptor.tearOffReference);
     }
   }
 

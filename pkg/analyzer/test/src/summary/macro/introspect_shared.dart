@@ -4,6 +4,87 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/// Wrapper around a [StringSink] for writing tree structures.
+class TreeStringSink {
+  final StringSink _sink;
+  String _indent = '';
+
+  TreeStringSink({
+    required StringSink sink,
+    required String indent,
+  })  : _sink = sink,
+        _indent = indent;
+
+  Future<void> withIndent(Future<void> Function() f) async {
+    final indent = _indent;
+    _indent = '$indent  ';
+    await f();
+    _indent = indent;
+  }
+
+  void write(Object object) {
+    _sink.write(object);
+  }
+
+  Future<void> writeElements<T extends Object>(
+    String name,
+    Iterable<T> elements,
+    Future<void> Function(T) f,
+  ) async {
+    if (elements.isNotEmpty) {
+      writelnWithIndent(name);
+      await withIndent(() async {
+        for (final element in elements) {
+          await f(element);
+        }
+      });
+    }
+  }
+
+  Future<void> writeFlags(Map<String, bool> flags) async {
+    if (flags.values.any((flag) => flag)) {
+      await writeIndentedLine(() async {
+        write('flags:');
+        for (final entry in flags.entries) {
+          if (entry.value) {
+            write(' ${entry.key}');
+          }
+        }
+      });
+    }
+  }
+
+  void writeIf(bool flag, Object object) {
+    if (flag) {
+      write(object);
+    }
+  }
+
+  void writeIndent() {
+    _sink.write(_indent);
+  }
+
+  Future<void> writeIndentedLine(void Function() f) async {
+    writeIndent();
+    f();
+    writeln();
+  }
+
+  void writeln([Object? object = '']) {
+    _sink.writeln(object);
+  }
+
+  void writelnWithIndent(Object object) {
+    _sink.write(_indent);
+    _sink.writeln(object);
+  }
+
+  void writeWithIndent(Object object) {
+    _sink.write(_indent);
+    _sink.write(object);
+  }
+}
+
 class _TypeAnnotationStringBuilder {
   final StringSink _sink;
 

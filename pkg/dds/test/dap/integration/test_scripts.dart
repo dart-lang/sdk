@@ -157,6 +157,20 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A simple Dart script that prints "Hello" and then "World" with a breakpoint
+/// on the line that prints "World". By restarting from the parent frame after
+/// hitting the breakpoint, the output would be "Hello", "Hello", "World".
+const restartFrameProgram = '''
+  void main(List<String> args) {
+    printHello();
+  }
+
+  void printHello() {
+    print('Hello');
+    print('World'); $breakpointMarker
+  }
+''';
+
 /// A simple Dart script that prints the numbers from 1 to 5.
 ///
 /// A breakpoint marker is on the line that prints '1' and the subsequent 4

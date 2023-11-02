@@ -146,7 +146,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 
-  Fragment BuildTypedDataMemMove(const Function& function, intptr_t cid);
+  Fragment BuildTypedDataMemMove(const Function& function,
+                                 intptr_t element_size);
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
   Fragment BuildTypedDataFactoryConstructor(const Function& function,
@@ -221,6 +222,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       const InferredTypeMetadata* result_type = nullptr,
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
+  Fragment CachableIdempotentCall(TokenPosition position,
+                                  const Function& target,
+                                  intptr_t argument_count,
+                                  const Array& argument_names,
+                                  intptr_t type_args_len = 0);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();

@@ -21,8 +21,8 @@ import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
@@ -107,13 +107,12 @@ class TestBackendStrategy extends JsBackendStrategy {
   @override
   WorldImpact generateCode(
       WorkItem work,
-      JClosedWorld closedWorld,
+      AbstractValueDomain abstractValueDomain,
       CodegenResults codegenResults,
-      EntityLookup entityLookup,
       ComponentLookup componentLookup,
       SourceLookup sourceLookup) {
     compiler.test('Compiler.codegen');
-    return super.generateCode(work, closedWorld, codegenResults, entityLookup,
+    return super.generateCode(work, abstractValueDomain, codegenResults,
         componentLookup, sourceLookup);
   }
 }

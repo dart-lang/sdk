@@ -254,6 +254,29 @@ class Res {}
         expectedMessage: "The name 'Res' is already used in the scope.");
   }
 
+  /// Check we don't fail with "The name 'x' is already used in the scope." for
+  /// arguments with the same name.
+  Future<void> test_checkName_noConflict_withArgumentName() async {
+    await indexTestUnit('''
+void a({required int x}) {}
+
+void f() {
+  a(x: 1 + 2);
+}
+''');
+    _createRefactoringForString('1 + 2');
+    refactoring.name = 'x';
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void a({required int x}) {}
+
+void f() {
+  var x = 1 + 2;
+  a(x: x);
+}
+''');
+  }
+
   Future<void> test_completeStatementExpression() async {
     await indexTestUnit('''
 void f(p) {

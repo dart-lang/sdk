@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
+/// Tests the Dart scripts can be read from named pipes, e.g.
+/// `echo 'main(){print("hello, world");}' | dart /dev/fd/0`
+
 import "dart:convert";
 import "dart:io";
 
@@ -11,9 +14,10 @@ import "package:expect/expect.dart";
 
 main() async {
   asyncStart();
-  // Reading a script from a named pipe is only supported on Linux and MacOS.
-  if (!Platform.isLinux && !Platform.isMacOS) {
-    print("This test is only supported on Linux and MacOS.");
+  // Reading a script from a named pipe is only supported on Linux.
+  // TODO(https://dartbug.com/26237): Enable support for additional platforms.
+  if (!Platform.isLinux) {
+    print("This test is only supported on Linux.");
     asyncEnd();
     return;
   }

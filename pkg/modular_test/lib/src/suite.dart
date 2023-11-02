@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Model for a modular test.
+library;
 
 /// A modular test declares the structure of the test code: what files are
 /// grouped as a module and how modules depend on one another.

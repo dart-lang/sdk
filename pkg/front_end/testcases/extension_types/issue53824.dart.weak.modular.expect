@@ -1,0 +1,51 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53824.dart:5:25: Error: The representation type can't be a bottom type.
+// extension type E1(Never foo) {} // Error.
+//                         ^^^
+//
+// pkg/front_end/testcases/extension_types/issue53824.dart:6:38: Error: The representation type can't be a bottom type.
+// extension type E2<X extends Never>(X foo) {} // Error.
+//                                      ^^^
+//
+// pkg/front_end/testcases/extension_types/issue53824.dart:7:51: Error: The representation type can't be a bottom type.
+// extension type E3<X extends Y, Y extends Never>(X foo) {} // Error.
+//                                                   ^^^
+//
+import self as self;
+
+extension type E1(invalid-type foo) {
+  abstract inline-class-member representation-field get foo() → Never;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2<X extends Never>(invalid-type foo) {
+  abstract inline-class-member representation-field get foo() → X;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+extension type E3<X extends Y = Never, Y extends Never>(invalid-type foo) {
+  abstract inline-class-member representation-field get foo() → X;
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+static inline-class-member method E1|constructor#(Never foo) → self::E1 /* = invalid-type */ {
+  lowered final self::E1 /* = invalid-type */ #this = foo;
+  return #this;
+}
+static inline-class-member method E1|constructor#_#new#tearOff(Never foo) → self::E1 /* = invalid-type */
+  return self::E1|constructor#(foo);
+static inline-class-member method E2|constructor#<X extends Never>(self::E2|constructor#::X foo) → self::E2<self::E2|constructor#::X> /* = invalid-type */ {
+  lowered final self::E2<self::E2|constructor#::X> /* = invalid-type */ #this = foo;
+  return #this;
+}
+static inline-class-member method E2|constructor#_#new#tearOff<X extends Never>(self::E2|constructor#_#new#tearOff::X foo) → self::E2<self::E2|constructor#_#new#tearOff::X>% /* = invalid-type */
+  return self::E2|constructor#<self::E2|constructor#_#new#tearOff::X>(foo);
+static inline-class-member method E3|constructor#<X extends self::E3|constructor#::Y = Never, Y extends Never>(self::E3|constructor#::X foo) → self::E3<self::E3|constructor#::X, self::E3|constructor#::Y> /* = invalid-type */ {
+  lowered final self::E3<self::E3|constructor#::X, self::E3|constructor#::Y> /* = invalid-type */ #this = foo;
+  return #this;
+}
+static inline-class-member method E3|constructor#_#new#tearOff<X extends self::E3|constructor#_#new#tearOff::Y = Never, Y extends Never>(self::E3|constructor#_#new#tearOff::X foo) → self::E3<self::E3|constructor#_#new#tearOff::X, self::E3|constructor#_#new#tearOff::Y>% /* = invalid-type */
+  return self::E3|constructor#<self::E3|constructor#_#new#tearOff::X, self::E3|constructor#_#new#tearOff::Y>(foo);

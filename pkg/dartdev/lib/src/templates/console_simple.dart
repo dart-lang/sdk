@@ -47,7 +47,7 @@ dependencies:
   # path: ^1.8.0
 
 dev_dependencies:
-  lints: ^2.1.0
+  lints: ^3.0.0
 ''';
 
 final String _readme = '''

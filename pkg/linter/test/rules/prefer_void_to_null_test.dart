@@ -39,6 +39,14 @@ void f(int a) {
     ]);
   }
 
+  /// https://github.com/dart-lang/linter/issues/4759
+  test_extensionTypeRepresentation() async {
+    await assertNoDiagnostics(r'''
+extension type B<T>(T? _) {}
+extension type N(Null _) implements B<Never> {}
+''');
+  }
+
   test_localVariable() async {
     await assertNoDiagnostics(r'''
 void f() {

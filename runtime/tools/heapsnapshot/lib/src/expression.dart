@@ -4,9 +4,9 @@
 
 import 'dart:math' as math;
 
+import 'package:heap_snapshot/analysis.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'analysis.dart';
 import 'completion.dart';
 
 abstract class SetExpression {

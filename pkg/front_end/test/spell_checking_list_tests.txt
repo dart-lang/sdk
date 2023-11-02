@@ -339,6 +339,7 @@ gave
 gc
 gcd
 gclient
+ge
 gesture
 gi
 gm
@@ -491,6 +492,9 @@ naturally
 negatable
 newworld
 ninja
+nn
+nnn
+nnr
 noisy
 nomatch
 nominal
@@ -569,6 +573,7 @@ processors
 producer
 profile
 profiler
+programmatically
 proportional
 protected
 proved
@@ -659,6 +664,7 @@ sidebar
 sigint
 signalled
 sigwinch
+silence
 slashes
 slight
 sliver

@@ -58,6 +58,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
 DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
+// TODO(derekx): Remove this flag in Dart 3.4.
 DEFINE_FLAG(
     bool,
     systrace_timeline,
@@ -141,14 +142,17 @@ static TimelineEventRecorder* CreateDefaultTimelineRecorder() {
 }
 
 static TimelineEventRecorder* CreateTimelineRecorder() {
-  // Some flags require that we use the endless recorder.
-
-  const char* flag =
-      FLAG_timeline_recorder != nullptr ? FLAG_timeline_recorder : "";
+  ASSERT(FLAG_timeline_recorder != nullptr);
+  const char* flag = FLAG_timeline_recorder;
 
   if (FLAG_systrace_timeline) {
+    OS::PrintErr(
+        "Warning: the --systrace-timeline flag is deprecated and will "
+        "be removed in Dart SDK v3.4. Please use --timeline-recorder=systrace "
+        "instead.\n");
     flag = "systrace";
   } else if (FLAG_timeline_dir != nullptr || FLAG_complete_timeline) {
+    // Some flags require that we use the endless recorder.
     flag = "endless";
   } else if (FLAG_startup_timeline) {
     flag = "startup";
@@ -222,7 +226,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
   if (strlen(flag) > 0 && strcmp(flag, DEFAULT_TIMELINE_RECORDER) != 0) {
     OS::PrintErr(
         "Warning: requested %s timeline recorder which is not supported, "
-        "defaulting to " DEFAULT_TIMELINE_RECORDER " recorder\n",
+        "defaulting to the " DEFAULT_TIMELINE_RECORDER " recorder\n",
         flag);
   }
 
@@ -1523,11 +1527,14 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
     const intptr_t process_id,
     const intptr_t trace_id,
     const char* thread_name) {
-  if (FLAG_timeline_recorder == nullptr ||
-      // There is no way to retrieve track metadata when a callback or systrace
-      // recorder is in use, so we don't need to update the map in these cases.
+  ASSERT(FLAG_timeline_recorder != nullptr);
+  if (strcmp("none", FLAG_timeline_recorder) == 0 ||
       strcmp("callback", FLAG_timeline_recorder) == 0 ||
-      strcmp("systrace", FLAG_timeline_recorder) == 0) {
+      strcmp("systrace", FLAG_timeline_recorder) == 0 ||
+      FLAG_systrace_timeline) {
+    // There is no way to retrieve track metadata when a no-op, callback, or
+    // systrace recorder is in use, so we don't need to update the map in these
+    // cases.
     return;
   }
     MutexLocker ml(&track_uuid_to_track_metadata_lock_);
@@ -1553,12 +1560,15 @@ void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
 #if !defined(PRODUCT)
 void TimelineEventRecorder::AddAsyncTrackMetadataBasedOnEvent(
     const TimelineEvent& event) {
-  if (FLAG_timeline_recorder == nullptr ||
-      // There is no way to retrieve track metadata when a callback or systrace
-      // recorder is in use, so we don't need to update the map in these cases.
+  ASSERT(FLAG_timeline_recorder != nullptr);
+  if (strcmp("none", FLAG_timeline_recorder) == 0 ||
       strcmp("callback", FLAG_timeline_recorder) == 0 ||
-      strcmp("systrace", FLAG_timeline_recorder) == 0) {
-    return;
+      strcmp("systrace", FLAG_timeline_recorder) == 0 ||
+      FLAG_systrace_timeline) {
+      // There is no way to retrieve track metadata when a no-op, callback, or
+      // systrace recorder is in use, so we don't need to update the map in
+      // these cases.
+      return;
   }
   MutexLocker ml(&async_track_uuid_to_track_metadata_lock_);
 

@@ -826,6 +826,67 @@ class _Uri {
     }
     return result.toString();
   }
+
+  @patch
+  static String _makeQueryFromParameters(
+      Map<String, dynamic /*String?|Iterable<String>*/ > queryParameters) {
+    if (!_useURLSearchParams) {
+      return _makeQueryFromParametersDefault(queryParameters);
+    }
+
+    // Copy the values from [queryParameters] into a browser URLSearchParams
+    // object.
+    final params = JS('', 'new URLSearchParams()');
+    queryParameters.forEach((key, value) {
+      if (value is String) {
+        JS('', '#.set(#, #)', params, key, value);
+      } else if (value == null) {
+        JS('', '#.set(#, #)', params, key, '');
+      } else {
+        Iterable values = value;
+
+        // This could be written as `for (final String? value in values)` but in
+        // some optimized modes the type check is 'trusted' (ignored). So we
+        // check [value] explicitly to avoid JavaScript implicit ToString
+        // conversions.
+        for (final value in values) {
+          if (value is String) {
+            JS('', '#.append(#, #)', params, key, value);
+          } else if (value == null) {
+            JS('', '#.append(#, #)', params, key, '');
+          } else {
+            // Signal the error we would have for the typed for-in loop.
+            value as String?;
+          }
+        }
+      }
+    });
+    String encoded = JS('String', '#.toString()', params);
+
+    // Fix differences between the URLSearchParams encoding and the desired
+    // encoding.
+    //
+    // 1. URLSearchParams encodes empty values as `foo=` rather than just `foo`.
+    // 2. URLSearchParams does not escape `*`.
+    // 3. URLSearchParams escapes `~`.
+
+    // Handle `foo=` at end of encoded query.
+    final length = encoded.length;
+    if (length > 0 && encoded[length - 1] == '=') {
+      encoded = encoded.substring(0, length - 1);
+    }
+
+    // Handle other cases with one RegExp.
+    encoded = JS(
+        '',
+        r'#.replace(/=&|\*|%7E/g, (m) => m === "=&" ? "&" : m === "*" ? "%2A" : "~")',
+        encoded);
+
+    return encoded;
+  }
+
+  static final bool _useURLSearchParams =
+      JS('bool', 'typeof URLSearchParams == "function"');
 }
 
 @patch

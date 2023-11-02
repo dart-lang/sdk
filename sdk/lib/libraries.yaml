@@ -38,7 +38,7 @@ vm_common:
 
     convert:
       uri: "convert/convert.dart"
-      patches: "_internal/vm_shared/lib/convert_patch.dart"
+      patches: "_internal/vm/lib/convert_patch.dart"
 
     core:
       uri: "core/core.dart"
@@ -119,21 +119,23 @@ wasm:
     core:
       uri: core/core.dart
       patches:
-        - _internal/wasm/lib/core_patch.dart
         - _internal/vm_shared/lib/array_patch.dart
         - _internal/vm_shared/lib/bigint_patch.dart
         - _internal/vm_shared/lib/bool_patch.dart
         - _internal/vm_shared/lib/date_patch.dart
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
+        - _internal/wasm/lib/boxed_double.dart
+        - _internal/wasm/lib/boxed_int.dart
+        - _internal/wasm/lib/boxed_int_to_string.dart
+        - _internal/wasm/lib/core_patch.dart
         - _internal/wasm/lib/date_patch_patch.dart
+        - _internal/wasm/lib/int_common_patch.dart
         - _internal/wasm/lib/int_patch.dart
         - _internal/wasm/lib/string_buffer_patch.dart
         - _internal/wasm/lib/string_patch.dart
         - _internal/wasm/lib/sync_star_patch.dart
         - _internal/wasm/lib/weak_patch.dart
-        - _internal/wasm/lib/boxed_double.dart
-        - _internal/wasm/lib/boxed_int.dart
 
 wasm_stringref:
   include:
@@ -142,26 +144,32 @@ wasm_stringref:
     core:
       uri: core/core.dart
       patches:
-        - _internal/wasm/lib/core_patch.dart
         - _internal/vm_shared/lib/array_patch.dart
         - _internal/vm_shared/lib/bigint_patch.dart
         - _internal/vm_shared/lib/bool_patch.dart
         - _internal/vm_shared/lib/date_patch.dart
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
+        - _internal/wasm/lib/boxed_double.dart
+        - _internal/wasm/lib/boxed_int.dart
+        - _internal/wasm/lib/boxed_int_to_string.dart
+        - _internal/wasm/lib/core_patch.dart
         - _internal/wasm/lib/date_patch_patch.dart
+        - _internal/wasm/lib/int_common_patch.dart
         - _internal/wasm/lib/int_patch.dart
         - _internal/wasm/lib/string_buffer_patch.dart
         - _internal/wasm/lib/string_stringref_patch.dart
         - _internal/wasm/lib/sync_star_patch.dart
         - _internal/wasm/lib/weak_patch.dart
-        - _internal/wasm/lib/boxed_double.dart
-        - _internal/wasm/lib/boxed_int.dart
 
 wasm_js_compatibility:
   include:
     - target: "wasm_common"
   libraries:
+    convert:
+      uri: convert/convert.dart
+      patches:
+      - _internal/wasm_js_compatibility/lib/convert_patch.dart
     core:
       uri: core/core.dart
       patches:
@@ -171,34 +179,45 @@ wasm_js_compatibility:
         - _internal/vm_shared/lib/date_patch.dart
         - _internal/vm_shared/lib/map_patch.dart
         - _internal/vm_shared/lib/null_patch.dart
-        - _internal/wasm/lib/core_patch.dart
-        - _internal/wasm/lib/date_patch_patch.dart
-        - _internal/wasm/lib/int_patch.dart
-        - _internal/wasm/lib/string_buffer_patch.dart
-        - _internal/wasm/lib/string_patch.dart
-        - _internal/wasm/lib/sync_star_patch.dart
-        - _internal/wasm/lib/weak_patch.dart
         - _internal/wasm/lib/boxed_double.dart
         - _internal/wasm/lib/boxed_int.dart
+        - _internal/wasm/lib/core_patch.dart
+        - _internal/wasm/lib/date_patch_patch.dart
+        - _internal/wasm/lib/int_common_patch.dart
+        - _internal/wasm/lib/sync_star_patch.dart
+        - _internal/wasm/lib/weak_patch.dart
+        - _internal/wasm_js_compatibility/lib/boxed_int_to_string.dart
+        - _internal/wasm_js_compatibility/lib/int_patch.dart
+        - _internal/wasm_js_compatibility/lib/string_buffer_patch.dart
+        - _internal/wasm_js_compatibility/lib/string_patch.dart
     typed_data:
       uri: typed_data/typed_data.dart
       patches:
-        - _internal/wasm/lib/simd.dart
         - _internal/wasm/lib/simd_patch.dart
         - _internal/wasm_js_compatibility/lib/typed_data.dart
         - _internal/wasm_js_compatibility/lib/typed_data_patch.dart
+    _simd:
+      uri: _internal/wasm/lib/simd.dart
 
 wasm_base:
   include:
     - target: "wasm_common"
   libraries:
+    convert:
+      uri: convert/convert.dart
+      patches:
+      - _internal/wasm/lib/convert_patch.dart
     typed_data:
       uri: typed_data/typed_data.dart
       patches:
-        - _internal/wasm/lib/simd.dart
         - _internal/wasm/lib/simd_patch.dart
-        - _internal/wasm/lib/typed_data.dart
         - _internal/wasm/lib/typed_data_patch.dart
+    _simd:
+      uri: _internal/wasm/lib/simd.dart
+    _string:
+      uri: _internal/wasm/lib/string.dart
+    _typed_data:
+      uri: _internal/wasm/lib/typed_data.dart
 
 wasm_common:
   libraries:
@@ -207,6 +226,7 @@ wasm_common:
       patches:
         - _internal/wasm/lib/boxed_double.dart
         - _internal/wasm/lib/boxed_int.dart
+        - _internal/wasm/lib/int_common_patch.dart
     _http:
       uri: _http/http.dart
     _internal:
@@ -221,8 +241,6 @@ wasm_common:
       uri: _internal/wasm/lib/js_types.dart
     _object_helper:
       uri: _internal/wasm/lib/object_helper.dart
-    _string:
-      uri: _internal/wasm/lib/string.dart
     _string_helper:
       uri: _internal/wasm/lib/string_helper.dart
     _wasm:
@@ -238,11 +256,6 @@ wasm_common:
       - _internal/vm_shared/lib/collection_patch.dart
       - _internal/vm_shared/lib/compact_hash.dart
       - _internal/wasm/lib/hash_factories.dart
-    convert:
-      uri: convert/convert.dart
-      patches:
-      - _internal/vm_shared/lib/convert_patch.dart
-      - _internal/wasm/lib/convert_patch.dart
     developer:
       uri: developer/developer.dart
       patches:

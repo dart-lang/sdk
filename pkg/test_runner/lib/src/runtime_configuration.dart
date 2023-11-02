@@ -211,7 +211,10 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   @override
   List<String> dart2jsPreambles(Uri preambleDir) {
-    return [preambleDir.resolve('d8.js').toFilePath()];
+    return [
+      preambleDir.resolve('seal_native_object.js').toFilePath(),
+      preambleDir.resolve('d8.js').toFilePath()
+    ];
   }
 }
 
@@ -244,7 +247,13 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   @override
   List<String> dart2jsPreambles(Uri preambleDir) {
-    return ['-f', preambleDir.resolve('jsshell.js').toFilePath(), '-f'];
+    return [
+      '-f',
+      preambleDir.resolve('seal_native_object.js').toFilePath(),
+      '-f',
+      preambleDir.resolve('jsshell.js').toFilePath(),
+      '-f'
+    ];
   }
 }
 
@@ -295,11 +304,6 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       case Architecture.simriscv64:
         multiplier *= 4;
         break;
-    }
-
-    // TODO(dart-engprod): Remove after replacing Cavium with GCE instances.
-    if (arch == Architecture.arm64 && system == System.linux) {
-      multiplier *= 4;
     }
 
     if (_configuration.useQemu) {
@@ -480,13 +484,23 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     if (isCrashExpected) {
       arguments.insert(0, '--suppress-core-dump');
     }
+
+    // Rewrite paths on the host to paths in the Fuchsia package.
+    arguments = arguments
+        .map((argument) =>
+            argument.replaceAll(Directory.current.path, "pkg/data"))
+        .toList();
+
     var command = FuchsiaEmulator.instance().getTestCommand(
-        _configuration.mode.name, _configuration.architecture.name, arguments);
+        _configuration.buildDirectory,
+        _configuration.mode.name,
+        _configuration.architecture.name,
+        arguments);
     command.arguments
         .insert(command.arguments.length - 1, '--disable-dart-dev');
-    return [
-      VMCommand(command.executable, command.arguments, environmentOverrides)
-    ];
+    command.environmentOverrides.addAll(environmentOverrides);
+    print("+ About to run command $command to test against fuchsia vm");
+    return [command];
   }
 }
 

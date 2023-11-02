@@ -137,6 +137,13 @@ build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_linux") {
   ]
 }
 
+build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_win") {
+  extra_configs = [
+    ":define_target_arch_arm64",
+    ":define_target_os_windows",
+  ]
+}
+
 build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_android") {
   extra_configs = [
     ":define_target_arch_ia32",
@@ -214,6 +221,7 @@ group("run_ffi_unit_tests") {
     ":run_ffi_unit_tests_arm64_ios",  # No other test coverage.
     ":run_ffi_unit_tests_arm64_linux",
     ":run_ffi_unit_tests_arm64_macos",
+    ":run_ffi_unit_tests_arm64_win",
     ":run_ffi_unit_tests_arm_android",  # SoftFP
     ":run_ffi_unit_tests_arm_ios",  # No other test coverage.
     ":run_ffi_unit_tests_arm_linux",  # HardFP

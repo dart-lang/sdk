@@ -62,7 +62,7 @@ class BlazePackageUriResolver extends UriResolver {
   final path.Context _context;
 
   /// The cache of absolute [Uri]s to [Source]s mappings.
-  final Map<Uri, Source> _sourceCache = HashMap<Uri, Source>();
+  final Map<Uri, Source?> _sourceCache = HashMap();
 
   BlazePackageUriResolver(BlazeWorkspace workspace)
       : _workspace = workspace,
@@ -87,24 +87,27 @@ class BlazePackageUriResolver extends UriResolver {
 
   @override
   Source? resolveAbsolute(Uri uri) {
-    var source = _sourceCache[uri];
-    if (source == null) {
-      source = _resolveAbsolute(uri);
-      if (source != null) {
-        _sourceCache[uri] = source;
+    if (_sourceCache.containsKey(uri)) {
+      return _sourceCache[uri];
+    }
+    Source? source;
+    var fullFilePath = resolveAbsolutePath(uri);
+    if (fullFilePath != null) {
+      var file = _workspace.findFile(fullFilePath);
+      if (file != null) {
+        source = file.createSource(uri);
       }
     }
+    _sourceCache[uri] = source;
     return source;
   }
 
-  Source? _resolveAbsolute(Uri uri) {
+  String? resolveAbsolutePath(Uri uri) {
     if (uri.isScheme('file')) {
       var path = fileUriToNormalizedPath(_context, uri);
       var pathRelativeToRoot = _workspace._relativeToRoot(path);
       if (pathRelativeToRoot == null) return null;
-      var fullFilePath = _context.join(_workspace.root, pathRelativeToRoot);
-      var file = _workspace.findFile(fullFilePath);
-      return file?.createSource(uri);
+      return _context.join(_workspace.root, pathRelativeToRoot);
     }
     if (!uri.isScheme('package')) {
       return null;
@@ -131,16 +134,11 @@ class BlazePackageUriResolver extends UriResolver {
     String filePath = fileUriPart.replaceAll('/', _context.separator);
 
     if (!packageName.contains('.')) {
-      String fullFilePath = _context.join(
+      return _context.join(
           _workspace.root, 'third_party', 'dart', packageName, 'lib', filePath);
-      var file = _workspace.findFile(fullFilePath);
-      return file?.createSource(uri);
     } else {
       String packagePath = packageName.replaceAll('.', _context.separator);
-      String fullFilePath =
-          _context.join(_workspace.root, packagePath, 'lib', filePath);
-      var file = _workspace.findFile(fullFilePath);
-      return file?.createSource(uri);
+      return _context.join(_workspace.root, packagePath, 'lib', filePath);
     }
   }
 
@@ -244,7 +242,8 @@ class BlazeWorkspace extends Workspace
   bool get isBlaze => true;
 
   @override
-  UriResolver get packageUriResolver => BlazePackageUriResolver(this);
+  BlazePackageUriResolver get packageUriResolver =>
+      BlazePackageUriResolver(this);
 
   @override
   SourceFactory createSourceFactory(
@@ -331,8 +330,8 @@ class BlazeWorkspace extends Workspace
 
     /// Return the package rooted at [folder].
     BlazeWorkspacePackage? packageRootedAt(Folder folder) {
-      var uriParts = (packageUriResolver as BlazePackageUriResolver)
-          ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
+      var uriParts = packageUriResolver._restoreUriParts(
+          root, '${folder.path}/lib/__fake__.dart');
       String? packageName;
       if (uriParts != null && uriParts.isNotEmpty) {
         packageName = uriParts[0];
@@ -660,13 +659,10 @@ class BlazeWorkspacePackage extends WorkspacePackage {
           .where((e) => !e.startsWith('#'))
           .map((e) => e.replaceAll(' ', ''))
           .join();
-      var hasNonNullableFlag = const {
-        'dart_package(null_safety=True',
-        'dart_package(sound_null_safety=True',
+      var hasLegacyFlag = const {
+        'dart_package(null_safety=False',
       }.any(flattenedBuildContent.contains);
-      if (hasNonNullableFlag) {
-        // Enabled by default.
-      } else {
+      if (hasLegacyFlag) {
         _languageVersion = Version.parse('2.9.0');
       }
     } on FileSystemException {

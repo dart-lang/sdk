@@ -34,6 +34,9 @@ abstract interface class Link implements FileSystemEntity {
 
   /// Creates a symbolic link in the file system.
   ///
+  /// The created link will point to the path at [target], whether that path
+  /// exists or not.
+  ///
   /// Returns a `Future<Link>` that completes with
   /// the link when it has been created. If the link path already exists,
   /// the future will complete with an error.
@@ -45,9 +48,24 @@ abstract interface class Link implements FileSystemEntity {
   /// not affected, unless they are also in [path].
   ///
   /// On the Windows platform, this call will create a true symbolic link
-  /// instead of a Junction. In order to create a symbolic link on Windows, Dart
-  /// must be run in Administrator mode or the system must have Developer Mode
-  /// enabled, otherwise a [FileSystemException] will be raised with
+  /// instead of a junction. Windows treats links to files and links to
+  /// directories as different and non-interchangable kinds of links.
+  /// Each link is either a file-link or a directory-link, and the type is
+  /// chosen when the link is created, and the link then counts as either a
+  /// file or directory for most purposes. Different Win32 API calls are
+  /// used to manipulate each. For example, the `DeleteFile` function is
+  /// used to delete links to files, and `RemoveDirectory` must be used to
+  /// delete links to directories.
+  ///
+  /// The created Windows symbolic link will match the type of the [target],
+  /// if [target] exists, otherwise a file-link is created. The type of the
+  /// created link will not change if [target] is later replaced by something
+  /// of a different type, but then the link will not be resolvable by
+  /// [resolveSymbolicLinks].
+  ///
+  /// In order to create a symbolic link on Windows, Dart must be run in
+  /// Administrator mode or the system must have Developer Mode enabled,
+  /// otherwise a [FileSystemException] will be raised with
   /// `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
   ///
   /// On other platforms, the POSIX `symlink()` call is used to make a symbolic
@@ -55,8 +73,12 @@ abstract interface class Link implements FileSystemEntity {
   /// it will be interpreted relative to the directory containing the link.
   Future<Link> create(String target, {bool recursive = false});
 
-  /// Synchronously create the link. Calling [createSync] on an existing link
-  /// will throw an exception.
+  /// Creates a symbolic link in the file system.
+  ///
+  /// The created link will point to the path at [target], whether that path
+  /// exists or not.
+  ///
+  /// If the link path already exists, an exception will be thrown.
   ///
   /// If [recursive] is `false`, the default, the link is created only if all
   /// directories in its path exist. If [recursive] is `true`, all
@@ -64,9 +86,24 @@ abstract interface class Link implements FileSystemEntity {
   /// the path of [target] are not affected, unless they are also in [path].
   ///
   /// On the Windows platform, this call will create a true symbolic link
-  /// instead of a Junction. In order to create a symbolic link on Windows, Dart
-  /// must be run in Administrator mode or the system must have Developer Mode
-  /// enabled, otherwise a [FileSystemException] will be raised with
+  /// instead of a junction. Windows treats links to files and links to
+  /// directories as different and non-interchangable kinds of links.
+  /// Each link is either a file-link or a directory-link, and the type is
+  /// chosen when the link is created, and the link then counts as either a
+  /// file or directory for most purposes. Different Win32 API calls are
+  /// used to manipulate each.  For example, the `DeleteFile` function is
+  /// used to delete links to files, and `RemoveDirectory` must be used to
+  /// delete links to directories.
+  ///
+  /// The created Windows symbolic link will match the type of the [target],
+  /// if [target] exists, otherwise a file-link is created. The type of the
+  /// created link will not change if [target] is later replaced by something
+  /// of a different type, but then the link will not be resolvable by
+  /// [resolveSymbolicLinks].
+  ///
+  /// In order to create a symbolic link on Windows, Dart must be run in
+  /// Administrator mode or the system must have Developer Mode enabled,
+  /// otherwise a [FileSystemException] will be raised with
   /// `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
   ///
   /// On other platforms, the POSIX `symlink()` call is used to make a symbolic
@@ -74,16 +111,22 @@ abstract interface class Link implements FileSystemEntity {
   /// it will be interpreted relative to the directory containing the link.
   void createSync(String target, {bool recursive = false});
 
-  /// Synchronously updates the link.
+  /// Synchronously updates an existing link.
   ///
-  /// Calling [updateSync] on a non-existing link will throw an exception.
+  /// Deletes the existing link at [path] and uses [createSync] to create a new
+  /// link to [target]. Throws [PathNotFoundException] if the original link
+  /// does not exist or any [FileSystemException] that [deleteSync] or
+  /// [createSync] can throw.
   void updateSync(String target);
 
-  /// Updates the link.
+  /// Updates an existing link.
   ///
-  /// Returns a `Future<Link>` that completes with the
-  /// link when it has been updated. Calling [update] on a non-existing link
-  /// will complete its returned future with an exception.
+  /// Deletes the existing link at [path] and creates a new link to [target],
+  /// using [create].
+  ///
+  /// Returns a future which completes with this `Link` if successful,
+  /// and with a [PathNotFoundException] if there is no existing link at [path],
+  /// or with any [FileSystemException] that [delete] or [create] can throw.
   Future<Link> update(String target);
 
   Future<String> resolveSymbolicLinks();

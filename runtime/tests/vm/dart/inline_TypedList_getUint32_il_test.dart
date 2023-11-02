@@ -52,10 +52,10 @@ void matchIL$calculateRetainers(FlowGraph graph) {
       final buffer = StringBuffer();
       buffer
         ..write('Found uninlined call to _getUint32 in block ')
-        ..write(graph.blockName(block))
+        ..write(PrettyPrinter.blockName(block))
         ..writeln(':')
         ..write('  ');
-      graph.formatInstruction(buffer, instr);
+      graph.printer.formatInstruction(buffer, instr);
       throw buffer;
     }
   }

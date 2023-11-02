@@ -68,7 +68,7 @@ final class ImplementsFinalClassTypedef2 extends core::Object implements mai::A 
 class EnumImplementsFinalClassTypedef extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalClassTypedef> values = #C4;
   enum-element static const field self::EnumImplementsFinalClassTypedef x = #C3;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -77,7 +77,7 @@ class EnumImplementsFinalClassTypedef extends core::_Enum implements mai::A /*is
 class EnumImplementsFinalClassTypedef2 extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalClassTypedef2> values = #C6;
   enum-element static const field self::EnumImplementsFinalClassTypedef2 x = #C5;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef2
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedef2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -96,7 +96,7 @@ final class ImplementsFinalClassTypedefOutside extends core::Object implements m
 class EnumImplementsFinalClassTypedefOutside extends core::_Enum implements mai::A /*isEnum*/  {
   static const field core::List<self::EnumImplementsFinalClassTypedefOutside> values = #C8;
   enum-element static const field self::EnumImplementsFinalClassTypedefOutside x = #C7;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedefOutside
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsFinalClassTypedefOutside
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

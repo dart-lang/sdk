@@ -7,7 +7,7 @@ import 'dart:io' as io;
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp
-    show MessageType;
+    show MessageType, OptionalVersionedTextDocumentIdentifier;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -29,6 +29,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -49,6 +50,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -58,6 +60,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
@@ -67,6 +70,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:collection/collection.dart';
@@ -202,6 +206,10 @@ abstract class AnalysisServer {
   /// Starts completed and will be replaced each time a context rebuild starts.
   Completer<void> analysisContextRebuildCompleter = Completer()..complete();
 
+  /// The workspace for rename refactorings.
+  late final refactoringWorkspace =
+      RefactoringWorkspace(driverMap.values, searchEngine);
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -314,8 +322,8 @@ abstract class AnalysisServer {
       analysisContextRebuildCompleter.future;
 
   /// The list of current analysis sessions in all contexts.
-  Future<List<AnalysisSession>> get currentSessions async {
-    var sessions = <AnalysisSession>[];
+  Future<List<AnalysisSessionImpl>> get currentSessions async {
+    var sessions = <AnalysisSessionImpl>[];
     for (var driver in driverMap.values) {
       await driver.applyPendingFileChanges();
       sessions.add(driver.currentSession);
@@ -399,6 +407,14 @@ abstract class AnalysisServer {
     );
   }
 
+  /// Checks that all [sessions] are still consistent, throwing
+  /// [InconsistentAnalysisException] if not.
+  void checkConsistency(List<AnalysisSessionImpl> sessions) {
+    for (final session in sessions) {
+      session.checkConsistency();
+    }
+  }
+
   /// If the state location can be accessed, return the file byte store,
   /// otherwise return the memory byte store.
   ByteStore createByteStore(ResourceProvider resourceProvider) {
@@ -477,6 +493,9 @@ abstract class AnalysisServer {
         DartdocDirectiveInfo();
   }
 
+  /// Gets the current version number of a document (if known).
+  int? getDocumentVersion(String path);
+
   /// Return a [Future] that completes with the [Element] at the given
   /// [offset] of the given [file], or with `null` if there is no node at the
   /// [offset] or the node does not have an element.
@@ -524,6 +543,32 @@ abstract class AnalysisServer {
     return element;
   }
 
+  /// Return a [LineInfo] for the file with the given [path].
+  ///
+  /// If the file does not exist or cannot be read, returns `null`.
+  ///
+  /// This method supports non-Dart files but uses the current content of the
+  /// file which may not be the latest analyzed version of the file if it was
+  /// recently modified, so using the LineInfo from an analyzed result may be
+  /// preferable.
+  LineInfo? getLineInfo(String path) {
+    try {
+      // First try to get from the File if it's an analyzed Dart file.
+      final result = getAnalysisDriver(path)?.getFileSync(path);
+      if (result is FileResult) {
+        return result.lineInfo;
+      }
+
+      // Fall back to reading from the resource provider.
+      final content = resourceProvider.getFile(path).readAsStringSync();
+      return LineInfo.fromContent(content);
+    } on FileSystemException {
+      // If the file does not exist or cannot be read, return null to allow
+      // the caller to decide how to handle this.
+      return null;
+    }
+  }
+
   /// Return a [Future] that completes with the resolved [AstNode] at the
   /// given [offset] of the given [file], or with `null` if there is no node as
   /// the [offset].
@@ -567,14 +612,7 @@ abstract class AnalysisServer {
       return null;
     }
     try {
-      var currentSession = driver.currentSession;
-      var unitElement = await currentSession.getUnitElement(path);
-      if (unitElement is! UnitElementResult) {
-        return null;
-      }
-      var libraryPath = unitElement.element.library.source.fullName;
-      var result = await currentSession.getResolvedLibrary(libraryPath);
-      return result is ResolvedLibraryResult ? result : null;
+      return driver.currentSession.getResolvedContainingLibrary(path);
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {
@@ -604,6 +642,16 @@ abstract class AnalysisServer {
       instrumentationService.logException(e, st);
       return null;
     });
+  }
+
+  /// Gets the version of a document known to the server, returning a
+  /// [lsp.OptionalVersionedTextDocumentIdentifier] with a version of `null` if the
+  /// document version is not known.
+  lsp.OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
+      String path) {
+    return lsp.OptionalVersionedTextDocumentIdentifier(
+        uri: resourceProvider.pathContext.toUri(path),
+        version: getDocumentVersion(path));
   }
 
   @mustCallSuper

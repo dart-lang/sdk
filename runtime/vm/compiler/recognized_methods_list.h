@@ -100,20 +100,20 @@ namespace dart {
     TypedData_UnmodifiableInt32x4ArrayView_factory, 0xf66c6993)                \
   V(_UnmodifiableFloat64x2ArrayView, ._,                                       \
     TypedData_UnmodifiableFloat64x2ArrayView_factory, 0x6d9ae5fb)              \
-  V(Int8List, ., TypedData_Int8Array_factory, 0x65ff4ca8)                      \
-  V(Uint8List, ., TypedData_Uint8Array_factory, 0xedd56a6f)                    \
-  V(Uint8ClampedList, ., TypedData_Uint8ClampedArray_factory, 0x27f7ab75)      \
-  V(Int16List, ., TypedData_Int16Array_factory, 0xd0bf0d13)                    \
-  V(Uint16List, ., TypedData_Uint16Array_factory, 0x3ca76f8a)                  \
-  V(Int32List, ., TypedData_Int32Array_factory, 0x1b816740)                    \
-  V(Uint32List, ., TypedData_Uint32Array_factory, 0x2b210eab)                  \
-  V(Int64List, ., TypedData_Int64Array_factory, 0xfb63524f)                    \
-  V(Uint64List, ., TypedData_Uint64Array_factory, 0xe3c14418)                  \
-  V(Float32List, ., TypedData_Float32Array_factory, 0xa381dd1e)                \
-  V(Float64List, ., TypedData_Float64Array_factory, 0xa0b7c2b1)                \
-  V(Float32x4List, ., TypedData_Float32x4Array_factory, 0x0a6eefa8)            \
-  V(Int32x4List, ., TypedData_Int32x4Array_factory, 0x5a09288e)                \
-  V(Float64x2List, ., TypedData_Float64x2Array_factory, 0xecbc738a)            \
+  V(Int8List, ., TypedData_Int8Array_factory, 0x65ff48e7)                      \
+  V(Uint8List, ., TypedData_Uint8Array_factory, 0xedd566ae)                    \
+  V(Uint8ClampedList, ., TypedData_Uint8ClampedArray_factory, 0x27f7a7b4)      \
+  V(Int16List, ., TypedData_Int16Array_factory, 0xd0bf0952)                    \
+  V(Uint16List, ., TypedData_Uint16Array_factory, 0x3ca76bc9)                  \
+  V(Int32List, ., TypedData_Int32Array_factory, 0x1b81637f)                    \
+  V(Uint32List, ., TypedData_Uint32Array_factory, 0x2b210aea)                  \
+  V(Int64List, ., TypedData_Int64Array_factory, 0xfb634e8e)                    \
+  V(Uint64List, ., TypedData_Uint64Array_factory, 0xe3c14057)                  \
+  V(Float32List, ., TypedData_Float32Array_factory, 0xa381d95d)                \
+  V(Float64List, ., TypedData_Float64Array_factory, 0xa0b7bef0)                \
+  V(Float32x4List, ., TypedData_Float32x4Array_factory, 0x0a6eebe7)            \
+  V(Int32x4List, ., TypedData_Int32x4Array_factory, 0x5a0924cd)                \
+  V(Float64x2List, ., TypedData_Float64x2Array_factory, 0xecbc6fc9)            \
   V(_TypedListBase, _memMove1, TypedData_memMove1, 0xd2767fb0)                 \
   V(_TypedListBase, _memMove2, TypedData_memMove2, 0xed382bb6)                 \
   V(_TypedListBase, _memMove4, TypedData_memMove4, 0xcfe37726)                 \
@@ -544,22 +544,22 @@ namespace dart {
     kGrowableObjectArrayCid, 0x7be49a4e)                                       \
   V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
     0x19394cc1)                                                                \
-  V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x65ff4ca8)        \
-  V(_Uint8ArrayFactory, Uint8List, ., kTypedDataUint8ArrayCid, 0xedd56a6f)     \
+  V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x65ff48e7)        \
+  V(_Uint8ArrayFactory, Uint8List, ., kTypedDataUint8ArrayCid, 0xedd566ae)     \
   V(_Uint8ClampedArrayFactory, Uint8ClampedList, .,                            \
-    kTypedDataUint8ClampedArrayCid, 0x27f7ab75)                                \
-  V(_Int16ArrayFactory, Int16List, ., kTypedDataInt16ArrayCid, 0xd0bf0d13)     \
-  V(_Uint16ArrayFactory, Uint16List, ., kTypedDataUint16ArrayCid, 0x3ca76f8a)  \
-  V(_Int32ArrayFactory, Int32List, ., kTypedDataInt32ArrayCid, 0x1b816740)     \
-  V(_Uint32ArrayFactory, Uint32List, ., kTypedDataUint32ArrayCid, 0x2b210eab)  \
-  V(_Int64ArrayFactory, Int64List, ., kTypedDataInt64ArrayCid, 0xfb63524f)     \
-  V(_Uint64ArrayFactory, Uint64List, ., kTypedDataUint64ArrayCid, 0xe3c14418)  \
+    kTypedDataUint8ClampedArrayCid, 0x27f7a7b4)                                \
+  V(_Int16ArrayFactory, Int16List, ., kTypedDataInt16ArrayCid, 0xd0bf0952)     \
+  V(_Uint16ArrayFactory, Uint16List, ., kTypedDataUint16ArrayCid, 0x3ca76bc9)  \
+  V(_Int32ArrayFactory, Int32List, ., kTypedDataInt32ArrayCid, 0x1b81637f)     \
+  V(_Uint32ArrayFactory, Uint32List, ., kTypedDataUint32ArrayCid, 0x2b210aea)  \
+  V(_Int64ArrayFactory, Int64List, ., kTypedDataInt64ArrayCid, 0xfb634e8e)     \
+  V(_Uint64ArrayFactory, Uint64List, ., kTypedDataUint64ArrayCid, 0xe3c14057)  \
   V(_Float64ArrayFactory, Float64List, ., kTypedDataFloat64ArrayCid,           \
-    0xa0b7c2b1)                                                                \
+    0xa0b7bef0)                                                                \
   V(_Float32ArrayFactory, Float32List, ., kTypedDataFloat32ArrayCid,           \
-    0xa381dd1e)                                                                \
+    0xa381d95d)                                                                \
   V(_Float32x4ArrayFactory, Float32x4List, ., kTypedDataFloat32x4ArrayCid,     \
-    0x0a6eefa8)
+    0x0a6eebe7)
 
 // clang-format on
 

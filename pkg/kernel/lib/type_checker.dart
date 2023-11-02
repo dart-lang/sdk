@@ -244,33 +244,52 @@ class TypeCheckingVisitor
   Substitution getReceiverType(
       TreeNode access, Expression receiver, Member member) {
     DartType type = visitExpression(receiver);
-    Class superclass = member.enclosingClass!;
-    if (superclass.supertype == null) {
+    TypeDeclaration typeDeclaration = member.enclosingTypeDeclaration!;
+    if (typeDeclaration is Class && typeDeclaration.supertype == null) {
       return Substitution.empty; // Members on Object are always accessible.
     }
 
     type = type.resolveTypeParameterType;
     if (type is NeverType || type is NullType || type is InvalidType) {
       // The bottom type is a subtype of all types, so it should be allowed.
-      return Substitution.bottomForClass(superclass);
+      return Substitution.bottomForTypeDeclaration(typeDeclaration);
     }
-    if (type is InterfaceType) {
+    if (type is InterfaceType && typeDeclaration is Class) {
       // The receiver type should implement the interface declaring the member.
-      List<DartType>? upcastTypeArguments =
-          hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
+      List<DartType>? upcastTypeArguments = hierarchy
+          .getInterfaceTypeArgumentsAsInstanceOfClass(type, typeDeclaration);
       if (upcastTypeArguments != null) {
         return Substitution.fromPairs(
-            superclass.typeParameters, upcastTypeArguments);
+            typeDeclaration.typeParameters, upcastTypeArguments);
+      }
+    } else if (type is ExtensionType && typeDeclaration is Class) {
+      // The receiver type should implement the interface declaring the member.
+      List<DartType>? upcastTypeArguments = hierarchy
+          .getExtensionTypeArgumentsAsInstanceOfClass(type, typeDeclaration);
+      if (upcastTypeArguments != null) {
+        return Substitution.fromPairs(
+            typeDeclaration.typeParameters, upcastTypeArguments);
+      }
+    } else if (type is ExtensionType &&
+        typeDeclaration is ExtensionTypeDeclaration) {
+      // The receiver type should implement the interface declaring the member.
+      List<DartType>? upcastTypeArguments = hierarchy
+          .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+              type, typeDeclaration);
+      if (upcastTypeArguments != null) {
+        return Substitution.fromPairs(
+            typeDeclaration.typeParameters, upcastTypeArguments);
       }
     }
-    if (type is FunctionType && superclass == coreTypes.functionClass) {
+    if (type is FunctionType && typeDeclaration == coreTypes.functionClass) {
       assert(type.typeParameters.isEmpty);
       return Substitution.empty;
     }
     // Note that we do not allow 'dynamic' here.  Dynamic calls should not
     // have a declared interface target.
     fail(access, '$member is not accessible on a receiver of type $type');
-    return Substitution.bottomForClass(superclass); // Continue type checking.
+    return Substitution.bottomForTypeDeclaration(
+        typeDeclaration); // Continue type checking.
   }
 
   Substitution getSuperReceiverType(Member member) {
@@ -390,7 +409,8 @@ class TypeCheckingVisitor
             methodType, methodTypeArguments);
     for (int i = 0; i < methodTypeArguments.length; ++i) {
       DartType argument = methodTypeArguments[i];
-      DartType bound = instantiator.visit(methodType.typeParameters[i].bound);
+      DartType bound =
+          instantiator.substitute(methodType.typeParameters[i].bound);
       checkAssignable(where, argument, bound);
     }
     return FunctionTypeInstantiator.instantiate(
@@ -920,7 +940,7 @@ class TypeCheckingVisitor
           hierarchy.getInterfaceMember(iterable.classNode, iteratorName);
       if (iteratorGetter == null) return const DynamicType();
       List<DartType> castedIterableArguments =
-          hierarchy.getTypeArgumentsAsInstanceOf(
+          hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
               iterable, iteratorGetter.enclosingClass!)!;
       DartType iteratorType = Substitution.fromPairs(
               iteratorGetter.enclosingClass!.typeParameters,
@@ -931,7 +951,7 @@ class TypeCheckingVisitor
             hierarchy.getInterfaceMember(iteratorType.classNode, currentName);
         if (currentGetter == null) return const DynamicType();
         List<DartType> castedIteratorTypeArguments =
-            hierarchy.getTypeArgumentsAsInstanceOf(
+            hierarchy.getInterfaceTypeArgumentsAsInstanceOfClass(
                 iteratorType, currentGetter.enclosingClass!)!;
         return Substitution.fromPairs(
                 currentGetter.enclosingClass!.typeParameters,
@@ -943,7 +963,7 @@ class TypeCheckingVisitor
   }
 
   DartType getStreamElementType(DartType stream) {
-    if (stream is InterfaceType) {
+    if (stream is TypeDeclarationType) {
       List<DartType>? asStreamArguments =
           hierarchy.getTypeArgumentsAsInstanceOf(stream, coreTypes.streamClass);
       if (asStreamArguments == null) return const DynamicType();
@@ -1044,7 +1064,7 @@ class TypeCheckingVisitor
           ? coreTypes.streamClass
           : coreTypes.iterableClass;
       DartType type = visitExpression(node.expression);
-      List<DartType>? asContainerArguments = type is InterfaceType
+      List<DartType>? asContainerArguments = type is TypeDeclarationType
           ? hierarchy.getTypeArgumentsAsInstanceOf(type, container)
           : null;
       if (asContainerArguments != null) {

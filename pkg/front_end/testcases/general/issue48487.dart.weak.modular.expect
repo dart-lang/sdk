@@ -16,7 +16,7 @@ import "dart:core" as core;
 class T extends core::_Enum /*isEnum*/  {
   static const field core::List<self::T> values = #C4;
   enum-element static const field self::T t = #C3;
-  const constructor •(core::int #index, core::String #name) → self::T
+  const synthetic constructor •(core::int #index, core::String #name) → self::T
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

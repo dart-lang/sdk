@@ -5,4 +5,4 @@
 library;
 
 export 'src/stream_manager.dart';
-export 'src/service_extension_manager.dart';
+export 'src/client.dart';

@@ -18,9 +18,6 @@ import 'package:test/test.dart';
 main() async {
   SnippetTester tester = SnippetTester();
   await tester.verify();
-  if (tester.output.isNotEmpty) {
-    fail(tester.output.toString());
-  }
 }
 
 class SnippetTester {
@@ -45,6 +42,15 @@ class SnippetTester {
 
   SnippetTester._(
       this.provider, this.docFolder, this.snippetDirPath, this.snippetPath);
+
+  /// Return `true` if the given error is a diagnostic produced by a lint that
+  /// is allowed to occur in documentation.
+  bool isAllowedLint(AnalysisError error) {
+    var errorCode = error.errorCode;
+    return errorCode is LintCode &&
+        errorCode.name == 'non_constant_identifier_names' &&
+        error.message.contains("'test_");
+  }
 
   Future<void> verify() async {
     await verifyFolder(docFolder);
@@ -79,7 +85,13 @@ class SnippetTester {
     for (Resource child in folder.getChildren()) {
       if (child is File) {
         if (child.shortName.endsWith('.md')) {
-          await verifyFile(child);
+          test('Verify docs in ${child.path}', () async {
+            output.clear();
+            await verifyFile(child);
+            if (output.isNotEmpty) {
+              fail(output.toString());
+            }
+          }, timeout: Timeout.factor(4));
         }
       } else if (child is Folder) {
         await verifyFolder(child);
@@ -125,8 +137,10 @@ $snippet
       if (results is ErrorsResult) {
         Iterable<AnalysisError> errors = results.errors.where((error) {
           ErrorCode errorCode = error.errorCode;
+          // TODO(brianwilkerson)
           return errorCode != WarningCode.UNUSED_IMPORT &&
-              errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
+              errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+              !isAllowedLint(error);
         });
         if (errors.isNotEmpty) {
           String filePath =

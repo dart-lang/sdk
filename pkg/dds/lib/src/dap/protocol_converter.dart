@@ -145,8 +145,9 @@ class ProtocolConverter {
       ];
     } else if (elements != null) {
       // For lists, map each item (in the requested subset) to a variable.
+      // Elements can contain nulls!
       final start = startItem ?? 0;
-      return Future.wait(elements.cast<vm.Response>().mapIndexed(
+      return Future.wait(elements.cast<vm.Response?>().mapIndexed(
         (index, response) {
           final name = '[${start + index}]';
           final itemEvaluateName =
@@ -315,7 +316,7 @@ class ProtocolConverter {
 
   /// Creates a Variable for a getter after eagerly fetching its value.
   Future<Variable> createVariableForGetter(
-    vm.VmServiceInterface service,
+    vm.VmService service,
     ThreadInfo thread,
     vm.Instance instance, {
     String? variableName,
@@ -485,7 +486,7 @@ class ProtocolConverter {
   /// the object for a display string.
   Future<dap.Variable> convertVmResponseToVariable(
     ThreadInfo thread,
-    vm.Response response, {
+    vm.Response? response, {
     required String? name,
     required String? evaluateName,
     required bool allowCallingToString,
@@ -522,6 +523,12 @@ class ProtocolConverter {
       return dap.Variable(
         name: name ?? '<error>',
         value: '<$errorMessage>',
+        variablesReference: 0,
+      );
+    } else if (response == null) {
+      return dap.Variable(
+        name: name ?? '<null>',
+        value: 'null',
         variablesReference: 0,
       );
     } else {
@@ -592,14 +599,22 @@ class ProtocolConverter {
     final sourcePath = uri != null ? await thread.resolveUriToPath(uri) : null;
     var canShowSource = sourcePath != null && File(sourcePath).existsSync();
 
-    // Download the source if from a "dart:" uri.
+    // If we don't have a local source file but the source is a "dart:" uri we
+    // might still be able to download the source from the VM.
     int? sourceReference;
     if (!canShowSource &&
         uri != null &&
         (uri.isScheme('dart') || uri.isScheme('org-dartlang-app')) &&
         scriptRef != null) {
-      sourceReference = thread.storeData(scriptRef);
-      canShowSource = true;
+      // Try to download it (to avoid showing "source not available" errors if
+      // navigated to) because a sourceRef here does not guarantee we can get
+      // the source. The result will be cached (by `thread.getScript()`) and
+      // reused in the resulting `sourceRequest`.
+      final source = await thread.getScript(scriptRef);
+      if (source.source != null) {
+        sourceReference = thread.storeData(scriptRef);
+        canShowSource = true;
+      }
     }
 
     // First try to use line/col from location to avoid fetching scripts.
@@ -644,9 +659,9 @@ class ProtocolConverter {
           )
         : null;
 
-    // The VM only allows us to restart from frames that are not the top frame,
-    // but since we're also showing asyncCausalFrames any indexes past the first
-    // async boundary will not line up so we cap it there.
+    // The VM only allows us to restart from frames that are not the top frame.
+    // Since we're showing `asyncCausalFrames`, frame indices past the first
+    // async boundary are not real so we can't support those.
     final canRestart = !isTopFrame &&
         (firstAsyncMarkerIndex == null || frame.index! < firstAsyncMarkerIndex);
 
@@ -729,9 +744,7 @@ class ProtocolConverter {
       final functions = classResponse.functions;
       if (functions != null) {
         final instanceFields = functions.where((f) =>
-            // TODO(dantup): Update this to use something better that bkonyi is
-            // adding to the protocol.
-            f.json?['_kind'] == 'GetterFunction' &&
+            (f.isGetter ?? false) &&
             !(f.isStatic ?? false) &&
             !(f.isConst ?? false));
         getterNames.addAll(instanceFields

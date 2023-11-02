@@ -8,10 +8,12 @@ class Foo extends core::Object {
     ;
 }
 extension type FooBar(self::Foo i) implements self::Foo {
+  abstract inline-class-member representation-field get i() → self::Foo;
   constructor • = self::FooBar|constructor#;
   constructor tearoff • = self::FooBar|constructor#_#new#tearOff;
 }
 extension type FooBaz(self::Foo i) implements self::Foo {
+  abstract inline-class-member representation-field get i() → self::Foo;
   constructor • = self::FooBaz|constructor#;
   constructor tearoff • = self::FooBaz|constructor#_#new#tearOff;
 }

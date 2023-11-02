@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    ;
+  @core::override
+  operator ==(covariant-by-declaration self::A other) → core::bool
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+}
+extension type ET1(self::B b) implements self::A {
+  abstract inline-class-member representation-field get b() → self::B;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(self::B b) implements self::ET1 /* = self::B */, self::B {
+  abstract inline-class-member representation-field get b() → self::B;
+  abstract forwarding-stub operator ==(covariant-by-declaration core::Object other) → core::bool;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static inline-class-member method ET1|constructor#(self::B b) → self::ET1 /* = self::B */
+  ;
+static inline-class-member method ET1|constructor#_#new#tearOff(self::B b) → self::ET1 /* = self::B */
+  return self::ET1|constructor#(b);
+static inline-class-member method ET2|constructor#(self::B b) → self::ET2 /* = self::B */
+  ;
+static inline-class-member method ET2|constructor#_#new#tearOff(self::B b) → self::ET2 /* = self::B */
+  return self::ET2|constructor#(b);
+static method test() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///covariant_equals.dart:9:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 5, effectively constant: 1

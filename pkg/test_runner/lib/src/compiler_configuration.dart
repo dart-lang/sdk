@@ -166,8 +166,7 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
-  NoneCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  NoneCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   final bool hasCompiler = false;
@@ -205,8 +204,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 class VMKernelCompilerConfiguration extends CompilerConfiguration
     with VMKernelCompilerMixin {
-  VMKernelCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  VMKernelCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   bool get _isAot => false;
@@ -326,9 +324,8 @@ class PipelineCommand {
 class ComposedCompilerConfiguration extends CompilerConfiguration {
   final List<PipelineCommand> pipelineCommands;
 
-  ComposedCompilerConfiguration(
-      TestConfiguration configuration, this.pipelineCommands)
-      : super._subclass(configuration);
+  ComposedCompilerConfiguration(super.configuration, this.pipelineCommands)
+      : super._subclass();
 
   @override
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -390,8 +387,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 class Dart2jsCompilerConfiguration extends CompilerConfiguration {
   static final Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
-  Dart2jsCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  Dart2jsCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   String computeCompilerPath() {
@@ -526,8 +522,7 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
 
 /// Common configuration for dart2wasm-based tools, such as dart2wasm.
 class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
-  Dart2WasmCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  Dart2WasmCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   String computeCompilerPath() {
@@ -631,7 +626,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   /// targets are output.
   final String genDir;
 
-  DevCompilerConfiguration(TestConfiguration configuration)
+  DevCompilerConfiguration(super.configuration)
       : _soundNullSafety = configuration.nnbdMode == NnbdMode.strong,
         genDir = [
           'gen/utils/ddc/',
@@ -641,7 +636,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
             'stable',
           if (configuration.nnbdMode != NnbdMode.strong) '_unsound'
         ].join(),
-        super._subclass(configuration);
+        super._subclass();
 
   @override
   String computeCompilerPath() {
@@ -859,8 +854,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   @override
   bool get _isAot => true;
 
-  PrecompilerCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  PrecompilerCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   int get timeoutMultiplier {
@@ -940,11 +934,24 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var buildDir = _configuration.buildDirectory;
     var exec = _configuration.genSnapshotPath;
     if (exec == null) {
+      var gcc32 = "<does-not-exist>";
+      var gcc64 = "<does-not-exist>";
+      var clang32 = "<does-not-exist>";
+      var clang64 = "<does-not-exist>";
+      if (Architecture.host == Architecture.x64) {
+        gcc32 = "x86";
+        gcc64 = "x64";
+        clang32 = "clang_x86";
+        clang64 = "clang_x64";
+      } else if (Architecture.host == Architecture.arm64) {
+        gcc64 = "arm64";
+        clang64 = "clang_arm64";
+      }
       if (_isAndroid) {
         if (_isArm || _isIA32) {
-          exec = "$buildDir/clang_x86/gen_snapshot";
-        } else if (_isArm64 || _isX64 || _isArmX64) {
-          exec = "$buildDir/clang_x64/gen_snapshot";
+          exec = "$buildDir/$clang32/gen_snapshot";
+        } else if (_isArm64 || _isX64 || _isArmX64 || _isRiscv64) {
+          exec = "$buildDir/$clang64/gen_snapshot";
         } else {
           // Guaranteed by package:test_runner/src/configuration.dart's
           // TestConfiguration.validate().
@@ -957,11 +964,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         final simBuildDir = buildDir.replaceAll("XARM", "SIMARM_X64");
         exec = "$simBuildDir/gen_snapshot";
       } else if (_isArm64 && _configuration.useQemu) {
-        exec = "$buildDir/clang_x64/gen_snapshot";
+        exec = "$buildDir/$clang64/gen_snapshot";
       } else if (_isRiscv32 && _configuration.useQemu) {
-        exec = "$buildDir/x86/gen_snapshot";
+        exec = "$buildDir/$gcc32/gen_snapshot";
       } else if (_isRiscv64 && _configuration.useQemu) {
-        exec = "$buildDir/x64/gen_snapshot";
+        exec = "$buildDir/$gcc64/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }
@@ -1039,19 +1046,22 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var ldFlags = <String>[];
     List<String>? target;
     if (_isAndroid) {
-      if (_isArm || _isArmX64) {
-        cc =
-            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/armv7a-linux-androideabi21-clang';
-      } else if (_isArm64) {
-        cc =
-            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/aarch64-linux-android21-clang';
+      cc = '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/clang';
+      if (_isIA32) {
+        ldFlags.add('--target=i686-linux-androideabi');
       } else if (_isX64) {
-        cc =
-            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/x86_64-linux-android21-clang';
+        ldFlags.add('--target=x86_64-linux-androideabi');
+      } else if (_isArm || _isArmX64) {
+        ldFlags.add('--target=arm-linux-androideabi');
+      } else if (_isArm64) {
+        ldFlags.add('--target=aarch64-linux-android');
+      } else if (_isRiscv64) {
+        ldFlags.add('--target=riscv64-linux-android');
       } else {
         throw 'Unimplemented';
       }
       shared = '-shared';
+      ldFlags.add('-nostdlib');
       ldFlags.add('-Wl,--no-undefined');
       ldFlags.add('-Wl,-z,max-page-size=65536');
     } else if (Platform.isLinux) {
@@ -1122,8 +1132,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   Command computeStripCommand(
       String tempDir, Map<String, String> environmentOverrides) {
-    var stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
-        "$host-x86_64/bin/$abiTriple-strip";
+    var stripTool = "$ndkPath/toolchains/llvm/prebuilt/"
+        "$host-x86_64/bin/llvm-strip";
     var args = ['--strip-unneeded', "$tempDir/out.aotsnapshot"];
     return CompilationCommand('strip', tempDir, bootstrapDependencies(),
         stripTool, args, environmentOverrides,
@@ -1201,8 +1211,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 }
 
 class AppJitCompilerConfiguration extends CompilerConfiguration {
-  AppJitCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  AppJitCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   int get timeoutMultiplier {
@@ -1284,8 +1293,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for dartanalyzer.
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
-  AnalyzerCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  AnalyzerCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   int get timeoutMultiplier => 4;
@@ -1354,8 +1362,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for spec_parser.
 class SpecParserCompilerConfiguration extends CompilerConfiguration {
-  SpecParserCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+  SpecParserCompilerConfiguration(super.configuration) : super._subclass();
 
   @override
   String computeCompilerPath() => 'tools/spec_parse.py';

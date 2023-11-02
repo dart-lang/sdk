@@ -3577,6 +3577,8 @@ class Function : public Object {
   // and retry it again.
   bool IsIdempotent() const;
 
+  bool IsCachableIdempotent() const;
+
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
 
@@ -3928,23 +3930,8 @@ class Function : public Object {
     return modifier() == UntaggedFunction::kAsyncGen;
   }
 
-  bool IsTypedDataViewFactory() const {
-    if (is_native() && kind() == UntaggedFunction::kConstructor) {
-      // This is a native factory constructor.
-      const Class& klass = Class::Handle(Owner());
-      return IsTypedDataViewClassId(klass.id());
-    }
-    return false;
-  }
-
-  bool IsUnmodifiableTypedDataViewFactory() const {
-    if (is_native() && kind() == UntaggedFunction::kConstructor) {
-      // This is a native factory constructor.
-      const Class& klass = Class::Handle(Owner());
-      return IsUnmodifiableTypedDataViewClassId(klass.id());
-    }
-    return false;
-  }
+  bool IsTypedDataViewFactory() const;
+  bool IsUnmodifiableTypedDataViewFactory() const;
 
   DART_WARN_UNUSED_RESULT
   ErrorPtr VerifyCallEntryPoint() const;
@@ -5521,8 +5508,11 @@ class ObjectPool : public Object {
  public:
   using EntryType = compiler::ObjectPoolBuilderEntry::EntryType;
   using Patchability = compiler::ObjectPoolBuilderEntry::Patchability;
+  using SnapshotBehavior = compiler::ObjectPoolBuilderEntry::SnapshotBehavior;
   using TypeBits = compiler::ObjectPoolBuilderEntry::TypeBits;
   using PatchableBit = compiler::ObjectPoolBuilderEntry::PatchableBit;
+  using SnapshotBehaviorBits =
+      compiler::ObjectPoolBuilderEntry::SnapshotBehaviorBits;
 
   struct Entry {
     Entry() : raw_value_(), type_() {}
@@ -5570,13 +5560,24 @@ class ObjectPool : public Object {
     return PatchableBit::decode(untag()->entry_bits()[index]);
   }
 
-  static uint8_t EncodeBits(EntryType type, Patchability patchable) {
-    return PatchableBit::encode(patchable) | TypeBits::encode(type);
+  SnapshotBehavior SnapshotBehaviorAt(intptr_t index) const {
+    ASSERT((index >= 0) && (index <= Length()));
+    return SnapshotBehaviorBits::decode(untag()->entry_bits()[index]);
   }
 
-  void SetTypeAt(intptr_t index, EntryType type, Patchability patchable) const {
+  static uint8_t EncodeBits(EntryType type,
+                            Patchability patchable,
+                            SnapshotBehavior snapshot_behavior) {
+    return PatchableBit::encode(patchable) | TypeBits::encode(type) |
+           SnapshotBehaviorBits::encode(snapshot_behavior);
+  }
+
+  void SetTypeAt(intptr_t index,
+                 EntryType type,
+                 Patchability patchable,
+                 SnapshotBehavior snapshot_behavior) const {
     ASSERT(index >= 0 && index <= Length());
-    const uint8_t bits = EncodeBits(type, patchable);
+    const uint8_t bits = EncodeBits(type, patchable, snapshot_behavior);
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 

@@ -1753,7 +1753,6 @@ Comment
 ''');
   }
 
-  @FailingTest(reason: 'Not reporting WarningCode.DOC_DIRECTIVE_UNKNOWN yet')
   test_unknownDocDirective() {
     final parseResult = parseStringWithErrors(r'''
 int x = 0;

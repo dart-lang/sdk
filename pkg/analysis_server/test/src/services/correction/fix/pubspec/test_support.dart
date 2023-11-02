@@ -18,7 +18,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
   late String content;
 
   /// The result of parsing the [content].
-  late YamlDocument document;
+  late YamlNode node;
 
   /// The error to be fixed.
   late AnalysisError error;
@@ -45,23 +45,20 @@ abstract class PubspecFixTest with ResourceProviderMixin {
   void validatePubspec(String content) {
     this.content = content;
     var pubspecFile = newFile('/home/test/pubspec.yaml', content);
-    document = loadYamlDocument(content);
-    var yamlContent = document.contents;
-    if (yamlContent is! YamlMap) {
-      yamlContent = YamlMap();
-    }
+    var node = loadYamlNode(content);
+    this.node = node;
     final errors = pubspec_validator.validatePubspec(
-      source: pubspecFile.createSource(),
-      contents: yamlContent.nodes,
-      provider: resourceProvider,
-    );
+        source: pubspecFile.createSource(),
+        contents: node,
+        provider: resourceProvider,
+        // TODO: Can/should we pass analysis-options here?
+        analysisOptions: null);
     expect(errors.length, 1);
     error = errors[0];
   }
 
   Future<List<Fix>> _getFixes() async {
-    var generator =
-        PubspecFixGenerator(resourceProvider, error, content, document);
+    var generator = PubspecFixGenerator(resourceProvider, error, content, node);
     return await generator.computeFixes();
   }
 }

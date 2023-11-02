@@ -41,22 +41,27 @@ import self as self;
 import "dart:core" as core;
 
 extension type ET1(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2<T extends core::Object? = dynamic>(T% id) {
+  abstract inline-class-member representation-field get id() → T%;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
 extension type ET3(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4<T extends core::Object? = dynamic>(T% id) {
+  abstract inline-class-member representation-field get id() → T%;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
 extension type ET5(core::int id) {
+  abstract inline-class-member representation-field get id() → core::int;
   constructor n = self::ET5|constructor#n;
   constructor tearoff n = self::ET5|constructor#_#n#tearOff;
 }
@@ -66,7 +71,7 @@ static inline-class-member method ET1|constructor#_#new#tearOff(core::int id) �
   return self::ET1|constructor#(id);
 static inline-class-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% id) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */
   ;
-static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%> /* = self::ET2|constructor#_#new#tearOff::T% */
+static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* = self::ET2|constructor#_#new#tearOff::T% */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(id);
 static inline-class-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */
   ;
@@ -74,7 +79,7 @@ static inline-class-member method ET3|constructor#_#new#tearOff(core::int id) �
   return self::ET3|constructor#(id);
 static inline-class-member method ET4|constructor#<T extends core::Object? = dynamic>(self::ET4|constructor#::T% id) → self::ET4<self::ET4|constructor#::T%> /* = self::ET4|constructor#::T% */
   ;
-static inline-class-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%> /* = self::ET4|constructor#_#new#tearOff::T% */
+static inline-class-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%>% /* = self::ET4|constructor#_#new#tearOff::T% */
   return self::ET4|constructor#<self::ET4|constructor#_#new#tearOff::T%>(id);
 static inline-class-member method ET5|constructor#n(core::int id) → self::ET5 /* = core::int */
   ;

@@ -1,0 +1,9 @@
+class A {}
+class B implements A {
+  @override
+  bool operator ==(covariant A other) {}
+}
+class C {}
+extension type ET1(B b) implements A {}
+extension type ET2(B b) implements ET1, B {}
+void test() {}

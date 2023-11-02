@@ -19,6 +19,7 @@
 #include "platform/utils.h"
 #include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler_base.h"
+#include "vm/compiler/assembler/object_pool_builder.h"
 #include "vm/constants.h"
 #include "vm/hash_map.h"
 #include "vm/simulator.h"
@@ -958,15 +959,8 @@ class Assembler : public MicroAssembler {
   void SmiTag(Register reg) override { SmiTag(reg, reg); }
   void SmiTag(Register dst, Register src) { slli(dst, src, kSmiTagSize); }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-#if XLEN == 32
-    LoadInt32FromBoxOrSmi(result, value);
-#else
-    LoadInt64FromBoxOrSmi(result, value);
-#endif
-  }
-
-  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
     if (result == value) {
       ASSERT(TMP != value);
       MoveRegister(TMP, value);
@@ -981,23 +975,21 @@ class Assembler : public MicroAssembler {
     Bind(&done);
   }
 
-  void LoadInt64FromBoxOrSmi(Register result, Register value) {
+#if XLEN != 32
+  void LoadInt64FromBoxOrSmi(Register result, Register value) override {
     if (result == value) {
       ASSERT(TMP != value);
       MoveRegister(TMP, value);
       value = TMP;
     }
-#if XLEN == 32
-    UNIMPLEMENTED();
-#else
     ASSERT(value != result);
     compiler::Label done;
     SmiUntag(result, value);
     BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
     LoadFieldFromOffset(result, value, target::Mint::value_offset());
     Bind(&done);
-#endif
   }
+#endif
 
   void BranchIfNotSmi(Register reg,
                       Label* label,
@@ -1022,11 +1014,17 @@ class Assembler : public MicroAssembler {
   void JumpAndLink(const Code& code,
                    ObjectPoolBuilderEntry::Patchability patchable =
                        ObjectPoolBuilderEntry::kNotPatchable,
-                   CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+                   CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+                   ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+                       ObjectPoolBuilderEntry::kSnapshotable);
 
-  void JumpAndLinkPatchable(const Code& code,
-                            CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
-    JumpAndLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind);
+  void JumpAndLinkPatchable(
+      const Code& code,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable) {
+    JumpAndLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind,
+                snapshot_behavior);
   }
 
   // Emit a call that shares its object pool entries with other calls
@@ -1352,8 +1350,12 @@ class Assembler : public MicroAssembler {
     LoadObjectHelper(dst, obj, false);
   }
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadUniqueObject(Register dst, const Object& obj) {
-    LoadObjectHelper(dst, obj, true);
+  void LoadUniqueObject(
+      Register dst,
+      const Object& obj,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable) {
+    LoadObjectHelper(dst, obj, true, snapshot_behavior);
   }
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadImmediate(Register reg, intx_t imm);
@@ -1367,6 +1369,11 @@ class Assembler : public MicroAssembler {
   //
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
+
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP, does not clobber TMP2.
+  void StoreWordToPoolIndex(Register src, intptr_t index, Register pp = PP);
 
   void PushObject(const Object& object) {
     if (IsSameObject(compiler::NullObject(), object)) {
@@ -1656,7 +1663,12 @@ class Assembler : public MicroAssembler {
   intptr_t deferred_imm_ = 0;
 
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
+  void LoadObjectHelper(
+      Register dst,
+      const Object& obj,
+      bool is_unique,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

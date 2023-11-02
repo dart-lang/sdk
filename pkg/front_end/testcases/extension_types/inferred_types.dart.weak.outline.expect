@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object implements self::B {
+  final field core::int field;
+  constructor •(core::int field) → self::C
+    ;
+}
+abstract class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    ;
+  abstract get field() → core::int;
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract get field() → core::int;
+}
+extension type E(self::C c) implements self::C {
+  abstract inline-class-member representation-field get c() → self::C;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+extension type D(self::C c) implements self::B {
+  abstract inline-class-member representation-field get c() → self::C;
+  constructor • = self::D|constructor#;
+  constructor tearoff • = self::D|constructor#_#new#tearOff;
+}
+static field core::int g;
+static field core::int f;
+static field self::E /* = self::C */ e;
+static field self::D /* = self::C */ d;
+static inline-class-member method E|constructor#(self::C c) → self::E /* = self::C */
+  ;
+static inline-class-member method E|constructor#_#new#tearOff(self::C c) → self::E /* = self::C */
+  return self::E|constructor#(c);
+static inline-class-member method D|constructor#(self::C c) → self::D /* = self::C */
+  ;
+static inline-class-member method D|constructor#_#new#tearOff(self::C c) → self::D /* = self::C */
+  return self::D|constructor#(c);

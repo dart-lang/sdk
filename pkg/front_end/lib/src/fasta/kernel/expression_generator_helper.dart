@@ -63,9 +63,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool isDeclaredInEnclosingCase(VariableDeclaration variable);
 
-  Expression_Generator_Builder scopeLookup(
-      Scope scope, String name, Token token,
-      {bool isQualified = false, PrefixBuilder? prefix});
+  Expression_Generator_Builder scopeLookup(Scope scope, Token nameToken,
+      {PrefixBuilder? prefix, Token? prefixToken});
 
   Expression_Generator_Initializer finishSend(Object receiver,
       List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,

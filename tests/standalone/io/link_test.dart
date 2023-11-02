@@ -314,6 +314,18 @@ testIsDir() async {
   sandbox.deleteSync(recursive: true);
 }
 
+testBrokenLinkTypeSync() {
+  String base = Directory.systemTemp.createTempSync('dart_link').path;
+  String link = join(base, 'link');
+  Link(link).createSync('does not exist');
+
+  Expect.equals(FileSystemEntityType.link,
+      FileSystemEntity.typeSync(link, followLinks: false));
+
+  Expect.equals(FileSystemEntityType.notFound,
+      FileSystemEntity.typeSync(link, followLinks: true));
+}
+
 main() {
   testCreateSync();
   testCreateLoopingLink();
@@ -321,4 +333,5 @@ main() {
   testLinkErrorSync();
   testRelativeLinksSync();
   testIsDir();
+  testBrokenLinkTypeSync();
 }

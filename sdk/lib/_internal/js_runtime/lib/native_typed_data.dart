@@ -8,6 +8,7 @@ library dart.typed_data.implementation;
 
 import 'dart:collection' show ListMixin;
 import 'dart:_internal' show FixedLengthListMixin hide Symbol;
+import "dart:_internal" show UnmodifiableListBase;
 import 'dart:_interceptors'
     show JavaScriptObject, JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
@@ -167,6 +168,8 @@ final class NativeFloat32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
+  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
+
   Float32x4List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
     return NativeFloat32x4List._externalStorage(
@@ -239,6 +242,8 @@ final class NativeInt32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
+  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
+
   Int32x4List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
     return NativeInt32x4List._externalStorage(
@@ -304,6 +309,8 @@ final class NativeFloat64x2List extends Object
     _storage[(index * 2) + 0] = value.x;
     _storage[(index * 2) + 1] = value.y;
   }
+
+  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
 
   Float64x2List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -412,6 +419,8 @@ final class NativeByteData extends NativeTypedData
   Type get runtimeType => ByteData;
 
   int get elementSizeInBytes => 1;
+
+  ByteData asUnmodifiableView() => UnmodifiableByteDataView(this);
 
   /// Returns the floating point number represented by the four bytes at
   /// the specified [byteOffset] in this object, in IEEE 754
@@ -759,6 +768,8 @@ final class NativeFloat32List extends NativeTypedArrayOfDouble
 
   Type get runtimeType => Float32List;
 
+  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
+
   Float32List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
     var source = JS('NativeFloat32List', '#.subarray(#, #)', this, start, stop);
@@ -794,6 +805,8 @@ final class NativeFloat64List extends NativeTypedArrayOfDouble
   }
 
   Type get runtimeType => Float64List;
+
+  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
 
   Float64List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -836,6 +849,8 @@ final class NativeInt16List extends NativeTypedArrayOfInt
     return JS('int', '#[#]', this, index);
   }
 
+  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
+
   Int16List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
     var source = JS('NativeInt16List', '#.subarray(#, #)', this, start, stop);
@@ -877,6 +892,8 @@ final class NativeInt32List extends NativeTypedArrayOfInt
     return JS('int', '#[#]', this, index);
   }
 
+  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
+
   Int32List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
     var source = JS('NativeInt32List', '#.subarray(#, #)', this, start, stop);
@@ -917,6 +934,8 @@ final class NativeInt8List extends NativeTypedArrayOfInt
     _checkValidIndex(index, this, this.length);
     return JS('int', '#[#]', this, index);
   }
+
+  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
 
   Int8List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -962,6 +981,8 @@ final class NativeUint16List extends NativeTypedArrayOfInt
     return JS('JSUInt31', '#[#]', this, index);
   }
 
+  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
+
   Uint16List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
     var source = JS('NativeUint16List', '#.subarray(#, #)', this, start, stop);
@@ -1002,6 +1023,8 @@ final class NativeUint32List extends NativeTypedArrayOfInt
     _checkValidIndex(index, this, this.length);
     return JS('JSUInt32', '#[#]', this, index);
   }
+
+  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
 
   Uint32List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -1046,6 +1069,9 @@ final class NativeUint8ClampedList extends NativeTypedArrayOfInt
     _checkValidIndex(index, this, this.length);
     return JS('JSUInt31', '#[#]', this, index);
   }
+
+  Uint8ClampedList asUnmodifiableView() =>
+      UnmodifiableUint8ClampedListView(this);
 
   Uint8ClampedList sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);
@@ -1101,6 +1127,8 @@ final class NativeUint8List extends NativeTypedArrayOfInt
     _checkValidIndex(index, this, this.length);
     return JS('JSUInt31', '#[#]', this, index);
   }
+
+  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
 
   Uint8List sublist(int start, [int? end]) {
     var stop = _checkValidRange(start, end, this.length);

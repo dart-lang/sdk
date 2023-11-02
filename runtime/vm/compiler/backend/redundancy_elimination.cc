@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "vm/bit_vector.h"
+#include "vm/class_id.h"
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
@@ -1120,6 +1121,8 @@ class AliasedSet : public ZoneAllocated {
          use = use->next_use()) {
       Instruction* instr = use->instruction();
       if (instr->HasUnknownSideEffects() || instr->IsLoadUntagged() ||
+          (instr->IsLoadField() &&
+           instr->AsLoadField()->MayCreateUntaggedAlias()) ||
           (instr->IsStoreIndexed() &&
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {
@@ -1415,8 +1418,9 @@ static AliasedSet* NumberPlaces(FlowGraph* graph,
 
 // Load instructions handled by load elimination.
 static bool IsLoadEliminationCandidate(Instruction* instr) {
-  return instr->IsLoadField() || instr->IsLoadIndexed() ||
-         instr->IsLoadStaticField();
+  return (instr->IsLoadField() && instr->AsLoadField()->loads_inner_pointer() !=
+                                      InnerPointerAccess::kMayBeInnerPointer) ||
+         instr->IsLoadIndexed() || instr->IsLoadStaticField();
 }
 
 static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
@@ -1530,19 +1534,6 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 }
 
-// Returns true if instruction may have a "visible" effect,
-static bool MayHaveVisibleEffect(Instruction* instr) {
-  switch (instr->tag()) {
-    case Instruction::kStoreField:
-    case Instruction::kStoreStaticField:
-    case Instruction::kStoreIndexed:
-    case Instruction::kStoreIndexedUnsafe:
-      return true;
-    default:
-      return instr->HasUnknownSideEffects() || instr->MayThrow();
-  }
-}
-
 void LICM::Optimize() {
   if (flow_graph()->function().ProhibitsInstructionHoisting()) {
     // Do not hoist any.
@@ -1620,7 +1611,7 @@ void LICM::Optimize() {
         // effect invalidates the first "visible" effect flag.
         if (is_loop_invariant) {
           Hoist(&it, pre_header, current);
-        } else if (!seen_visible_effect && MayHaveVisibleEffect(current)) {
+        } else if (!seen_visible_effect && current->MayHaveVisibleEffect()) {
           seen_visible_effect = true;
         }
       }
@@ -3832,8 +3823,23 @@ void AllocationSinking::CreateMaterializationAt(
           /*index_scale=*/compiler::target::Instance::ElementSizeFor(array_cid),
           array_cid, kAlignedAccess, DeoptId::kNone, alloc->source());
     } else {
-      load =
-          new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot, alloc->source());
+      auto loads_inner_pointer =
+          slot->representation() != kUntagged ? InnerPointerAccess::kNotUntagged
+          : slot->may_contain_inner_pointer()
+              ? InnerPointerAccess::kMayBeInnerPointer
+              : InnerPointerAccess::kCannotBeInnerPointer;
+      // PointerBase.data loads for external typed data and pointers never
+      // access an inner pointer.
+      if (slot->IsIdentical(Slot::PointerBase_data())) {
+        if (auto* const alloc_obj = alloc->AsAllocateObject()) {
+          const classid_t cid = alloc_obj->cls().id();
+          if (cid == kPointerCid || IsExternalTypedDataClassId(cid)) {
+            loads_inner_pointer = InnerPointerAccess::kCannotBeInnerPointer;
+          }
+        }
+      }
+      load = new (Z) LoadFieldInstr(new (Z) Value(alloc), *slot,
+                                    loads_inner_pointer, alloc->source());
     }
     flow_graph_->InsertBefore(load_point, load, nullptr, FlowGraph::kValue);
     values.Add(new (Z) Value(load));
@@ -4422,20 +4428,6 @@ void DeadCodeElimination::RemoveDeadAndRedundantPhisFromTheGraph(
   }
 }
 
-// Returns true if [current] instruction can be possibly eliminated
-// (if its result is not used).
-static bool CanEliminateInstruction(Instruction* current,
-                                    BlockEntryInstr* block) {
-  ASSERT(current->GetBlock() == block);
-  if (MayHaveVisibleEffect(current) || current->CanDeoptimize() ||
-      current == block->last_instruction() || current->IsMaterializeObject() ||
-      current->IsCheckStackOverflow() || current->IsReachabilityFence() ||
-      current->IsRawStoreField()) {
-    return false;
-  }
-  return true;
-}
-
 void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
   GrowableArray<Instruction*> worklist;
   BitVector live(flow_graph->zone(), flow_graph->current_ssa_temp_index());
@@ -4449,7 +4441,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
       ASSERT(!current->IsMoveArgument());
       // TODO(alexmarkov): take control dependencies into account and
       // eliminate dead branches/conditions.
-      if (!CanEliminateInstruction(current, block)) {
+      if (!current->CanEliminate(block)) {
         worklist.Add(current);
         if (Definition* def = current->AsDefinition()) {
           if (def->HasSSATemp()) {
@@ -4506,7 +4498,7 @@ void DeadCodeElimination::EliminateDeadCode(FlowGraph* flow_graph) {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!CanEliminateInstruction(current, block)) {
+      if (!current->CanEliminate(block)) {
         continue;
       }
       ASSERT(!current->IsMoveArgument());

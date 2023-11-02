@@ -44,6 +44,7 @@ linter:
     - avoid_types_as_parameter_names
     - avoid_types_on_closure_parameters
     - avoid_unnecessary_containers
+    - avoid_unstable_final_fields
     - avoid_unused_constructor_parameters
     - avoid_void_async
     - avoid_web_libraries_in_flutter

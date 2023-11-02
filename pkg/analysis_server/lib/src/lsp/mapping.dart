@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -15,6 +16,7 @@ import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
@@ -49,6 +51,10 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   ],
 };
 
+/// The value to subtract relevance from to get the correct sortText for a
+/// completion item.
+final sortTextMaxValue = int.parse('9' * maximumRelevance.toString().length);
+
 /// A regex used for splitting the display text in a completion so that
 /// filterText only includes the symbol name and not any additional text (such
 /// as parens, ` => `).
@@ -81,7 +87,7 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createPlainWorkspaceEdit(
-    lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
+    AnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
       // Client capabilities are always available after initialization.
       server.lspClientCapabilities!,
@@ -133,7 +139,7 @@ WorkspaceEdit createRenameEdit(
 /// it's important to call this immediately after computing edits to ensure
 /// the document is not modified before the version number is read.
 lsp.WorkspaceEdit createWorkspaceEdit(
-  lsp.LspAnalysisServer server,
+  AnalysisServer server,
   server.SourceChange change, {
   // The caller must specify whether snippets are valid here for where they're
   // sending this edit. Right now, support is limited to CodeActions.
@@ -392,7 +398,10 @@ CompletionDetail getCompletionDetail(
 }) {
   final element = suggestion.element;
   var parameters = element?.parameters;
-  var returnType = element?.returnType;
+  // Prefer the element return type (because it's available for things like
+  // overrides) but fall back to the suggestion if there isn't one (to handle
+  // records).
+  var returnType = element?.returnType ?? suggestion.returnType;
 
   // Extract the type from setters to be shown in the place a return type
   // would usually be shown.
@@ -631,18 +640,20 @@ lsp.DiagnosticSeverity pluginToDiagnosticSeverity(
 /// Converts a numeric relevance to a sortable string.
 ///
 /// The servers relevance value is a number with highest being best. LSP uses a
-/// a string sort on the `sortText` field. Subtracting the relevance from a large
-/// number will produce text that will sort correctly.
+/// a string sort on the `sortText` field. Subtracting the relevance from a
+/// large number will produce text that will sort correctly.
 ///
 /// Relevance can be 0, so it's important to subtract from a number like 999
 /// and not 1000 or the 0 relevance items will sort at the top instead of the
 /// bottom.
 ///
-/// 555 -> 9999999 - 555 -> 9 999 444
-///  10 -> 9999999 -  10 -> 9 999 989
-///   1 -> 9999999 -   1 -> 9 999 998
-///   0 -> 9999999 -   0 -> 9 999 999
-String relevanceToSortText(int relevance) => (9999999 - relevance).toString();
+/// 1000000 -> 9999999 - 1000000 -> 8 999 999
+///     555 -> 9999999 -     555 -> 9 999 444
+///      10 -> 9999999 -      10 -> 9 999 989
+///       1 -> 9999999 -       1 -> 9 999 998
+///       0 -> 9999999 -       0 -> 9 999 999
+String relevanceToSortText(int relevance) =>
+    (sortTextMaxValue - relevance).toString();
 
 /// Creates a SnippetTextEdit for a set of edits using Linked Edit Groups.
 ///
@@ -701,6 +712,7 @@ lsp.CompletionItem snippetToCompletionItem(
   LineInfo lineInfo,
   Position position,
   Snippet snippet,
+  CompletionListItemDefaults? defaults,
 ) {
   assert(capabilities.completionSnippets);
 
@@ -750,9 +762,16 @@ lsp.CompletionItem snippetToCompletionItem(
       .firstWhere((edit) => edit.range.start.line == position.line);
   final nonMainEdits = mainFileEdits.where((edit) => edit != mainEdit).toList();
 
+  // Capture any default combined range. If there are different insert/replace
+  // ranges just take `null` because snippets always use the same ranges and
+  // if defaults are different ours can't possibly be redundant.
+  final defaultRange =
+      defaults?.editRange?.map((ranges) => null, (range) => range);
+  final hasDefaultEditRange = mainEdit.range == defaultRange;
+
   return lsp.CompletionItem(
     label: snippet.label,
-    filterText: snippet.prefix,
+    filterText: snippet.prefix.orNullIfSameAs(snippet.label),
     kind: lsp.CompletionItemKind.Snippet,
     command: command,
     documentation: documentation != null
@@ -765,8 +784,15 @@ lsp.CompletionItem snippetToCompletionItem(
     sortText: 'zzz${snippet.prefix}',
     insertTextFormat: lsp.InsertTextFormat.Snippet,
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
-    textEdit: Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
-    additionalTextEdits: nonMainEdits,
+    // Set textEdit or textEditText depending on whether we need to specify
+    // a range or not.
+    textEdit: hasDefaultEditRange
+        ? null
+        : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    textEditText: hasDefaultEditRange
+        ? mainEdit.newText.orNullIfSameAs(snippet.label)
+        : null,
+    additionalTextEdits: nonMainEdits.nullIfEmpty,
   );
 }
 
@@ -1001,7 +1027,7 @@ lsp.CompletionItem toCompletionItem(
         ? CompletionItemLabelDetails(
             detail: labelDetails.truncatedSignature.nullIfEmpty,
             description: labelDetails.autoImportUri,
-          )
+          ).nullIfEmpty
         : null,
     documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
@@ -1010,9 +1036,8 @@ lsp.CompletionItem toCompletionItem(
         ? true
         : null,
     sortText: relevanceToSortText(suggestion.relevance),
-    filterText: filterText != label
-        ? filterText
-        : null, // filterText uses label if not set
+    filterText:
+        filterText.orNullIfSameAs(label), // filterText uses label if not set
     insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
         ? insertTextFormat
         : null, // Defaults to PlainText if not supplied
@@ -1038,8 +1063,7 @@ lsp.CompletionItem toCompletionItem(
                 ),
               ),
     // When using defaults for edit range, use textEditText.
-    textEditText:
-        hasDefaultEditRange && insertText != label ? insertText : null,
+    textEditText: hasDefaultEditRange ? insertText.orNullIfSameAs(label) : null,
   );
 }
 
@@ -1130,10 +1154,13 @@ lsp.FoldingRangeKind? toFoldingRangeKind(server.FoldingKind kind) {
 }
 
 List<lsp.DocumentHighlight> toHighlights(
-    server.LineInfo lineInfo, server.Occurrences occurrences) {
-  return occurrences.offsets
-      .map((offset) => lsp.DocumentHighlight(
-          range: toRange(lineInfo, offset, occurrences.length)))
+    server.LineInfo lineInfo, List<server.Occurrences> occurrences) {
+  return occurrences
+      .map((occurrence) => occurrence.offsets.map((offset) =>
+          lsp.DocumentHighlight(
+              range: toRange(lineInfo, offset, occurrence.length))))
+      .expand((occurrences) => occurrences)
+      .toSet()
       .toList();
 }
 
@@ -1511,3 +1538,19 @@ typedef CompletionDetail = ({
   /// The URI that will be auto-imported if this item is selected.
   String? autoImportUri,
 });
+
+extension on CompletionItemLabelDetails {
+  /// Returns `null` if no fields are set, otherwise `this`.
+  CompletionItemLabelDetails? get nullIfEmpty =>
+      detail != null || description != null ? this : null;
+}
+
+extension on String? {
+  /// Returns `null` if this string is the same as [other], otherwise `this`.
+  String? orNullIfSameAs(String other) => this == other ? null : this;
+}
+
+extension _ListExtensions<T> on List<T> {
+  /// Returns `null` if this list is empty, otherwise `this`.
+  List<T>? get nullIfEmpty => isEmpty ? null : this;
+}

@@ -9,4 +9,3 @@ environment:
 dev_dependencies:
   expect: any
   lints: any
-  test: any

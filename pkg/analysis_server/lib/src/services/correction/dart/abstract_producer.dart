@@ -339,6 +339,17 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
+  /// Return the extension type for the given [element].
+  Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
+      ExtensionTypeElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    var node = result?.node;
+    if (node is ExtensionTypeDeclaration) {
+      return node;
+    }
+    return null;
+  }
+
   LinterContext getLinterContext(path.Context pathContext) {
     return LinterContextImpl(
       [], // unused

@@ -18,6 +18,10 @@ class Run<T extends core::Object? = dynamic> extends core::Object {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method execute([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int> (skip check)] covariant-by-class final core::List<self::Run::T%> list) → void {}
 }
+abstract class C5<T extends core::Object? = dynamic> extends core::Object {
+}
+abstract class C6 extends core::Object {
+}
 extension type IC2(core::int id) {
   method foo1 = self::IC2|foo1;
   static method bar1 = self::IC2|bar1;
@@ -25,6 +29,8 @@ extension type IC2(core::int id) {
 }
 extension type SomeExtensionType(core::int foo) {
   constructor • = self::SomeExtensionType|constructor#;
+}
+extension type C5Ext(self::C5<self::C6> rep) {
 }
 [@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
   lowered final self::IC2 /* = core::int */ #this = id;
@@ -46,7 +52,9 @@ static method testTypeCheckRemoval() → void {
 static method main() → dynamic {
   let final self::C4 #t1 = new self::C4::•() in let final self::IC2 /* = core::int */ #t2 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::IC2|constructor#(42) in [@vm.direct-call.metadata=#lib::C4.foo3] [@vm.inferred-type.metadata=!? (skip check)] #t1.{self::C4::foo3}(){(self::IC2 /* = core::int */) → dynamic};
   self::testTypeCheckRemoval();
+  core::print(#C2);
 }
 constants  {
   #C1 = 42
+  #C2 = TypeLiteralConstant(self::C5Ext /* = self::C5<self::C6> */)
 }

@@ -224,8 +224,6 @@ template("build_gen_snapshot") {
       ]
     }
 
-    configs += [ ":export_api_symbols" ]
-
     if (is_win) {
       libs = [
         "iphlpapi.lib",

@@ -594,11 +594,9 @@ void CodeSourceMapReader::GetInlinedFunctionsAt(
     const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg);
     switch (opcode) {
       case CodeSourceMapOps::kChangePosition: {
-        const TokenPosition& old_token =
-            (*token_positions)[token_positions->length() - 1];
-        (*token_positions)[token_positions->length() - 1] =
-            TokenPosition::Deserialize(
-                Utils::AddWithWrapAround(arg, old_token.Serialize()));
+        const TokenPosition& old_token = token_positions->Last();
+        token_positions->Last() = TokenPosition::Deserialize(
+            Utils::AddWithWrapAround(arg, old_token.Serialize()));
         break;
       }
       case CodeSourceMapOps::kAdvancePC: {
@@ -692,12 +690,14 @@ void CodeSourceMapReader::PrintJSONInlineIntervals(JSONObject* jsobj) {
 
 void CodeSourceMapReader::DumpInlineIntervals(uword start) {
   GrowableArray<const Function*> function_stack;
+  GrowableArray<TokenPosition> token_positions;
   LogBlock lb;
   NoSafepointScope no_safepoint;
   ReadStream stream(map_.Data(), map_.Length());
 
   int32_t current_pc_offset = 0;
   function_stack.Add(&root_);
+  token_positions.Add(InitialPosition());
 
   THR_Print("Inline intervals for function '%s' {\n",
             root_.ToFullyQualifiedCString());
@@ -706,13 +706,19 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
     const uint8_t opcode = CodeSourceMapOps::Read(&stream, &arg);
     switch (opcode) {
       case CodeSourceMapOps::kChangePosition: {
+        const TokenPosition& old_token = token_positions.Last();
+        token_positions.Last() = TokenPosition::Deserialize(
+            Utils::AddWithWrapAround(arg, old_token.Serialize()));
         break;
       }
       case CodeSourceMapOps::kAdvancePC: {
         THR_Print("%" Px "-%" Px ": ", start + current_pc_offset,
                   start + current_pc_offset + arg - 1);
         for (intptr_t i = 0; i < function_stack.length(); i++) {
-          THR_Print("%s ", function_stack[i]->ToCString());
+          THR_Print("%s", function_stack[i]->ToCString());
+          if (token_positions[i].IsReal()) {
+            THR_Print(" @%" Pd, token_positions[i].Pos());
+          }
         }
         THR_Print("\n");
         current_pc_offset += arg;
@@ -721,12 +727,15 @@ void CodeSourceMapReader::DumpInlineIntervals(uword start) {
       case CodeSourceMapOps::kPushFunction: {
         function_stack.Add(
             &Function::Handle(Function::RawCast(functions_.At(arg))));
+        token_positions.Add(InitialPosition());
         break;
       }
       case CodeSourceMapOps::kPopFunction: {
         // We never pop the root function.
         ASSERT(function_stack.length() > 1);
+        ASSERT(token_positions.length() > 1);
         function_stack.RemoveLast();
+        token_positions.RemoveLast();
         break;
       }
       case CodeSourceMapOps::kNullCheck: {

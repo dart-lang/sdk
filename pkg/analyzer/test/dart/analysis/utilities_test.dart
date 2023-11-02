@@ -260,8 +260,7 @@ void main() => print('Hello, world!');
       T Function(MemoryResourceProvider resourceProvider, String path)
           callback) {
     var resourceProvider = MemoryResourceProvider();
-    var path =
-        resourceProvider.pathContext.fromUri(Uri.parse('file:///test.dart'));
+    var path = fromUri(Uri.parse('file:///test.dart'));
     resourceProvider.newFile(path, content);
     return callback(resourceProvider, path);
   }

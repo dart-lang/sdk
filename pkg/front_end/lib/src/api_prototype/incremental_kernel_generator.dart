@@ -135,6 +135,8 @@ abstract class IncrementalKernelGenerator {
       Uri libraryUri,
       {String? className,
       String? methodName,
+      int offset = -1,
+      String? scriptUri,
       bool isStatic = false});
 
   /// Sets experimental features.

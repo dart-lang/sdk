@@ -7,11 +7,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:heap_snapshot/analysis.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart';
 
 import 'use_flag_test_helper.dart';
-import '../../../tools/heapsnapshot/lib/src/analysis.dart';
 
 void main() async {
   if (buildDir.contains('Product')) return;

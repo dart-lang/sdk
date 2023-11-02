@@ -1,0 +1,94 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53867.dart:10:37: Error: The representation type 'E2' of extension type 'E6' must be either a subtype of the representation type 'int' of the implemented extension type 'E3' or a subtype of 'E3' itself.
+// Try changing the representation type to a subtype of 'int'.
+// extension type E6(E2 it) implements E3 {} // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/extension_types/issue53867.dart:11:41: Error: The representation type 'String' of extension type 'E7' must be either a subtype of the representation type 'num' of the implemented extension type 'E1' or a subtype of 'E1' itself.
+// Try changing the representation type to a subtype of 'num'.
+// extension type E7(String it) implements E1 {} // Error.
+//                                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type E1(core::num it) {
+  abstract inline-class-member representation-field get it() → core::num;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(self::E1 /* = core::num */ it) implements self::E1 /* = core::num */ {
+  abstract inline-class-member representation-field get it() → self::E1 /* = core::num */;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+extension type E3(core::int it) implements self::E1 /* = core::num */ {
+  abstract inline-class-member representation-field get it() → core::int;
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+extension type E4(self::E3 /* = core::int */ it) implements self::E1 /* = core::num */ {
+  abstract inline-class-member representation-field get it() → self::E3 /* = core::int */;
+  constructor • = self::E4|constructor#;
+  constructor tearoff • = self::E4|constructor#_#new#tearOff;
+}
+extension type E5(self::E3 /* = core::int */ it) implements self::E2 /* = core::num */ {
+  abstract inline-class-member representation-field get it() → self::E3 /* = core::int */;
+  constructor • = self::E5|constructor#;
+  constructor tearoff • = self::E5|constructor#_#new#tearOff;
+}
+extension type E6(self::E2 /* = core::num */ it) implements self::E3 /* = core::int */ {
+  abstract inline-class-member representation-field get it() → self::E2 /* = core::num */;
+  constructor • = self::E6|constructor#;
+  constructor tearoff • = self::E6|constructor#_#new#tearOff;
+}
+extension type E7(core::String it) implements self::E1 /* = core::num */ {
+  abstract inline-class-member representation-field get it() → core::String;
+  constructor • = self::E7|constructor#;
+  constructor tearoff • = self::E7|constructor#_#new#tearOff;
+}
+static inline-class-member method E1|constructor#(core::num it) → self::E1 /* = core::num */ {
+  lowered final self::E1 /* = core::num */ #this = it;
+  return #this;
+}
+static inline-class-member method E1|constructor#_#new#tearOff(core::num it) → self::E1 /* = core::num */
+  return self::E1|constructor#(it);
+static inline-class-member method E2|constructor#(self::E1 /* = core::num */ it) → self::E2 /* = core::num */ {
+  lowered final self::E2 /* = core::num */ #this = it;
+  return #this;
+}
+static inline-class-member method E2|constructor#_#new#tearOff(self::E1 /* = core::num */ it) → self::E2 /* = core::num */
+  return self::E2|constructor#(it);
+static inline-class-member method E3|constructor#(core::int it) → self::E3 /* = core::int */ {
+  lowered final self::E3 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method E3|constructor#_#new#tearOff(core::int it) → self::E3 /* = core::int */
+  return self::E3|constructor#(it);
+static inline-class-member method E4|constructor#(self::E3 /* = core::int */ it) → self::E4 /* = core::int */ {
+  lowered final self::E4 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method E4|constructor#_#new#tearOff(self::E3 /* = core::int */ it) → self::E4 /* = core::int */
+  return self::E4|constructor#(it);
+static inline-class-member method E5|constructor#(self::E3 /* = core::int */ it) → self::E5 /* = core::int */ {
+  lowered final self::E5 /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method E5|constructor#_#new#tearOff(self::E3 /* = core::int */ it) → self::E5 /* = core::int */
+  return self::E5|constructor#(it);
+static inline-class-member method E6|constructor#(self::E2 /* = core::num */ it) → self::E6 /* = core::num */ {
+  lowered final self::E6 /* = core::num */ #this = it;
+  return #this;
+}
+static inline-class-member method E6|constructor#_#new#tearOff(self::E2 /* = core::num */ it) → self::E6 /* = core::num */
+  return self::E6|constructor#(it);
+static inline-class-member method E7|constructor#(core::String it) → self::E7 /* = core::String */ {
+  lowered final self::E7 /* = core::String */ #this = it;
+  return #this;
+}
+static inline-class-member method E7|constructor#_#new#tearOff(core::String it) → self::E7 /* = core::String */
+  return self::E7|constructor#(it);

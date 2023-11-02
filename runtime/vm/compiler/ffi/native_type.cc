@@ -140,7 +140,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesStack(bool is_vararg) const {
       // iOS on arm64 only aligns to size.
       return SizeInBytes();
     default:
-      UNREACHABLE();
+      UNREACHABLE_THIS();
   }
 }
 
@@ -158,7 +158,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesField() const {
       return SizeInBytes();
     }
     default:
-      UNREACHABLE();
+      UNREACHABLE_THIS();
   }
 }
 
@@ -272,7 +272,7 @@ bool NativePrimitiveType::IsExpressibleAsRepresentation() const {
     case kVoid:
       return true;
     default:
-      UNREACHABLE();  // Make MSVC happy.
+      UNREACHABLE_THIS();  // Make MSVC happy.
   }
 }
 
@@ -293,7 +293,7 @@ Representation NativePrimitiveType::AsRepresentation() const {
     case kVoid:
       return kUnboxedFfiIntPtr;
     default:
-      UNREACHABLE();
+      UNREACHABLE_THIS();
   }
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
@@ -791,7 +791,7 @@ const NativePrimitiveType& NativeCompoundType::FirstPrimitiveMember() const {
       return members_[i]->FirstPrimitiveMember();
     }
   }
-  UNREACHABLE();
+  UNREACHABLE_THIS();
 }
 
 intptr_t NativePrimitiveType::PrimitivePairMembers(

@@ -13,11 +13,16 @@ assert(host_os == "mac")
 
 import("//build/config/sysroot.gni")
 import("//build/toolchain/goma.gni")
+import("//build/toolchain/rbe.gni")
 
 if (use_goma) {
-  goma_prefix = "$goma_dir/gomacc "
+  assembler_prefix = "$goma_dir/gomacc "
+  compiler_prefix = "$goma_dir/gomacc "
+  link_prefix = "$goma_dir/gomacc "
 } else {
-  goma_prefix = ""
+  assembler_prefix = ""
+  compiler_prefix = ""
+  link_prefix = ""
 }
 
 # Goma doesn't support the host-arm64 toolchain, so continue using Rosetta.
@@ -33,6 +38,7 @@ if (host_cpu == "arm64" && !use_goma) {
 # build args in this definition.
 template("mac_toolchain") {
   toolchain(target_name) {
+    assert(defined(invoker.asm), "mac_toolchain() must specify a \"asm\" value")
     assert(defined(invoker.cc), "mac_toolchain() must specify a \"cc\" value")
     assert(defined(invoker.cxx), "mac_toolchain() must specify a \"cxx\" value")
     assert(defined(invoker.ar), "mac_toolchain() must specify an \"ar\" value")
@@ -45,6 +51,7 @@ template("mac_toolchain") {
     # We can't do string interpolation ($ in strings) on things with dots in
     # them. To allow us to use $cc below, for example, we create copies of
     # these values in our scope.
+    asm = invoker.asm
     cc = invoker.cc
     cxx = invoker.cxx
     ar = invoker.ar
@@ -87,7 +94,7 @@ template("mac_toolchain") {
     tool("asm") {
       # For GCC we can just use the C compiler to compile assembly.
       depfile = "{{output}}.d"
-      command = "$cc -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{asmflags}} -c {{source}} -o {{output}}"
+      command = "$asm -MMD -MF $depfile {{defines}} {{include_dirs}} $sysroot_flags $toolchain_flags {{asmflags}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
       description = "ASM {{output}}"
       outputs =
@@ -236,10 +243,11 @@ mac_toolchain("clang_x64") {
   toolchain_cpu = "x64"
   toolchain_os = "mac"
   prefix = rebased_clang_dir
-  cc = "${goma_prefix}$prefix/clang"
-  cxx = "${goma_prefix}$prefix/clang++"
+  cc = "${compiler_prefix}${prefix}/clang"
+  cxx = "${compiler_prefix}${prefix}/clang++"
+  asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
-  ld = cxx
+  ld = "${link_prefix}${prefix}/clang++"
   strip = "${prefix}/llvm-strip"
   nm = "${prefix}/llvm-nm"
   is_clang = true
@@ -253,10 +261,11 @@ mac_toolchain("clang_arm64") {
   toolchain_cpu = "arm64"
   toolchain_os = "mac"
   prefix = rebased_clang_dir
-  cc = "${goma_prefix}$prefix/clang"
-  cxx = "${goma_prefix}$prefix/clang++"
+  cc = "${compiler_prefix}${prefix}/clang"
+  cxx = "${compiler_prefix}${prefix}/clang++"
+  asm = "${assembler_prefix}${prefix}/clang"
   ar = "${prefix}/llvm-ar"
-  ld = cxx
+  ld = "${link_prefix}${prefix}/clang++"
   strip = "${prefix}/llvm-strip"
   nm = "${prefix}/llvm-nm"
   is_clang = true

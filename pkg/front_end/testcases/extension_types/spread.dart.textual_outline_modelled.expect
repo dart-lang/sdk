@@ -1,0 +1,5 @@
+extension type MyList<T>(List<T> it) implements List<T> {}
+extension type MyMap<K, V>(Map<K, V> it) implements Map<K, V> {}
+extension type MySet<T>(Set<T> it) implements Set<T> {}
+method(MyList<int> list, MySet<String> set, MyMap<bool, num> map) {}
+test() {}

@@ -4343,6 +4343,10 @@ AbstractBool _typeTest(
     JClosedWorld closedWorld,
     CompilerOptions options,
     {required bool isCast}) {
+  // The null safety mode may affect the result of a type test, so defer to
+  // runtime.
+  if (options.experimentNullSafetyChecks) return AbstractBool.Maybe;
+
   JCommonElements commonElements = closedWorld.commonElements;
   DartTypes dartTypes = closedWorld.dartTypes;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;

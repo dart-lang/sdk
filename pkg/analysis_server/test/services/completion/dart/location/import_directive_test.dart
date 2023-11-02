@@ -8,9 +8,27 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(HideClauseTest1);
+    defineReflectiveTests(HideClauseTest2);
     defineReflectiveTests(ImportDirectiveTest1);
     defineReflectiveTests(ImportDirectiveTest2);
+    defineReflectiveTests(ShowClauseTest1);
+    defineReflectiveTests(ShowClauseTest2);
   });
+}
+
+@reflectiveTest
+class HideClauseTest1 extends AbstractCompletionDriverTest
+    with HideClauseTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class HideClauseTest2 extends AbstractCompletionDriverTest
+    with HideClauseTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin HideClauseTestCases on AbstractCompletionDriverTest {
@@ -69,14 +87,14 @@ suggestions
 
 @reflectiveTest
 class ImportDirectiveTest1 extends AbstractCompletionDriverTest
-    with HideClauseTestCases, ImportDirectiveTestCases, ShowClauseTestCases {
+    with ImportDirectiveTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
 }
 
 @reflectiveTest
 class ImportDirectiveTest2 extends AbstractCompletionDriverTest
-    with HideClauseTestCases, ImportDirectiveTestCases, ShowClauseTestCases {
+    with ImportDirectiveTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
@@ -393,6 +411,20 @@ suggestions
     kind: keyword
 ''');
   }
+}
+
+@reflectiveTest
+class ShowClauseTest1 extends AbstractCompletionDriverTest
+    with ShowClauseTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class ShowClauseTest2 extends AbstractCompletionDriverTest
+    with ShowClauseTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin ShowClauseTestCases on AbstractCompletionDriverTest {

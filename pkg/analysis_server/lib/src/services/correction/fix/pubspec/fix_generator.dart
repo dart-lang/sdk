@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -36,7 +37,7 @@ class PubspecFixGenerator {
   final String content;
 
   /// The parsed content of the file for which fixes are being generated.
-  final YamlDocument document;
+  final YamlNode node;
 
   final LineInfo lineInfo;
 
@@ -47,7 +48,7 @@ class PubspecFixGenerator {
   String? _endOfLine;
 
   PubspecFixGenerator(
-      this.resourceProvider, this.error, this.content, this.document)
+      this.resourceProvider, this.error, this.content, this.node)
       : errorOffset = error.offset,
         errorLength = error.length,
         lineInfo = LineInfo.fromContent(content);
@@ -78,7 +79,7 @@ class PubspecFixGenerator {
   Future<List<Fix>> computeFixes() async {
     var locator =
         YamlNodeLocator(start: errorOffset, end: errorOffset + errorLength - 1);
-    var coveringNodePath = locator.searchWithin(document.contents);
+    var coveringNodePath = locator.searchWithin(node);
     if (coveringNodePath.isEmpty) {
       // One of the errors doesn't have a covering path but can still be fixed.
       // The `if` was left so that the variable wouldn't be unused.
@@ -115,6 +116,8 @@ class PubspecFixGenerator {
       // Consider replacing the path with a valid path.
     } else if (errorCode == PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY) {
       // Consider removing the dependency.
+    } else if (errorCode == PubspecWarningCode.MISSING_DEPENDENCY) {
+      await _addMissingDependency(errorCode);
     }
     return fixes;
   }
@@ -132,12 +135,103 @@ class PubspecFixGenerator {
     fixes.add(Fix(kind, change));
   }
 
+  Future<void> _addMissingDependency(ErrorCode errorCode) async {
+    final node = this.node;
+    if (node is! YamlMap) {
+      return;
+    }
+    var builder = ChangeBuilder(
+        workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
+
+    final data = error.data as MissingDependencyData;
+    var addDeps = data.addDeps;
+    var addDevDeps = data.addDevDeps;
+    var removeDevDeps = data.removeDevDeps;
+
+    if (addDeps.isNotEmpty) {
+      var (text, offset) = _getTextAndOffset(node, 'dependencies', addDeps);
+      await builder.addGenericFileEdit(file, (builder) {
+        builder.addSimpleInsertion(offset, text);
+      });
+    }
+    if (addDevDeps.isNotEmpty) {
+      var (text, offset) =
+          _getTextAndOffset(node, 'dev_dependencies', addDevDeps);
+      await builder.addGenericFileEdit(file, (builder) {
+        builder.addSimpleInsertion(offset, text);
+      });
+    }
+    if (removeDevDeps.isNotEmpty) {
+      var section = node['dev_dependencies'] as YamlMap;
+      // remove the section if all entries are removed.
+      if (removeDevDeps.length == section.nodes.length) {
+        MapEntry<dynamic, YamlNode>? currentEntry, prevEntry;
+        for (var entry in node.nodes.entries) {
+          if (entry.key.value == 'dev_dependencies') {
+            currentEntry = entry;
+            break;
+          }
+          prevEntry = entry;
+        }
+        if (currentEntry != null && prevEntry != null) {
+          var startOffset = (prevEntry.value as YamlMap).span.end.offset;
+          var endOffset = (currentEntry.value as YamlMap).span.end.offset;
+          await builder.addGenericFileEdit(file, (builder) {
+            builder
+                .addDeletion(SourceRange(startOffset, endOffset - startOffset));
+          });
+        }
+      } else {
+        // go through entries and remove them.
+        for (var dep in removeDevDeps) {
+          dynamic currentEntry, nextEntry;
+          for (var entry in section.nodes.entries) {
+            if (entry.key.value == dep) {
+              currentEntry = entry;
+              continue;
+            }
+            if (currentEntry != null) {
+              nextEntry = entry;
+              break;
+            }
+          }
+          if (currentEntry != null) {
+            var startOffset =
+                (currentEntry.key as YamlScalar).span.start.offset;
+            if (nextEntry == null) {
+              // Removing the last entry, check to see if there are any other
+              // sections after dev_dependencies.
+              MapEntry<dynamic, YamlNode>? deps;
+              for (var entry in node.nodes.entries) {
+                if (entry.key.value == 'dev_dependencies') {
+                  deps = entry;
+                }
+                if (deps != null) {
+                  nextEntry == entry;
+                  break;
+                }
+              }
+            }
+            var endOffset = nextEntry == null
+                ? (currentEntry.value as YamlScalar).span.end.offset
+                : (nextEntry.key as YamlScalar).span.start.offset;
+            await builder.addGenericFileEdit(file, (builder) {
+              builder.addDeletion(
+                  SourceRange(startOffset, endOffset - startOffset));
+            });
+          }
+        }
+      }
+    }
+    _addFixFromBuilder(builder, PubspecFixKind.addDependency);
+  }
+
   Future<void> _addNameEntry() async {
     var context = resourceProvider.pathContext;
     var packageName = _identifierFrom(context.basename(context.dirname(file)));
     var builder = ChangeBuilder(
         workspace: _NonDartChangeWorkspace(resourceProvider), eol: endOfLine);
-    var firstOffset = _initialOffset(document.contents);
+    var firstOffset = _initialOffset(node);
     if (firstOffset < 0) {
       // The document contains a list, and we don't support converting it to a
       // map.
@@ -150,6 +244,24 @@ class PubspecFixGenerator {
       builder.addSimpleInsertion(firstOffset, 'name: $packageName$endOfLine');
     });
     _addFixFromBuilder(builder, PubspecFixKind.addName);
+  }
+
+  (String, int) _getTextAndOffset(
+      YamlMap node, String sectionName, List<String> packageNames) {
+    var section = node[sectionName];
+    var buffer = StringBuffer();
+    if (section == null) {
+      buffer.writeln('$sectionName:');
+    }
+    for (var name in packageNames) {
+      buffer.writeln('  $name: any');
+    }
+
+    var offset = section == null
+        ? node.span.end.offset
+        : (section as YamlNode).span.end.offset;
+
+    return (buffer.toString(), offset);
   }
 
   String _identifierFrom(String directoryName) {

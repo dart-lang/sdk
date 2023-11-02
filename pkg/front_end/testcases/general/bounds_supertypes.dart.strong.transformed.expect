@@ -1042,7 +1042,7 @@ class WithS8 extends self::_WithS8&Object&G {
 class EnumImplementsT1 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT1> values = #C4;
   enum-element static const field self::EnumImplementsT1 a = #C3;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT1
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT1
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1051,7 +1051,7 @@ class EnumImplementsT1 extends core::_Enum implements self::Class<self::Class<dy
 class EnumImplementsT2 extends core::_Enum implements self::Class<dynamic> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT2> values = #C6;
   enum-element static const field self::EnumImplementsT2 a = #C5;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT2
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1060,7 +1060,7 @@ class EnumImplementsT2 extends core::_Enum implements self::Class<dynamic> /*isE
 class EnumImplementsT3 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT3> values = #C8;
   enum-element static const field self::EnumImplementsT3 a = #C7;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT3
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT3
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1069,7 +1069,7 @@ class EnumImplementsT3 extends core::_Enum implements self::Class<self::Class<dy
 class EnumImplementsT4 extends core::_Enum implements self::Class<self::Class<dynamic>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT4> values = #C10;
   enum-element static const field self::EnumImplementsT4 a = #C9;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT4
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT4
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1078,7 +1078,7 @@ class EnumImplementsT4 extends core::_Enum implements self::Class<self::Class<dy
 class EnumImplementsT5 extends core::_Enum implements self::Class<self::ConcreteClass> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT5> values = #C12;
   enum-element static const field self::EnumImplementsT5 a = #C11;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT5
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT5
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1087,7 +1087,7 @@ class EnumImplementsT5 extends core::_Enum implements self::Class<self::Concrete
 class EnumImplementsT6 extends core::_Enum implements self::Class<self::Class<self::ConcreteClass>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT6> values = #C14;
   enum-element static const field self::EnumImplementsT6 a = #C13;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT6
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT6
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1096,7 +1096,7 @@ class EnumImplementsT6 extends core::_Enum implements self::Class<self::Class<se
 class EnumImplementsT7 extends core::_Enum implements self::Class<core::Object> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT7> values = #C16;
   enum-element static const field self::EnumImplementsT7 a = #C15;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT7
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT7
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1105,7 +1105,7 @@ class EnumImplementsT7 extends core::_Enum implements self::Class<core::Object> 
 class EnumImplementsT8 extends core::_Enum implements self::Class<core::int> /*isEnum*/  {
   static const field core::List<self::EnumImplementsT8> values = #C18;
   enum-element static const field self::EnumImplementsT8 a = #C17;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsT8
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsT8
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1114,7 +1114,7 @@ class EnumImplementsT8 extends core::_Enum implements self::Class<core::int> /*i
 class EnumImplementsS1 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS1> values = #C20;
   enum-element static const field self::EnumImplementsS1 a = #C19;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS1
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS1
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1123,7 +1123,7 @@ class EnumImplementsS1 extends core::_Enum implements self::G<self::Class<dynami
 class EnumImplementsS2 extends core::_Enum implements self::G<dynamic> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS2> values = #C22;
   enum-element static const field self::EnumImplementsS2 a = #C21;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS2
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1132,7 +1132,7 @@ class EnumImplementsS2 extends core::_Enum implements self::G<dynamic> /*isEnum*
 class EnumImplementsS3 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS3> values = #C24;
   enum-element static const field self::EnumImplementsS3 a = #C23;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS3
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS3
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1141,7 +1141,7 @@ class EnumImplementsS3 extends core::_Enum implements self::G<self::Class<dynami
 class EnumImplementsS4 extends core::_Enum implements self::G<self::Class<dynamic>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS4> values = #C26;
   enum-element static const field self::EnumImplementsS4 a = #C25;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS4
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS4
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1150,7 +1150,7 @@ class EnumImplementsS4 extends core::_Enum implements self::G<self::Class<dynami
 class EnumImplementsS5 extends core::_Enum implements self::G<self::ConcreteClass> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS5> values = #C28;
   enum-element static const field self::EnumImplementsS5 a = #C27;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS5
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS5
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1159,7 +1159,7 @@ class EnumImplementsS5 extends core::_Enum implements self::G<self::ConcreteClas
 class EnumImplementsS6 extends core::_Enum implements self::G<self::Class<self::ConcreteClass>> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS6> values = #C30;
   enum-element static const field self::EnumImplementsS6 a = #C29;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS6
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS6
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1168,7 +1168,7 @@ class EnumImplementsS6 extends core::_Enum implements self::G<self::Class<self::
 class EnumImplementsS7 extends core::_Enum implements self::G<core::Object> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS7> values = #C32;
   enum-element static const field self::EnumImplementsS7 a = #C31;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS7
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS7
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1177,7 +1177,7 @@ class EnumImplementsS7 extends core::_Enum implements self::G<core::Object> /*is
 class EnumImplementsS8 extends core::_Enum implements self::G<core::int> /*isEnum*/  {
   static const field core::List<self::EnumImplementsS8> values = #C34;
   enum-element static const field self::EnumImplementsS8 a = #C33;
-  const constructor •(core::int #index, core::String #name) → self::EnumImplementsS8
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumImplementsS8
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1191,7 +1191,7 @@ abstract class _EnumWithT1&_Enum&F extends core::_Enum implements self::Class<se
 class EnumWithT1 extends self::_EnumWithT1&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT1> values = #C36;
   enum-element static const field self::EnumWithT1 a = #C35;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT1
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT1
     : super self::_EnumWithT1&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1205,7 +1205,7 @@ abstract class _EnumWithT2&_Enum&F extends core::_Enum implements self::Class<dy
 class EnumWithT2 extends self::_EnumWithT2&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT2> values = #C38;
   enum-element static const field self::EnumWithT2 a = #C37;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT2
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT2
     : super self::_EnumWithT2&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1219,7 +1219,7 @@ abstract class _EnumWithT3&_Enum&F extends core::_Enum implements self::Class<se
 class EnumWithT3 extends self::_EnumWithT3&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT3> values = #C40;
   enum-element static const field self::EnumWithT3 a = #C39;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT3
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT3
     : super self::_EnumWithT3&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1233,7 +1233,7 @@ abstract class _EnumWithT4&_Enum&F extends core::_Enum implements self::Class<se
 class EnumWithT4 extends self::_EnumWithT4&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT4> values = #C42;
   enum-element static const field self::EnumWithT4 a = #C41;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT4
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT4
     : super self::_EnumWithT4&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1247,7 +1247,7 @@ abstract class _EnumWithT5&_Enum&F extends core::_Enum implements self::Class<se
 class EnumWithT5 extends self::_EnumWithT5&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT5> values = #C44;
   enum-element static const field self::EnumWithT5 a = #C43;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT5
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT5
     : super self::_EnumWithT5&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1261,7 +1261,7 @@ abstract class _EnumWithT6&_Enum&F extends core::_Enum implements self::Class<se
 class EnumWithT6 extends self::_EnumWithT6&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT6> values = #C46;
   enum-element static const field self::EnumWithT6 a = #C45;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT6
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT6
     : super self::_EnumWithT6&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1275,7 +1275,7 @@ abstract class _EnumWithT7&_Enum&F extends core::_Enum implements self::Class<co
 class EnumWithT7 extends self::_EnumWithT7&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT7> values = #C48;
   enum-element static const field self::EnumWithT7 a = #C47;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT7
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT7
     : super self::_EnumWithT7&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1289,7 +1289,7 @@ abstract class _EnumWithT8&_Enum&F extends core::_Enum implements self::Class<co
 class EnumWithT8 extends self::_EnumWithT8&_Enum&F /*isEnum*/  {
   static const field core::List<self::EnumWithT8> values = #C50;
   enum-element static const field self::EnumWithT8 a = #C49;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithT8
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithT8
     : super self::_EnumWithT8&_Enum&F::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1303,7 +1303,7 @@ abstract class _EnumWithS1&_Enum&G extends core::_Enum implements self::G<self::
 class EnumWithS1 extends self::_EnumWithS1&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS1> values = #C52;
   enum-element static const field self::EnumWithS1 a = #C51;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS1
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS1
     : super self::_EnumWithS1&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1317,7 +1317,7 @@ abstract class _EnumWithS2&_Enum&G extends core::_Enum implements self::G<dynami
 class EnumWithS2 extends self::_EnumWithS2&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS2> values = #C54;
   enum-element static const field self::EnumWithS2 a = #C53;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS2
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS2
     : super self::_EnumWithS2&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1331,7 +1331,7 @@ abstract class _EnumWithS3&_Enum&G extends core::_Enum implements self::G<self::
 class EnumWithS3 extends self::_EnumWithS3&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS3> values = #C56;
   enum-element static const field self::EnumWithS3 a = #C55;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS3
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS3
     : super self::_EnumWithS3&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1345,7 +1345,7 @@ abstract class _EnumWithS4&_Enum&G extends core::_Enum implements self::G<self::
 class EnumWithS4 extends self::_EnumWithS4&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS4> values = #C58;
   enum-element static const field self::EnumWithS4 a = #C57;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS4
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS4
     : super self::_EnumWithS4&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1359,7 +1359,7 @@ abstract class _EnumWithS5&_Enum&G extends core::_Enum implements self::G<self::
 class EnumWithS5 extends self::_EnumWithS5&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS5> values = #C60;
   enum-element static const field self::EnumWithS5 a = #C59;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS5
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS5
     : super self::_EnumWithS5&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1373,7 +1373,7 @@ abstract class _EnumWithS6&_Enum&G extends core::_Enum implements self::G<self::
 class EnumWithS6 extends self::_EnumWithS6&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS6> values = #C62;
   enum-element static const field self::EnumWithS6 a = #C61;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS6
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS6
     : super self::_EnumWithS6&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1387,7 +1387,7 @@ abstract class _EnumWithS7&_Enum&G extends core::_Enum implements self::G<core::
 class EnumWithS7 extends self::_EnumWithS7&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS7> values = #C64;
   enum-element static const field self::EnumWithS7 a = #C63;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS7
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS7
     : super self::_EnumWithS7&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -1401,7 +1401,7 @@ abstract class _EnumWithS8&_Enum&G extends core::_Enum implements self::G<core::
 class EnumWithS8 extends self::_EnumWithS8&_Enum&G /*isEnum*/  {
   static const field core::List<self::EnumWithS8> values = #C66;
   enum-element static const field self::EnumWithS8 a = #C65;
-  const constructor •(core::int #index, core::String #name) → self::EnumWithS8
+  const synthetic constructor •(core::int #index, core::String #name) → self::EnumWithS8
     : super self::_EnumWithS8&_Enum&G::•(#index, #name)
     ;
   method _enumToString() → core::String

@@ -287,6 +287,9 @@ WasmExternRef? newObjectRaw() => JS<WasmExternRef?>('() => ({})');
 
 WasmExternRef? newArrayRaw() => JS<WasmExternRef?>('() => []');
 
+WasmExternRef? newArrayFromLengthRaw(int length) =>
+    JS<WasmExternRef?>('l => new Array(l)', length.toDouble());
+
 WasmExternRef? globalThisRaw() => JS<WasmExternRef?>('() => globalThis');
 
 WasmExternRef? callConstructorVarArgsRaw(
@@ -551,11 +554,6 @@ F _wrapDartFunction<F extends Function>(F f, WasmExternRef ref) {
 /// Returns the JS constructor object for a given [String].
 WasmExternRef? getConstructorRaw(String name) =>
     getPropertyRaw(globalThisRaw(), name.toExternRef);
-
-/// Equivalent to `Object.keys(object)`.
-// TODO(joshualitt): Make this a static helper on 'JSObject'.
-@js.JS('Object.keys')
-external JSArray objectKeys(JSObject object);
 
 /// Takes a [codeTemplate] string which must represent a valid JS function, and
 /// a list of optional arguments. The [codeTemplate] will be inserted into the

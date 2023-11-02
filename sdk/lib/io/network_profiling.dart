@@ -5,7 +5,7 @@
 part of dart.io;
 
 // TODO(bkonyi): refactor into io_resource_info.dart
-const int _versionMajor = 2;
+const int _versionMajor = 3;
 const int _versionMinor = 0;
 
 const String _tcpSocket = 'tcp';
@@ -14,12 +14,6 @@ const String _udpSocket = 'udp';
 @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
   // Http relative RPCs
-  @Deprecated('Use httpEnableTimelineLogging instead')
-  static const _kGetHttpEnableTimelineLogging =
-      'ext.dart.io.getHttpEnableTimelineLogging';
-  @Deprecated('Use httpEnableTimelineLogging instead')
-  static const _kSetHttpEnableTimelineLogging =
-      'ext.dart.io.setHttpEnableTimelineLogging';
   static const _kHttpEnableTimelineLogging =
       'ext.dart.io.httpEnableTimelineLogging';
   static const _kGetHttpProfileRPC = 'ext.dart.io.getHttpProfile';
@@ -30,10 +24,6 @@ abstract class _NetworkProfiling {
   static const _kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
   static const _kSocketProfilingEnabledRPC =
       'ext.dart.io.socketProfilingEnabled';
-  @Deprecated('Use socketProfilingEnabled instead')
-  static const _kPauseSocketProfilingRPC = 'ext.dart.io.pauseSocketProfiling';
-  @Deprecated('Use socketProfilingEnabled instead')
-  static const _kStartSocketProfilingRPC = 'ext.dart.io.startSocketProfiling';
 
   // TODO(zichangguo): This version number represents the version of service
   // extension of dart:io. Consider moving this out of web profiler class,
@@ -42,12 +32,8 @@ abstract class _NetworkProfiling {
 
   @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
   static void _registerServiceExtension() {
-    registerExtension(_kGetHttpEnableTimelineLogging, _serviceExtensionHandler);
-    registerExtension(_kSetHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
-    registerExtension(_kStartSocketProfilingRPC, _serviceExtensionHandler);
-    registerExtension(_kPauseSocketProfilingRPC, _serviceExtensionHandler);
     registerExtension(_kSocketProfilingEnabledRPC, _serviceExtensionHandler);
     registerExtension(_kClearSocketProfileRPC, _serviceExtensionHandler);
     registerExtension(_kGetVersionRPC, _serviceExtensionHandler);
@@ -61,12 +47,6 @@ abstract class _NetworkProfiling {
     try {
       String responseJson;
       switch (method) {
-        case _kGetHttpEnableTimelineLogging:
-          responseJson = _getHttpEnableTimelineLogging();
-          break;
-        case _kSetHttpEnableTimelineLogging:
-          responseJson = _setHttpEnableTimelineLogging(parameters);
-          break;
         case _kHttpEnableTimelineLogging:
           if (parameters.containsKey('enabled')) {
             _setHttpEnableTimelineLogging(parameters);
@@ -92,12 +72,6 @@ abstract class _NetworkProfiling {
           break;
         case _kSocketProfilingEnabledRPC:
           responseJson = _socketProfilingEnabled(parameters);
-          break;
-        case _kStartSocketProfilingRPC:
-          responseJson = _SocketProfile.start();
-          break;
-        case _kPauseSocketProfilingRPC:
-          responseJson = _SocketProfile.pause();
           break;
         case _kClearSocketProfileRPC:
           responseJson = _SocketProfile.clear();

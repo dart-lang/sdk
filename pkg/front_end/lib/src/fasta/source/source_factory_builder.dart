@@ -61,12 +61,14 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
 
   List<SourceFactoryBuilder>? _patches;
 
+  final MemberName _memberName;
+
   SourceFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       this.returnType,
       String name,
-      List<TypeVariableBuilder> typeVariables,
+      List<NominalVariableBuilder> typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder libraryBuilder,
       int startCharOffset,
@@ -78,7 +80,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       AsyncMarker asyncModifier,
       NameScheme nameScheme,
       {String? nativeMethodName})
-      : super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
+      : _memberName = nameScheme.getDeclaredName(name),
+        super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedureInternal = new Procedure(
         dummyName,
@@ -106,6 +109,9 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       ?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     this.asyncModifier = asyncModifier;
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   @override
   DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
@@ -330,12 +336,14 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   FreshTypeParameters? _tearOffTypeParameters;
 
+  bool _hasBeenCheckedAsRedirectingFactory = false;
+
   RedirectingFactoryBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       TypeBuilder returnType,
       String name,
-      List<TypeVariableBuilder> typeVariables,
+      List<NominalVariableBuilder> typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder libraryBuilder,
       int startCharOffset,
@@ -638,7 +646,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
         StructuralParameter typeParameter =
             targetFunctionType.typeParameters[i];
-        DartType typeParameterBound = instantiator.visit(typeParameter.bound);
+        DartType typeParameterBound =
+            instantiator.substitute(typeParameter.bound);
         DartType typeArgument = typeArguments[i];
         // Check whether the [typeArgument] respects the bounds of
         // [typeParameter].
@@ -688,7 +697,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // Substitute if necessary.
     targetFunctionType = instantiator == null
         ? targetFunctionType
-        : (instantiator.visit(targetFunctionType.withoutTypeParameters)
+        : (instantiator.substitute(targetFunctionType.withoutTypeParameters)
             as FunctionType);
 
     return hasProblem ? null : targetFunctionType;
@@ -730,6 +739,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   @override
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {
+    if (_hasBeenCheckedAsRedirectingFactory) return;
+    _hasBeenCheckedAsRedirectingFactory = true;
+
     // Check that factory declaration is not cyclic.
     if (_isCyclicRedirectingFactory(this)) {
       libraryBuilder.addProblemForRedirectingFactory(
@@ -779,6 +791,16 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     // happened during [_computeRedirecteeType].
     if (redirecteeType == null) {
       return;
+    }
+
+    Builder? redirectionTargetBuilder = redirectionTarget.target;
+    if (redirectionTargetBuilder is RedirectingFactoryBuilder) {
+      redirectionTargetBuilder._checkRedirectingFactory(typeEnvironment);
+      String? errorMessage = redirectionTargetBuilder
+          .function.redirectingFactoryTarget?.errorMessage;
+      if (errorMessage != null) {
+        setRedirectingFactoryError(errorMessage);
+      }
     }
 
     // Redirection to generative enum constructors is forbidden and is reported

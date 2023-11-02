@@ -2781,8 +2781,9 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
     *array = elements;
     array_cid = kArrayCid;
   } else if (IsExternalTypedDataClassId(array_cid)) {
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), compiler::target::PointerBase::data_offset());
+    auto* const elements = new (Z) LoadFieldInstr(
+        new (Z) Value(*array), Slot::PointerBase_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, call->source());
     *cursor =
         flow_graph->AppendTo(*cursor, elements, nullptr, FlowGraph::kValue);
     *array = elements;
@@ -3177,9 +3178,14 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
                                          Definition** array,
                                          Instruction** cursor) {
   if (array_cid == kDynamicCid || IsExternalTypedDataClassId(array_cid)) {
-    // Internal or External typed data: load untagged.
-    auto elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), compiler::target::PointerBase::data_offset());
+    // Internal or External typed data: load the untagged base address.
+    auto const loads_inner_pointer =
+        IsExternalTypedDataClassId(array_cid)
+            ? InnerPointerAccess::kCannotBeInnerPointer
+            : InnerPointerAccess::kMayBeInnerPointer;
+    auto* const elements =
+        new (Z) LoadFieldInstr(new (Z) Value(*array), Slot::PointerBase_data(),
+                               loads_inner_pointer, call->source());
     *cursor =
         flow_graph->AppendTo(*cursor, elements, nullptr, FlowGraph::kValue);
     *array = elements;
@@ -3491,14 +3497,14 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
 
   // For external strings: Load backing store.
   if (cid == kExternalOneByteStringCid) {
-    str = new LoadUntaggedInstr(
-        new Value(str),
-        compiler::target::ExternalOneByteString::external_data_offset());
+    str = new LoadFieldInstr(
+        new Value(str), Slot::ExternalOneByteString_external_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, call->source());
     cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
   } else if (cid == kExternalTwoByteStringCid) {
-    str = new LoadUntaggedInstr(
-        new Value(str),
-        compiler::target::ExternalTwoByteString::external_data_offset());
+    str = new LoadFieldInstr(
+        new Value(str), Slot::ExternalTwoByteString_external_data(),
+        InnerPointerAccess::kCannotBeInnerPointer, call->source());
     cursor = flow_graph->AppendTo(cursor, str, nullptr, FlowGraph::kValue);
   }
 
@@ -5030,55 +5036,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
       // We need a return value to replace uses of the original definition.
       // The final instruction is a use of 'void operator[]=()', so we use null.
-      *result = flow_graph->constant_null();
-      return true;
-    }
-
-    case MethodRecognizer::kMemCopy: {
-      // Keep consistent with kernel_to_il.cc (except unboxed param).
-      *entry = new (Z)
-          FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                             call->GetBlock()->try_index(), DeoptId::kNone);
-      (*entry)->InheritDeoptTarget(Z, call);
-      Definition* arg_target = call->ArgumentAt(0);
-      Definition* arg_target_offset_in_bytes = call->ArgumentAt(1);
-      Definition* arg_source = call->ArgumentAt(2);
-      Definition* arg_source_offset_in_bytes = call->ArgumentAt(3);
-      Definition* arg_length_in_bytes = call->ArgumentAt(4);
-
-      auto env = call->deopt_id() != DeoptId::kNone ? call->env() : nullptr;
-
-      // Insert explicit unboxing instructions with truncation to avoid relying
-      // on [SelectRepresentations] which doesn't mark them as truncating.
-      arg_target_offset_in_bytes = UnboxInstr::Create(
-          kUnboxedIntPtr, new (Z) Value(arg_target_offset_in_bytes),
-          call->deopt_id(), Instruction::kNotSpeculative);
-      arg_target_offset_in_bytes->AsUnboxInteger()->mark_truncating();
-      flow_graph->AppendTo(*entry, arg_target_offset_in_bytes, env,
-                           FlowGraph::kValue);
-      arg_source_offset_in_bytes = UnboxInstr::Create(
-          kUnboxedIntPtr, new (Z) Value(arg_source_offset_in_bytes),
-          call->deopt_id(), Instruction::kNotSpeculative);
-      arg_source_offset_in_bytes->AsUnboxInteger()->mark_truncating();
-      flow_graph->AppendTo(arg_target_offset_in_bytes,
-                           arg_source_offset_in_bytes, env, FlowGraph::kValue);
-      arg_length_in_bytes =
-          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(arg_length_in_bytes),
-                             call->deopt_id(), Instruction::kNotSpeculative);
-      arg_length_in_bytes->AsUnboxInteger()->mark_truncating();
-      flow_graph->AppendTo(arg_source_offset_in_bytes, arg_length_in_bytes, env,
-                           FlowGraph::kValue);
-
-      *last = new (Z)
-          MemoryCopyInstr(new (Z) Value(arg_source), new (Z) Value(arg_target),
-                          new (Z) Value(arg_source_offset_in_bytes),
-                          new (Z) Value(arg_target_offset_in_bytes),
-                          new (Z) Value(arg_length_in_bytes),
-                          /*src_cid=*/kTypedDataUint8ArrayCid,
-                          /*dest_cid=*/kTypedDataUint8ArrayCid,
-                          /*unboxed_inputs=*/true, /*can_overlap=*/true);
-      flow_graph->AppendTo(arg_length_in_bytes, *last, env, FlowGraph::kEffect);
-
       *result = flow_graph->constant_null();
       return true;
     }

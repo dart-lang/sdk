@@ -7,6 +7,7 @@ import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -22,6 +23,7 @@ import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/type_algorithms.dart';
 import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
@@ -30,6 +32,7 @@ import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
+import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
@@ -44,6 +47,7 @@ class SourceExtensionTypeDeclarationBuilder
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
+  bool _builtRepresentationTypeAndName = false;
 
   SourceExtensionTypeDeclarationBuilder? _origin;
   SourceExtensionTypeDeclarationBuilder? patchForTesting;
@@ -51,12 +55,14 @@ class SourceExtensionTypeDeclarationBuilder
   MergedClassMemberScope? _mergedScope;
 
   @override
-  final List<TypeVariableBuilder>? typeParameters;
+  final List<NominalVariableBuilder>? typeParameters;
 
   @override
   List<TypeBuilder>? interfaceBuilders;
 
   final SourceFieldBuilder? representationFieldBuilder;
+
+  final IndexedContainer? indexedContainer;
 
   SourceExtensionTypeDeclarationBuilder(
       List<MetadataBuilder>? metadata,
@@ -71,14 +77,14 @@ class SourceExtensionTypeDeclarationBuilder
       int startOffset,
       int nameOffset,
       int endOffset,
-      ExtensionTypeDeclaration? referenceFrom,
+      this.indexedContainer,
       this.representationFieldBuilder)
       : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: parent.fileUri,
-            typeParameters:
-                TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
-            reference: referenceFrom?.reference)
+            typeParameters: NominalVariableBuilder.typeParametersFromBuilders(
+                typeParameters),
+            reference: indexedContainer?.reference)
           ..fileOffset = nameOffset,
         super(metadata, modifiers, name, parent, nameOffset, scope,
             constructorScope);
@@ -135,8 +141,38 @@ class SourceExtensionTypeDeclarationBuilder
             typeBuilder.build(libraryBuilder, TypeUse.superType);
         Message? errorMessage;
         List<LocatedMessage>? errorContext;
+
+        if (typeParameters?.isNotEmpty ?? false) {
+          for (NominalVariableBuilder variable in typeParameters!) {
+            int variance = computeTypeVariableBuilderVariance(
+                variable, typeBuilder, libraryBuilder);
+            if (!Variance.greaterThanOrEqual(variance, variable.variance)) {
+              if (variable.parameter.isLegacyCovariant) {
+                errorMessage =
+                    templateWrongTypeParameterVarianceInSuperinterface
+                        .withArguments(variable.name, interface,
+                            libraryBuilder.isNonNullableByDefault);
+              } else {
+                errorMessage =
+                    templateInvalidTypeVariableInSupertypeWithVariance
+                        .withArguments(
+                            Variance.keywordString(variable.variance),
+                            variable.name,
+                            Variance.keywordString(variance),
+                            typeBuilder.typeName!.name);
+              }
+            }
+          }
+          if (errorMessage != null) {
+            libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+                noLength, typeBuilder.fileUri,
+                context: errorContext);
+            errorMessage = null;
+          }
+        }
+
         if (interface is ExtensionType) {
-          if (interface.isPotentiallyNullable) {
+          if (interface.nullability == Nullability.nullable) {
             errorMessage =
                 templateSuperExtensionTypeIsNullableAliased.withArguments(
                     typeBuilder.fullNameForErrors,
@@ -166,8 +202,7 @@ class SourceExtensionTypeDeclarationBuilder
             }
           } else {
             Class cls = interface.classNode;
-            if (LibraryBuilder.isObject(cls, coreLibrary) ||
-                LibraryBuilder.isFunction(cls, coreLibrary) ||
+            if (LibraryBuilder.isFunction(cls, coreLibrary) ||
                 LibraryBuilder.isRecord(cls, coreLibrary)) {
               if (aliasBuilder != null) {
                 errorMessage =
@@ -220,30 +255,52 @@ class SourceExtensionTypeDeclarationBuilder
       }
     }
 
+    buildRepresentationTypeAndName();
+    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
+
+    return _extensionTypeDeclaration;
+  }
+
+  @override
+  void buildRepresentationTypeAndName() {
+    // We cut the potential infinite recursion here. The cyclic dependencies
+    // should be reported elsewhere.
+    if (_builtRepresentationTypeAndName) return;
+    _builtRepresentationTypeAndName = true;
+
     DartType representationType;
     String representationName;
     if (representationFieldBuilder != null) {
       TypeBuilder typeBuilder = representationFieldBuilder!.type;
       if (typeBuilder.isExplicit) {
-        representationType =
-            typeBuilder.build(libraryBuilder, TypeUse.fieldType);
-        if (typeParameters != null) {
-          IncludesTypeParametersNonCovariantly checker =
-              new IncludesTypeParametersNonCovariantly(
-                  extensionTypeDeclaration.typeParameters,
-                  // We are checking the returned type (field/getter type or return
-                  // type of a method) and this is a covariant position.
-                  initialVariance: Variance.covariant);
-          if (representationType.accept(checker)) {
-            libraryBuilder.addProblem(
-                messageNonCovariantTypeParameterInRepresentationType,
-                typeBuilder.charOffset!,
-                noLength,
-                typeBuilder.fileUri);
-          }
-        }
         if (_checkRepresentationDependency(typeBuilder, {this}, {})) {
           representationType = const InvalidType();
+        } else {
+          representationType =
+              typeBuilder.build(libraryBuilder, TypeUse.fieldType);
+          if (typeParameters != null) {
+            IncludesTypeParametersNonCovariantly checker =
+                new IncludesTypeParametersNonCovariantly(
+                    extensionTypeDeclaration.typeParameters,
+                    // We are checking the returned type (field/getter type or return
+                    // type of a method) and this is a covariant position.
+                    initialVariance: Variance.covariant);
+            if (representationType.accept(checker)) {
+              libraryBuilder.addProblem(
+                  messageNonCovariantTypeParameterInRepresentationType,
+                  typeBuilder.charOffset!,
+                  noLength,
+                  typeBuilder.fileUri);
+            }
+          }
+          if (isBottom(representationType)) {
+            libraryBuilder.addProblem(
+                messageExtensionTypeRepresentationTypeBottom,
+                representationFieldBuilder!.charOffset,
+                representationFieldBuilder!.name.length,
+                representationFieldBuilder!.fileUri);
+            representationType = const InvalidType();
+          }
         }
       } else {
         representationType = const DynamicType();
@@ -255,10 +312,6 @@ class SourceExtensionTypeDeclarationBuilder
     }
     _extensionTypeDeclaration.declaredRepresentationType = representationType;
     _extensionTypeDeclaration.representationName = representationName;
-
-    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
-
-    return _extensionTypeDeclaration;
   }
 
   bool _checkRepresentationDependency(
@@ -273,7 +326,7 @@ class SourceExtensionTypeDeclarationBuilder
     switch (unaliased) {
       case NamedTypeBuilder(
           :TypeDeclarationBuilder? declaration,
-          :List<TypeBuilder>? arguments
+          typeArguments: List<TypeBuilder>? arguments
         ):
         if (declaration is ExtensionTypeDeclarationBuilder) {
           if (!seenExtensionTypeDeclarations.add(declaration)) {
@@ -405,26 +458,39 @@ class SourceExtensionTypeDeclarationBuilder
                 typeBuilder.fileUri);
           }
         } else if (interface is ExtensionType) {
-          DartType instantiatedRepresentationType =
-              Substitution.fromExtensionType(interface).substituteType(interface
-                  .extensionTypeDeclaration.declaredRepresentationType);
-          if (!hierarchyBuilder.types.isSubtypeOf(
-              declaredRepresentationType,
-              instantiatedRepresentationType,
-              SubtypeCheckMode.withNullabilities)) {
-            libraryBuilder.addProblem(
-                templateInvalidExtensionTypeSuperExtensionType.withArguments(
-                    declaredRepresentationType,
-                    name,
-                    instantiatedRepresentationType,
-                    interface,
-                    true),
-                typeBuilder.charOffset!,
-                noLength,
-                typeBuilder.fileUri);
+          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
+              interface, SubtypeCheckMode.withNullabilities)) {
+            DartType instantiatedImplementedRepresentationType =
+                Substitution.fromExtensionType(interface).substituteType(
+                    interface
+                        .extensionTypeDeclaration.declaredRepresentationType);
+            if (!hierarchyBuilder.types.isSubtypeOf(
+                declaredRepresentationType,
+                instantiatedImplementedRepresentationType,
+                SubtypeCheckMode.withNullabilities)) {
+              libraryBuilder.addProblem(
+                  templateInvalidExtensionTypeSuperExtensionType.withArguments(
+                      declaredRepresentationType,
+                      name,
+                      instantiatedImplementedRepresentationType,
+                      interface,
+                      true),
+                  typeBuilder.charOffset!,
+                  noLength,
+                  typeBuilder.fileUri);
+            }
           }
         }
       }
+    }
+  }
+
+  void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
+    Iterator<SourceFactoryBuilder> iterator =
+        constructorScope.filteredIterator<SourceFactoryBuilder>(
+            parent: this, includeDuplicates: true, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      iterator.current.checkRedirectingFactories(typeEnvironment);
     }
   }
 
@@ -441,6 +507,41 @@ class SourceExtensionTypeDeclarationBuilder
     while (iterator.moveNext()) {
       iterator.current.buildOutlineExpressions(
           classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+    }
+  }
+
+  @override
+  void addMemberInternal(SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind, Member member, Member? tearOff) {
+    switch (memberKind) {
+      case BuiltMemberKind.Constructor:
+      case BuiltMemberKind.RedirectingFactory:
+      case BuiltMemberKind.Field:
+      case BuiltMemberKind.Method:
+      case BuiltMemberKind.Factory:
+      case BuiltMemberKind.ExtensionMethod:
+      case BuiltMemberKind.ExtensionGetter:
+      case BuiltMemberKind.ExtensionSetter:
+      case BuiltMemberKind.ExtensionOperator:
+      case BuiltMemberKind.ExtensionField:
+      case BuiltMemberKind.LateIsSetField:
+      case BuiltMemberKind.ExtensionTypeConstructor:
+      case BuiltMemberKind.ExtensionTypeFactory:
+      case BuiltMemberKind.ExtensionTypeRedirectingFactory:
+      case BuiltMemberKind.ExtensionTypeMethod:
+      case BuiltMemberKind.ExtensionTypeGetter:
+      case BuiltMemberKind.LateGetter:
+      case BuiltMemberKind.ExtensionTypeSetter:
+      case BuiltMemberKind.LateSetter:
+      case BuiltMemberKind.ExtensionTypeOperator:
+        unhandled(
+            "${memberBuilder.runtimeType}:${memberKind}",
+            "addMemberInternal",
+            memberBuilder.charOffset,
+            memberBuilder.fileUri);
+      case BuiltMemberKind.ExtensionTypeRepresentationField:
+        assert(tearOff == null, "Unexpected tear-off $tearOff");
+        extensionTypeDeclaration.addProcedure(member as Procedure);
     }
   }
 
@@ -462,6 +563,7 @@ class SourceExtensionTypeDeclarationBuilder
       case BuiltMemberKind.ExtensionGetter:
       case BuiltMemberKind.ExtensionSetter:
       case BuiltMemberKind.ExtensionOperator:
+      case BuiltMemberKind.ExtensionTypeRepresentationField:
         unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
@@ -492,12 +594,13 @@ class SourceExtensionTypeDeclarationBuilder
         kind = ExtensionTypeMemberKind.Operator;
         break;
     }
-    extensionTypeDeclaration.members.add(new ExtensionTypeMemberDescriptor(
-        name: new Name(name, libraryBuilder.library),
-        member: memberReference,
-        tearOff: tearOffReference,
-        isStatic: memberBuilder.isStatic,
-        kind: kind));
+    extensionTypeDeclaration.memberDescriptors.add(
+        new ExtensionTypeMemberDescriptor(
+            name: new Name(name, libraryBuilder.library),
+            memberReference: memberReference,
+            tearOffReference: tearOffReference,
+            isStatic: memberBuilder.isStatic,
+            kind: kind));
   }
 
   @override
@@ -612,7 +715,7 @@ class SourceExtensionTypeDeclarationBuilder
           TypeAliasBuilder aliasBuilder = declarationBuilder;
           NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
           declarationBuilder = aliasBuilder.unaliasDeclaration(
-              namedBuilder.arguments,
+              namedBuilder.typeArguments,
               isUsedAsClass: true,
               usedAsClassCharOffset: namedBuilder.charOffset,
               usedAsClassFileUri: namedBuilder.fileUri);

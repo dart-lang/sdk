@@ -70,69 +70,18 @@ if (is_android) {
 
   # Subdirectories inside android_ndk_root that contain the sysroot for the
   # associated platform.
-  if (current_cpu == "x64" || current_cpu == "arm64") {
-    android_api_level = 22
+  if (current_cpu == "riscv64") {
+    android_api_level = 35
   } else {
-    android_api_level = 19
+    android_api_level = 21
   }
 
   # Toolchain root directory for each build. The actual binaries are inside
   # a "bin" directory inside of these.
-  _android_toolchain_version = "4.9"
-
   llvm_android_toolchain_root = "$android_ndk_root/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}"
-
-  x86_android_toolchain_root = "$android_ndk_root/toolchains/x86-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
-  arm_android_toolchain_root = "$android_ndk_root/toolchains/arm-linux-androideabi-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
-  x86_64_android_toolchain_root = "$android_ndk_root/toolchains/x86_64-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
-  arm64_android_toolchain_root = "$android_ndk_root/toolchains/aarch64-linux-android-${_android_toolchain_version}/prebuilt/${android_host_os}-${android_host_arch}"
-
-  x86_android_lib = "$llvm_android_toolchain_root/sysroot/usr/lib/i686-linux-android/${android_api_level}"
-  arm_android_lib = "$llvm_android_toolchain_root/sysroot/usr/lib/arm-linux-androideabi/${android_api_level}"
-  x86_64_android_lib = "$llvm_android_toolchain_root/sysroot/usr/lib/x86_64-linux-android/${android_api_level}"
-  arm64_android_lib = "$llvm_android_toolchain_root/sysroot/usr/lib/aarch64-linux-android/${android_api_level}"
-
-  # Location of libgcc. This is only needed for the current GN toolchain, so we
-  # only need to define the current one, rather than one for every platform
-  # like the toolchain roots.
-  if (current_cpu == "x86") {
-    android_prebuilt_arch = "android-x86"
-    android_target_triple = "i686-linux-android"
-    android_toolchain_root = "$x86_android_toolchain_root"
-    android_lib = "$x86_android_lib"
-  } else if (current_cpu == "arm") {
-    android_prebuilt_arch = "android-arm"
-    android_target_triple = "arm-linux-androideabi"
-    android_toolchain_root = "$arm_android_toolchain_root"
-    android_lib = "$arm_android_lib"
-  } else if (current_cpu == "x64") {
-    android_prebuilt_arch = "android-x86_64"
-    android_target_triple = "x86_64-linux-android"
-    android_toolchain_root = "$x86_64_android_toolchain_root"
-    android_lib = "$x86_64_android_lib"
-  } else if (current_cpu == "arm64") {
-    android_prebuilt_arch = "android-arm64"
-    android_target_triple = "aarch64-linux-android"
-    android_toolchain_root = "$arm64_android_toolchain_root"
-    android_lib = "$arm64_android_lib"
-  } else {
-    assert(false, "Need android libgcc support for your target arch.")
-  }
-
-  android_tool_prefix = "$android_toolchain_root/bin/$android_target_triple-"
-  android_readelf = "${android_tool_prefix}readelf"
-  android_objcopy = "${android_tool_prefix}objcopy"
-  android_gdbserver =
-      "$android_ndk_root/prebuilt/$android_prebuilt_arch/gdbserver/gdbserver"
+  android_toolchain_root = "$android_ndk_root/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}"
 
   # Toolchain stuff ------------------------------------------------------------
-
-  android_libcpp_root = "$android_ndk_root/sources/cxx-stl/llvm-libc++"
-  if (component_mode == "shared_library") {
-    android_libcpp_library = "c++_shared"
-  } else {
-    android_libcpp_library = "c++_static"
-  }
 
   if (component_mode == "shared_library") {
     # By appending .cr, we prevent name collisions with libraries already
@@ -147,16 +96,13 @@ if (is_android) {
   if (current_cpu == "x86") {
     android_app_abi = "x86"
   } else if (current_cpu == "arm") {
-    import("//build/config/arm.gni")
-    if (arm_version < 7) {
-      android_app_abi = "armeabi"
-    } else {
-      android_app_abi = "armeabi-v7a"
-    }
+    android_app_abi = "armeabi-v7a"
   } else if (current_cpu == "x64") {
     android_app_abi = "x86_64"
   } else if (current_cpu == "arm64") {
     android_app_abi = "arm64-v8a"
+  } else if (current_cpu == "riscv64") {
+    android_app_abi = "riscv64"
   } else {
     assert(false, "Unknown Android ABI: " + current_cpu)
   }

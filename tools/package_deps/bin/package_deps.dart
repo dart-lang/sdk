@@ -230,9 +230,10 @@ class Package implements Comparable<Package> {
 
     var extraDevDeclarations = Set<String>.from(_declaredDevDependencies)
       ..removeAll(devdeps);
-    // Remove package:lints - it's often declared as a dev dependency in order
+    // Remove package:lints and package:dart_flutter_team_lints -
+    // They are often declared as dev dependencies in order
     // to bring in analysis_options configuration files.
-    extraDevDeclarations.removeAll(['lints']);
+    extraDevDeclarations.removeAll(const ['lints', 'dart_flutter_team_lints']);
     if (extraDevDeclarations.isNotEmpty) {
       out('  ${_printSet(extraDevDeclarations)} declared in '
           "'dev_dependencies:' but not used in dev dirs.");

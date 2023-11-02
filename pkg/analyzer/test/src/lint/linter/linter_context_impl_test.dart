@@ -198,17 +198,6 @@ B g() => B([f()]);
     assertCanBeConst("B([", false);
   }
 
-  void test_false_argument_list_nonBool() async {
-    await resolve('''
-const bool kIsWeb = bool.fromEnvironment('dart.library.js_util');
-class A {
-  const A(List<int> l);
-}
-A f() => A([if (!kIsWeb) ...[1, 2, 3] else ...[1]]);
-''');
-    assertCanBeConst("A([", false);
-  }
-
   void test_false_argument_nonConstConstructor() async {
     await resolve('''
 class A {}
@@ -272,6 +261,17 @@ class A<T> {
 f<U>() => A<U>();
 ''');
     assertCanBeConst("A<U>", false);
+  }
+
+  void test_true_argument_list_nonBool() async {
+    await resolve('''
+const bool kIsWeb = bool.fromEnvironment('dart.library.js_util');
+class A {
+  const A(List<int> l);
+}
+A f() => A([if (!kIsWeb) ...[1, 2, 3] else ...[1]]);
+''');
+    assertCanBeConst("A([", true);
   }
 
   void test_true_computeDependencies() async {

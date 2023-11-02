@@ -71,7 +71,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
-  String? get name => null;
+  TypeName? get typeName => null;
 
   @override
   String get debugName => "Record";

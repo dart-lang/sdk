@@ -1,0 +1,126 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •(dynamic arg) → self::C
+    : super core::Object::•() {
+    core::print(arg);
+  }
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method instanceMethod(dynamic arg) → void {
+    core::print(arg);
+  }
+  static method staticMethod(dynamic arg) → void {
+    core::print(arg);
+  }
+}
+class UseClosure31 extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  final field (dynamic) → void func;
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] (dynamic) → void func) → self::UseClosure31
+    : self::UseClosure31::func = func, super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method use() → void {
+    let final core::int #t1 = 42 in [@vm.direct-call.metadata=#lib::UseClosure31.func] this.{self::UseClosure31::func}{(dynamic) → void}(#t1){(dynamic) → void};
+  }
+}
+class UseClosure32 extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]  final field (dynamic) → void func;
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] (dynamic) → void func) → self::UseClosure32
+    : self::UseClosure32::func = func, super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method use() → void {
+    let final core::int #t2 = 42 in [@vm.direct-call.metadata=#lib::UseClosure32.func] this.{self::UseClosure32::func}{(dynamic) → void}(#t2){(dynamic) → void};
+  }
+}
+class UseClosure33 extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:9]  final field (dynamic) → void func;
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] (dynamic) → void func) → self::UseClosure33
+    : self::UseClosure33::func = func, super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10,getterSelectorId:11]  method use() → void {
+    let final core::int #t3 = 42 in [@vm.direct-call.metadata=#lib::UseClosure33.func] this.{self::UseClosure33::func}{(dynamic) → void}(#t3){(dynamic) → void};
+  }
+}
+class UseClosure34 extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.staticMethod) (closure 0 in #lib::C.staticMethod)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:12]  final field (dynamic) → void func;
+  constructor •() → self::UseClosure34
+    : self::UseClosure34::func = #C1, super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  method use() → void {
+    let final core::int #t4 = 42 in [@vm.direct-call.metadata=#lib::UseClosure34.func] this.{self::UseClosure34::func}{(dynamic) → void}(#t4){(dynamic) → void};
+  }
+}
+class UseClosure35 extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.) (closure 0 in #lib::C.)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:15]  final field (dynamic) → void func;
+  constructor •() → self::UseClosure35
+    : self::UseClosure35::func = #C2, super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:16,getterSelectorId:17]  method use() → void {
+    let final core::int #t5 = 42 in [@vm.direct-call.metadata=#lib::UseClosure35.func] this.{self::UseClosure35::func}{(dynamic) → void}(#t5){(dynamic) → void};
+  }
+}
+[@vm.closure-id=1]static method createClosure1() → dynamic
+  return [@vm.closure-id=1](dynamic arg) → void => core::print(arg);
+[@vm.closure-id=1]static method createClosure2() → dynamic {
+[@vm.closure-id=1]  function inner(dynamic arg) → void {
+    core::print(arg);
+  }
+  return inner;
+}
+static method createClosure3([@vm.inferred-arg-type.metadata=#lib::C] dynamic obj) → dynamic
+  return [@vm.inferred-type.metadata=dart.core::_Closure (receiver not int) (closure 0 in #lib::C.instanceMethod)] obj{dynamic}.instanceMethod;
+static method createClosure4() → dynamic
+  return #C1;
+static method createClosure5() → dynamic
+  return #C2;
+static method useClosure11([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] (dynamic) → void func) → void {
+  func(42){(dynamic) → void};
+}
+static method useClosure12([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] (dynamic) → void func) → void {
+  func(42){(dynamic) → void};
+}
+static method useClosure13([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] (dynamic) → void func) → void {
+  func(42){(dynamic) → void};
+}
+static method useClosure14() → void {
+  #C1(42){(dynamic) → void};
+}
+static method useClosure15() → void {
+  #C2(42){(dynamic) → void};
+}
+static method useClosure21([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] dynamic func) → void {
+  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}.call(42);
+}
+static method useClosure22([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] dynamic func) → void {
+  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}.call(42);
+}
+static method useClosure23([@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] dynamic func) → void {
+  [@vm.inferred-type.metadata=!? (receiver not int)] func{dynamic}.call(42);
+}
+static method useClosure24() → void {
+  [@vm.inferred-type.metadata=!? (receiver not int)] #C1{dynamic}.call(42);
+}
+static method useClosure25() → void {
+  [@vm.inferred-type.metadata=!? (receiver not int)] #C2{dynamic}.call(42);
+}
+static method main() → void {
+  self::useClosure11([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] self::createClosure1() as{TypeError,ForDynamic} (dynamic) → void);
+  self::useClosure12([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] self::createClosure2() as{TypeError,ForDynamic} (dynamic) → void);
+  self::useClosure13([@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] self::createClosure3(new self::C::•(3)) as{TypeError,ForDynamic} (dynamic) → void);
+  let final (dynamic) → void #t6 = [@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.staticMethod) (closure 0 in #lib::C.staticMethod)] self::createClosure4() as{TypeError,ForDynamic} (dynamic) → void in self::useClosure14();
+  let final (dynamic) → void #t7 = [@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.) (closure 0 in #lib::C.)] self::createClosure5() as{TypeError,ForDynamic} (dynamic) → void in self::useClosure15();
+  self::useClosure21([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] self::createClosure1());
+  self::useClosure22([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] self::createClosure2());
+  self::useClosure23([@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] self::createClosure3(new self::C::•(3)));
+  let final dynamic #t8 = [@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.staticMethod) (closure 0 in #lib::C.staticMethod)] self::createClosure4() in self::useClosure24();
+  let final dynamic #t9 = [@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.) (closure 0 in #lib::C.)] self::createClosure5() in self::useClosure25();
+  [@vm.direct-call.metadata=#lib::UseClosure31.use] [@vm.inferred-type.metadata=!? (skip check)] new self::UseClosure31::•([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure1)] self::createClosure1() as{TypeError,ForDynamic} (dynamic) → void).{self::UseClosure31::use}(){() → void};
+  [@vm.direct-call.metadata=#lib::UseClosure32.use] [@vm.inferred-type.metadata=!? (skip check)] new self::UseClosure32::•([@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::createClosure2)] self::createClosure2() as{TypeError,ForDynamic} (dynamic) → void).{self::UseClosure32::use}(){() → void};
+  [@vm.direct-call.metadata=#lib::UseClosure33.use] [@vm.inferred-type.metadata=!? (skip check)] new self::UseClosure33::•([@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::C.instanceMethod)] self::createClosure3(new self::C::•(3)) as{TypeError,ForDynamic} (dynamic) → void).{self::UseClosure33::use}(){() → void};
+  [@vm.direct-call.metadata=#lib::UseClosure34.use] [@vm.inferred-type.metadata=!? (skip check)](let final (dynamic) → void #t10 = [@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.staticMethod) (closure 0 in #lib::C.staticMethod)] self::createClosure4() as{TypeError,ForDynamic} (dynamic) → void in new self::UseClosure34::•()).{self::UseClosure34::use}(){() → void};
+  [@vm.direct-call.metadata=#lib::UseClosure35.use] [@vm.inferred-type.metadata=!? (skip check)](let final (dynamic) → void #t11 = [@vm.inferred-type.metadata=dart.core::_Closure (value: #lib::C.) (closure 0 in #lib::C.)] self::createClosure5() as{TypeError,ForDynamic} (dynamic) → void in new self::UseClosure35::•()).{self::UseClosure35::use}(){() → void};
+}
+constants  {
+  #C1 = static-tearoff self::C::staticMethod
+  #C2 = constructor-tearoff self::C::•
+}

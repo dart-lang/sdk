@@ -18,13 +18,17 @@ abstract class MyFuture extends core::Object implements asy::Future<core::int*> 
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract member-signature method then<R extends core::Object* = dynamic>((core::int*) →* FutureOr<self::MyFuture::then::R*>* onValue, {core::Function* onError}) → asy::Future<self::MyFuture::then::R*>*; -> asy::Future::then
-  abstract member-signature method catchError(core::Function* onError, {(core::Object*) →* core::bool* test}) → asy::Future<core::int*>*; -> asy::Future::catchError
+  abstract member-signature method then<R extends core::Object* = dynamic>((core::int*) →* FutureOr<self::MyFuture::then::R*>* onValue, {core::Function* onError = #C1}) → asy::Future<self::MyFuture::then::R*>*; -> asy::Future::then
+  abstract member-signature method catchError(core::Function* onError, {(core::Object*) →* core::bool* test = #C1}) → asy::Future<core::int*>*; -> asy::Future::catchError
   abstract member-signature method whenComplete(() →* FutureOr<void>* action) → asy::Future<core::int*>*; -> asy::Future::whenComplete
   abstract member-signature method asStream() → asy::Stream<core::int*>*; -> asy::Future::asStream
-  abstract member-signature method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<core::int*>* onTimeout}) → asy::Future<core::int*>*; -> asy::Future::timeout
+  abstract member-signature method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<core::int*>* onTimeout = #C1}) → asy::Future<core::int*>*; -> asy::Future::timeout
 }
 static method test() → void async 
   ;
 static method main() → dynamic
   ;
+
+constants  {
+  #C1 = null
+}

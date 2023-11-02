@@ -33,7 +33,7 @@ List<MacroApplication>? prebuildAnnotations(
     Parser parser = new Parser(listener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseMetadata(
-        parser.syntheticPreviousToken(metadataBuilder.beginToken));
+        parser.syntheticPreviousToken(metadataBuilder.beginToken!));
     MacroApplication? application = listener.popMacroApplication();
     if (application != null) {
       result ??= [];

@@ -44,6 +44,7 @@ avoid_type_to_string: 2.12.0
 avoid_types_as_parameter_names: 2.0.0
 avoid_types_on_closure_parameters: 2.0.0
 avoid_unnecessary_containers: 2.7.0
+avoid_unstable_final_fields: 3.1.0
 avoid_unused_constructor_parameters: 2.0.0
 avoid_void_async: 2.1.0
 avoid_web_libraries_in_flutter: 2.6.0

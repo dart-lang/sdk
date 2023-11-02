@@ -13,8 +13,8 @@ import 'package:expect/expect.dart';
 /// `--weak-null-safety-errors`.
 
 void fn(StringBuffer arg) {}
-void testArg<T>(T t) => t is T;
-void testReturn<T>(T Function() f) => throw 'do not call';
+void testArg<T>(T t) => throw 'do not call';
+T testReturn<T>() => throw 'do not call';
 
 const c = C<Duration>();
 
@@ -28,10 +28,7 @@ void main() {
   dynamic dynamicNull = null;
   Expect.throwsTypeError(() => fn(dynamicNull));
 
-  var l = [Duration(days: 1), null];
-  Expect.throwsTypeError(() => l as List<Duration>);
-
-  Expect.throwsTypeError(() => (testReturn<Duration?>) as Duration Function());
+  Expect.throwsTypeError(() => [Duration(days: 1), null] as List<Duration>);
 
   // Constants get legacy types introduced in their type arguments.
   C<Duration?> c2 = c;
@@ -44,6 +41,5 @@ void main() {
   // subtype of `void Function(Duration?)`. In sound null safety the signature
   // is `void Function(Duration)` which should fail in the cast.
   Expect.throwsTypeError(() => (testArg<Duration>) as void Function(Duration?));
-  Expect.throwsTypeError(
-      () => (testReturn<Duration>) as void Function(Duration? Function()));
+  Expect.throwsTypeError(() => (testReturn<Duration?>) as Duration Function());
 }

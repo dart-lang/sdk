@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:devtools_shared/devtools_deeplink.dart';
+import 'package:devtools_shared/devtools_deeplink_io.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_server.dart';
 import 'package:mime/mime.dart';

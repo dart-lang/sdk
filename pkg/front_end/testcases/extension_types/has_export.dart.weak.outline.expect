@@ -14,6 +14,7 @@ import "dart:core" as core;
 
 part has_part_of_lib.dart;
 extension type C(core::int i) { // from org-dartlang-testcase:///has_part_of_lib.dart
+  abstract inline-class-member representation-field get /* from org-dartlang-testcase:///has_part_of_lib.dart */ i() → core::int;
   constructor • = has::C|constructor#;
   constructor tearoff • = has::C|constructor#_#new#tearOff;
 }

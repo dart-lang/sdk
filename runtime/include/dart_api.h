@@ -3343,7 +3343,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
 /**
  * Sets the callback used to resolve FFI native functions for a library.
  * The resolved functions are expected to be a C function pointer of the
- * correct signature (as specified in the `@FfiNative<NFT>()` function
+ * correct signature (as specified in the `@Native<NFT>()` function
  * annotation in Dart code).
  *
  * NOTE: This is an experimental feature and might change in the future.

@@ -47,8 +47,6 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
           literalSrc,
           indentOld,
           indentList,
-          includeLeading: false,
-          includeTrailingNewline: false,
         ));
         builder.write(',');
         builder.write(eol);

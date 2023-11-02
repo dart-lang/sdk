@@ -14,10 +14,13 @@ argumentError(value) {
 }
 
 /// Only used during the development of the new runtime type system in branches
-/// that should never be executed.
+/// that should never be executed in the active type system.
 // TODO(48585): Remove after switching to the new runtime type system.
-Never throwUnimplementedInOldRti() => throw UnimplementedError(
-    'This code path is not supported with the old runtime type system.');
+Never throwUnimplementedInCurrentRti() {
+  var systemVersion = compileTimeFlag('newRuntimeTypes') ? 'new' : 'old';
+  throw UnimplementedError('This code path is not supported with the '
+      '$systemVersion runtime type system.');
+}
 
 throwUnimplementedError(String message) {
   throw UnimplementedError(message);

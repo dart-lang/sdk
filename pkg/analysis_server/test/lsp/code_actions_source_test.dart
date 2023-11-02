@@ -195,6 +195,44 @@ void f() {
     expect(edit.textDocument.version, 1);
   }
 
+  Future<void> test_part() async {
+    final containerFilePath = join(projectFolderPath, 'lib', 'container.dart');
+    final partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - unnecessary_new
+    - prefer_collection_literals
+''';
+    const containerFileContent = '''
+part 'part.dart';
+''';
+    const content = '''
+part of 'container.dart';
+
+final a = new Object();
+final b = new Set<String>();
+''';
+    const expectedContent = '''
+part of 'container.dart';
+
+final a = Object();
+final b = <String>{};
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+    newFile(containerFilePath, containerFileContent);
+    newFile(partFilePath, content);
+
+    await verifyActionEdits(
+      filePath: partFilePath,
+      content,
+      expectedContent,
+      command: Commands.fixAll,
+    );
+  }
+
   Future<void> test_privateUnusedParameters_notRemovedIfSave() async {
     const content = '''
 class _MyClass {

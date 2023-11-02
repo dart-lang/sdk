@@ -1675,6 +1675,23 @@ class FileTest {
     });
   }
 
+  /// Rename a [File] to a [Link] to a [Directory].
+  static void testRename_ToDirectoryLink() async {
+    final targetDirectory = Directory(join(tempDirectory.path,
+        'rename_directory_to_directory_link_target_directory'))
+      ..createSync();
+    final link = Link(
+        join(tempDirectory.path, 'rename_directory_to_directory_link_link'))
+      ..createSync(targetDirectory.path);
+    final file = File(
+        join(tempDirectory.path, 'rename_directory_to_directory_link_file'))
+      ..writeAsStringSync('Hello!');
+
+    final renamedFile = await file.rename(link.path);
+    Expect.equals(link.path, renamedFile.path);
+    Expect.equals("Hello!", renamedFile.readAsStringSync());
+  }
+
   static void testRenameSync({required bool targetExists}) {
     String source = join(tempDirectory.path, 'rename_source');
     String dest = join(tempDirectory.path, 'rename_dest');
@@ -1696,6 +1713,23 @@ class FileTest {
       Expect.throws(() => file.renameSync('xxx'));
       brokenLink.deleteSync();
     }
+  }
+
+  /// Rename a [File] to a [Link] to a [Directory].
+  static void testRenameSync_ToDirectoryLink() {
+    final targetDirectory = Directory(join(tempDirectory.path,
+        'rename_sync_directory_to_directory_link_target_directory'))
+      ..createSync();
+    final link = Link(join(
+        tempDirectory.path, 'rename_sync_directory_to_directory_link_link'))
+      ..createSync(targetDirectory.path);
+    final file = File(join(
+        tempDirectory.path, 'rename_sync_directory_to_directory_link_file'))
+      ..writeAsStringSync('Hello!');
+
+    final renamedFile = file.renameSync(link.path);
+    Expect.equals(link.path, renamedFile.path);
+    Expect.equals("Hello!", renamedFile.readAsStringSync());
   }
 
   static void testAbsolute() {
@@ -1820,6 +1854,8 @@ class FileTest {
       testRenameSync(targetExists: false);
       testRename(targetExists: true);
       testRenameSync(targetExists: true);
+      testRename_ToDirectoryLink();
+      testRenameSync_ToDirectoryLink();
       testLastModified();
       testLastAccessed();
       testLastModifiedSyncDirectory();

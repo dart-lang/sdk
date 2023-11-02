@@ -64,7 +64,7 @@ if ((current_toolchain == host_toolchain ||
   sysroot = target_sysroot
 } else if (is_android) {
   import("//build/config/android/config.gni")
-  sysroot = rebase_path("$llvm_android_toolchain_root/sysroot")
+  sysroot = rebase_path("$android_toolchain_root/sysroot")
 } else if (is_mac) {
   import("//build/config/mac/mac_sdk.gni")
   sysroot = mac_sdk_path

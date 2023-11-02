@@ -459,9 +459,10 @@ class TestConfiguration {
             architecture == Architecture.arm ||
             architecture == Architecture.arm_x64 ||
             architecture == Architecture.arm64 ||
-            architecture == Architecture.arm64c)) {
-      print("Warning: Android only supports the following "
-          "architectures: ia32/x64/arm/arm64/arm64c/arm_x64.");
+            architecture == Architecture.arm64c ||
+            architecture == Architecture.riscv64)) {
+      print("Warning: Android only supports the following architectures: "
+          "ia32/x64/x64c/arm/arm64/arm64c/arm_x64/riscv64.");
       isValid = false;
     }
 

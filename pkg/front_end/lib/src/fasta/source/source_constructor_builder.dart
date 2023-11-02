@@ -59,6 +59,7 @@ import 'source_function_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
+  @override
   DeclarationBuilder get declarationBuilder;
 
   /// Infers the types of any untyped initializing formals.
@@ -92,7 +93,7 @@ abstract class AbstractSourceConstructorBuilder
       int modifiers,
       this.returnType,
       String name,
-      List<TypeVariableBuilder>? typeVariables,
+      List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder compilationUnit,
       int charOffset,
@@ -336,6 +337,8 @@ class DeclaredSourceConstructorBuilder
   @override
   List<FormalParameterBuilder>? formals;
 
+  final MemberName _memberName;
+
   @override
   String get fullNameForErrors {
     return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
@@ -347,7 +350,7 @@ class DeclaredSourceConstructorBuilder
       int modifiers,
       OmittedTypeBuilder returnType,
       String name,
-      List<TypeVariableBuilder>? typeVariables,
+      List<NominalVariableBuilder>? typeVariables,
       this.formals,
       SourceLibraryBuilder compilationUnit,
       int startCharOffset,
@@ -358,9 +361,11 @@ class DeclaredSourceConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnumOrMixin})
+      required bool forAbstractClassOrEnumOrMixin,
+      bool isSynthetic = false})
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
+        _memberName = nameScheme.getDeclaredName(name),
         super(
             metadata,
             modifiers,
@@ -375,7 +380,8 @@ class DeclaredSourceConstructorBuilder
     _constructor = new Constructor(new FunctionNode(null),
         name: dummyName,
         fileUri: compilationUnit.fileUri,
-        reference: constructorReference)
+        reference: constructorReference,
+        isSynthetic: isSynthetic)
       ..startFileOffset = startCharOffset
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
@@ -391,6 +397,9 @@ class DeclaredSourceConstructorBuilder
         tearOffReference,
         forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
   }
+
+  @override
+  Name get memberName => _memberName.name;
 
   @override
   ClassDeclaration get classDeclaration => classBuilder;
@@ -525,7 +534,7 @@ class DeclaredSourceConstructorBuilder
       if (declaration is ClassBuilder) {
         superclassBuilder = declaration;
       } else if (declaration is TypeAliasBuilder) {
-        declaration = declaration.unaliasDeclaration(supertype.arguments);
+        declaration = declaration.unaliasDeclaration(supertype.typeArguments);
         if (declaration is ClassBuilder) {
           superclassBuilder = declaration;
         } else {
@@ -1077,12 +1086,14 @@ class SourceExtensionTypeConstructorBuilder
   @override
   List<Initializer> initializers = [];
 
+  final MemberName _memberName;
+
   SourceExtensionTypeConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       OmittedTypeBuilder returnType,
       String name,
-      List<TypeVariableBuilder>? typeVariables,
+      List<NominalVariableBuilder>? typeVariables,
       List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder compilationUnit,
       int startCharOffset,
@@ -1094,7 +1105,8 @@ class SourceExtensionTypeConstructorBuilder
       NameScheme nameScheme,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnumOrMixin})
-      : super(
+      : _memberName = nameScheme.getDeclaredName(name),
+        super(
             metadata,
             modifiers,
             returnType,
@@ -1126,6 +1138,9 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
+  Name get memberName => _memberName.name;
+
+  @override
   ClassDeclaration get classDeclaration => extensionTypeDeclarationBuilder;
 
   SourceExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
@@ -1154,7 +1169,18 @@ class SourceExtensionTypeConstructorBuilder
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
 
   @override
-  void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {}
+  void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isSuperInitializingFormal) {
+          TypeBuilder formalTypeBuilder = formal.type;
+          if (formalTypeBuilder is InferableTypeBuilder) {
+            formalTypeBuilder.registerType(const InvalidType());
+          }
+        }
+      }
+    }
+  }
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
@@ -1335,6 +1361,11 @@ class ExtensionTypeInitializerToStatementConverter
                 ..fileOffset = node.fileOffset)
             ..fileOffset = node.fileOffset)
         ..fileOffset = node.fileOffset);
+      return;
+    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
+      thisVariable
+        ..initializer = (node.value..parent = thisVariable)
+        ..fileOffset = node.fileOffset;
       return;
     }
     throw new UnsupportedError(

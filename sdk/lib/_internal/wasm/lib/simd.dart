@@ -2,21 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library dart._simd;
+
 import 'dart:_internal' show FixedLengthListMixin, unsafeCast;
 
 import 'dart:collection' show ListMixin;
 import 'dart:math' as math;
+import 'dart:typed_data';
 
-final class _NaiveInt32x4List extends Object
+final class NaiveInt32x4List extends Object
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements Int32x4List {
   final Int32List _storage;
 
-  _NaiveInt32x4List(int length) : _storage = Int32List(length * 4);
+  NaiveInt32x4List(int length) : _storage = Int32List(length * 4);
 
-  _NaiveInt32x4List.externalStorage(Int32List storage) : _storage = storage;
+  NaiveInt32x4List.externalStorage(Int32List storage) : _storage = storage;
 
-  _NaiveInt32x4List._slowFromList(List<Int32x4> list)
+  NaiveInt32x4List._slowFromList(List<Int32x4> list)
       : _storage = Int32List(list.length * 4) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
@@ -27,12 +30,12 @@ final class _NaiveInt32x4List extends Object
     }
   }
 
-  factory _NaiveInt32x4List.fromList(List<Int32x4> list) {
-    if (list is _NaiveInt32x4List) {
-      return _NaiveInt32x4List.externalStorage(
+  factory NaiveInt32x4List.fromList(List<Int32x4> list) {
+    if (list is NaiveInt32x4List) {
+      return NaiveInt32x4List.externalStorage(
           Int32List.fromList(list._storage));
     } else {
-      return _NaiveInt32x4List._slowFromList(list);
+      return NaiveInt32x4List._slowFromList(list);
     }
   }
 
@@ -52,7 +55,7 @@ final class _NaiveInt32x4List extends Object
     int _y = _storage[(index * 4) + 1];
     int _z = _storage[(index * 4) + 2];
     int _w = _storage[(index * 4) + 3];
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   void operator []=(int index, Int32x4 value) {
@@ -63,19 +66,21 @@ final class _NaiveInt32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
+  Int32x4List asUnmodifiableView() => UnmodifiableInt32x4ListView(this);
+
   Int32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
-    return _NaiveInt32x4List.externalStorage(
+    return NaiveInt32x4List.externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
 }
 
-final class _NaiveUnmodifiableInt32x4List extends _NaiveInt32x4List
+final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List
     implements UnmodifiableInt32x4ListView {
-  _NaiveUnmodifiableInt32x4List(Int32x4List list)
-      : super.externalStorage(unsafeCast<_NaiveInt32x4List>(list)._storage);
+  NaiveUnmodifiableInt32x4List(Int32x4List list)
+      : super.externalStorage(unsafeCast<NaiveInt32x4List>(list)._storage);
 
-  _NaiveUnmodifiableInt32x4List.externalStorage(Int32List storage)
+  NaiveUnmodifiableInt32x4List.externalStorage(Int32List storage)
       : super.externalStorage(storage);
 
   @override
@@ -87,16 +92,16 @@ final class _NaiveUnmodifiableInt32x4List extends _NaiveInt32x4List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class _NaiveFloat32x4List extends Object
+final class NaiveFloat32x4List extends Object
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
   final Float32List _storage;
 
-  _NaiveFloat32x4List(int length) : _storage = Float32List(length * 4);
+  NaiveFloat32x4List(int length) : _storage = Float32List(length * 4);
 
-  _NaiveFloat32x4List.externalStorage(this._storage);
+  NaiveFloat32x4List.externalStorage(this._storage);
 
-  _NaiveFloat32x4List._slowFromList(List<Float32x4> list)
+  NaiveFloat32x4List._slowFromList(List<Float32x4> list)
       : _storage = Float32List(list.length * 4) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
@@ -107,12 +112,12 @@ final class _NaiveFloat32x4List extends Object
     }
   }
 
-  factory _NaiveFloat32x4List.fromList(List<Float32x4> list) {
-    if (list is _NaiveFloat32x4List) {
-      return _NaiveFloat32x4List.externalStorage(
+  factory NaiveFloat32x4List.fromList(List<Float32x4> list) {
+    if (list is NaiveFloat32x4List) {
+      return NaiveFloat32x4List.externalStorage(
           Float32List.fromList(list._storage));
     } else {
-      return _NaiveFloat32x4List._slowFromList(list);
+      return NaiveFloat32x4List._slowFromList(list);
     }
   }
 
@@ -132,7 +137,7 @@ final class _NaiveFloat32x4List extends Object
     double _y = _storage[(index * 4) + 1];
     double _z = _storage[(index * 4) + 2];
     double _w = _storage[(index * 4) + 3];
-    return _NaiveFloat32x4._truncated(_x, _y, _z, _w);
+    return NaiveFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   void operator []=(int index, Float32x4 value) {
@@ -143,19 +148,21 @@ final class _NaiveFloat32x4List extends Object
     _storage[(index * 4) + 3] = value.w;
   }
 
+  Float32x4List asUnmodifiableView() => UnmodifiableFloat32x4ListView(this);
+
   Float32x4List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
-    return _NaiveFloat32x4List.externalStorage(
+    return NaiveFloat32x4List.externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
 }
 
-final class _NaiveUnmodifiableFloat32x4List extends _NaiveFloat32x4List
+final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List
     implements UnmodifiableFloat32x4ListView {
-  _NaiveUnmodifiableFloat32x4List(Float32x4List list)
-      : super.externalStorage(unsafeCast<_NaiveFloat32x4List>(list)._storage);
+  NaiveUnmodifiableFloat32x4List(Float32x4List list)
+      : super.externalStorage(unsafeCast<NaiveFloat32x4List>(list)._storage);
 
-  _NaiveUnmodifiableFloat32x4List.externalStorage(Float32List storage)
+  NaiveUnmodifiableFloat32x4List.externalStorage(Float32List storage)
       : super.externalStorage(storage);
 
   @override
@@ -167,16 +174,16 @@ final class _NaiveUnmodifiableFloat32x4List extends _NaiveFloat32x4List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class _NaiveFloat64x2List extends Object
+final class NaiveFloat64x2List extends Object
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
   final Float64List _storage;
 
-  _NaiveFloat64x2List(int length) : _storage = Float64List(length * 2);
+  NaiveFloat64x2List(int length) : _storage = Float64List(length * 2);
 
-  _NaiveFloat64x2List.externalStorage(this._storage);
+  NaiveFloat64x2List.externalStorage(this._storage);
 
-  _NaiveFloat64x2List._slowFromList(List<Float64x2> list)
+  NaiveFloat64x2List._slowFromList(List<Float64x2> list)
       : _storage = Float64List(list.length * 2) {
     for (int i = 0; i < list.length; i++) {
       var e = list[i];
@@ -185,12 +192,12 @@ final class _NaiveFloat64x2List extends Object
     }
   }
 
-  factory _NaiveFloat64x2List.fromList(List<Float64x2> list) {
-    if (list is _NaiveFloat64x2List) {
-      return _NaiveFloat64x2List.externalStorage(
+  factory NaiveFloat64x2List.fromList(List<Float64x2> list) {
+    if (list is NaiveFloat64x2List) {
+      return NaiveFloat64x2List.externalStorage(
           Float64List.fromList(list._storage));
     } else {
-      return _NaiveFloat64x2List._slowFromList(list);
+      return NaiveFloat64x2List._slowFromList(list);
     }
   }
 
@@ -217,19 +224,21 @@ final class _NaiveFloat64x2List extends Object
     _storage[(index * 2) + 1] = value.y;
   }
 
+  Float64x2List asUnmodifiableView() => UnmodifiableFloat64x2ListView(this);
+
   Float64x2List sublist(int start, [int? end]) {
     int stop = RangeError.checkValidRange(start, end, length);
-    return _NaiveFloat64x2List.externalStorage(
+    return NaiveFloat64x2List.externalStorage(
         _storage.sublist(start * 2, stop * 2));
   }
 }
 
-final class _NaiveUnmodifiableFloat64x2List extends _NaiveFloat64x2List
+final class NaiveUnmodifiableFloat64x2List extends NaiveFloat64x2List
     implements UnmodifiableFloat64x2ListView {
-  _NaiveUnmodifiableFloat64x2List(Float64x2List list)
-      : super.externalStorage(unsafeCast<_NaiveFloat64x2List>(list)._storage);
+  NaiveUnmodifiableFloat64x2List(Float64x2List list)
+      : super.externalStorage(unsafeCast<NaiveFloat64x2List>(list)._storage);
 
-  _NaiveUnmodifiableFloat64x2List.externalStorage(Float64List storage)
+  NaiveUnmodifiableFloat64x2List.externalStorage(Float64List storage)
       : super.externalStorage(storage);
 
   @override
@@ -241,7 +250,7 @@ final class _NaiveUnmodifiableFloat64x2List extends _NaiveFloat64x2List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class _NaiveFloat32x4 implements Float32x4 {
+final class NaiveFloat32x4 implements Float32x4 {
   final double x;
   final double y;
   final double z;
@@ -255,33 +264,33 @@ final class _NaiveFloat32x4 implements Float32x4 {
     return _list[0];
   }
 
-  _NaiveFloat32x4(double x, double y, double z, double w)
+  NaiveFloat32x4(double x, double y, double z, double w)
       : this.x = _truncate(x),
         this.y = _truncate(y),
         this.z = _truncate(z),
         this.w = _truncate(w);
 
-  _NaiveFloat32x4.splat(double v) : this(v, v, v, v);
-  _NaiveFloat32x4.zero() : this._truncated(0.0, 0.0, 0.0, 0.0);
+  NaiveFloat32x4.splat(double v) : this(v, v, v, v);
+  NaiveFloat32x4.zero() : this._truncated(0.0, 0.0, 0.0, 0.0);
 
-  factory _NaiveFloat32x4.fromInt32x4Bits(Int32x4 i) {
+  factory NaiveFloat32x4.fromInt32x4Bits(Int32x4 i) {
     _uint32view[0] = i.x;
     _uint32view[1] = i.y;
     _uint32view[2] = i.z;
     _uint32view[3] = i.w;
-    return _NaiveFloat32x4._truncated(_list[0], _list[1], _list[2], _list[3]);
+    return NaiveFloat32x4._truncated(_list[0], _list[1], _list[2], _list[3]);
   }
 
-  _NaiveFloat32x4.fromFloat64x2(Float64x2 v)
+  NaiveFloat32x4.fromFloat64x2(Float64x2 v)
       : this._truncated(_truncate(v.x), _truncate(v.y), 0.0, 0.0);
 
-  _NaiveFloat32x4._doubles(double x, double y, double z, double w)
+  NaiveFloat32x4._doubles(double x, double y, double z, double w)
       : this.x = _truncate(x),
         this.y = _truncate(y),
         this.z = _truncate(z),
         this.w = _truncate(w);
 
-  _NaiveFloat32x4._truncated(this.x, this.y, this.z, this.w);
+  NaiveFloat32x4._truncated(this.x, this.y, this.z, this.w);
 
   @override
   String toString() {
@@ -296,11 +305,11 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = y + other.y;
     double _z = z + other.z;
     double _w = w + other.w;
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 
   Float32x4 operator -() {
-    return _NaiveFloat32x4._truncated(-x, -y, -z, -w);
+    return NaiveFloat32x4._truncated(-x, -y, -z, -w);
   }
 
   Float32x4 operator -(Float32x4 other) {
@@ -308,7 +317,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = y - other.y;
     double _z = z - other.z;
     double _w = w - other.w;
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 
   Float32x4 operator *(Float32x4 other) {
@@ -316,7 +325,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = y * other.y;
     double _z = z * other.z;
     double _w = w * other.w;
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 
   Float32x4 operator /(Float32x4 other) {
@@ -324,7 +333,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = y / other.y;
     double _z = z / other.z;
     double _w = w / other.w;
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 
   Int32x4 lessThan(Float32x4 other) {
@@ -332,7 +341,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     bool _cy = y < other.y;
     bool _cz = z < other.z;
     bool _cw = w < other.w;
-    return _NaiveInt32x4._truncated(
+    return NaiveInt32x4._truncated(
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
@@ -341,7 +350,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     bool _cy = y <= other.y;
     bool _cz = z <= other.z;
     bool _cw = w <= other.w;
-    return _NaiveInt32x4._truncated(
+    return NaiveInt32x4._truncated(
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
@@ -350,7 +359,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     bool _cy = y > other.y;
     bool _cz = z > other.z;
     bool _cw = w > other.w;
-    return _NaiveInt32x4._truncated(
+    return NaiveInt32x4._truncated(
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
@@ -359,7 +368,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     bool _cy = y >= other.y;
     bool _cz = z >= other.z;
     bool _cw = w >= other.w;
-    return _NaiveInt32x4._truncated(
+    return NaiveInt32x4._truncated(
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
@@ -368,7 +377,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     bool _cy = y == other.y;
     bool _cz = z == other.z;
     bool _cw = w == other.w;
-    return _NaiveInt32x4._truncated(
+    return NaiveInt32x4._truncated(
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
@@ -377,7 +386,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     bool _cy = y != other.y;
     bool _cz = z != other.z;
     bool _cw = w != other.w;
-    return _NaiveInt32x4._truncated(
+    return NaiveInt32x4._truncated(
         _cx ? -1 : 0, _cy ? -1 : 0, _cz ? -1 : 0, _cw ? -1 : 0);
   }
 
@@ -386,7 +395,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = s * y;
     double _z = s * z;
     double _w = s * w;
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 
   Float32x4 abs() {
@@ -394,7 +403,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = y.abs();
     double _z = z.abs();
     double _w = w.abs();
-    return _NaiveFloat32x4._truncated(_x, _y, _z, _w);
+    return NaiveFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit) {
@@ -419,7 +428,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     _y = _y < _ly ? _ly : _y;
     _z = _z < _lz ? _lz : _z;
     _w = _w < _lw ? _lw : _w;
-    return _NaiveFloat32x4._truncated(_x, _y, _z, _w);
+    return NaiveFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   int get signMask {
@@ -449,7 +458,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = _list[(mask >> 2) & 0x3];
     double _z = _list[(mask >> 4) & 0x3];
     double _w = _list[(mask >> 6) & 0x3];
-    return _NaiveFloat32x4._truncated(_x, _y, _z, _w);
+    return NaiveFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   Float32x4 shuffleMix(Float32x4 other, int mask) {
@@ -469,27 +478,27 @@ final class _NaiveFloat32x4 implements Float32x4 {
     _list[3] = other.w;
     double _z = _list[(mask >> 4) & 0x3];
     double _w = _list[(mask >> 6) & 0x3];
-    return _NaiveFloat32x4._truncated(_x, _y, _z, _w);
+    return NaiveFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   Float32x4 withX(double newX) {
     double _newX = _truncate(newX);
-    return _NaiveFloat32x4._truncated(_newX, y, z, w);
+    return NaiveFloat32x4._truncated(_newX, y, z, w);
   }
 
   Float32x4 withY(double newY) {
     double _newY = _truncate(newY);
-    return _NaiveFloat32x4._truncated(x, _newY, z, w);
+    return NaiveFloat32x4._truncated(x, _newY, z, w);
   }
 
   Float32x4 withZ(double newZ) {
     double _newZ = _truncate(newZ);
-    return _NaiveFloat32x4._truncated(x, y, _newZ, w);
+    return NaiveFloat32x4._truncated(x, y, _newZ, w);
   }
 
   Float32x4 withW(double newW) {
     double _newW = _truncate(newW);
-    return _NaiveFloat32x4._truncated(x, y, z, _newW);
+    return NaiveFloat32x4._truncated(x, y, z, _newW);
   }
 
   Float32x4 min(Float32x4 other) {
@@ -497,7 +506,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = y < other.y ? y : other.y;
     double _z = z < other.z ? z : other.z;
     double _w = w < other.w ? w : other.w;
-    return _NaiveFloat32x4._truncated(_x, _y, _z, _w);
+    return NaiveFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   Float32x4 max(Float32x4 other) {
@@ -505,7 +514,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = y > other.y ? y : other.y;
     double _z = z > other.z ? z : other.z;
     double _w = w > other.w ? w : other.w;
-    return _NaiveFloat32x4._truncated(_x, _y, _z, _w);
+    return NaiveFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   Float32x4 sqrt() {
@@ -513,7 +522,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = math.sqrt(y);
     double _z = math.sqrt(z);
     double _w = math.sqrt(w);
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 
   Float32x4 reciprocal() {
@@ -521,7 +530,7 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = 1.0 / y;
     double _z = 1.0 / z;
     double _w = 1.0 / w;
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 
   Float32x4 reciprocalSqrt() {
@@ -529,46 +538,46 @@ final class _NaiveFloat32x4 implements Float32x4 {
     double _y = math.sqrt(1.0 / y);
     double _z = math.sqrt(1.0 / z);
     double _w = math.sqrt(1.0 / w);
-    return _NaiveFloat32x4._doubles(_x, _y, _z, _w);
+    return NaiveFloat32x4._doubles(_x, _y, _z, _w);
   }
 }
 
-final class _NaiveFloat64x2 implements Float64x2 {
+final class NaiveFloat64x2 implements Float64x2 {
   final double x;
   final double y;
 
   static Float64List _list = Float64List(2);
   static Uint32List _uint32View = _list.buffer.asUint32List();
 
-  _NaiveFloat64x2(this.x, this.y);
+  NaiveFloat64x2(this.x, this.y);
 
-  _NaiveFloat64x2.splat(double v) : this(v, v);
+  NaiveFloat64x2.splat(double v) : this(v, v);
 
-  _NaiveFloat64x2.zero() : this.splat(0.0);
+  NaiveFloat64x2.zero() : this.splat(0.0);
 
-  _NaiveFloat64x2.fromFloat32x4(Float32x4 v) : this(v.x, v.y);
+  NaiveFloat64x2.fromFloat32x4(Float32x4 v) : this(v.x, v.y);
 
-  _NaiveFloat64x2._doubles(this.x, this.y);
+  NaiveFloat64x2._doubles(this.x, this.y);
 
   String toString() => '[$x, $y]';
 
   Float64x2 operator +(Float64x2 other) =>
-      _NaiveFloat64x2._doubles(x + other.x, y + other.y);
+      NaiveFloat64x2._doubles(x + other.x, y + other.y);
 
-  Float64x2 operator -() => _NaiveFloat64x2._doubles(-x, -y);
+  Float64x2 operator -() => NaiveFloat64x2._doubles(-x, -y);
 
   Float64x2 operator -(Float64x2 other) =>
-      _NaiveFloat64x2._doubles(x - other.x, y - other.y);
+      NaiveFloat64x2._doubles(x - other.x, y - other.y);
 
   Float64x2 operator *(Float64x2 other) =>
-      _NaiveFloat64x2._doubles(x * other.x, y * other.y);
+      NaiveFloat64x2._doubles(x * other.x, y * other.y);
 
   Float64x2 operator /(Float64x2 other) =>
-      _NaiveFloat64x2._doubles(x / other.x, y / other.y);
+      NaiveFloat64x2._doubles(x / other.x, y / other.y);
 
-  Float64x2 scale(double s) => _NaiveFloat64x2._doubles(x * s, y * s);
+  Float64x2 scale(double s) => NaiveFloat64x2._doubles(x * s, y * s);
 
-  Float64x2 abs() => _NaiveFloat64x2._doubles(x.abs(), y.abs());
+  Float64x2 abs() => NaiveFloat64x2._doubles(x.abs(), y.abs());
 
   Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit) {
     double _lx = lowerLimit.x;
@@ -582,7 +591,7 @@ final class _NaiveFloat64x2 implements Float64x2 {
     _y = _y > _uy ? _uy : _y;
     _x = _x < _lx ? _lx : _x;
     _y = _y < _ly ? _ly : _y;
-    return _NaiveFloat64x2._doubles(_x, _y);
+    return NaiveFloat64x2._doubles(_x, _y);
   }
 
   int get signMask {
@@ -594,20 +603,20 @@ final class _NaiveFloat64x2 implements Float64x2 {
     return mx | my << 1;
   }
 
-  Float64x2 withX(double x) => _NaiveFloat64x2._doubles(x, y);
+  Float64x2 withX(double x) => NaiveFloat64x2._doubles(x, y);
 
-  Float64x2 withY(double y) => _NaiveFloat64x2._doubles(x, y);
+  Float64x2 withY(double y) => NaiveFloat64x2._doubles(x, y);
 
-  Float64x2 min(Float64x2 other) => _NaiveFloat64x2._doubles(
+  Float64x2 min(Float64x2 other) => NaiveFloat64x2._doubles(
       x < other.x ? x : other.x, y < other.y ? y : other.y);
 
-  Float64x2 max(Float64x2 other) => _NaiveFloat64x2._doubles(
+  Float64x2 max(Float64x2 other) => NaiveFloat64x2._doubles(
       x > other.x ? x : other.x, y > other.y ? y : other.y);
 
-  Float64x2 sqrt() => _NaiveFloat64x2._doubles(math.sqrt(x), math.sqrt(y));
+  Float64x2 sqrt() => NaiveFloat64x2._doubles(math.sqrt(x), math.sqrt(y));
 }
 
-final class _NaiveInt32x4 implements Int32x4 {
+final class NaiveInt32x4 implements Int32x4 {
   final int x;
   final int y;
   final int z;
@@ -620,29 +629,29 @@ final class _NaiveInt32x4 implements Int32x4 {
     return _list[0];
   }
 
-  _NaiveInt32x4(int x, int y, int z, int w)
+  NaiveInt32x4(int x, int y, int z, int w)
       : this.x = _truncate(x),
         this.y = _truncate(y),
         this.z = _truncate(z),
         this.w = _truncate(w);
 
-  _NaiveInt32x4.bool(bool x, bool y, bool z, bool w)
+  NaiveInt32x4.bool(bool x, bool y, bool z, bool w)
       : this.x = x ? -1 : 0,
         this.y = y ? -1 : 0,
         this.z = z ? -1 : 0,
         this.w = w ? -1 : 0;
 
-  factory _NaiveInt32x4.fromFloat32x4Bits(Float32x4 f) {
-    Float32List floatList = _NaiveFloat32x4._list;
+  factory NaiveInt32x4.fromFloat32x4Bits(Float32x4 f) {
+    Float32List floatList = NaiveFloat32x4._list;
     floatList[0] = f.x;
     floatList[1] = f.y;
     floatList[2] = f.z;
     floatList[3] = f.w;
     var view = floatList.buffer.asInt32List();
-    return _NaiveInt32x4._truncated(view[0], view[1], view[2], view[3]);
+    return NaiveInt32x4._truncated(view[0], view[1], view[2], view[3]);
   }
 
-  _NaiveInt32x4._truncated(this.x, this.y, this.z, this.w);
+  NaiveInt32x4._truncated(this.x, this.y, this.z, this.w);
 
   String toString() => '[${_int32ToHex(x)}, ${_int32ToHex(y)}, '
       '${_int32ToHex(z)}, ${_int32ToHex(w)}]';
@@ -652,7 +661,7 @@ final class _NaiveInt32x4 implements Int32x4 {
     int _y = y | other.y;
     int _z = z | other.z;
     int _w = w | other.w;
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 operator &(Int32x4 other) {
@@ -660,7 +669,7 @@ final class _NaiveInt32x4 implements Int32x4 {
     int _y = y & other.y;
     int _z = z & other.z;
     int _w = w & other.w;
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 operator ^(Int32x4 other) {
@@ -668,7 +677,7 @@ final class _NaiveInt32x4 implements Int32x4 {
     int _y = y ^ other.y;
     int _z = z ^ other.z;
     int _w = w ^ other.w;
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 operator +(Int32x4 other) {
@@ -676,7 +685,7 @@ final class _NaiveInt32x4 implements Int32x4 {
     int _y = y + other.y;
     int _z = z + other.z;
     int _w = w + other.w;
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 operator -(Int32x4 other) {
@@ -684,11 +693,11 @@ final class _NaiveInt32x4 implements Int32x4 {
     int _y = y - other.y;
     int _z = z - other.z;
     int _w = w - other.w;
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 operator -() {
-    return _NaiveInt32x4._truncated(-x, -y, -z, -w);
+    return NaiveInt32x4._truncated(-x, -y, -z, -w);
   }
 
   int get signMask {
@@ -711,7 +720,7 @@ final class _NaiveInt32x4 implements Int32x4 {
     int _y = _list[(mask >> 2) & 0x3];
     int _z = _list[(mask >> 4) & 0x3];
     int _w = _list[(mask >> 6) & 0x3];
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 shuffleMix(Int32x4 other, int mask) {
@@ -731,27 +740,27 @@ final class _NaiveInt32x4 implements Int32x4 {
     _list[3] = other.w;
     int _z = _list[(mask >> 4) & 0x3];
     int _w = _list[(mask >> 6) & 0x3];
-    return _NaiveInt32x4._truncated(_x, _y, _z, _w);
+    return NaiveInt32x4._truncated(_x, _y, _z, _w);
   }
 
   Int32x4 withX(int x) {
     int _x = _truncate(x);
-    return _NaiveInt32x4._truncated(_x, y, z, w);
+    return NaiveInt32x4._truncated(_x, y, z, w);
   }
 
   Int32x4 withY(int y) {
     int _y = _truncate(y);
-    return _NaiveInt32x4._truncated(x, _y, z, w);
+    return NaiveInt32x4._truncated(x, _y, z, w);
   }
 
   Int32x4 withZ(int z) {
     int _z = _truncate(z);
-    return _NaiveInt32x4._truncated(x, y, _z, w);
+    return NaiveInt32x4._truncated(x, y, _z, w);
   }
 
   Int32x4 withW(int w) {
     int _w = _truncate(w);
-    return _NaiveInt32x4._truncated(x, y, z, _w);
+    return NaiveInt32x4._truncated(x, y, z, _w);
   }
 
   bool get flagX => x != 0;
@@ -764,27 +773,27 @@ final class _NaiveInt32x4 implements Int32x4 {
 
   Int32x4 withFlagX(bool flagX) {
     int _x = flagX ? -1 : 0;
-    return _NaiveInt32x4._truncated(_x, y, z, w);
+    return NaiveInt32x4._truncated(_x, y, z, w);
   }
 
   Int32x4 withFlagY(bool flagY) {
     int _y = flagY ? -1 : 0;
-    return _NaiveInt32x4._truncated(x, _y, z, w);
+    return NaiveInt32x4._truncated(x, _y, z, w);
   }
 
   Int32x4 withFlagZ(bool flagZ) {
     int _z = flagZ ? -1 : 0;
-    return _NaiveInt32x4._truncated(x, y, _z, w);
+    return NaiveInt32x4._truncated(x, y, _z, w);
   }
 
   Int32x4 withFlagW(bool flagW) {
     int _w = flagW ? -1 : 0;
-    return _NaiveInt32x4._truncated(x, y, z, _w);
+    return NaiveInt32x4._truncated(x, y, z, _w);
   }
 
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue) {
-    var floatList = _NaiveFloat32x4._list;
-    var intView = _NaiveFloat32x4._uint32view;
+    var floatList = NaiveFloat32x4._list;
+    var intView = NaiveFloat32x4._uint32view;
 
     floatList[0] = trueValue.x;
     floatList[1] = trueValue.y;
@@ -811,7 +820,7 @@ final class _NaiveInt32x4 implements Int32x4 {
     intView[1] = _y;
     intView[2] = _z;
     intView[3] = _w;
-    return _NaiveFloat32x4._truncated(
+    return NaiveFloat32x4._truncated(
         floatList[0], floatList[1], floatList[2], floatList[3]);
   }
 }

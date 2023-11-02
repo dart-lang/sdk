@@ -7,14 +7,22 @@ import 'dart:io';
 
 import 'vm_service.dart';
 
-@Deprecated('Prefer vmServiceConnectUri')
-Future<VmService> vmServiceConnect(String host, int port, {Log? log}) async {
-  final wsUri = 'ws://$host$port/ws';
-  return vmServiceConnectUri(wsUri, log: log);
-}
-
 /// Connect to the given uri and return a new [VmService] instance.
 Future<VmService> vmServiceConnectUri(String wsUri, {Log? log}) async {
+  return vmServiceConnectUriWithFactory<VmService>(
+    wsUri,
+    vmServiceFactory: VmService.defaultFactory,
+    log: log,
+  );
+}
+
+/// Connect to the given uri and return a new instance of [T], which is
+/// constructed by [vmServiceFactory] and may be a subclass of [VmService].
+Future<T> vmServiceConnectUriWithFactory<T extends VmService>(
+  String wsUri, {
+  required VmServiceFactory<T> vmServiceFactory,
+  Log? log,
+}) async {
   final WebSocket socket = await WebSocket.connect(wsUri);
   final StreamController<dynamic> controller = StreamController();
   final Completer streamClosedCompleter = Completer();
@@ -24,9 +32,9 @@ Future<VmService> vmServiceConnectUri(String wsUri, {Log? log}) async {
     onDone: () => streamClosedCompleter.complete(),
   );
 
-  return VmService(
-    controller.stream,
-    (String message) => socket.add(message),
+  return vmServiceFactory(
+    inStream: controller.stream,
+    writeMessage: (String message) => socket.add(message),
     log: log,
     disposeHandler: () => socket.close(),
     streamClosed: streamClosedCompleter.future,

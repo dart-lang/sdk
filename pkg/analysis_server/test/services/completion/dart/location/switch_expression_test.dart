@@ -27,9 +27,6 @@ class SwitchExpressionTest2 extends AbstractCompletionDriverTest
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
-// mixin SwitchCaseTestCases on AbstractCompletionDriverTest {
-// }
-
 mixin SwitchExpressionTestCases on AbstractCompletionDriverTest {
   Future<void> test_body_afterArrow() async {
     await computeSuggestions('''
@@ -41,8 +38,18 @@ int f(Object p01) {
 ''');
     assertResponse(r'''
 suggestions
+  const
+    kind: keyword
+  false
+    kind: keyword
+  null
+    kind: keyword
   p01
     kind: parameter
+  switch
+    kind: keyword
+  true
+    kind: keyword
 ''');
   }
 
@@ -57,15 +64,24 @@ int f(Object p01) {
 
 class A1 {}
 ''');
-    // TODO(scheglov) This is wrong.
     assertResponse(r'''
 suggestions
   A1
     kind: class
   A1
     kind: constructorInvocation
-  p01
-    kind: parameter
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -95,12 +111,22 @@ suggestions
     kind: constructorInvocation
   c01
     kind: topLevelVariable
+  const
+    kind: keyword
   f01
     kind: functionInvocation
-  p01
-    kind: parameter
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
   v01
     kind: topLevelVariable
+  var
+    kind: keyword
 ''');
   }
 
@@ -166,8 +192,6 @@ suggestions
     kind: topLevelVariable
   B04
     kind: functionInvocation
-  p01
-    kind: parameter
 ''');
     }
   }
@@ -234,8 +258,6 @@ suggestions
     kind: topLevelVariable
   B04
     kind: functionInvocation
-  p01
-    kind: parameter
 ''');
     }
   }

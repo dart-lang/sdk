@@ -773,7 +773,7 @@ int Function(int) fromPointer(Pointer<NativeFunction<Int8 Function(Int8)>> p) {
 
 ### argument_type_not_assignable
 
-_The argument type '{0}' can't be assigned to the parameter type '{1}'._
+_The argument type '{0}' can't be assigned to the parameter type '{1}'. {2}_
 
 #### Description
 
@@ -11834,6 +11834,39 @@ or make the parameter a required parameter:
 {% prettify dart tag=pre+code %}
 void f(int x) {}
 void g({required int x}) {}
+{% endprettify %}
+
+### missing_dependency
+
+_Missing a dependency on imported package '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a package that has been
+imported in the source but is not listed as a dependency of the
+importing package.
+
+#### Example
+
+The following code produces this diagnostic because the package `path` is
+not listed as a dependency, while there is an import statement
+with package `path` in the source code of package `example`:
+
+{% prettify yaml tag=pre+code %}
+name: example
+dependencies:
+  meta: ^1.0.2
+{% endprettify %}
+
+#### Common fixes
+
+Add the missing package `path` to the `dependencies` field:
+
+{% prettify yaml tag=pre+code %}
+name: example
+dependencies:
+  meta: ^1.0.2
+  path: any
 {% endprettify %}
 
 ### missing_enum_constant_in_switch

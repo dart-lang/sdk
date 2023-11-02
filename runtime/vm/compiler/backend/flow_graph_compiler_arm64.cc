@@ -352,13 +352,16 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
+void FlowGraphCompiler::EmitCallToStub(
+    const Code& stub,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
   } else {
-    __ BranchLink(stub);
+    __ BranchLink(stub, compiler::ObjectPoolBuilderEntry::kNotPatchable,
+                  CodeEntryKind::kNormal, snapshot_behavior);
     AddStubCallTarget(stub);
   }
 }
@@ -400,11 +403,13 @@ void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   }
 }
 
-void FlowGraphCompiler::GeneratePatchableCall(const InstructionSource& source,
-                                              const Code& stub,
-                                              UntaggedPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  __ BranchLinkPatchable(stub);
+void FlowGraphCompiler::GeneratePatchableCall(
+    const InstructionSource& source,
+    const Code& stub,
+    UntaggedPcDescriptors::Kind kind,
+    LocationSummary* locs,
+    ObjectPool::SnapshotBehavior snapshot_behavior) {
+  __ BranchLinkPatchable(stub, CodeEntryKind::kNormal, snapshot_behavior);
   EmitCallsiteMetadata(source, DeoptId::kNone, kind, locs,
                        pending_deoptimization_env_);
 }
@@ -524,6 +529,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
+  ASSERT(!FLAG_precompiled_mode);
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
@@ -540,30 +546,21 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const intptr_t stub_index = op.AddObject(
       StubCode::MegamorphicCall(), ObjectPool::Patchability::kPatchable);
   ASSERT((data_index + 1) == stub_index);
-  if (FLAG_precompiled_mode) {
-    // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see app_snapshot.cc.
-    CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(IC_DATA_REG, LR, data_index));
-  } else {
-    __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, data_index);
-    CLOBBERS_LR(__ ldr(LR, compiler::FieldAddress(
-                               CODE_REG, Code::entry_point_offset(
-                                             Code::EntryKind::kMonomorphic))));
-  }
+  __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, data_index);
+  CLOBBERS_LR(__ ldr(LR, compiler::FieldAddress(
+                             CODE_REG, Code::entry_point_offset(
+                                           Code::EntryKind::kMonomorphic))));
   CLOBBERS_LR(__ blr(LR));
 
   RecordSafepoint(locs);
   AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-  if (!FLAG_precompiled_mode) {
-    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
-                           source);
-    }
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
   RecordCatchEntryMoves(pending_deoptimization_env_);
   EmitDropArguments(args_desc.SizeWithTypeArgs());
@@ -594,10 +591,14 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   __ LoadImmediate(R4, 0);
   __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
 
+  const auto snapshot_behavior =
+      FLAG_precompiled_mode ? compiler::ObjectPoolBuilderEntry::
+                                  kResetToSwitchableCallMissEntryPoint
+                            : compiler::ObjectPoolBuilderEntry::kSnapshotable;
   const intptr_t data_index =
       op.AddObject(data, ObjectPool::Patchability::kPatchable);
-  const intptr_t initial_stub_index =
-      op.AddObject(initial_stub, ObjectPool::Patchability::kPatchable);
+  const intptr_t initial_stub_index = op.AddObject(
+      initial_stub, ObjectPool::Patchability::kPatchable, snapshot_behavior);
   ASSERT((data_index + 1) == initial_stub_index);
 
   if (FLAG_precompiled_mode) {
@@ -921,15 +922,17 @@ static compiler::OperandSize BytesToOperandSize(intptr_t bytes) {
 void FlowGraphCompiler::EmitNativeMoveArchitecture(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source) {
-  const auto& src_type = source.payload_type();
-  const auto& dst_type = destination.payload_type();
-  ASSERT(src_type.IsFloat() == dst_type.IsFloat());
-  ASSERT(src_type.IsInt() == dst_type.IsInt());
-  ASSERT(src_type.IsSigned() == dst_type.IsSigned());
-  ASSERT(src_type.IsPrimitive());
-  ASSERT(dst_type.IsPrimitive());
-  const intptr_t src_size = src_type.SizeInBytes();
-  const intptr_t dst_size = dst_type.SizeInBytes();
+  const auto& src_payload_type = source.payload_type();
+  const auto& dst_payload_type = destination.payload_type();
+  const auto& src_container_type = source.container_type();
+  const auto& dst_container_type = destination.container_type();
+  ASSERT(src_container_type.IsFloat() == dst_container_type.IsFloat());
+  ASSERT(src_container_type.IsInt() == dst_container_type.IsInt());
+  ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
+  ASSERT(src_payload_type.IsPrimitive());
+  ASSERT(dst_payload_type.IsPrimitive());
+  const intptr_t src_size = src_payload_type.SizeInBytes();
+  const intptr_t dst_size = dst_payload_type.SizeInBytes();
   const bool sign_or_zero_extend = dst_size > src_size;
 
   if (source.IsRegisters()) {
@@ -953,7 +956,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
             UNIMPLEMENTED();
         }
       } else {
-        switch (src_type.AsPrimitive().representation()) {
+        switch (src_payload_type.AsPrimitive().representation()) {
           case compiler::ffi::kInt8:  // Sign extend operand.
             __ sxtb(dst_reg, src_reg);
             return;
@@ -988,7 +991,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
   } else if (source.IsFpuRegisters()) {
     const auto& src = source.AsFpuRegisters();
     // We have not implemented conversions here, use IL convert instructions.
-    ASSERT(src_type.Equals(dst_type));
+    ASSERT(src_payload_type.Equals(dst_payload_type));
 
     if (destination.IsRegisters()) {
       // Fpu Registers should only contain doubles and registers only ints.
@@ -1000,7 +1003,7 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
 
     } else {
       ASSERT(destination.IsStack());
-      ASSERT(src_type.IsFloat());
+      ASSERT(src_payload_type.IsFloat());
       const auto& dst = destination.AsStack();
       switch (dst_size) {
         case 8:
@@ -1029,8 +1032,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
                         op_size);
 
     } else if (destination.IsFpuRegisters()) {
-      ASSERT(src_type.Equals(dst_type));
-      ASSERT(src_type.IsFloat());
+      ASSERT(src_payload_type.Equals(dst_payload_type));
+      ASSERT(src_payload_type.IsFloat());
       const auto& dst = destination.AsFpuRegisters();
       switch (src_size) {
         case 8:

@@ -1743,11 +1743,24 @@ class Assembler : public AssemblerBase {
 #endif  // defined(DART_COMPRESSED_POINTERS)
   }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    LoadInt64FromBoxOrSmi(result, value);
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    sbfx(result, value, kSmiTagSize,
+         Utils::Minimum(static_cast<intptr_t>(32), compiler::target::kSmiBits));
+    BranchIfSmi(value, &done);
+    LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset(),
+                        compiler::kFourBytes);
+    Bind(&done);
   }
 
-  void LoadInt64FromBoxOrSmi(Register result, Register value) {
+  void LoadInt64FromBoxOrSmi(Register result, Register value) override {
     if (result == value) {
       ASSERT(TMP != value);
       MoveRegister(TMP, value);
@@ -1783,11 +1796,17 @@ class Assembler : public AssemblerBase {
   void BranchLink(const Code& code,
                   ObjectPoolBuilderEntry::Patchability patchable =
                       ObjectPoolBuilderEntry::kNotPatchable,
-                  CodeEntryKind entry_kind = CodeEntryKind::kNormal);
+                  CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+                  ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+                      ObjectPoolBuilderEntry::kSnapshotable);
 
-  void BranchLinkPatchable(const Code& code,
-                           CodeEntryKind entry_kind = CodeEntryKind::kNormal) {
-    BranchLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind);
+  void BranchLinkPatchable(
+      const Code& code,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable) {
+    BranchLink(code, ObjectPoolBuilderEntry::kPatchable, entry_kind,
+               snapshot_behavior);
   }
 
   // Emit a call that shares its object pool entries with other calls
@@ -2153,6 +2172,11 @@ class Assembler : public AssemblerBase {
   //
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadWordFromPoolIndex(Register dst, intptr_t index, Register pp = PP);
+
+  // Store word to pool at the given offset.
+  //
+  // Note: clobbers TMP.
+  void StoreWordToPoolIndex(Register src, intptr_t index, Register pp = PP);
 
   void LoadDoubleWordFromPoolIndex(Register lower,
                                    Register upper,

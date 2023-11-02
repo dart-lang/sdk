@@ -822,16 +822,25 @@ class Assembler : public AssemblerBase {
   void LoadIsolateGroup(Register dst);
   void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
-  void LoadUniqueObject(Register dst, const Object& obj);
+  void LoadUniqueObject(
+      Register dst,
+      const Object& obj,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
   void JmpPatchable(const Code& code, Register pp);
   void Jmp(const Code& code, Register pp = PP);
   void J(Condition condition, const Code& code, Register pp);
-  void CallPatchable(const Code& code,
-                     CodeEntryKind entry_kind = CodeEntryKind::kNormal);
-  void Call(const Code& stub_entry);
+  void CallPatchable(
+      const Code& code,
+      CodeEntryKind entry_kind = CodeEntryKind::kNormal,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
+  void Call(const Code& stub_entry,
+            ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+                ObjectPoolBuilderEntry::kSnapshotable);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
@@ -1072,11 +1081,10 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
-  void LoadWordFromBoxOrSmi(Register result, Register value) {
-    LoadInt64FromBoxOrSmi(result, value);
-  }
+  // Truncates upper bits.
+  void LoadInt32FromBoxOrSmi(Register result, Register value) override;
 
-  void LoadInt64FromBoxOrSmi(Register result, Register value);
+  void LoadInt64FromBoxOrSmi(Register result, Register value) override;
 
   void BranchIfNotSmi(Register reg,
                       Label* label,
@@ -1469,12 +1477,19 @@ class Assembler : public AssemblerBase {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return target::IsSmi(object); }
 
+  void LoadWordFromPoolIndex(Register dst, intptr_t index);
+  void StoreWordToPoolIndex(Register src, intptr_t index);
+
  private:
   bool constant_pool_allowed_;
 
   bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
-  void LoadWordFromPoolIndex(Register dst, intptr_t index);
+  void LoadObjectHelper(
+      Register dst,
+      const Object& obj,
+      bool is_unique,
+      ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
+          ObjectPoolBuilderEntry::kSnapshotable);
 
   void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);
   void AluB(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);

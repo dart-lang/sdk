@@ -46,7 +46,10 @@ Future<void> executeWithRandomDelay(Function f) =>
         .then((_) async {
       try {
         await f();
-      } on HttpException catch (_) {} on SocketException catch (_) {} on StateError catch (_) {} on OSError catch (_) {}
+      } on HttpException catch (_) {
+      } on SocketException catch (_) {
+      } on StateError catch (_) {
+      } on OSError catch (_) {}
     });
 
 Uri randomlyAddRequestParams(Uri uri) {
@@ -289,8 +292,8 @@ Future<void> hasValidHttpPUTs(HttpProfile profile) =>
     hasValidHttpRequests(profile, 'PUT');
 
 void hasDefaultRequestHeaders(HttpProfile profile) {
-  for(final request in profile.requests) {
-    if(!request.request!.hasError) {
+  for (final request in profile.requests) {
+    if (!request.request!.hasError) {
       expect(request.request?.headers['host'], isNotNull);
       expect(request.request?.headers['user-agent'], isNotNull);
     }
@@ -299,8 +302,8 @@ void hasDefaultRequestHeaders(HttpProfile profile) {
 
 void hasCustomRequestHeaders(HttpProfile profile) {
   var requests = profile.requests.where((e) => e.method == "GET").toList();
-  for(final request in requests) {
-    if(!request.request!.hasError) {
+  for (final request in requests) {
+    if (!request.request!.hasError) {
       expect(request.request?.headers['cookie-eater'], isNotNull);
     }
   }

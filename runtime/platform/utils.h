@@ -5,6 +5,7 @@
 #ifndef RUNTIME_PLATFORM_UTILS_H_
 #define RUNTIME_PLATFORM_UTILS_H_
 
+#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <type_traits>
@@ -299,14 +300,13 @@ class Utils {
     constexpr intptr_t value_size_in_bits = kBitsPerByte * sizeof(T);
     if constexpr (std::is_signed<T>::value) {
       if (N >= value_size_in_bits) return true;  // Trivially fits.
+      const T limit = static_cast<T>(1) << (N - 1);
+      return (-limit <= value) && (value < limit);
     } else {
       if (N > value_size_in_bits) return true;  // Trivially fits.
-      if (N == value_size_in_bits) {
-        return static_cast<typename std::make_signed<T>::type>(value) >= 0;
-      }
+      const T limit = static_cast<T>(1) << (N - 1);
+      return value < limit;
     }
-    const T limit = static_cast<T>(1) << (N - 1);
-    return (-limit <= value) && (value < limit);
   }
 
   template <typename T>

@@ -83,7 +83,7 @@ class IgnoreDiagnosticInFile extends AbstractIgnoreDiagnostic {
     await _computeEdit(
       builder,
       insertDesc,
-      IgnoreInfo.IGNORE_FOR_FILE_MATCHER,
+      IgnoreInfo.ignoreForFileMatcher,
       'ignore_for_file',
     );
   }
@@ -97,12 +97,13 @@ class IgnoreDiagnosticOnLine extends AbstractIgnoreDiagnostic {
   Future<void> compute(ChangeBuilder builder) async {
     if (_isCodeUnignorable()) return;
 
+    final diagnostic = this.diagnostic!; // Enforced by _isCodeUnignorable
     final insertDesc = CorrectionUtils_InsertDesc();
-    insertDesc.offset = node.offset;
+    insertDesc.offset = diagnostic.problemMessage.offset;
     await _computeEdit(
       builder,
       insertDesc,
-      IgnoreInfo.IGNORE_MATCHER,
+      IgnoreInfo.ignoreMatcher,
       'ignore',
     );
   }

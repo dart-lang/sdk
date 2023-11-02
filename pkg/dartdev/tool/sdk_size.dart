@@ -4,6 +4,7 @@
 
 /// Generate a json file representing the files in the Dart SDK and their sizes.
 /// Print out instructions for opening Dart DevTools to visualize this info.
+library;
 
 import 'dart:convert';
 import 'dart:io';

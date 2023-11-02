@@ -82,11 +82,14 @@ class JSAny {
   external factory JSAny._();
 }
 
-@JS()
+@JS('Object')
 @staticInterop
 class JSObject implements JSAny {
   /// Returns a new object literal.
   factory JSObject() => js.JSValue(js.newObjectRaw()) as JSObject;
+
+  /// Equivalent to `Object.keys(object)`.
+  external static JSArray keys(JSObject o);
 }
 
 @JS()

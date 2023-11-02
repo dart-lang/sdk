@@ -174,6 +174,10 @@ class InheritanceManager3 {
   /// from the superclasses and mixins.
   Map<Name, ExecutableElement> getInheritedConcreteMap2(
       InterfaceElement element) {
+    if (element is ExtensionTypeElement) {
+      return const {};
+    }
+
     var interface = getInterface(element);
     return interface.superImplemented.last;
   }
@@ -696,7 +700,7 @@ class InheritanceManager3 {
       for (final entry in getInterface(interface.element).map.entries) {
         final name = entry.key;
         final executable = ExecutableMember.from2(entry.value, substitution);
-        if (executable.enclosingElement is ExtensionTypeElement) {
+        if (executable.isExtensionTypeMember) {
           (extensionCandidates[name] ??= []).add(executable);
         } else {
           (notExtensionCandidates[name] ??= []).add(executable);
@@ -1178,6 +1182,10 @@ class Name {
   }
 
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
+
+  Name get forSetter {
+    return Name(libraryUri, '$name=');
+  }
 
   @override
   bool operator ==(Object other) {

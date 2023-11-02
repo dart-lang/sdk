@@ -95,6 +95,8 @@ main() {
           tempDir.delete(recursive: true);
         });
       }));
+
+  asyncTest(testLinkTargetTypeChangedAfterCreation);
 }
 
 Future makeEntities(String temp) {
@@ -153,4 +155,33 @@ Future testLink(String name) {
         .then((targetName) => FileSystemEntity.identical(targetName, resolved))
         .then((identical) => Expect.isTrue(identical));
   });
+}
+
+Future testLinkTargetTypeChangedAfterCreation() async {
+  // Test the following scenario:
+  // 1. create a file
+  // 2. create a link to that file
+  // 3. replace the file with a directory
+  // 4. attempt to resolve the link
+  final tmp =
+      await Directory.systemTemp.createTemp('dart_resolve_symbolic_links');
+  final tmpPath = tmp.absolute.path;
+  final filePath = join(tmpPath, "file");
+  final linkPath = join(tmpPath, "link");
+  await File(filePath).create();
+  await Link(linkPath).create(filePath);
+
+  Expect.isTrue(FileSystemEntity.identicalSync(
+      filePath, await Directory(linkPath).resolveSymbolicLinks()));
+
+  await File(filePath).delete();
+  await Directory(filePath).create();
+
+  if (Platform.isWindows) {
+    await asyncExpectThrows<PathAccessException>(
+        Directory(linkPath).resolveSymbolicLinks());
+  } else {
+    Expect.isTrue(await FileSystemEntity.identical(
+        filePath, await Directory(linkPath).resolveSymbolicLinks()));
+  }
 }

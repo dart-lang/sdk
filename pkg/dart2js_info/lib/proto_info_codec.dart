@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Converters and codecs for converting between Protobuf and [Info] classes.
+library;
+
 import 'dart:convert';
 
 import 'package:fixnum/fixnum.dart';

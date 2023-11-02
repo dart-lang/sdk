@@ -67,18 +67,24 @@ import augment 'a.dart';
     configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
   augmentationImports
     package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
       definingUnit
+        reference: self::@augmentation::package:test/a.dart
         classes
           class A @36
             reference: self::@augmentation::package:test/a.dart::@class::A
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
             constructors
               synthetic @-1
+                reference: self::@augmentation::package:test/a.dart::@class::A::@constructor::new
             methods
               foo @47
+                reference: self::@augmentation::package:test/a.dart::@class::A::@method::foo
                 returnType: void
             augmented
               constructors
@@ -91,6 +97,7 @@ library
             augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
             methods
               bar @84
+                reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
                 returnType: void
 ''');
   }
@@ -566,14 +573,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -593,8 +600,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -643,14 +648,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -670,9 +675,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_2
-                getter: getter_0
-                setter: setter_0
+                id: field_1
                 augmentationTarget: self::@class::A::@field::foo
                 augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
@@ -684,9 +687,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_1
-                getter: getter_0
-                setter: setter_0
+                id: field_2
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
 ''');
   }
@@ -734,7 +735,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -743,7 +744,7 @@ library
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/b.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -762,8 +763,8 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
-                variable: field_1
+                id: getter_1
+                variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
     package:test/b.dart
       definingUnit
@@ -775,8 +776,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -825,13 +824,13 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
         augmented
@@ -855,8 +854,8 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
-                variable: field_1
+                id: setter_1
+                variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo
     package:test/b.dart
       definingUnit
@@ -868,8 +867,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -908,16 +905,16 @@ library
           synthetic @-1
         accessors
           synthetic get foo @-1
-            returnType: double
+            returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
-                type: double
+                type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -937,8 +934,6 @@ library
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -979,7 +974,7 @@ library
           get foo @45
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
         augmented
           fields
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@fieldAugmentation::foo
@@ -998,7 +993,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
                 augmentationTarget: self::@class::A::@field::foo
 ''');
   }
@@ -1449,7 +1443,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -1476,7 +1470,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
 ''');
@@ -1524,7 +1518,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -1552,7 +1546,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
@@ -1564,7 +1558,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
@@ -1607,7 +1601,7 @@ library
         accessors
           get foo1 @45
             returnType: int
-            id: getter_2
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
@@ -1632,13 +1626,90 @@ library
             accessors
               augment get foo1 @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo1
 ''');
   }
 
-  test_augmented_getters_augment_getter2() async {
+  test_augmented_getters_augment_getter2_oneLib_oneTop() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment int get foo => 0;
+  augment int get foo => 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  int get foo => 0;
+}
+''');
+
+    configuration
+      ..withReferences = true
+      ..withPropertyLinking = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    classes
+      class A @31
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        fields
+          synthetic foo @-1
+            reference: self::@class::A::@field::foo
+            type: int
+            id: field_0
+            getter: getter_0
+        constructors
+          synthetic @-1
+            reference: self::@class::A::@constructor::new
+        accessors
+          get foo @45
+            reference: self::@class::A::@getter::foo
+            returnType: int
+            id: getter_0
+            variable: field_0
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
+        augmented
+          fields
+            self::@class::A::@field::foo
+          constructors
+            self::@class::A::@constructor::new
+          accessors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        classes
+          augment class A @43
+            reference: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            accessors
+              augment get foo @65
+                reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
+                returnType: int
+                id: getter_1
+                variable: field_0
+                augmentationTarget: self::@class::A::@getter::foo
+                augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
+              augment get foo @93
+                reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::1
+                returnType: int
+                id: getter_2
+                variable: field_0
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo::@def::0
+''');
+  }
+
+  test_augmented_getters_augment_getter2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
 augment class A {
@@ -1678,7 +1749,7 @@ library
         accessors
           get foo @70
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
         augmented
@@ -1698,7 +1769,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@getterAugmentation::foo
@@ -1710,7 +1781,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
 ''');
@@ -2032,7 +2103,136 @@ library
 ''');
   }
 
-  test_augmented_methods_augment2() async {
+  test_augmented_methods_augment2_oneLib_oneTop() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment void foo() {}
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  void foo() {}
+}
+''');
+
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    classes
+      class A @31
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+            reference: self::@class::A::@constructor::new
+        methods
+          foo @42
+            reference: self::@class::A::@method::foo
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
+        augmented
+          constructors
+            self::@class::A::@constructor::new
+          methods
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        classes
+          augment class A @43
+            reference: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            methods
+              augment foo @62
+                reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
+                returnType: void
+                augmentationTarget: self::@class::A::@method::foo
+                augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
+              augment foo @86
+                reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::1
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@methodAugmentation::foo::@def::0
+''');
+  }
+
+  test_augmented_methods_augment2_oneLib_twoTop() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment void foo() {}
+}
+augment class A {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  void foo() {}
+}
+''');
+
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    classes
+      class A @31
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+        constructors
+          synthetic @-1
+            reference: self::@class::A::@constructor::new
+        methods
+          foo @42
+            reference: self::@class::A::@method::foo
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
+        augmented
+          constructors
+            self::@class::A::@constructor::new
+          methods
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
+  augmentationImports
+    package:test/a.dart
+      reference: self::@augmentation::package:test/a.dart
+      definingUnit
+        reference: self::@augmentation::package:test/a.dart
+        classes
+          augment class A @43
+            reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+            methods
+              augment foo @62
+                reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
+                returnType: void
+                augmentationTarget: self::@class::A::@method::foo
+                augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
+          augment class A @87
+            reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0
+            methods
+              augment foo @106
+                reference: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::1::@methodAugmentation::foo
+                returnType: void
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@def::0::@methodAugmentation::foo
+''');
+  }
+
+  test_augmented_methods_augment2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
 import augment 'b.dart';
@@ -2457,7 +2657,7 @@ library
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo
         augmented
@@ -2480,7 +2680,7 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_1
                 variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo
 ''');
@@ -2526,7 +2726,7 @@ library
               requiredPositional _ @50
                 type: int
             returnType: void
-            id: setter_2
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
@@ -2557,7 +2757,7 @@ library
                   requiredPositional _ @70
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_2
                 variable: field_0
                 augmentationTarget: self::@class::A::@setter::foo1
 ''');
@@ -3091,7 +3291,7 @@ library
     package:test/a.dart
       definingUnit
         classes
-          augment notSimplyBounded class A @43
+          augment class A @43
             typeParameters
               covariant T @45
                 bound: A<dynamic>
@@ -4359,33 +4559,44 @@ library
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // This is a compile-time error but it should still analyze consistently.
     var library = await buildLibrary('class C { C(this.x); int x; String x; }');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class C @6
+        reference: self::@class::C
         fields
           x @25
+            reference: self::@class::C::@field::x::@def::0
             type: int
           x @35
+            reference: self::@class::C::@field::x::@def::1
             type: String
         constructors
           @10
+            reference: self::@class::C::@constructor::new
             parameters
               requiredPositional final this.x @17
                 type: int
-                field: self::@class::C::@field::x
+                field: self::@class::C::@field::x::@def::0
         accessors
           synthetic get x @-1
+            reference: self::@class::C::@getter::x::@def::0
             returnType: int
           synthetic set x= @-1
+            reference: self::@class::C::@setter::x::@def::0
             parameters
               requiredPositional _x @-1
                 type: int
             returnType: void
           synthetic get x @-1
+            reference: self::@class::C::@getter::x::@def::1
             returnType: String
           synthetic set x= @-1
+            reference: self::@class::C::@setter::x::@def::1
             parameters
               requiredPositional _x @-1
                 type: String
@@ -8151,6 +8362,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingGetters
+        self::@class::B::@getter::_foo
 ''');
   }
 
@@ -8203,6 +8418,10 @@ library
         fields
           final _foo @38
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingGetters
+        self::@class::B::@getter::_foo
 ''');
   }
 
@@ -8251,6 +8470,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingFields
+        self::@class::B::@field::_foo
 ''');
   }
 
@@ -8349,6 +8572,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8469,6 +8696,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::E
 ''');
   }
 
@@ -8506,6 +8737,10 @@ library
           final _foo @71
             type: int?
             shouldUseTypeForInitializerInference: true
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@enum::E
 ''');
   }
 
@@ -8535,6 +8770,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8603,6 +8842,10 @@ library
         fields
           final _foo @23
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8645,6 +8888,10 @@ library
           final _foo @71
             type: int?
             shouldUseTypeForInitializerInference: true
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingNsmClasses
+        self::@class::C
 ''');
   }
 
@@ -8694,6 +8941,10 @@ library
         fields
           _foo @17
             type: int?
+  fieldNameNonPromotabilityInfo
+    _foo
+      conflictingFields
+        self::@class::A::@field::_foo
 ''');
   }
 
@@ -12553,19 +12804,25 @@ mixin M {}
 
 class C = A with M;
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @6
+        reference: self::@class::A
         constructors
           c1 @14
+            reference: self::@class::A::@constructor::c1
             periodOffset: 13
             nameEnd: 16
             parameters
               requiredPositional a @21
                 type: int
           c2 @29
+            reference: self::@class::A::@constructor::c2
             periodOffset: 28
             nameEnd: 31
             parameters
@@ -12580,25 +12837,30 @@ library
                     literal: 0 @56
                     staticType: int
           c3 @65
+            reference: self::@class::A::@constructor::c3
             periodOffset: 64
             nameEnd: 67
             parameters
               requiredPositional a @72
                 type: int
               optionalNamed default b @81
+                reference: self::@class::A::@constructor::c3::@parameter::b
                 type: int?
               optionalNamed default c @88
+                reference: self::@class::A::@constructor::c3::@parameter::c
                 type: int
                 constantInitializer
                   IntegerLiteral
                     literal: 0 @92
                     staticType: int
       class alias C @118
+        reference: self::@class::C
         supertype: A
         mixins
           M
         constructors
           synthetic c1 @-1
+            reference: self::@class::C::@constructor::c1
             parameters
               requiredPositional a @-1
                 type: int
@@ -12621,6 +12883,7 @@ library
                 staticElement: self::@class::A::@constructor::c1
             superConstructor: self::@class::A::@constructor::c1
           synthetic c2 @-1
+            reference: self::@class::C::@constructor::c2
             parameters
               requiredPositional a @-1
                 type: int
@@ -12659,12 +12922,15 @@ library
                 staticElement: self::@class::A::@constructor::c2
             superConstructor: self::@class::A::@constructor::c2
           synthetic c3 @-1
+            reference: self::@class::C::@constructor::c3
             parameters
               requiredPositional a @-1
                 type: int
               optionalNamed default b @-1
+                reference: self::@class::C::@constructor::c3::@parameter::b
                 type: int?
               optionalNamed default c @-1
+                reference: self::@class::C::@constructor::c3::@parameter::c
                 type: int
                 constantInitializer
                   IntegerLiteral
@@ -12698,6 +12964,7 @@ library
             superConstructor: self::@class::A::@constructor::c3
     mixins
       mixin M @106
+        reference: self::@mixin::M
         superclassConstraints
           Object
 ''');
@@ -16425,6 +16692,61 @@ library
     accessors
       synthetic static get v @-1
         returnType: int Function()
+''');
+  }
+
+  test_const_invalid_functionExpression_assertInitializer() async {
+    var library = await buildLibrary('''
+class A  {
+  const A() : assert((() => true)());
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @19
+            constantInitializers
+              AssertInitializer
+                assertKeyword: assert @25
+                leftParenthesis: ( @31
+                condition: SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  staticElement: <null>
+                  staticType: null
+                rightParenthesis: ) @46
+''');
+  }
+
+  test_const_invalid_functionExpression_assertInitializer_message() async {
+    var library = await buildLibrary('''
+class A  {
+  const A() : assert(b, () => 0);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          const @19
+            constantInitializers
+              AssertInitializer
+                assertKeyword: assert @25
+                leftParenthesis: ( @31
+                condition: SimpleIdentifier
+                  token: b @32
+                  staticElement: <null>
+                  staticType: InvalidType
+                comma: , @33
+                message: SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  staticElement: <null>
+                  staticType: null
+                rightParenthesis: ) @42
 ''');
   }
 
@@ -23182,49 +23504,238 @@ library
 
   test_duplicateDeclaration_class() async {
     var library = await buildLibrary(r'''
-class A {}
 class A {
-  var x;
+  static const f01 = 0;
+  static const f02 = f01;
 }
+
 class A {
-  var y = 0;
+  static const f11 = 0;
+  static const f12 = f11;
+}
+
+class A {
+  static const f21 = 0;
+  static const f22 = f21;
 }
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     classes
       class A @6
-        constructors
-          synthetic @-1
-      class A @17
+        reference: self::@class::A::@def::0
         fields
-          x @27
-            type: dynamic
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get x @-1
-            returnType: dynamic
-          synthetic set x= @-1
-            parameters
-              requiredPositional _x @-1
-                type: dynamic
-            returnType: void
-      class A @38
-        fields
-          y @48
+          static const f01 @25
+            reference: self::@class::A::@def::0::@field::f01
             type: int
             shouldUseTypeForInitializerInference: false
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @31
+                staticType: int
+          static const f02 @49
+            reference: self::@class::A::@def::0::@field::f02
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              SimpleIdentifier
+                token: f01 @55
+                staticElement: self::@class::A::@def::0::@getter::f01
+                staticType: int
         constructors
           synthetic @-1
+            reference: self::@class::A::@def::0::@constructor::new
         accessors
-          synthetic get y @-1
+          synthetic static get f01 @-1
+            reference: self::@class::A::@def::0::@getter::f01
             returnType: int
-          synthetic set y= @-1
+          synthetic static get f02 @-1
+            reference: self::@class::A::@def::0::@getter::f02
+            returnType: int
+      class A @69
+        reference: self::@class::A::@def::1
+        fields
+          static const f11 @88
+            reference: self::@class::A::@def::1::@field::f11
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @94
+                staticType: int
+          static const f12 @112
+            reference: self::@class::A::@def::1::@field::f12
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              SimpleIdentifier
+                token: f11 @118
+                staticElement: self::@class::A::@def::1::@getter::f11
+                staticType: int
+        constructors
+          synthetic @-1
+            reference: self::@class::A::@def::1::@constructor::new
+        accessors
+          synthetic static get f11 @-1
+            reference: self::@class::A::@def::1::@getter::f11
+            returnType: int
+          synthetic static get f12 @-1
+            reference: self::@class::A::@def::1::@getter::f12
+            returnType: int
+      class A @132
+        reference: self::@class::A::@def::2
+        fields
+          static const f21 @151
+            reference: self::@class::A::@def::2::@field::f21
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @157
+                staticType: int
+          static const f22 @175
+            reference: self::@class::A::@def::2::@field::f22
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              SimpleIdentifier
+                token: f21 @181
+                staticElement: self::@class::A::@def::2::@getter::f21
+                staticType: int
+        constructors
+          synthetic @-1
+            reference: self::@class::A::@def::2::@constructor::new
+        accessors
+          synthetic static get f21 @-1
+            reference: self::@class::A::@def::2::@getter::f21
+            returnType: int
+          synthetic static get f22 @-1
+            reference: self::@class::A::@def::2::@getter::f22
+            returnType: int
+''');
+  }
+
+  test_duplicateDeclaration_class_constructor_unnamed() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named();
+  A.named();
+}
+''');
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    classes
+      class A @6
+        reference: self::@class::A
+        constructors
+          named @14
+            reference: self::@class::A::@constructor::named::@def::0
+            periodOffset: 13
+            nameEnd: 19
+          named @27
+            reference: self::@class::A::@constructor::named::@def::1
+            periodOffset: 26
+            nameEnd: 32
+''');
+  }
+
+  test_duplicateDeclaration_class_field() async {
+    var library = await buildLibrary(r'''
+class A {
+  int foo;
+  double foo;
+}
+''');
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    classes
+      class A @6
+        reference: self::@class::A
+        fields
+          foo @16
+            reference: self::@class::A::@field::foo::@def::0
+            type: int
+            id: field_0
+            getter: getter_0
+            setter: setter_0
+          foo @30
+            reference: self::@class::A::@field::foo::@def::1
+            type: double
+            id: field_1
+            getter: getter_1
+            setter: setter_1
+        constructors
+          synthetic @-1
+            reference: self::@class::A::@constructor::new
+        accessors
+          synthetic get foo @-1
+            reference: self::@class::A::@getter::foo::@def::0
+            returnType: int
+            id: getter_0
+            variable: field_0
+          synthetic set foo= @-1
+            reference: self::@class::A::@setter::foo::@def::0
             parameters
-              requiredPositional _y @-1
+              requiredPositional _foo @-1
                 type: int
+            returnType: void
+            id: setter_0
+            variable: field_0
+          synthetic get foo @-1
+            reference: self::@class::A::@getter::foo::@def::1
+            returnType: double
+            id: getter_1
+            variable: field_1
+          synthetic set foo= @-1
+            reference: self::@class::A::@setter::foo::@def::1
+            parameters
+              requiredPositional _foo @-1
+                type: double
+            returnType: void
+            id: setter_1
+            variable: field_1
+''');
+  }
+
+  test_duplicateDeclaration_class_method() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo() {}
+  void foo() {}
+}
+''');
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    classes
+      class A @6
+        reference: self::@class::A
+        constructors
+          synthetic @-1
+            reference: self::@class::A::@constructor::new
+        methods
+          foo @17
+            reference: self::@class::A::@method::foo::@def::0
+            returnType: void
+          foo @33
+            reference: self::@class::A::@method::foo::@def::1
             returnType: void
 ''');
   }
@@ -23287,14 +23798,19 @@ library
 enum E {a, b}
 enum E {c, d, e}
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     enums
       enum E @5
+        reference: self::@enum::E::@def::0
         supertype: Enum
         fields
           static const enumConstant a @8
+            reference: self::@enum::E::@def::0::@field::a
             type: E
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -23302,14 +23818,15 @@ library
                 constructorName: ConstructorName
                   type: NamedType
                     name: E @-1
-                    element: self::@enum::E
+                    element: self::@enum::E::@def::0
                     type: E
-                  staticElement: self::@enum::E::@constructor::new
+                  staticElement: self::@enum::E::@def::0::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticType: E
           static const enumConstant b @11
+            reference: self::@enum::E::@def::0::@field::b
             type: E
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -23317,14 +23834,15 @@ library
                 constructorName: ConstructorName
                   type: NamedType
                     name: E @-1
-                    element: self::@enum::E
+                    element: self::@enum::E::@def::0
                     type: E
-                  staticElement: self::@enum::E::@constructor::new
+                  staticElement: self::@enum::E::@def::0::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticType: E
           synthetic static const values @-1
+            reference: self::@enum::E::@def::0::@field::values
             type: List<E>
             constantInitializer
               ListLiteral
@@ -23332,27 +23850,33 @@ library
                 elements
                   SimpleIdentifier
                     token: a @-1
-                    staticElement: self::@enum::E::@getter::a
+                    staticElement: self::@enum::E::@def::0::@getter::a
                     staticType: E
                   SimpleIdentifier
                     token: b @-1
-                    staticElement: self::@enum::E::@getter::b
+                    staticElement: self::@enum::E::@def::0::@getter::b
                     staticType: E
                 rightBracket: ] @0
                 staticType: List<E>
         constructors
           synthetic const @-1
+            reference: self::@enum::E::@def::0::@constructor::new
         accessors
           synthetic static get a @-1
+            reference: self::@enum::E::@def::0::@getter::a
             returnType: E
           synthetic static get b @-1
+            reference: self::@enum::E::@def::0::@getter::b
             returnType: E
           synthetic static get values @-1
+            reference: self::@enum::E::@def::0::@getter::values
             returnType: List<E>
       enum E @19
+        reference: self::@enum::E::@def::1
         supertype: Enum
         fields
           static const enumConstant c @22
+            reference: self::@enum::E::@def::1::@field::c
             type: E
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -23360,14 +23884,15 @@ library
                 constructorName: ConstructorName
                   type: NamedType
                     name: E @-1
-                    element: self::@enum::E
+                    element: self::@enum::E::@def::0
                     type: E
-                  staticElement: self::@enum::E::@constructor::new
+                  staticElement: self::@enum::E::@def::0::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticType: E
           static const enumConstant d @25
+            reference: self::@enum::E::@def::1::@field::d
             type: E
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -23375,14 +23900,15 @@ library
                 constructorName: ConstructorName
                   type: NamedType
                     name: E @-1
-                    element: self::@enum::E
+                    element: self::@enum::E::@def::0
                     type: E
-                  staticElement: self::@enum::E::@constructor::new
+                  staticElement: self::@enum::E::@def::0::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticType: E
           static const enumConstant e @28
+            reference: self::@enum::E::@def::1::@field::e
             type: E
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -23390,14 +23916,15 @@ library
                 constructorName: ConstructorName
                   type: NamedType
                     name: E @-1
-                    element: self::@enum::E
+                    element: self::@enum::E::@def::0
                     type: E
-                  staticElement: self::@enum::E::@constructor::new
+                  staticElement: self::@enum::E::@def::0::@constructor::new
                 argumentList: ArgumentList
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 staticType: E
           synthetic static const values @-1
+            reference: self::@enum::E::@def::1::@field::values
             type: List<E>
             constantInitializer
               ListLiteral
@@ -23405,80 +23932,151 @@ library
                 elements
                   SimpleIdentifier
                     token: c @-1
-                    staticElement: self::@enum::E::@getter::c
+                    staticElement: self::@enum::E::@def::1::@getter::c
                     staticType: E
                   SimpleIdentifier
                     token: d @-1
-                    staticElement: self::@enum::E::@getter::d
+                    staticElement: self::@enum::E::@def::1::@getter::d
                     staticType: E
                   SimpleIdentifier
                     token: e @-1
-                    staticElement: self::@enum::E::@getter::e
+                    staticElement: self::@enum::E::@def::1::@getter::e
                     staticType: E
                 rightBracket: ] @0
                 staticType: List<E>
         constructors
           synthetic const @-1
+            reference: self::@enum::E::@def::1::@constructor::new
         accessors
           synthetic static get c @-1
+            reference: self::@enum::E::@def::1::@getter::c
             returnType: E
           synthetic static get d @-1
+            reference: self::@enum::E::@def::1::@getter::d
             returnType: E
           synthetic static get e @-1
+            reference: self::@enum::E::@def::1::@getter::e
             returnType: E
           synthetic static get values @-1
+            reference: self::@enum::E::@def::1::@getter::values
             returnType: List<E>
 ''');
   }
 
   test_duplicateDeclaration_extension() async {
     var library = await buildLibrary(r'''
-class A {}
-extension E on A {}
-extension E on A {
+extension E on int {}
+extension E on int {
   static var x;
 }
-extension E on A {
+extension E on int {
   static var y = 0;
 }
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
-    classes
-      class A @6
-        constructors
-          synthetic @-1
+    reference: self
     extensions
-      E @21
-        extendedType: A
-      E @41
-        extendedType: A
+      E @10
+        reference: self::@extension::E::@def::0
+        extendedType: int
+      E @32
+        reference: self::@extension::E::@def::1
+        extendedType: int
         fields
-          static x @63
+          static x @56
+            reference: self::@extension::E::@def::1::@field::x
             type: dynamic
         accessors
           synthetic static get x @-1
+            reference: self::@extension::E::@def::1::@getter::x
             returnType: dynamic
           synthetic static set x= @-1
+            reference: self::@extension::E::@def::1::@setter::x
             parameters
               requiredPositional _x @-1
                 type: dynamic
             returnType: void
-      E @78
-        extendedType: A
+      E @71
+        reference: self::@extension::E::@def::2
+        extendedType: int
         fields
-          static y @100
+          static y @95
+            reference: self::@extension::E::@def::2::@field::y
             type: int
             shouldUseTypeForInitializerInference: false
         accessors
           synthetic static get y @-1
+            reference: self::@extension::E::@def::2::@getter::y
             returnType: int
           synthetic static set y= @-1
+            reference: self::@extension::E::@def::2::@setter::y
             parameters
               requiredPositional _y @-1
                 type: int
             returnType: void
+''');
+  }
+
+  test_duplicateDeclaration_extensionType() async {
+    var library = await buildLibrary(r'''
+extension type E(int it) {}
+extension type E(double it) {}
+''');
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    extensionTypes
+      E @15
+        reference: self::@extensionType::E::@def::0
+        representation: self::@extensionType::E::@def::0::@field::it
+        primaryConstructor: self::@extensionType::E::@def::0::@constructor::new
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            reference: self::@extensionType::E::@def::0::@field::it
+            type: int
+        constructors
+          @15
+            reference: self::@extensionType::E::@def::0::@constructor::new
+            parameters
+              requiredPositional final this.it @21
+                type: int
+                field: self::@extensionType::E::@def::0::@field::it
+        accessors
+          synthetic get it @-1
+            reference: self::@extensionType::E::@def::0::@getter::it
+            returnType: int
+      E @43
+        reference: self::@extensionType::E::@def::1
+        representation: self::@extensionType::E::@def::1::@field::it
+        primaryConstructor: self::@extensionType::E::@def::1::@constructor::new
+        typeErasure: double
+        interfaces
+          Object
+        fields
+          final it @52
+            reference: self::@extensionType::E::@def::1::@field::it
+            type: double
+        constructors
+          @43
+            reference: self::@extensionType::E::@def::1::@constructor::new
+            parameters
+              requiredPositional final this.it @52
+                type: double
+                field: self::@extensionType::E::@def::1::@field::it
+        accessors
+          synthetic get it @-1
+            reference: self::@extensionType::E::@def::1::@getter::it
+            returnType: double
 ''');
   }
 
@@ -23488,22 +24086,52 @@ void f() {}
 void f(int a) {}
 void f([int b, double c]) {}
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     functions
       f @5
+        reference: self::@function::f::@def::0
         returnType: void
       f @17
+        reference: self::@function::f::@def::1
         parameters
           requiredPositional a @23
             type: int
         returnType: void
       f @34
+        reference: self::@function::f::@def::2
         parameters
           optionalPositional default b @41
             type: int
           optionalPositional default c @51
+            type: double
+        returnType: void
+''');
+  }
+
+  test_duplicateDeclaration_function_namedParameter() async {
+    var library = await buildLibrary(r'''
+void f({int a, double a}) {}
+''');
+    configuration.withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    functions
+      f @5
+        reference: self::@function::f
+        parameters
+          optionalNamed default a @12
+            reference: self::@function::f::@parameter::a::@def::0
+            type: int
+          optionalNamed default a @22
+            reference: self::@function::f::@parameter::a::@def::1
             type: double
         returnType: void
 ''');
@@ -23515,15 +24143,20 @@ typedef void F();
 typedef void F(int a);
 typedef void F([int b, double c]);
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     typeAliases
       functionTypeAliasBased F @13
+        reference: self::@typeAlias::F::@def::0
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
           returnType: void
       functionTypeAliasBased F @31
+        reference: self::@typeAlias::F::@def::1
         aliasedType: void Function(int)
         aliasedElement: GenericFunctionTypeElement
           parameters
@@ -23531,6 +24164,7 @@ library
               type: int
           returnType: void
       functionTypeAliasBased F @54
+        reference: self::@typeAlias::F::@def::2
         aliasedType: void Function([int, double])
         aliasedElement: GenericFunctionTypeElement
           parameters
@@ -23552,38 +24186,50 @@ mixin A {
   var y = 0;
 }
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     mixins
       mixin A @6
+        reference: self::@mixin::A::@def::0
         superclassConstraints
           Object
       mixin A @17
+        reference: self::@mixin::A::@def::1
         superclassConstraints
           Object
         fields
           x @27
+            reference: self::@mixin::A::@def::1::@field::x
             type: dynamic
         accessors
           synthetic get x @-1
+            reference: self::@mixin::A::@def::1::@getter::x
             returnType: dynamic
           synthetic set x= @-1
+            reference: self::@mixin::A::@def::1::@setter::x
             parameters
               requiredPositional _x @-1
                 type: dynamic
             returnType: void
       mixin A @38
+        reference: self::@mixin::A::@def::2
         superclassConstraints
           Object
         fields
           y @48
+            reference: self::@mixin::A::@def::2::@field::y
             type: int
             shouldUseTypeForInitializerInference: false
         accessors
           synthetic get y @-1
+            reference: self::@mixin::A::@def::2::@getter::y
             returnType: int
           synthetic set y= @-1
+            reference: self::@mixin::A::@def::2::@setter::y
             parameters
               requiredPositional _y @-1
                 type: int
@@ -23595,52 +24241,160 @@ library
     var library = await buildLibrary(r'''
 bool x;
 var x;
-var x = 1;
+final x = 1;
 var x = 2.3;
 ''');
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     topLevelVariables
       static x @5
+        reference: self::@variable::x::@def::0
         type: bool
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
       static x @12
+        reference: self::@variable::x::@def::1
         type: dynamic
-      static x @19
+        id: variable_1
+        getter: getter_1
+        setter: setter_1
+      static final x @21
+        reference: self::@variable::x::@def::2
         type: int
         shouldUseTypeForInitializerInference: false
-      static x @30
+        id: variable_2
+        getter: getter_2
+      static x @32
+        reference: self::@variable::x::@def::3
         type: double
         shouldUseTypeForInitializerInference: false
+        id: variable_3
+        getter: getter_3
+        setter: setter_2
     accessors
       synthetic static get x @-1
+        reference: self::@getter::x::@def::0
         returnType: bool
+        id: getter_0
+        variable: variable_0
       synthetic static set x= @-1
+        reference: self::@setter::x::@def::0
         parameters
           requiredPositional _x @-1
             type: bool
         returnType: void
+        id: setter_0
+        variable: variable_0
       synthetic static get x @-1
+        reference: self::@getter::x::@def::1
         returnType: dynamic
+        id: getter_1
+        variable: variable_1
       synthetic static set x= @-1
+        reference: self::@setter::x::@def::1
         parameters
           requiredPositional _x @-1
             type: dynamic
         returnType: void
+        id: setter_1
+        variable: variable_1
       synthetic static get x @-1
+        reference: self::@getter::x::@def::2
         returnType: int
-      synthetic static set x= @-1
-        parameters
-          requiredPositional _x @-1
-            type: int
-        returnType: void
+        id: getter_2
+        variable: variable_2
       synthetic static get x @-1
+        reference: self::@getter::x::@def::3
         returnType: double
+        id: getter_3
+        variable: variable_3
       synthetic static set x= @-1
+        reference: self::@setter::x::@def::2
         parameters
           requiredPositional _x @-1
             type: double
         returnType: void
+        id: setter_2
+        variable: variable_3
+''');
+  }
+
+  test_duplicateDeclaration_unit_getter() async {
+    var library = await buildLibrary(r'''
+int get foo {}
+double get foo {}
+''');
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    topLevelVariables
+      synthetic static foo @-1
+        reference: self::@variable::foo
+        type: double
+        id: variable_0
+        getter: getter_0
+    accessors
+      static get foo @8
+        reference: self::@getter::foo::@def::0
+        returnType: int
+        id: getter_1
+        variable: variable_0
+      static get foo @26
+        reference: self::@getter::foo::@def::1
+        returnType: double
+        id: getter_0
+        variable: variable_0
+''');
+  }
+
+  test_duplicateDeclaration_unit_setter() async {
+    var library = await buildLibrary(r'''
+set foo(int _) {}
+set foo(double _) {}
+''');
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  definingUnit
+    reference: self
+    topLevelVariables
+      synthetic static foo @-1
+        reference: self::@variable::foo
+        type: double
+        id: variable_0
+        setter: setter_0
+    accessors
+      static set foo= @4
+        reference: self::@setter::foo::@def::0
+        parameters
+          requiredPositional _ @12
+            type: int
+        returnType: void
+        id: setter_1
+        variable: variable_0
+      static set foo= @22
+        reference: self::@setter::foo::@def::1
+        parameters
+          requiredPositional _ @33
+            type: double
+        returnType: void
+        id: setter_0
+        variable: variable_0
 ''');
   }
 
@@ -24082,14 +24836,19 @@ enum E {
   const E(this.x);
 }
 ''');
+    configuration.withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     enums
       enum E @5
+        reference: self::@enum::E
         supertype: Enum
         fields
           static const enumConstant v @11
+            reference: self::@enum::E::@field::v
             type: E
             shouldUseTypeForInitializerInference: false
             constantInitializer
@@ -24105,6 +24864,7 @@ library
                   rightParenthesis: ) @0
                 staticType: E
           synthetic static const values @-1
+            reference: self::@enum::E::@field::values
             type: List<E>
             constantInitializer
               ListLiteral
@@ -24117,23 +24877,30 @@ library
                 rightBracket: ] @0
                 staticType: List<E>
           final x @26
+            reference: self::@enum::E::@field::x::@def::0
             type: int
           final x @44
+            reference: self::@enum::E::@field::x::@def::1
             type: String
         constructors
           const @55
+            reference: self::@enum::E::@constructor::new
             parameters
               requiredPositional final this.x @62
                 type: int
-                field: self::@enum::E::@field::x
+                field: self::@enum::E::@field::x::@def::0
         accessors
           synthetic static get v @-1
+            reference: self::@enum::E::@getter::v
             returnType: E
           synthetic static get values @-1
+            reference: self::@enum::E::@getter::values
             returnType: List<E>
           synthetic get x @-1
+            reference: self::@enum::E::@getter::x::@def::0
             returnType: int
           synthetic get x @-1
+            reference: self::@enum::E::@getter::x::@def::1
             returnType: String
 ''');
   }
@@ -29224,20 +29991,35 @@ library
   test_implicitTopLevelVariable_getterFirst() async {
     var library =
         await buildLibrary('int get x => 0; void set x(int value) {}');
+    configuration
+      ..withPropertyLinking = true
+      ..withReferences = true;
     checkElementText(library, r'''
 library
+  reference: self
   definingUnit
+    reference: self
     topLevelVariables
       synthetic static x @-1
+        reference: self::@variable::x
         type: int
+        id: variable_0
+        getter: getter_0
+        setter: setter_0
     accessors
       static get x @8
+        reference: self::@getter::x
         returnType: int
+        id: getter_0
+        variable: variable_0
       static set x= @25
+        reference: self::@setter::x
         parameters
           requiredPositional value @31
             type: int
         returnType: void
+        id: setter_0
+        variable: variable_0
 ''');
   }
 
@@ -48451,6 +49233,34 @@ library
 ''');
   }
 
+  test_interfaces_implicitObjectQuestion_fromTypeParameter() async {
+    var library = await buildLibrary(r'''
+extension type A<T>(T it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        typeParameters
+          covariant T @17
+            defaultType: dynamic
+        representation: self::@extensionType::A::@field::it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: T
+        interfaces
+          Object?
+        fields
+          final it @22
+            type: T
+        accessors
+          synthetic get it @-1
+            returnType: T
+''');
+  }
+
   test_interfaces_void() async {
     var library = await buildLibrary(r'''
 typedef A = void;
@@ -48477,6 +49287,44 @@ library
     typeAliases
       A @8
         aliasedType: void
+''');
+  }
+
+  test_isPromotable_representationField_private() async {
+    var library = await buildLibrary(r'''
+extension type A(int? _it) {}
+
+class B {
+  int _it = 0;
+}
+
+class C {
+  int get _it => 0;
+}
+''');
+
+    configuration
+      ..forPromotableFields(extensionTypeNames: {'A'})
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::_it
+        primaryConstructor: self::@extensionType::A::@constructor::new
+        typeErasure: int?
+        interfaces
+          Object?
+        fields
+          final promotable _it @22
+            type: int?
+  fieldNameNonPromotabilityInfo
+    _it
+      conflictingFields
+        self::@class::B::@field::_it
+      conflictingGetters
+        self::@class::C::@getter::_it
 ''');
   }
 
@@ -49229,14 +50077,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49256,8 +50104,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49306,14 +50152,14 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49333,9 +50179,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_2
-                getter: getter_0
-                setter: setter_0
+                id: field_1
                 augmentationTarget: self::@mixin::A::@field::foo
                 augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@fieldAugmentation::foo
     package:test/b.dart
@@ -49347,9 +50191,7 @@ library
               augment foo @61
                 type: int
                 shouldUseTypeForInitializerInference: true
-                id: field_1
-                getter: getter_0
-                setter: setter_0
+                id: field_2
                 augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
 ''');
   }
@@ -49397,7 +50239,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -49406,7 +50248,7 @@ library
                 type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49425,8 +50267,8 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
-                variable: field_1
+                id: getter_1
+                variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
     package:test/b.dart
       definingUnit
@@ -49438,8 +50280,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49488,13 +50328,13 @@ library
           synthetic get foo @-1
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
         augmented
@@ -49518,8 +50358,8 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
-                variable: field_1
+                id: setter_1
+                variable: field_0
                 augmentationTarget: self::@mixin::A::@setter::foo
     package:test/b.dart
       definingUnit
@@ -49531,8 +50371,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49571,16 +50409,16 @@ library
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@fieldAugmentation::foo
         accessors
           synthetic get foo @-1
-            returnType: double
+            returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
           synthetic set foo= @-1
             parameters
               requiredPositional _foo @-1
-                type: double
+                type: int
             returnType: void
             id: setter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49600,8 +50438,6 @@ library
                 type: double
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
-                setter: setter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -49642,7 +50478,7 @@ library
           get foo @45
             returnType: int
             id: getter_0
-            variable: field_1
+            variable: field_0
         augmented
           superclassConstraints
             Object
@@ -49661,7 +50497,6 @@ library
                 type: int
                 shouldUseTypeForInitializerInference: true
                 id: field_1
-                getter: getter_0
                 augmentationTarget: self::@mixin::A::@field::foo
 ''');
   }
@@ -50008,7 +50843,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -50035,7 +50870,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
 ''');
@@ -50083,7 +50918,7 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
           synthetic set foo= @-1
@@ -50111,7 +50946,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
@@ -50123,7 +50958,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
@@ -50166,7 +51001,7 @@ library
         accessors
           get foo1 @45
             returnType: int
-            id: getter_2
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo1
           get foo2 @66
@@ -50191,7 +51026,7 @@ library
             accessors
               augment get foo1 @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo1
 ''');
@@ -50237,7 +51072,7 @@ library
         accessors
           get foo @70
             returnType: int
-            id: getter_1
+            id: getter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
         augmented
@@ -50257,7 +51092,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_2
+                id: getter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@getter::foo
                 augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@getterAugmentation::foo
@@ -50269,7 +51104,7 @@ library
             accessors
               augment get foo @65
                 returnType: int
-                id: getter_0
+                id: getter_2
                 variable: field_0
                 augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
 ''');
@@ -50764,7 +51599,7 @@ library
               requiredPositional _foo @-1
                 type: int
             returnType: void
-            id: setter_1
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo
         augmented
@@ -50787,7 +51622,7 @@ library
                   requiredPositional _ @69
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_1
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@setter::foo
 ''');
@@ -50833,7 +51668,7 @@ library
               requiredPositional _ @50
                 type: int
             returnType: void
-            id: setter_2
+            id: setter_0
             variable: field_0
             augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@setterAugmentation::foo1
           set foo2= @62
@@ -50864,7 +51699,7 @@ library
                   requiredPositional _ @70
                     type: int
                 returnType: void
-                id: setter_0
+                id: setter_2
                 variable: field_0
                 augmentationTarget: self::@mixin::A::@setter::foo1
 ''');
@@ -51368,7 +52203,7 @@ library
     package:test/a.dart
       definingUnit
         mixins
-          augment notSimplyBounded mixin A @43
+          augment mixin A @43
             typeParameters
               covariant T @45
                 bound: A<dynamic>
@@ -51382,6 +52217,7 @@ extension on ElementTextConfiguration {
   void forPromotableFields({
     Set<String> classNames = const {},
     Set<String> enumNames = const {},
+    Set<String> extensionTypeNames = const {},
     Set<String> mixinNames = const {},
     Set<String> fieldNames = const {},
   }) {
@@ -51392,6 +52228,8 @@ extension on ElementTextConfiguration {
         return false;
       } else if (e is EnumElement) {
         return enumNames.contains(e.name);
+      } else if (e is ExtensionTypeElement) {
+        return extensionTypeNames.contains(e.name);
       } else if (e is FieldElement) {
         return fieldNames.isEmpty || fieldNames.contains(e.name);
       } else if (e is MixinElement) {

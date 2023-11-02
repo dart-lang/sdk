@@ -70,9 +70,5 @@
   },
   "sdk/lib/core/errors.dart": {
     "Dynamic access of 'length'.": 2
-  },
-  "sdk/lib/_internal/js_dev_runtime/patch/core_patch.dart": {
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of 'sublist'.": 1
   }
 }

@@ -22,7 +22,7 @@ const snapshots = <String>[
   'dart2wasm',
   'dartdev',
   'dartdevc',
-  'dds',
+  'dds_aot',
   'frontend_server',
   'gen_kernel',
   'kernel-service',

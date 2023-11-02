@@ -1,0 +1,16 @@
+String log = "";
+
+class C {
+  int m1(int v, [String s = "s1"]);
+  int m2(int v, {String s = "s2"});
+  dynamic noSuchMethod(Invocation inv) {}
+}
+
+mixin M {
+  int m1(int v, [String s = "s1"]);
+  int m2(int v, {String s = "s2"});
+  dynamic noSuchMethod(Invocation inv) {}
+}
+class MA = Object with M;
+expect(expected, actual) {}
+main() {}

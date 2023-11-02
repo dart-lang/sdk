@@ -251,94 +251,117 @@ class BarBoz extends core::Object {
     ;
 }
 extension type ET1(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
 extension type ET3(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
 extension type ET5(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ET5|constructor#;
   constructor tearoff • = self::ET5|constructor#_#new#tearOff;
 }
 extension type ET6(self::Bar i) {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET6|constructor#;
   constructor tearoff • = self::ET6|constructor#_#new#tearOff;
 }
 extension type ET7(self::Bar i) {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET7|constructor#;
   constructor tearoff • = self::ET7|constructor#_#new#tearOff;
 }
 extension type ET8(self::Baz i) {
+  abstract inline-class-member representation-field get i() → self::Baz;
   constructor • = self::ET8|constructor#;
   constructor tearoff • = self::ET8|constructor#_#new#tearOff;
 }
 extension type ET9(self::Baz i) {
+  abstract inline-class-member representation-field get i() → self::Baz;
   constructor • = self::ET9|constructor#;
   constructor tearoff • = self::ET9|constructor#_#new#tearOff;
 }
 extension type ET10(self::Boz i) {
+  abstract inline-class-member representation-field get i() → self::Boz;
   constructor • = self::ET10|constructor#;
   constructor tearoff • = self::ET10|constructor#_#new#tearOff;
 }
 extension type ET11(self::Bar i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET11|constructor#;
   constructor tearoff • = self::ET11|constructor#_#new#tearOff;
 }
 extension type ET12(self::Bar i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET12|constructor#;
   constructor tearoff • = self::ET12|constructor#_#new#tearOff;
 }
 extension type ET13(self::Bar i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET13|constructor#;
   constructor tearoff • = self::ET13|constructor#_#new#tearOff;
 }
 extension type ET14(self::Bar i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET14|constructor#;
   constructor tearoff • = self::ET14|constructor#_#new#tearOff;
 }
 extension type ET15(self::Bar i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET15|constructor#;
   constructor tearoff • = self::ET15|constructor#_#new#tearOff;
 }
 extension type ET16(self::Bar i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET16|constructor#;
   constructor tearoff • = self::ET16|constructor#_#new#tearOff;
 }
 extension type ET17(self::Bar i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Bar;
   constructor • = self::ET17|constructor#;
   constructor tearoff • = self::ET17|constructor#_#new#tearOff;
 }
 extension type ET18(self::BarBaz i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::BarBaz;
   constructor • = self::ET18|constructor#;
   constructor tearoff • = self::ET18|constructor#_#new#tearOff;
 }
 extension type ET19(self::BarBaz i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::BarBaz;
   constructor • = self::ET19|constructor#;
   constructor tearoff • = self::ET19|constructor#_#new#tearOff;
 }
 extension type ET20(self::BarBaz i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::BarBaz;
   constructor • = self::ET20|constructor#;
   constructor tearoff • = self::ET20|constructor#_#new#tearOff;
 }
 extension type ET21(self::Boz i) implements self::Bar {
+  abstract inline-class-member representation-field get i() → self::Boz;
   constructor • = self::ET21|constructor#;
   constructor tearoff • = self::ET21|constructor#_#new#tearOff;
 }
 extension type ET22(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ET22|constructor#;
   constructor tearoff • = self::ET22|constructor#_#new#tearOff;
 }
 extension type ET23(core::int i) {
+  abstract inline-class-member representation-field get i() → core::int;
   constructor • = self::ET23|constructor#;
   constructor tearoff • = self::ET23|constructor#_#new#tearOff;
 }

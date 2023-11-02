@@ -10,7 +10,6 @@ import 'analysis_server_test.dart' as analysis_server;
 import 'benchmarks_test.dart' as benchmarks;
 import 'channel/test_all.dart' as channel;
 import 'client/test_all.dart' as client;
-import 'completion_test.dart' as completion;
 import 'domain_analysis_test.dart' as domain_analysis;
 import 'domain_completion_test.dart' as domain_completion;
 import 'domain_diagnostic_test.dart' as domain_experimental;
@@ -41,7 +40,6 @@ void main() {
     benchmarks.main();
     channel.main();
     client.main();
-    completion.main();
     domain_analysis.main();
     domain_completion.main();
     domain_execution.main();

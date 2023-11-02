@@ -91,12 +91,17 @@ class ExpressionEvaluator {
       'libraryUri': buildScopeResponseResult['libraryUri'],
       'klass': buildScopeResponseResult['klass'],
       'method': buildScopeResponseResult['method'],
+      'tokenPos': buildScopeResponseResult['tokenPos'],
       'isStatic': buildScopeResponseResult['isStatic'],
     };
 
     final klass = buildScopeResponseResult['klass'];
     if (klass != null) {
       compileParams['klass'] = klass;
+    }
+    final scriptUri = buildScopeResponseResult['scriptUri'];
+    if (scriptUri != null) {
+      compileParams['scriptUri'] = scriptUri;
     }
     try {
       return (await externalClient.sendRequest(

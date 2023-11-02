@@ -21,50 +21,50 @@ class LocalVariable;
 
 struct FrameLayout {
   // The offset (in words) from FP to the first object.
-  int first_object_from_fp;
+  intptr_t first_object_from_fp;
 
   // The offset (in words) from FP to the last fixed object.
-  int last_fixed_object_from_fp;
+  intptr_t last_fixed_object_from_fp;
 
   // The offset (in words) from FP to the slot past the last parameter.
-  int param_end_from_fp;
+  intptr_t param_end_from_fp;
 
   // The offset (in words) from SP on entry (before frame is setup) to
   // the last parameter.
-  int last_param_from_entry_sp;
+  intptr_t last_param_from_entry_sp;
 
   // The offset (in words) from FP to the first local.
-  int first_local_from_fp;
+  intptr_t first_local_from_fp;
 
   // The fixed size of the frame.
-  int dart_fixed_frame_size;
+  intptr_t dart_fixed_frame_size;
 
   // The offset (in words) from FP to the saved pool (if applicable).
-  int saved_caller_pp_from_fp;
+  intptr_t saved_caller_pp_from_fp;
 
   // The offset (in words) from FP to the saved FP.
-  int saved_caller_fp_from_fp;
+  intptr_t saved_caller_fp_from_fp;
 
   // The offset (in words) from FP to the saved return address.
-  int saved_caller_pc_from_fp;
+  intptr_t saved_caller_pc_from_fp;
 
   // The offset (in words) from FP to the code object (if applicable).
-  int code_from_fp;
+  intptr_t code_from_fp;
 
   // Entry and exit frame layout.
-  int exit_link_slot_from_entry_fp;
+  intptr_t exit_link_slot_from_entry_fp;
 
   // The number of fixed slots below the saved PC.
-  int saved_below_pc() const { return -first_local_from_fp; }
+  intptr_t saved_below_pc() const { return -first_local_from_fp; }
 
   // Returns the FP-relative index where [variable] can be found (assumes
   // [variable] is not captured), in words.
-  int FrameSlotForVariable(const LocalVariable* variable) const;
+  intptr_t FrameSlotForVariable(const LocalVariable* variable) const;
 
   // Returns the FP-relative index where [variable_index] can be found (assumes
   // [variable_index] comes from a [LocalVariable::index()], which is not
   // captured).
-  int FrameSlotForVariableIndex(int index) const;
+  intptr_t FrameSlotForVariableIndex(intptr_t index) const;
 
   // Returns the variable index from a FP-relative index.
   intptr_t VariableIndexForFrameSlot(intptr_t frame_slot) const {

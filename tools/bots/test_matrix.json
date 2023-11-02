@@ -32,7 +32,6 @@
       "tests/ffi_2/",
       "tests/language_2/",
       "tests/lib_2/",
-      "tests/standalone_2/",
       "tests/web_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
@@ -85,7 +84,6 @@
       "tests/ffi_2/",
       "tests/language_2/",
       "tests/lib_2/",
-      "tests/standalone_2/",
       "tests/web_2/",
       "third_party/d8/",
       "third_party/pkg/",
@@ -188,7 +186,6 @@
       "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
-      "tests/standalone_2/",
       "tests/ffi/",
       "tests/ffi_2/",
       "third_party/d8/",
@@ -242,8 +239,9 @@
       "buildtools/mac-x64/clang/bin/llvm-symbolizer",
       "buildtools/win-x64/clang/bin/llvm-symbolizer.exe",
       "third_party/android_tools/sdk/platform-tools/adb",
-      "third_party/android_tools/ndk/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-strip",
-      "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
+      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/../lib/x86_64-unknown-linux-gnu/libc++.so",
+      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-objcopy",
+      "third_party/android_tools/ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
       "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
@@ -274,7 +272,6 @@
       "tests/light_unittest.dart",
       "tests/search/",
       "tests/standalone/",
-      "tests/standalone_2/",
       "tests/ffi/",
       "tests/ffi_2/",
       "pkg/_fe_analyzer_shared/",
@@ -314,7 +311,7 @@
         "use-sdk": true
       }
     },
-    "unittest-asserts-(debug|product|release)-mac-arm64": {
+    "unittest-asserts-(debug|product|release)-(linux|mac|win)-(arm64|x64)": {
       "options": {
         "compiler": "dartk",
         "enable-asserts": true,
@@ -374,15 +371,6 @@
         "compiler": "dartk",
         "enable-asserts": true,
         "mode": "release",
-        "runtime": "vm",
-        "timeout": 240,
-        "use-sdk": true
-      }
-    },
-    "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
-      "options": {
-        "compiler": "dartk",
-        "enable-asserts": true,
         "runtime": "vm",
         "timeout": 240,
         "use-sdk": true
@@ -548,13 +536,13 @@
         "timeout": 240
       }
     },
-    "dart2wasm-(linux|mac|win)-(d8|chrome)": {
+    "dart2wasm-(linux|mac|win)-(d8|chrome|firefox)": {
       "options": {
         "host-checked": true,
         "timeout": 240
       }
     },
-    "dart2wasm-(linux|mac|win)-optimized-(d8|chrome)": {
+    "dart2wasm-(linux|mac|win)-optimized-(d8|chrome|firefox)": {
       "options": {
         "dart2wasm-options": [
           "-O"
@@ -563,7 +551,7 @@
         "timeout": 240
       }
     },
-    "dart2wasm-(linux|mac|win)-jscm-(d8|chrome)": {
+    "dart2wasm-(linux|mac|win)-jscm-(d8|chrome|firefox)": {
       "options": {
         "dart2wasm-options": [
           "--js-compatibility"
@@ -578,7 +566,7 @@
         "use-elf": true
       }
     },
-    "vm-aot-android-(debug|product|release)-(arm|arm64|arm64c)": {
+    "vm-aot-android-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|riscv64)": {
       "options": {
         "use-elf": true
       }
@@ -1033,14 +1021,6 @@
             "--use-qemu",
             "dart_precompiled_runtime",
             "runtime"
-          ]
-        },
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--arch=simriscv64",
-            "gen_snapshot"
           ]
         },
         {
@@ -1707,11 +1687,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime",
-            "create_sdk",
-            "fuchsia_test_package",
-            "fuchsia_ffi_test_package",
-            "fuchsia_ffi_test_package_cfv2"
+            "runtime"
           ]
         },
         {
@@ -1737,10 +1713,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--os=fuchsia",
-            "runtime",
-            "create_sdk",
-            "fuchsia_test_package",
-            "fuchsia_ffi_test_package"
+            "runtime"
           ]
         }
       ]
@@ -1757,6 +1730,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "runtime"
           ]
         },
@@ -1766,7 +1740,7 @@
             "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 4
         }
       ]
     },
@@ -1782,6 +1756,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "dart_precompiled_runtime",
             "gen_snapshot",
             "runtime"
@@ -1793,7 +1768,7 @@
             "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 4
         }
       ]
     },
@@ -2503,7 +2478,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 13,
@@ -2537,7 +2512,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 12,
@@ -2570,7 +2545,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 6,
@@ -2610,7 +2585,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect|js_ast)",
             "web"
           ],
           "shards": 6,
@@ -2623,7 +2598,7 @@
             "corelib",
             "language",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 6,
@@ -2668,7 +2643,7 @@
             "language",
             "lib",
             "observatory_ui",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 6,
@@ -2708,7 +2683,7 @@
             "-ndart2js-hostasserts-linux-chrome-unsound",
             "co19",
             "lib",
-            "pkg",
+            "pkg/(dart2js_runtime_metrics|expect)",
             "web"
           ],
           "shards": 10,
@@ -2732,7 +2707,8 @@
     {
       "builders": [
         "dart2wasm-linux-chrome",
-        "dart2wasm-linux-d8"
+        "dart2wasm-linux-d8",
+        "dart2wasm-linux-firefox"
       ],
       "meta": {
         "description": "dart2wasm tests"
@@ -3001,12 +2977,15 @@
     },
     {
       "builders": [
+        "pkg-linux-debug",
         "pkg-linux-release",
-        "pkg-win-release",
-        "pkg-mac-release"
+        "pkg-linux-release-arm64",
+        "pkg-mac-release",
+        "pkg-mac-release-arm64",
+        "pkg-win-release"
       ],
       "meta": {
-        "description": "This configuration is used by the release pkg builders."
+        "description": "This configuration is used by the pkg builders."
       },
       "steps": [
         {
@@ -3026,7 +3005,7 @@
         },
         {
           "name": "validate SDK API docs",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "script": "${build_root}/dart-sdk/bin/dart",
           "arguments": [
             "doc",
             "--sdk-docs",
@@ -3036,7 +3015,7 @@
         },
         {
           "name": "validate SDK API doc code samples",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "script": "${build_root}/dart-sdk/bin/dart",
           "arguments": [
             "tools/verify_docs/bin/verify_docs.dart",
             "dart:_http",
@@ -3055,7 +3034,7 @@
         },
         {
           "name": "validate SDK API data-driven fixes",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "script": "${build_root}/dart-sdk/bin/dart",
           "arguments": [
             "fix",
             "--suppress-analytics",
@@ -3065,7 +3044,7 @@
         },
         {
           "name": "analyze pkg/",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "script": "${build_root}/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
@@ -3076,7 +3055,7 @@
         {
           "name": "third_party tested packages",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
+            "-nunittest-asserts-${mode}-${system}-${arch}",
             "dart_style",
             "native_assets_builder",
             "native_assets_cli",
@@ -3089,12 +3068,13 @@
           "name": "pub integration tests",
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
-            "--mode=release"
+            "--mode=${mode}",
+            "--arch=${arch}"
           ]
         },
         {
           "name": "analyze tools/",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "script": "${build_root}/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
             "--suppress-analytics",
@@ -3105,7 +3085,7 @@
         {
           "name": "package unit tests",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
+            "-nunittest-asserts-${mode}-${system}-${arch}",
             "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets)/)"
           ],
           "shards": 3,
@@ -3115,12 +3095,19 @@
     },
     {
       "builders": [
-        "pkg-mac-release-arm64"
+        "pkg-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is used by the macOS arm64 pkg builders."
+          "description": "This configuration is used by the pkg builders, no shards."
       },
       "steps": [
+        {
+          "name": "validate pkg/ pubspec files",
+          "script": "tools/sdks/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/package_deps/bin/package_deps.dart"
+          ]
+        },
         {
           "name": "build dart",
           "script": "tools/build.py",
@@ -3130,72 +3117,89 @@
           ]
         },
         {
-          "name": "package unit tests",
+          "name": "validate SDK API docs",
+          "script": "${build_root}/dart-sdk/bin/dart",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}-arm64",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+            "doc",
+            "--sdk-docs",
+            "--dry-run",
+            "--verbose"
+          ]
+        },
+        {
+          "name": "validate SDK API doc code samples",
+          "script": "${build_root}/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/verify_docs/bin/verify_docs.dart",
+            "dart:_http",
+            "dart:_internal",
+            "dart:_wasm",
+            "dart:cli",
+            "dart:convert",
+            "dart:developer",
+            "dart:ffi",
+            "dart:isolate",
+            "dart:js",
+            "dart:js_util",
+            "dart:math",
+            "dart:mirrors"
+          ]
+        },
+        {
+          "name": "validate SDK API data-driven fixes",
+          "script": "${build_root}/dart-sdk/bin/dart",
+          "arguments": [
+            "fix",
+            "--suppress-analytics",
+            "--compare-to-golden",
+            "tests/lib/fix_data_tests"
+          ]
+        },
+        {
+          "name": "analyze pkg/",
+          "script": "${build_root}/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--suppress-analytics",
+            "--fatal-infos",
+            "pkg"
           ]
         },
         {
           "name": "third_party tested packages",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}-arm64",
-            "native_toolchain_c",
+            "-nunittest-asserts-${mode}-${system}-${arch}",
             "dart_style",
             "native_assets_builder",
             "native_assets_cli",
-            "package_config"
+            "native_toolchain_c",
+            "package_config",
+            "pkg/pkg/dartdev/test/native_assets"
           ]
         },
         {
           "name": "pub integration tests",
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
-            "--mode=release",
-            "--arch=arm64"
+            "--mode=${mode}",
+            "--arch=${arch}"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "pkg-linux-debug"
-      ],
-      "meta": {
-        "description": "This configuration is used by the debug pkg builders."
-      },
-      "steps": [
+        },
         {
-          "name": "build dart",
-          "script": "tools/build.py",
+          "name": "analyze tools/",
+          "script": "${build_root}/dart-sdk/bin/dart",
           "arguments": [
-            "create_sdk",
-            "ddc_stable_test"
+            "analyze",
+            "--suppress-analytics",
+            "--fatal-infos",
+            "tools"
           ]
         },
         {
           "name": "package unit tests",
           "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
-          ]
-        },
-        {
-          "name": "third_party tested packages",
-          "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
-            "native_toolchain_c",
-            "dart_style",
-            "native_assets_builder",
-            "native_assets_cli",
-            "package_config"
-          ]
-        },
-        {
-          "name": "pub integration tests",
-          "script": "tools/bots/pub_integration_test.py",
-          "arguments": [
-            "--mode=debug"
+            "-nunittest-asserts-${mode}-${system}-${arch}",
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets)/)"
           ]
         }
       ]

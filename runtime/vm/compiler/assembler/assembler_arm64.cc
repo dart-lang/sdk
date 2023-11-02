@@ -434,6 +434,34 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
   }
 }
 
+void Assembler::StoreWordToPoolIndex(Register src,
+                                     intptr_t index,
+                                     Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
+  ASSERT(src != pp);
+  Operand op;
+  // PP is _un_tagged on ARM64.
+  const uint32_t offset = target::ObjectPool::element_offset(index);
+  const uint32_t upper20 = offset & 0xfffff000;
+  if (Address::CanHoldOffset(offset)) {
+    str(src, Address(pp, offset));
+  } else if (Operand::CanHold(upper20, kXRegSizeInBits, &op) ==
+             Operand::Immediate) {
+    const uint32_t lower12 = offset & 0x00000fff;
+    ASSERT(Address::CanHoldOffset(lower12));
+    add(TMP, pp, op);
+    str(src, Address(TMP, lower12));
+  } else {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(TMP, Immediate(offset_low), 0);
+    if (offset_high != 0) {
+      movk(TMP, Immediate(offset_high), 1);
+    }
+    str(src, Address(pp, TMP));
+  }
+}
+
 void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
                                             Register upper,
                                             intptr_t index) {
@@ -709,11 +737,13 @@ void Assembler::Branch(const Code& target,
   br(TMP);
 }
 
-void Assembler::BranchLink(const Code& target,
-                           ObjectPoolBuilderEntry::Patchability patchable,
-                           CodeEntryKind entry_kind) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
+void Assembler::BranchLink(
+    const Code& target,
+    ObjectPoolBuilderEntry::Patchability patchable,
+    CodeEntryKind entry_kind,
+    ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
+  const intptr_t index = object_pool_builder().FindObject(
+      ToObject(target), patchable, snapshot_behavior);
   LoadWordFromPoolIndex(CODE_REG, index);
   Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
 }
@@ -998,7 +1028,7 @@ void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   ldr(dest, slot);
 #else
-  ldr(dest, slot, kUnsignedFourBytes);  // Zero-extension.
+  ldr(dest, slot, kUnsignedFourBytes);                     // Zero-extension.
 #endif
 #if defined(DEBUG)
   Label done;

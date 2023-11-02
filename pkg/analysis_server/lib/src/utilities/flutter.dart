@@ -82,7 +82,7 @@ class Flutter {
       String Function(int) getIndent,
       String Function(int, int) getText,
       String Function(String, String, String,
-              {bool includeLeading, bool includeTrailingNewline})
+              {bool includeLeading, bool ensureTrailingNewline})
           replaceSourceIndent,
       SourceRange Function(Expression) rangeNode) {
     var childLoc = namedExp.offset + 'child'.length;
@@ -113,8 +113,6 @@ class Flutter {
         childArgSrc,
         indentOld,
         indentNew,
-        includeLeading: false,
-        includeTrailingNewline: false,
       );
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);

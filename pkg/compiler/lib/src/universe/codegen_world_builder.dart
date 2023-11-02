@@ -618,7 +618,7 @@ class CodegenWorldImpl implements CodegenWorld {
   final JClosedWorld _closedWorld;
 
   final Map<MemberEntity, MemberUsage> _liveMemberUsage;
-  final Set<MemberEntity> _reachableLateMembers;
+  final Set<MemberEntity> _reachableLazyMemberBodies;
 
   @override
   final Iterable<DartType> constTypeLiterals;
@@ -680,7 +680,7 @@ class CodegenWorldImpl implements CodegenWorld {
       required Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
       required Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
       required this.oneShotInterceptorData})
-      : _reachableLateMembers = processedEntities
+      : _reachableLazyMemberBodies = processedEntities
             .where((e) => e is JGeneratorBody || e is JConstructorBody)
             .toSet(),
         _compiledConstants = compiledConstants,
@@ -924,6 +924,6 @@ class CodegenWorldImpl implements CodegenWorld {
 
   @override
   bool isLateMemberReachable(MemberEntity member) {
-    return _reachableLateMembers.contains(member);
+    return _reachableLazyMemberBodies.contains(member);
   }
 }

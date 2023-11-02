@@ -61,6 +61,9 @@ class Flags {
 
   static const String experimentNewRti = '--experiment-new-rti';
 
+  static const String experimentNullSafetyChecks =
+      '--experiment-null-safety-checks';
+
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';

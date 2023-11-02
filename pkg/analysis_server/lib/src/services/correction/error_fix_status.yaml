@@ -217,6 +217,12 @@ CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
   status: noFix
 CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_IMPORT:
+  status: needsFix
+  notes: |-
+    The fix is to add `import augment`.
+CompileTimeErrorCode.AUGMENTATION_WITHOUT_LIBRARY:
+  status: noFix
 CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
   status: needsFix
   notes: |-
@@ -272,7 +278,9 @@ CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED:
     The typical fix, when someone thought a termination was not needed, is to
     add a break.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
-  status: noFix
+  status: needsFix
+  notes: |-
+    The fix could be to change the switch expression to an if statement.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
   status: noFix
 CompileTimeErrorCode.CAST_TO_NON_TYPE:
@@ -331,6 +339,8 @@ CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD:
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES:
   status: noFix
+CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER:
+  status: needsEvaluation
 CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD:
   status: noFix
   notes: |-
@@ -674,6 +684,8 @@ CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
 CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
   status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
   status: needsFix
@@ -1478,6 +1490,12 @@ CompileTimeErrorCode.SUPER_IN_EXTENSION:
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what function they were trying to invoke
     and why in order to really fix the issue.
+CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE:
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what function they were trying to invoke
+    and why in order to really fix the issue.
 CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
   status: noFix
   notes: |-
@@ -1971,6 +1989,8 @@ LintCode.avoid_types_on_closure_parameters:
   status: hasFix
 LintCode.avoid_unnecessary_containers:
   status: hasFix
+LintCode.avoid_unstable_final_fields:
+  status: noFix
 LintCode.avoid_unused_constructor_parameters:
   status: hasFix
 LintCode.avoid_void_async:
@@ -2000,7 +2020,7 @@ LintCode.collection_methods_unrelated_type:
 LintCode.combinators_ordering:
   status: hasFix
 LintCode.comment_references:
-  status: noFix
+  status: hasFix
   notes: |-
     This lint should be deprecated when we have a doc-only form of import. At
     that point this will be a warning rather than a lint.
@@ -2027,13 +2047,9 @@ LintCode.deprecated_consistency:
   notes: |-
     The fix is to either remove deprecated or to add it in the missing places.
 LintCode.deprecated_member_use_from_same_package:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
+  status: hasFix
 LintCode.deprecated_member_use_from_same_package_with_message:
-  status: needsFix
-  notes: |-
-    Should probably be able to use `DataDriven`.
+  status: hasFix
 LintCode.diagnostic_describe_all_properties:
   status: hasFix
 LintCode.directives_ordering:
@@ -2054,6 +2070,8 @@ LintCode.enable_null_safety:
     Removed.
 LintCode.eol_at_end_of_file:
   status: hasFix
+LintCode.erase_dart_type_extension_types:
+  status: needsEvaluation
 LintCode.exhaustive_cases:
   status: hasFix
 LintCode.file_names:
@@ -3210,6 +3228,10 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
 ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
   status: needsFix
   notes: Remove it.
+ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
+  status: needsFix
+  notes: |-
+    Remove the comma.
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
@@ -3352,6 +3374,8 @@ PubspecWarningCode.INVALID_DEPENDENCY:
   status: noFix
 PubspecWarningCode.INVALID_PLATFORMS_FIELD:
   status: needsEvaluation
+PubspecWarningCode.MISSING_DEPENDENCY:
+  status: noFix
 PubspecWarningCode.MISSING_NAME:
   status: noFix
   since: ~2.15

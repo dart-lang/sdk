@@ -42,7 +42,7 @@ import "dart:core" as core;
 class E1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
   enum-element static const field self::E1 element = const self::E1::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E1
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -51,7 +51,7 @@ class E1 extends core::_Enum /*isEnum*/  {
 class E2<values extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E2<dynamic>> values = const <self::E2<dynamic>>[self::E2::element];
   enum-element static const field self::E2<dynamic> element = const self::E2::•<dynamic>(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E2<self::E2::values%>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2<self::E2::values%>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -60,7 +60,7 @@ class E2<values extends core::Object? = dynamic> extends core::_Enum /*isEnum*/ 
 class E3<element extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   static const field core::List<self::E3<dynamic>> values = const <self::E3<dynamic>>[self::E3::element];
   enum-element static const field self::E3<dynamic> element = const self::E3::•<dynamic>(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::E3<self::E3::element%>
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3<self::E3::element%>
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -69,7 +69,7 @@ class E3<element extends core::Object? = dynamic> extends core::_Enum /*isEnum*/
 class values extends core::_Enum /*isEnum*/  {
   static const field core::List<self::values> values = const <self::values>[self::values::element];
   enum-element static const field self::values element = const self::values::•(0, "element");
-  const constructor •(core::int #index, core::String #name) → self::values
+  const synthetic constructor •(core::int #index, core::String #name) → self::values
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

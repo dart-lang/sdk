@@ -1,0 +1,8 @@
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    # still 1 error in lib/src/vm_service_interface.dart
+    - comment_references
+    - directives_ordering
+    - prefer_single_quotes

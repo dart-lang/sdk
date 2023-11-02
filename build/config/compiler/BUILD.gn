@@ -360,14 +360,6 @@ config("compiler") {
       "-funwind-tables",
       "-fno-short-enums",
     ]
-    if (!is_clang) {
-      # Clang doesn't support these flags.
-      cflags += [ "-finline-limit=64" ]
-    }
-    if (current_cpu == "arm64") {
-      # TODO (https://github.com/flutter/flutter/issues/75348).
-      cflags += [ "-mno-outline-atomics" ]
-    }
     if (is_asan) {
       # Android build relies on -Wl,--gc-sections removing unreachable code.
       # ASan instrumentation for globals inhibits this and results in a library
@@ -382,20 +374,10 @@ config("compiler") {
     # to say that it does. Define them here instead.
     defines += [ "HAVE_SYS_UIO_H" ]
 
-    # Use gold for Android for most CPU architectures.
-    if (is_clang) {
-      # Let clang find the ld.gold in the NDK.
-      toolchain_root = rebase_path(android_toolchain_root, root_build_dir)
-      ldflags += [ "--gcc-toolchain=$toolchain_root" ]
-    }
-
     ldflags += [
       # Don't allow visible symbols from libgcc or libc++ to be
       # re-exported.
-      "-Wl,--exclude-libs=libgcc.a",
       "-Wl,--exclude-libs=libc++_static.a",
-
-      "-fuse-ld=lld",
 
       # Currently defaults to 4k, but Android will be moving to 16k page size,
       # and for future-proofing, 64k boundaries will be required.
@@ -404,17 +386,20 @@ config("compiler") {
 
     if (is_clang) {
       if (current_cpu == "arm") {
-        cflags += [ "--target=arm-linux-androideabi" ]
-        ldflags += [ "--target=arm-linux-androideabi" ]
+        cflags += [ "--target=arm-linux-androideabi${android_api_level}" ]
+        ldflags += [ "--target=arm-linux-androideabi${android_api_level}" ]
       } else if (current_cpu == "arm64") {
-        cflags += [ "--target=aarch64-linux-android" ]
-        ldflags += [ "--target=aarch64-linux-android" ]
+        cflags += [ "--target=aarch64-linux-android${android_api_level}" ]
+        ldflags += [ "--target=aarch64-linux-android${android_api_level}" ]
       } else if (current_cpu == "x86") {
-        cflags += [ "--target=i686-linux-androideabi" ]
-        ldflags += [ "--target=i686-linux-androideabi" ]
+        cflags += [ "--target=i686-linux-androideabi${android_api_level}" ]
+        ldflags += [ "--target=i686-linux-androideabi${android_api_level}" ]
       } else if (current_cpu == "x64") {
-        cflags += [ "--target=x86_64-linux-androideabi" ]
-        ldflags += [ "--target=x86_64-linux-androideabi" ]
+        cflags += [ "--target=x86_64-linux-androideabi${android_api_level}" ]
+        ldflags += [ "--target=x86_64-linux-androideabi${android_api_level}" ]
+      } else if (current_cpu == "riscv64") {
+        cflags += [ "--target=riscv64-linux-android${android_api_level}" ]
+        ldflags += [ "--target=riscv64-linux-android${android_api_level}" ]
       }
     }
   }
@@ -584,46 +569,17 @@ config("runtime_library") {
     ]
   } else if (is_android) {
     # Android standard library setup.
-    if (is_clang) {
-      # Work around incompatibilities between bionic and clang headers.
-      defines += [ "__compiler_offsetof=__builtin_offsetof" ]
-    }
-
-    defines += [ "__GNU_SOURCE=1" ]  # Necessary for clone().
 
     ldflags += [
       "-Wl,--warn-shared-textrel",
-      "-nostdlib",
+      "-static-libstdc++",
     ]
 
-    cflags += [ "-D__ANDROID_API__=$android_api_level" ]
-
-    lib_dirs += [ "$android_libcpp_root/libs/$android_app_abi" ]
-
     libs += [
-      "$android_libcpp_library",
-      "c++abi",
-    ]
-
-    if (android_api_level < 21) {
-      libs += [ "android_support" ]
-    }
-
-    if (current_cpu == "arm") {
-      libs += [ "unwind" ]
-    }
-
-    libs += [
-      "gcc",
       "c",
       "dl",
       "m",
     ]
-
-    # Clang with libc++ does not require an explicit atomic library reference.
-    if (!is_clang) {
-      libs += [ "atomic" ]
-    }
   }
 }
 

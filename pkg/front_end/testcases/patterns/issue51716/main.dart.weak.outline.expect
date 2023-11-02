@@ -11,7 +11,7 @@ class Main1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Main1> values = const <self::Main1>[self::Main1::a, self::Main1::b];
   enum-element static const field self::Main1 a = const self::Main1::•(0, "a");
   enum-element static const field self::Main1 b = const self::Main1::•(1, "b");
-  const constructor •(core::int #index, core::String #name) → self::Main1
+  const synthetic constructor •(core::int #index, core::String #name) → self::Main1
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -21,7 +21,7 @@ class Main2 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Main2> values = const <self::Main2>[self::Main2::a, self::Main2::b];
   enum-element static const field self::Main2 a = const self::Main2::•(0, "a");
   enum-element static const field self::Main2 b = const self::Main2::•(1, "b");
-  const constructor •(core::int #index, core::String #name) → self::Main2
+  const synthetic constructor •(core::int #index, core::String #name) → self::Main2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -47,7 +47,7 @@ class Lib1a extends core::_Enum /*isEnum*/  {
   static const field core::List<mai::Lib1a> values = const <mai::Lib1a>[mai::Lib1a::a, mai::Lib1a::b];
   enum-element static const field mai::Lib1a a = const mai::Lib1a::•(0, "a");
   enum-element static const field mai::Lib1a b = const mai::Lib1a::•(1, "b");
-  const constructor •(core::int #index, core::String #name) → mai::Lib1a
+  const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1a
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -57,7 +57,7 @@ class Lib1b extends core::_Enum /*isEnum*/  {
   static const field core::List<mai::Lib1b> values = const <mai::Lib1b>[mai::Lib1b::a, mai::Lib1b::b];
   enum-element static const field mai::Lib1b a = const mai::Lib1b::•(0, "a");
   enum-element static const field mai::Lib1b b = const mai::Lib1b::•(1, "b");
-  const constructor •(core::int #index, core::String #name) → mai::Lib1b
+  const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1b
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String
@@ -78,7 +78,7 @@ class Lib2 extends core::_Enum /*isEnum*/  {
   static const field core::List<mai2::Lib2> values = #C7;
   enum-element static const field mai2::Lib2 a = #C3;
   enum-element static const field mai2::Lib2 b = #C6;
-  const constructor •(core::int #index, core::String #name) → mai2::Lib2
+  const synthetic constructor •(core::int #index, core::String #name) → mai2::Lib2
     : super core::_Enum::•(#index, #name)
     ;
   method _enumToString() → core::String

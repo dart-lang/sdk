@@ -524,8 +524,6 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                   code,
                   indentOld,
                   indentNew,
-                  includeLeading: false,
-                  includeTrailingNewline: false,
                 );
 
                 builder.writeln('{');
@@ -540,8 +538,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
                 var indentNew = '    ';
 
                 var code = utils.getRangeText(_statementsRange!);
-                code = utils.replaceSourceIndent(code, indentOld, indentNew,
-                    includeLeading: false, includeTrailingNewline: false);
+                code = utils.replaceSourceIndent(code, indentOld, indentNew);
 
                 builder.writeln('{');
 

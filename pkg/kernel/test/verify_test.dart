@@ -262,9 +262,7 @@ void main() {
     (TestHarness test) {
       Field orphan = new Field.mutable(new Name('foo'), fileUri: dummyUri)
         ..fileOffset = dummyFileOffset;
-      test.addNode(new InstanceGet(
-          InstanceAccessKind.Instance, new NullLiteral(), orphan.name,
-          interfaceTarget: orphan, resultType: orphan.getterType));
+      test.addNode(new StaticGet(orphan));
       return orphan;
     },
     (Node? node) =>

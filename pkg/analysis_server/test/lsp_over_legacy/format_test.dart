@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../lsp/request_helpers_mixin.dart';
 import 'abstract_lsp_over_legacy.dart';
 
 void main() {
@@ -14,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class FormatTest extends LspOverLegacyTest {
+class FormatTest extends LspOverLegacyTest with LspEditHelpersMixin {
   Future<void> test_format() async {
     const content = 'void     main() {}';
     const expectedContent = 'void main() {}';

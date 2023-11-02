@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -550,6 +551,9 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  ElementKind get kind => ElementKind.CLASS;
+
+  @override
   set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
@@ -670,6 +674,13 @@ class ClassElementImpl extends ClassOrMixinElementImpl
               // ignore: deprecated_member_use_from_same_package
               parameterKind: superParameter.parameterKind,
             )..constantInitializer = constVariable.constantInitializer;
+            if (superParameter.isNamed) {
+              final reference = implicitReference
+                  .getChild('@parameter')
+                  .getChild(implicitParameter.name);
+              implicitParameter.reference = reference;
+              reference.element = implicitParameter;
+            }
           } else {
             implicitParameter = ParameterElementImpl(
               name: superParameter.name,
@@ -734,15 +745,11 @@ abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   set isBase(bool isBase) {
     setModifier(Modifier.BASE, isBase);
   }
-
-  /// TODO(scheglov) Do we need a separate kind for `MixinElement`?
-  @override
-  ElementKind get kind => ElementKind.CLASS;
 }
 
 /// A concrete implementation of a [CompilationUnitElement].
 class CompilationUnitElementImpl extends UriReferencedElementImpl
-    implements CompilationUnitElement, MacroTargetElementContainer {
+    implements CompilationUnitElement {
   /// The source that corresponds to this compilation unit.
   @override
   final Source source;
@@ -2058,6 +2065,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasImmutable {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isImmutable) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasInternal {
     final metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -2730,7 +2749,7 @@ class EnumElementImpl extends InterfaceElementImpl
 
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, MacroTargetElement
     implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
@@ -2790,6 +2809,15 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// Set whether this executable element's body is asynchronous.
   set isAsynchronous(bool isAsynchronous) {
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
+  }
+
+  @override
+  bool get isExtensionTypeMember {
+    return hasModifier(Modifier.EXTENSION_TYPE_MEMBER);
+  }
+
+  set isExtensionTypeMember(bool value) {
+    setModifier(Modifier.EXTENSION_TYPE_MEMBER, value);
   }
 
   @override
@@ -3377,7 +3405,7 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, MacroTargetElement
     implements InstanceElement {
   @override
   ElementLinkedData? linkedData;
@@ -3466,7 +3494,6 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    with MacroTargetElement
     implements InterfaceElement {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -3487,6 +3514,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
   bool hasBeenInferred = false;
+
+  /// The non-nullable instance of this element, without alias.
+  /// Should be used only when the element has no type parameters.
+  InterfaceType? _nonNullableInstance;
+
+  /// The nullable instance of this element, without alias.
+  /// Should be used only when the element has no type parameters.
+  InterfaceType? _nullableInstance;
 
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
@@ -3674,11 +3709,41 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return InterfaceTypeImpl(
+    assert(typeArguments.length == typeParameters.length);
+
+    if (typeArguments.isEmpty) {
+      switch (nullabilitySuffix) {
+        case NullabilitySuffix.none:
+          if (_nonNullableInstance case final instance?) {
+            return instance;
+          }
+        case NullabilitySuffix.question:
+          if (_nullableInstance case final instance?) {
+            return instance;
+          }
+        case NullabilitySuffix.star:
+          break;
+      }
+    }
+
+    final result = InterfaceTypeImpl(
       element: this,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
+
+    if (typeArguments.isEmpty) {
+      switch (nullabilitySuffix) {
+        case NullabilitySuffix.none:
+          _nonNullableInstance = result;
+        case NullabilitySuffix.question:
+          _nullableInstance = result;
+        case NullabilitySuffix.star:
+          break;
+      }
+    }
+
+    return result;
   }
 
   @override
@@ -4110,9 +4175,14 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   /// The macro executor for the bundle to which this library belongs.
   BundleMacroExecutor? bundleMacroExecutor;
 
-  /// All augmentations of this library, in the depth-first pre-order order.
-  late final List<LibraryAugmentationElementImpl> augmentations =
-      _computeAugmentations();
+  /// Information about why non-promotable private fields in the library are not
+  /// promotable.
+  ///
+  /// See [fieldNameNonPromotabilityInfo].
+  Map<String, FieldNameNonPromotabilityInfo>? _fieldNameNonPromotabilityInfo;
+
+  /// The cache for [augmentations].
+  List<LibraryAugmentationElementImpl>? _augmentations;
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
@@ -4128,6 +4198,17 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   List<AugmentationImportElementImpl> get augmentationImports {
     _readLinkedData();
     return super.augmentationImports;
+  }
+
+  @override
+  set augmentationImports(List<AugmentationImportElementImpl> imports) {
+    super.augmentationImports = imports;
+    _augmentations = null;
+  }
+
+  /// All augmentations of this library, in the depth-first pre-order order.
+  List<LibraryAugmentationElementImpl> get augmentations {
+    return _augmentations ??= _computeAugmentations();
   }
 
   @override
@@ -4163,22 +4244,44 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   @override
   Namespace get exportNamespace {
-    if (_exportNamespace != null) return _exportNamespace!;
-
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      var elements = linkedData.elementFactory;
-      return _exportNamespace = elements.buildExportNamespace(
-        source.uri,
-        exportedReferences,
-      );
-    }
-
-    return _exportNamespace!;
+    linkedData?.read(this);
+    return _exportNamespace ??= Namespace({});
   }
 
   set exportNamespace(Namespace exportNamespace) {
     _exportNamespace = exportNamespace;
+  }
+
+  /// Information about why non-promotable private fields in the library are not
+  /// promotable.
+  ///
+  /// If field promotion is not enabled in this library, this field is still
+  /// populated, so that the analyzer can figure out whether enabling field
+  /// promotion would cause a field to be promotable.
+  ///
+  /// There are two ways an access to a private property name might not be
+  /// promotable: the property might be non-promotable for a reason inherent to
+  /// itself (e.g. it's declared as a concrete getter rather than a field, or
+  /// it's a non-final field), or the property might have the same name as an
+  /// inherently non-promotable property elsewhere in the same library (in which
+  /// case the inherently non-promotable property is said to be "conflicting").
+  ///
+  /// When a compile-time error occurs because a property is non-promotable due
+  /// conflicting properties elsewhere in the library, the analyzer needs to be
+  /// able to find the conflicting properties in order to generate context
+  /// messages. This data structure allows that, by mapping each non-promotable
+  /// private name to the set of conflicting declarations.
+  ///
+  /// If a field in the library has a private name and that name does not appear
+  /// as a key in this map, the field is promotable.
+  Map<String, FieldNameNonPromotabilityInfo> get fieldNameNonPromotabilityInfo {
+    _readLinkedData();
+    return _fieldNameNonPromotabilityInfo!;
+  }
+
+  set fieldNameNonPromotabilityInfo(
+      Map<String, FieldNameNonPromotabilityInfo>? value) {
+    _fieldNameNonPromotabilityInfo = value;
   }
 
   bool get hasPartOfDirective {
@@ -4664,7 +4767,7 @@ class LibraryImportElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of a [LibraryOrAugmentationElement].
 abstract class LibraryOrAugmentationElementImpl extends ElementImpl
-    implements LibraryOrAugmentationElement, MacroTargetElementContainer {
+    implements LibraryOrAugmentationElement {
   /// The compilation unit that defines this library.
   late CompilationUnitElementImpl _definingCompilationUnit;
 
@@ -4853,9 +4956,6 @@ mixin MacroTargetElement {
   }
 }
 
-/// Marker interface for elements that may have [MacroTargetElement]s.
-class MacroTargetElementContainer {}
-
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
@@ -4966,6 +5066,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  ElementKind get kind => ElementKind.MIXIN;
+
+  @override
   List<InterfaceType> get mixins => const [];
 
   @override
@@ -5046,95 +5149,99 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that the element is an enum constant field.
   static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 9);
 
+  /// Indicates that the element is an extension type member.
+  static const Modifier EXTENSION_TYPE_MEMBER =
+      Modifier('EXTENSION_TYPE_MEMBER', 10);
+
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 10);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 11);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 11);
+  static const Modifier FACTORY = Modifier('FACTORY', 12);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 12);
+  static const Modifier FINAL = Modifier('FINAL', 13);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 13);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 14);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 14);
+  static const Modifier GETTER = Modifier('GETTER', 15);
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 15);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 16);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 16);
+      Modifier('HAS_PART_OF_DIRECTIVE', 17);
 
   /// Indicates that the value of [Element.sinceSdkVersion] was computed.
   static const Modifier HAS_SINCE_SDK_VERSION_COMPUTED =
-      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 17);
+      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 18);
 
   /// [HAS_SINCE_SDK_VERSION_COMPUTED] and the value was not `null`.
   static const Modifier HAS_SINCE_SDK_VERSION_VALUE =
-      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 18);
+      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 19);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 19);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 20);
 
   /// Indicates that the modifier 'inline' was applied to the element.
-  static const Modifier INLINE = Modifier('INLINE', 20);
+  static const Modifier INLINE = Modifier('INLINE', 21);
 
   /// Indicates that the modifier 'interface' was applied to the element.
-  static const Modifier INTERFACE = Modifier('INTERFACE', 21);
+  static const Modifier INTERFACE = Modifier('INTERFACE', 22);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 22);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 23);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 23);
+  static const Modifier LATE = Modifier('LATE', 24);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 24);
+  static const Modifier MACRO = Modifier('MACRO', 25);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 25);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 26);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 26);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 27);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 27);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 28);
 
   /// Indicates whether the type of a [PropertyInducingElementImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
-      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 28);
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 29);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 29);
+  static const Modifier SEALED = Modifier('SEALED', 30);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 30);
+  static const Modifier SETTER = Modifier('SETTER', 31);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 31);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 32);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 32);
+  static const Modifier STATIC = Modifier('STATIC', 33);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 33);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 34);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 34);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 35);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5146,6 +5253,7 @@ class Modifier implements Comparable<Modifier> {
     DEFERRED,
     ENUM,
     ENUM_CONSTANT,
+    EXTENSION_TYPE_MEMBER,
     EXTERNAL,
     FACTORY,
     FINAL,
@@ -5241,6 +5349,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasFactory => false;
+
+  @override
+  bool get hasImmutable => false;
 
   @override
   bool get hasInternal => false;
@@ -6261,6 +6372,19 @@ abstract class PropertyInducingElementImpl
     setModifier(Modifier.SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE, true);
   }
 
+  /// Return `true` if this variable needs the setter.
+  bool get hasSetter {
+    if (isConst) {
+      return false;
+    }
+
+    if (isLate) {
+      return !isFinal || !hasInitializer;
+    }
+
+    return !isFinal;
+  }
+
   @override
   bool get isConstantEvaluated => true;
 
@@ -6336,36 +6460,26 @@ abstract class PropertyInducingElementImpl
     return _type!;
   }
 
-  /// Return `true` if this variable needs the setter.
-  bool get _hasSetter {
-    if (isConst) {
-      return false;
-    }
-
-    if (isLate) {
-      return !isFinal || !hasInitializer;
-    }
-
-    return !isFinal;
-  }
-
   void bindReference(Reference reference) {
     this.reference = reference;
     reference.element = this;
   }
 
-  void createImplicitAccessors(Reference enclosingRef, String name) {
-    getter = PropertyAccessorElementImpl_ImplicitGetter(
+  PropertyAccessorElementImpl createImplicitGetter(Reference reference) {
+    assert(getter == null);
+    return getter = PropertyAccessorElementImpl_ImplicitGetter(
       this,
-      reference: enclosingRef.getChild('@getter').getChild(name),
+      reference: reference,
     );
+  }
 
-    if (_hasSetter) {
-      setter = PropertyAccessorElementImpl_ImplicitSetter(
-        this,
-        reference: enclosingRef.getChild('@setter').getChild(name),
-      );
-    }
+  PropertyAccessorElementImpl createImplicitSetter(Reference reference) {
+    assert(hasSetter);
+    assert(setter == null);
+    return setter = PropertyAccessorElementImpl_ImplicitSetter(
+      this,
+      reference: reference,
+    );
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {

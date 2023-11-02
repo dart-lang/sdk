@@ -16,6 +16,7 @@ dependencies:
   crypto: any
   dart_style: any
   http: any
+  language_server_protocol: any
   leak_tracker: any
   linter: any
   meta: any
@@ -82,6 +83,8 @@ dependency_overrides:
     path: ../../third_party/pkg/intl
   js:
     path: ../js
+  language_server_protocol:
+    path: ../../third_party/pkg/language_server_protocol
   linter:
     path: ../linter
   lints:

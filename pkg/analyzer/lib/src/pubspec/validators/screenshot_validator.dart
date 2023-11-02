@@ -19,7 +19,9 @@ void screenshotsValidator(PubspecValidationContext ctx) {
     return file.exists;
   }
 
-  final screenshots = ctx.contents[PubspecField.SCREENSHOTS_FIELD];
+  final contents = ctx.contents;
+  if (contents is! YamlMap) return;
+  final screenshots = contents[PubspecField.SCREENSHOTS_FIELD];
   if (screenshots is! YamlList) return;
   for (final entry in screenshots) {
     if (entry is! YamlMap) continue;

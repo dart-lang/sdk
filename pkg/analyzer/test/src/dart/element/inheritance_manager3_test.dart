@@ -513,6 +513,9 @@ redeclared
     self::@class::A::@method::foo
   it
     self::@extensionType::B::@getter::it
+inheritedMap
+  foo: self::@extensionType::B::@method::foo
+  it: self::@extensionType::B::@getter::it
 ''');
   }
 
@@ -596,6 +599,8 @@ declared
 redeclared
   foo
     self::@class::A::@method::foo
+inheritedMap
+  foo: self::@class::A::@method::foo
 ''');
   }
 
@@ -625,6 +630,8 @@ declared
 redeclared
   foo
     self::@class::A::@getter::foo
+inheritedMap
+  foo: self::@class::A::@getter::foo
 ''');
   }
 
@@ -658,6 +665,9 @@ redeclared
   it
     self::@extensionType::A1::@getter::it
     self::@extensionType::A2::@getter::it
+inheritedMap
+  foo: self::@extensionType::A1::@method::foo
+  it: self::@extensionType::A1::@getter::it
 ''');
   }
 
@@ -685,6 +695,9 @@ redeclared
     self::@extensionType::A::@method::foo
   it
     self::@extensionType::A::@getter::it
+inheritedMap
+  foo: self::@extensionType::A::@method::foo
+  it: self::@extensionType::A::@getter::it
 ''');
   }
 
@@ -712,6 +725,9 @@ redeclared
     self::@extensionType::A::@getter::foo
   it
     self::@extensionType::A::@getter::it
+inheritedMap
+  foo: self::@extensionType::A::@getter::foo
+  it: self::@extensionType::A::@getter::it
 ''');
   }
 
@@ -790,6 +806,10 @@ redeclared
     MethodMember
       base: self::@class::A::@method::foo
       substitution: {T: int}
+inheritedMap
+  foo: MethodMember
+    base: self::@class::A::@method::foo
+    substitution: {T: int}
 ''');
   }
 
@@ -818,6 +838,9 @@ redeclared
     self::@class::A::@method::foo
   it
     self::@extensionType::B::@getter::it
+inheritedMap
+  foo: self::@extensionType::B::@method::foo
+  it: self::@extensionType::B::@getter::it
 conflicts
   HasExtensionAndNotExtensionMemberConflict
     nonExtension
@@ -848,6 +871,8 @@ declared
 redeclared
   foo
     self::@class::A::@method::foo
+inheritedMap
+  foo: self::@class::A::@method::foo
 ''');
   }
 
@@ -905,6 +930,8 @@ redeclared
   foo
     self::@class::A::@method::foo
     self::@class::B::@method::foo
+inheritedMap
+  foo: self::@class::A::@method::foo
 ''');
   }
 
@@ -933,6 +960,8 @@ declared
 redeclared
   foo
     self::@class::A::@method::foo
+inheritedMap
+  foo: self::@class::A::@method::foo
 ''');
   }
 
@@ -957,6 +986,8 @@ declared
 redeclared
   foo=
     self::@class::A::@setter::foo
+inheritedMap
+  foo=: self::@class::A::@setter::foo
 ''');
   }
 
@@ -987,6 +1018,13 @@ redeclared
     PropertyAccessorMember
       base: self::@extensionType::A::@getter::it
       substitution: {T: int}
+inheritedMap
+  foo: MethodMember
+    base: self::@extensionType::A::@method::foo
+    substitution: {T: int}
+  it: PropertyAccessorMember
+    base: self::@extensionType::A::@getter::it
+    substitution: {T: int}
 ''');
   }
 
@@ -1011,6 +1049,9 @@ redeclared
     self::@extensionType::A::@method::foo
   it
     self::@extensionType::A::@getter::it
+inheritedMap
+  foo: self::@extensionType::A::@method::foo
+  it: self::@extensionType::A::@getter::it
 ''');
   }
 
@@ -1040,6 +1081,9 @@ redeclared
   it
     self::@extensionType::A1::@getter::it
     self::@extensionType::A2::@getter::it
+inheritedMap
+  foo: self::@extensionType::A1::@method::foo
+  it: self::@extensionType::A1::@getter::it
 conflicts
   NotUniqueExtensionMemberConflict
     self::@extensionType::A1::@method::foo
@@ -1073,6 +1117,9 @@ redeclared
   it
     self::@extensionType::B1::@getter::it
     self::@extensionType::B2::@getter::it
+inheritedMap
+  foo: self::@extensionType::A::@method::foo
+  it: self::@extensionType::B1::@getter::it
 ''');
   }
 
@@ -1104,6 +1151,12 @@ redeclared
     dart:core::@class::Object::@getter::runtimeType
   toString
     dart:core::@class::Object::@method::toString
+inheritedMap
+  ==: dart:core::@class::Object::@method::==
+  hashCode: dart:core::@class::Object::@getter::hashCode
+  noSuchMethod: dart:core::@class::Object::@method::noSuchMethod
+  runtimeType: dart:core::@class::Object::@getter::runtimeType
+  toString: dart:core::@class::Object::@method::toString
 ''');
   }
 
@@ -1111,6 +1164,12 @@ redeclared
     final library = element.library;
     final inheritance = library.session.inheritanceManager;
     final interface = inheritance.getInterface(element);
+
+    // Should not throw.
+    inheritance.getInheritedConcreteMap2(element);
+
+    // Ensure that `inheritedMap` field is initialized.
+    inheritance.getInheritedMap2(element);
 
     final buffer = StringBuffer();
     final sink = TreeStringSink(
