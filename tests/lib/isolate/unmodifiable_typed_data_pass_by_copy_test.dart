@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 main() {
   final backing = new Uint8List(1);
-  final original = new UnmodifiableUint8ListView(backing);
+  final original = backing.asUnmodifiableView();
   var port;
   port = new RawReceivePort((copy) {
     port.close();
