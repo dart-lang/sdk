@@ -1035,7 +1035,7 @@ class ServerContextManagerCallbacks
         _notificationManager.recordNavigationParams(
             NotificationManager.serverId,
             path,
-            _computeNavigationParams(path, unit));
+            _computeNavigationParams(path, result));
       });
     }
     if (analysisServer._hasAnalysisServiceSubscription(
@@ -1093,9 +1093,9 @@ class ServerContextManagerCallbacks
   }
 
   server.AnalysisNavigationParams _computeNavigationParams(
-      String path, CompilationUnit unit) {
+      String path, ParsedUnitResult result) {
     var collector = NavigationCollectorImpl();
-    computeDartNavigation(resourceProvider, collector, unit, null, null);
+    computeDartNavigation(resourceProvider, collector, result, null, null);
     collector.createRegions();
     return server.AnalysisNavigationParams(
         path, collector.regions, collector.targets, collector.files);

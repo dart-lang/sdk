@@ -285,7 +285,7 @@ class InfoBuilder {
   List<NavigationSource> _computeNavigationSources(ResolvedUnitResult result) {
     var collector = NavigationCollectorImpl();
     computeDartNavigation(
-        result.session.resourceProvider, collector, result.unit, null, null);
+        result.session.resourceProvider, collector, result, null, null);
     collector.createRegions();
     var files = collector.files;
     var regions = collector.regions;
