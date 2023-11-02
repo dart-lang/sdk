@@ -436,7 +436,6 @@ class Intrinsifier {
       Expression left = node.receiver;
       Expression right = node.arguments.positional.single;
       DartType argType = dartTypeOf(right);
-      if (argType is VoidType) return null;
       w.ValueType leftType = translator.translateType(receiverType);
       w.ValueType rightType = translator.translateType(argType);
       var code = _binaryOperatorMap[leftType]?[rightType]?[name];
