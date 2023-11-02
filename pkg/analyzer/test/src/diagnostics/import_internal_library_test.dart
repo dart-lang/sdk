@@ -30,19 +30,28 @@ import 'dart:_internal';
   }
 
   test_wasm_fromJs() async {
-    var filePath = _pathInPackage('js');
-    final file = newFile(filePath, '''
+    final packageRootPath = _newPackage('js');
+    final file = newFile('$packageRootPath/lib/js.dart', '''
 import 'dart:_wasm';
 ''');
     await resolveFile2(file);
     assertErrorsInResolvedUnit(result, [
+      error(WarningCode.UNUSED_IMPORT, 7, 12),
+    ]);
+  }
+
+  test_wasm_fromTest() async {
+    await assertErrorsInCode('''
+import 'dart:_wasm';
+''', [
+      error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 12),
       error(WarningCode.UNUSED_IMPORT, 7, 12),
     ]);
   }
 
   test_wasm_fromUi() async {
-    var filePath = _pathInPackage('ui');
-    final file = newFile(filePath, '''
+    final packageRootPath = _newPackage('ui');
+    final file = newFile('$packageRootPath/lib/ui.dart', '''
 import 'dart:_wasm';
 ''');
     await resolveFile2(file);
@@ -51,16 +60,15 @@ import 'dart:_wasm';
     ]);
   }
 
-  String _pathInPackage(String packageName) {
-    var packageRoot = '$workspaceRootPath/$packageName';
+  String _newPackage(String packageName) {
+    var packageRootPath = '$workspaceRootPath/$packageName';
     var builder = PackageConfigFileBuilder();
     builder.add(
       name: packageName,
-      rootPath: packageRoot,
+      rootPath: packageRootPath,
       languageVersion: testPackageLanguageVersion,
     );
-    var path = '$packageRoot/.dart_tool/package_config.json';
-    writePackageConfig(path, builder);
-    return '$packageRoot/lib/$packageName.dart';
+    writePackageConfig(packageRootPath, builder);
+    return packageRootPath;
   }
 }

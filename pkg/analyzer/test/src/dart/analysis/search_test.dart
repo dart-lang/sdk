@@ -714,7 +714,7 @@ class A {}
 
     // Configure `package:my`.
     writePackageConfig(
-      getFile('${myRoot.path}/.dart_tool/package_config.json').path,
+      myRoot.path,
       PackageConfigFileBuilder()..add(name: 'my', rootPath: myRoot.path),
     );
 

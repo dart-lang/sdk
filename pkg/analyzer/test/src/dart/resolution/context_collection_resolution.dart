@@ -353,12 +353,8 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }) async {
     final rootFolder = getFolder('$workspaceRootPath/foo');
 
-    final packageConfigFile = getFile(
-      '${rootFolder.path}/.dart_tool/package_config.json',
-    );
-
     writePackageConfig(
-      packageConfigFile.path,
+      rootFolder.path,
       PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
     );
 
@@ -399,13 +395,14 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     );
   }
 
-  void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(
-      path,
-      config.toContent(
-        toUriStr: toUriStr,
-      ),
+  void writePackageConfig(
+    String directoryPath,
+    PackageConfigFileBuilder config,
+  ) {
+    final content = config.toContent(
+      toUriStr: toUriStr,
     );
+    newPackageConfigJsonFile(directoryPath, content);
   }
 
   Future<File> writeSdkSummary() async {
@@ -488,8 +485,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       );
     }
 
-    var path = '$testPackageRootPath/.dart_tool/package_config.json';
-    writePackageConfig(path, config);
+    writePackageConfig(testPackageRootPath, config);
   }
 
   void writeTestPackageConfigWithMeta() {
