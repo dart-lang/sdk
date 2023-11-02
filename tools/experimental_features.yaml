@@ -119,6 +119,7 @@ features:
     help: "Allow more of the Dart language to be executed in const expressions."
 
   macros:
+    experimentalReleaseVersion: '3.3.0'
     help: "Static meta-programming"
 
   inline-class:

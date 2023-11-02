@@ -250,7 +250,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.macros,
     isExpired: IsExpired.macros,
     documentation: 'Static meta-programming',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.3.0'),
     releaseVersion: null,
   );
 
