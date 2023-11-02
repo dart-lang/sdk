@@ -17,7 +17,7 @@ dart.ci_sandbox_builder(
     "flutter-analyze",
     category = "analyzer|fa",
     channels = ["try"],
-    execution_timeout = 45 * time.minute,
+    execution_timeout = 60 * time.minute,
 )
 dart.ci_sandbox_builder(
     "analyzer-analysis-server-linux",
