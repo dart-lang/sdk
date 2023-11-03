@@ -1125,6 +1125,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime"
           ]
         },
@@ -1225,6 +1226,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime",
             "dart_precompiled_runtime"
           ]
