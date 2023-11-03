@@ -96,7 +96,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
   synthesized core::bool #isFirst = #C2;
   synthesized core::bool #isEven = #C1;
   #controller.{asy::StreamController::add}(#C3){(core::Object?) → void};
-  return #controller.{asy::StreamController::stream}{() → asy::Stream<core::Object?>}.{asy::Stream::asyncMap}<core::Object?>((synthesized core::Object? value) → FutureOr<core::Object?> async /* futureValueType= core::Object? */ {
+  return #controller.{asy::StreamController::stream}{asy::Stream<core::Object?>}.{asy::Stream::asyncMap}<core::Object?>((synthesized core::Object? value) → FutureOr<core::Object?> async /* futureValueType= core::Object? */ {
     if(#isFirst) {
       #body(){() → asy::Future<void>};
       return #C3;
