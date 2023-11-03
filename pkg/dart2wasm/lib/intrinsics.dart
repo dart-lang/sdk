@@ -888,25 +888,29 @@ class Intrinsifier {
 
     // dart:_wasm static functions
     if (node.target.enclosingLibrary.name == "dart._wasm") {
-      Expression value = node.arguments.positional.single;
       switch (name) {
         case "_externalizeNonNullable":
+          final value = node.arguments.positional.single;
           codeGen.wrap(value, w.RefType.any(nullable: false));
           b.extern_externalize();
           return w.RefType.extern(nullable: false);
         case "_externalizeNullable":
+          final value = node.arguments.positional.single;
           codeGen.wrap(value, w.RefType.any(nullable: true));
           b.extern_externalize();
           return w.RefType.extern(nullable: true);
         case "_internalizeNonNullable":
+          final value = node.arguments.positional.single;
           codeGen.wrap(value, w.RefType.extern(nullable: false));
           b.extern_internalize();
           return w.RefType.any(nullable: false);
         case "_internalizeNullable":
+          final value = node.arguments.positional.single;
           codeGen.wrap(value, w.RefType.extern(nullable: true));
           b.extern_internalize();
           return w.RefType.any(nullable: true);
         case "_wasmExternRefIsNull":
+          final value = node.arguments.positional.single;
           codeGen.wrap(value, w.RefType.extern(nullable: true));
           b.ref_is_null();
           return w.NumType.i32;

@@ -16,7 +16,7 @@ recordDynamicFieldAccess(dynamic x) => x.foo42;
 
 main() {
   print(recordConstant);
-  print(recordLiteral(1, 2, 3));
+  print(recordLiteral(int.parse('1'), int.parse('2'), int.parse('3')));
   print(recordFieldAccess1((10, 'hi')));
   print(recordFieldAccess2((a: 20, b: 'bye')));
   print(recordDynamicFieldAccess(list[1]));
