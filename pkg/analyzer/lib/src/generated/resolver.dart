@@ -330,7 +330,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {FeatureSet? featureSet,
+      {required FeatureSet featureSet,
       required FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -339,8 +339,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             definingLibrary.typeSystem,
             typeProvider as TypeProviderImpl,
             errorListener,
-            featureSet ??
-                definingLibrary.context.analysisOptions.contextFeatures,
+            featureSet,
             flowAnalysisHelper,
             const MigratableAstInfoProvider(),
             null);
