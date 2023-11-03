@@ -501,11 +501,9 @@ class _WasmTransformer extends Transformer {
     // Get `controller.stream`
     Procedure controllerStream = coreTypes.index
         .getProcedure('dart:async', 'StreamController', 'get:stream');
-    FunctionType controllerStreamType =
+    DartType controllerStreamType =
         Substitution.fromInterfaceType(controllerNullableObjectType)
-                .substituteType(controllerStream.function
-                    .computeThisFunctionType(Nullability.nonNullable))
-            as FunctionType;
+            .substituteType(controllerStream.function.returnType);
     final getControllerStream = InstanceGet(
         InstanceAccessKind.Instance, VariableGet(controller), Name('stream'),
         interfaceTarget: controllerStream, resultType: controllerStreamType);

@@ -104,6 +104,8 @@ class WasmTarget extends Target {
   Class? _twoByteString;
   Class? _jsString;
   Class? _closure;
+  Class? _boxedInt;
+  Class? _boxedDouble;
   Map<String, Class>? _nativeClasses;
 
   @override
@@ -493,6 +495,14 @@ class WasmTarget extends Target {
   Class getRecordImplementationClass(CoreTypes coreTypes,
           int numPositionalFields, List<String> namedFields) =>
       recordClasses[RecordShape(numPositionalFields, namedFields)]!;
+
+  @override
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) =>
+      _boxedInt ??= coreTypes.index.getClass("dart:core", "_BoxedInt");
+
+  @override
+  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) =>
+      _boxedDouble ??= coreTypes.index.getClass("dart:core", "_BoxedDouble");
 }
 
 class WasmVerification extends Verification {

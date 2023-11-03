@@ -13,7 +13,7 @@ static method recordDynamicFieldAccess(dynamic x) → dynamic
   return x{dynamic}.foo42;
 static method main() → dynamic {
   core::print(#C4);
-  core::print([@vm.inferred-type.metadata=dart.core::Record_2_bar] self::recordLiteral(1, 2, 3));
+  core::print([@vm.inferred-type.metadata=dart.core::Record_2_bar] self::recordLiteral([@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("1"), [@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("2"), [@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("3")));
   core::print(self::recordFieldAccess1((10, "hi")));
   core::print(self::recordFieldAccess2(({a: 20, b: "bye"})));
   core::print(self::recordDynamicFieldAccess([@vm.direct-call.metadata=dart.core::_ListBase.[]??] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>] self::list{dynamic}.[](1)));

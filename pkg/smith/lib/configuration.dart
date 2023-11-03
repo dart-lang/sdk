@@ -1,6 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:convert';
 import 'dart:io';
 
 // READ ME! If you add a new field to this, make sure to add it to
@@ -121,6 +122,17 @@ class Configuration {
       words.add("dart_precompiled");
     }
     var optionsCopy = Map.of(optionsJson);
+
+    // Apply overrides from the global environment variable.
+    final configurationOverridesJson =
+        _platformEnvironment['TEST_CONFIGURATION_OVERRIDES'];
+    if (configurationOverridesJson != null) {
+      final optionsOverrides =
+          jsonDecode(configurationOverridesJson) as Map<String, dynamic>;
+      for (var e in optionsOverrides.entries) {
+        optionsCopy[e.key] = e.value;
+      }
+    }
 
     T? enumOption<T extends NamedEnum>(
         String option, List<String> allowed, T Function(String) parse) {
@@ -1147,3 +1159,13 @@ abstract class NamedEnum {
   @override
   String toString() => name;
 }
+
+final Map<String, String> _platformEnvironment = () {
+  try {
+    return Platform.environment;
+  } catch (_) {
+    // We might be running in the browser where Platform.environment just
+    // throws.
+    return const <String, String>{};
+  }
+}();

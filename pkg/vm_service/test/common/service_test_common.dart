@@ -527,3 +527,38 @@ Future<void> evaluateAndExpect(
     expect(result.kind!, kind);
   }
 }
+
+IsolateTest hasLocalVarInTopStackFrame(String varName) {
+  return (VmService service, IsolateRef isolateRef) async {
+    print("Checking we have variable '$varName' in the top frame");
+
+    final isolateId = isolateRef.id!;
+    // Make sure that the isolate has stopped.
+    final isolate = await service.getIsolate(isolateId);
+    expect(isolate.pauseEvent, isNotNull);
+    expect(isolate.pauseEvent!.kind, isNot(EventKind.kResume));
+
+    final stack = await service.getStack(isolateId);
+    final frames = stack.frames!;
+    expect(frames.length, greaterThanOrEqualTo(1));
+
+    final top = frames[0];
+    final vars = top.vars!;
+    for (final variable in vars) {
+      if (variable.name == varName) {
+        return;
+      }
+    }
+    final sb = StringBuffer();
+    sb.write('Expected to find $varName in top awaiter stack frame, found ');
+    if (vars.isEmpty) {
+      sb.writeln('no variables');
+    } else {
+      sb.writeln('these instead:');
+      for (var variable in vars) {
+        sb.writeln('\t${variable.name}');
+      }
+    }
+    throw sb.toString();
+  };
+}

@@ -1158,10 +1158,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     } else if (selector is InterfaceSelector) {
       target = selector.member;
     }
-    if (target is Procedure &&
-        target.function.returnType is TypeParameterType &&
-        node is Expression) {
-      staticResultType = _staticType(node);
+    if (target is Procedure && node is Expression) {
+      final returnType = target.function.returnType;
+      final staticDartType = _staticDartType(node);
+      if (returnType is TypeParameterType || returnType != staticDartType) {
+        staticResultType = _typesBuilder.fromStaticType(staticDartType, true);
+      }
     }
     Call call = new Call(selector, args, staticResultType, isInstanceCreation);
     call.condition = _currentCondition;

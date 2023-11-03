@@ -17,6 +17,7 @@ dev_dependencies:
   async: any
   collection: any
   lints: any
+  logging: any
   markdown: any
   path: any
   pub_semver: any
