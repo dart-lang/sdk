@@ -2671,11 +2671,35 @@ foo
 ''');
   }
 
+  test_class_methodDeclaration_method_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+class X {
+  @IntrospectTypesPhaseMacro()
+  @a
+  void foo() {}
+}
+
+''', r'''
+foo
+  flags: hasBody
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
+  returnType: void
+''');
+  }
+
   test_class_methodDeclaration_method_namedParameters() async {
     await _assertIntrospectionText(r'''
 abstract class A {
   @IntrospectTypesPhaseMacro()
-  void foo({required int a, String? b}]) {}
+  void foo({required int a, String? b}) {}
 }
 ''', r'''
 foo
@@ -2687,6 +2711,32 @@ foo
     b
       flags: isNamed
       type: String?
+  returnType: void
+''');
+  }
+
+  test_class_methodDeclaration_method_namedParameters_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+abstract class A {
+  @IntrospectTypesPhaseMacro()
+  void foo({@a required int x}) {}
+}
+''', r'''
+foo
+  flags: hasBody
+  namedParameters
+    x
+      flags: isNamed isRequired
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int
   returnType: void
 ''');
   }
@@ -2706,6 +2756,32 @@ foo
       type: int
     b
       type: String?
+  returnType: void
+''');
+  }
+
+  test_class_methodDeclaration_method_positionalParameters_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+abstract class A {
+  @IntrospectTypesPhaseMacro()
+  void foo(@a int x) {}
+}
+''', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    x
+      flags: isRequired
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int
   returnType: void
 ''');
   }
@@ -2740,6 +2816,26 @@ foo
 ''');
   }
 
+  test_class_typeParameter_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+@IntrospectTypesPhaseMacro()
+class A<@a T> {}
+''', r'''
+class A
+  typeParameters
+    T
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+''');
+  }
+
   test_classDeclaration_interfaces() async {
     await _assertIntrospectionText(r'''
 @IntrospectTypesPhaseMacro()
@@ -2759,6 +2855,204 @@ abstract class A {}
 ''', r'''
 class A
   flags: hasAbstract
+''');
+  }
+
+  test_classDeclaration_metadata_constructor_named() async {
+    await _assertIntrospectionText(r'''
+@IntrospectTypesPhaseMacro()
+@A.named(42)
+class X {}
+
+class A {
+  final int f;
+  const A.named(this.f)
+}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: A
+      constructorName: named
+''');
+  }
+
+  test_classDeclaration_metadata_constructor_named_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  final int f;
+  const A.named(this.f)
+}
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+@IntrospectTypesPhaseMacro()
+@A.named(42)
+class X {}
+
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: A
+      constructorName: named
+''');
+  }
+
+  test_classDeclaration_metadata_constructor_named_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  final int f;
+  const A.named(this.f)
+}
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart' as prefix;
+
+@IntrospectTypesPhaseMacro()
+@prefix.A.named(42)
+class X {}
+
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: A
+      constructorName: named
+''');
+  }
+
+  test_classDeclaration_metadata_constructor_unnamed() async {
+    await _assertIntrospectionText(r'''
+@IntrospectTypesPhaseMacro()
+@A(42)
+class X {}
+
+class A {
+  final int f;
+  const A(this.f)
+}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: A
+''');
+  }
+
+  test_classDeclaration_metadata_constructor_unnamed_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  final int f;
+  const A(this.f)
+}
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+@IntrospectTypesPhaseMacro()
+@A(42)
+class X {}
+
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: A
+''');
+  }
+
+  test_classDeclaration_metadata_constructor_unnamed_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  final int f;
+  const A(this.f)
+}
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart' as prefix;
+
+@IntrospectTypesPhaseMacro()
+@prefix.A(42)
+class X {}
+
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: A
+''');
+  }
+
+  test_classDeclaration_metadata_identifier() async {
+    await _assertIntrospectionText(r'''
+@IntrospectTypesPhaseMacro()
+@a1
+@a2
+class X {}
+
+const a1 = 0;
+const a2 = 0;
+''', r'''
+class X
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+''');
+  }
+
+  test_classDeclaration_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+@IntrospectTypesPhaseMacro()
+@a1
+@a2
+class X {}
+
+''', r'''
+class X
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+''');
+  }
+
+  test_classDeclaration_metadata_identifier_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart' as prefix;
+
+@IntrospectTypesPhaseMacro()
+@prefix.a1
+@prefix.a2
+class X {}
+
+''', r'''
+class X
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
 ''');
   }
 
@@ -2947,6 +3241,26 @@ mixin A
   interfaces
     B
     C
+''');
+  }
+
+  test_mixinDeclaration_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectionText(r'''
+import 'a.dart';
+
+@IntrospectTypesPhaseMacro()
+@a
+mixin X {}
+
+''', r'''
+mixin X
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
 ''');
   }
 
