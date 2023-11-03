@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "bin/mach_o_loader.h"
 #include "bin/snapshot_utils.h"
 
 #include "bin/dartutils.h"
@@ -238,8 +239,59 @@ static AppSnapshot* TryReadAppSnapshotElf(
   }
   return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
                             isolate_data_buffer, isolate_instructions_buffer);
-  return nullptr;
 }
+
+class MachOAppSnapshot : public AppSnapshot {
+ public:
+  MachOAppSnapshot(Dart_LoadedMachO* mach_o,
+                 const uint8_t* vm_snapshot_data,
+                 const uint8_t* vm_snapshot_instructions,
+                 const uint8_t* isolate_snapshot_data,
+                 const uint8_t* isolate_snapshot_instructions)
+      : mach_o_(mach_o),
+        vm_snapshot_data_(vm_snapshot_data),
+        vm_snapshot_instructions_(vm_snapshot_instructions),
+        isolate_snapshot_data_(isolate_snapshot_data),
+        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+
+  virtual ~MachOAppSnapshot() { Dart_UnloadMachO(mach_o_); }
+
+  void SetBuffers(const uint8_t** vm_data_buffer,
+                  const uint8_t** vm_instructions_buffer,
+                  const uint8_t** isolate_data_buffer,
+                  const uint8_t** isolate_instructions_buffer) {
+    *vm_data_buffer = vm_snapshot_data_;
+    *vm_instructions_buffer = vm_snapshot_instructions_;
+    *isolate_data_buffer = isolate_snapshot_data_;
+    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  }
+
+ private:
+  Dart_LoadedMachO* mach_o_;
+  const uint8_t* vm_snapshot_data_;
+  const uint8_t* vm_snapshot_instructions_;
+  const uint8_t* isolate_snapshot_data_;
+  const uint8_t* isolate_snapshot_instructions_;
+};
+
+static AppSnapshot* TryReadAppSnapshotMachO(
+    const char* script_name) {
+  const char* error = nullptr;
+  const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
+                *isolate_data_buffer = nullptr,
+                *isolate_instructions_buffer = nullptr;
+  Dart_LoadedMachO* handle = nullptr;
+  handle = Dart_LoadMachO(script_name, &error, &vm_data_buffer,
+                          &vm_instructions_buffer, &isolate_data_buffer,
+                          &isolate_instructions_buffer);
+  if (handle == nullptr) {
+    Syslog::PrintErr("Loading failed: %s\n", error);
+    return nullptr;
+  }
+  return new MachOAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
+                            isolate_data_buffer, isolate_instructions_buffer);
+}
+
 
 #if defined(DART_TARGET_OS_MACOS)
 AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
@@ -619,6 +671,11 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
     if (snapshot != nullptr) {
       return snapshot;
     }
+  }
+
+  snapshot = TryReadAppSnapshotMachO(script_name);
+  if (snapshot != nullptr) {
+    return snapshot;
   }
 
   snapshot = TryReadAppSnapshotElf(script_name, /*file_offset=*/0,
