@@ -8358,7 +8358,7 @@ void Function::set_implicit_closure_function(const Function& value) const {
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!IsClosureFunction());
   const Object& old_data = Object::Handle(data());
-  if (is_old_native()) {
+  if (is_native()) {
     ASSERT(old_data.IsArray());
     const auto& pair = Array::Cast(old_data);
     ASSERT(pair.AtAcquire(NativeFunctionData::kTearOff) == Object::null() ||
@@ -8378,38 +8378,26 @@ void Function::SetFfiCSignature(const FunctionType& sig) const {
 }
 
 FunctionTypePtr Function::FfiCSignature() const {
-  auto* const zone = Thread::Current()->zone();
-  if (IsFfiTrampoline()) {
-    const Object& obj = Object::Handle(zone, data());
-    ASSERT(!obj.IsNull());
-    return FfiTrampolineData::Cast(obj).c_signature();
-  }
-  ASSERT(is_ffi_native());
-  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
-  const auto& type_args =
-      TypeArguments::Handle(zone, native_instance.GetTypeArguments());
-  ASSERT(type_args.Length() == 1);
-  const auto& native_type =
-      FunctionType::Cast(AbstractType::ZoneHandle(zone, type_args.TypeAt(0)));
-  return native_type.ptr();
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(data());
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).c_signature();
 }
 
 bool Function::FfiCSignatureContainsHandles() const {
+  ASSERT(IsFfiTrampoline());
   const FunctionType& c_signature = FunctionType::Handle(FfiCSignature());
-  return c_signature.ContainsHandles();
-}
-
-bool FunctionType::ContainsHandles() const {
-  const intptr_t num_params = num_fixed_parameters();
+  const intptr_t num_params = c_signature.num_fixed_parameters();
   for (intptr_t i = 0; i < num_params; i++) {
     const bool is_handle =
-        AbstractType::Handle(ParameterTypeAt(i)).type_class_id() ==
+        AbstractType::Handle(c_signature.ParameterTypeAt(i)).type_class_id() ==
         kFfiHandleCid;
     if (is_handle) {
       return true;
     }
   }
-  return AbstractType::Handle(result_type()).type_class_id() == kFfiHandleCid;
+  return AbstractType::Handle(c_signature.result_type()).type_class_id() ==
+         kFfiHandleCid;
 }
 
 // Keep consistent with BaseMarshaller::IsCompound.
@@ -8465,22 +8453,10 @@ void Function::AssignFfiCallbackId(int32_t callback_id) const {
 }
 
 bool Function::FfiIsLeaf() const {
-  if (IsFfiTrampoline()) {
-    const Object& obj = Object::Handle(untag()->data());
-    ASSERT(!obj.IsNull());
-    return FfiTrampolineData::Cast(obj).is_leaf();
-  }
-  ASSERT(is_ffi_native());
-  Zone* zone = Thread::Current()->zone();
-  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
-  const auto& native_class = Class::Handle(zone, native_instance.clazz());
-  const auto& native_class_fields = Array::Handle(zone, native_class.fields());
-  ASSERT(native_class_fields.Length() == 3);
-  const auto& is_leaf_field =
-      Field::Handle(zone, Field::RawCast(native_class_fields.At(2)));
-  return Bool::Handle(zone,
-                      Bool::RawCast(native_instance.GetField(is_leaf_field)))
-      .value();
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(untag()->data());
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).is_leaf();
 }
 
 void Function::SetFfiIsLeaf(bool is_leaf) const {
@@ -8631,32 +8607,6 @@ void Function::set_native_name(const String& value) const {
   const auto& pair = Array::Cast(Object::Handle(data()));
   ASSERT(pair.At(0) == Object::null());
   pair.SetAt(NativeFunctionData::kNativeName, value);
-}
-
-InstancePtr Function::GetNativeAnnotation() const {
-  ASSERT(is_ffi_native());
-  Zone* zone = Thread::Current()->zone();
-  auto& pragma_value = Object::Handle(zone);
-  Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
-                      Object::Handle(zone, ptr()),
-                      String::Handle(zone, Symbols::vm_ffi_native().ptr()),
-                      /*multiple=*/false, &pragma_value);
-  auto const& native_instance = Instance::Cast(pragma_value);
-  ASSERT(!native_instance.IsNull());
-#if defined(DEBUG)
-  const auto& native_class = Class::Handle(zone, native_instance.clazz());
-  ASSERT(String::Handle(zone, native_class.UserVisibleName())
-             .Equals(Symbols::FfiNative()));
-#endif
-  return native_instance.ptr();
-}
-
-bool Function::is_old_native() const {
-  return is_native() && !is_external();
-}
-
-bool Function::is_ffi_native() const {
-  return is_native() && is_external();
 }
 
 void Function::SetSignature(const FunctionType& value) const {
@@ -9048,7 +8998,7 @@ bool Function::IsOptimizable() const {
     return true;
   }
   if (ForceOptimize()) return true;
-  if (is_old_native()) {
+  if (is_native()) {
     // Native methods don't need to be optimized.
     return false;
   }
@@ -9131,7 +9081,7 @@ static bool InVmTests(const Function& function) {
 }
 
 bool Function::ForceOptimize() const {
-  if (RecognizedKindForceOptimize() || IsFfiTrampoline() || is_ffi_native() ||
+  if (RecognizedKindForceOptimize() || IsFfiTrampoline() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
     return true;
   }
@@ -9246,7 +9196,7 @@ bool Function::RecognizedKindForceOptimize() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
   if (ForceOptimize()) {
-    if (IsFfiTrampoline() || is_ffi_native()) {
+    if (IsFfiTrampoline()) {
       // We currently don't support inlining FFI trampolines. Some of them
       // are naturally non-inlinable because they contain a try/catch block,
       // but this condition is broader than strictly necessary.
@@ -10345,7 +10295,7 @@ FunctionPtr Function::New(const FunctionType& signature,
     const FfiTrampolineData& data =
         FfiTrampolineData::Handle(FfiTrampolineData::New());
     result.set_data(data);
-  } else if (result.is_old_native()) {
+  } else if (is_native) {
     const auto& data =
         Array::Handle(Array::New(NativeFunctionData::kLength, Heap::kOld));
     result.set_data(data);

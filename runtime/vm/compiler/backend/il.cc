@@ -7407,18 +7407,15 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
-        __ Comment("origin.IsConstant()");
-        compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
-      } else if (origin.IsPairLocation() &&
-                 (origin.AsPairLocation()->At(0).IsConstant() ||
-                  origin.AsPairLocation()->At(1).IsConstant())) {
-        // Note: half of the pair can be constant.
-        __ Comment("origin.IsPairLocation() and constant");
-        compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
-      } else if (marshaller_.IsHandle(arg_index)) {
-        __ Comment("marshaller_.IsHandle(arg_index)");
-        // Handles are passed into FfiCalls as Tagged values on the stack, and
-        // then we pass pointers to these handles to the native function here.
+        // Can't occur because we currently don't inline FFI trampolines (see
+        // http://dartbug.com/45055), which means all incoming arguments
+        // originate from parameters and thus are non-constant.
+        UNREACHABLE();
+      }
+
+      // Handles are passed into FfiCalls as Tagged values on the stack, and
+      // then we pass pointers to these handles to the native function here.
+      if (marshaller_.IsHandle(arg_index)) {
         ASSERT(compiler::target::LocalHandle::ptr_offset() == 0);
         ASSERT(compiler::target::LocalHandle::InstanceSize() ==
                compiler::target::kWordSize);

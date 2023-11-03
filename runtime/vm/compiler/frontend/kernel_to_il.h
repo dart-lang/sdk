@@ -137,14 +137,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
   FlowGraph* BuildGraphOfSyncFfiCallback(const Function& function);
   FlowGraph* BuildGraphOfAsyncFfiCallback(const Function& function);
-  FlowGraph* BuildGraphOfFfiCall(const Function& function);
+  FlowGraph* BuildGraphOfFfiNative(const Function& function);
 
-  Fragment FfiCallLookupAddress(const Function& function);
-  Fragment FfiNativeLookupAddress(const Function& function);
-  // Expects target address on stack.
-  Fragment FfiCallFunctionBody(const Function& function,
-                               const FunctionType& c_signature);
-  Fragment FfiNativeFunctionBody(const Function& function);
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
   Fragment LoadNativeArg(const compiler::ffi::CallbackMarshaller& marshaller,

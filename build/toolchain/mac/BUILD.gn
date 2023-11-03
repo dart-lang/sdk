@@ -14,6 +14,7 @@ assert(host_os == "mac")
 import("//build/config/sysroot.gni")
 import("//build/toolchain/goma.gni")
 import("//build/toolchain/rbe.gni")
+import("//build/toolchain/signing.gni")
 
 if (use_goma) {
   assembler_prefix = "$goma_dir/gomacc "
@@ -189,20 +190,44 @@ template("mac_toolchain") {
         stripped_outfile = "{{root_out_dir}}/exe.stripped/$exename"
       }
 
-      command = "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}"
+      commands = [ "$ld $sysroot_flags $toolchain_flags {{ldflags}} -Xlinker -rpath -Xlinker @executable_path/Frameworks -o $outfile -Wl,-filelist,$rspfile {{solibs}} {{libs}} {{frameworks}}" ]
 
       symbolizer_script =
           rebase_path("//runtime/tools/dart_profiler_symbols.py")
-      symbolize_command =
-          "$symbolizer_script --nm $nm --output $symfile --binary $outfile"
-      command += " && $symbolize_command"
+      commands +=
+          [ "$symbolizer_script --nm $nm --output $symfile --binary $outfile" ]
 
       if (defined(invoker.strip)) {
         strip = invoker.strip
-        strip_command = "${strip} -x -o $stripped_outfile $outfile"
-        command += " && " + strip_command
+        commands += [ "${strip} -x -o $stripped_outfile $outfile" ]
       }
 
+      if (codesigning_identity != "") {
+        # codesign tool performs signing in-place. This does not fit very well
+        # into the overall build: we would have to produce unsigned binary with
+        # some suffix (e.g. dart_unsigned), then copy it to the final location
+        # and sign. To avoid this dance we choose to perform signing here
+        # at the link step. Unfortunately this also comes with some limitations:
+        # executable target can't push arbitrary configuration variables down
+        # to the link step. Which means we can't specify per target
+        # entitlement files - and instead rely on dart_codesign.py script to
+        # match binaries to their entitlement files by name.
+        signing_script = rebase_path("//runtime/tools/dart_codesign.py")
+        binaries_to_sign = [
+          "--binary",
+          outfile,
+        ]
+        if (defined(stripped_outfile)) {
+          binaries_to_sign += [
+            "--binary",
+            stripped_outfile,
+          ]
+        }
+        commands += [ "$signing_script --identity $codesigning_identity " +
+                      string_join(" ", binaries_to_sign) ]
+      }
+
+      command = string_join(" && ", commands)
       description = "LINK $outfile"
       rspfile_content = "{{inputs_newline}}"
       outputs = [

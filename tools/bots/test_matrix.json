@@ -2425,17 +2425,6 @@
           "fileset": "js_platform_2"
         },
         {
-          "name": "dart2js legacy modular tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/compiler/tool/modular_test_suite_legacy.dart",
-            "-nweb-unittest-asserts-legacy-linux",
-            "--verbose",
-            "--use-sdk"
-          ]
-        },
-        {
           "name": "dart2js modular tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,

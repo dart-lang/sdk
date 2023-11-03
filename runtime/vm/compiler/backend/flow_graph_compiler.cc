@@ -3427,66 +3427,6 @@ void FlowGraphCompiler::EmitMoveFromNative(
   }
 }
 
-void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
-                                      Location src,
-                                      Representation src_type,
-                                      TemporaryRegisterAllocator* temp) {
-  ASSERT(src.IsConstant() || src.IsPairLocation());
-  const auto& dst_type = dst.payload_type();
-  Register scratch = kNoRegister;
-  if (dst.IsExpressibleAsLocation() &&
-      dst_type.IsExpressibleAsRepresentation() &&
-      dst_type.AsRepresentationOverApprox(zone_) == src_type) {
-    // We can directly emit the const in the right place and representation.
-    const Location dst_loc = dst.AsLocation();
-    assembler()->Comment("dst.IsExpressibleAsLocation() %s",
-                         dst_loc.ToCString());
-    EmitMove(dst_loc, src, temp);
-  } else {
-    // We need an intermediate location.
-    Location intermediate;
-    if (dst_type.IsInt()) {
-      if (TMP == kNoRegister) {
-        scratch = temp->AllocateTemporary();
-        Location::RegisterLocation(scratch);
-      } else {
-        intermediate = Location::RegisterLocation(TMP);
-      }
-    } else {
-      ASSERT(dst_type.IsFloat());
-      intermediate = Location::FpuRegisterLocation(FpuTMP);
-    }
-    assembler()->Comment("constant using intermediate: %s",
-                         intermediate.ToCString());
-
-    if (src.IsPairLocation()) {
-      for (intptr_t i : {0, 1}) {
-        const Representation src_type_split =
-            compiler::ffi::NativeType::FromUnboxedRepresentation(zone_,
-                                                                 src_type)
-                .Split(zone_, i)
-                .AsRepresentation();
-        const auto& intermediate_native =
-            compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
-                                                        src_type_split);
-        EmitMove(intermediate, src.AsPairLocation()->At(i), temp);
-        EmitNativeMove(dst.Split(zone_, 2, i), intermediate_native, temp);
-      }
-    } else {
-      const auto& intermediate_native =
-          compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
-                                                      src_type);
-      EmitMove(intermediate, src, temp);
-      EmitNativeMove(dst, intermediate_native, temp);
-    }
-
-    if (scratch != kNoRegister) {
-      temp->ReleaseTemporary();
-    }
-  }
-  return;
-}
-
 bool FlowGraphCompiler::CanPcRelativeCall(const Function& target) const {
   return FLAG_precompiled_mode && (LoadingUnit::LoadingUnitOf(function()) ==
                                    LoadingUnit::LoadingUnitOf(target));

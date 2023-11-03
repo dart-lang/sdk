@@ -28,9 +28,6 @@ late String _kernelWorkerScript;
 const dillSummaryId = DataId("summary.dill");
 const dillId = DataId("full.dill");
 const fullDillId = DataId("concatenate.dill");
-const modularUpdatedDillId = DataId("modular.dill");
-const modularDataId = DataId("modular.data");
-const modularFullDataId = DataId("concatenate.modular.data");
 const closedWorldId = DataId("world");
 const globalUpdatedDillId = DataId("global.dill");
 const globalDataId = DataId("global.data");
@@ -74,16 +71,13 @@ List<String> getSources(Module module) {
 abstract class CFEStep extends IOModularStep {
   final String stepName;
 
-  CFEStep(this.stepName, this.onlyOnSdk);
+  CFEStep(this.stepName);
 
   @override
   bool get needsSources => true;
 
   @override
   bool get onlyOnMain => false;
-
-  @override
-  final bool onlyOnSdk;
 
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
@@ -181,7 +175,7 @@ class OutlineDillCompilationStep extends CFEStep {
   @override
   DataId get outputData => dillSummaryId;
 
-  OutlineDillCompilationStep() : super('outline-dill-compilation', false);
+  OutlineDillCompilationStep() : super('outline-dill-compilation');
 }
 
 // Step that compiles sources in a module to a .dill file.
@@ -208,113 +202,14 @@ class FullDillCompilationStep extends CFEStep {
   @override
   DataId get outputData => dillId;
 
-  FullDillCompilationStep({bool onlyOnSdk = false})
-      : super('full-dill-compilation', onlyOnSdk);
-}
-
-class ModularAnalysisStep extends IOModularStep {
-  @override
-  List<DataId> get resultData => [modularDataId, modularUpdatedDillId];
-
-  @override
-  bool get needsSources => !onlyOnSdk;
-
-  /// The SDK has no dependencies, and for all other modules we only need
-  /// summaries.
-  @override
-  List<DataId> get dependencyDataNeeded => [dillSummaryId];
-
-  /// All non SDK modules only need sources for module data.
-  @override
-  List<DataId> get moduleDataNeeded => onlyOnSdk ? [dillId] : const [];
-
-  @override
-  bool get onlyOnMain => false;
-
-  @override
-  final bool onlyOnSdk;
-
-  @override
-  bool get notOnSdk => !onlyOnSdk;
-
-  // TODO(joshualitt): We currently special case the SDK both because it is not
-  // trivial to build it in the same fashion as other modules, and because it is
-  // a special case in other build environments. Eventually, we should
-  // standardize this a bit more and always build the SDK modularly, if we have
-  // to build it.
-  ModularAnalysisStep({this.onlyOnSdk = false});
-
-  @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
-    if (_options.verbose) print("\nstep: modular analysis on $module");
-    Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    List<String> dillDependencies = [];
-    List<String> sources = [];
-    List<String> extraArgs = [];
-    if (!module.isSdk) {
-      await writePackageConfig(module, transitiveDependencies, root);
-      String rootScheme = getRootScheme(module);
-      sources = getSources(module);
-      dillDependencies = transitiveDependencies
-          .map((m) => '${toUri(m, dillSummaryId)}')
-          .toList();
-      extraArgs = [
-        '--packages=${root.resolve(packageConfigJsonPath)}',
-        '--multi-root=$root',
-        '--multi-root-scheme=$rootScheme',
-      ];
-    }
-
-    List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
-      _dart2jsScript,
-      Flags.soundNullSafety,
-      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      if (_options.useSdk) '--invoker=modular_test',
-      // If we have sources, then we aren't building the SDK, otherwise we
-      // assume we are building the sdk and pass in a full dill.
-      if (sources.isNotEmpty)
-        '${Flags.sources}=${sources.join(',')}'
-      else
-        '${Flags.inputDill}=${toUri(module, dillId)}',
-      '${Flags.cfeConstants}',
-      if (dillDependencies.isNotEmpty)
-        '--dill-dependencies=${dillDependencies.join(',')}',
-      '--out=${toUri(module, modularUpdatedDillId)}',
-      '${Flags.writeModularAnalysis}=${toUri(module, modularDataId)}',
-      for (String flag in flags) '--enable-experiment=$flag',
-      ...extraArgs
-    ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
-
-    _checkExitCode(result, this, module);
-  }
-
-  @override
-  void notifyCached(Module module) {
-    if (_options.verbose) {
-      print("cached step: dart2js modular analysis on $module");
-    }
-  }
+  FullDillCompilationStep() : super('full-dill-compilation');
 }
 
 class ConcatenateDillsStep extends IOModularStep {
-  final bool useModularAnalysis;
-
-  DataId get idForDill => useModularAnalysis ? modularUpdatedDillId : dillId;
-
-  List<DataId> get dependencies => [
-        idForDill,
-        if (useModularAnalysis) modularDataId,
-      ];
+  List<DataId> get dependencies => [dillId];
 
   @override
-  List<DataId> get resultData => [
-        fullDillId,
-        if (useModularAnalysis) modularFullDataId,
-      ];
+  List<DataId> get resultData => [fullDillId];
 
   @override
   bool get needsSources => false;
@@ -328,20 +223,15 @@ class ConcatenateDillsStep extends IOModularStep {
   @override
   bool get onlyOnMain => true;
 
-  ConcatenateDillsStep({required this.useModularAnalysis});
+  ConcatenateDillsStep();
 
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js concatenate dills on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    DataId dillId = idForDill;
     Iterable<String> dillDependencies =
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
-    List<String> dataDependencies = transitiveDependencies
-        .map((m) => '${toUri(m, modularDataId)}')
-        .toList();
-    dataDependencies.add('${toUri(module, modularDataId)}');
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
@@ -353,10 +243,6 @@ class ConcatenateDillsStep extends IOModularStep {
       '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
-      if (useModularAnalysis) ...[
-        '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
-        '${Flags.writeModularAnalysis}=${toUri(module, modularFullDataId)}',
-      ],
       '${Flags.cfeOnly}',
       '--out=${toUri(module, fullDillId)}',
     ];
@@ -375,14 +261,9 @@ class ConcatenateDillsStep extends IOModularStep {
 
 // Step that invokes the dart2js closed world computation.
 class ComputeClosedWorldStep extends IOModularStep {
-  final bool useModularAnalysis;
+  ComputeClosedWorldStep();
 
-  ComputeClosedWorldStep({required this.useModularAnalysis});
-
-  List<DataId> get dependencies => [
-        fullDillId,
-        if (useModularAnalysis) modularFullDataId,
-      ];
+  List<DataId> get dependencies => [fullDillId];
 
   @override
   List<DataId> get resultData => const [closedWorldId, globalUpdatedDillId];
@@ -414,8 +295,6 @@ class ComputeClosedWorldStep extends IOModularStep {
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
-      if (useModularAnalysis)
-        '${Flags.readModularAnalysis}=${toUri(module, modularFullDataId)}',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
       Flags.noClosedWorldInData,
       '--out=${toUri(module, globalUpdatedDillId)}',

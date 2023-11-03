@@ -199,7 +199,7 @@ static void TestRegress38528(intptr_t header_overlap) {
   const uword page = VirtualMemory::PageSize();
   std::unique_ptr<VirtualMemory> blob(VirtualMemory::Allocate(
       2 * page,
-      /*is_executable=*/false, /*is_compressed*/ false, "test"));
+      /*is_executable=*/true, /*is_compressed=*/false, "test"));
   const intptr_t remainder_size = page / 2;
   const intptr_t alloc_size = page - header_overlap * kObjectAlignment;
   void* const other_code =

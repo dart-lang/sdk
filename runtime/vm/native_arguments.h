@@ -175,7 +175,7 @@ class NativeArguments {
   }
 
   static intptr_t ParameterCountForResolution(const Function& function) {
-    ASSERT(function.is_old_native());
+    ASSERT(function.is_native());
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
     intptr_t count = function.NumParameters();
     if (function.is_static() && function.IsClosureFunction()) {
@@ -189,7 +189,7 @@ class NativeArguments {
   }
 
   static int ComputeArgcTag(const Function& function) {
-    ASSERT(function.is_old_native());
+    ASSERT(function.is_native());
     ASSERT(!function.IsGenerativeConstructor());  // Not supported.
     int argc = function.NumParameters();
     int function_bits = 0;

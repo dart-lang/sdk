@@ -1355,11 +1355,3 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
   Object get _typedDataBase =>
       throw UnsupportedError('_ArraySize._typedDataBase');
 }
-
-@patch
-@pragma("vm:entry-point")
-class FfiNative<T> {}
-
-@patch
-@pragma("vm:entry-point")
-class Native<T> {}

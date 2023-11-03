@@ -352,7 +352,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             .where((c) =>
                 c.superclass == structClass || c.superclass == unionClass)
             .toList();
-        return invokeCompoundConstructors(replacement, compoundClasses);
+        return _invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -387,7 +387,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return node;
   }
 
-  Expression invokeCompoundConstructors(
+  Expression _invokeCompoundConstructors(
           Expression nestedExpression, List<Class> compoundClasses) =>
       compoundClasses
           .distinct()
@@ -748,7 +748,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         .map((t) => t.classNode)
         .where((c) => c.superclass == structClass || c.superclass == unionClass)
         .toList();
-    return invokeCompoundConstructors(replacement, compoundClasses);
+    return _invokeCompoundConstructors(replacement, compoundClasses);
   }
 
   Expression _replaceGetRef(StaticInvocation node) {
