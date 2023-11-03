@@ -1749,9 +1749,6 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
                                              "vm:isolate-unsendable")) {
           *pragma_bits = IsolateUnsendablePragma::update(true, *pragma_bits);
         }
-        if (constant_reader.IsStringConstant(name_index, "vm:ffi:native")) {
-          *pragma_bits = FfiNativePragma::update(true, *pragma_bits);
-        }
       }
     } else {
       helper_.SkipExpression();
@@ -1801,14 +1798,13 @@ void KernelLoader::LoadProcedure(const Library& library,
   // they are not reachable anymore and we never look them up by name.
   const bool register_function = !name.Equals(Symbols::DebugProcedureName());
 
-  const bool is_ffi_native = FfiNativePragma::decode(pragma_bits);
   const FunctionType& signature = FunctionType::Handle(Z, FunctionType::New());
   const Function& function = Function::ZoneHandle(
       Z, Function::New(signature, name, kind,
                        !is_method,  // is_static
                        false,       // is_const
                        is_abstract, is_external,
-                       !native_name.IsNull() || is_ffi_native,  // is_native
+                       !native_name.IsNull(),  // is_native
                        script_class, procedure_helper.start_position_));
   function.set_has_pragma(HasPragma::decode(pragma_bits));
   function.set_end_token_pos(procedure_helper.end_position_);

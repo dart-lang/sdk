@@ -2979,7 +2979,8 @@ class Function : public Object {
   // Can only be used on FFI trampolines.
   void SetFfiCSignature(const FunctionType& sig) const;
 
-  // Retrieves the "C signature" for an FFI trampoline or FFI native.
+  // Retrieves the "C signature" for an FFI trampoline.
+  // Can only be used on FFI trampolines.
   FunctionTypePtr FfiCSignature() const;
 
   bool FfiCSignatureContainsHandles() const;
@@ -3071,10 +3072,6 @@ class Function : public Object {
 
   StringPtr native_name() const;
   void set_native_name(const String& name) const;
-
-  InstancePtr GetNativeAnnotation() const;
-  bool is_ffi_native() const;
-  bool is_old_native() const;
 
   AbstractTypePtr result_type() const {
     return signature()->untag()->result_type();
@@ -9665,8 +9662,6 @@ class FunctionType : public AbstractType {
                              Heap::Space space = Heap::kOld);
 
   static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
-
-  bool ContainsHandles() const;
 
  private:
   static FunctionTypePtr New(Heap::Space space);

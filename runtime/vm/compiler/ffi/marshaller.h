@@ -138,7 +138,6 @@ class BaseMarshaller : public ZoneAllocated {
   }
 
   const Function& dart_signature() const { return dart_signature_; }
-  const FunctionType& c_signature() const { return c_signature_; }
   StringPtr function_name() const { return dart_signature_.name(); }
 
  protected:
@@ -165,7 +164,6 @@ class CallMarshaller : public BaseMarshaller {
  public:
   static CallMarshaller* FromFunction(Zone* zone,
                                       const Function& function,
-                                      const FunctionType& c_signature,
                                       const char** error);
 
   CallMarshaller(Zone* zone,

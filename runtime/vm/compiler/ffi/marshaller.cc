@@ -87,10 +87,10 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
 
 CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
                                              const Function& function,
-                                             const FunctionType& c_signature,
                                              const char** error) {
   DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
-  DEBUG_ASSERT(c_signature.IsNotTemporaryScopedHandle());
+  const auto& c_signature =
+      FunctionType::ZoneHandle(zone, function.FfiCSignature());
   const auto native_function_signature =
       NativeFunctionTypeFromFunctionType(zone, c_signature, error);
   if (*error != nullptr) {
@@ -169,7 +169,7 @@ bool BaseMarshaller::IsCompound(intptr_t arg_index) const {
 }
 
 bool BaseMarshaller::ContainsHandles() const {
-  return c_signature_.ContainsHandles();
+  return dart_signature_.FfiCSignatureContainsHandles();
 }
 
 intptr_t BaseMarshaller::NumDefinitions() const {
