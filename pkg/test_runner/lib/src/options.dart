@@ -489,6 +489,11 @@ has been specified on the command line.''')
     final namedConfigurations = options['named-configuration'];
     if (namedConfigurations is List<String> && namedConfigurations.isNotEmpty) {
       for (var optionName in _namedConfigurationOptions) {
+        // TODO(53948): Unfortuantely currently the test matrix needs to specify
+        // `arch` twice when using sharding in macos to prevent an
+        // infrastructure failure. When that's fixed we should be able to skip
+        // this line.
+        if (optionName == 'arch') continue;
         if (results.wasParsed(optionName)) {
           var namedConfigs =
               (options['named-configuration'] as List<String>).join(', ');
