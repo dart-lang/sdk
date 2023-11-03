@@ -56,6 +56,8 @@ import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
 import 'break_label_on_switch_member_test.dart' as break_label_on_switch_member;
 import 'built_in_identifier_as_extension_name_test.dart'
     as built_in_as_extension_name;
+import 'built_in_identifier_as_extension_type_name_test.dart'
+    as built_in_identifier_as_extension_type_name;
 import 'built_in_identifier_as_prefix_name_test.dart'
     as built_in_as_prefix_name;
 import 'built_in_identifier_as_type_name_test.dart' as built_in_as_type_name;
@@ -959,6 +961,7 @@ main() {
     body_might_complete_normally.main();
     break_label_on_switch_member.main();
     built_in_as_extension_name.main();
+    built_in_identifier_as_extension_type_name.main();
     built_in_as_prefix_name.main();
     built_in_as_type_name.main();
     built_in_as_type_parameter_name.main();

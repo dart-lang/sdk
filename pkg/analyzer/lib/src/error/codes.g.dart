@@ -313,6 +313,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the built-in identifier that is being used
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME =
+      CompileTimeErrorCode(
+    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    "The built-in identifier '{0}' can't be used as an extension type name.",
+    correctionMessage: "Try choosing a different name for the extension type.",
+    hasPublishedDocs: true,
+    uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
+  );
+
+  ///  Parameters:
+  ///  0: the built-in identifier that is being used
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_PREFIX_NAME =
       CompileTimeErrorCode(
     'BUILT_IN_IDENTIFIER_IN_DECLARATION',

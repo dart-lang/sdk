@@ -1424,6 +1424,14 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Choose a different name for the declaration.
+  BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME:
+    sharedName: BUILT_IN_IDENTIFIER_IN_DECLARATION
+    problemMessage: "The built-in identifier '{0}' can't be used as an extension type name."
+    correctionMessage: Try choosing a different name for the extension type.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the built-in identifier that is being used
   BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
     sharedName: BUILT_IN_IDENTIFIER_IN_DECLARATION
     problemMessage: "The built-in identifier '{0}' can't be used as a prefix name."

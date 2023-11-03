@@ -252,6 +252,10 @@ CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
+CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
   status: noFix
   notes: |-
