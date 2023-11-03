@@ -451,11 +451,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<ResolvedUnitResult> resolveFile(String path);
 
-  /// Resolve the file with the [path] into [result].
-  Future<void> resolveFile2(String path) async {
-    path = convertPath(path);
-
-    result = await resolveFile(path);
+  /// Resolve [file] into [result].
+  Future<void> resolveFile2(File file) async {
+    result = await resolveFile(file.path);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
@@ -463,8 +461,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Create a new file with the [path] and [content], resolve it into [result].
   Future<void> resolveFileCode(String path, String content) {
-    newFile(path, content);
-    return resolveFile2(path);
+    final file = newFile(path, content);
+    return resolveFile2(file);
   }
 
   /// Put the [code] into the test file, and resolve it.
@@ -474,7 +472,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   Future<void> resolveTestFile() {
-    return resolveFile2(testFile.path);
+    return resolveFile2(testFile);
   }
 
   /// Choose the type display string, depending on whether the [result] is

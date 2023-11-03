@@ -91,7 +91,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/documentColor | ✅ | | |
 |   textDocument/colorPresentation | ✅ | | |
 | textDocument/documentHighlight | ✅ | | |
-| textDocument/documentLink | | | |
+| textDocument/documentLink | ✅ | | |
 |   documentLink/resolve | | | |
 | textDocument/documentSymbol | ✅ | | |
 | textDocument/foldingRange | ✅ | ✅ | |
@@ -110,9 +110,9 @@ Below is a list of LSP methods and their implementation status.
 |   callHierarchy/outgoingCalls | ✅ | | |
 | textDocument/prepareRename | ✅ | | |
 |   textDocument/rename | ✅ | | |
-| textDocument/prepareTypeHierarchy | | | |
-|   typeHierarchy/subtypes | | | |
-|   typeHierarchy/supertypes | | | |
+| textDocument/prepareTypeHierarchy | ✅ | | |
+|   typeHierarchy/subtypes | ✅ | | |
+|   typeHierarchy/supertypes | ✅ | | |
 | textDocument/publishDiagnostics | ✅ | ✅ | |
 | textDocument/references | ✅ | | |
 | textDocument/selectionRange | ✅ | | |

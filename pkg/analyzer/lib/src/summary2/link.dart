@@ -305,10 +305,16 @@ class Linker {
   Future<void> _executeMacroDeclarationsPhase({
     required OperationPerformanceImpl performance,
   }) async {
-    for (final library in builders.values) {
-      await library.executeMacroDeclarationsPhase(
-        performance: performance,
-      );
+    while (true) {
+      var hasProgress = false;
+      for (final library in builders.values) {
+        hasProgress |= await library.executeMacroDeclarationsPhase(
+          performance: performance,
+        );
+      }
+      if (!hasProgress) {
+        break;
+      }
     }
   }
 

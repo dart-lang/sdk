@@ -50,57 +50,57 @@ mixin Bar on Foo {}
   }
 
   test_withinPackageLibDirectory_OK() async {
-    newFile('$testPackageLibPath/lib1.dart', r'''
+    final lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    newFile('$testPackageLibPath/src/lib2.dart', r'''
+    final lib2 = newFile('$testPackageLibPath/src/lib2.dart', r'''
 import '../lib1.dart';
 mixin Bar on Foo {}
 ''');
 
-    await resolveFile2('$testPackageLibPath/lib1.dart');
+    await resolveFile2(lib1);
     assertNoErrorsInResult();
 
-    await resolveFile2('$testPackageLibPath/src/lib2.dart');
+    await resolveFile2(lib2);
     assertNoErrorsInResult();
   }
 
   test_withinPackageTestDirectory_OK() async {
-    newFile('$testPackageLibPath/lib1.dart', r'''
+    final lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
 
-    newFile('$testPackageRootPath/test/lib2.dart', r'''
+    final lib2 = newFile('$testPackageRootPath/test/lib2.dart', r'''
 import 'package:test/lib1.dart';
 mixin Bar on Foo {}
 ''');
 
-    await resolveFile2('$testPackageLibPath/lib1.dart');
+    await resolveFile2(lib1);
     assertNoErrorsInResult();
 
-    await resolveFile2('$testPackageRootPath/test/lib2.dart');
+    await resolveFile2(lib2);
     assertNoErrorsInResult();
   }
 
   test_withinPart_OK() async {
-    newFile('$testPackageLibPath/lib1.dart', r'''
+    final lib1 = newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:meta/meta.dart';
 part 'part1.dart';
 @sealed class Foo {}
 ''');
 
-    newFile('$testPackageLibPath/part1.dart', r'''
+    final lib2 = newFile('$testPackageLibPath/part1.dart', r'''
 part of 'lib1.dart';
 mixin Bar on Foo {}
 ''');
 
-    await resolveFile2('$testPackageLibPath/lib1.dart');
+    await resolveFile2(lib1);
     assertNoErrorsInResult();
 
-    await resolveFile2('$testPackageLibPath/part1.dart');
+    await resolveFile2(lib2);
     assertNoErrorsInResult();
   }
 }

@@ -42,12 +42,11 @@ part 'part.g.dart';
 part of 'foo.dart';
 ''');
 
-    var path = '$testPackageRootPath/example/foo.dart';
-    newFile(path, '''
+    final foo = newFile('$testPackageRootPath/example/foo.dart', '''
 part 'foo.g.dart';
 ''');
 
-    await resolveFile2(path);
+    await resolveFile2(foo);
     assertErrorsInResolvedUnit(result, const []);
   }
 

@@ -1684,9 +1684,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // already computed values of all dependencies first (or detect a cycle),
       // so the value has already been computed and we can just return it.
       var evaluationResult = variableElement.evaluationResult;
-      var isConstField = variableElement is FieldElement &&
-          (variableElement.isConst || variableElement.isFinal);
-      if (isConstField || variableElement.isConst) {
+      if (variableElement.isConst) {
         switch (evaluationResult) {
           case null:
             // The constant value isn't computed yet, or there is an error while

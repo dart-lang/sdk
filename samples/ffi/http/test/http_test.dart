@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 
-import 'package:http/http.dart';
+import 'package:http_sample/http.dart';
 
 Future<void> main() async {
   test('httpGet', () async {
