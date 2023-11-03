@@ -330,6 +330,9 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     gn_args['verify_sdk_hash'] = verify_sdk_hash
 
+    if args.codesigning_identity != '':
+        gn_args['codesigning_identity'] = args.codesigning_identity
+
     return gn_args
 
 
@@ -518,6 +521,10 @@ def AddCommonGnOptionArgs(parser):
                         default=False,
                         dest='use_mallinfo2',
                         action='store_true')
+    parser.add_argument('--codesigning-identity',
+                        help='Sign executables using the given identity.',
+                        default='',
+                        type=str)
 
 
 def AddCommonConfigurationArgs(parser):
