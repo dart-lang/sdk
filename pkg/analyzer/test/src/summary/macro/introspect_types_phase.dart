@@ -8,9 +8,9 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 import 'introspect_shared.dart';
 
-/*macro*/ class DeclarationTextMacro
+/*macro*/ class IntrospectTypesPhaseMacro
     implements ClassTypesMacro, MethodTypesMacro, MixinTypesMacro {
-  const DeclarationTextMacro();
+  const IntrospectTypesPhaseMacro();
 
   @override
   Future<void> buildTypesForClass(declaration, builder) async {
