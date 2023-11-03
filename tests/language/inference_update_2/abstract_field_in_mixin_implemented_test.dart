@@ -5,13 +5,9 @@
 // Tests that field promotion logic properly handles promotable abstract fields
 // declared in mixins.
 
-// In this test, there is no concrete implementation of the field in
-// question. As such, it doesn't really reflect the way an abstract private
-// field would be used in real-world code, but it's useful for making sure that
-// an unimplemented abstract private field doesn't cause the analyzer or front
-// end to misbehave. For another test in which there *is* a concrete
-// implementation of the field, see
-// `abstract_field_in_mixin_implemented_test.dart`.
+// In this test, there are concrete implementations of the field in
+// question. For another test in which there is *no* concrete implementation of
+// the field, see `abstract_field_in_mixin_test.dart`.
 
 // This test exercises both syntactic forms of creating mixin applications
 // (`class C = B with M;` and `class C extends B with M {}`), since these are
@@ -53,4 +49,26 @@ void test(C1 c1, C2 c2, C3 c3, C4 c4) {
   }
 }
 
-main() {}
+class ConcreteC1 extends C1 {
+  final int? _field;
+  ConcreteC1(this._field);
+}
+
+class ConcreteC2 extends C2 {
+  final int? _field;
+  ConcreteC2(this._field);
+}
+
+class ConcreteC3 extends C3 {
+  final int? _field;
+  ConcreteC3(this._field);
+}
+
+class ConcreteC4 extends C4 {
+  final int? _field;
+  ConcreteC4(this._field);
+}
+
+main() {
+  test(ConcreteC1(0), ConcreteC2(0), ConcreteC3(0), ConcreteC4(0));
+}
