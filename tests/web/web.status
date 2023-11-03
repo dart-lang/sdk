@@ -5,6 +5,7 @@
 [ $compiler != dart2js ]
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
 internal/deferred_url_test: SkipByDesign # test specific for the dart2js runtime
+weak_reference_polyfill_test: SkipByDesign # test specific for the dart2js runtime
 
 [ $compiler == dart2wasm ]
 (?!wasm)*: SkipByDesign

@@ -147,11 +147,37 @@ class WeakReference<T extends Object> {
 }
 
 class _WeakReferenceWrapper<T extends Object> implements WeakReference<T> {
+  /// A JavaScript `WeakRef` or the `LeakRef` polyfill below.
   final Object _weakRef;
 
-  _WeakReferenceWrapper(T object) : _weakRef = JS('', 'new WeakRef(#)', object);
+  _WeakReferenceWrapper(T object)
+      : _weakRef = JS('', 'new #(#)', _weakRefConstructor, object);
 
   T? get target => JS('', '#.deref()', _weakRef);
+
+  static final Object _weakRefConstructor = _findWeakRefConstructor();
+
+  static Object _findWeakRefConstructor() {
+    if (JS('', 'typeof WeakRef == "function"')) {
+      return JS('', 'WeakRef');
+    }
+    // `LeakRef` - a minimal polyfill for `WeakRef`. Since there is no guarantee
+    // that the target is collected, it is a legal implementation to retain the
+    // object indefinitely.
+    //
+    // Dart does not officially support older browsers before the introduction
+    // of WeakRef and FinalizationRegistry but there are users of Dart that have
+    // a few customers still using these browsers.  As a result, both ACX and
+    // Flutter have ad-hoc polyfills for these classes. Adding the polyfill here
+    // in js_runtime will allow the other polyfills to be removed. The polyfill
+    // is as small as possible (omitting checks, avoiding extra Dart classes,
+    // detecting as late as possible), so it should be a minor net code size
+    // improvement for ACX and Flutter.
+
+    final Object constructor = JS('', 'function LeakRef(o) { this._ = o;}');
+    JS('', '#.prototype = {deref() { return this._; }}', constructor);
+    return constructor;
+  }
 }
 
 // Patch for Finalizer implementation.
@@ -164,23 +190,37 @@ class Finalizer<T> {
 }
 
 class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
-  final Object _registry;
+  /// The JavaScript FinalizationRegistry, or `null` if not supported. Since
+  /// there is no guaranteed that the callback is ever called, the callback,
+  /// attach and detach methods are ignored.
+  final Object? _registry;
 
   _FinalizationRegistryWrapper(void Function(T) callback)
-      : _registry = JS('', 'new FinalizationRegistry(#)',
-            convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1));
+      : _registry = _finalizationRegistryConstructor == null
+            ? null
+            : JS('', 'new #(#)', _finalizationRegistryConstructor,
+                convertDartClosureToJS(wrapZoneUnaryCallback(callback), 1));
 
   void attach(Object value, T token, {Object? detach}) {
-    if (detach != null) {
-      JS('', '#.register(#, #, #)', _registry, value, token, detach);
-    } else {
-      JS('', '#.register(#, #)', _registry, value, token);
+    if (_registry != null) {
+      if (detach != null) {
+        JS('', '#.register(#, #, #)', _registry, value, token, detach);
+      } else {
+        JS('', '#.register(#, #)', _registry, value, token);
+      }
     }
   }
 
   void detach(Object detachToken) {
-    JS('', '#.unregister(#)', _registry, detachToken);
+    if (_registry != null) {
+      JS('', '#.unregister(#)', _registry, detachToken);
+    }
   }
+
+  static final Object? _finalizationRegistryConstructor =
+      JS('', 'typeof FinalizationRegistry == "function"')
+          ? JS('', 'FinalizationRegistry')
+          : null;
 }
 
 @patch
