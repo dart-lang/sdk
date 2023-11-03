@@ -2918,6 +2918,20 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
   RETURN_TYPE_ERROR(thread->zone(), str, String);
 }
 
+DART_EXPORT Dart_Handle Dart_StringUTF8Length(Dart_Handle str, intptr_t* len) {
+  Thread* thread = Thread::Current();
+  DARTSCOPE(thread);
+  {
+    ReusableObjectHandleScope reused_obj_handle(thread);
+    const String& str_obj = Api::UnwrapStringHandle(reused_obj_handle, str);
+    if (!str_obj.IsNull()) {
+      *len = Utf8::Length(str_obj);
+      return Api::Success();
+    }
+  }
+  RETURN_TYPE_ERROR(thread->zone(), str, String);
+}
+
 DART_EXPORT Dart_Handle Dart_NewStringFromCString(const char* str) {
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
@@ -3056,6 +3070,28 @@ DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
   }
   str_obj.ToUTF8(*utf8_array, str_len);
   *length = str_len;
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_CopyUTF8EncodingOfString(Dart_Handle str,
+                                                      uint8_t* utf8_array,
+                                                      intptr_t length) {
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  if (utf8_array == nullptr) {
+    RETURN_NULL_ERROR(utf8_array);
+  }
+  const String& str_obj = Api::UnwrapStringHandle(Z, str);
+  if (str_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, str, String);
+  }
+  intptr_t str_len = Utf8::Length(str_obj);
+  if (length < str_len) {
+    return Api::NewError(
+        "Provided buffer is not large enough to hold "
+        "the UTF-8 representation of the string");
+  }
+  str_obj.ToUTF8(utf8_array, str_len);
   return Api::Success();
 }
 

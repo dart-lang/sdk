@@ -42,22 +42,14 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     Completer completer = new Completer();
     var stdoutSub;
-    int eventNumber = 1;
     stdoutSub = await isolate.vm.listenEventStream(VM.kStdoutStream,
         (ServiceEvent event) {
       expect(event.isolate != null, isTrue);
       expect(event.kind, equals('WriteEvent'));
-      if (eventNumber == 1) {
-        expect(event.bytesAsString, equals('print'));
-      } else if (eventNumber == 2) {
-        expect(event.bytesAsString, equals('\n'));
-        stdoutSub.cancel().then((_) {
-          completer.complete();
-        });
-      } else {
-        expect(true, false);
-      }
-      eventNumber++;
+      expect(event.bytesAsString, equals('print'));
+      stdoutSub.cancel().then((_) {
+        completer.complete();
+      });
     });
     await isolate.resume();
     await completer.future;

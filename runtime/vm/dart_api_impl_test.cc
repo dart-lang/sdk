@@ -1710,6 +1710,31 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
   }
 }
 
+TEST_CASE(DartAPI_CopyUTF8EncodingOfString) {
+  const char* kScriptChars =
+      "String lowSurrogate() {"
+      "  return '\\u{1D11E}'[1];"
+      "}";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  Dart_Handle str1 = Dart_Invoke(lib, NewString("lowSurrogate"), 0, nullptr);
+  EXPECT_VALID(str1);
+
+  uint8_t* utf8_encoded = nullptr;
+  intptr_t utf8_length = 0;
+  Dart_Handle result = Dart_StringToUTF8(str1, &utf8_encoded, &utf8_length);
+  EXPECT_VALID(result);
+  EXPECT_EQ(3, utf8_length);
+
+  intptr_t utf8_copy_length = 0;
+  result = Dart_StringUTF8Length(str1, &utf8_copy_length);
+  uint8_t* utf8_encoded_copy = Dart_ScopeAllocate(utf8_copy_length);
+  result =
+      Dart_CopyUTF8EncodingOfString(str1, utf8_encoded_copy, utf8_copy_length);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, memcmp(utf8_encoded, utf8_encoded_copy, utf8_length));
+}
+
 static void ExternalStringCallbackFinalizer(void* isolate_callback_data,
                                             void* peer) {
   *static_cast<int*>(peer) *= 2;

@@ -2242,6 +2242,17 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj, bool* value);
 DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* length);
 
 /**
+ * Gets the length of UTF-8 encoded representation for a string.
+ *
+ * \param str A String.
+ * \param length Returns the length of UTF-8 encoded representation for string.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_StringUTF8Length(Dart_Handle str,
+                                              intptr_t* length);
+
+/**
  * Returns a String built from the provided C string
  * (There is an implicit assumption that the C string passed in contains
  *  UTF-8 encoded characters and '\0' is considered as a termination
@@ -2367,6 +2378,24 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle str,
 DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
                                           uint8_t** utf8_array,
                                           intptr_t* length);
+
+/**
+ * Copies the UTF-8 encoded representation of a String into specified buffer.
+ *
+ * Any unpaired surrogate code points in the string will be converted as
+ * replacement characters (U+FFFD, 0xEF 0xBF 0xBD in UTF-8).
+ *
+ * \param str A string.
+ * \param utf8_array Buffer into which the UTF-8 encoded representation of
+ *   the string is copied into.
+ *   The buffer is allocated and managed by the caller.
+ * \param length Specifies the length of the buffer passed in.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_CopyUTF8EncodingOfString(Dart_Handle str,
+                                                      uint8_t* utf8_array,
+                                                      intptr_t length);
 
 /**
  * Gets the data corresponding to the string object. This function returns
