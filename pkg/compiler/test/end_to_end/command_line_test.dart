@@ -48,17 +48,6 @@ main() {
     await test([Flags.cfeOnly, 'foo.dart', '--out=prefix-'], out: 'prefix-');
     await test([Flags.cfeOnly, 'foo.dart', '--out=/some/path/prefix-'],
         out: '/some/path/prefix-');
-    await test(
-        [
-          Flags.cfeOnly,
-          'foo.dart',
-          '${Flags.readModularAnalysis}=modular1.data,modular2.data',
-          '${Flags.writeModularAnalysis}=modularcfe.data',
-        ],
-        cfeModularAnalysis: true,
-        readModularAnalysis: ['modular1.data', 'modular2.data'],
-        writeModularAnalysis: 'modularcfe.data',
-        out: 'out.dill');
     await test(['foo.dart', '${Flags.stage}=cfe', '--out=/some/path/'],
         out: '/some/path/out.dill');
     await test(['foo.dart', '${Flags.stage}=cfe', '--out=prefix-'],
@@ -83,18 +72,6 @@ main() {
         cfeFromDill: true, out: 'prefix-');
     await test([Flags.cfeOnly, 'foo.dill', '--out=/some/path/prefix-'],
         cfeFromDill: true, out: '/some/path/prefix-');
-    await test(
-        [
-          Flags.cfeOnly,
-          'foo.dill',
-          '${Flags.readModularAnalysis}=modular1.data,modular2.data',
-          '${Flags.writeModularAnalysis}=modularcfe.data',
-        ],
-        cfeFromDill: true,
-        cfeModularAnalysis: true,
-        readModularAnalysis: ['modular1.data', 'modular2.data'],
-        writeModularAnalysis: 'modularcfe.data',
-        out: 'out.dill');
     await test(['foo.dill', '${Flags.stage}=cfe', '--out=/some/path/'],
         cfeFromDill: true, out: '/some/path/out.dill');
     await test(['foo.dill', '${Flags.stage}=cfe', '--out=prefix-'],
@@ -104,43 +81,6 @@ main() {
       '${Flags.stage}=cfe',
       '--out=/some/path/prefix-',
     ], cfeFromDill: true, out: '/some/path/prefix-out.dill');
-
-    // Run modular analysis only
-    await test(['${Flags.stage}=modular-analysis', 'foo.dart'],
-        writeModularAnalysis: 'modular.data', out: 'out.dill');
-    await test(
-        ['${Flags.stage}=modular-analysis', '--out=out1.dill', 'foo.dart'],
-        writeModularAnalysis: 'modular.data', out: 'out1.dill');
-    await test([
-      '${Flags.stage}=modular-analysis',
-      '${Flags.writeModularAnalysis}=modular1.data',
-      'foo.dart'
-    ], writeModularAnalysis: 'modular1.data', out: 'out.dill');
-    await test(['${Flags.writeModularAnalysis}=modular1.data', 'foo.dart'],
-        out: 'out.dill', writeModularAnalysis: 'modular1.data');
-    await test([
-      '${Flags.writeModularAnalysis}=modular1.data',
-      'foo.dart',
-      '--out=out1.dill'
-    ], out: 'out1.dill', writeModularAnalysis: 'modular1.data');
-    await test([
-      '${Flags.writeModularAnalysis}=modular1.data',
-      'foo.dart',
-      '-oout1.dill'
-    ], out: 'out1.dill', writeModularAnalysis: 'modular1.data');
-    await test(
-        ['foo.dart', '${Flags.stage}=modular-analysis', '--out=/some/path/'],
-        writeModularAnalysis: '/some/path/modular.data',
-        out: '/some/path/out.dill');
-    await test(['foo.dart', '${Flags.stage}=modular-analysis', '--out=prefix-'],
-        writeModularAnalysis: 'prefix-modular.data', out: 'prefix-out.dill');
-    await test([
-      'foo.dart',
-      '${Flags.stage}=modular-analysis',
-      '--out=/some/path/prefix-'
-    ],
-        writeModularAnalysis: '/some/path/prefix-modular.data',
-        out: '/some/path/prefix-out.dill');
 
     // Run deferred load ids only
     await test([
@@ -183,15 +123,6 @@ main() {
       'foo.dill',
       '--out=/some/path/prefix-'
     ], out: '/some/path/prefix-', writeClosedWorld: 'world1.data');
-    await test(
-        [
-          '${Flags.readModularAnalysis}=modular1.data,modular2.data',
-          '${Flags.writeClosedWorld}=world1.data',
-          'foo.dill'
-        ],
-        out: 'out.dill',
-        readModularAnalysis: ['modular1.data', 'modular2.data'],
-        writeClosedWorld: 'world1.data');
     await test(['foo.dill', '${Flags.stage}=closed-world', '--out=/some/path/'],
         writeClosedWorld: '/some/path/world.data', out: '/some/path/out.dill');
     await test(['foo.dill', '${Flags.stage}=closed-world', '--out=prefix-'],
@@ -233,15 +164,6 @@ main() {
       '${Flags.writeData}=global1.data',
       'foo.dill',
       '--out=/some/path/prefix-'
-    ], readClosedWorld: 'world1.data', writeData: 'global1.data');
-    await test([
-      '${Flags.readModularAnalysis}=modular1.data,modular2.data',
-      '${Flags.readClosedWorld}=world1.data',
-      '${Flags.writeData}=global1.data',
-      'foo.dill'
-    ], readModularAnalysis: [
-      'modular1.data',
-      'modular2.data'
     ], readClosedWorld: 'world1.data', writeData: 'global1.data');
     await test(
         ['foo.dill', '${Flags.stage}=global-inference', '--out=/some/path/'],
@@ -363,24 +285,6 @@ main() {
       'foo.dill',
       '--out=/some/path/prefix-'
     ],
-        readClosedWorld: 'world1.data',
-        readData: 'global1.data',
-        writeCodegen: 'codegen1',
-        codegenShard: 10,
-        codegenShards: 11);
-    await test([
-      '${Flags.readModularAnalysis}=modular1.data,modular2.data',
-      '${Flags.readClosedWorld}=world1.data',
-      '${Flags.readData}=global1.data',
-      '${Flags.writeCodegen}=codegen1',
-      '${Flags.codegenShard}=10',
-      '${Flags.codegenShards}=11',
-      'foo.dill'
-    ],
-        readModularAnalysis: [
-          'modular1.data',
-          'modular2.data'
-        ],
         readClosedWorld: 'world1.data',
         readData: 'global1.data',
         writeCodegen: 'codegen1',
@@ -528,23 +432,6 @@ main() {
         codegenShards: 11,
         out: 'out1.js');
     await test([
-      '${Flags.readModularAnalysis}=modular1.data,modular2.data',
-      '${Flags.readClosedWorld}=world1.data',
-      '${Flags.readData}=global1.data',
-      '${Flags.readCodegen}=codegen1',
-      '${Flags.codegenShards}=11',
-      'foo.dill'
-    ],
-        readModularAnalysis: [
-          'modular1.data',
-          'modular2.data'
-        ],
-        readClosedWorld: 'world1.data',
-        readData: 'global1.data',
-        readCodegen: 'codegen1',
-        codegenShards: 11,
-        out: 'out.js');
-    await test([
       'foo.dill',
       '${Flags.stage}=emit-js',
       '--out=/some/path/',
@@ -615,15 +502,6 @@ main() {
         readClosedWorld: 'world1.data',
         readData: 'global1.data',
         out: 'out1.js');
-    await test([
-      '${Flags.readModularAnalysis}=modular1.data,modular2.data',
-      '${Flags.readClosedWorld}=world1.data',
-      '${Flags.readData}=global1.data',
-      'foo.dill'
-    ], readModularAnalysis: [
-      'modular1.data',
-      'modular2.data'
-    ], readClosedWorld: 'world1.data', readData: 'global1.data', out: 'out.js');
     await test(
         ['foo.dill', '${Flags.stage}=codegen-emit-js', '--out=/some/path/'],
         readClosedWorld: '/some/path/world.data',
@@ -938,8 +816,6 @@ main() {
 Future test(List<String> arguments,
     {int? exitCode,
     String? out,
-    List<String>? readModularAnalysis,
-    String? writeModularAnalysis,
     bool allFromDill = false,
     bool cfeFromDill = false,
     bool cfeModularAnalysis = false,
@@ -981,27 +857,6 @@ Future test(List<String> arguments,
     }
     if (cfeFromDill) {
       Expect.equals(Dart2JSStage.cfeFromDill, options.stage);
-    }
-    if (readModularAnalysis != null) {
-      Expect.isNotNull(options.modularAnalysisInputs,
-          "modularAnalysisInputs expected to be non-null.");
-      Expect.listEquals(
-          readModularAnalysis.map(toUri).toList(),
-          options.modularAnalysisInputs!,
-          "Unexpected modularAnalysisInputs uri");
-    }
-    if (writeModularAnalysis == null) {
-      Expect.notEquals(options.stage, Dart2JSStage.modularAnalysis);
-    } else {
-      Expect.equals(
-          options.stage,
-          cfeModularAnalysis
-              ? (cfeFromDill ? Dart2JSStage.cfeFromDill : Dart2JSStage.cfe)
-              : Dart2JSStage.modularAnalysis);
-      Expect.equals(
-          toUri(writeModularAnalysis),
-          options.dataOutputUriForStage(Dart2JSStage.modularAnalysis),
-          "Unexpected writeModularAnalysis uri");
     }
     if (writeDeferredLoadIds == null) {
       Expect.notEquals(options.stage, Dart2JSStage.deferredLoadIds);

@@ -28,19 +28,7 @@ The current compiler phases are:
     The result of this phase is a kernel AST which is serialized as a `.dill`
     file.
 
-  2. **modular analysis**: Using kernel as input, compute data recording
-     properties about each method in the program, especially around dependencies
-     and features they may need. We call this "impact data" (i1).
-
-     When the compiler runs as a single process, this is done lazily/on-demand
-     during the tree-shaking phase (below). However, this data can also be
-     computed independently for individual methods, files, or packages in the
-     application.  That makes it possible to run this modularly and in parallel.
-
-     The result of this phase can be emitted as files containing impact data in
-     a serialized format.
-
-  3. **tree-shake and create world**: Create a model to understand what parts of
+  2. **tree-shake and create world**: Create a model to understand what parts of
      the code are used by an application. This consists of:
         * creating an intermediate representation called the "K model" that
           wraps our kernel representation
@@ -56,7 +44,7 @@ The current compiler phases are:
      in any subtype of some interface? The answers to these questions can help
      the compiler generate higher quality JavaScript.
 
-  4. **global analysis**: Run a global analysis that assumes closed world
+  3. **global analysis**: Run a global analysis that assumes closed world
      semantics (from w1) and propagates information across method boundaries to
      further understand what values flow through the program. This phase is
      very valuable in narrowing down possibilities that are ambiguous based
@@ -66,13 +54,13 @@ The current compiler phases are:
 
      The result of this phase is a "global result" (g).
 
-  5. **codegen model**: Create a JS or backend model of the program. This is an
+  4. **codegen model**: Create a JS or backend model of the program. This is an
      intermediate representation of the entities in the program we referred to
      as the "J model". It is very similar to the "K model", but it is tailored
      to model JavaScript specific concepts (like the split of constructor bodies
      as separate elements) and provide a mapping to the Dart model.
 
-  6. **codegen**: Generate code for each method that is deemed necessary. This
+  5. **codegen**: Generate code for each method that is deemed necessary. This
      includes:
         * build an SSA graph from kernel ASTs and global results (g)
         * optimize the SSA representation
@@ -80,7 +68,7 @@ The current compiler phases are:
         * emit JS ASTs for the code
 
 
-  7. **link tree-shake**: Using the results of codegen, we perform a second
+  6. **link tree-shake**: Using the results of codegen, we perform a second
      round of tree-shaking. This is important because code that was deemed
      reachable in (w1) may be found unreachable after optimizations. The process
      is very similar to the earlier phase: we combine incrementally the codegen
@@ -90,7 +78,7 @@ The current compiler phases are:
      When dart2js runs as a single process the codegen phase is done lazily and
      on-demand, together with the tree-shaking phase.
 
-  8. **emit JavaScript files**: The final step is to assemble and minify the
+  7. **emit JavaScript files**: The final step is to assemble and minify the
      final program. This includes:
      * Build a JavaScript program structure from the compiled pieces (w2)
      * Use frequency namer to minify names.

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Test the modular compilation pipeline of dart2js.
+/// Test the compilation pipeline of dart2js.
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'dart:async';
@@ -21,11 +21,9 @@ main(List<String> args) async {
         options,
         IOPipeline([
           OutlineDillCompilationStep(),
-          FullDillCompilationStep(onlyOnSdk: true),
-          ModularAnalysisStep(onlyOnSdk: true),
-          ModularAnalysisStep(),
-          ConcatenateDillsStep(useModularAnalysis: true),
-          ComputeClosedWorldStep(useModularAnalysis: true),
+          FullDillCompilationStep(),
+          ConcatenateDillsStep(),
+          ComputeClosedWorldStep(),
           GlobalAnalysisStep(),
           Dart2jsCodegenStep(codeId0),
           Dart2jsCodegenStep(codeId1),
