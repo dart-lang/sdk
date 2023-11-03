@@ -448,8 +448,8 @@ has been specified on the command line.''')
     'csp',
     'minified',
     'vm-options',
-    'dart2js_options',
-    'experiments',
+    'dart2js-options',
+    'enable-experiment',
     'babel',
     'builder-tag',
     'use-qemu'
@@ -486,12 +486,14 @@ has been specified on the command line.''')
 
     // If a named configuration was specified ensure no other options, which are
     // implied by the named configuration, were specified.
-    if (options['named-configuration'] is String) {
+    final namedConfigurations = options['named-configuration'];
+    if (namedConfigurations is List<String> && namedConfigurations.isNotEmpty) {
       for (var optionName in _namedConfigurationOptions) {
         if (results.wasParsed(optionName)) {
-          var namedConfig = options['named-configuration'];
+          var namedConfigs =
+              (options['named-configuration'] as List<String>).join(', ');
           _fail("Can't pass '--$optionName' since it is determined by the "
-              "named configuration '$namedConfig'.");
+              "named configuration: $namedConfigs.");
         }
       }
     }
