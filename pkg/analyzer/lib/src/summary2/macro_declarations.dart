@@ -13,6 +13,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:collection/collection.dart';
 
 class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   late final ClassElement element;
@@ -47,6 +49,9 @@ class DeclarationBuilder {
 
   late final DeclarationBuilderFromElement fromElement =
       DeclarationBuilderFromElement(this);
+
+  /// The annotations that were recognized as macro applications.
+  final Set<ast.Annotation> macroAnnotations = {};
 
   DeclarationBuilder({
     required this.nodeOfElement,
@@ -308,10 +313,73 @@ class DeclarationBuilderFromNode {
   }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(
-    List<ast.Annotation> elements,
+    List<ast.Annotation> nodes,
   ) {
-    // TODO: Provide metadata annotations.
-    return const [];
+    return nodes
+        .whereNot(declarationBuilder.macroAnnotations.contains)
+        .map(_buildMetadataNode)
+        .whereNotNull()
+        .toList();
+  }
+
+  macro.MetadataAnnotationImpl? _buildMetadataNode(
+    ast.Annotation node,
+  ) {
+    final unitNode = node.thisOrAncestorOfType<ast.CompilationUnit>()!;
+    final unitElement = unitNode.declaredElement!;
+    final libraryElement = unitElement.library;
+    final importPrefixNames = libraryElement.libraryImports
+        .map((e) => e.prefix?.element.name)
+        .whereNotNull()
+        .toSet();
+
+    final identifiers = <ast.SimpleIdentifier>[];
+
+    switch (node.name) {
+      case ast.PrefixedIdentifier node:
+        identifiers.add(node.prefix);
+        identifiers.add(node.identifier);
+      case ast.SimpleIdentifier node:
+        identifiers.add(node);
+      default:
+        return null;
+    }
+
+    identifiers.addIfNotNull(node.constructorName);
+
+    var nextIndex = 0;
+    if (importPrefixNames.contains(identifiers.first.name)) {
+      nextIndex++;
+    }
+
+    final identifierName = identifiers[nextIndex++];
+    final constructorName = identifiers.elementAtOrNull(nextIndex);
+
+    final arguments = node.arguments;
+    if (arguments != null) {
+      return macro.ConstructorMetadataAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        constructor: IdentifierImplFromNode(
+          id: macro.RemoteInstance.uniqueId,
+          name: constructorName?.name ?? '',
+          getElement: () => node.element,
+        ),
+        type: IdentifierImplFromNode(
+          id: macro.RemoteInstance.uniqueId,
+          name: identifierName.name,
+          getElement: () => identifierName.staticElement,
+        ),
+      );
+    }
+
+    return macro.IdentifierMetadataAnnotationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: IdentifierImplFromNode(
+        id: macro.RemoteInstance.uniqueId,
+        name: identifierName.name,
+        getElement: () => identifierName.staticElement,
+      ),
+    );
   }
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
@@ -641,6 +709,19 @@ class IdentifierImplFromElement extends IdentifierImpl {
     required super.name,
     required this.element,
   });
+}
+
+class IdentifierImplFromNode extends IdentifierImpl {
+  final Element? Function() getElement;
+
+  IdentifierImplFromNode({
+    required super.id,
+    required super.name,
+    required this.getElement,
+  });
+
+  @override
+  Element? get element => getElement();
 }
 
 class IntrospectableClassDeclarationImpl

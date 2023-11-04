@@ -95,12 +95,11 @@ class _DeclarationPrinter {
         'hasExternal': e.hasExternal,
       });
 
-      var superclass = e.superclass;
-      if (superclass != null) {
+      await _writeMetadata(e);
+      await _writeTypeParameters(e.typeParameters);
+      if (e.superclass case final superclass?) {
         await _writeTypeAnnotation('superclass', superclass);
       }
-
-      await _writeTypeParameters(e.typeParameters);
       await _writeTypeAnnotations('mixins', e.mixins);
       await _writeTypeAnnotations('interfaces', e.interfaces);
     });
@@ -136,6 +135,7 @@ class _DeclarationPrinter {
         'hasBase': e.hasBase,
       });
 
+      await _writeMetadata(e);
       await _writeTypeParameters(e.typeParameters);
       await _writeTypeAnnotations(
         'superclassConstraints',
@@ -152,6 +152,7 @@ class _DeclarationPrinter {
         'isNamed': e.isNamed,
         'isRequired': e.isRequired,
       });
+      await _writeMetadata(e);
       await _writeTypeAnnotation('type', e.type);
     });
   }
@@ -165,7 +166,23 @@ class _DeclarationPrinter {
   }
 
   Future<void> _writeMetadataAnnotation(MetadataAnnotation e) async {
-    // TODO(scheglov) implement
+    switch (e) {
+      case ConstructorMetadataAnnotation():
+        sink.writelnWithIndent('ConstructorMetadataAnnotation');
+        await sink.withIndent(() async {
+          sink.writelnWithIndent('type: ${e.type.name}');
+          final constructorName = e.constructor.name;
+          if (constructorName.isNotEmpty) {
+            sink.writelnWithIndent('constructorName: $constructorName');
+          }
+        });
+      case IdentifierMetadataAnnotation():
+        sink.writelnWithIndent('IdentifierMetadataAnnotation');
+        await sink.withIndent(() async {
+          sink.writelnWithIndent('identifier: ${e.identifier.name}');
+        });
+      default:
+    }
   }
 
   Future<void> _writeNamedFormalParameters(
@@ -217,8 +234,8 @@ class _DeclarationPrinter {
     sink.writelnWithIndent(e.identifier.name);
 
     await sink.withIndent(() async {
-      var bound = e.bound;
-      if (bound != null) {
+      await _writeMetadata(e);
+      if (e.bound case final bound?) {
         await _writeTypeAnnotation('bound', bound);
       }
     });

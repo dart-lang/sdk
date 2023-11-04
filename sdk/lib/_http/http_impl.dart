@@ -3406,7 +3406,7 @@ class _ProxyConfiguration {
           // Skip the "PROXY " prefix.
           proxy = proxy.substring(PROXY_PREFIX.length).trim();
           // Look for proxy authentication.
-          int at = proxy.indexOf("@");
+          int at = proxy.lastIndexOf("@");
           if (at != -1) {
             String userinfo = proxy.substring(0, at).trim();
             proxy = proxy.substring(at + 1).trim();

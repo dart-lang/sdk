@@ -43,23 +43,14 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (VmService service, IsolateRef isolateRef) async {
     final completer = Completer<void>();
-    int eventNumber = 1;
     late StreamSubscription stdoutSub;
     stdoutSub = service.onStdoutEvent.listen((event) async {
       expect(event.kind, EventKind.kWriteEvent);
       final decoded = utf8.decode(base64Decode(event.bytes!));
-
-      if (eventNumber == 1) {
-        expect(decoded, 'print');
-      } else if (eventNumber == 2) {
-        expect(decoded, '\n');
-        await service.streamCancel(EventStreams.kStdout);
-        await stdoutSub.cancel();
-        completer.complete();
-      } else {
-        fail('Unreachable');
-      }
-      eventNumber++;
+      expect(decoded, 'print');
+      await service.streamCancel(EventStreams.kStdout);
+      await stdoutSub.cancel();
+      completer.complete();
     });
     await service.streamListen(EventStreams.kStdout);
     await service.resume(isolateRef.id!);

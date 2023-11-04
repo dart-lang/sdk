@@ -707,6 +707,7 @@ class LibraryBuilder {
           librarySource: importedFile.source,
           lineInfo: unitNode.lineInfo,
         );
+        unitNode.declaredElement = unitElement;
         unitElement.setCodeRange(0, unitNode.length);
 
         final unitReference =
@@ -1046,6 +1047,7 @@ class LibraryBuilder {
         librarySource: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
       );
+      libraryUnitNode.declaredElement = unitElement;
       unitElement.isSynthetic = !libraryFile.exists;
       unitElement.setCodeRange(0, libraryUnitNode.length);
 
@@ -1077,6 +1079,7 @@ class LibraryBuilder {
             librarySource: libraryFile.source,
             lineInfo: partUnitNode.lineInfo,
           );
+          partUnitNode.declaredElement = unitElement;
           unitElement.isSynthetic = !partFile.exists;
           unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);

@@ -17,10 +17,5 @@ secondary_source = "//build/secondary/"
 script_executable = "python3"
 
 default_args = {
-  # fuchsia::io::InotifyWatchMask has been deprecated in 12 and removed in 13
-  # right before the current version (12.20230418.0.1) we are using.
-  # https://fxrev.dev/836377.
-  # So explicitly marking fuchsia_target_api_level to 11 to workaround it
-  # temporarily.
-  fuchsia_target_api_level = 11
+  fuchsia_target_api_level = 15
 }
