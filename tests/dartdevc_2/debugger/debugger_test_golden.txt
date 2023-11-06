@@ -7091,7 +7091,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "Instance of 'TestGenericClass<ExampleJSClass, int>'"
+    "Instance of 'TestGenericClass<ExampleJSClass<any>, int>'"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop instance body
@@ -7188,7 +7188,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "TestGenericClass<ExampleJSClass, int>"
+    "TestGenericClass<ExampleJSClass<any>, int>"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop definition formatting body

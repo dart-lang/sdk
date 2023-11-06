@@ -46,6 +46,13 @@
 
 [lints-3-0]: https://pub.dev/packages/lints/changelog#300
 
+#### Development JavaScript compiler (DDC)
+
+- Type arguments of `package:js` interop types are now printed as `any` instead
+  of being omitted. This is simply a change to the textual representation of
+  package js types that have type arguments. These type arguments are still
+  completely ignored by the type system at runtime.
+
 ## 3.2.0
 
 ### Language
