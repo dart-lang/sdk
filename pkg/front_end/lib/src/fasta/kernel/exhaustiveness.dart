@@ -248,7 +248,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getListElementType(DartType type) {
-    type = type.resolveTypeParameterType;
+    type = type.nonTypeVariableBound;
     if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           _classHierarchy.getTypeArgumentsAsInstanceOf(
@@ -262,7 +262,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getListType(DartType type) {
-    type = type.resolveTypeParameterType;
+    type = type.nonTypeVariableBound;
     if (type is TypeDeclarationType) {
       return _classHierarchy.getTypeAsInstanceOf(
           type, _typeEnvironment.coreTypes.listClass,
@@ -273,7 +273,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
 
   @override
   DartType? getMapValueType(DartType type) {
-    type = type.resolveTypeParameterType;
+    type = type.nonTypeVariableBound;
     if (type is TypeDeclarationType) {
       List<DartType>? typeArguments =
           _classHierarchy.getTypeArgumentsAsInstanceOf(

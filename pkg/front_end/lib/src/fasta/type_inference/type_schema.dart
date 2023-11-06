@@ -58,7 +58,12 @@ class UnknownType extends AuxiliaryType {
   Nullability get nullability => Nullability.undetermined;
 
   @override
-  DartType get resolveTypeParameterType => this;
+  DartType get nonTypeVariableBound => this;
+
+  @override
+  bool get hasNonObjectMemberAccess {
+    throw new UnsupportedError("${runtimeType}.hasNonObjectMemberAccess");
+  }
 
   @override
   bool equals(Object other, Assumptions? assumptions) {
