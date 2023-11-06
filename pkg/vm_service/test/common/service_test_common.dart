@@ -400,7 +400,7 @@ IsolateTest checkRecordedStops(
           }
         }
         String comma = i == recordStops.length - 1 ? "" : ",";
-        print('"$output"$comma');
+        print("'$output'$comma");
       }
     }
     if (removeDuplicates) {

@@ -27,9 +27,12 @@ import 'introspect_shared.dart';
       indent: '',
     );
 
-    final printer = _DeclarationPrinter(
+    final printer = _Printer(
       sink: sink,
-      withDetailsFor: withDetailsFor.cast(),
+      withDetailsFor: {
+        declaration.identifier.name,
+        ...withDetailsFor.cast(),
+      },
       declarationPhaseIntrospector: builder,
     );
     await printer.writeClassDeclaration(declaration);
@@ -54,9 +57,12 @@ import 'introspect_shared.dart';
       indent: '',
     );
 
-    final printer = _DeclarationPrinter(
+    final printer = _Printer(
       sink: sink,
-      withDetailsFor: withDetailsFor.cast(),
+      withDetailsFor: {
+        declaration.identifier.name,
+        ...withDetailsFor.cast(),
+      },
       declarationPhaseIntrospector: builder,
     );
     await printer.writeMixinDeclaration(declaration);
@@ -71,25 +77,27 @@ import 'introspect_shared.dart';
   }
 }
 
-class _DeclarationPrinter {
+class _Printer with SharedPrinter {
+  @override
   final TreeStringSink sink;
+
   final Set<String> withDetailsFor;
   final DeclarationPhaseIntrospector declarationPhaseIntrospector;
 
   Identifier? _enclosingDeclarationIdentifier;
 
-  _DeclarationPrinter({
+  _Printer({
     required this.sink,
     required this.withDetailsFor,
     required this.declarationPhaseIntrospector,
   });
 
   Future<void> writeClassDeclaration(IntrospectableClassDeclaration e) async {
-    sink.writelnWithIndent('class ${e.identifier.name}');
-
     if (!_shouldWriteDetailsFor(e)) {
       return;
     }
+
+    sink.writelnWithIndent('class ${e.identifier.name}');
 
     await sink.withIndent(() async {
       await sink.writeFlags({
@@ -101,23 +109,10 @@ class _DeclarationPrinter {
         'hasMixin': e.hasMixin,
         'hasSealed': e.hasSealed,
       });
-
-      final superAnnotation = e.superclass;
-      if (superAnnotation != null) {
-        final superIdentifier = superAnnotation.identifier;
-        sink.writelnWithIndent('superclass');
-        try {
-          final superDeclaration = await declarationPhaseIntrospector
-                  .typeDeclarationOf(superIdentifier)
-              as IntrospectableClassDeclaration;
-          await sink.withIndent(() => writeClassDeclaration(superDeclaration));
-        } on ArgumentError {
-          await sink.withIndent(() async {
-            sink.writelnWithIndent('notType ${superIdentifier.name}');
-          });
-        }
+      await writeMetadata(e);
+      if (e.superclass case final superclass?) {
+        await _writeNamedTypeAnnotation('superclass', superclass);
       }
-
       await _writeTypeParameters(e.typeParameters);
       await _writeTypeAnnotations('mixins', e.mixins);
       await _writeTypeAnnotations('interfaces', e.interfaces);
@@ -132,16 +127,18 @@ class _DeclarationPrinter {
   }
 
   Future<void> writeMixinDeclaration(IntrospectableMixinDeclaration e) async {
-    sink.writelnWithIndent('mixin ${e.identifier.name}');
-
     if (!_shouldWriteDetailsFor(e)) {
       return;
     }
+
+    sink.writelnWithIndent('mixin ${e.identifier.name}');
 
     await sink.withIndent(() async {
       await sink.writeFlags({
         'hasBase': e.hasBase,
       });
+
+      await writeMetadata(e);
 
       await _writeTypeParameters(e.typeParameters);
       await _writeTypeAnnotations(
@@ -166,8 +163,7 @@ class _DeclarationPrinter {
   }
 
   bool _shouldWriteDetailsFor(Declaration declaration) {
-    return withDetailsFor.isEmpty ||
-        withDetailsFor.contains(declaration.identifier.name);
+    return withDetailsFor.contains(declaration.identifier.name);
   }
 
   Future<void> _writeField(FieldDeclaration e) async {
@@ -182,29 +178,61 @@ class _DeclarationPrinter {
         'hasLate': e.hasLate,
         'isStatic': e.isStatic,
       });
-      _writeTypeAnnotation('type', e.type);
+      await writeMetadata(e);
+      await _writeNamedTypeAnnotation('type', e.type);
     });
   }
 
-  void _writeTypeAnnotation(String name, TypeAnnotation? type) {
+  Future<void> _writeNamedTypeAnnotation(
+    String name,
+    TypeAnnotation? type,
+  ) async {
     sink.writeWithIndent('$name: ');
+    await _writeTypeAnnotation(type);
+  }
 
+  Future<void> _writeTypeAnnotation(TypeAnnotation? type) async {
     if (type != null) {
       sink.writeln(type.asString);
+      await _writeTypeAnnotationDeclaration(type);
     } else {
       sink.writeln('null');
     }
   }
 
-  Future<void> _writeTypeAnnotationLine(TypeAnnotation type) async {
-    sink.writelnWithIndent(type.asString);
+  Future<void> _writeTypeAnnotationDeclaration(TypeAnnotation type) async {
+    await sink.withIndent(() async {
+      switch (type) {
+        case NamedTypeAnnotation():
+          final identifier = type.identifier;
+          try {
+            final declaration = await declarationPhaseIntrospector
+                .typeDeclarationOf(identifier);
+            switch (declaration) {
+              case IntrospectableClassDeclaration():
+                await writeClassDeclaration(declaration);
+              case IntrospectableMixinDeclaration():
+                await writeMixinDeclaration(declaration);
+              default:
+                throw UnimplementedError('${declaration.runtimeType}');
+            }
+          } on ArgumentError {
+            sink.writelnWithIndent('noDeclaration');
+          }
+        default:
+          throw UnimplementedError('(${type.runtimeType}) $type');
+      }
+    });
   }
 
   Future<void> _writeTypeAnnotations(
     String name,
-    Iterable<TypeAnnotation> elements,
+    Iterable<TypeAnnotation> types,
   ) async {
-    await sink.writeElements(name, elements, _writeTypeAnnotationLine);
+    await sink.writeElements(name, types, (type) async {
+      sink.writeIndent();
+      await _writeTypeAnnotation(type);
+    });
   }
 
   Future<void> _writeTypeParameter(TypeParameterDeclaration e) async {
@@ -213,7 +241,7 @@ class _DeclarationPrinter {
     await sink.withIndent(() async {
       final bound = e.bound;
       if (bound != null) {
-        _writeTypeAnnotation('bound', bound);
+        await _writeNamedTypeAnnotation('bound', bound);
       }
     });
   }

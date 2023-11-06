@@ -4,6 +4,38 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+mixin SharedPrinter {
+  TreeStringSink get sink;
+
+  Future<void> writeMetadata(Annotatable e) async {
+    await sink.writeElements(
+      'metadata',
+      e.metadata,
+      _writeMetadataAnnotation,
+    );
+  }
+
+  Future<void> _writeMetadataAnnotation(MetadataAnnotation e) async {
+    switch (e) {
+      case ConstructorMetadataAnnotation():
+        sink.writelnWithIndent('ConstructorMetadataAnnotation');
+        await sink.withIndent(() async {
+          sink.writelnWithIndent('type: ${e.type.name}');
+          final constructorName = e.constructor.name;
+          if (constructorName.isNotEmpty) {
+            sink.writelnWithIndent('constructorName: $constructorName');
+          }
+        });
+      case IdentifierMetadataAnnotation():
+        sink.writelnWithIndent('IdentifierMetadataAnnotation');
+        await sink.withIndent(() async {
+          sink.writelnWithIndent('identifier: ${e.identifier.name}');
+        });
+      default:
+    }
+  }
+}
+
 /// Wrapper around a [StringSink] for writing tree structures.
 class TreeStringSink {
   final StringSink _sink;

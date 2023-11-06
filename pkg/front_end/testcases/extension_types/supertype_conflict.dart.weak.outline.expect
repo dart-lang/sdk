@@ -10,6 +10,11 @@ library;
 // extension type E(A<Never> it) implements B<int>, C<String> {}
 //                ^
 //
+// pkg/front_end/testcases/extension_types/supertype_conflict.dart:11:16: Error: 'D' can't implement both 'A<int>' and 'A<String>'
+//  - 'A' is from 'pkg/front_end/testcases/extension_types/supertype_conflict.dart'.
+// extension type D(A<Never> it) implements A<int>, B<String> {}
+//                ^
+//
 import self as self;
 import "dart:core" as core;
 

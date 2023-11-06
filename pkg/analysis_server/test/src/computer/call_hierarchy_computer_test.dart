@@ -6,6 +6,7 @@ import 'package:analysis_server/src/computer/computer_call_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -65,58 +66,42 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
   final startOfFile = SourceRange(0, 0);
 
   /// Gets the entire range for [code].
-  SourceRange entireRange(String code) =>
-      SourceRange(0, withoutMarkers(code).length);
+  SourceRange entireRange(TestCode code) => SourceRange(0, code.code.length);
 
-  Future<CallHierarchyItem?> findTarget(String code) async {
-    final marker = code.indexOf('^');
-    expect(marker, greaterThanOrEqualTo(0));
-    addTestSource(withoutMarkers(code));
+  Future<CallHierarchyItem?> findTarget(TestCode code) async {
+    final offset = code.position.offset;
+    expect(offset, greaterThanOrEqualTo(0));
+    addTestSource(code.code);
 
     final result = await getResolvedUnit(testFile);
 
-    return DartCallHierarchyComputer(result).findTarget(marker);
+    return DartCallHierarchyComputer(result).findTarget(offset);
   }
 
-  // Gets the expected range that follows the string [prefix] in [code] with a
-  // length of [match.length].
-  SourceRange rangeAfterPrefix(String prefix, String code, String match) =>
-      SourceRange(
-          withoutMarkers(code).indexOf(prefix) + prefix.length, match.length);
+  /// Gets the expected range that follows the string [prefix] in [content] with a
+  /// length of [match.length].
+  SourceRange rangeAfterPrefix(String prefix, TestCode code, String match) =>
+      SourceRange(code.code.indexOf(prefix) + prefix.length, match.length);
 
-  // Gets the expected range that starts at [search] in [code] with a
-  // length of [match.length].
-  SourceRange rangeAtSearch(String search, String code, [String? match]) {
-    final index = withoutMarkers(code).indexOf(search);
-    expect(index, greaterThanOrEqualTo(0));
-    return SourceRange(index, (match ?? search).length);
+  /// Gets the expected range that starts at [search] in [code] with a
+  /// length of [match.length].
+  SourceRange rangeAtSearch(String search, TestCode code, [String? match]) {
+    final offset = code.code.indexOf(search);
+    expect(offset, greaterThanOrEqualTo(0));
+    return SourceRange(offset, (match ?? search).length);
   }
-
-  // Gets the code range between markers in the form `/*1*/` where `1` is
-  // [number].
-  SourceRange rangeNumbered(int number, String code) {
-    code = withoutMarkers(code);
-    final marker = '/*$number*/';
-    final start = code.indexOf(marker) + marker.length;
-    final end = code.lastIndexOf(marker);
-    expect(start, greaterThanOrEqualTo(0 + marker.length));
-    expect(end, greaterThan(start));
-    return SourceRange(start, end - start);
-  }
-
-  String withoutMarkers(String code) => code.replaceAll('^', '');
 }
 
 @reflectiveTest
 class CallHierarchyComputerFindTargetTest extends AbstractCallHierarchyTest {
   late String otherFile;
 
-  Future<void> expectNoTarget(String content) async {
-    await expectTarget(content, isNull);
+  Future<void> expectNoTarget(TestCode code) async {
+    await expectTarget(code, isNull);
   }
 
-  Future<void> expectTarget(String content, Matcher matcher) async {
-    final target = await findTarget(content);
+  Future<void> expectTarget(TestCode code, Matcher matcher) async {
+    final target = await findTarget(code);
     expect(target, matcher);
   }
 
@@ -127,25 +112,25 @@ class CallHierarchyComputerFindTargetTest extends AbstractCallHierarchyTest {
   }
 
   Future<void> test_args() async {
-    await expectNoTarget('f(int ^a) {}');
+    await expectNoTarget(TestCode.parse('f(int ^a) {}'));
   }
 
   Future<void> test_block() async {
-    await expectNoTarget('f() {^}');
+    await expectNoTarget(TestCode.parse('f() {^}'));
   }
 
   Future<void> test_comment() async {
-    await expectNoTarget('f() {} // this is a ^comment');
+    await expectNoTarget(TestCode.parse('f() {} // this is a ^comment'));
   }
 
   Future<void> test_constructor() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
-  /*1*/Fo^o(String a) {}/*1*/
+  [!Fo^o(String a) {}!]
 }
-    ''';
+''');
 
-    final target = await findTarget(contents);
+    final target = await findTarget(code);
     expect(
       target,
       _isItem(
@@ -153,206 +138,206 @@ class Foo {
         'Foo',
         testFile.path,
         containerName: 'Foo',
-        nameRange: rangeAtSearch('Foo(', contents, 'Foo'),
-        codeRange: rangeNumbered(1, contents),
+        nameRange: rangeAtSearch('Foo(', code, 'Foo'),
+        codeRange: code.range.sourceRange,
       ),
     );
   }
 
   Future<void> test_constructorCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   final foo = Fo^o();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class Foo {
-  /*1*/Foo();/*1*/
+  [!Foo();!]
 }
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.constructor,
           'Foo',
           otherFile,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('Foo(', otherContents, 'Foo'),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('Foo(', otherCode, 'Foo'),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_extension_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 extension StringExtension on String {
-  /*1*/void myMet^hod() {}/*1*/
+  [!void myMet^hod() {}!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           testFile.path,
           containerName: 'StringExtension',
-          nameRange: rangeAtSearch('myMethod', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myMethod', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_extension_methodCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   ''.myMet^hod();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 extension StringExtension on String {
-  /*1*/void myMethod() {}/*1*/
+  [!void myMethod() {}!]
 }
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           otherFile,
           containerName: 'StringExtension',
-          nameRange: rangeAtSearch('myMethod', otherContents),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('myMethod', otherCode),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_function() async {
-    final contents = '''
-/*1*/void myFun^ction() {}/*1*/
-    ''';
+    final code = TestCode.parse('''
+[!void myFun^ction() {}!]
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
           testFile.path,
           containerName: 'test.dart',
-          nameRange: rangeAtSearch('myFunction', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myFunction', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_function_startOfParameterList() async {
-    final contents = '''
-/*1*/void myFunction^() {}/*1*/
-    ''';
+    final code = TestCode.parse('''
+[!void myFunction^() {}!]
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
           testFile.path,
           containerName: 'test.dart',
-          nameRange: rangeAtSearch('myFunction', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myFunction', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_function_startOfTypeParameterList() async {
-    final contents = '''
-/*1*/void myFunction^<T>() {}/*1*/
-    ''';
+    final code = TestCode.parse('''
+[!void myFunction^<T>() {}!]
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
           testFile.path,
           containerName: 'test.dart',
-          nameRange: rangeAtSearch('myFunction', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myFunction', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_functionCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart' as other;
 
 void f() {
   other.myFun^ction();
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/void myFunction() {}/*1*/
-    ''';
+    final otherCode = TestCode.parse('''
+[!void myFunction() {}!]
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.function,
           'myFunction',
           otherFile,
           containerName: 'other.dart',
-          nameRange: rangeAtSearch('myFunction', otherContents),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('myFunction', otherCode),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_getter() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
-  /*1*/String get fo^o => '';/*1*/
+  [!String get fo^o => '';!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.property,
           'get foo',
           testFile.path,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('foo', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('foo', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_getterCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   final foo = ba^r;
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/String get bar => '';/*1*/
-    ''';
+    final otherCode = TestCode.parse('''
+[!String get bar => '';!]
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.property,
           'get bar',
           otherFile,
           containerName: 'other.dart',
-          nameRange: rangeAtSearch('bar', otherContents),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('bar', otherCode),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
@@ -360,288 +345,288 @@ void f() {
     // Even if a constructor is implicit, we might want to be able to get the
     // incoming calls, so we should return the class location as a stand-in
     // (although with the Kind still set to constructor).
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   final foo = Fo^o();
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/class Foo {}/*1*/
-    ''';
+    final otherCode = TestCode.parse('''
+[!class Foo {}!]
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.constructor,
           'Foo',
           otherFile,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('Foo {', otherContents, 'Foo'),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('Foo {', otherCode, 'Foo'),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
-  /*1*/void myMet^hod() {}/*1*/
+  [!void myMet^hod() {}!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           testFile.path,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myMethod', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_method_startOfParameterList() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
-  /*1*/void myMethod^() {}/*1*/
+  [!void myMethod^() {}!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           testFile.path,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myMethod', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_method_startOfTypeParameterList() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
-  /*1*/void myMethod^<T>() {}/*1*/
+  [!void myMethod^<T>() {}!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           testFile.path,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myMethod', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_methodCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   Foo().myMet^hod();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class Foo {
-  /*1*/void myMethod() {}/*1*/
+  [!void myMethod() {}!]
 }
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           otherFile,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('myMethod', otherContents),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('myMethod', otherCode),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_mixin_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 mixin Bar {
-  /*1*/void myMet^hod() {}/*1*/
+  [!void myMet^hod() {}!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           testFile.path,
           containerName: 'Bar',
-          nameRange: rangeAtSearch('myMethod', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('myMethod', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_mixin_methodCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   Foo().myMet^hod();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class Bar {
-  /*1*/void myMethod() {}/*1*/
+  [!void myMethod() {}!]
 }
 
 class Foo with Bar {}
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.method,
           'myMethod',
           otherFile,
           containerName: 'Bar',
-          nameRange: rangeAtSearch('myMethod', otherContents),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('myMethod', otherCode),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_namedConstructor() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
-  /*1*/Foo.Ba^r(String a) {}/*1*/
+  [!Foo.Ba^r(String a) {}!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.constructor,
           'Foo.Bar',
           testFile.path,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('Bar', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('Bar', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_namedConstructor_typeName() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
   Fo^o.Bar(String a) {}
 }
-    ''';
+''');
 
-    await expectNoTarget(contents);
+    await expectNoTarget(code);
   }
 
   Future<void> test_namedConstructorCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   final foo = Foo.Ba^r();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class Foo {
-  /*1*/Foo.Bar();/*1*/
+  [!Foo.Bar();!]
 }
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.constructor,
           'Foo.Bar',
           otherFile,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('Bar', otherContents),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('Bar', otherCode),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_namedConstructorCall_typeName() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   final foo = Fo^o.Bar();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class Foo {
   Foo.Bar();
 }
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
-    await expectNoTarget(contents);
+    newFile(otherFile, otherCode.code);
+    await expectNoTarget(code);
   }
 
   Future<void> test_setter() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
-  /*1*/set fo^o(String value) {}/*1*/
+  [!set fo^o(String value) {}!]
 }
-    ''';
+''');
 
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.property,
           'set foo',
           testFile.path,
           containerName: 'Foo',
-          nameRange: rangeAtSearch('foo', contents),
-          codeRange: rangeNumbered(1, contents),
+          nameRange: rangeAtSearch('foo', code),
+          codeRange: code.range.sourceRange,
         ));
   }
 
   Future<void> test_setterCall() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 void f() {
   ba^r = '';
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/set bar(String value) {}/*1*/
-    ''';
+    final otherCode = TestCode.parse('''
+[!set bar(String value) {}!]
+''');
 
-    newFile(otherFile, otherContents);
+    newFile(otherFile, otherCode.code);
     await expectTarget(
-        contents,
+        code,
         _isItem(
           CallHierarchyKind.property,
           'set bar',
           otherFile,
           containerName: 'other.dart',
-          nameRange: rangeAtSearch('bar', otherContents),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('bar', otherCode),
+          codeRange: otherCode.range.sourceRange,
         ));
   }
 
   Future<void> test_whitespace() async {
-    await expectNoTarget(' ^  void f() {}');
+    await expectNoTarget(TestCode.parse(' ^  void f() {}'));
   }
 }
 
@@ -650,7 +635,7 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   late String otherFile;
   late SearchEngine searchEngine;
 
-  Future<List<CallHierarchyCalls>> findIncomingCalls(String code) async {
+  Future<List<CallHierarchyCalls>> findIncomingCalls(TestCode code) async {
     final target = (await findTarget(code))!;
     return findIncomingCallsForTarget(target);
   }
@@ -676,70 +661,70 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   }
 
   Future<void> test_constructor() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
   Fo^o();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
 final foo1 = Foo();
-/*1*/class Bar {
+/*[0*/class Bar {
   final foo2 = Foo();
-  /*2*/Foo get foo3 => Foo();/*2*/
-  /*3*/Bar() {
+  /*[1*/Foo get foo3 => Foo();/*1]*/
+  /*[2*/Bar() {
     final foo4 = Foo();
-  }/*3*/
-  /*4*/void bar() {
+  }/*2]*/
+  /*[3*/void bar() {
     final foo5 = Foo();
     final foo6 = Foo();
-  }/*4*/
-}/*1*/
-    ''';
+  }/*3]*/
+}/*0]*/
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'Foo');
+        rangeAfterPrefix(prefix, otherCode, 'Foo');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
             containerName: null,
             nameRange: startOfFile,
-            codeRange: entireRange(otherContents),
+            codeRange: entireRange(otherCode),
             ranges: [
               rangeAfter('foo1 = '),
             ]),
         _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('Bar {', otherContents, 'Bar'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
+            codeRange: otherCode.ranges[0].sourceRange,
             ranges: [
               rangeAfter('foo2 = '),
             ]),
         _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('foo3', otherContents),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('foo3', otherCode),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
               rangeAfter('foo3 => '),
             ]),
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
-            codeRange: rangeNumbered(3, otherContents),
+            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+            codeRange: otherCode.ranges[2].sourceRange,
             ranges: [
               rangeAfter('foo4 = '),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
-            codeRange: rangeNumbered(4, otherContents),
+            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+            codeRange: otherCode.ranges[3].sourceRange,
             ranges: [
               rangeAfter('foo5 = '),
               rangeAfter('foo6 = '),
@@ -749,33 +734,33 @@ final foo1 = Foo();
   }
 
   Future<void> test_extension_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 extension StringExtension on String {
   void myMet^hod() {}
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
-/*1*/void f() {
+[!void f() {
   ''.myMethod();
-}/*1*/
-    ''';
+}!]
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'myMethod');
+        rangeAfterPrefix(prefix, otherCode, 'myMethod');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherContents, 'f'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
             ranges: [
               rangeAfter("''."),
             ]),
@@ -784,14 +769,14 @@ import 'test.dart';
   }
 
   Future<void> test_fileModifications() async {
-    final contents = '''
+    final code = TestCode.parse('''
 void o^ne() {}
 void two() {
   one();
 }
-    ''';
+''');
 
-    final target = (await findTarget(contents))!;
+    final target = (await findTarget(code))!;
 
     // Ensure there are some results before modification.
     var calls = await findIncomingCallsForTarget(target);
@@ -806,69 +791,69 @@ void two() {
   }
 
   Future<void> test_function() async {
-    final contents = '''
+    final code = TestCode.parse('''
 String myFun^ction() => '';
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
 final foo1 = myFunction();
 
-/*1*/class Bar {
+/*[0*/class Bar {
   final foo2 = myFunction();
-  /*2*/String get foo3 => myFunction();/*2*/
-  /*3*/Bar() {
+  /*[1*/String get foo3 => myFunction();/*1]*/
+  /*[2*/Bar() {
     final foo4 = myFunction();
-  }/*3*/
-  /*4*/void bar() {
+  }/*2]*/
+  /*[3*/void bar() {
     final foo5 = myFunction();
     final foo6 = myFunction();
-  }/*4*/
-}/*1*/
-    ''';
+  }/*3]*/
+}/*0]*/
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'myFunction');
+        rangeAfterPrefix(prefix, otherCode, 'myFunction');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
             containerName: null,
             nameRange: startOfFile,
-            codeRange: entireRange(otherContents),
+            codeRange: entireRange(otherCode),
             ranges: [
               rangeAfter('foo1 = '),
             ]),
         _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('Bar {', otherContents, 'Bar'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
+            codeRange: otherCode.ranges[0].sourceRange,
             ranges: [
               rangeAfter('foo2 = '),
             ]),
         _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('foo3', otherContents),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('foo3', otherCode),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
               rangeAfter('foo3 => '),
             ]),
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
-            codeRange: rangeNumbered(3, otherContents),
+            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+            codeRange: otherCode.ranges[2].sourceRange,
             ranges: [
               rangeAfter('foo4 = '),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
-            codeRange: rangeNumbered(4, otherContents),
+            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+            codeRange: otherCode.ranges[3].sourceRange,
             ranges: [
               rangeAfter('foo5 = '),
               rangeAfter('foo6 = '),
@@ -878,68 +863,68 @@ final foo1 = myFunction();
   }
 
   Future<void> test_getter() async {
-    final contents = '''
+    final code = TestCode.parse('''
 String get f^oo => '';
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
 final foo1 = foo;
-/*1*/class Bar {
+/*[0*/class Bar {
   final foo2 = foo;
-  /*2*/Foo get foo3 => foo;/*2*/
-  /*3*/Bar() {
+  /*[1*/Foo get foo3 => foo;/*1]*/
+  /*[2*/Bar() {
     final foo4 = foo;
-  }/*3*/
-  /*4*/void bar() {
+  }/*2]*/
+  /*[3*/void bar() {
     final foo5 = foo;
     final foo6 = foo;
-  }/*4*/
-}/*1*/
-    ''';
+  }/*3]*/
+}/*0]*/
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'foo');
+        rangeAfterPrefix(prefix, otherCode, 'foo');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
             containerName: null,
             nameRange: startOfFile,
-            codeRange: entireRange(otherContents),
+            codeRange: entireRange(otherCode),
             ranges: [
               rangeAfter('foo1 = '),
             ]),
         _isResult(CallHierarchyKind.class_, 'Bar', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('Bar {', otherContents, 'Bar'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('Bar {', otherCode, 'Bar'),
+            codeRange: otherCode.ranges[0].sourceRange,
             ranges: [
               rangeAfter('foo2 = '),
             ]),
         _isResult(CallHierarchyKind.property, 'get foo3', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('foo3', otherContents),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('foo3', otherCode),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
               rangeAfter('foo3 => '),
             ]),
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
-            codeRange: rangeNumbered(3, otherContents),
+            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+            codeRange: otherCode.ranges[2].sourceRange,
             ranges: [
               rangeAfter('foo4 = '),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
-            codeRange: rangeNumbered(4, otherContents),
+            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+            codeRange: otherCode.ranges[3].sourceRange,
             ranges: [
               rangeAfter('foo5 = '),
               rangeAfter('foo6 = '),
@@ -951,77 +936,77 @@ final foo1 = foo;
   Future<void> test_implicitConstructor() async {
     // We still expect to be able to navigate with implicit constructors. This
     // is done by the target being the class, but with a kind of Constructor.
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
-/*1*/void f() {
+[!void f() {
   final foo1 = Fo^o();
-}/*1*/
-    ''';
+}!]
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class Foo {}
 
 final foo2 = Foo();
-    ''';
+''');
 
     // Gets the expected range that follows the string [prefix].
-    SourceRange rangeAfter(String prefix, String code) =>
+    SourceRange rangeAfter(String prefix, TestCode code) =>
         rangeAfterPrefix(prefix, code, 'Foo');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', testFile.path,
             containerName: 'test.dart',
-            nameRange: rangeAtSearch('f() {', contents, 'f'),
-            codeRange: rangeNumbered(1, contents),
+            nameRange: rangeAtSearch('f() {', code, 'f'),
+            codeRange: code.range.sourceRange,
             ranges: [
-              rangeAfter('foo1 = ', contents),
+              rangeAfter('foo1 = ', code),
             ]),
         _isResult(CallHierarchyKind.file, 'other.dart', otherFile,
             containerName: null,
             nameRange: startOfFile,
-            codeRange: entireRange(otherContents),
+            codeRange: entireRange(otherCode),
             ranges: [
-              rangeAfter('foo2 = ', otherContents),
+              rangeAfter('foo2 = ', otherCode),
             ]),
       ]),
     );
   }
 
   Future<void> test_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
   void myMet^hod() {}
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
-/*1*/void f() {
+[!void f() {
   Foo().myMethod();
   final tearoff = Foo().myMethod;
-}/*1*/
-    ''';
+}!]
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'myMethod');
+        rangeAfterPrefix(prefix, otherCode, 'myMethod');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherContents, 'f'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
             ranges: [
               rangeAfter('Foo().'),
               rangeAfter('tearoff = Foo().'),
@@ -1031,35 +1016,35 @@ import 'test.dart';
   }
 
   Future<void> test_mixin_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 mixin Bar {
   void myMet^hod() {}
 }
 
 class Foo with Bar {}
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
-/*1*/void f() {
+[!void f() {
   Foo().myMethod();
-}/*1*/
-    ''';
+}!]
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'myMethod');
+        rangeAfterPrefix(prefix, otherCode, 'myMethod');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherContents, 'f'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
             ranges: [
               rangeAfter('Foo().'),
             ]),
@@ -1068,33 +1053,33 @@ import 'test.dart';
   }
 
   Future<void> test_namedConstructor() async {
-    final contents = '''
+    final code = TestCode.parse('''
 class Foo {
   Foo.B^ar();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
-/*1*/void f() {
+[!void f() {
   final foo = Foo.Bar();
-}/*1*/
-    ''';
+}!]
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'Bar');
+        rangeAfterPrefix(prefix, otherCode, 'Bar');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherContents, 'f'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
             ranges: [
               rangeAfter('foo = Foo.'),
             ]),
@@ -1103,44 +1088,44 @@ import 'test.dart';
   }
 
   Future<void> test_setter() async {
-    final contents = '''
+    final code = TestCode.parse('''
 set fo^o(String value) {}
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 import 'test.dart';
 
 class Bar {
-  /*1*/Bar() {
+  /*[0*/Bar() {
     /*a*/foo = '';
-  }/*1*/
-  /*2*/void bar() {
+  }/*0]*/
+  /*[1*/void bar() {
     /*b*/foo = '';
     /*c*/foo = '';
-  }/*2*/
+  }/*1]*/
 }
-    ''';
+''');
 
     // Gets the expected range that follows the string [prefix].
     SourceRange rangeAfter(String prefix) =>
-        rangeAfterPrefix(prefix, otherContents, 'foo');
+        rangeAfterPrefix(prefix, otherCode, 'foo');
 
-    newFile(otherFile, otherContents);
-    final calls = await findIncomingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findIncomingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.constructor, 'Bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('Bar() {', otherContents, 'Bar'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('Bar() {', otherCode, 'Bar'),
+            codeRange: otherCode.ranges[0].sourceRange,
             ranges: [
               rangeAfter('/*a*/'),
             ]),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
             containerName: 'Bar',
-            nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
               rangeAfter('/*b*/'),
               rangeAfter('/*c*/'),
@@ -1154,7 +1139,7 @@ class Bar {
 class CallHierarchyComputerOutgoingCallsTest extends AbstractCallHierarchyTest {
   late String otherFile;
 
-  Future<List<CallHierarchyCalls>> findOutgoingCalls(String code) async {
+  Future<List<CallHierarchyCalls>> findOutgoingCalls(TestCode code) async {
     final target = (await findTarget(code))!;
     return findOutgoingCallsForTarget(target);
   }
@@ -1176,7 +1161,7 @@ class CallHierarchyComputerOutgoingCallsTest extends AbstractCallHierarchyTest {
   }
 
   Future<void> test_constructor() async {
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1188,44 +1173,44 @@ class Foo {
     final constructorTearoffB = B.new;
   }
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class A {
-  /*1*/A();/*1*/
+  /*[0*/A();/*0]*/
 }
 
-/*2*/class B {
-}/*2*/
-    ''';
+/*[1*/class B {
+}/*1]*/
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.constructor, 'A', otherFile,
             containerName: 'A',
-            nameRange: rangeAtSearch('A();', otherContents, 'A'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('A();', otherCode, 'A'),
+            codeRange: otherCode.ranges[0].sourceRange,
             ranges: [
-              rangeAtSearch('A()', contents, 'A'),
-              rangeAfterPrefix('constructorTearoffA = A.', contents, 'new'),
+              rangeAtSearch('A()', code, 'A'),
+              rangeAfterPrefix('constructorTearoffA = A.', code, 'new'),
             ]),
         _isResult(CallHierarchyKind.constructor, 'B', otherFile,
             containerName: 'B',
-            nameRange: rangeAtSearch('B {', otherContents, 'B'),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('B {', otherCode, 'B'),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
-              rangeAtSearch('B()', contents, 'B'),
-              rangeAfterPrefix('constructorTearoffB = B.', contents, 'new'),
+              rangeAtSearch('B()', code, 'B'),
+              rangeAfterPrefix('constructorTearoffB = B.', code, 'new'),
             ]),
       ]),
     );
   }
 
   Future<void> test_extension_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1235,40 +1220,40 @@ extension StringExtension on String {
     final tearoff = ''.bar;
   }
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 extension StringExtension on String {
-  /*1*/void bar() {}/*1*/
+  [!void bar() {}!]
 }
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
             containerName: 'StringExtension',
-            nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+            codeRange: otherCode.range.sourceRange,
             ranges: [
-              rangeAtSearch('bar();', contents, 'bar'),
-              rangeAtSearch('bar;', contents, 'bar'),
+              rangeAtSearch('bar();', code, 'bar'),
+              rangeAtSearch('bar;', code, 'bar'),
             ]),
       ]),
     );
   }
 
   Future<void> test_fileModifications() async {
-    final contents = '''
+    final code = TestCode.parse('''
 void o^ne() {
   two();
 }
 void two() {}
-    ''';
+''');
 
-    final target = (await findTarget(contents))!;
+    final target = (await findTarget(code))!;
 
     // Ensure there are some results before modification.
     var calls = await findOutgoingCallsForTarget(target);
@@ -1283,52 +1268,52 @@ void two() {}
   }
 
   Future<void> test_function() async {
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
 void fo^o() {
-  /*1*/void nested() {
+  [!void nested() {
     f(); // not a call of 'foo'
-  }/*1*/
+  }!]
   f(); // 1
   final tearoff = f;
   nested();
   final nestedTearoff = nested;
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/void f() {}/*1*/
-    ''';
+    final otherCode = TestCode.parse('''
+[!void f() {}!]
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.function, 'f', otherFile,
             containerName: 'other.dart',
-            nameRange: rangeAtSearch('f() {', otherContents, 'f'),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('f() {', otherCode, 'f'),
+            codeRange: otherCode.range.sourceRange,
             ranges: [
-              rangeAtSearch('f(); // 1', contents, 'f'),
-              rangeAfterPrefix('tearoff = ', contents, 'f'),
+              rangeAtSearch('f(); // 1', code, 'f'),
+              rangeAfterPrefix('tearoff = ', code, 'f'),
             ]),
         _isResult(CallHierarchyKind.function, 'nested', testFile.path,
             containerName: 'foo',
-            nameRange: rangeAtSearch('nested() {', contents, 'nested'),
-            codeRange: rangeNumbered(1, contents),
+            nameRange: rangeAtSearch('nested() {', code, 'nested'),
+            codeRange: code.range.sourceRange,
             ranges: [
-              rangeAtSearch('nested();', contents, 'nested'),
-              rangeAfterPrefix('nestedTearoff = ', contents, 'nested'),
+              rangeAtSearch('nested();', code, 'nested'),
+              rangeAfterPrefix('nestedTearoff = ', code, 'nested'),
             ]),
       ]),
     );
   }
 
   Future<void> test_getter() async {
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1338,16 +1323,16 @@ String get fo^o {
   final c = A().b;
   return '';
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/class A {
-  /*2*/String get b => '';/*2*/
-}/*1*/
-    ''';
+    final otherCode = TestCode.parse('''
+/*[0*/class A {
+  /*[1*/String get b => '';/*1]*/
+}/*0]*/
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
@@ -1356,16 +1341,16 @@ String get fo^o {
           'A',
           otherFile,
           containerName: 'A',
-          nameRange: rangeAtSearch('A {', otherContents, 'A'),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('A {', otherCode, 'A'),
+          codeRange: otherCode.ranges[0].sourceRange,
         ),
         _isResult(CallHierarchyKind.property, 'get b', otherFile,
             containerName: 'A',
-            nameRange: rangeAtSearch('b => ', otherContents, 'b'),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('b => ', otherCode, 'b'),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
-              rangeAfterPrefix('a.', contents, 'b'),
-              rangeAfterPrefix('A().', contents, 'b'),
+              rangeAfterPrefix('a.', code, 'b'),
+              rangeAfterPrefix('A().', code, 'b'),
             ]),
       ]),
     );
@@ -1375,26 +1360,26 @@ String get fo^o {
     // We can still begin navigating from an implicit constructor (so we can
     // search for inbound calls), so we should ensure that trying to fetch
     // outbound calls returns empty (and doesn't fail).
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
 void f() {
   final foo1 = Fo^o();
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 class Foo {}
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(calls, isEmpty);
   }
 
   Future<void> test_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1409,17 +1394,17 @@ class Foo {
     a.field;
   }
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/class A {
+    final otherCode = TestCode.parse('''
+/*[0*/class A {
   String field;
-  /*2*/void bar() {}/*2*/
-}/*1*/
-    ''';
+  /*[1*/void bar() {}/*1]*/
+}/*0]*/
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
@@ -1428,23 +1413,23 @@ class Foo {
           'A',
           otherFile,
           containerName: 'A',
-          nameRange: rangeAtSearch('A {', otherContents, 'A'),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('A {', otherCode, 'A'),
+          codeRange: otherCode.ranges[0].sourceRange,
         ),
         _isResult(CallHierarchyKind.method, 'bar', otherFile,
             containerName: 'A',
-            nameRange: rangeAtSearch('bar() {', otherContents, 'bar'),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('bar() {', otherCode, 'bar'),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
-              rangeAfterPrefix('a.', contents, 'bar'),
-              rangeAfterPrefix('tearoff = a.', contents, 'bar'),
+              rangeAfterPrefix('a.', code, 'bar'),
+              rangeAfterPrefix('tearoff = a.', code, 'bar'),
             ]),
       ]),
     );
   }
 
   Future<void> test_mixin_method() async {
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1456,18 +1441,17 @@ mixin MyMixin {
     final tearoff = a.foo;
   }
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 mixin OtherMixin {
-  /*2*/void foo() {}/*2*/
+  /*[0*/void foo() {}/*0]*/
 }
+/*[1*/class A with OtherMixin {}/*1]*/
+''');
 
-/*1*/class A with OtherMixin {}/*1*/
-    ''';
-
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
@@ -1476,24 +1460,24 @@ mixin OtherMixin {
           'A',
           otherFile,
           containerName: 'A',
-          nameRange: rangeAtSearch('A with', otherContents, 'A'),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('A with', otherCode, 'A'),
+          codeRange: otherCode.ranges[1].sourceRange,
         ),
         _isResult(CallHierarchyKind.method, 'foo', otherFile,
             containerName: 'OtherMixin',
-            nameRange: rangeAtSearch('foo() {', otherContents, 'foo'),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('foo() {', otherCode, 'foo'),
+            codeRange: otherCode.ranges[0].sourceRange,
             ranges: [
-              rangeAfterPrefix('a.', contents, 'foo'),
-              rangeAfterPrefix('A().', contents, 'foo'),
-              rangeAfterPrefix('tearoff = a.', contents, 'foo'),
+              rangeAfterPrefix('a.', code, 'foo'),
+              rangeAfterPrefix('A().', code, 'foo'),
+              rangeAfterPrefix('tearoff = a.', code, 'foo'),
             ]),
       ]),
     );
   }
 
   Future<void> test_namedConstructor() async {
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1503,27 +1487,27 @@ class Foo {
     final constructorTearoff = A.named;
   }
 }
-    ''';
+''');
 
-    final otherContents = '''
+    final otherCode = TestCode.parse('''
 void f() {}
 class A {
-  /*1*/A.named();/*1*/
+  [!A.named();!]
 }
-    ''';
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
         _isResult(CallHierarchyKind.constructor, 'A.named', otherFile,
             containerName: 'A',
-            nameRange: rangeAtSearch('named', otherContents),
-            codeRange: rangeNumbered(1, otherContents),
+            nameRange: rangeAtSearch('named', otherCode),
+            codeRange: otherCode.range.sourceRange,
             ranges: [
-              rangeAfterPrefix('a = A.', contents, 'named'),
-              rangeAfterPrefix('constructorTearoff = A.', contents, 'named'),
+              rangeAfterPrefix('a = A.', code, 'named'),
+              rangeAfterPrefix('constructorTearoff = A.', code, 'named'),
             ]),
       ]),
     );
@@ -1531,21 +1515,21 @@ class A {
 
   Future<void> test_prefixedTypes() async {
     // Prefixed type names that are not tear-offs should never be included.
-    final contents = '''
+    final code = TestCode.parse('''
 // ignore_for_file: unused_local_variable
 import 'dart:io' as io;
 
 void ^f(io.File f) {
   io.Directory? d;
 }
-    ''';
+''');
 
-    final calls = await findOutgoingCalls(contents);
+    final calls = await findOutgoingCalls(code);
     expect(calls, isEmpty);
   }
 
   Future<void> test_setter() async {
-    final contents = '''
+    final code = TestCode.parse('''
 import 'other.dart';
 
 set fo^o(String value) {
@@ -1553,16 +1537,16 @@ set fo^o(String value) {
   a.b = '';
   A().b = '';
 }
-    ''';
+''');
 
-    final otherContents = '''
-/*1*/class A {
-  /*2*/set b(String value) {}/*2*/
-}/*1*/
-    ''';
+    final otherCode = TestCode.parse('''
+/*[0*/class A {
+  /*[1*/set b(String value) {}/*1]*/
+}/*0]*/
+''');
 
-    newFile(otherFile, otherContents);
-    final calls = await findOutgoingCalls(contents);
+    newFile(otherFile, otherCode.code);
+    final calls = await findOutgoingCalls(code);
     expect(
       calls,
       unorderedEquals([
@@ -1571,16 +1555,16 @@ set fo^o(String value) {
           'A',
           otherFile,
           containerName: 'A',
-          nameRange: rangeAtSearch('A {', otherContents, 'A'),
-          codeRange: rangeNumbered(1, otherContents),
+          nameRange: rangeAtSearch('A {', otherCode, 'A'),
+          codeRange: otherCode.ranges[0].sourceRange,
         ),
         _isResult(CallHierarchyKind.property, 'set b', otherFile,
             containerName: 'A',
-            nameRange: rangeAtSearch('b(String ', otherContents, 'b'),
-            codeRange: rangeNumbered(2, otherContents),
+            nameRange: rangeAtSearch('b(String ', otherCode, 'b'),
+            codeRange: otherCode.ranges[1].sourceRange,
             ranges: [
-              rangeAfterPrefix('a.', contents, 'b'),
-              rangeAfterPrefix('A().', contents, 'b'),
+              rangeAfterPrefix('a.', code, 'b'),
+              rangeAfterPrefix('A().', code, 'b'),
             ]),
       ]),
     );

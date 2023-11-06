@@ -11,8 +11,6 @@ import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
 
-export '../test_support.dart';
-
 abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
   SnippetProducerGenerator get generator;
   String get label;

@@ -758,6 +758,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     final element = identifier.element;
     if (element is ClassElementImpl) {
       return declarationBuilder.fromElement.classElement(element);
+    } else if (element is MixinElementImpl) {
+      return declarationBuilder.fromElement.mixinElement(element);
     } else {
       throw ArgumentError('element: $element');
     }

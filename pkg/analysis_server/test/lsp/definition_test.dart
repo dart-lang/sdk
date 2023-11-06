@@ -364,7 +364,7 @@ foo(int m) {
     expect(loc.targetRange, equals(referencedCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(referencedCode.code, 'add')),
+      equals(rangeOfString(referencedCode, 'add')),
     );
   }
 
@@ -410,7 +410,7 @@ foo(int m) {
     expect(loc.targetRange, equals(referencedCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(referencedCode.code, 'foo')),
+      equals(rangeOfString(referencedCode, 'foo')),
     );
   }
 
@@ -472,7 +472,7 @@ foo(int m) {
     expect(loc.targetRange, equals(partCode.range.range));
     expect(
       loc.targetSelectionRange,
-      equals(rangeOfString(partCode.code, 'add')),
+      equals(rangeOfString(partCode, 'add')),
     );
   }
 
