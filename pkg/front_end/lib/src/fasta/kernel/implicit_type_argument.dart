@@ -33,8 +33,13 @@ class ImplicitTypeArgument extends AuxiliaryType {
   Nullability get nullability => unsupported("nullability", -1, null);
 
   @override
-  DartType get resolveTypeParameterType {
-    throw unsupported("resolveTypeParameterType", -1, null);
+  DartType get nonTypeVariableBound {
+    throw unsupported("nonTypeVariableBound", -1, null);
+  }
+
+  @override
+  bool get hasNonObjectMemberAccess {
+    throw unsupported("hasNonObjectMemberAccess", -1, null);
   }
 
   @override

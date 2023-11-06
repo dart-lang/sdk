@@ -3,26 +3,26 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File, Platform;
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/language_version.dart' as lv;
-import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        DataComputer,
+        CfeDataComputer,
+        CfeTestConfig,
+        CfeTestResultData,
         InternalCompilerResult,
-        TestConfig,
-        TestResultData,
         createUriForFileName,
         onFailure,
         runTestFor;
 import 'package:front_end/src/testing/id_testing_utils.dart';
-
 import 'package:kernel/ast.dart' show Component, Library, Version;
 
 Future<void> main(List<String> args) async {
@@ -43,7 +43,7 @@ Future<void> main(List<String> args) async {
       ]);
 }
 
-class TestConfigWithLanguageVersion extends TestConfig {
+class TestConfigWithLanguageVersion extends CfeTestConfig {
   TestConfigWithLanguageVersion(String marker, String name)
       : super(marker, name);
 
@@ -77,11 +77,11 @@ class Tags {
   static const String errors = 'errors';
 }
 
-class LanguageVersioningDataComputer extends DataComputer<Features> {
+class LanguageVersioningDataComputer extends CfeDataComputer<Features> {
   const LanguageVersioningDataComputer();
 
   @override
-  Future<void> inspectTestResultData(TestResultData testResultData) async {
+  Future<void> inspectTestResultData(CfeTestResultData testResultData) async {
     CompilerOptions options = testResultData.customData;
     Component component = testResultData.compilerResult.component!;
     for (Library library in component.libraries) {
@@ -102,7 +102,7 @@ Language version API (import URI): ${lvImportUri}
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new LanguageVersioningDataExtractor(
@@ -115,7 +115,7 @@ Language version API (import URI): ${lvImportUri}
 
   @override
   Features computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.errors] = errors.map((m) => m.code.name).join(',');
     return features;

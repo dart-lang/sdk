@@ -27,7 +27,7 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const PredicateDataComputer(), [
-        const TestConfig(isNullMarker, 'use is-null',
+        const CfeTestConfig(isNullMarker, 'use is-null',
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
@@ -37,7 +37,7 @@ Future<void> main(List<String> args) async {
                 forceLateLoweringsForTesting: LateLowering.all,
                 forceLateLoweringSentinelForTesting: false),
             nnbdMode: NnbdMode.Strong),
-        const TestConfig(sentinelMarker, 'use sentinel',
+        const CfeTestConfig(sentinelMarker, 'use sentinel',
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
@@ -75,14 +75,14 @@ class Tags {
   static const String joinedIntermediate = 'joinedIntermediate';
 }
 
-class PredicateDataComputer extends DataComputer<Features> {
+class PredicateDataComputer extends CfeDataComputer<Features> {
   const PredicateDataComputer();
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new PredicateDataExtractor(testResultData.compilerResult, actualMap)
@@ -90,7 +90,7 @@ class PredicateDataComputer extends DataComputer<Features> {
   }
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     member.accept(

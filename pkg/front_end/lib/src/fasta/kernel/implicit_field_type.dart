@@ -44,8 +44,13 @@ abstract class InferredType extends AuxiliaryType {
   }
 
   @override
-  DartType get resolveTypeParameterType {
-    throw unsupported("resolveTypeParameterType", charOffset ?? -1, fileUri);
+  DartType get nonTypeVariableBound {
+    throw unsupported("nonTypeVariableBound", charOffset ?? -1, fileUri);
+  }
+
+  @override
+  bool get hasNonObjectMemberAccess {
+    throw unsupported("hasNonObjectMemberAccess", charOffset ?? -1, fileUri);
   }
 
   @override

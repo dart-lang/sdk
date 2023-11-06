@@ -53,7 +53,7 @@ Future<void> main(List<String> args) async {
   }
 }
 
-class MacroTestConfig extends TestConfig {
+class MacroTestConfig extends CfeTestConfig {
   final Directory dataDir;
   final MacroSerializer macroSerializer;
   final bool generateExpectations;
@@ -73,7 +73,7 @@ class MacroTestConfig extends TestConfig {
 
   @override
   Future<void> onCompilationResult(
-      TestData testData, TestResultData testResultData) async {
+      TestData testData, CfeTestResultData testResultData) async {
     Component component = testResultData.compilerResult.component!;
     StringBuffer buffer = new StringBuffer();
     Printer printer = new Printer(buffer)
@@ -121,7 +121,7 @@ bool _isMember(MemberBuilder memberBuilder, Member member) {
   }
 }
 
-class MacroDataComputer extends DataComputer<String> {
+class MacroDataComputer extends CfeDataComputer<String> {
   const MacroDataComputer();
 
   @override
@@ -131,7 +131,7 @@ class MacroDataComputer extends DataComputer<String> {
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     CfeDataRegistry<String> registry =
@@ -193,7 +193,7 @@ class MacroDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     CfeDataRegistry<String> registry =
@@ -292,7 +292,7 @@ class MacroDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     CfeDataRegistry<String> registry =
