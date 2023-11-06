@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
           [cfeNonNullableOnlyConfig]));
 }
 
-class DefiniteUnassignmentDataComputer extends DataComputer<String> {
+class DefiniteUnassignmentDataComputer extends CfeDataComputer<String> {
   const DefiniteUnassignmentDataComputer();
 
   @override
@@ -35,7 +35,7 @@ class DefiniteUnassignmentDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =
