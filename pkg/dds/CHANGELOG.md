@@ -1,5 +1,6 @@
 # 3.1.0
-- Updated `devtools_shared` to ^5.0.0.
+- Updated `devtools_shared` to ^6.0.0.
+- Updated `vm_service` to ^13.0.0.
 
 # 3.0.0
 - **Breaking change:** change type of `DartDebugAdapter.vmService` from `VmServiceInterface` to `VmService`.
