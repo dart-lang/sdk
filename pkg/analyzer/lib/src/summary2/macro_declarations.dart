@@ -53,9 +53,66 @@ class DeclarationBuilder {
   /// The annotations that were recognized as macro applications.
   final Set<ast.Annotation> macroAnnotations = {};
 
+  late LibraryElement currentLibraryElement;
+
   DeclarationBuilder({
     required this.nodeOfElement,
   });
+
+  macro.MetadataAnnotationImpl? _buildMetadataNode(
+    ast.Annotation node,
+  ) {
+    final importPrefixNames = currentLibraryElement.libraryImports
+        .map((e) => e.prefix?.element.name)
+        .whereNotNull()
+        .toSet();
+
+    final identifiers = <ast.SimpleIdentifier>[];
+
+    switch (node.name) {
+      case ast.PrefixedIdentifier node:
+        identifiers.add(node.prefix);
+        identifiers.add(node.identifier);
+      case ast.SimpleIdentifier node:
+        identifiers.add(node);
+      default:
+        return null;
+    }
+
+    identifiers.addIfNotNull(node.constructorName);
+
+    var nextIndex = 0;
+    if (importPrefixNames.contains(identifiers.first.name)) {
+      nextIndex++;
+    }
+
+    final identifierName = identifiers[nextIndex++];
+    final constructorName = identifiers.elementAtOrNull(nextIndex);
+
+    final identifierMacro = IdentifierImplFromNode(
+      id: macro.RemoteInstance.uniqueId,
+      name: identifierName.name,
+      getElement: () => identifierName.staticElement,
+    );
+
+    final arguments = node.arguments;
+    if (arguments != null) {
+      return macro.ConstructorMetadataAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        constructor: IdentifierImplFromNode(
+          id: macro.RemoteInstance.uniqueId,
+          name: constructorName?.name ?? '',
+          getElement: () => node.element,
+        ),
+        type: identifierMacro,
+      );
+    } else {
+      return macro.IdentifierMetadataAnnotationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        identifier: identifierMacro,
+      );
+    }
+  }
 }
 
 class DeclarationBuilderFromElement {
@@ -127,8 +184,13 @@ class DeclarationBuilderFromElement {
   }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
-    // TODO: Provide metadata annotations.
-    return const [];
+    // TODO(scheglov) Use augmented.
+    return element.metadata
+        .cast<ElementAnnotationImpl>()
+        .map((e) => e.annotationAst)
+        .map(declarationBuilder._buildMetadataNode)
+        .whereNotNull()
+        .toList();
   }
 
   macro.TypeAnnotationImpl _dartType(DartType type) {
@@ -184,6 +246,7 @@ class DeclarationBuilderFromElement {
 
   IntrospectableClassDeclarationImpl _introspectableClassElement(
       ClassElement element) {
+    declarationBuilder.currentLibraryElement = element.library;
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -206,6 +269,7 @@ class DeclarationBuilderFromElement {
 
   IntrospectableMixinDeclarationImpl _introspectableMixinElement(
       MixinElement element) {
+    declarationBuilder.currentLibraryElement = element.library;
     return IntrospectableMixinDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -317,69 +381,9 @@ class DeclarationBuilderFromNode {
   ) {
     return nodes
         .whereNot(declarationBuilder.macroAnnotations.contains)
-        .map(_buildMetadataNode)
+        .map(declarationBuilder._buildMetadataNode)
         .whereNotNull()
         .toList();
-  }
-
-  macro.MetadataAnnotationImpl? _buildMetadataNode(
-    ast.Annotation node,
-  ) {
-    final unitNode = node.thisOrAncestorOfType<ast.CompilationUnit>()!;
-    final unitElement = unitNode.declaredElement!;
-    final libraryElement = unitElement.library;
-    final importPrefixNames = libraryElement.libraryImports
-        .map((e) => e.prefix?.element.name)
-        .whereNotNull()
-        .toSet();
-
-    final identifiers = <ast.SimpleIdentifier>[];
-
-    switch (node.name) {
-      case ast.PrefixedIdentifier node:
-        identifiers.add(node.prefix);
-        identifiers.add(node.identifier);
-      case ast.SimpleIdentifier node:
-        identifiers.add(node);
-      default:
-        return null;
-    }
-
-    identifiers.addIfNotNull(node.constructorName);
-
-    var nextIndex = 0;
-    if (importPrefixNames.contains(identifiers.first.name)) {
-      nextIndex++;
-    }
-
-    final identifierName = identifiers[nextIndex++];
-    final constructorName = identifiers.elementAtOrNull(nextIndex);
-
-    final arguments = node.arguments;
-    if (arguments != null) {
-      return macro.ConstructorMetadataAnnotationImpl(
-        id: macro.RemoteInstance.uniqueId,
-        constructor: IdentifierImplFromNode(
-          id: macro.RemoteInstance.uniqueId,
-          name: constructorName?.name ?? '',
-          getElement: () => node.element,
-        ),
-        type: IdentifierImplFromNode(
-          id: macro.RemoteInstance.uniqueId,
-          name: identifierName.name,
-          getElement: () => identifierName.staticElement,
-        ),
-      );
-    }
-
-    return macro.IdentifierMetadataAnnotationImpl(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: IdentifierImplFromNode(
-        id: macro.RemoteInstance.uniqueId,
-        name: identifierName.name,
-        getElement: () => identifierName.staticElement,
-      ),
-    );
   }
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
@@ -461,6 +465,7 @@ class DeclarationBuilderFromNode {
     ast.ClassDeclaration node,
   ) {
     final element = node.declaredElement as ClassElementImpl;
+    declarationBuilder.currentLibraryElement = element.library;
 
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
@@ -503,6 +508,7 @@ class DeclarationBuilderFromNode {
     ast.MixinDeclaration node,
   ) {
     final element = node.declaredElement as MixinElementImpl;
+    declarationBuilder.currentLibraryElement = element.library;
 
     final onNodes = <ast.NamedType>[];
     final interfaceNodes = <ast.NamedType>[];
@@ -539,6 +545,7 @@ class DeclarationBuilderFromNode {
   ) {
     final definingType = _definingType(node);
     final element = node.declaredElement!;
+    declarationBuilder.currentLibraryElement = element.library;
 
     return MethodDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,

@@ -20,7 +20,7 @@ import 'introspect_shared.dart';
       indent: '',
     );
 
-    final printer = _DeclarationPrinter(
+    final printer = _Printer(
       sink: sink,
     );
     await printer.writeClassDeclaration(declaration);
@@ -42,7 +42,7 @@ import 'introspect_shared.dart';
       indent: '',
     );
 
-    final printer = _DeclarationPrinter(
+    final printer = _Printer(
       sink: sink,
     );
     await printer.writeMethodDeclaration(method);
@@ -64,7 +64,7 @@ import 'introspect_shared.dart';
       indent: '',
     );
 
-    final printer = _DeclarationPrinter(
+    final printer = _Printer(
       sink: sink,
     );
     await printer.writeMixinDeclaration(declaration);
@@ -79,10 +79,11 @@ import 'introspect_shared.dart';
   }
 }
 
-class _DeclarationPrinter {
+class _Printer with SharedPrinter {
+  @override
   final TreeStringSink sink;
 
-  _DeclarationPrinter({
+  _Printer({
     required this.sink,
   });
 
@@ -95,7 +96,7 @@ class _DeclarationPrinter {
         'hasExternal': e.hasExternal,
       });
 
-      await _writeMetadata(e);
+      await writeMetadata(e);
       await _writeTypeParameters(e.typeParameters);
       if (e.superclass case final superclass?) {
         await _writeTypeAnnotation('superclass', superclass);
@@ -119,7 +120,7 @@ class _DeclarationPrinter {
         'isStatic': e.isStatic,
       });
 
-      await _writeMetadata(e);
+      await writeMetadata(e);
       await _writeNamedFormalParameters(e.namedParameters);
       await _writePositionalFormalParameters(e.positionalParameters);
       await _writeTypeAnnotation('returnType', e.returnType);
@@ -135,7 +136,7 @@ class _DeclarationPrinter {
         'hasBase': e.hasBase,
       });
 
-      await _writeMetadata(e);
+      await writeMetadata(e);
       await _writeTypeParameters(e.typeParameters);
       await _writeTypeAnnotations(
         'superclassConstraints',
@@ -152,37 +153,9 @@ class _DeclarationPrinter {
         'isNamed': e.isNamed,
         'isRequired': e.isRequired,
       });
-      await _writeMetadata(e);
+      await writeMetadata(e);
       await _writeTypeAnnotation('type', e.type);
     });
-  }
-
-  Future<void> _writeMetadata(Annotatable e) async {
-    await sink.writeElements(
-      'metadata',
-      e.metadata,
-      _writeMetadataAnnotation,
-    );
-  }
-
-  Future<void> _writeMetadataAnnotation(MetadataAnnotation e) async {
-    switch (e) {
-      case ConstructorMetadataAnnotation():
-        sink.writelnWithIndent('ConstructorMetadataAnnotation');
-        await sink.withIndent(() async {
-          sink.writelnWithIndent('type: ${e.type.name}');
-          final constructorName = e.constructor.name;
-          if (constructorName.isNotEmpty) {
-            sink.writelnWithIndent('constructorName: $constructorName');
-          }
-        });
-      case IdentifierMetadataAnnotation():
-        sink.writelnWithIndent('IdentifierMetadataAnnotation');
-        await sink.withIndent(() async {
-          sink.writelnWithIndent('identifier: ${e.identifier.name}');
-        });
-      default:
-    }
   }
 
   Future<void> _writeNamedFormalParameters(
@@ -234,7 +207,7 @@ class _DeclarationPrinter {
     sink.writelnWithIndent(e.identifier.name);
 
     await sink.withIndent(() async {
-      await _writeMetadata(e);
+      await writeMetadata(e);
       if (e.bound case final bound?) {
         await _writeTypeAnnotation('bound', bound);
       }
