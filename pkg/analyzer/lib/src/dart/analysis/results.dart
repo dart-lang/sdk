@@ -10,7 +10,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
 abstract class AnalysisResultImpl implements AnalysisResult {
@@ -39,28 +41,48 @@ class ElementDeclarationResultImpl implements ElementDeclarationResult {
       this.element, this.node, this.parsedUnit, this.resolvedUnit);
 }
 
-class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
+class ErrorsResultImpl implements ErrorsResult {
   @override
   final List<AnalysisError> errors;
 
-  ErrorsResultImpl({
-    required super.session,
-    required super.path,
-    required super.uri,
-    required super.lineInfo,
-    required super.isAugmentation,
-    required super.isLibrary,
-    required super.isPart,
-    required this.errors,
-  });
-}
-
-class FileResultImpl extends AnalysisResultImpl implements FileResult {
   @override
-  final String path;
+  final bool isAugmentation;
+
+  @override
+  final bool isLibrary;
+
+  @override
+  final bool isPart;
+
+  @override
+  final LineInfo lineInfo;
+
+  @override
+  final AnalysisSession session;
 
   @override
   final Uri uri;
+
+  @override
+  File file;
+
+  ErrorsResultImpl({
+    required this.session,
+    required this.file,
+    required this.uri,
+    required this.lineInfo,
+    required this.isAugmentation,
+    required this.isLibrary,
+    required this.isPart,
+    required this.errors,
+  });
+
+  @override
+  String get path => file.path;
+}
+
+class FileResultImpl extends AnalysisResultImpl implements FileResult {
+  final FileState fileState;
 
   @override
   final LineInfo lineInfo;
@@ -76,13 +98,20 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
   FileResultImpl({
     required super.session,
-    required this.path,
-    required this.uri,
-    required this.lineInfo,
-    required this.isAugmentation,
-    required this.isLibrary,
-    required this.isPart,
-  });
+    required this.fileState,
+  })  : lineInfo = fileState.lineInfo,
+        isAugmentation = fileState.kind is AugmentationFileKind,
+        isLibrary = fileState.kind is LibraryFileKind,
+        isPart = fileState.kind is PartFileKind;
+
+  @override
+  File get file => fileState.resource;
+
+  @override
+  String get path => fileState.path;
+
+  @override
+  Uri get uri => fileState.uri;
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {
@@ -145,16 +174,10 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
 
   ParsedUnitResultImpl({
     required super.session,
-    required super.path,
-    required super.uri,
-    required this.content,
-    required super.lineInfo,
-    required super.isAugmentation,
-    required super.isLibrary,
-    required super.isPart,
+    required super.fileState,
     required this.unit,
     required this.errors,
-  });
+  }) : content = fileState.content;
 }
 
 class ParseStringResultImpl implements ParseStringResult {
@@ -278,9 +301,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 class ResolvedUnitResultImpl extends FileResultImpl
     implements ResolvedUnitResult {
   @override
-  final bool exists;
-
-  @override
   final String content;
 
   @override
@@ -291,17 +311,14 @@ class ResolvedUnitResultImpl extends FileResultImpl
 
   ResolvedUnitResultImpl({
     required super.session,
-    required super.path,
-    required super.uri,
-    required this.exists,
+    required super.fileState,
     required this.content,
-    required super.lineInfo,
-    required super.isAugmentation,
-    required super.isLibrary,
-    required super.isPart,
     required this.unit,
     required this.errors,
   });
+
+  @override
+  bool get exists => fileState.exists;
 
   @override
   LibraryElement get libraryElement {
@@ -322,12 +339,7 @@ class UnitElementResultImpl extends FileResultImpl
 
   UnitElementResultImpl({
     required super.session,
-    required super.path,
-    required super.uri,
-    required super.lineInfo,
-    required super.isAugmentation,
-    required super.isLibrary,
-    required super.isPart,
+    required super.fileState,
     required this.element,
   });
 }
