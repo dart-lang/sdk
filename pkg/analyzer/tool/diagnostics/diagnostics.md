@@ -1728,6 +1728,8 @@ _The built-in identifier '{0}' can't be used as a typedef name._
 
 _The built-in identifier '{0}' can't be used as an extension name._
 
+_The built-in identifier '{0}' can't be used as an extension type name._
+
 #### Description
 
 The analyzer produces this diagnostic when the name used in the declaration

@@ -706,6 +706,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declarationElement;
 
+      _checkForBuiltInIdentifierAsName(node.name,
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
+
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(node.implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
