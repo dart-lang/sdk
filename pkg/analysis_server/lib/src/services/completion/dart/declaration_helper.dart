@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
@@ -28,33 +30,109 @@ class DeclarationHelper {
 
   /// A flag indicating whether suggestions should be limited to only include
   /// valid constants.
-  bool mustBeConstant = false;
+  final bool mustBeConstant;
+
+  /// A flag indicating whether suggestions should be limited to only include
+  /// static members.
+  final bool mustBeStatic;
+
+  /// A flag indicating whether suggestions should be limited to only include
+  /// methods with a non-`void` return type.
+  final bool mustBeNonVoid;
+
+  /// A flag indicating whether suggestions should be tear-offs rather than
+  /// invocations where possible.
+  final bool preferNonInvocation;
 
   /// The number of local variables that have already been suggested.
   int _variableDistance = 0;
 
-  /// Initialize a newly created helper to add suggestions to the [collector].
-  DeclarationHelper({required this.collector, required this.offset});
+  /// Initialize a newly created helper to add suggestions to the [collector]
+  /// that are appropriate for the location at the [offset].
+  ///
+  /// The flags [mustBeConstant], [mustBeStatic] and [mustBeNonVoid] are used to
+  /// control which declarations are suggested. The flag [preferNonInvocation]
+  /// is used to control what kind of suggestion is made for executable
+  /// elements.
+  DeclarationHelper(
+      {required this.collector,
+      required this.offset,
+      required this.mustBeConstant,
+      required this.mustBeStatic,
+      required this.mustBeNonVoid,
+      required this.preferNonInvocation});
+
+  /// Return the suggestion kind that should be used for executable elements.
+  CompletionSuggestionKind get _executableSuggestionKind => preferNonInvocation
+      ? CompletionSuggestionKind.IDENTIFIER
+      : CompletionSuggestionKind.INVOCATION;
+
+  /// Add any fields that can be initialized in the initializer list of the
+  /// given [constructor].
+  void addFieldsForInitializers(ConstructorDeclaration constructor) {
+    var containingElement = constructor.declaredElement?.enclosingElement;
+    if (containingElement == null) {
+      return;
+    }
+
+    var fieldsToSkip = <FieldElement>{};
+    // Skip fields that are already initialized in the initializer list.
+    for (var initializer in constructor.initializers) {
+      if (initializer is ConstructorFieldInitializer) {
+        var fieldElement = initializer.fieldName.staticElement;
+        if (fieldElement is FieldElement) {
+          fieldsToSkip.add(fieldElement);
+        }
+      }
+    }
+    // Skip fields that are already initialized in the parameter list.
+    for (var parameter in constructor.parameters.parameters) {
+      if (parameter is FieldFormalParameter) {
+        var parameterElement = parameter.declaredElement;
+        if (parameterElement is FieldFormalParameterElement) {
+          var field = parameterElement.field;
+          if (field != null) {
+            fieldsToSkip.add(field);
+          }
+        }
+      }
+    }
+
+    for (var field in containingElement.fields) {
+      // Skip fields that are already initialized at their declaration.
+      if (!fieldsToSkip.contains(field) && !field.hasInitializer) {
+        _suggestField(field, containingElement);
+      }
+    }
+  }
 
   /// Add any declarations that are visible at the completion location,
   /// given that the completion location is within the [node]. This includes
-  /// local variables, local functions, and parameters. If [mustBeConstant] is `true`, then
-  /// only constants will be suggested.
-  void addLexicalDeclarations(AstNode node, {bool mustBeConstant = false}) {
-    this.mustBeConstant = mustBeConstant;
-    _addLocalDeclarations(node);
+  /// local variables, local functions, and parameters.
+  void addLexicalDeclarations(AstNode node) {
+    var containingMember = _addLocalDeclarations(node);
+    if (containingMember == null) {
+      return;
+    }
+    var parent = containingMember.parent;
+    _addMembersOf(parent, containingMember);
   }
 
   void addMembersOfType(DartType type) {
     // TODO(brianwilkerson) Implement this.
   }
 
-  /// Add any local declarations that are visible at the completion location,
-  /// given that the completion location is within the [node]. This includes
-  /// local variables, local functions, and parameters. Return the member
-  /// containing the local declarations that were added, or `null` if there is
-  /// an error such as the AST being malformed or we encountered an AST
+  /// Add suggestions for any local declarations that are visible at the
+  /// completion location, given that the completion location is within the
+  /// [node].
+  ///
+  /// This includes local variables, local functions, and parameters. Return the
+  /// member containing the local declarations that were added, or `null` if
+  /// there is an error such as the AST being malformed or we encountered an AST
   /// structure that isn't handled correctly.
+  ///
+  /// The returned member can be either a [ClassMember] or a
+  /// [CompilationUnitMember].
   AstNode? _addLocalDeclarations(AstNode node) {
     AstNode? previousNode;
     AstNode? currentNode = node;
@@ -115,25 +193,158 @@ class DeclarationHelper {
     return currentNode;
   }
 
+  /// Add suggestions for the [members] of the [containingElement].
+  void _addMembers(Element containingElement, NodeList<ClassMember> members) {
+    for (var member in members) {
+      switch (member) {
+        case ConstructorDeclaration():
+          // Constructors are suggested when the enclosing class is suggested.
+          break;
+        case FieldDeclaration():
+          if (mustBeStatic && !member.isStatic) {
+            continue;
+          }
+          for (var field in member.fields.variables) {
+            var declaredElement = field.declaredElement;
+            if (declaredElement is FieldElement) {
+              _suggestField(declaredElement, containingElement);
+            }
+          }
+        case MethodDeclaration():
+          if (mustBeStatic && !member.isStatic) {
+            continue;
+          }
+          var declaredElement = member.declaredElement;
+          if (declaredElement is MethodElement) {
+            _suggestMethod(declaredElement, containingElement);
+          } else if (declaredElement is PropertyAccessorElement) {
+            _suggestProperty(declaredElement, containingElement);
+          }
+      }
+    }
+  }
+
+  /// Add suggestions for any members of the [parent].
+  ///
+  /// The [parent] is expected to be either a [CompilationUnitMember] or a
+  /// [CompilationUnit]. The [containingMember] is the member within the
+  /// [parent] in which completion was requested.
+  void _addMembersOf(AstNode? parent, AstNode containingMember) {
+    while (parent != null) {
+      switch (parent) {
+        case ClassDeclaration():
+          var classElement = parent.declaredElement;
+          if (classElement != null) {
+            _addMembers(classElement, parent.members);
+          }
+        case CompilationUnit():
+          var library = parent.declaredElement?.library;
+          if (library != null) {
+            _addTopLevelDeclarations(library);
+          }
+        case EnumDeclaration():
+          var enumElement = parent.declaredElement;
+          if (enumElement != null) {
+            _addMembers(enumElement, parent.members);
+          }
+        case ExtensionDeclaration():
+          var extensionElement = parent.declaredElement;
+          if (extensionElement != null) {
+            _addMembers(extensionElement, parent.members);
+          }
+        case ExtensionTypeDeclaration():
+          var extensionTypeElement = parent.declaredElement;
+          if (extensionTypeElement != null) {
+            _addMembers(extensionTypeElement, parent.members);
+          }
+        case MixinDeclaration():
+          var mixinElement = parent.declaredElement;
+          if (mixinElement != null) {
+            _addMembers(mixinElement, parent.members);
+          }
+      }
+      parent = parent.parent;
+    }
+  }
+
+  /// Add suggestions for any top-level declarations that are visible within the
+  /// [library].
+  void _addTopLevelDeclarations(LibraryElement library) {
+    // TODO(brianwilkerson) Implement this.
+    // for (var unit in library.units) {
+    //   for (var element in unit.accessors) {}
+    //   for (var element in unit.classes) {}
+    //   for (var element in unit.enums) {}
+    //   for (var element in unit.extensions) {}
+    //   for (var element in unit.extensionTypes) {}
+    //   for (var element in unit.functions) {}
+    //   for (var element in unit.mixins) {}
+    //   for (var element in unit.topLevelVariables) {}
+    //   for (var element in unit.typeAliases) {}
+    // }
+    // for (var importedLibrary in library.importedLibraries) {}
+  }
+
   /// Return `true` if the [identifier] is composed of one or more underscore
   /// characters and nothing else.
   bool _isUnused(String identifier) => UnusedIdentifier.hasMatch(identifier);
 
+  /// Add a suggestion for the field represented by the [element] contained
+  /// in the [containingElement].
+  void _suggestField(FieldElement element, Element containingElement) {
+    if (mustBeConstant && !element.isConst) {
+      return;
+    }
+    if (visibilityTracker.isVisible(element)) {
+      var suggestion = FieldSuggestion(element,
+          (containingElement is ClassElement) ? containingElement : null);
+      collector.addSuggestion(suggestion);
+    }
+  }
+
   /// Add a suggestion for the local function represented by the [element].
   void _suggestFunction(ExecutableElement element) {
     if (element is FunctionElement && visibilityTracker.isVisible(element)) {
-      var suggestion = LocalFunctionSuggestion(element);
+      var suggestion =
+          LocalFunctionSuggestion(_executableSuggestionKind, element);
+      collector.addSuggestion(suggestion);
+    }
+  }
+
+  /// Add a suggestion for the method represented by the [element] contained
+  /// in the [containingElement].
+  void _suggestMethod(MethodElement element, Element containingElement) {
+    if (mustBeConstant) {
+      return;
+    }
+    if (visibilityTracker.isVisible(element)) {
+      var suggestion = MethodSuggestion(_executableSuggestionKind, element,
+          (containingElement is ClassElement) ? containingElement : null);
       collector.addSuggestion(suggestion);
     }
   }
 
   /// Add a suggestion for the parameter represented by the [element].
   void _suggestParameter(ParameterElement element) {
-    if (mustBeConstant && !element.isConst) {
+    if (mustBeConstant) {
       return;
     }
     if (visibilityTracker.isVisible(element) && !_isUnused(element.name)) {
       var suggestion = FormalParameterSuggestion(element);
+      collector.addSuggestion(suggestion);
+    }
+  }
+
+  /// Add a suggestion for the getter or setter represented by the [element]
+  /// contained in the [containingElement].
+  void _suggestProperty(
+      PropertyAccessorElement element, Element containingElement) {
+    if (mustBeConstant) {
+      return;
+    }
+    if (visibilityTracker.isVisible(element)) {
+      var suggestion = PropertyAccessSuggestion(element,
+          (containingElement is ClassElement) ? containingElement : null);
       collector.addSuggestion(suggestion);
     }
   }
@@ -162,7 +373,8 @@ class DeclarationHelper {
   }
 
   AstNode? _visitCommentReference(CommentReference node) {
-    var member = node.parent?.parent;
+    var comment = node.parent;
+    var member = comment?.parent;
     switch (member) {
       case ConstructorDeclaration():
         _visitParameterList(member.parameters);
@@ -173,7 +385,7 @@ class DeclarationHelper {
       case MethodDeclaration():
         _visitParameterList(member.parameters);
     }
-    return member;
+    return comment;
   }
 
   void _visitDeclaredVariablePattern(DeclaredVariablePattern pattern) {

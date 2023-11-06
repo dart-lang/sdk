@@ -47,7 +47,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_inside_implicitThis_getter() async {
     await computeSuggestions('''
 enum E {
@@ -69,7 +68,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_inside_implicitThis_method() async {
     await computeSuggestions('''
 enum E {

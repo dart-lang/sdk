@@ -1210,6 +1210,18 @@ class Q {
 replacement
   right: 1
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
   x
     kind: field
 ''');
@@ -1238,6 +1250,18 @@ class Q {
 replacement
   right: 1
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
   x
     kind: field
 ''');
@@ -13590,13 +13614,35 @@ suggestions
     await computeSuggestions('''
 class Foo { int boo = 7; mth() { while (b^) {} }}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
   boo
     kind: field
 ''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  boo
+    kind: field
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_export_ignoreIfThisLibraryExports_1() async {

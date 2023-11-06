@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -21,6 +23,49 @@ sealed class CandidateSuggestion {
   String get completion;
 }
 
+/// The information about a candidate suggestion based on a constructor.
+final class ConstructorSuggestion extends CandidateSuggestion {
+  /// The element on which the suggestion is based.
+  final ConstructorElement element;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  ConstructorSuggestion(this.element);
+
+  @override
+  String get completion => element.displayName;
+}
+
+/// The information about a candidate suggestion based on an executable element,
+/// either a method or function.
+sealed class ExecutableSuggestion extends CandidateSuggestion {
+  /// The kind of suggestion to be made, either
+  /// [CompletionSuggestionKind.IDENTIFIER] or
+  /// [CompletionSuggestionKind.INVOCATION].
+  final CompletionSuggestionKind kind;
+
+  /// Initialize a newly created suggestion to use the given [kind] of
+  /// suggestion.
+  ExecutableSuggestion(this.kind)
+      : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
+            kind == CompletionSuggestionKind.INVOCATION);
+}
+
+/// The information about a candidate suggestion based on a field.
+final class FieldSuggestion extends CandidateSuggestion {
+  /// The element on which the suggestion is based.
+  final FieldElement element;
+
+  /// The class from which the field is being referenced, or `null` if the class
+  /// is not being referenced from within a class.
+  final ClassElement? referencingClass;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  FieldSuggestion(this.element, this.referencingClass);
+
+  @override
+  String get completion => element.name;
+}
+
 /// The information about a candidate suggestion based on a formal parameter.
 final class FormalParameterSuggestion extends CandidateSuggestion {
   /// The element on which the suggestion is based.
@@ -33,7 +78,8 @@ final class FormalParameterSuggestion extends CandidateSuggestion {
   String get completion => element.name;
 }
 
-/// The information about a candidate suggestion based on an identifier.
+/// The information about a candidate suggestion based on an identifier being
+/// guessed for a declaration site.
 final class IdentifierSuggestion extends CandidateSuggestion {
   /// The identifier to be inserted.
   final String identifier;
@@ -118,12 +164,12 @@ final class LabelSuggestion extends CandidateSuggestion {
 }
 
 /// The information about a candidate suggestion based on a local function.
-final class LocalFunctionSuggestion extends CandidateSuggestion {
+final class LocalFunctionSuggestion extends ExecutableSuggestion {
   /// The element on which the suggestion is based.
   final FunctionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  LocalFunctionSuggestion(this.element);
+  LocalFunctionSuggestion(super.kind, this.element);
 
   @override
   String get completion => element.name;
@@ -145,6 +191,34 @@ final class LocalVariableSuggestion extends CandidateSuggestion {
   String get completion => element.name;
 }
 
+/// The information about a candidate suggestion based on a method.
+final class MethodSuggestion extends ExecutableSuggestion {
+  /// The element on which the suggestion is based.
+  final MethodElement element;
+
+  final ClassElement? referencingClass;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  MethodSuggestion(super.kind, this.element, this.referencingClass);
+
+  @override
+  String get completion => element.name;
+}
+
+/// The information about a candidate suggestion based on a method.
+final class PropertyAccessSuggestion extends CandidateSuggestion {
+  /// The element on which the suggestion is based.
+  final PropertyAccessorElement element;
+
+  final ClassElement? referencingClass;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  PropertyAccessSuggestion(this.element, this.referencingClass);
+
+  @override
+  String get completion => element.name;
+}
+
 extension SuggestionBuilderExtension on SuggestionBuilder {
   // TODO(brianwilkerson) Move these to `SuggestionBuilder`, possibly as part
   //  of splitting it into a legacy builder and an LSP builder.
@@ -152,6 +226,15 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
   /// Add a suggestion based on the candidate [suggestion].
   void suggestFromCandidate(CandidateSuggestion suggestion) {
     switch (suggestion) {
+      case ConstructorSuggestion():
+        suggestConstructor(suggestion.element);
+      case FieldSuggestion():
+        suggestField(suggestion.element,
+            inheritanceDistance: _inheritanceDistance(
+                suggestion.referencingClass,
+                suggestion.element.enclosingElement));
+      case FormalParameterSuggestion():
+        suggestParameter(suggestion.element);
       case IdentifierSuggestion():
         suggestName(suggestion.identifier);
       case KeywordSuggestion():
@@ -165,8 +248,31 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         // TODO(brianwilkerson) Enhance `suggestLocalVariable` to allow the
         //  distance to be passed in.
         suggestLocalVariable(suggestion.element);
-      case FormalParameterSuggestion():
-        suggestParameter(suggestion.element);
+      case MethodSuggestion():
+        // TODO(brianwilkerson) Correctly set the kind of suggestion in cases
+        //  where `isFunctionalArgument` would return `true` so we can stop
+        //  using the `request.target`.
+        var kind = request.target.isFunctionalArgument()
+            ? CompletionSuggestionKind.IDENTIFIER
+            : suggestion.kind;
+        suggestMethod(
+          suggestion.element,
+          kind: kind,
+          inheritanceDistance: _inheritanceDistance(
+              suggestion.referencingClass, suggestion.element.enclosingElement),
+        );
+      case PropertyAccessSuggestion():
+        var inheritanceDistance = 0.0;
+        var referencingClass = suggestion.referencingClass;
+        var declaringClass = suggestion.element.enclosingElement;
+        if (referencingClass != null && declaringClass is InterfaceElement) {
+          inheritanceDistance = request.featureComputer
+              .inheritanceDistanceFeature(referencingClass, declaringClass);
+        }
+        suggestAccessor(
+          suggestion.element,
+          inheritanceDistance: inheritanceDistance,
+        );
     }
   }
 
@@ -175,5 +281,17 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
     for (var suggestion in suggestions) {
       suggestFromCandidate(suggestion);
     }
+  }
+
+  /// Returns the inheritance distance from the [referencingClass] to the
+  /// [declaringClass].
+  double _inheritanceDistance(
+      ClassElement? referencingClass, Element? declaringClass) {
+    var distance = 0.0;
+    if (referencingClass != null && declaringClass is InterfaceElement) {
+      distance = request.featureComputer
+          .inheritanceDistanceFeature(referencingClass, declaringClass);
+    }
+    return distance;
   }
 }
