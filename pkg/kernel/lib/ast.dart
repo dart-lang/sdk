@@ -153,6 +153,9 @@ abstract class TreeNode extends Node {
   /// not available (this is the default if none is specifically set).
   int fileOffset = noOffset;
 
+  /// Returns List<int> if this node has more offsets than [fileOffset].
+  List<int>? get fileOffsetsIfMultiple => null;
+
   @override
   R accept<R>(TreeVisitor<R> v);
   @override
@@ -1020,6 +1023,10 @@ class Class extends NamedNode implements TypeDeclaration {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
+
+  @override
+  List<int>? get fileOffsetsIfMultiple =>
+      [fileOffset, startFileOffset, fileEndOffset];
 
   /// List of metadata annotations on the class.
   ///
@@ -2024,6 +2031,9 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
   /// set).
   int fileEndOffset = TreeNode.noOffset;
 
+  @override
+  List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEndOffset];
+
   /// List of metadata annotations on the member.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -2573,6 +2583,10 @@ class Constructor extends Member {
   /// set).
   int startFileOffset = TreeNode.noOffset;
 
+  @override
+  List<int>? get fileOffsetsIfMultiple =>
+      [fileOffset, startFileOffset, fileEndOffset];
+
   int flags = 0;
 
   @override
@@ -2922,6 +2936,10 @@ class Procedure extends Member implements GenericFunction {
   /// start offset is not available (this is the default if none is specifically
   /// set).
   int fileStartOffset = TreeNode.noOffset;
+
+  @override
+  List<int>? get fileOffsetsIfMultiple =>
+      [fileOffset, fileStartOffset, fileEndOffset];
 
   final ProcedureKind kind;
   int flags = 0;
@@ -3685,6 +3703,9 @@ class FunctionNode extends TreeNode {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
+
+  @override
+  List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEndOffset];
 
   /// Kernel async marker for the function.
   ///
@@ -9163,6 +9184,9 @@ class Block extends Statement {
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
 
+  @override
+  List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEndOffset];
+
   Block(this.statements) {
     // Ensure statements is mutable.
     assert(checkListIsMutable(statements, dummyStatement));
@@ -9300,6 +9324,10 @@ class AssertStatement extends Statement {
   ///
   /// Note: This is not the offset into the UTF8 encoded `List<int>` source.
   int conditionEndOffset;
+
+  @override
+  List<int>? get fileOffsetsIfMultiple =>
+      [fileOffset, conditionStartOffset, conditionEndOffset];
 
   AssertStatement(this.condition,
       {this.message,
@@ -9673,6 +9701,9 @@ class ForInStatement extends Statement {
   /// offset is not available (this is the default if none is specifically set).
   int bodyOffset = TreeNode.noOffset;
 
+  @override
+  List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
+
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Statement body;
@@ -9944,6 +9975,9 @@ class SwitchCase extends TreeNode {
       this.body = body..parent = this;
     }
   }
+
+  @override
+  List<int>? get fileOffsetsIfMultiple => [fileOffset, ...expressionOffsets];
 
   @override
   R accept<R>(TreeVisitor<R> v) => v.visitSwitchCase(this);
@@ -10459,6 +10493,9 @@ class VariableDeclaration extends Statement implements Annotatable {
   /// if the equals sign offset is not available (e.g. if not initialized)
   /// (this is the default if none is specifically set).
   int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  List<int>? get fileOffsetsIfMultiple => [fileOffset, fileEqualsOffset];
 
   /// List of metadata annotations on the variable declaration.
   ///

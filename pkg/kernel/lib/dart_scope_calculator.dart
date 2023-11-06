@@ -4,19 +4,31 @@
 
 import 'package:kernel/ast.dart'
     show
+        AssertBlock,
         Block,
+        BlockExpression,
+        Catch,
         Class,
         Component,
         Constructor,
         DartType,
+        Extension,
+        ExtensionTypeDeclaration,
         Field,
+        FileUriNode,
+        ForInStatement,
+        ForStatement,
         FunctionNode,
+        Initializer,
+        Let,
         Library,
         Member,
         Node,
         Procedure,
         TreeNode,
         TypeParameter,
+        Typedef,
+        TypedefTearOff,
         VariableDeclaration,
         VisitorDefault,
         VisitorNullMixin,
@@ -26,6 +38,7 @@ import 'package:kernel/ast.dart'
 ///
 /// Provides information about symbols available inside a dart scope.
 class DartScope {
+  final TreeNode? node;
   final Library library;
   final Class? cls;
   final Member? member;
@@ -33,7 +46,7 @@ class DartScope {
   final Map<String, DartType> definitions;
   final List<TypeParameter> typeParameters;
 
-  DartScope(this.library, this.cls, this.member, this.definitions,
+  DartScope(this.node, this.library, this.cls, this.member, this.definitions,
       this.typeParameters)
       : isStatic = member is Procedure ? member.isStatic : false;
 
@@ -86,7 +99,8 @@ class DartScopeBuilder extends VisitorDefault<void> with VisitorVoidMixin {
   DartScope? build() {
     if (_offset < 0 || _library == null) return null;
 
-    return DartScope(_library!, _cls, _member, _definitions, _typeParameters);
+    return DartScope(
+        null, _library!, _cls, _member, _definitions, _typeParameters);
   }
 
   @override
@@ -242,5 +256,296 @@ class FileEndOffsetCalculator extends VisitorDefault<int?>
     if (node is Field) return node.fileEndOffset;
     if (node is FunctionNode) return node.fileEndOffset;
     return noOffset;
+  }
+}
+
+class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
+  final Library _library;
+  final Uri _scriptUri;
+  final int _offset;
+  final List<DartScope> findScopes = [];
+
+  final List<List<VariableDeclaration>> scopes = [];
+  final List<List<TypeParameter>> typeParameterScopes = [];
+
+  Class? _currentCls = null;
+  Member? _currentMember = null;
+
+  bool checkClasses = true;
+  Uri _currentUri;
+
+  DartScopeBuilder2._(this._library, this._scriptUri, this._offset)
+      : _currentUri = _library.fileUri;
+
+  void addFound(TreeNode node) {
+    Map<String, DartType> definitions = {};
+    for (List<VariableDeclaration> scope in scopes) {
+      for (VariableDeclaration decl in scope) {
+        String? name = decl.name;
+        if (name != null && name != "") {
+          definitions[name] = decl.type;
+        }
+      }
+    }
+    List<TypeParameter> typeParameters = [];
+    for (List<TypeParameter> typeParameterScope in typeParameterScopes) {
+      typeParameters.addAll(typeParameterScope);
+    }
+    DartScope findScope = new DartScope(node, _library, _currentCls,
+        _currentMember, definitions, typeParameters);
+    findScopes.add(findScope);
+  }
+
+  @override
+  void defaultDartType(DartType node) {
+    return;
+  }
+
+  @override
+  void defaultTreeNode(TreeNode node) {
+    Uri prevUri = _currentUri;
+    if (node is FileUriNode) {
+      _currentUri = node.fileUri;
+    }
+    _checkOffset(node);
+    node.visitChildren(this);
+    _currentUri = prevUri;
+  }
+
+  @override
+  void visitAssertBlock(AssertBlock node) {
+    scopes.add([]);
+    super.visitAssertBlock(node);
+    scopes.removeLast();
+  }
+
+  @override
+  void visitBlock(Block node) {
+    scopes.add([]);
+
+    _checkOffset(node);
+
+    bool shouldSkip;
+
+    // See also the test [DillBlockChecker] which checks that we can do this
+    // pruning!
+    if (_currentUri != _scriptUri) {
+      shouldSkip = true;
+    } else if (node.parent is ForInStatement) {
+      // E.g. dart2js implicit cast in for-in loop
+      shouldSkip = false;
+    } else if (node.parent?.parent is ForStatement) {
+      // A vm transformation turns
+      // `for (var foo in bar) {}`
+      // into
+      // `for(;iterator.moveNext; ) { var foo = iterator.current; {} }`
+      // where the block directly containing `foo` has the original blocks
+      // offset, i.e. after the variable declaration, but it still contain
+      // it. So we pretend it has no offsets.
+      shouldSkip = false;
+    } else if (node.fileOffset >= 0 &&
+        node.fileEndOffset >= 0 &&
+        node.fileOffset != node.fileEndOffset) {
+      if (_offset < node.fileOffset || _offset > node.fileEndOffset) {
+        // Not contained in the block.
+        shouldSkip = true;
+      } else {
+        // Contained in the block.
+        shouldSkip = false;
+      }
+    } else {
+      // The block doesn't have valid offsets.
+      shouldSkip = false;
+    }
+
+    if (!shouldSkip) {
+      node.visitChildren(this);
+    }
+
+    scopes.removeLast();
+  }
+
+  @override
+  void visitBlockExpression(BlockExpression node) {
+    scopes.add([]);
+    super.visitBlockExpression(node);
+    scopes.removeLast();
+  }
+
+  @override
+  void visitCatch(Catch node) {
+    scopes.add([]);
+    super.visitCatch(node);
+    scopes.removeLast();
+  }
+
+  @override
+  void visitClass(Class node) {
+    if (!checkClasses) {
+      return;
+    }
+    _currentCls = node;
+    typeParameterScopes.add([...node.typeParameters]);
+    scopes.add([]);
+    super.visitClass(node);
+    scopes.clear();
+    typeParameterScopes.removeLast();
+    assert(typeParameterScopes.isEmpty);
+    _currentCls = null;
+  }
+
+  @override
+  void visitConstructor(Constructor node) {
+    Uri prevUri = _currentUri;
+    _currentUri = node.fileUri;
+
+    _currentMember = node;
+    scopes.clear();
+    scopes.add([]);
+
+    _checkOffset(node);
+
+    // The constructor is special in that the parameters from the contained
+    // function node is in scope in the initializers.
+    node.function.accept(this);
+    for (VariableDeclaration param in node.function.positionalParameters) {
+      scopes.last.add(param);
+    }
+    for (VariableDeclaration param in node.function.namedParameters) {
+      scopes.last.add(param);
+    }
+    for (Initializer initializer in node.initializers) {
+      initializer.accept(this);
+    }
+
+    scopes.clear();
+    _currentMember = null;
+    _currentUri = prevUri;
+  }
+
+  @override
+  void visitExtension(Extension node) {
+    typeParameterScopes.add([...node.typeParameters]);
+    super.visitExtension(node);
+    typeParameterScopes.removeLast();
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    typeParameterScopes.add([...node.typeParameters]);
+    super.visitExtensionTypeDeclaration(node);
+    typeParameterScopes.removeLast();
+  }
+
+  @override
+  void visitField(Field node) {
+    _currentMember = node;
+    scopes.clear();
+    scopes.add([]);
+    super.visitField(node);
+    scopes.clear();
+    _currentMember = null;
+  }
+
+  @override
+  void visitForInStatement(ForInStatement node) {
+    scopes.add([]);
+    super.visitForInStatement(node);
+    scopes.removeLast();
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    scopes.add([]);
+    super.visitForStatement(node);
+    scopes.removeLast();
+  }
+
+  @override
+  void visitFunctionNode(FunctionNode node) {
+    typeParameterScopes.add([...node.typeParameters]);
+    scopes.add([]);
+    super.visitFunctionNode(node);
+    scopes.removeLast();
+    typeParameterScopes.removeLast();
+  }
+
+  @override
+  void visitLet(Let node) {
+    scopes.add([]);
+    super.visitLet(node);
+    scopes.removeLast();
+  }
+
+  @override
+  void visitLibrary(Library node) {
+    scopes.add([]);
+    super.visitLibrary(node);
+    scopes.clear();
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    _currentMember = node;
+    scopes.clear();
+    scopes.add([]);
+    super.visitProcedure(node);
+    scopes.clear();
+    _currentMember = null;
+  }
+
+  @override
+  void visitTypedef(Typedef node) {
+    scopes.clear();
+    scopes.add([]);
+    typeParameterScopes.add([...node.typeParameters]);
+    super.visitTypedef(node);
+    typeParameterScopes.removeLast();
+    scopes.clear();
+  }
+
+  @override
+  void visitTypedefTearOff(TypedefTearOff node) {
+    typeParameterScopes.add([...node.typeParameters]);
+    super.visitTypedefTearOff(node);
+    typeParameterScopes.removeLast();
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    super.visitVariableDeclaration(node);
+    // Declare it after.
+    scopes.last.add(node);
+  }
+
+  void _checkOffset(TreeNode node) {
+    if (_currentUri == _scriptUri) {
+      if (node.fileOffset == _offset) {
+        addFound(node);
+      } else {
+        List<int>? allOffsets = node.fileOffsetsIfMultiple;
+        if (allOffsets != null) {
+          for (final int offset in allOffsets) {
+            if (offset == _offset) {
+              addFound(node);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  static List<DartScope> findScopeFromOffsetAndClass(
+      Library library, Uri scriptUri, Class? cls, int offset) {
+    DartScopeBuilder2 builder = DartScopeBuilder2._(library, scriptUri, offset);
+    if (cls != null) {
+      builder.visitClass(cls);
+    } else {
+      builder.checkClasses = false;
+      builder.visitLibrary(library);
+    }
+
+    return builder.findScopes;
   }
 }
