@@ -56,10 +56,7 @@ main() {
           )
           .join();
       expectLines(output, [
-        'Hello!',
-        'World!',
-        'args: [one, two]',
-        '',
+        'Hello!World!args: [one, two]',
         'Exited.',
       ]);
     });
@@ -109,10 +106,7 @@ main() {
           )
           .join();
       expectLines(output, [
-        'Hello!',
-        'World!',
-        'args: [one, two]',
-        '',
+        'Hello!World!args: [one, two]',
         'Exited.',
       ]);
     });
