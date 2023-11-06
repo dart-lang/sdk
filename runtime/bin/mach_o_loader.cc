@@ -454,7 +454,6 @@ DART_EXPORT Dart_LoadedMachO* Dart_LoadMachO(
       !mach_o->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
                               vm_isolate_data, vm_isolate_instrs)) {
     *error = mach_o->error();
-    printf("error: %s\n", *error);
     return nullptr;
   }
 

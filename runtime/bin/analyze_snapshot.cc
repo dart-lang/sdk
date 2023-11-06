@@ -163,12 +163,15 @@ int RunAnalyzer(int argc, char** argv) {
 
   AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
   if (app_snapshot == nullptr) {
-    Syslog::PrintErr("Failure reading snapshot\n");
+    if (File::Exists(/*namespc=*/nullptr, script_name)) {
+      Syslog::PrintErr("Failure reading snapshot\n");
+    } else {
+      Syslog::PrintErr("Snapshot file does not exist\n");
+    }
     return kErrorExitCode;
   }
-  app_snapshot->SetBuffers(
-        &vm_snapshot_data, &vm_snapshot_instructions,
-        &vm_isolate_data, &vm_isolate_instructions);
+  app_snapshot->SetBuffers(&vm_snapshot_data, &vm_snapshot_instructions,
+                           &vm_isolate_data, &vm_isolate_instructions);
 
   // Begin initialization
   Dart_InitializeParams init_params = {};
