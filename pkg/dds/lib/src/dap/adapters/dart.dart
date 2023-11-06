@@ -616,7 +616,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// of attach) or from something like a vm-service-info file or Flutter
   /// app.debugPort message.
   ///
-  /// The URI protocol will be changed to ws/wss but otherwise not normalised.
+  /// The URI protocol will be changed to ws/wss but otherwise not normalized.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
   Future<void> connectDebugger(Uri uri) async {
