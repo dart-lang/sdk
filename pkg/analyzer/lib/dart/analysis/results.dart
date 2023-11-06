@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// The result of performing some kind of analysis on a single file. Every
@@ -84,9 +83,6 @@ abstract class ErrorsResult
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
-  /// The file resource.
-  File get file;
-
   /// Whether the file is a library augmentation.
   /// When `true`, [isLibrary] and [isPart] are `false`.
   bool get isAugmentation;

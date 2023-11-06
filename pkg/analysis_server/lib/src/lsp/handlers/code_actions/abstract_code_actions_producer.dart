@@ -29,7 +29,7 @@ typedef CodeActionWithPriorityAndIndex = ({
 /// A base for classes that produce [CodeAction]s for the LSP handler.
 abstract class AbstractCodeActionsProducer
     with RequestHandlerMixin<LspAnalysisServer> {
-  final File file;
+  final String path;
   final LineInfo lineInfo;
   final int offset;
   final int length;
@@ -41,7 +41,7 @@ abstract class AbstractCodeActionsProducer
 
   AbstractCodeActionsProducer(
     this.server,
-    this.file,
+    this.path,
     this.lineInfo, {
     required this.offset,
     required this.length,
@@ -50,8 +50,6 @@ abstract class AbstractCodeActionsProducer
   });
 
   String get name;
-
-  String get path => file.path;
 
   Set<DiagnosticTag> get supportedDiagnosticTags => capabilities.diagnosticTags;
 
@@ -132,7 +130,7 @@ abstract class AbstractCodeActionsProducer
       AnalysisSession session, LineInfo lineInfo, List<AnalysisError> errors) {
     return engine.ErrorsResultImpl(
         session: session,
-        file: file,
+        path: path,
         uri: server.pathContext.toUri(path),
         lineInfo: lineInfo,
         isAugmentation: false,

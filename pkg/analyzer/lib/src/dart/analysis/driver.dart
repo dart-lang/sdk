@@ -747,7 +747,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fsState.getFileForPath(path);
     return FileResultImpl(
       session: currentSession,
-      fileState: file,
+      path: path,
+      uri: file.uri,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
     );
   }
 
@@ -1041,7 +1046,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     CompilationUnit unit = file.parse(listener);
     return ParsedUnitResultImpl(
       session: currentSession,
-      fileState: file,
+      path: file.path,
+      uri: file.uri,
+      content: file.content,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
       unit: unit,
       errors: listener.errors,
     );
@@ -1529,7 +1540,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
         session: currentSession,
-        fileState: file,
+        path: path,
+        uri: file.uri,
+        lineInfo: file.lineInfo,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
         element: element,
       );
     });
@@ -1541,9 +1557,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }) {
     return ErrorsResultImpl(
       session: currentSession,
-      file: file.resource,
-      lineInfo: file.lineInfo,
+      path: file.path,
       uri: file.uri,
+      lineInfo: file.lineInfo,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
@@ -1595,8 +1611,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }) {
     return ResolvedUnitResultImpl(
       session: currentSession,
-      fileState: file,
+      path: file.path,
+      uri: file.uri,
+      exists: file.exists,
       content: file.content,
+      lineInfo: file.lineInfo,
+      isAugmentation: file.kind is AugmentationFileKind,
+      isLibrary: file.kind is LibraryFileKind,
+      isPart: file.kind is PartFileKind,
       unit: unitResult.unit,
       errors: unitResult.errors,
     );
@@ -1701,8 +1723,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (content != null && resolvedUnit != null) {
       var resolvedUnitResult = ResolvedUnitResultImpl(
         session: currentSession,
-        fileState: file,
+        path: file.path,
+        uri: file.uri,
+        exists: file.exists,
         content: content,
+        lineInfo: file.lineInfo,
+        isAugmentation: file.kind is AugmentationFileKind,
+        isLibrary: file.kind is LibraryFileKind,
+        isPart: file.kind is PartFileKind,
         unit: resolvedUnit,
         errors: errors,
       );
@@ -1787,9 +1815,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     // TODO(scheglov) Find a better way to report this.
     var errorsResult = ErrorsResultImpl(
       session: currentSession,
-      file: file.resource,
-      lineInfo: file.lineInfo,
+      path: file.path,
       uri: file.uri,
+      lineInfo: file.lineInfo,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,

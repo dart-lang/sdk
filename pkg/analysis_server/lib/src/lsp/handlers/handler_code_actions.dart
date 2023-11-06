@@ -145,7 +145,7 @@ class CodeActionHandler
       if (isDart && libraryResult != null && unit != null)
         DartCodeActionsProducer(
           server,
-          unit.file,
+          unitPath,
           lineInfo,
           docIdentifier,
           range: params.range,
@@ -160,8 +160,7 @@ class CodeActionHandler
       if (isPubspec)
         PubspecCodeActionsProducer(
           server,
-          // TODO(pq) can we do better?
-          server.resourceProvider.getFile(unitPath),
+          unitPath,
           lineInfo,
           offset: offset,
           length: length,
@@ -171,8 +170,7 @@ class CodeActionHandler
       if (isAnalysisOptions)
         AnalysisOptionsCodeActionsProducer(
           server,
-          // TODO(pq) can we do better?
-          server.resourceProvider.getFile(unitPath),
+          unitPath,
           lineInfo,
           offset: offset,
           length: length,
@@ -181,8 +179,7 @@ class CodeActionHandler
         ),
       PluginCodeActionsProducer(
         server,
-        // TODO(pq) can we do better?
-        server.resourceProvider.getFile(unitPath),
+        unitPath,
         lineInfo,
         offset: offset,
         length: length,
