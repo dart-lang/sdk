@@ -10,14 +10,21 @@ import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:kernel/canonical_name.dart';
+import 'package:kernel/ast.dart' show CanonicalName, Class;
 import 'package:vm_service/vm_service.dart' as vmService;
 import "package:vm_service/vm_service_io.dart" as vmServiceIo;
 
 import 'compiler_test_helper.dart';
-import 'vm_service_helper.dart';
+
+import 'find_all_subclasses_tool.dart';
 
 Future<void> main(List<String> args) async {
+  Set<Class> allTokenClasses = await getAllTokens();
+  Map<String, List<Uri>> classesInUris = {};
+  for (Class c in allTokenClasses) {
+    (classesInUris[c.name] ??= []).add(c.fileUri);
+  }
+
   args = args.toList();
   bool compileSdk = !args.remove('--no-sdk');
   developer.ServiceProtocolInfo serviceProtocolInfo =
@@ -36,7 +43,8 @@ Future<void> main(List<String> args) async {
   String path = serverUri.path;
   if (!path.endsWith('/')) path += '/';
   String wsUriString = 'ws://${serverUri.authority}${path}ws';
-  VmService serviceClient = await vmServiceIo.vmServiceConnectUri(wsUriString);
+  vmService.VmService serviceClient =
+      await vmServiceIo.vmServiceConnectUri(wsUriString);
 
   await compile(
       inputs: args.isNotEmpty
@@ -52,7 +60,7 @@ Future<void> main(List<String> args) async {
           UriTranslator uriTranslator,
           BodyBuilderCreator bodyBuilderCreator) {
         return new KernelTargetTester(fileSystem, includeComments, dillTarget,
-            uriTranslator, bodyBuilderCreator, serviceClient);
+            uriTranslator, bodyBuilderCreator, serviceClient, classesInUris);
       });
 
   await serviceClient.dispose();
@@ -64,20 +72,18 @@ Future<void> main(List<String> args) async {
 }
 
 class KernelTargetTester extends KernelTargetTest {
-  final VmService serviceClient;
-
-  // TODO(johnniwinther): Can we programmatically find all subclasses of [Token]
-  //  instead?
-  static const String className = 'StringTokenImpl';
+  final vmService.VmService serviceClient;
+  final Map<String, List<Uri>> classesInUris;
 
   KernelTargetTester(
-      api.FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator,
-      BodyBuilderCreator bodyBuilderCreator,
-      this.serviceClient)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator,
+    api.FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+    BodyBuilderCreator bodyBuilderCreator,
+    this.serviceClient,
+    this.classesInUris,
+  ) : super(fileSystem, includeComments, dillTarget, uriTranslator,
             bodyBuilderCreator);
 
   @override
@@ -92,12 +98,11 @@ class KernelTargetTester extends KernelTargetTest {
 
     String isolateId = isolateRef.id!;
 
-    int foundInstances =
-        await findAndPrintRetainingPaths(serviceClient, isolateId, className);
-    if (foundInstances > 0) {
-      throw 'Found $foundInstances instances of $className after '
-          'buildOutlines';
-    }
+    throwOnLeaksOrNoFinds(
+        await findAndPrintRetainingPaths(
+            serviceClient, isolateId, classesInUris),
+        "buildOutlines",
+        classesInUris);
     return buildResult;
   }
 
@@ -119,27 +124,89 @@ class KernelTargetTester extends KernelTargetTest {
 
     String isolateId = isolateRef.id!;
 
-    int foundInstances =
-        await findAndPrintRetainingPaths(serviceClient, isolateId, className);
-    if (foundInstances > 0) {
-      throw 'Found $foundInstances instances of $className after '
-          'buildComponent';
-    }
+    throwOnLeaksOrNoFinds(
+        await findAndPrintRetainingPaths(
+            serviceClient, isolateId, classesInUris),
+        "buildComponent",
+        classesInUris);
     return buildResult;
   }
 }
 
-Future<int> findAndPrintRetainingPaths(
-    vmService.VmService serviceClient, String isolateId, String filter) async {
+void throwOnLeaksOrNoFinds(Map<vmService.Class, int> foundInstances,
+    String afterWhat, Map<String, List<Uri>> classesInUris) {
+  Map<String, List<Uri>> notFound = {};
+  for (MapEntry<String, List<Uri>> entry in classesInUris.entries) {
+    notFound[entry.key] = new List.of(entry.value);
+  }
+  StringBuffer? sb;
+  for (MapEntry<vmService.Class, int> entry in foundInstances.entries) {
+    List<Uri> notFoundUrisForName = notFound[entry.key.name!]!;
+    Uri uri = Uri.parse(entry.key.location!.script!.uri!);
+    for (int i = 0; i < notFoundUrisForName.length; i++) {
+      if (notFoundUrisForName[i].pathSegments.last == uri.pathSegments.last) {
+        notFoundUrisForName.removeAt(i);
+        break;
+      }
+    }
+    if (entry.value > 0) {
+      // 'SyntheticToken' will have 1 alive because of dummyToken in
+      // front_end/lib/src/fasta/kernel/utils.dart. Hack around that.
+      if (entry.key.name == "SyntheticToken" && entry.value == 1) {
+        continue;
+      }
+      sb ??= new StringBuffer();
+      sb.writeln('Found ${entry.value} instances of ${entry.key} '
+          'after $afterWhat');
+    }
+  }
+  if (sb != null) {
+    throw sb.toString();
+  }
+  if (foundInstances.isEmpty) {
+    throw "Didn't find anything.";
+  }
+  for (MapEntry<String, List<Uri>> notFoundData in notFound.entries) {
+    if (notFoundData.value.isNotEmpty) {
+      print("WARNING: Didn't find ${notFoundData.key}' in "
+          "${notFoundData.value.join(" and ")}");
+    }
+  }
+}
+
+Future<Map<vmService.Class, int>> findAndPrintRetainingPaths(
+    vmService.VmService serviceClient,
+    String isolateId,
+    Map<String, List<Uri>> classesInUrisFilter) async {
   vmService.AllocationProfile allocationProfile =
       await serviceClient.getAllocationProfile(isolateId, gc: true);
 
-  int foundInstances = 0;
+  Map<vmService.Class, int> foundInstances = {};
 
   for (vmService.ClassHeapStats member in allocationProfile.members!) {
-    if (member.classRef!.name != filter) continue;
+    String? className = member.classRef!.name;
+    if (className == null) continue;
+    List<Uri>? uris = classesInUrisFilter[className];
+    if (uris == null) continue;
+    // File uris vs package uris --- for now just compare the filename.
+    String? classUriString = member.classRef?.location?.script?.uri;
+    if (classUriString == null) continue;
+    Uri classUri = Uri.parse(classUriString);
+    bool foundMatch = false;
+    for (Uri uri in uris) {
+      if (classUri.pathSegments.last == uri.pathSegments.last) {
+        foundMatch = true;
+        break;
+      }
+    }
+    if (!foundMatch) continue;
     vmService.Class c = await serviceClient.getObject(
         isolateId, member.classRef!.id!) as vmService.Class;
+    int? instancesCurrent = member.instancesCurrent;
+    if (instancesCurrent == null) continue;
+    foundInstances[c] = instancesCurrent;
+    if (instancesCurrent == 0) continue;
+
     print("Found ${c.name} (location: ${c.location})");
     print("${member.classRef!.name}: "
         "(instancesCurrent: ${member.instancesCurrent})");
@@ -147,7 +214,6 @@ Future<int> findAndPrintRetainingPaths(
 
     vmService.InstanceSet instances =
         await serviceClient.getInstances(isolateId, member.classRef!.id!, 100);
-    foundInstances += instances.instances!.length;
     print(" => Got ${instances.instances!.length} instances");
     print("");
 
@@ -160,29 +226,34 @@ Future<int> findAndPrintRetainingPaths(
             await serviceClient.getRetainingPath(isolateId, instance.id!, 1000);
 
         print("Retaining path: (length ${retainingPath.length})");
-        String indent = '';
+        print(retainingPath.gcRootType);
+        String indent = ' ';
         for (int i = retainingPath.elements!.length - 1; i >= 0; i--) {
           vmService.RetainingObject retainingObject =
               retainingPath.elements![i];
           vmService.ObjRef? value = retainingObject.value;
-          String field;
-          if (retainingObject.parentListIndex != null) {
-            field = '[${retainingObject.parentListIndex}]';
-          } else if (retainingObject.parentMapKey != null) {
-            field = '[?]';
-          } else if (retainingObject.parentField != null) {
-            field = '.${retainingObject.parentField}';
+          if (value is vmService.FieldRef) {
+            print("${indent}field '${value.name}'");
           } else {
-            field = '';
-          }
-          String className = '';
-          if (value is vmService.InstanceRef) {
-            vmService.ClassRef? classRef = value.classRef;
-            if (classRef != null && classRef.name != null) {
-              className = classRef.name!;
+            String field;
+            if (retainingObject.parentListIndex != null) {
+              field = '[${retainingObject.parentListIndex}]';
+            } else if (retainingObject.parentMapKey != null) {
+              field = '[?]';
+            } else if (retainingObject.parentField != null) {
+              field = '.${retainingObject.parentField}';
+            } else {
+              field = '';
             }
+            String className = '';
+            if (value is vmService.InstanceRef) {
+              vmService.ClassRef? classRef = value.classRef;
+              if (classRef != null && classRef.name != null) {
+                className = 'class ${classRef.name}';
+              }
+            }
+            print("${indent}${className}$field");
           }
-          print("${indent}${className}$field");
           indent += ' ';
         }
 
