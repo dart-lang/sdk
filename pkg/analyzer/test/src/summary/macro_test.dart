@@ -1576,6 +1576,44 @@ class X
 ''');
   }
 
+  test_element_class_metadata_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+const b = 1;
+
+import augment 'b.dart';
+
+@a
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+@b
+augment class A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+        IdentifierMetadataAnnotation
+          identifier: b
+      superclass: Object
+''');
+  }
+
   test_element_class_metadata_constructor_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -1998,6 +2036,45 @@ class X
               IdentifierMetadataAnnotation
                 identifier: a
             type: int?
+''');
+  }
+
+  test_element_mixin_metadata_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+const b = 1;
+
+import augment 'b.dart';
+
+@a
+mixin A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+@b
+augment mixin A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    mixin A
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+        IdentifierMetadataAnnotation
+          identifier: b
+      superclassConstraints
+        Object
 ''');
   }
 
