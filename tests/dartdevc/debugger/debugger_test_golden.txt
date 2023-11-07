@@ -4847,7 +4847,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "(String, (Event$) => bool) => Null"
+    "(String, (Event) => bool) => Null"
 ]
 -----------------------------------
 Test: Function with function arguments formatting body
@@ -4877,7 +4877,7 @@ Value:
                 {
                     "style": "margin-left: 13px"
                 },
-                "(String, (Event$) => bool) => Null"
+                "(String, (Event) => bool) => Null"
             ]
         ]
     ],
