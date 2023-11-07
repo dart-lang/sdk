@@ -7,6 +7,9 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/service_extension_rou
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
+dependencies:
+  meta: ^1.11.0
+
 dev_dependencies:
   lints: any
   test: any
