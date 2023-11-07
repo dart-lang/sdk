@@ -34,7 +34,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   DartCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo,
     this.docIdentifier,
     this.library,

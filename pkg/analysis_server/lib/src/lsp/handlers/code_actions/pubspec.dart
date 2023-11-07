@@ -15,7 +15,7 @@ import 'package:yaml/yaml.dart';
 class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   PubspecCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo, {
     required super.offset,
     required super.length,
