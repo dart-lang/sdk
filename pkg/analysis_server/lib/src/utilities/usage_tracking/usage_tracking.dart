@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
-import 'package:memory_usage/memory_usage.dart';
+import 'package:leak_tracker/src/usage_tracking/model.dart';
+import 'package:leak_tracker/src/usage_tracking/usage_tracking.dart';
 
 void configureMemoryUsageTracking(
   List<String> arguments,

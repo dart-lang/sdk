@@ -19,7 +19,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:collection/collection.dart';
-import 'package:memory_usage/memory_usage.dart';
+import 'package:leak_tracker/src/usage_tracking/model.dart';
 import 'package:meta/meta.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
