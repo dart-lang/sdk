@@ -141,7 +141,7 @@ Future<int> currentHeapUsage(String wsUri) async {
     final usage = await vmService.getIsolateGroupMemoryUsage(groupId);
     sum += usage.heapUsage! + usage.externalUsage!;
   }
-  vmService.dispose();
+  unawaited(vmService.dispose());
   return sum;
 }
 
@@ -165,9 +165,12 @@ Future<List<String>> getGroupIds(vm_service.VmService vmService) async {
   for (final groupRef in vm.isolateGroups!) {
     final group = await vmService.getIsolateGroup(groupRef.id!);
     for (final isolateRef in group.isolates!) {
-      final isolateOrSentinel = await vmService.getIsolate(isolateRef.id!);
-      if (isolateOrSentinel is vm_service.Isolate) {
+      try {
+        await vmService.getIsolate(isolateRef.id!);
         groupIds.add(groupRef.id!);
+        break;
+      } on vm_service.SentinelException catch (_) {
+        // Skip groups with only sentinels.
       }
     }
   }

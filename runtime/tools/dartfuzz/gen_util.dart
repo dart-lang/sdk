@@ -23,11 +23,11 @@ class GenUtil {
   }
 
   // Create an analyzer session.
-  static AnalysisSession createAnalysisSession([String? dart_top]) {
+  static AnalysisSession createAnalysisSession([String? dartTop]) {
     // Set paths. Note that for this particular use case, packageRoot can be
     // any directory. Here, we set it to the top of the SDK development, and
     // derive the required sdkPath from there.
-    final packageRoot = getTop(dart_top);
+    final packageRoot = getTop(dartTop);
     final sdkPath = '$packageRoot/sdk';
 
     // This does most of the hard work of getting the analyzer configured

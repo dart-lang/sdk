@@ -62,7 +62,6 @@ class MetricGraphElement extends CustomElement implements Renderable {
     message = 'min: $min, $message';
     message = message + ', max: $max';
 
-    final host = new DivElement();
     children = <Element>[
       new DivElement()
         ..classes = ['memberList']
