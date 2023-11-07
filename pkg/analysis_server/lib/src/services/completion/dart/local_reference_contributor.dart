@@ -254,29 +254,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    var field = varDecl.declaredElement;
-    if (field is FieldElement &&
-        ((visibilityTracker.isVisible(field) &&
-                opType.includeReturnValueSuggestions &&
-                (!opType.inStaticMethodBody || fieldDecl.isStatic)) ||
-            suggestLocalFields)) {
-      var inheritanceDistance = 0.0;
-      var enclosingClass = request.target.containingNode
-          .thisOrAncestorOfType<ClassDeclaration>();
-      var enclosingElement = enclosingClass?.declaredElement;
-      if (enclosingElement != null) {
-        var enclosingElement = field.enclosingElement;
-        if (enclosingElement is InterfaceElement) {
-          inheritanceDistance = request.featureComputer
-              .inheritanceDistanceFeature(enclosingElement, enclosingElement);
-        }
-      }
-      builder.suggestField(field, inheritanceDistance: inheritanceDistance);
-    }
-  }
-
-  @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (visibilityTracker.isVisible(declaration.declaredElement) &&
         (opType.includeReturnValueSuggestions ||
@@ -314,39 +291,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (declaredElement is TypeAliasElement &&
         opType.includeTypeNameSuggestions) {
       builder.suggestTypeAlias(declaredElement);
-    }
-  }
-
-  @override
-  void declaredLabel(Label label, bool isCaseLabel) {
-    // ignored: handled by the label_contributor.dart
-  }
-
-  @override
-  void declaredMethod(MethodDeclaration declaration) {
-    var element = declaration.declaredElement;
-    if (visibilityTracker.isVisible(element) &&
-        (opType.includeReturnValueSuggestions ||
-            opType.includeVoidReturnSuggestions) &&
-        (!opType.inStaticMethodBody || declaration.isStatic)) {
-      var inheritanceDistance = 0.0;
-      var enclosingClass = request.target.containingNode
-          .thisOrAncestorOfType<ClassDeclaration>();
-      if (enclosingClass != null) {
-        var enclosingElement = element?.enclosingElement;
-        if (enclosingElement is InterfaceElement) {
-          inheritanceDistance = request.featureComputer
-              .inheritanceDistanceFeature(
-                  enclosingClass.declaredElement!, enclosingElement);
-        }
-      }
-      if (element is MethodElement) {
-        builder.suggestMethod(element,
-            inheritanceDistance: inheritanceDistance, kind: _defaultKind);
-      } else if (element is PropertyAccessorElement) {
-        builder.suggestAccessor(element,
-            inheritanceDistance: inheritanceDistance);
-      }
     }
   }
 

@@ -100,8 +100,27 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   /// Return the helper used to suggest declarations that are in scope.
-  DeclarationHelper declarationHelper() => _declarationHelper =
-      DeclarationHelper(collector: collector, offset: offset);
+  DeclarationHelper declarationHelper(
+      {bool mustBeConstant = false,
+      bool mustBeStatic = false,
+      bool preferNonInvocation = false}) {
+    // Ensure that we aren't attempting to create multiple declaration helpers
+    // with inconsistent states.
+    assert(() {
+      var helper = _declarationHelper;
+      return helper == null ||
+          (helper.mustBeConstant == mustBeConstant &&
+              helper.mustBeStatic == mustBeStatic &&
+              helper.preferNonInvocation == preferNonInvocation);
+    }());
+    return _declarationHelper ??= DeclarationHelper(
+        collector: collector,
+        offset: offset,
+        mustBeConstant: mustBeConstant,
+        mustBeStatic: mustBeStatic,
+        mustBeNonVoid: false,
+        preferNonInvocation: preferNonInvocation);
+  }
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -162,7 +181,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitAssertInitializer(AssertInitializer node) {
     collector.completionLocation = 'ConstructorDeclaration_initializer';
     keywordHelper.addConstructorInitializerKeywords(
-        node.parent as ConstructorDeclaration);
+        node.parent as ConstructorDeclaration, node);
   }
 
   @override
@@ -303,7 +322,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    declarationHelper().addLexicalDeclarations(node);
+    declarationHelper(preferNonInvocation: true).addLexicalDeclarations(node);
   }
 
   @override
@@ -341,10 +360,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var separator = node.separator;
-    if (separator != null) {
+    if (separator == null) {
+      return;
+    }
+    var type = separator.type;
+    if (type == TokenType.COLON) {
       if (offset >= separator.end && offset <= node.body.offset) {
         collector.completionLocation = 'ConstructorDeclaration_initializer';
-        keywordHelper.addConstructorInitializerKeywords(node);
+        _forConstructorInitializer(node, null);
       }
     }
   }
@@ -352,8 +375,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     collector.completionLocation = 'ConstructorDeclaration_initializer';
-    keywordHelper.addConstructorInitializerKeywords(
-        node.parent as ConstructorDeclaration);
+    var constructor = node.parent as ConstructorDeclaration;
+    _forConstructorInitializer(constructor, node);
   }
 
   @override
@@ -407,6 +430,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitDoStatement(DoStatement node) {
     if (offset <= node.doKeyword.end) {
       _forStatement(node);
+    } else if (node.leftParenthesis.end <= offset &&
+        offset <= node.rightParenthesis.offset) {
+      if (node.condition.isSynthetic ||
+          offset <= node.condition.offset ||
+          offset == node.condition.end) {
+        _forExpression(node);
+      }
     }
   }
 
@@ -837,7 +867,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    declarationHelper().addLexicalDeclarations(node);
+    declarationHelper(mustBeStatic: node.inStaticContext)
+        .addLexicalDeclarations(node);
   }
 
   @override
@@ -1092,7 +1123,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       RedirectingConstructorInvocation node) {
     collector.completionLocation = 'ConstructorDeclaration_initializer';
     keywordHelper.addConstructorInitializerKeywords(
-        node.parent as ConstructorDeclaration);
+        node.parent as ConstructorDeclaration, node);
   }
 
   @override
@@ -1184,7 +1215,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     collector.completionLocation = 'ConstructorDeclaration_initializer';
     keywordHelper.addConstructorInitializerKeywords(
-        node.parent as ConstructorDeclaration);
+        node.parent as ConstructorDeclaration, node);
   }
 
   @override
@@ -1494,6 +1525,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitWhileStatement(WhileStatement node) {
     if (offset <= node.whileKeyword.end) {
       _forStatement(node);
+    } else if (node.leftParenthesis.end <= offset &&
+        offset <= node.rightParenthesis.offset) {
+      if (node.condition.isSynthetic ||
+          offset <= node.condition.offset ||
+          offset == node.condition.end) {
+        _forExpression(node);
+      }
     }
   }
 
@@ -1520,7 +1558,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       TypedLiteral literal, NodeList<CollectionElement> elements) {
     var preceedingElement = elements.elementBefore(offset);
     keywordHelper.addCollectionElementKeywords(literal, elements);
-    declarationHelper().addLexicalDeclarations(preceedingElement ?? literal);
+    declarationHelper(mustBeStatic: literal.inStaticContext)
+        .addLexicalDeclarations(preceedingElement ?? literal);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1529,6 +1568,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     keywordHelper.addCompilationUnitDeclarationKeywords();
   }
 
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of a member at the top-level of a compilation unit.
   void _forCompilationUnitMember(CompilationUnit unit,
       ({AstNode? before, AstNode? after}) surroundingMembers) {
     var before = surroundingMembers.before;
@@ -1547,7 +1588,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var inConstantContext = node is Expression && node.inConstantContext;
     keywordHelper.addConstantExpressionKeywords(
         inConstantContext: inConstantContext);
-    declarationHelper().addLexicalDeclarations(node, mustBeConstant: true);
+    declarationHelper(mustBeConstant: true, mustBeStatic: node.inStaticContext)
+        .addLexicalDeclarations(node);
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of a constructor's initializer.
+  void _forConstructorInitializer(ConstructorDeclaration constructor,
+      ConstructorFieldInitializer? initializer) {
+    keywordHelper.addConstructorInitializerKeywords(constructor, initializer);
+    declarationHelper().addFieldsForInitializers(constructor);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1569,7 +1619,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forExpression(AstNode? node) {
     keywordHelper.addExpressionKeywords(node);
     if (node != null) {
-      declarationHelper().addLexicalDeclarations(node);
+      declarationHelper(mustBeStatic: node.inStaticContext)
+          .addLexicalDeclarations(node);
     }
   }
 
@@ -1660,8 +1711,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a pattern.
   void _forPattern(AstNode node, {bool mustBeConst = true}) {
     keywordHelper.addPatternKeywords();
-    declarationHelper()
-        .addLexicalDeclarations(node, mustBeConstant: mustBeConst);
+    declarationHelper(
+            mustBeConstant: mustBeConst, mustBeStatic: node.inStaticContext)
+        .addLexicalDeclarations(node);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1813,7 +1865,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (!node.inKeyword.isSynthetic) {
       keywordHelper.addKeyword(Keyword.AWAIT);
-      declarationHelper().addLexicalDeclarations(node);
+      declarationHelper(mustBeStatic: node.inStaticContext)
+          .addLexicalDeclarations(node);
     }
   }
 
@@ -1827,6 +1880,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 }
 
 extension on AstNode {
+  /// Whether the completion location is in a context where only static members
+  /// of the enclosing type can be suggested.
+  bool get inStaticContext {
+    var encosingMember = thisOrAncestorOfType<ClassMember>();
+    if (encosingMember is MethodDeclaration) {
+      return encosingMember.isStatic;
+    } else if (encosingMember is FieldDeclaration) {
+      return encosingMember.isStatic;
+    }
+    return false;
+  }
+
   /// Whether all of the tokens in this node are synthetic.
   bool get isFullySynthetic {
     var current = beginToken;

@@ -174,28 +174,26 @@ class KeywordHelper {
   }
 
   /// Add the keywords that are appropriate when the selection is in the
-  /// initializer list of the given [node].
-  void addConstructorInitializerKeywords(ConstructorDeclaration node) {
+  /// [initializer] list of the given [constructor].
+  void addConstructorInitializerKeywords(
+      ConstructorDeclaration constructor, ConstructorInitializer? initializer) {
     addKeyword(Keyword.ASSERT);
-    var suggestSuper = node.parent is! ExtensionTypeDeclaration;
-    var initializers = node.initializers;
-    if (initializers.isNotEmpty) {
+    var initializers = constructor.initializers;
+    if (initializer == null || initializers.last == initializer) {
       var last = initializers.lastNonSynthetic;
       if (offset >= last.end &&
           last is! SuperConstructorInvocation &&
           last is! RedirectingConstructorInvocation) {
-        if (suggestSuper) {
+        if (constructor.parent is! ExtensionTypeDeclaration) {
           addKeyword(Keyword.SUPER);
         }
         addKeyword(Keyword.THIS);
       }
-    } else {
-      // if (separator.end <= offset && offset <= separator.next!.offset) {
-      if (suggestSuper) {
-        addKeyword(Keyword.SUPER);
+    } else if (initializer is ConstructorFieldInitializer) {
+      var equals = initializer.equals;
+      if (equals.end <= offset && offset <= equals.next!.offset) {
+        addKeyword(Keyword.THIS);
       }
-      addKeyword(Keyword.THIS);
-      // }
     }
   }
 

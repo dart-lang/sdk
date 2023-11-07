@@ -7753,10 +7753,6 @@ suggestions
     kind: class
   B0
     kind: constructorInvocation
-  a0
-    kind: field
-  b0
-    kind: methodInvocation
   f0
     kind: field
 ''');
