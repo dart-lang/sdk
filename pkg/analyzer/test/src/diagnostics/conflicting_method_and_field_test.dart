@@ -84,6 +84,20 @@ enum E with M {
     ]);
   }
 
+  test_extensionType_field_external() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  external int foo;
+}
+
+extension type B(int it) implements A {
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 97, 3),
+    ]);
+  }
+
   test_extensionType_getter() async {
     await assertNoErrorsInCode(r'''
 extension type A(int it) {
