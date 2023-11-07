@@ -722,6 +722,7 @@ t\u
 ta
 tails
 taskset
+te
 templates
 theoretically
 thereby

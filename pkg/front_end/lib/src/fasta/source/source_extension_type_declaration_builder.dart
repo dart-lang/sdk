@@ -443,6 +443,9 @@ class SourceExtensionTypeDeclarationBuilder
   void checkSupertypes(
       CoreTypes coreTypes, ClassHierarchyBuilder hierarchyBuilder) {
     if (interfaceBuilders != null) {
+      Map<TypeDeclarationBuilder, ({int count, int offset})>?
+          duplicationProblems;
+      Set<TypeDeclarationBuilder> implemented = {};
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         TypeBuilder typeBuilder = interfaceBuilders![i];
         DartType interface =
@@ -480,6 +483,41 @@ class SourceExtensionTypeDeclarationBuilder
                   typeBuilder.fileUri);
             }
           }
+        }
+
+        if (typeBuilder is NamedTypeBuilder) {
+          TypeDeclarationBuilder? typeDeclaration = typeBuilder.declaration;
+          if (typeDeclaration is TypeAliasBuilder) {
+            typeDeclaration =
+                typeDeclaration.unaliasDeclaration(typeBuilder.typeArguments);
+          }
+          if (typeDeclaration is ClassBuilder ||
+              typeDeclaration is ExtensionTypeDeclarationBuilder) {
+            if (!implemented.add(typeDeclaration!)) {
+              duplicationProblems ??= {};
+              switch (duplicationProblems[typeDeclaration]) {
+                case (:var count, :var offset):
+                  duplicationProblems[typeDeclaration] =
+                      (count: count + 1, offset: offset);
+                case null:
+                  duplicationProblems[typeDeclaration] = (
+                    count: 1,
+                    offset: typeBuilder.charOffset ?? TreeNode.noOffset
+                  );
+              }
+            }
+          }
+        }
+      }
+
+      if (duplicationProblems != null) {
+        for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
+            in duplicationProblems.entries) {
+          addProblem(
+              templateImplementsRepeated.withArguments(
+                  typeDeclaration.name, count),
+              offset,
+              noLength);
         }
       }
     }
