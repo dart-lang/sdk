@@ -7,6 +7,7 @@ import 'dart:isolate';
 import 'dart:math';
 
 import 'package:args/args.dart';
+import 'package:matcher/matcher.dart';
 
 import 'dartfuzz.dart';
 
@@ -464,9 +465,15 @@ class DartFuzzTest {
     }
   }
 
-  void printDivergenceOutput(String string, int numLines) {
-    final lines = string.split('\n');
-    print(lines.sublist(0, min(lines.length, numLines)).join('\n'));
+  void reportStringDifference(String a, String b) {
+    final matcher = equals(a);
+    final matches = matcher.matches(b, {});
+    if (matches) {
+      print('Strings are not different.');
+      return;
+    }
+    final mismatch = matcher.describeMismatch(b, StringDescription(), {}, true);
+    print(mismatch.toString());
   }
 
   void reportDivergence(TestResult result1, TestResult result2) {
@@ -475,13 +482,8 @@ class DartFuzzTest {
     print('\n$isolate: !DIVERGENCE! $version:$seed ($report)');
     if (result1.exitCode == result2.exitCode) {
       if (numOutputLines > 0) {
-        // Only report the actual output divergence details up to
-        // numOutputLines, since this output may be lengthy and should be
-        // reproducible anyway.
-        print('\nout1:\n');
-        printDivergenceOutput(result1.output, numOutputLines);
-        print('\nout2:\n');
-        printDivergenceOutput(result2.output, numOutputLines);
+        print('\nout1 and out2 are different:\n');
+        reportStringDifference(result1.output, result2.output);
       }
     } else {
       // For any other divergence, always report what went wrong.

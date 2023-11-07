@@ -34,12 +34,22 @@ library;
 // extension type E73(E<Never> it) implements E71, E72 {} // Error.
 //                ^
 //
+// pkg/front_end/testcases/extension_types/issue53799.dart:10:54: Error: 'A' can only be implemented once.
+// Try removing 1 of the occurrences.
+// extension type E1(A<Never> it) implements A<String>, A<int> {} // Error.
+//                                                      ^
+//
 // pkg/front_end/testcases/extension_types/issue53799.dart:14:39: Error: The implemented interface 'A<num>' must be a supertype of the representation type 'C' of extension type 'E3'.
 //  - 'A' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 //  - 'C' is from 'pkg/front_end/testcases/extension_types/issue53799.dart'.
 // Try changing the interface type to a supertype of 'C' or the representation type to a subtype of 'A<num>'.
 // extension type E3(C it) implements C, A<num> {} // Error.
 //                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53799.dart:19:54: Error: 'E' can only be implemented once.
+// Try removing 1 of the occurrences.
+// extension type E5(E<Never> it) implements E<String>, E<bool> {} // Error.
+//                                                      ^
 //
 import self as self;
 import "dart:core" as core;

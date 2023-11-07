@@ -17,7 +17,7 @@ class TestTypeHierarchy extends TypeHierarchy {
   int classIdCounter = 0;
 
   TestTypeHierarchy(CoreTypes coreTypes, this.subtypes, this.specializations)
-      : super(coreTypes, /*nullSafety=*/ false);
+      : super(coreTypes, /*soundNullSafety=*/ true);
 
   @override
   bool isSubtype(Class sub, Class sup) {

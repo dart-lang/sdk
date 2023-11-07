@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type Ext(core::Object? _) {
+  abstract inline-class-member representation-field get _() → core::Object?;
+  get value = self::Ext|get#value;
+  constructor • = self::Ext|constructor#;
+  constructor tearoff • = self::Ext|constructor#_#new#tearOff;
+}
+static inline-class-member method Ext|constructor#(core::Object? _) → self::Ext /* = core::Object? */ {
+  lowered final self::Ext /* = core::Object? */ #this = _;
+  return #this;
+}
+static inline-class-member method Ext|constructor#_#new#tearOff(core::Object? _) → self::Ext /* = core::Object? */
+  return self::Ext|constructor#(_);
+static inline-class-member method Ext|get#value(lowered final self::Ext /* = core::Object? */ #this) → core::int
+  return 42;
+static method main() → void {
+  {
+    hoisted core::int value;
+    final synthesized self::Ext /* = core::Object? */ #0#0 = self::Ext|constructor#("");
+    if(let final dynamic #t1 = value = self::Ext|get#value(#0#0) in true)
+      core::print(value);
+  }
+}

@@ -13,10 +13,14 @@ import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart'
     show
         AbortConstant,
+        AbortStatus,
         ConstantEvaluator,
         ErrorReporter,
         EvaluationMode,
-        SimpleErrorReporter;
+        ProceedStatus,
+        ReturnStatus,
+        SimpleErrorReporter,
+        StatementConstantEvaluator;
 
 import '../target_os.dart';
 
@@ -26,8 +30,10 @@ import '../target_os.dart';
 /// [targetOS] represents the target operating system and is used when
 /// evaluating static fields and getters annotated with "vm:platform-const".
 ///
-/// If [enableConstFunctions] is false, then only getters that return the
-/// result of a single expression can be evaluated.
+/// To avoid restricting getters annotated with "vm:platform-const" to be just
+/// a single return statement whose body is evaluated, we treat annotated
+/// getters as const functions. If [enableConstFunctions] is false, then
+/// only annotated getters are treated this way.
 class VMConstantEvaluator extends ConstantEvaluator {
   final TargetOS? _targetOS;
   final Map<String, Constant> _constantFields = {};
@@ -124,6 +130,19 @@ class VMConstantEvaluator extends ConstantEvaluator {
   bool transformerShouldEvaluateExpression(Expression node) =>
       _targetOS != null && node is StaticGet && _isPlatformConst(node.target);
 
+  Constant _executePlatformConstBody(Statement statement) {
+    final status = statement.accept(StatementConstantEvaluator(this));
+    if (status is AbortStatus) return status.error;
+    // Happens if there is no return statement in a void Function(...) body.
+    if (status is ProceedStatus) return canonicalize(NullConstant());
+    if (status is ReturnStatus) {
+      final value = status.value;
+      return value != null ? value : canonicalize(NullConstant());
+    }
+    // Other statuses denote intermediate states and not final ones.
+    throw 'No valid constant returned after executing $statement';
+  }
+
   @override
   Constant visitStaticGet(StaticGet node) {
     assert(_targetOS != null);
@@ -153,20 +172,7 @@ class VMConstantEvaluator extends ConstantEvaluator {
         result = evaluateExpressionInContext(target, target.initializer!);
       } else if (target is Procedure && target.isGetter) {
         final body = target.function.body!;
-        // If const functions are enabled, execute the getter as if it were
-        // a const function. Otherwise the annotated getter must be a single
-        // return statement whose expression is evaluated.
-        if (enableConstFunctions) {
-          result = executeBody(body);
-        } else if (body is ReturnStatement) {
-          if (body.expression == null) {
-            return canonicalize(NullConstant());
-          }
-          result = evaluateExpressionInContext(target, body.expression!);
-        } else {
-          throw "Cannot evaluate method '$nameText' since it contains more "
-              "than a single return statement.";
-        }
+        result = _executePlatformConstBody(body);
       }
       if (result is AbortConstant) {
         throw "The body or initialization of member '$nameText' does not "

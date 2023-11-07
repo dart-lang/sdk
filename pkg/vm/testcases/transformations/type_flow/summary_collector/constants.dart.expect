@@ -8,11 +8,11 @@ RESULT: _T (dart.core::int)+
 
 RESULT: _T (dart.core::_OneByteString, "abc")
 ------------ indexingIntoConstantList1 ------------
-%i = _Parameter #0 [_T (dart.core::int)+?]
+%i = _Parameter #0 [_T (dart.core::int)+]
 t1 = _Join [dart.core::int] (_T (dart.core::_Smi, 1), _T (dart.core::_Smi, 2), _T (dart.core::_Smi, 3))
 RESULT: t1
 ------------ indexingIntoConstantList2 ------------
-%i = _Parameter #0 [_T (dart.core::int)+?]
+%i = _Parameter #0 [_T (dart.core::int)+]
 t1 = _Join [dart.core::Object?] (_T (dart.core::_OneByteString, "hi"), _T (dart.core::_Smi, 33), _T {}?, _T (dart.core::_Smi, -5))
 RESULT: t1
 ------------ main ------------

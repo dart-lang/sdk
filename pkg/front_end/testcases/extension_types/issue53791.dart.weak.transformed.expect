@@ -1,0 +1,89 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53791.dart:10:39: Error: 'A' can only be implemented once.
+// Try removing 1 of the occurrences.
+// extension type E1(A it) implements A, A {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53791.dart:12:39: Error: 'E' can only be implemented once.
+// Try removing 1 of the occurrences.
+// extension type E2(E it) implements E, E {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53791.dart:14:39: Error: 'A' can only be implemented once.
+// Try removing 3 of the occurrences.
+// extension type E3(A it) implements A, TA, A, TA {} // Error.
+//                                       ^
+//
+// pkg/front_end/testcases/extension_types/issue53791.dart:16:39: Error: 'E' can only be implemented once.
+// Try removing 3 of the occurrences.
+// extension type E4(E it) implements E, TE, E, TE {} // Error.
+//                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef TA = self::A;
+typedef TE = self::E /* = core::Object? */;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+extension type E(core::Object? it) {
+  abstract inline-class-member representation-field get it() → core::Object?;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+extension type E1(self::A it) implements self::A, self::A {
+  abstract inline-class-member representation-field get it() → self::A;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(self::E /* = core::Object? */ it) implements self::E /* = core::Object? */, self::E /* = core::Object? */ {
+  abstract inline-class-member representation-field get it() → self::E /* = core::Object? */;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+extension type E3(self::A it) implements self::A, self::A, self::A, self::A {
+  abstract inline-class-member representation-field get it() → self::A;
+  constructor • = self::E3|constructor#;
+  constructor tearoff • = self::E3|constructor#_#new#tearOff;
+}
+extension type E4(self::E /* = core::Object? */ it) implements self::E /* = core::Object? */, self::E% /* = core::Object? */, self::E /* = core::Object? */, self::E% /* = core::Object? */ {
+  abstract inline-class-member representation-field get it() → self::E /* = core::Object? */;
+  constructor • = self::E4|constructor#;
+  constructor tearoff • = self::E4|constructor#_#new#tearOff;
+}
+static inline-class-member method E|constructor#(core::Object? it) → self::E /* = core::Object? */ {
+  lowered final self::E /* = core::Object? */ #this = it;
+  return #this;
+}
+static inline-class-member method E|constructor#_#new#tearOff(core::Object? it) → self::E /* = core::Object? */
+  return self::E|constructor#(it);
+static inline-class-member method E1|constructor#(self::A it) → self::E1 /* = self::A */ {
+  lowered final self::E1 /* = self::A */ #this = it;
+  return #this;
+}
+static inline-class-member method E1|constructor#_#new#tearOff(self::A it) → self::E1 /* = self::A */
+  return self::E1|constructor#(it);
+static inline-class-member method E2|constructor#(self::E /* = core::Object? */ it) → self::E2 /* = core::Object? */ {
+  lowered final self::E2 /* = core::Object? */ #this = it;
+  return #this;
+}
+static inline-class-member method E2|constructor#_#new#tearOff(self::E /* = core::Object? */ it) → self::E2 /* = core::Object? */
+  return self::E2|constructor#(it);
+static inline-class-member method E3|constructor#(self::A it) → self::E3 /* = self::A */ {
+  lowered final self::E3 /* = self::A */ #this = it;
+  return #this;
+}
+static inline-class-member method E3|constructor#_#new#tearOff(self::A it) → self::E3 /* = self::A */
+  return self::E3|constructor#(it);
+static inline-class-member method E4|constructor#(self::E /* = core::Object? */ it) → self::E4 /* = core::Object? */ {
+  lowered final self::E4 /* = core::Object? */ #this = it;
+  return #this;
+}
+static inline-class-member method E4|constructor#_#new#tearOff(self::E /* = core::Object? */ it) → self::E4 /* = core::Object? */
+  return self::E4|constructor#(it);

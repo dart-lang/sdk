@@ -492,7 +492,7 @@ class FrontendCompiler implements CompilerInterface {
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
     final String? packagesOption = _options['packages'];
-    final bool nullSafety = _options['sound-null-safety'];
+    final bool soundNullSafety = _options['sound-null-safety'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -504,7 +504,7 @@ class FrontendCompiler implements CompilerInterface {
       ..explicitExperimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode = (nullSafety == false) ? NnbdMode.Weak : NnbdMode.Strong
+      ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = _onDiagnostic
       ..verbosity = Verbosity.parseArgument(options['verbosity'],
           onError: (msg) => errors.add(msg));
@@ -581,7 +581,7 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
-      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      soundNullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: options['support-mirrors'] ??
           !(options['aot'] || options['minimal-kernel']),
     );

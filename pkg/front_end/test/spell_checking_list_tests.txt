@@ -112,6 +112,7 @@ ca
 cafebabe
 calloc
 camel
+capacity
 capitalized
 caption
 captions
@@ -295,12 +296,14 @@ fa
 fac
 faking
 falling
+faults
 favors
 fb
 fd
 fec
 fi
 fibonacci
+filesize
 filesystem
 filler
 filters
@@ -634,6 +637,8 @@ runtimes
 rv
 sanitize
 saves
+scaled
+scaling
 scans
 scenarios
 scheduler
@@ -722,6 +727,7 @@ t\u
 ta
 tails
 taskset
+te
 templates
 theoretically
 thereby

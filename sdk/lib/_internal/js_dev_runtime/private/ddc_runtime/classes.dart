@@ -323,11 +323,44 @@ getType(obj) {
 getLibraryUri(value) => JS('', '#[#]', value, _libraryUri);
 setLibraryUri(f, uri) => JS('', '#[#] = #', f, _libraryUri, uri);
 
+/// Returns the name of the Dart class represented by [cls] including the
+/// instantiated type arguments.
+@notNull
+String getClassName(Object? cls) {
+  if (cls != null) {
+    var tag = JS_GET_FLAG("NEW_RUNTIME_TYPES")
+        ? JS('', '#[#]', cls, rti.interfaceTypeRecipePropertyName)
+        : JS('', '#[#]', cls, _runtimeType);
+    if (tag != null) {
+      var name = JS<String>('!', '#.name', cls);
+      var args = getGenericArgs(cls);
+      if (args == null) return name;
+      var result = name + '<';
+      for (var i = 0; i < JS<int>('!', '#.length', args); ++i) {
+        if (i > 0) result += ', ';
+        result += typeName(JS('', '#[#]', args, i));
+      }
+      result += '>';
+      return result;
+    }
+  }
+  return 'unknown (null)';
+}
+
+/// Returns the class of the instance [obj].
+///
+/// The passed [obj] is expected to have a Dart class representation.
+Object getClass(obj) => _jsInstanceOf(obj, Object)
+    ? JS('', '#.constructor', obj)
+    : JS('', '#[#]', obj, _extensionType);
+
 bool isJsInterop(obj) {
   if (obj == null) return false;
   if (JS('!', 'typeof # === "function"', obj)) {
     // A function is a Dart function if it has runtime type information.
-    return JS('!', '#[#] == null', obj, _runtimeType);
+    return JS_GET_FLAG('NEW_RUNTIME_TYPES')
+        ? JS('!', '#[#] == null', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME))
+        : JS('!', '#[#] == null', obj, _runtimeType);
   }
   // Primitive types are not JS interop types.
   if (JS('!', 'typeof # !== "object"', obj)) return false;

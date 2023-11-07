@@ -1870,9 +1870,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add static property dart._runtimeType to Object.
     // All other Dart classes will (statically) inherit this property.
-    if (c == _coreTypes.objectClass) {
-      body.add(runtimeStatement('lazyFn(#, () => #.#)',
-          [className, emitLibraryName(_coreTypes.coreLibrary), 'Type']));
+    if (!_options.newRuntimeTypes && c == _coreTypes.objectClass) {
+      body.add(runtimeStatement('lazyFn(#, () => #)',
+          [className, _emitType(_coreTypes.typeNonNullableRawType)]));
     }
 
     _classEmittingSignatures = savedClass;
@@ -3519,6 +3519,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           ? getLocalClassName(c)
           : _emitJsNameWithoutGlobal(c);
       if (jsName != null) {
+        if (type.typeArguments.isNotEmpty) {
+          // This does not handle the type arguments as such, it simply includes
+          // them in the textual representation of this type so you can see them
+          // when printed. They are not used as part of the type system at all.
+          jsName =
+              '$jsName<${type.typeArguments.map((_) => 'any').join(', ')}>';
+        }
         typeRep = runtimeCall('packageJSType(#)', [js.escapedString(jsName)]);
       }
     }

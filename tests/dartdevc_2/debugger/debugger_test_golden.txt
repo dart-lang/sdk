@@ -239,7 +239,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<Object> implements List<Object>, JSIndexable<Object>, TrustedGetRuntimeType"
+    "List<Object>"
 ]
 -----------------------------------
 Test: List<Object> definition formatting body
@@ -1788,7 +1788,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<int> implements List<int>, JSIndexable<int>, TrustedGetRuntimeType"
+    "List<int>"
 ]
 -----------------------------------
 Test: List<int> large definition formatting body
@@ -4148,7 +4148,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "_HashSet<dynamic> implements HashSet<dynamic>, LinkedHashSet<dynamic>"
+    "_HashSet<dynamic>"
 ]
 -----------------------------------
 Test: Set definition formatting body
@@ -4847,7 +4847,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "(String, (Event$) => bool) => Null"
+    "(String, (Event) => bool) => Null"
 ]
 -----------------------------------
 Test: Function with function arguments formatting body
@@ -4877,7 +4877,7 @@ Value:
                 {
                     "style": "margin-left: 13px"
                 },
-                "(String, (Event$) => bool) => Null"
+                "(String, (Event) => bool) => Null"
             ]
         ]
     ],
@@ -4929,7 +4929,154 @@ Value:
     "ol",
     {
         "style": "list-style-type: none;padding-left: 0px;margin-top: 0px;margin-bottom: 0px;margin-left: 12px;"
-    }
+    },
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {},
+            [
+                "span",
+                {
+                    "style": ""
+                },
+                "[[Instance Methods]]"
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "addOne: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "last: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "nameAndDate: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "returnObject: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ],
+    [
+        "li",
+        {
+            "style": "padding-left: 13px;"
+        },
+        [
+            "span",
+            {
+                "style": "background-color: thistle; color: rgb(136, 19, 145); margin-right: -13px"
+            },
+            "[[base class]]: "
+        ],
+        [
+            "span",
+            {
+                "style": "margin-left: 13px"
+            },
+            [
+                "object",
+                {
+                    "object": "<OBJECT>",
+                    "config": {}
+                }
+            ]
+        ]
+    ]
 ]
 -----------------------------------
 Test: Object formatting header
@@ -7091,7 +7238,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "Instance of 'TestGenericClass<ExampleJSClass, int>'"
+    "Instance of 'TestGenericClass<ExampleJSClass<any>, int>'"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop instance body
@@ -7188,7 +7335,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "TestGenericClass<ExampleJSClass, int>"
+    "TestGenericClass<ExampleJSClass<any>, int>"
 ]
 -----------------------------------
 Test: TestGenericClassJSInterop definition formatting body

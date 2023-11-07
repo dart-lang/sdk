@@ -31,7 +31,7 @@ class FakeTypesBuilder extends TypesBuilder {
   int _classIdCounter = 0;
 
   FakeTypesBuilder(CoreTypes coreTypes)
-      : super(coreTypes, /*nullSafety=*/ false);
+      : super(coreTypes, /*soundNullSafety=*/ true);
 
   @override
   TFClass getTFClass(Class c) =>

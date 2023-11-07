@@ -18,13 +18,13 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
   PluginCodeActionsProducer(
     super.server,
-    super.file,
+    super.path,
     super.lineInfo, {
     required super.offset,
     required super.length,
     required super.shouldIncludeKind,
     required super.capabilities,
-  }) : driver = server.getAnalysisDriver(file.path);
+  }) : driver = server.getAnalysisDriver(path);
 
   @override
   String get name => 'PluginActionsComputer';
