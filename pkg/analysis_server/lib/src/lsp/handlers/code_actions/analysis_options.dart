@@ -16,7 +16,7 @@ import 'package:yaml/yaml.dart';
 class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   AnalysisOptionsCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo, {
     required super.offset,
     required super.length,

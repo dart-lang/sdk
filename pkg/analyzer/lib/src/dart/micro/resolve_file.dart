@@ -350,7 +350,7 @@ class FileResolver {
 
       return ErrorsResultImpl(
         session: contextObjects!.analysisSession,
-        path: path,
+        file: file.resource,
         uri: file.uri,
         lineInfo: file.lineInfo,
         isAugmentation: file.kind is AugmentationFileKind,
@@ -670,14 +670,8 @@ class FileResolver {
         var file = fileResult.file;
         return ResolvedUnitResultImpl(
           session: contextObjects!.analysisSession,
-          path: file.path,
-          uri: file.uri,
-          exists: file.exists,
+          fileState: file,
           content: file.content,
-          lineInfo: file.lineInfo,
-          isAugmentation: file.kind is AugmentationFileKind,
-          isLibrary: file.kind is LibraryFileKind,
-          isPart: file.kind is PartFileKind,
           unit: fileResult.unit,
           errors: fileResult.errors,
         );

@@ -4,11 +4,11 @@
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
-import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart' hide ErrorFormatter;
 
 import 'mocks.dart';
@@ -101,16 +101,21 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   var location = CharacterLocation(3, 3);
   var lineInfo = MockLineInfo(defaultLocation: location);
 
+  // File
+  var resourceProvider = MemoryResourceProvider();
+  var path = '/foo/bar/baz.dart';
+  var file = resourceProvider.getFile(resourceProvider.convertPath(path));
+
   // Details
   var code = MockErrorCode(type, severity, 'mock_code');
-  var path = '/foo/bar/baz.dart';
-  var source = MockSource(path, package_path.toUri(path));
+  var uri = file.toUri();
+  var source = MockSource(path, uri);
   var error = MockAnalysisError(source, code, 20, 'MSG');
 
   return ErrorsResultImpl(
     session: _MockAnalysisSession(),
-    path: source.fullName,
-    uri: Uri.file('/'),
+    file: file,
+    uri: uri,
     lineInfo: lineInfo,
     isAugmentation: false,
     isLibrary: true,

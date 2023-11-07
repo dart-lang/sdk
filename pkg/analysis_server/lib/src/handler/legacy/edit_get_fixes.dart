@@ -123,8 +123,8 @@ class EditGetFixesHandler extends LegacyHandler
         var lineInfo = LineInfo.fromContent(content);
         var result = engine.ErrorsResultImpl(
           session: session,
-          path: file,
-          uri: Uri.file(file),
+          file: optionsFile,
+          uri: optionsFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,
           isLibrary: true,
@@ -232,10 +232,13 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
         var lineInfo = LineInfo.fromContent(content);
+        // TODO(pq) package:analyzer results are specific to *.dart files and we
+        // shouldn't use them to represent errors in non-Dart files.
+        // see: https://dart-review.googlesource.com/c/sdk/+/333588
         var result = engine.ErrorsResultImpl(
           session: session,
-          path: file,
-          uri: Uri.file(file),
+          file: pubspecFile,
+          uri: pubspecFile.toUri(),
           lineInfo: lineInfo,
           isAugmentation: false,
           isLibrary: true,

@@ -303,7 +303,7 @@ library_for_all_configs("libdart") {
   extra_nonproduct_deps = [ "vm:libprotozero" ]
   extra_deps = [
     ":generate_version_cc_file",
-    "third_party/double-conversion/src:libdouble_conversion",
+    "../third_party/double-conversion/src:libdouble_conversion",
   ]
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {

@@ -253,7 +253,7 @@ class Driver implements CommandLineStarter {
           await formatter.formatErrors([
             ErrorsResultImpl(
               session: analysisDriver.currentSession,
-              path: path,
+              file: file,
               uri: pathContext.toUri(path),
               lineInfo: lineInfo,
               isAugmentation: false,
@@ -295,7 +295,7 @@ class Driver implements CommandLineStarter {
               await formatter.formatErrors([
                 ErrorsResultImpl(
                   session: analysisDriver.currentSession,
-                  path: path,
+                  file: file,
                   uri: pathContext.toUri(path),
                   lineInfo: lineInfo,
                   isAugmentation: false,
@@ -319,7 +319,7 @@ class Driver implements CommandLineStarter {
             await formatter.formatErrors([
               ErrorsResultImpl(
                 session: analysisDriver.currentSession,
-                path: path,
+                file: file,
                 uri: pathContext.toUri(path),
                 lineInfo: lineInfo,
                 isAugmentation: false,
