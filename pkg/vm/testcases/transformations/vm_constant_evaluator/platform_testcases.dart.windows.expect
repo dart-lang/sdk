@@ -4,34 +4,68 @@ import "dart:core" as core;
 
 import "dart:io";
 
+class TestPlatform extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::TestPlatform> values = #C19;
+  enum-element static const field self::TestPlatform android = #C3;
+  enum-element static const field self::TestPlatform fuchsia = #C6;
+  enum-element static const field self::TestPlatform ios = #C9;
+  enum-element static const field self::TestPlatform linux = #C12;
+  enum-element static const field self::TestPlatform macos = #C15;
+  enum-element static const field self::TestPlatform windows = #C18;
+  const synthetic constructor •(core::int #index, core::String #name) → self::TestPlatform
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "TestPlatform.${this.{core::_Enum::_name}{core::String}}";
+}
 static method testAndroid(core::int i) → void {
-  final core::bool b = #C1;
+  final core::bool b = #C20;
   core::print(b);
 }
 static method testFuchsia(core::int i) → void {
-  final core::bool b = #C1;
+  final core::bool b = #C20;
   core::print(b);
 }
 static method testIOS(core::int i) → void {
-  final core::bool b = #C1;
+  final core::bool b = #C20;
   core::print(b);
 }
 static method testLinux(core::int i) → void {
-  final core::bool b = #C1;
+  final core::bool b = #C20;
   core::print(b);
 }
 static method testMacOS(core::int i) → void {
-  final core::bool b = #C1;
+  final core::bool b = #C20;
   core::print(b);
 }
 static method testWindows(core::int i) → void {
-  final core::bool b = #C2;
+  final core::bool b = #C21;
   core::print(b);
   {
-    final core::String os = #C3;
+    final core::String os = #C17;
     core::print(os);
-    final core::String sep = #C4;
+    final core::String sep = #C22;
     core::print(sep);
+  }
+}
+static method testSwitchStatements(core::int i) → void {
+  #L1:
+  {
+    core::print("is windows");
+    break #L1;
+  }
+}
+@#C25
+static get defaultTestPlatform() → self::TestPlatform {
+  return #C18;
+  throw "Unexpected platform";
+}
+static method testPragma(core::int i) → void {
+  core::print(#C18);
+  #L2:
+  {
+    core::print("is windows");
+    break #L2;
   }
 }
 static method main(core::List<core::String> args) → dynamic {
@@ -44,10 +78,33 @@ static method main(core::List<core::String> args) → dynamic {
   self::testLinux(i);
   self::testMacOS(i);
   self::testWindows(i);
+  self::testSwitchStatements(i);
+  self::testPragma(i);
 }
 constants  {
-  #C1 = false
-  #C2 = true
-  #C3 = "windows"
-  #C4 = "\\"
+  #C1 = 0
+  #C2 = "android"
+  #C3 = self::TestPlatform {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "fuchsia"
+  #C6 = self::TestPlatform {index:#C4, _name:#C5}
+  #C7 = 2
+  #C8 = "ios"
+  #C9 = self::TestPlatform {index:#C7, _name:#C8}
+  #C10 = 3
+  #C11 = "linux"
+  #C12 = self::TestPlatform {index:#C10, _name:#C11}
+  #C13 = 4
+  #C14 = "macos"
+  #C15 = self::TestPlatform {index:#C13, _name:#C14}
+  #C16 = 5
+  #C17 = "windows"
+  #C18 = self::TestPlatform {index:#C16, _name:#C17}
+  #C19 = <self::TestPlatform>[#C3, #C6, #C9, #C12, #C15, #C18]
+  #C20 = false
+  #C21 = true
+  #C22 = "\\"
+  #C23 = "vm:platform-const"
+  #C24 = null
+  #C25 = core::pragma {name:#C23, options:#C24}
 }

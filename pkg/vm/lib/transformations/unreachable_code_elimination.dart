@@ -36,25 +36,32 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     return result;
   }
 
-  bool _isBoolConstant(Expression node) =>
-      node is BoolLiteral ||
-      (node is ConstantExpression && node.constant is BoolConstant);
-
-  bool _getBoolConstantValue(Expression node) {
-    if (node is BoolLiteral) {
-      return node.value;
-    }
-    if (node is ConstantExpression) {
-      final constant = node.constant;
-      if (constant is BoolConstant) {
-        return constant.value;
-      }
-    }
-    throw 'Expected bool constant: $node';
+  bool? _getBoolConstantValue(Expression node) {
+    if (node is BoolLiteral) return node.value;
+    if (node is! ConstantExpression) return null;
+    final constant = node.constant;
+    return constant is BoolConstant ? constant.value : null;
   }
 
-  Expression _createBoolLiteral(bool value, int fileOffset) =>
-      new BoolLiteral(value)..fileOffset = fileOffset;
+  Expression _makeConstantExpression(Constant constant, Expression node) {
+    if (constant is UnevaluatedConstant &&
+        constant.expression is InvalidExpression) {
+      return constant.expression;
+    }
+    ConstantExpression constantExpression = new ConstantExpression(
+        constant, node.getStaticType(_staticTypeContext!))
+      ..fileOffset = node.fileOffset;
+    if (node is FileUriExpression) {
+      return new FileUriConstantExpression(constantExpression.constant,
+          type: constantExpression.type, fileUri: node.fileUri)
+        ..fileOffset = node.fileOffset;
+    }
+    return constantExpression;
+  }
+
+  Expression _createBoolConstantExpression(bool value, Expression node) =>
+      _makeConstantExpression(
+          constantEvaluator.canonicalize(BoolConstant(value)), node);
 
   Statement _makeEmptyBlockIfEmptyStatement(Statement node, TreeNode parent) =>
       node is EmptyStatement ? (Block(<Statement>[])..parent = parent) : node;
@@ -63,8 +70,8 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   TreeNode visitIfStatement(IfStatement node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     final condition = node.condition;
-    if (_isBoolConstant(condition)) {
-      final value = _getBoolConstantValue(condition);
+    final value = _getBoolConstantValue(condition);
+    if (value != null) {
       return value
           ? node.then
           : (node.otherwise ?? removalSentinel ?? new EmptyStatement());
@@ -78,8 +85,8 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
       ConditionalExpression node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     final condition = node.condition;
-    if (_isBoolConstant(condition)) {
-      final value = _getBoolConstantValue(condition);
+    final value = _getBoolConstantValue(condition);
+    if (value != null) {
       return value ? node.then : node.otherwise;
     }
     return node;
@@ -89,9 +96,9 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   TreeNode visitNot(Not node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     final operand = node.operand;
-    if (_isBoolConstant(operand)) {
-      return _createBoolLiteral(
-          !_getBoolConstantValue(operand), node.fileOffset);
+    final value = _getBoolConstantValue(operand);
+    if (value != null) {
+      return _createBoolConstantExpression(!value, node);
     }
     return node;
   }
@@ -100,47 +107,89 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
   TreeNode visitLogicalExpression(
       LogicalExpression node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
-    final left = node.left;
-    final right = node.right;
-    final operatorEnum = node.operatorEnum;
-    if (_isBoolConstant(left)) {
-      final leftValue = _getBoolConstantValue(left);
-      if (_isBoolConstant(right)) {
-        final rightValue = _getBoolConstantValue(right);
-        if (operatorEnum == LogicalExpressionOperator.OR) {
-          return _createBoolLiteral(leftValue || rightValue, node.fileOffset);
-        } else if (operatorEnum == LogicalExpressionOperator.AND) {
-          return _createBoolLiteral(leftValue && rightValue, node.fileOffset);
-        } else {
-          throw 'Unexpected LogicalExpression operator ${operatorEnum}: $node';
-        }
-      } else {
-        if (leftValue && operatorEnum == LogicalExpressionOperator.OR) {
-          return _createBoolLiteral(true, node.fileOffset);
-        } else if (!leftValue &&
-            operatorEnum == LogicalExpressionOperator.AND) {
-          return _createBoolLiteral(false, node.fileOffset);
+    bool? value = _getBoolConstantValue(node.left);
+    // Because of short-circuiting, these operators cannot be treated as
+    // symmetric, so a non-constant left and a constant right is left as-is.
+    if (value == null) return node;
+    switch (node.operatorEnum) {
+      case LogicalExpressionOperator.OR:
+        return value ? node.left : node.right;
+      case LogicalExpressionOperator.AND:
+        return value ? node.right : node.left;
+    }
+  }
+
+  @override
+  TreeNode visitSwitchStatement(
+      SwitchStatement node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    final tested = node.expression;
+    if (tested is! ConstantExpression) return node;
+
+    // Set of SwitchCases that should be retained, either because they are
+    // guaranteed to match, may match and no case before them is guaranteed
+    // to match, or because they are the target of a case that may match or
+    // is guaranteed to match.
+    final toKeep = <SwitchCase>{};
+    // Whether an expression from a previous case is guaranteed to match.
+    bool foundMatchingCase = false;
+    for (final c in node.cases) {
+      // Trim any constant expressions that don't match, or any expression
+      // that follows a guaranteed-to-match case. Perform this trimming even
+      // on cases that follow a guaranteed to match case and thus are not
+      // in the initial set to retain, since they may be the target of continue
+      // statements and thus added to the set to retain later.
+      bool containsMatchingCase = false;
+      c.expressions.retainWhere((e) {
+        if (foundMatchingCase) return false;
+        if (e is! ConstantExpression) return true;
+        containsMatchingCase = e.constant == tested.constant;
+        return containsMatchingCase;
+      });
+      if (foundMatchingCase) continue;
+      foundMatchingCase = containsMatchingCase;
+      if (c.isDefault || c.expressions.isNotEmpty) {
+        toKeep.add(c);
+      }
+    }
+
+    if (toKeep.isEmpty) {
+      throw 'Expected at least one possibly matching case: $node';
+    }
+
+    // Now iteratively keep cases that are targets of continue statements
+    // within the cases we've already marked to keep.
+    final worklist = [...toKeep];
+    final collector = ContinueSwitchStatementTargetCollector(node);
+    while (worklist.isNotEmpty) {
+      final next = worklist.removeLast();
+      final targets = collector.collectTargets(next);
+      for (final target in targets) {
+        if (toKeep.add(target)) {
+          worklist.add(target);
         }
       }
+    }
+
+    node.cases.retainWhere((c) => toKeep.contains(c));
+    if (node.cases.length == 1) {
+      return node.cases.first.body;
     }
     return node;
   }
 
   @override
-  visitStaticGet(StaticGet node, TreeNode? removalSentinel) {
+  TreeNode visitStaticGet(StaticGet node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     final target = node.target;
     if (target is Field && target.isConst) {
       throw 'StaticGet from const field $target should be evaluated by front-end: $node';
     }
-    if (constantEvaluator.transformerShouldEvaluateExpression(node)) {
-      final context = _staticTypeContext!;
-      final result = constantEvaluator.evaluate(context, node);
-      assert(result is! UnevaluatedConstant);
-      return new ConstantExpression(result, node.getStaticType(context))
-        ..fileOffset = node.fileOffset;
+    if (!constantEvaluator.transformerShouldEvaluateExpression(node)) {
+      return node;
     }
-    return node;
+    final result = constantEvaluator.evaluate(_staticTypeContext!, node);
+    return _makeConstantExpression(result, node);
   }
 
   @override
@@ -233,5 +282,27 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     node.transformOrRemoveChildren(this);
     node.body = _makeEmptyBlockIfEmptyStatement(node.body, node);
     return node;
+  }
+}
+
+class ContinueSwitchStatementTargetCollector extends RecursiveVisitor {
+  final SwitchStatement parent;
+  late Set<SwitchCase> collected;
+
+  ContinueSwitchStatementTargetCollector(this.parent);
+
+  Set<SwitchCase> collectTargets(SwitchCase node) {
+    collected = {};
+    node.accept(this);
+    return collected;
+  }
+
+  @override
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    node.visitChildren(this);
+    // Only keep targets that are within the original node being checked.
+    if (node.target.parent == parent) {
+      collected.add(node.target);
+    }
   }
 }
