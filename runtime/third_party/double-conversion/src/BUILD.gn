@@ -2,39 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-source_set("libdouble_conversion") {
-  # We are only interested in exposing the exported symbols (for size reasons).
-  cflags = []
-  if (is_posix) {
-    cflags += [ "-fvisibility=hidden" ]
-  }
-
-  configs += [
-    "../../..:dart_arch_config",
-    "../../..:dart_config",
-    "../../..:dart_os_config",
-  ]
-  sources = [
-    "bignum-dtoa.cc",
-    "bignum-dtoa.h",
-    "bignum.cc",
-    "bignum.h",
-    "cached-powers.cc",
-    "cached-powers.h",
-    "diy-fp.h",
-    "double-conversion.h",
-    "double-to-string.cc",
-    "double-to-string.h",
-    "fast-dtoa.cc",
-    "fast-dtoa.h",
-    "fixed-dtoa.cc",
-    "fixed-dtoa.h",
-    "ieee.h",
-    "string-to-double.cc",
-    "string-to-double.h",
-    "strtod.cc",
-    "strtod.h",
-    "utils.h",
-  ]
-  include_dirs = [ "." ]
+# TODO(athom): Remove this when Flutter uses the target from the new location.
+group("libdouble_conversion") {
+  deps =
+      [ "../../../../third_party/double-conversion/src:libdouble_conversion" ]
 }
