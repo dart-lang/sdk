@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/physical_file_system.dart'
+    show PhysicalResourceProvider;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
@@ -109,7 +111,7 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
 
   return ErrorsResultImpl(
     session: _MockAnalysisSession(),
-    path: source.fullName,
+    file: PhysicalResourceProvider.INSTANCE.getFile(path),
     uri: Uri.file('/'),
     lineInfo: lineInfo,
     isAugmentation: false,
