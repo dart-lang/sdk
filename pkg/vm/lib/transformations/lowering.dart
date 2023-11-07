@@ -23,23 +23,23 @@ import 'type_casts_optimizer.dart' as typeCastsOptimizer
 /// after transforming children nodes.
 void transformLibraries(
     List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    {required bool nullSafety, required bool productMode}) {
+    {required bool soundNullSafety, required bool productMode}) {
   final transformer = _Lowering(coreTypes, hierarchy,
-      nullSafety: nullSafety, productMode: productMode);
+      soundNullSafety: soundNullSafety, productMode: productMode);
   libraries.forEach(transformer.visitLibrary);
 }
 
 void transformProcedure(
     Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    {required bool nullSafety, required bool productMode}) {
+    {required bool soundNullSafety, required bool productMode}) {
   final transformer = _Lowering(coreTypes, hierarchy,
-      nullSafety: nullSafety, productMode: productMode);
+      soundNullSafety: soundNullSafety, productMode: productMode);
   procedure.accept(transformer);
 }
 
 class _Lowering extends Transformer {
   final TypeEnvironment env;
-  final bool nullSafety;
+  final bool soundNullSafety;
   final LateVarInitTransformer lateVarInitTransformer;
   final FactorySpecializer factorySpecializer;
   final ListLiteralsLowering listLiteralsLowering;
@@ -50,7 +50,7 @@ class _Lowering extends Transformer {
   StaticTypeContext? _cachedStaticTypeContext;
 
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy,
-      {required this.nullSafety, required bool productMode})
+      {required this.soundNullSafety, required bool productMode})
       : env = TypeEnvironment(coreTypes, hierarchy),
         lateVarInitTransformer = LateVarInitTransformer(),
         factorySpecializer = FactorySpecializer(coreTypes),
@@ -99,7 +99,7 @@ class _Lowering extends Transformer {
   visitAsExpression(AsExpression node) {
     node.transformChildren(this);
     return typeCastsOptimizer.transformAsExpression(
-        node, _staticTypeContext, nullSafety);
+        node, _staticTypeContext, soundNullSafety);
   }
 
   @override

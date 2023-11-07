@@ -171,9 +171,9 @@ abstract class GenericInterfacesInfo {
 
 abstract class TypesBuilder {
   final CoreTypes coreTypes;
-  final bool nullSafety;
+  final bool soundNullSafety;
 
-  TypesBuilder(this.coreTypes, this.nullSafety);
+  TypesBuilder(this.coreTypes, this.soundNullSafety);
 
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
@@ -238,7 +238,7 @@ abstract class TypesBuilder {
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';
     }
-    if (nullSafety && type.nullability == Nullability.nonNullable) {
+    if (soundNullSafety && type.nullability == Nullability.nonNullable) {
       canBeNull = false;
     }
     if (canBeNull) {
@@ -255,8 +255,8 @@ abstract class RuntimeTypeTranslator {
 /// Abstract interface to type hierarchy information used by types.
 abstract class TypeHierarchy extends TypesBuilder
     implements GenericInterfacesInfo {
-  TypeHierarchy(CoreTypes coreTypes, bool nullSafety)
-      : super(coreTypes, nullSafety);
+  TypeHierarchy(CoreTypes coreTypes, bool soundNullSafety)
+      : super(coreTypes, soundNullSafety);
 
   /// Test if [sub] is a subtype of [sup].
   bool isSubtype(Class sub, Class sup);
@@ -421,7 +421,7 @@ class NullableType extends Type {
       TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
     switch (kind) {
       case SubtypeTestKind.Subtype:
-        if (typeHierarchy.nullSafety &&
+        if (typeHierarchy.soundNullSafety &&
             other.nullability == Nullability.nonNullable) {
           return false;
         }
@@ -1459,7 +1459,7 @@ class RuntimeType extends Type {
       throw 'RuntimeType could be only tested for subtyping.';
     }
     final rhs = runtimeType._type;
-    if (typeHierarchy.nullSafety &&
+    if (typeHierarchy.soundNullSafety &&
         _type.nullability == Nullability.nullable &&
         rhs.nullability == Nullability.nonNullable) {
       return false;

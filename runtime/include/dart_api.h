@@ -3788,7 +3788,6 @@ typedef enum {
 
 typedef struct {
   Dart_KernelCompilationStatus status;
-  bool null_safety;
   char* error;
   uint8_t* kernel;
   intptr_t kernel_size;

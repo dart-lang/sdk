@@ -212,7 +212,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool nullSafety = options['sound-null-safety'];
+  final bool soundNullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
@@ -287,7 +287,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
-    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
@@ -298,7 +298,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
-      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      soundNullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
       supportMirrors: supportMirrors ?? !(aot || minimalKernel));
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
@@ -692,14 +692,14 @@ bool parseCommandLineDefines(
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
-    bool nullSafety = true,
+    bool soundNullSafety = true,
     bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
-      soundNullSafety: nullSafety,
+      soundNullSafety: soundNullSafety,
       supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }

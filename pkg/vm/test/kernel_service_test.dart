@@ -118,7 +118,7 @@ Future<kernel_service.Status> singleShotCompile(
     /* [4] = bool = incremental = */ false,
     /* [5] = bool = for_snapshot = */ false,
     /* [6] = bool = embed_sources = */ true,
-    /* [7] = bool = nullSafety = */ true,
+    /* [7] = bool = soundNullSafety = */ true,
     /* [8] = int = isolateGroupId = */ 42,
     /* [9] = List = sourceFiles = */ sourceFiles,
     /* [10] = bool = enableAsserts = */ true,

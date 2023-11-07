@@ -1258,10 +1258,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
       getTFClass(coreTypes.deprecatedNullClass);
 
   _ClassHierarchyCache(this._typeFlowAnalysis, this.genericInterfacesInfo,
-      this.coreTypes, bool nullSafety)
+      this.coreTypes, bool soundNullSafety)
       : objectNoSuchMethod =
             coreTypes.index.getProcedure('dart:core', 'Object', 'noSuchMethod'),
-        super(coreTypes, nullSafety);
+        super(coreTypes, soundNullSafety);
 
   @override
   _TFClassImpl getTFClass(Class c) {
