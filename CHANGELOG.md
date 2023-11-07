@@ -53,6 +53,10 @@
   package js types that have type arguments. These type arguments are still
   completely ignored by the type system at runtime.
 
+- Removed "implements <...>" text from the Chrome custom formatter display for
+  Dart classes. This information provides little value and keeping it imposes an
+  unnecessary maintenance cost.
+
 ## 3.2.0
 
 ### Language

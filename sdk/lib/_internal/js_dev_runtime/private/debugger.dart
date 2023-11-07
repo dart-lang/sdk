@@ -907,14 +907,7 @@ class ClassFormatter implements Formatter {
   bool accept(object, config) => config == JsonMLConfig.asClass;
 
   String preview(type) {
-    var implements = dart.getImplements(type);
-    var typeName = getTypeName(type);
-    if (implements != null) {
-      var typeNames = implements().map(getTypeName);
-      return '${typeName} implements ${typeNames.join(", ")}';
-    } else {
-      return typeName;
-    }
+    return getTypeName(type);
   }
 
   bool hasChildren(object) => true;

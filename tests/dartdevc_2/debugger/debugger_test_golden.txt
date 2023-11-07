@@ -239,7 +239,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<Object> implements List<Object>, JSIndexable<Object>, TrustedGetRuntimeType"
+    "List<Object>"
 ]
 -----------------------------------
 Test: List<Object> definition formatting body
@@ -1788,7 +1788,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "List<int> implements List<int>, JSIndexable<int>, TrustedGetRuntimeType"
+    "List<int>"
 ]
 -----------------------------------
 Test: List<int> large definition formatting body
@@ -4148,7 +4148,7 @@ Value:
     {
         "style": "background-color: #d9edf7;color: black"
     },
-    "_HashSet<dynamic> implements HashSet<dynamic>, LinkedHashSet<dynamic>"
+    "_HashSet<dynamic>"
 ]
 -----------------------------------
 Test: Set definition formatting body
