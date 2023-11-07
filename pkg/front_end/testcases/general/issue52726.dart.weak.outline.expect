@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class WeakMap<K extends core::Object, V extends core::Object? = dynamic> extends core::Object {
+  constructor •(core::List<(self::WeakMap::K, self::WeakMap::V%)> entries) → self::WeakMap<self::WeakMap::K, self::WeakMap::V%>
+    ;
+}
