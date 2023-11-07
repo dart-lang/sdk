@@ -16,7 +16,6 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
-import 'package:linter/src/formatter.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
@@ -26,6 +25,7 @@ import 'package:linter/src/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import '../tool/formatter.dart';
 import 'test_constants.dart';
 import 'util/annotation_matcher.dart';
 import 'util/test_utils.dart';

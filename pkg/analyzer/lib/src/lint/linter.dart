@@ -16,6 +16,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -34,7 +35,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/lint/analysis.dart';
-import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/pub.dart';
@@ -42,7 +42,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:glob/glob.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
@@ -50,57 +50,42 @@ export 'package:analyzer/src/lint/state.dart' show dart2_12, dart3, State;
 
 typedef Printer = void Function(String msg);
 
-/// Describes a String in valid camel case format.
-@deprecated // Never intended for public use.
-class CamelCaseString {
-  static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');
-  static final _camelCaseTester = RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
-
-  final String value;
-
-  CamelCaseString(this.value) {
-    if (!isCamelCase(value)) {
-      throw ArgumentError('$value is not CamelCase');
-    }
-  }
-
-  String get humanized => _humanize(value);
-
-  @override
-  String toString() => value;
-
-  static bool isCamelCase(String name) => _camelCaseTester.hasMatch(name);
-
-  static String _humanize(String camelCase) =>
-      _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');
-}
-
-/// Dart source linter.
+/// Dart source linter, only for package:linter's tools and tests.
 class DartLinter implements AnalysisErrorListener {
   final errors = <AnalysisError>[];
 
   final LinterOptions options;
+  final file_system.ResourceProvider _resourceProvider;
   final Reporter reporter;
 
   /// The total number of sources that were analyzed.  Only valid after
   /// [lintFiles] has been called.
   late int numSourcesAnalyzed;
 
-  /// Creates a new linter.
-  DartLinter(this.options, {this.reporter = const PrintingReporter()});
+  DartLinter(
+    this.options, {
+    file_system.ResourceProvider? resourceProvider,
+    this.reporter = const PrintingReporter(),
+  }) : _resourceProvider =
+            resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
 
   Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
     List<AnalysisErrorInfo> errors = [];
-    final lintDriver = LintDriver(options);
+    final lintDriver = LintDriver(options, _resourceProvider);
     errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
     numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
-    files.where((f) => isPubspecFile(f)).forEach((p) {
+    files.where((f) => isPubspecFile(f)).forEach((path) {
       numSourcesAnalyzed++;
-      return errors.addAll(_lintPubspecFile(p));
+      var errorsForFile = lintPubspecSource(
+        contents: path.readAsStringSync(),
+        sourcePath: _resourceProvider.pathContext.normalize(path.absolute.path),
+      );
+      errors.addAll(errorsForFile);
     });
     return errors;
   }
 
+  @visibleForTesting
   Iterable<AnalysisErrorInfo> lintPubspecSource(
       {required String contents, String? sourcePath}) {
     var results = <AnalysisErrorInfo>[];
@@ -109,31 +94,29 @@ class DartLinter implements AnalysisErrorListener {
 
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
-    for (Linter lint in options.enabledLints) {
-      if (lint is LintRule) {
-        LintRule rule = lint;
-        var visitor = rule.getPubspecVisitor();
-        if (visitor != null) {
-          // Analyzer sets reporters; if this file is not being analyzed,
-          // we need to set one ourselves.  (Needless to say, when pubspec
-          // processing gets pushed down, this hack can go away.)
-          if (sourceUrl != null) {
-            var source = createSource(sourceUrl);
-            rule.reporter = ErrorReporter(
-              this,
-              source,
-              isNonNullableByDefault: false,
-            );
-          }
-          try {
-            spec.accept(visitor);
-          } on Exception catch (e) {
-            reporter.exception(LinterException(e.toString()));
-          }
-          if (rule._locationInfo.isNotEmpty) {
-            results.addAll(rule._locationInfo);
-            rule._locationInfo.clear();
-          }
+    for (var lint in options.enabledRules) {
+      var rule = lint;
+      var visitor = rule.getPubspecVisitor();
+      if (visitor != null) {
+        // Analyzer sets reporters; if this file is not being analyzed,
+        // we need to set one ourselves.  (Needless to say, when pubspec
+        // processing gets pushed down, this hack can go away.)
+        if (sourceUrl != null) {
+          var source = createSource(sourceUrl);
+          rule.reporter = ErrorReporter(
+            this,
+            source,
+            isNonNullableByDefault: true,
+          );
+        }
+        try {
+          spec.accept(visitor);
+        } on Exception catch (e) {
+          reporter.exception(LinterException(e.toString()));
+        }
+        if (rule._locationInfo.isNotEmpty) {
+          results.addAll(rule._locationInfo);
+          rule._locationInfo.clear();
         }
       }
     }
@@ -143,28 +126,6 @@ class DartLinter implements AnalysisErrorListener {
 
   @override
   void onError(AnalysisError error) => errors.add(error);
-
-  Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
-      lintPubspecSource(
-          contents: sourceFile.readAsStringSync(),
-          sourcePath: options.resourceProvider.pathContext
-              .normalize(sourceFile.absolute.path));
-}
-
-class FileGlobFilter extends LintFilter {
-  List<Glob> includes;
-  List<Glob> excludes;
-
-  FileGlobFilter(Iterable<String> includeGlobs, Iterable<String> excludeGlobs)
-      : includes = includeGlobs.map((glob) => Glob(glob)).toList(),
-        excludes = excludeGlobs.map((glob) => Glob(glob)).toList();
-
-  @override
-  bool filter(AnalysisError lint) {
-    // TODO specify order
-    return excludes.any((glob) => glob.matches(lint.source.fullName)) &&
-        !includes.any((glob) => glob.matches(lint.source.fullName));
-  }
 }
 
 class Group implements Comparable<Group> {
@@ -647,22 +608,17 @@ class LinterNameInScopeResolutionResult {
   }
 }
 
-/// Linter options.
 class LinterOptions extends DriverOptions {
-  Iterable<LintRule> enabledLints;
-  String? analysisOptions;
+  final Iterable<LintRule> enabledRules;
+  final String? analysisOptions;
   LintFilter? filter;
-  late file_system.ResourceProvider resourceProvider;
 
   // todo (pq): consider migrating to named params (but note Linter dep).
-  LinterOptions([Iterable<LintRule>? enabledLints, this.analysisOptions])
-      : enabledLints = enabledLints ?? Registry.ruleRegistry;
-
-  void configure(LintConfig config) {
-    enabledLints = Registry.ruleRegistry.where((LintRule rule) =>
-        !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
-    filter = FileGlobFilter(config.fileIncludes, config.fileExcludes);
-  }
+  LinterOptions({
+    Iterable<LintRule>? enabledRules,
+    this.analysisOptions,
+    this.filter,
+  }) : enabledRules = enabledRules ?? Registry.ruleRegistry;
 }
 
 /// Filtered lints are omitted from linter output.
@@ -833,85 +789,6 @@ abstract class Reporter {
   void exception(LinterException exception);
 
   void warn(String message);
-}
-
-/// Linter implementation.
-class SourceLinter implements DartLinter, AnalysisErrorListener {
-  @override
-  final errors = <AnalysisError>[];
-  @override
-  final LinterOptions options;
-  @override
-  final Reporter reporter;
-
-  @override
-  late int numSourcesAnalyzed;
-
-  SourceLinter(this.options, {this.reporter = const PrintingReporter()});
-
-  @override
-  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
-    List<AnalysisErrorInfo> errors = [];
-    final lintDriver = LintDriver(options);
-    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
-    files.where((f) => isPubspecFile(f)).forEach((p) {
-      numSourcesAnalyzed++;
-      return errors.addAll(_lintPubspecFile(p));
-    });
-    return errors;
-  }
-
-  @override
-  Iterable<AnalysisErrorInfo> lintPubspecSource(
-      {required String contents, String? sourcePath}) {
-    var results = <AnalysisErrorInfo>[];
-
-    var sourceUrl = sourcePath == null ? null : p.toUri(sourcePath);
-
-    var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
-
-    for (Linter lint in options.enabledLints) {
-      if (lint is LintRule) {
-        LintRule rule = lint;
-        var visitor = rule.getPubspecVisitor();
-        if (visitor != null) {
-          // Analyzer sets reporters; if this file is not being analyzed,
-          // we need to set one ourselves.  (Needless to say, when pubspec
-          // processing gets pushed down, this hack can go away.)
-          if (sourceUrl != null) {
-            var source = createSource(sourceUrl);
-            rule.reporter = ErrorReporter(
-              this,
-              source,
-              isNonNullableByDefault: false,
-            );
-          }
-          try {
-            spec.accept(visitor);
-          } on Exception catch (e) {
-            reporter.exception(LinterException(e.toString()));
-          }
-
-          var locationInfo = rule._locationInfo;
-          if (!identical(null, locationInfo) && locationInfo.isNotEmpty) {
-            results.addAll(rule._locationInfo);
-            rule._locationInfo.clear();
-          }
-        }
-      }
-    }
-
-    return results;
-  }
-
-  @override
-  void onError(AnalysisError error) => errors.add(error);
-
-  @override
-  Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
-      lintPubspecSource(
-          contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
 }
 
 /// An error listener that only records whether any constant related errors have

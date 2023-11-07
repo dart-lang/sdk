@@ -16,10 +16,10 @@ import 'package:analyzer/src/generated/engine.dart' // ignore: implementation_im
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:cli_util/cli_logging.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/formatter.dart';
 import 'package:path/path.dart' as path;
 
 import '../../test/mocks.dart';
+import '../formatter.dart';
 import 'rules/no_solo_tests.dart';
 import 'rules/visit_registered_nodes.dart';
 

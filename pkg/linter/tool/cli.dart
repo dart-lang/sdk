@@ -4,27 +4,30 @@
 
 import 'dart:io';
 
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/io.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/lint/config.dart';
+import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
+import 'package:glob/glob.dart';
+import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/extensions.dart';
+import 'package:linter/src/rules.dart';
 
-import 'analyzer.dart';
-import 'extensions.dart';
 import 'formatter.dart';
-import 'rules.dart';
+import 'util/analyzer_utils.dart';
 
-const processFileFailedExitCode = 65;
+/// Starts linting from the command-line.
+Future<void> main(List<String> args) async {
+  await runLinter(args);
+}
+
 const unableToProcessExitCode = 64;
 
 String? getRoot(List<String> paths) =>
     paths.length == 1 && Directory(paths.first).existsSync()
         ? paths.first
         : null;
-
-bool isLinterErrorCode(int code) =>
-    code == unableToProcessExitCode || code == processFileFailedExitCode;
 
 void printUsage(ArgParser parser, IOSink out, [String? error]) {
   var message = 'Lints Dart source files and pubspecs.';
@@ -40,14 +43,9 @@ For more information, see https://github.com/dart-lang/linter
 ''');
 }
 
-/// Start linting from the command-line.
-Future run(List<String> args) async {
-  await runLinter(args, LinterOptions());
-}
-
 /// todo (pq): consider using `dart analyze` where possible
 /// see: https://github.com/dart-lang/linter/pull/2537
-Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
+Future<void> runLinter(List<String> args) async {
   // Force the rule registry to be populated.
   registerLintRules();
 
@@ -68,11 +66,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
     ..addMultiOption('rules',
         help: 'A list of lint rules to run. For example: '
-            'annotate_overrides, avoid_catching_errors')
-    // TODO(srawlins): Remove this flag; it does not work any more.
-    ..addOption('packages',
-        help: 'Path to the package resolution configuration file, which\n'
-            'supplies a mapping of package names to paths.');
+            'annotate_overrides, avoid_catching_errors');
 
   ArgResults options;
   try {
@@ -95,62 +89,55 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     return;
   }
 
-  var lintOptions = initialLintOptions;
-
   var configFile = options['config'];
+  var ruleNames = options['rules'];
+
+  LinterOptions linterOptions;
   if (configFile is String) {
     var config = LintConfig.parse(readFile(configFile));
-    lintOptions.configure(config);
-  }
-
-  var lints = options['rules'];
-  if (lints is Iterable<String> && lints.isNotEmpty) {
+    var enabledRules = Registry.ruleRegistry.where((LintRule rule) =>
+        !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
+    var filter = _FileGlobFilter(config.fileIncludes, config.fileExcludes);
+    linterOptions = LinterOptions(enabledRules: enabledRules, filter: filter);
+  } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
     var rules = <LintRule>[];
-    for (var lint in lints) {
-      var rule = Registry.ruleRegistry[lint];
+    for (var ruleName in ruleNames) {
+      var rule = Registry.ruleRegistry[ruleName];
       if (rule == null) {
-        errorSink.write('Unrecognized lint rule: $lint');
+        errorSink.write('Unrecognized lint rule: $ruleName');
         exit(unableToProcessExitCode);
       }
       rules.add(rule);
     }
-
-    lintOptions.enabledLints = rules;
+    linterOptions = LinterOptions(enabledRules: rules);
+  } else {
+    linterOptions = LinterOptions();
   }
 
   var customSdk = options['dart-sdk'];
   if (customSdk is String) {
-    lintOptions.dartSdkPath = customSdk;
+    linterOptions.dartSdkPath = customSdk;
   }
-
-  var packageConfigFile = options['packages'] as String?;
-  packageConfigFile = packageConfigFile?.toAbsoluteNormalizedPath();
 
   var stats = options['stats'] as bool;
   var benchmark = options['benchmark'] as bool;
   if (stats || benchmark) {
-    lintOptions.enableTiming = true;
+    linterOptions.enableTiming = true;
   }
 
-  lintOptions
-    ..packageConfigPath = packageConfigFile
-    ..resourceProvider = PhysicalResourceProvider.INSTANCE;
-
-  var filesToLint = <File>[];
-  for (var path in options.rest) {
-    filesToLint.addAll(
-      collectFiles(path)
+  var filesToLint = [
+    for (var path in options.rest)
+      ...collectFiles(path)
           .map((file) => file.path.toAbsoluteNormalizedPath())
           .map(File.new),
-    );
-  }
+  ];
 
   if (benchmark) {
-    await writeBenchmarks(outSink, filesToLint, lintOptions);
+    await writeBenchmarks(outSink, filesToLint, linterOptions);
     return;
   }
 
-  var linter = DartLinter(lintOptions);
+  var linter = DartLinter(linterOptions);
 
   try {
     var timer = Stopwatch()..start();
@@ -160,14 +147,17 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     var commonRoot = getRoot(options.rest);
     var machine = options['machine'] ?? false;
     var quiet = options['quiet'] ?? false;
-    ReportFormatter(errors, lintOptions.filter, outSink,
-            elapsedMs: timer.elapsedMilliseconds,
-            fileCount: linter.numSourcesAnalyzed,
-            fileRoot: commonRoot,
-            showStatistics: stats,
-            machineOutput: machine as bool,
-            quiet: quiet as bool)
-        .write();
+    ReportFormatter(
+      errors,
+      linterOptions.filter,
+      outSink,
+      elapsedMs: timer.elapsedMilliseconds,
+      fileCount: linter.numSourcesAnalyzed,
+      fileRoot: commonRoot,
+      showStatistics: stats,
+      machineOutput: machine as bool,
+      quiet: quiet as bool,
+    ).write();
     // ignore: avoid_catches_without_on_clauses
   } catch (err, stack) {
     errorSink.writeln('''An error occurred while linting
@@ -175,4 +165,19 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 $err
 $stack''');
   }
+}
+
+class _FileGlobFilter extends LintFilter {
+  final List<Glob> includes;
+  final List<Glob> excludes;
+
+  _FileGlobFilter(Iterable<String> includeGlobs, Iterable<String> excludeGlobs)
+      : includes = includeGlobs.map(Glob.new).toList(),
+        excludes = excludeGlobs.map(Glob.new).toList();
+
+  @override
+  bool filter(AnalysisError lint) =>
+      // TODO specify order
+      excludes.any((glob) => glob.matches(lint.source.fullName)) &&
+      !includes.any((glob) => glob.matches(lint.source.fullName));
 }

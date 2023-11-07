@@ -5,9 +5,9 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/formatter.dart';
 import 'package:test/test.dart';
 
+import '../tool/formatter.dart';
 import 'mocks.dart';
 
 void main() {

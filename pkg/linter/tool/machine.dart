@@ -10,12 +10,12 @@ import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/util/score_utils.dart' as score_utils;
 import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
 
 import '../test/test_constants.dart';
 import 'since.dart';
+import 'util/score_utils.dart' as score_utils;
 
 /// Generates a list of lint rules in machine format suitable for consumption by
 /// other tools.
