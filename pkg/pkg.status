@@ -199,6 +199,7 @@ analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
 [ $arch != x64 && ($system == linux || $system == windows) ]
 dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
+dds/test/devtools_server/remote_control_test: Skip # Chrome not available
 dds/test/devtools_server/server_connection_api_test: Skip # Chrome not available
 dds/test/devtools_server/server_connection_vm_service_test: Skip # Chrome not available
 dds/test/sse_smoke_test: Skip # Chrome not available
