@@ -653,10 +653,7 @@ class LibraryFormatter implements Formatter {
 /// we can distinguish them based on whether they have been tagged with
 /// runtime type information.
 class FunctionFormatter implements Formatter {
-  bool accept(object, config) {
-    if (_typeof(object) != 'function') return false;
-    return dart.getReifiedType(object) != null;
-  }
+  bool accept(object, config) => dart.isDartFunction(object);
 
   bool hasChildren(object) => true;
 
@@ -904,7 +901,7 @@ class StackTraceFormatter implements Formatter {
 }
 
 class ClassFormatter implements Formatter {
-  bool accept(object, config) => config == JsonMLConfig.asClass;
+  bool accept(object, config) => dart.isDartClass(object);
 
   String preview(type) {
     return getTypeName(type);

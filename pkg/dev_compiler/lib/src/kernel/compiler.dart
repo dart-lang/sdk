@@ -1870,9 +1870,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Add static property dart._runtimeType to Object.
     // All other Dart classes will (statically) inherit this property.
-    if (c == _coreTypes.objectClass) {
-      body.add(runtimeStatement('lazyFn(#, () => #.#)',
-          [className, emitLibraryName(_coreTypes.coreLibrary), 'Type']));
+    if (!_options.newRuntimeTypes && c == _coreTypes.objectClass) {
+      body.add(runtimeStatement('lazyFn(#, () => #)',
+          [className, _emitType(_coreTypes.typeNonNullableRawType)]));
     }
 
     _classEmittingSignatures = savedClass;
