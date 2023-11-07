@@ -5,9 +5,126 @@
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 mixin SharedPrinter {
+  Identifier? _enclosingDeclarationIdentifier;
+
+  TypePhaseIntrospector get introspector;
+
   TreeStringSink get sink;
 
-  Future<void> writeMetadata(Annotatable e) async {
+  bool shouldWriteDetailsFor(Declaration declaration) {
+    return true;
+  }
+
+  Future<void> writeClassDeclaration(ClassDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('class ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasAbstract': e.hasAbstract,
+        'hasBase': e.hasBase,
+        'hasExternal': e.hasExternal,
+        'hasFinal': e.hasFinal,
+        'hasInterface': e.hasInterface,
+        'hasMixin': e.hasMixin,
+        'hasSealed': e.hasSealed,
+      });
+      await _writeMetadata(e);
+      if (e.superclass case final superclass?) {
+        await _writeNamedTypeAnnotation('superclass', superclass);
+      }
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations('mixins', e.mixins);
+      await _writeTypeAnnotations('interfaces', e.interfaces);
+      await _writeTypeDeclarationMembers(e);
+    });
+  }
+
+  Future<void> writeField(FieldDeclaration e) async {
+    _assertEnclosingClass(e);
+
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasExternal': e.hasExternal,
+        'hasFinal': e.hasFinal,
+        'hasLate': e.hasLate,
+        'isStatic': e.isStatic,
+      });
+      await _writeMetadata(e);
+      await _writeNamedTypeAnnotation('type', e.type);
+    });
+  }
+
+  Future<void> writeMethodDeclaration(MethodDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasAbstract': e.hasAbstract,
+        'hasBody': e.hasBody,
+        'hasExternal': e.hasExternal,
+        'isGetter': e.isGetter,
+        'isOperator': e.isOperator,
+        'isSetter': e.isSetter,
+        'isStatic': e.isStatic,
+      });
+
+      await _writeMetadata(e);
+      await _writeNamedFormalParameters(e.namedParameters);
+      await _writePositionalFormalParameters(e.positionalParameters);
+      await _writeNamedTypeAnnotation('returnType', e.returnType);
+      await _writeTypeParameters(e.typeParameters);
+    });
+  }
+
+  Future<void> writeMixinDeclaration(MixinDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('mixin ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasBase': e.hasBase,
+      });
+
+      await _writeMetadata(e);
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations(
+        'superclassConstraints',
+        e.superclassConstraints,
+      );
+      await _writeTypeAnnotations('interfaces', e.interfaces);
+      await _writeTypeDeclarationMembers(e);
+    });
+  }
+
+  void _assertEnclosingClass(MemberDeclaration e) {
+    if (e.definingType != _enclosingDeclarationIdentifier) {
+      throw StateError('Mismatch: definingClass');
+    }
+  }
+
+  Future<void> _writeFormalParameter(ParameterDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'isNamed': e.isNamed,
+        'isRequired': e.isRequired,
+      });
+      await _writeMetadata(e);
+      await _writeNamedTypeAnnotation('type', e.type);
+    });
+  }
+
+  Future<void> _writeMetadata(Annotatable e) async {
     await sink.writeElements(
       'metadata',
       e.metadata,
@@ -33,6 +150,119 @@ mixin SharedPrinter {
         });
       default:
     }
+  }
+
+  Future<void> _writeNamedFormalParameters(
+    Iterable<ParameterDeclaration> elements,
+  ) async {
+    await sink.writeElements(
+      'namedParameters',
+      elements,
+      _writeFormalParameter,
+    );
+  }
+
+  Future<void> _writeNamedTypeAnnotation(
+    String name,
+    TypeAnnotation? type,
+  ) async {
+    sink.writeWithIndent('$name: ');
+    await _writeTypeAnnotation(type);
+  }
+
+  Future<void> _writePositionalFormalParameters(
+    Iterable<ParameterDeclaration> elements,
+  ) async {
+    await sink.writeElements(
+      'positionalParameters',
+      elements,
+      _writeFormalParameter,
+    );
+  }
+
+  Future<void> _writeTypeAnnotation(TypeAnnotation? type) async {
+    if (type != null) {
+      sink.writeln(type.asString);
+      await _writeTypeAnnotationDeclaration(type);
+    } else {
+      sink.writeln('null');
+    }
+  }
+
+  Future<void> _writeTypeAnnotationDeclaration(TypeAnnotation type) async {
+    final introspector = this.introspector;
+    if (introspector is! DeclarationPhaseIntrospector) {
+      return;
+    }
+
+    await sink.withIndent(() async {
+      switch (type) {
+        case NamedTypeAnnotation():
+          TypeDeclaration declaration;
+          try {
+            final identifier = type.identifier;
+            declaration = await introspector.typeDeclarationOf(identifier);
+          } on ArgumentError {
+            sink.writelnWithIndent('noDeclaration');
+            return;
+          }
+
+          switch (declaration) {
+            case ClassDeclaration():
+              await writeClassDeclaration(declaration);
+            case MixinDeclaration():
+              await writeMixinDeclaration(declaration);
+            default:
+              throw UnimplementedError('${declaration.runtimeType}');
+          }
+        default:
+          throw UnimplementedError('(${type.runtimeType}) $type');
+      }
+    });
+  }
+
+  Future<void> _writeTypeAnnotations(
+    String name,
+    Iterable<TypeAnnotation> types,
+  ) async {
+    await sink.writeElements(name, types, (type) async {
+      sink.writeIndent();
+      await _writeTypeAnnotation(type);
+    });
+  }
+
+  Future<void> _writeTypeDeclarationMembers(TypeDeclaration e) async {
+    _enclosingDeclarationIdentifier = e.identifier;
+
+    final introspector = this.introspector;
+    if (introspector is DeclarationPhaseIntrospector) {
+      if (e is IntrospectableType) {
+        await sink.writeElements(
+          'fields',
+          await introspector.fieldsOf(e),
+          writeField,
+        );
+      }
+    }
+
+    _enclosingDeclarationIdentifier = null;
+  }
+
+  Future<void> _writeTypeParameter(TypeParameterDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+      if (e.bound case final bound?) {
+        await _writeNamedTypeAnnotation('bound', bound);
+      }
+    });
+  }
+
+  Future<void> _writeTypeParameters(
+    Iterable<TypeParameterDeclaration> elements,
+  ) async {
+    await sink.writeElements('typeParameters', elements, _writeTypeParameter);
   }
 }
 
