@@ -28,11 +28,11 @@ DartLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
     root: sdkRoot,
   );
 
-  var options =
-      LinterOptions(enabledRules: [rule], analysisOptions: analysisOptions)
-        ..dartSdkPath = sdkRoot.path;
+  var options = LinterOptions([rule], analysisOptions)
+    ..dartSdkPath = sdkRoot.path
+    ..resourceProvider = resourceProvider;
 
-  return DartLinter(options, resourceProvider: resourceProvider);
+  return DartLinter(options);
 }
 
 /// A resource provider that accesses entities in a MemoryResourceProvider,

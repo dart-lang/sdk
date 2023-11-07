@@ -6,10 +6,9 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analyzer/error/error.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/charcodes.dart' show $backslash, $pipe;
 
-import 'util/analyzer_utils.dart';
+import 'analyzer.dart';
+import 'util/charcodes.dart' show $backslash, $pipe;
 import 'util/score_utils.dart';
 
 // Number of times to perform linting to get stable benchmarks.
@@ -43,10 +42,10 @@ String shorten(String? fileRoot, String fullName) {
 }
 
 Future writeBenchmarks(
-    IOSink out, List<File> filesToLint, LinterOptions linterOptions) async {
+    IOSink out, List<File> filesToLint, LinterOptions lintOptions) async {
   var timings = <String, int>{};
   for (var i = 0; i < benchmarkRuns; ++i) {
-    await lintFiles(DartLinter(linterOptions), filesToLint);
+    await lintFiles(DartLinter(lintOptions), filesToLint);
     lintRegistry.timers.forEach((n, t) {
       var timing = t.elapsedMilliseconds;
       var previous = timings[n];

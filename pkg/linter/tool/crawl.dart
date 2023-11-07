@@ -7,8 +7,7 @@ import 'dart:async';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
-
-import 'util/score_utils.dart' as score_utils;
+import 'package:linter/src/util/score_utils.dart' as score_utils;
 
 /// todo (pq): reign in the nullable types
 
