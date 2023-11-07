@@ -203,8 +203,10 @@ abstract interface class EnumDeclaration
 
 /// Enum entry introspection information.
 ///
-/// TODO(https://github.com/dart-lang/language/issues/1930): Design
-/// introspection API for the values of these (or decide not to).
+/// Note that enum values are not introspectable, because they can be augmented.
+///
+/// You can however do const evaluation of enum values, if they are not in a
+/// library cycle with the current library.
 abstract interface class EnumValueDeclaration implements Declaration {
   /// The enum that surrounds this entry.
   Identifier get definingEnum;
