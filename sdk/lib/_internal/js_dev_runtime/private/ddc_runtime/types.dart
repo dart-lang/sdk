@@ -1237,7 +1237,9 @@ gFnType(instantiateFn, typeBounds) =>
 
 /// Whether the given JS constructor [obj] is a Dart class type.
 @notNull
-bool isType(obj) => JS('', '#[#] === #', obj, _runtimeType, Type);
+bool isType(obj) => JS_GET_FLAG('NEW_RUNTIME_TYPES')
+    ? JS('', '#[#]', obj, rti.interfaceTypeRecipePropertyName) != null
+    : JS('', '#[#] === #', obj, _runtimeType, Type);
 
 void checkTypeBound(
     @notNull Object type, @notNull Object bound, @notNull String name) {
