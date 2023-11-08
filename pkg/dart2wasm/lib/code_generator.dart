@@ -813,12 +813,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         // Dart body may have an implicit return null.
         b.ref_null(returnType.heapType.bottomType);
       } else {
-        // This point is unreachable, but the Wasm validator still expects the
-        // stack to contain a value matching the Wasm function return type.
-        b.block(const [], outputs);
         b.comment("Unreachable implicit return");
         b.unreachable();
-        b.end();
       }
     }
   }
