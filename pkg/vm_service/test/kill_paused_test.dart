@@ -33,4 +33,8 @@ void main([args = const <String>[]]) async => runIsolateTests(
       tests,
       'kill_paused_test.dart',
       testeeConcurrent: testMain,
+      // The target will exit with a 255 exit code. Without this flag, it's
+      // possible for this test to fail flakily in the case where the process
+      // exits before the test cleanly tears down.
+      allowForNonZeroExitCode: true,
     );

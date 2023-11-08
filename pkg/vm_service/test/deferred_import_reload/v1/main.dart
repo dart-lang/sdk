@@ -7,31 +7,31 @@ import 'dart:isolate';
 import 'deferred.dart' deferred as prefix1;
 import 'deferred.dart' deferred as prefix2;
 
-main() {
+void main() {
   prefix1.loadLibrary();
-  RawReceivePort _ = new RawReceivePort();
+  RawReceivePort _ = RawReceivePort();
   print('spawned isolate running');
 }
 
-test() {
-  var x = "";
+String test() {
+  String x = '';
 
   try {
     x += prefix1.foo(); // Should retain loaded=true state across reload.
   } catch (e, st) {
     print(e);
     print(st);
-    x += "error";
+    x += 'error';
   }
 
-  x += ",";
+  x += ',';
 
   try {
     x += prefix2.foo(); // Should retain loaded=false state across reload.
   } catch (e, st) {
     print(e);
     print(st);
-    x += "error";
+    x += 'error';
   }
 
   return x;
