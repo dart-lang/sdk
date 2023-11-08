@@ -11248,7 +11248,7 @@ class DynamicType extends DartType {
   DartType get nonTypeVariableBound => this;
 
   @override
-  bool get hasNonObjectMemberAccess => true;
+  bool get hasNonObjectMemberAccess => false;
 
   @override
   bool equals(Object other, Assumptions? assumptions) => other is DynamicType;
